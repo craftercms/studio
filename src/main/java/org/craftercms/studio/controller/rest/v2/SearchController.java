@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.search.SearchItem;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
@@ -54,13 +55,13 @@ public class SearchController {
     public ResponseBody search(@RequestParam String siteId, @RequestParam String query,
                                @RequestParam(required = false, defaultValue = "0") int offset,
                                @RequestParam(required = false, defaultValue = "20") int limit,
-                               @RequestParam(required = false, defaultValue = "score") String sortBy,
-                               @RequestParam(required = false, defaultValue = "desc") Sort.Order sortOrder)
+                               @RequestParam(required = false, defaultValue = "score") String sortBy)
+//                               @RequestParam(required = false, defaultValue = "DESC") Sort.Order sortOrder)
         throws AuthenticationException, IOException {
 
         Sort sort = new Sort();
         sort.setField(sortBy);
-        sort.setOrder(sortOrder);
+//        sort.setOrder(sortOrder);
 
         SearchParams request = new SearchParams();
         request.setQuery(query);
@@ -69,12 +70,9 @@ public class SearchController {
         request.setSort(sort);
         SearchResult searchResult = searchService.search(siteId, request);
 
-        PaginatedResultList<SearchItem> result = new PaginatedResultList<>();
+        ResultOne<SearchResult> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_ITEMS, searchResult.getItems());
-        result.setOffset(offset);
-        result.setLimit(limit);
-        result.setTotal((int) searchResult.getTotal());
+        result.setEntity("result", searchResult);
 
         ResponseBody body = new ResponseBody();
         body.setResult(result);

@@ -17,8 +17,31 @@
 
 package org.craftercms.studio.model.search;
 
+import java.util.Map;
+
 /**
  * @author joseross
  */
 public class SearchFacet {
+
+    protected String name;
+
+    protected Map<Object, Object> values;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    public Map<Object, Object> getValues() {
+        return values;
+    }
+
+    public void setValues(final Map<Object, Object> values) {
+        this.values = values;
+    }
+
 }

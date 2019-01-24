@@ -133,6 +133,7 @@
                 <bean class="org.craftercms.commons.jackson.ObjectIdSerializer"/>
                 <bean class="org.craftercms.core.util.json.jackson.Dom4jDocumentJsonSerializer"/>
                 <bean class="com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer" />
+                <bean class="com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer"/>
             </list>
         </property>
         <property name="deserializers">

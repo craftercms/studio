@@ -28,6 +28,8 @@ public class SearchResult {
 
     protected List<SearchItem> items;
 
+    protected List<SearchFacet> facets;
+
     public long getTotal() {
         return total;
     }
@@ -42,6 +44,14 @@ public class SearchResult {
 
     public void setItems(final List<SearchItem> items) {
         this.items = items;
+    }
+
+    public List<SearchFacet> getFacets() {
+        return facets;
+    }
+
+    public void setFacets(final List<SearchFacet> facets) {
+        this.facets = facets;
     }
 
 }

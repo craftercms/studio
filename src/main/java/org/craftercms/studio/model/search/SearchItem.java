@@ -17,30 +17,67 @@
 
 package org.craftercms.studio.model.search;
 
-import java.util.Map;
+import java.time.Instant;
 
 /**
  * @author joseross
  */
 public class SearchItem {
 
-    protected String id;
-    protected Map<String, Object> properties;
+    protected String path;
+    protected String type;
+    protected String previewUrl;
+    protected String lastModifier;
 
-    public String getId() {
-        return id;
+    protected Instant lastModified;
+    protected long size;
+
+    public String getPath() {
+        return path;
     }
 
-    public void setId(final String id) {
-        this.id = id;
+    public void setPath(final String path) {
+        this.path = path;
     }
 
-    public Map<String, Object> getProperties() {
-        return properties;
+    public String getType() {
+        return type;
     }
 
-    public void setProperties(final Map<String, Object> properties) {
-        this.properties = properties;
+    public void setType(final String type) {
+        this.type = type;
+    }
+
+    public String getPreviewUrl() {
+        return previewUrl;
+    }
+
+    public void setPreviewUrl(final String previewUrl) {
+        this.previewUrl = previewUrl;
+    }
+
+    public String getLastModifier() {
+        return lastModifier;
+    }
+
+    public void setLastModifier(final String lastModifier) {
+        this.lastModifier = lastModifier;
+    }
+
+    public Instant getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(final Instant lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(final long size) {
+        this.size = size;
     }
 
 }

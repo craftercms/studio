@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.commons.elasticsearch.impl.AbstractElasticSearchWrapper;
+import org.craftercms.search.elasticsearch.impl.AbstractElasticSearchWrapper;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;

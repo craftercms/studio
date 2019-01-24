@@ -519,3 +519,56 @@ studio.cors.maxage: -1
 studio.search.urls: http://localhost:9201
 studio.search.index.suffix: -authoring
 studio.search.field.path: localId
+studio.search.field.edit: lastEditedOn
+studio.search.field.editor: lastEditedBy
+studio.search.field.size: contentLength
+studio.search.default.type: Other
+studio.search.types:
+  - name: Image
+    field: contentType
+    matches: ^image/.*$
+  - name: Video
+    field: contentType
+    matches: ^video/.*$
+  - name: CSS
+    field: contentType
+    matches: ^text/css$
+  - name: JavaScript
+    field: contentType
+    matches: ^text/javascript$
+  - name: Groovy
+    field: contentType
+    matches: ^text/groovy$
+  - name: Template
+    field: contentType
+    matches: ^text/freemarker$
+  - name: PDF
+    field: contentType
+    matches: ^text/pdf$
+  - name: Page
+    field: content-type
+    matches: ^/page/.*$
+  - name: Component
+    field: content-type
+    matches: ^/component/.*$
+  - name: Taxonomy
+    field: content-type
+    matches: ^/taxonomy$
+studio.search.facets.fields:
+  - name: content-type
+    field: content-type
+  - name: contentType
+    field: contentType
+studio.search.facets.ranges:
+  - name: contentLength
+    field: contentLength
+    offset: 100
+    interval: 99900
+  - name: width
+    field: width
+    offset: 0
+    interval: 10
+  - name: height
+    field: height
+    offset: 0
+    interval: 10
