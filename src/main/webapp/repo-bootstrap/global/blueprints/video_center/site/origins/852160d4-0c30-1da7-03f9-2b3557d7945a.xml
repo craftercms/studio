@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream-origin</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>8521</objectGroupId>
+	<objectId>852160d4-0c30-1da7-03f9-2b3557d7945a</objectId>
+	<file-name>852160d4-0c30-1da7-03f9-2b3557d7945a.xml</file-name>
+	<internal-name>Big Buck Bunny</internal-name>
+	<url>https://wowzaec2demo.streamlock.net/live/bigbuckbunny/manifest_mpm4sav_mvtime.mpd</url>
+	<encoding>application/x-mpegURL</encoding>
+	<createdDate>2018-08-03T21:53:18.866Z</createdDate>
+	<createdDate_dt>2018-08-03T21:53:18.866Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T21:53:18.866Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T21:53:18.866Z</lastModifiedDate_dt>
+</component>

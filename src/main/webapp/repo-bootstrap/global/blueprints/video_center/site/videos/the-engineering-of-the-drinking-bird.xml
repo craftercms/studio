@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>e573</objectGroupId>
+	<objectId>e573c98b-aea9-64f3-9e0f-4138bab4561e</objectId>
+	<file-name>the-engineering-of-the-drinking-bird.xml</file-name>
+	<folder-name/>
+	<internal-name>The Engineering of the Drinking Bird</internal-name>
+	<title_s tokenized="true">The Engineering of the Drinking Bird</title_s>
+	<youTubeVideo>UCKC-QVcVn0</youTubeVideo>
+	<summary_s>Bill reveals the operation and engineering design underlying the famous drinking bird toy. In this video he explores the role played by the water the bird "drinks," shows what is under the bird's hat and demonstrates that it can operate using heat from a light bulb or by "drinking" whiskey. You can find more of Bill's videos and his books at www.engineerguy.com.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/e573c98b-aea9-64f3-9e0f-4138bab4561e/the-engineering-of-the-drinking-bird.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Bill reveals the operation and engineering design underlying the famous drinking bird toy. In this video he explores the role played by the water the bird \&amp;quot;drinks,\&amp;quot; shows what is under the bird&amp;#39;s hat and demonstrates that it can operate using heat from a light bulb or by \&amp;quot;drinking\&amp;quot; whiskey. You can find more of Bill&amp;#39;s videos and his books at www.engineerguy.com.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Bill reveals the operation and engineering design underlying the famous drinking bird toy. In this video he explores the role played by the water the bird "drinks," shows what is under the bird&amp;#39;s hat and demonstrates that it can operate using heat from a light bulb or by "drinking" whiskey. You can find more of Bill&amp;#39;s videos and his books at www.engineerguy.com.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-01-30T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:49:01.200Z</createdDate>
+	<createdDate_dt>2018-04-24T20:49:01.200Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:16:13.712Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:16:13.712Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>engineering</key>
+	<value_smv>Engineering</value_smv>
+	</item></channels>
+</component>

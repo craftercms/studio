@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/component-channel</content-type>	<display-template>/templates/web/entry.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>4f71</objectGroupId>
+	<objectId>4f716275-912c-2a27-97d6-4021bf6676b3</objectId>
+	<file-name>mathematics.xml</file-name>
+	<folder-name/>
+	<internal-name>Mathematics</internal-name>
+	<description>Lorem ipsum dolor sit amet, consetetur sadipscing elit</description>
+	<heroImage>/static-assets/images/channels/4f716275-912c-2a27-97d6-4021bf6676b3/mathematics.jpg</heroImage>
+	<thumbnailImage>/static-assets/images/channels/4f716275-912c-2a27-97d6-4021bf6676b3/mathematics-thumbnail.jpg</thumbnailImage>
+	<createdDate>2018-05-25T19:49:36.547Z</createdDate>
+	<createdDate_dt>2018-05-25T19:49:36.547Z</createdDate_dt>
+	<lastModifiedDate>2019-01-23T16:22:03.851Z</lastModifiedDate>
+	<lastModifiedDate_dt>2019-01-23T16:22:03.851Z</lastModifiedDate_dt>
+	<featured>false</featured>
+	<tags item-list="true">	<item>	<value>mathematics</value>
+	</item>	<item>	<value>numbers</value>
+	</item>	<item>	<value>geometry</value>
+	</item>	<item>	<value>algebra</value>
+	</item>	<item>	<value>trigonometry</value>
+	</item></tags>
+	<maxVideosDisplay>6</maxVideosDisplay>
+	<maxChannelsDisplay>3</maxChannelsDisplay>
+	<channelKey>mathematics</channelKey>
+</component>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<site>
+	<!-- SPA -->
+    <spa>
+    	<enabled>true</enabled>
+        <viewName>/templates/web/entry.ftl</viewName>
+    </spa>
+
+	<!-- CORS Properties -->
+    <cors>
+        <enable>true</enable>
+        <accessControlMaxAge>3600</accessControlMaxAge>
+        <accessControlAllowOrigin>*</accessControlAllowOrigin>
+        <accessControlAllowMethods>GET\, POST\, PUT</accessControlAllowMethods>
+        <accessControlAllowHeaders>Content-Type</accessControlAllowHeaders>
+        <accessControlAllowCredentials>true</accessControlAllowCredentials>
+    </cors>
+    
+    <!-- Navigation properties -->
+   	<navigation>
+        <additionalFields>reactComponent</additionalFields>
+    </navigation>
+</site>

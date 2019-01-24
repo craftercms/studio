@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/entry</content-type>	<display-template>/templates/web/entry.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>342442e7</objectGroupId>
+	<objectId>342442e7-084f-409f-890f-e08d1bc50ece</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>search</folder-name>
+	<internal-name>Search</internal-name>
+	<reactComponent>Search</reactComponent>
+	<placeInNav>false</placeInNav>
+	<orderDefault_f>-1</orderDefault_f>
+	<disabled>false</disabled>
+	<createdDate>2018-05-17T18:05:25.406Z</createdDate>
+	<createdDate_dt>2018-05-17T18:05:25.406Z</createdDate_dt>
+	<lastModifiedDate>2018-08-06T19:52:28.417Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-06T19:52:28.417Z</lastModifiedDate_dt>
+</page>

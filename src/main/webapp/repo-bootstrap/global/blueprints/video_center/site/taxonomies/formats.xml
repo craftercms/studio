@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>fa96</objectGroupId>
+	<objectId>fa96deee-2395-225e-3dc0-8eef5a20da74</objectId>
+	<items>	<item>	<key>video</key>
+	<value>Video</value>
+	</item>	<item>	<key>stream</key>
+	<value>Stream</value>
+	</item></items>
+	<file-name>formats.xml</file-name>
+	<folder-name/>
+	<internal-name>Formats</internal-name>
+	<createdDate>2018-05-29T17:14:13.189Z</createdDate>
+	<createdDate_dt>2018-05-29T17:14:13.189Z</createdDate_dt>
+	<lastModifiedDate>2018-05-29T17:14:13.189Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-29T17:14:13.189Z</lastModifiedDate_dt>
+</component>

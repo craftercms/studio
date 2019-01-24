@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>4d12</objectGroupId>
+	<objectId>4d12b7de-0c73-e205-cdbb-784e3821f1c0</objectId>
+	<file-name>why-is-glass-transparent.xml</file-name>
+	<folder-name/>
+	<internal-name>Why is Glass Transparent?</internal-name>
+	<title_s tokenized="true">Why is Glass Transparent?</title_s>
+	<youTubeVideo>Omr0JNyDBI0</youTubeVideo>
+	<summary_s>Sixty Symbols regular Professor Phil Moriarty discusses transparent glass and the so-called energy gap.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/4d12b7de-0c73-e205-cdbb-784e3821f1c0/why-is-glass-transparent.jpg</thumbnail>
+	<description_html>&lt;p&gt;PS MESSAGE FROM PROF MORIARTY: "I misspoke for the last sentence of the video. What I meant to say is that the photons don&amp;#39;t have enough energy to excite electrons across the energy gap and therefore light is transmitted. What I said was precisely the opposite, contradicting everything else in the video. Apologies for any confusion caused."&lt;/p&gt;</description_html>
+	<date_dt>2011-02-01T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T19:49:54.906Z</createdDate>
+	<createdDate_dt>2018-04-24T19:49:54.906Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:16:44.278Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:16:44.278Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>physics</key>
+	<value_smv>Physics</value_smv>
+	</item></channels>
+</component>

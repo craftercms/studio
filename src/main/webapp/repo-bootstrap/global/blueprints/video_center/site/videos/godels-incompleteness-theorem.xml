@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>989a</objectGroupId>
+	<objectId>989a14b5-b3de-b018-93a1-1ecb09e310c8</objectId>
+	<file-name>godels-incompleteness-theorem.xml</file-name>
+	<folder-name/>
+	<internal-name>Gödel's Incompleteness Theorem</internal-name>
+	<title_s tokenized="true">Gödel's Incompleteness Theorem</title_s>
+	<youTubeVideo>O4ndIDcDSGc</youTubeVideo>
+	<summary_s>Marcus du Sautoy discusses Gödel's Incompleteness Theorem</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/989a14b5-b3de-b018-93a1-1ecb09e310c8/godels-incompleteness-theorem.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Marcus du Sautoy discusses G&amp;ouml;del&amp;#39;s Incompleteness Theorem&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Marcus du Sautoy discusses G&amp;ouml;del&amp;#39;s Incompleteness Theorem&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2017-05-31T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:17:46.486Z</createdDate>
+	<createdDate_dt>2018-04-24T20:17:46.486Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:14:55.080Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:14:55.080Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>mathematics</key>
+	<value_smv>Mathematics</value_smv>
+	</item></channels>
+</component>

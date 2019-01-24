@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>ea56</objectGroupId>
+	<objectId>ea56df57-f550-f5d3-fbee-a11dd9f84c90</objectId>
+	<file-name>light-bulb-in-hydrofluoric-acid-hf.xml</file-name>
+	<folder-name/>
+	<internal-name>Light Bulb in Hydrofluoric Acid (HF)</internal-name>
+	<title_s tokenized="true">Light Bulb in Hydrofluoric Acid (HF)</title_s>
+	<youTubeVideo>6ZBwluyR2Tc</youTubeVideo>
+	<summary_s>We dunk a glowing lightbulb in HF - an acid famed for being disagreeable with glass.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/ea56df57-f550-f5d3-fbee-a11dd9f84c90/light-bulb-in-hydrofluoric-acid-hf.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;We dunk a glowing lightbulb in HF - an acid famed for being disagreeable with glass.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;We dunk a glowing lightbulb in HF - an acid famed for being disagreeable with glass.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2014-11-19T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:04:37.304Z</createdDate>
+	<createdDate_dt>2018-04-24T20:04:37.304Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:15:39.744Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:15:39.744Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>chemistry</key>
+	<value_smv>Chemistry</value_smv>
+	</item></channels>
+</component>

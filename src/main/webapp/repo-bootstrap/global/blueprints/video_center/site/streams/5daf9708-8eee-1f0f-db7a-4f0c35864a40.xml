@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>5daf</objectGroupId>
+	<objectId>5daf9708-8eee-1f0f-db7a-4f0c35864a40</objectId>
+	<file-name>5daf9708-8eee-1f0f-db7a-4f0c35864a40.xml</file-name>
+	<internal-name>The Psychology of Persuasion</internal-name>
+	<title_s tokenized="true">The Psychology of Persuasion</title_s>
+	<summary_s>What makes some people more persuasive then others? Join us and find out!</summary_s>
+	<origin item-list="true">	<item>	<key>/site/origins/852160d4-0c30-1da7-03f9-2b3557d7945a.xml</key>
+	<value>Big Buck Bunny</value>
+	<include>/site/origins/852160d4-0c30-1da7-03f9-2b3557d7945a.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></origin>
+	<thumbnail>/static-assets/images/videos/6f1b063a-cb5d-6afd-ce79-02972ba88fb9/auditorium-benches-chairs-207691.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;What makes some people more persuasive then others? Join us and find out!&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;What makes some people more persuasive then others? Join us and find out!&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2020-12-01T05:00:00.000Z</date_dt>
+	<startDate_dt>2020-12-01T08:00:00.000Z</startDate_dt>
+	<endDate_dt>2020-12-31T22:00:00.000Z</endDate_dt>
+	<createdDate>2018-04-26T15:41:30.545Z</createdDate>
+	<createdDate_dt>2018-04-26T15:41:30.545Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T22:07:29.456Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T22:07:29.456Z</lastModifiedDate_dt>
+	<startDate_dt_tz>Etc/GMT</startDate_dt_tz>
+	<endDate_dt_tz>Etc/GMT</endDate_dt_tz>
+	<channels>	<item>	<key>psychology</key>
+	<value_smv>Psychology</value_smv>
+	</item></channels>
+</component>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>3222</objectGroupId>
+	<objectId>32226645-0b62-613f-558f-c7c60757ebff</objectId>
+	<file-name>lift-and-wings.xml</file-name>
+	<folder-name/>
+	<internal-name>Lift and Wings</internal-name>
+	<title_s tokenized="true">Lift and Wings</title_s>
+	<youTubeVideo>PF22LM8AbII</youTubeVideo>
+	<summary_s>Featuring Professor Mike Merrifield. Animation by Pete McPartlan.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/32226645-0b62-613f-558f-c7c60757ebff/lift-and-wings.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Featuring Professor Mike Merrifield. Animation by Pete McPartlan.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Featuring Professor Mike Merrifield. Animation by Pete McPartlan.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2017-09-11T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T19:54:18.108Z</createdDate>
+	<createdDate_dt>2018-04-24T19:54:18.108Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:15:32.262Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:15:32.262Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>physics</key>
+	<value_smv>Physics</value_smv>
+	</item></channels>
+</component>

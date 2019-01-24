@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>42b8</objectGroupId>
+	<objectId>42b8745b-95ba-0856-f3eb-9533b966e5fb</objectId>
+	<file-name>the-age-of-the-universe.xml</file-name>
+	<folder-name/>
+	<internal-name>The Age of the Universe</internal-name>
+	<title_s tokenized="true">The Age of the Universe</title_s>
+	<youTubeVideo>R30ratQanWw</youTubeVideo>
+	<summary_s>How do we know the age of the Universe? Featuring Dr Becky Smethurst and Professor Ed Copeland.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/42b8745b-95ba-0856-f3eb-9533b966e5fb/the-age-of-the-universe.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;How do we know the age of the Universe? Featuring Dr Becky Smethurst and Professor Ed Copeland.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;How do we know the age of the Universe? Featuring Dr Becky Smethurst and Professor Ed Copeland.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-02-02T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:10:56.323Z</createdDate>
+	<createdDate_dt>2018-04-24T20:10:56.323Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:16:08.822Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:16:08.822Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>astronomy</key>
+	<value_smv>Astronomy</value_smv>
+	</item></channels>
+</component>

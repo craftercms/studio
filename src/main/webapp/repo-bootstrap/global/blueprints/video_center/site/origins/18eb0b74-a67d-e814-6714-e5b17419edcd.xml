@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream-origin</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>18eb</objectGroupId>
+	<objectId>18eb0b74-a67d-e814-6714-e5b17419edcd</objectId>
+	<file-name>18eb0b74-a67d-e814-6714-e5b17419edcd.xml</file-name>
+	<internal-name>CBS News</internal-name>
+	<url>https://www.cbsnews.com/common/video/dai_prod.m3u8</url>
+	<encoding>application/x-mpegURL</encoding>
+	<createdDate>2018-04-24T21:26:37.372Z</createdDate>
+	<createdDate_dt>2018-04-24T21:26:37.372Z</createdDate_dt>
+	<lastModifiedDate>2018-04-24T21:26:37.372Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-04-24T21:26:37.372Z</lastModifiedDate_dt>
+</component>

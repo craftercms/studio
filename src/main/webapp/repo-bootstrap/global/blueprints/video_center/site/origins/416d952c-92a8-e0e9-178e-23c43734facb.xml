@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream-origin</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>416d</objectGroupId>
+	<objectId>416d952c-92a8-e0e9-178e-23c43734facb</objectId>
+	<file-name>416d952c-92a8-e0e9-178e-23c43734facb.xml</file-name>
+	<internal-name>ShakaDemo</internal-name>
+	<url>https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd</url>
+	<encoding>application/x-mpegURL</encoding>
+	<createdDate>2018-08-03T21:42:28.938Z</createdDate>
+	<createdDate_dt>2018-08-03T21:42:28.938Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T21:42:28.938Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T21:42:28.938Z</lastModifiedDate_dt>
+</component>

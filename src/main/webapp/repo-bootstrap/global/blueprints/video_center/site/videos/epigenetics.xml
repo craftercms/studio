@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>470f</objectGroupId>
+	<objectId>470f70f4-06f9-fcd8-cd31-da39119d37a6</objectId>
+	<file-name>epigenetics.xml</file-name>
+	<folder-name/>
+	<internal-name>Epigenetics</internal-name>
+	<title_s tokenized="true">Epigenetics</title_s>
+	<youTubeVideo>kp1bZEUgqVI</youTubeVideo>
+	<summary_s>Hank &amp; his clone Circus Hank explain the power of epigenetics, which studies the factors that determine how much or whether some genes are expressed in your body.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/470f70f4-06f9-fcd8-cd31-da39119d37a6/epigenetics.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Hank &amp;amp; his clone Circus Hank explain the power of epigenetics, which studies the factors that determine how much or whether some genes are expressed in your body.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Hank &amp;amp; his clone Circus Hank explain the power of epigenetics, which studies the factors that determine how much or whether some genes are expressed in your body.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2012-01-22T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:23:21.244Z</createdDate>
+	<createdDate_dt>2018-04-24T20:23:21.244Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:14:44.151Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:14:44.151Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>biology</key>
+	<value_smv>Biology</value_smv>
+	</item></channels>
+</component>

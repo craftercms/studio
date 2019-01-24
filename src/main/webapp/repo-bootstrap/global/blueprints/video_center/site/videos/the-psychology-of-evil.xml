@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>fddc</objectGroupId>
+	<objectId>fddcd236-78ef-01fe-b08f-1d08d57ff200</objectId>
+	<file-name>the-psychology-of-evil.xml</file-name>
+	<folder-name/>
+	<internal-name>The Psychology of Evil</internal-name>
+	<title_s tokenized="true">The Psychology of Evil</title_s>
+	<youTubeVideo>OsFEV35tWsg</youTubeVideo>
+	<summary_s>Philip Zimbardo knows how easy it is for nice people to turn bad. In this talk, he shares insights and graphic unseen photos from the Abu Ghraib trials. Then he talks about the flip side: how easy it is to be a hero, and how we can rise to the challenge.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/fddcd236-78ef-01fe-b08f-1d08d57ff200/the-psychology-of-evil.jpg</thumbnail>
+	<description_html>&lt;p&gt;Philip Zimbardo knows how easy it is for nice people to turn bad. In this talk, he shares insights and graphic unseen photos from the Abu Ghraib trials. Then he talks about the flip side: how easy it is to be a hero, and how we can rise to the challenge.&lt;/p&gt;</description_html>
+	<date_dt>2008-09-23T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:57:29.721Z</createdDate>
+	<createdDate_dt>2018-04-24T20:57:29.721Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:16:30.455Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:16:30.455Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>psychology</key>
+	<value_smv>Psychology</value_smv>
+	</item></channels>
+</component>

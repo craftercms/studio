@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>b8c8</objectGroupId>
+	<objectId>b8c8d429-71da-47c0-8657-348be125ef20</objectId>
+	<file-name>b8c8d429-71da-47c0-8657-348be125ef20.xml</file-name>
+	<internal-name>Gravitational Waves and LIGO</internal-name>
+	<title_s tokenized="true">Gravitational Waves and LIGO</title_s>
+	<summary_s>In this talk, we will discuss gravitational waves and LIGO (Laser Interferometer Gravitational-Wave Observatory).</summary_s>
+	<origin item-list="true">	<item>	<key>/site/origins/852160d4-0c30-1da7-03f9-2b3557d7945a.xml</key>
+	<value>Big Buck Bunny</value>
+	<include>/site/origins/852160d4-0c30-1da7-03f9-2b3557d7945a.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></origin>
+	<thumbnail>/static-assets/images/videos/6f1b063a-cb5d-6afd-ce79-02972ba88fb9/auditorium-benches-chairs-207691.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;In this talk, we will discuss gravitational waves and LIGO (Laser Interferometer Gravitational-Wave Observatory).&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;In this talk, we will discuss gravitational waves and LIGO (Laser Interferometer Gravitational-Wave Observatory).&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-03-14T04:00:00.000Z</date_dt>
+	<startDate_dt>2019-03-01T08:00:00.000Z</startDate_dt>
+	<endDate_dt>2019-03-31T22:00:00.000Z</endDate_dt>
+	<createdDate>2018-04-26T15:30:01.707Z</createdDate>
+	<createdDate_dt>2018-04-26T15:30:01.707Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T22:05:49.593Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T22:05:49.593Z</lastModifiedDate_dt>
+	<startDate_dt_tz>Etc/GMT</startDate_dt_tz>
+	<endDate_dt_tz>Etc/GMT</endDate_dt_tz>
+	<channels>	<item>	<key>astronomy</key>
+	<value_smv>Astronomy</value_smv>
+	</item></channels>
+</component>

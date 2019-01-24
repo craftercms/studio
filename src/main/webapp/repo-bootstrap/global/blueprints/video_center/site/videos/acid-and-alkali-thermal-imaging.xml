@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>3547</objectGroupId>
+	<objectId>354752f1-c8f1-f923-4a4d-99478b677410</objectId>
+	<file-name>acid-and-alkali-thermal-imaging.xml</file-name>
+	<folder-name/>
+	<internal-name>Acid and Alkali (THERMAL IMAGING)</internal-name>
+	<title_s tokenized="true">Acid and Alkali (THERMAL IMAGING)</title_s>
+	<youTubeVideo>k-tFHVkUjMU</youTubeVideo>
+	<summary_s>Acid and Alkali in water... look with thermal imaging.</summary_s>
+	<featured>true</featured>
+	<thumbnail>/static-assets/images/videos/354752f1-c8f1-f923-4a4d-99478b677410/acid-and-alkali-thermal-imaging.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Acid and Alkali in water... look with thermal imaging.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Acid and Alkali in water... look with thermal imaging.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2016-11-30T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T19:59:22.457Z</createdDate>
+	<createdDate_dt>2018-04-24T19:59:22.457Z</createdDate_dt>
+	<lastModifiedDate>2018-05-28T21:04:38.439Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-28T21:04:38.439Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>chemistry</key>
+	<value_smv>Chemistry</value_smv>
+	</item></channels>
+</component>

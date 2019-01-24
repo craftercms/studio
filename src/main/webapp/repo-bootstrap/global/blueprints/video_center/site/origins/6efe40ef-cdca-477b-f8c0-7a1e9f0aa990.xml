@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream-origin</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>6efe</objectGroupId>
+	<objectId>6efe40ef-cdca-477b-f8c0-7a1e9f0aa990</objectId>
+	<file-name>6efe40ef-cdca-477b-f8c0-7a1e9f0aa990.xml</file-name>
+	<internal-name>Example</internal-name>
+	<url>https://video-dev.github.io/streams/x36xhzz/x36xhzz.m3u8</url>
+	<encoding>application/x-mpegURL</encoding>
+	<createdDate>2018-04-25T16:03:57.644Z</createdDate>
+	<createdDate_dt>2018-04-25T16:03:57.644Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T21:43:26.633Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T21:43:26.633Z</lastModifiedDate_dt>
+</component>

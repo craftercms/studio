@@ -1,0 +1,16 @@
+<content-type name="/component/stream" is-wcm-type="true">
+	<label>Stream</label>
+	<form>/component/stream</form>
+	<form-path>simple</form-path>
+	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>false</content-as-folder>
+	<previewable>false</previewable>
+	<noThumbnail>true</noThumbnail>
+	<image-thumbnail></image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/streams/.*</pattern>
+		</includes>
+	</paths>
+</content-type>

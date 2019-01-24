@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>cb01</objectGroupId>
+	<objectId>cb010821-0a94-6ebb-edc2-5cbc1a60b014</objectId>
+	<file-name>cb010821-0a94-6ebb-edc2-5cbc1a60b014.xml</file-name>
+	<internal-name>Inflated Self Assessment</internal-name>
+	<title_s tokenized="true">Inflated Self Assessment</title_s>
+	<summary_s>Ever wondered why the more you learn about a topic, the more you understand how little you know? Join us for this event where we dive into people's self assessment mechanics and how it inversely correlates with their competence.</summary_s>
+	<origin item-list="true">	<item>	<key>/site/origins/416d952c-92a8-e0e9-178e-23c43734facb.xml</key>
+	<value>ShakaDemo</value>
+	<include>/site/origins/416d952c-92a8-e0e9-178e-23c43734facb.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></origin>
+	<thumbnail>/static-assets/images/videos/6f1b063a-cb5d-6afd-ce79-02972ba88fb9/auditorium-benches-chairs-207691.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Ever wondered why the more you learn about a topic, the more you understand how little you know? Join us for this event where we dive into people&amp;#39;s self assessment mechanics and how it inversely corrolates with their competence.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Ever wondered why the more you learn about a topic, the more you understand how little you know? Join us for this event where we dive into people&amp;#39;s self assessment mechanics and how it inversely correlates with their competence.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-03-01T05:00:00.000Z</date_dt>
+	<startDate_dt>2020-03-01T08:00:00.000Z</startDate_dt>
+	<endDate_dt>2020-03-31T22:00:00.000Z</endDate_dt>
+	<createdDate>2018-04-26T15:39:56.460Z</createdDate>
+	<createdDate_dt>2018-04-26T15:39:56.460Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T22:06:07.176Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T22:06:07.176Z</lastModifiedDate_dt>
+	<startDate_dt_tz>Etc/GMT</startDate_dt_tz>
+	<endDate_dt_tz>Etc/GMT</endDate_dt_tz>
+	<channels>	<item>	<key>psychology</key>
+	<value_smv>Psychology</value_smv>
+	</item></channels>
+</component>

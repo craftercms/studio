@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/component-channel</content-type>	<display-template>/templates/web/entry.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>1194</objectGroupId>
+	<objectId>11945997-d8c6-b053-bd0f-cbe4734e8d14</objectId>
+	<file-name>computer-science.xml</file-name>
+	<folder-name/>
+	<internal-name>Computer Science</internal-name>
+	<createdDate>2018-05-25T19:34:08.558Z</createdDate>
+	<createdDate_dt>2018-05-25T19:34:08.558Z</createdDate_dt>
+	<lastModifiedDate>2019-01-23T16:19:10.832Z</lastModifiedDate>
+	<lastModifiedDate_dt>2019-01-23T16:19:10.832Z</lastModifiedDate_dt>
+	<description>Lorem ipsum dolor sit amet, consetetur sadipscing elitr</description>
+	<heroImage>/static-assets/images/channels/11945997-d8c6-b053-bd0f-cbe4734e8d14/computer-science.jpg</heroImage>
+	<thumbnailImage>/static-assets/images/channels/11945997-d8c6-b053-bd0f-cbe4734e8d14/computer-science-thumbnail.jpg</thumbnailImage>
+	<featured>true</featured>
+	<tags item-list="true">	<item>	<value>computers</value>
+	</item>	<item>	<value>science</value>
+	</item>	<item>	<value>programming</value>
+	</item>	<item>	<value>networks</value>
+	</item>	<item>	<value>information</value>
+	</item>	<item>	<value>engineering</value>
+	</item></tags>
+	<maxVideosDisplay>6</maxVideosDisplay>
+	<maxChannelsDisplay>3</maxChannelsDisplay>
+	<channelKey>computer-science</channelKey>
+</component>

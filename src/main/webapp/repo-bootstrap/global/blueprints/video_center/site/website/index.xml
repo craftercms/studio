@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/page-home</content-type>	<display-template>/templates/web/entry.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<placeInNav>false</placeInNav>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<orderDefault_f>-1</orderDefault_f>
+	<objectGroupId>8d7f</objectGroupId>
+	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
+	<folder-name/>
+	<createdDate>2017-1-31T16:18:14.000Z</createdDate>
+	<createdDate_dt>2017-1-31T16:18:14.000Z</createdDate_dt>
+	<lastModifiedDate>2018-07-19T23:40:32.152Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-07-19T23:40:32.152Z</lastModifiedDate_dt>
+	<disabled>false</disabled>
+	<slider>	<item>	<key>/site/components/sliders/home-slider.xml</key>
+	<value>Home Slider</value>
+	<include>/site/components/sliders/home-slider.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></slider>
+	<reactComponent>Home</reactComponent>
+	<maxVideosDisplay>6</maxVideosDisplay>
+	<maxChannelsDisplay>3</maxChannelsDisplay>
+</page>

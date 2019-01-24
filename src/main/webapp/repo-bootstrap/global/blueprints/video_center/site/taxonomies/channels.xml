@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>e691</objectGroupId>
+	<objectId>e691d9be-4cd7-9088-8fc1-b31b7fa81fa9</objectId>
+	<items>	<item>	<key>computer-science</key>
+	<value>Computer Science</value>
+	</item>	<item>	<key>physics</key>
+	<value>Physics</value>
+	</item>	<item>	<key>chemistry</key>
+	<value>Chemistry</value>
+	</item>	<item>	<key>astronomy</key>
+	<value>Astronomy</value>
+	</item>	<item>	<key>mathematics</key>
+	<value>Mathematics</value>
+	</item>	<item>	<key>biology</key>
+	<value>Biology</value>
+	</item>	<item>	<key>engineering</key>
+	<value>Engineering</value>
+	</item>	<item>	<key>psychology</key>
+	<value>Psychology</value>
+	</item></items>
+	<file-name>channels.xml</file-name>
+	<folder-name/>
+	<internal-name>Channels</internal-name>
+	<createdDate>2018-05-25T19:51:42.895Z</createdDate>
+	<createdDate_dt>2018-05-25T19:51:42.895Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T19:51:42.895Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T19:51:42.895Z</lastModifiedDate_dt>
+</component>

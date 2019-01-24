@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/component-slider</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>be61</objectGroupId>
+	<objectId>be613458-e288-09f8-ea6b-cda3791a2003</objectId>
+	<slides>	<item>	<tItle>Teaching Your Kid to Code</tItle>
+	<subtitle>Computer programming is becoming an...</subtitle>
+	<vod>Computer Science</vod>
+	<background>/static-assets/images/videos/6f1b063a-cb5d-6afd-ce79-02972ba88fb9/auditorium-benches-chairs-207691.jpg</background>
+	<logo/>
+	<title>Teaching Your Kid to Code</title>
+	<url>/stream/c0d2cb50-fc38-faee-35ad-e65a64671ea0</url>
+	</item>	<item>	<tItle>Why is C so Influential</tItle>
+	<subtitle>Why is C Such an influential language?</subtitle>
+	<vod>Computer Science</vod>
+	<background>/static-assets/images/videos/479c8836-bbec-6305-f634-7b70d0b82cf5/why-c-is-so-influential.jpg</background>
+	<logo/>
+	<title>Why is C so Influential</title>
+	<url>/video/479c8836-bbec-6305-f634-7b70d0b82cf5</url>
+	</item>	<item>	<title/>
+	<subtitle>Are Machines Better at Quantm Physics than Humans?</subtitle>
+	<vod>Physics</vod>
+	<background>/static-assets/images/videos/f4465f1c-c056-0a93-def8-9deba80cd764/are-machines-better-at-quantum-physics-than-humans.jpg</background>
+	<logo>/static-assets/images/keyboard-24186_640.png</logo>
+	<url>/video/f4465f1c-c056-0a93-def8-9deba80cd764</url>
+	</item></slides>
+	<file-name>home-slider.xml</file-name>
+	<folder-name/>
+	<internal-name>Home Slider</internal-name>
+	<createdDate>2018-05-17T15:51:12.518Z</createdDate>
+	<createdDate_dt>2018-05-17T15:51:12.518Z</createdDate_dt>
+	<lastModifiedDate>2018-05-21T15:22:08.377Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-21T15:22:08.377Z</lastModifiedDate_dt>
+</component>

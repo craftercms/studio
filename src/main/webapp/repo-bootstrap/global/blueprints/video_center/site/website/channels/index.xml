@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/entry</content-type>	<display-template>/templates/web/entry.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>9ed6</objectGroupId>
+	<objectId>9ed60d94-c9b5-e8fd-8580-d266f30b86dc</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>channels</folder-name>
+	<internal-name>Channels</internal-name>
+	<reactComponent>Channels</reactComponent>
+	<title>Channels Page</title>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>2000</orderDefault_f>
+	<disabled>false</disabled>
+	<body>&lt;p&gt;Channels Page Body&lt;/p&gt;</body>
+	<createdDate>2018-05-17T18:05:25.406Z</createdDate>
+	<createdDate_dt>2018-05-17T18:05:25.406Z</createdDate_dt>
+	<lastModifiedDate>2018-05-17T18:06:23.330Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-17T18:06:23.330Z</lastModifiedDate_dt>
+</page>

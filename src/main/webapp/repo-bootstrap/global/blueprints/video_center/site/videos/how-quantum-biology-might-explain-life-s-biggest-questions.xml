@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>74d6</objectGroupId>
+	<objectId>74d66d4b-1127-2e8c-fd59-f9988a62c091</objectId>
+	<file-name>how-quantum-biology-might-explain-life-s-biggest-questions.xml</file-name>
+	<folder-name/>
+	<internal-name>How Quantum Biology Might Explain Life’s Biggest Questions</internal-name>
+	<title_s tokenized="true">How Quantum Biology Might Explain Life’s Biggest Questions</title_s>
+	<youTubeVideo>_qgSz1UmcBM</youTubeVideo>
+	<summary_s>How does a robin know to fly south? The answer might be weirder than you think: Quantum physics may be involved. Jim Al-Khalili rounds up the extremely new, extremely strange world of quantum biology, where something Einstein once called “spooky action at a distance” helps birds navigate, and quantum effects might explain the origin of life itself.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/74d66d4b-1127-2e8c-fd59-f9988a62c091/how-quantum-biology-might-explain-life-s-biggest-questions.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;How does a robin know to fly south? The answer might be weirder than you think: Quantum physics may be involved. Jim Al-Khalili rounds up the extremely new, extremely strange world of quantum biology, where something Einstein once called &amp;ldquo;spooky action at a distance&amp;rdquo; helps birds navigate, and quantum effects might explain the origin of life itself.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;How does a robin know to fly south? The answer might be weirder than you think: Quantum physics may be involved. Jim Al-Khalili rounds up the extremely new, extremely strange world of quantum biology, where something Einstein once called &amp;ldquo;spooky action at a distance&amp;rdquo; helps birds navigate, and quantum effects might explain the origin of life itself.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2015-09-16T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:34:36.011Z</createdDate>
+	<createdDate_dt>2018-04-24T20:34:36.011Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:15:11.283Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:15:11.283Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>biology</key>
+	<value_smv>Biology</value_smv>
+	</item></channels>
+</component>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>c05a</objectGroupId>
+	<objectId>c05a894c-c0b4-bbf9-2e1f-b9980e9630f4</objectId>
+	<file-name>c05a894c-c0b4-bbf9-2e1f-b9980e9630f4.xml</file-name>
+	<internal-name>Transcendental Numbers</internal-name>
+	<title_s tokenized="true">Transcendental Numbers</title_s>
+	<summary_s>What are transcendental numbers and what makes them interesting. Join us for this fun math event!</summary_s>
+	<origin item-list="true">	<item>	<key>/site/origins/416d952c-92a8-e0e9-178e-23c43734facb.xml</key>
+	<value>ShakaDemo</value>
+	<include>/site/origins/416d952c-92a8-e0e9-178e-23c43734facb.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></origin>
+	<thumbnail>/static-assets/images/videos/6f1b063a-cb5d-6afd-ce79-02972ba88fb9/auditorium-benches-chairs-207691.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;What are transcendental numbers and what makes them interesting. Join us for this fun math event!&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;What are transcendental numbers and what makes them interesting. Join us for this fun math event!&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2019-06-01T04:00:00.000Z</date_dt>
+	<startDate_dt>2019-06-01T08:00:00.000Z</startDate_dt>
+	<endDate_dt>2019-06-30T22:00:00.000Z</endDate_dt>
+	<createdDate>2018-04-26T15:33:27.896Z</createdDate>
+	<createdDate_dt>2018-04-26T15:33:27.896Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T22:07:42.047Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T22:07:42.047Z</lastModifiedDate_dt>
+	<startDate_dt_tz>Etc/GMT</startDate_dt_tz>
+	<endDate_dt_tz>Etc/GMT</endDate_dt_tz>
+	<channels>	<item>	<key>mathematics</key>
+	<value_smv>Mathematics</value_smv>
+	</item></channels>
+</component>

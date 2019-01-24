@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>2d74</objectGroupId>
+	<objectId>2d745afd-3b42-f40b-60cd-7c9e13f34b63</objectId>
+	<file-name>2d745afd-3b42-f40b-60cd-7c9e13f34b63.xml</file-name>
+	<internal-name>ITER (International Thermonuclear Experimental Reactor)</internal-name>
+	<title_s tokenized="true">ITER (International Thermonuclear Experimental Reactor)</title_s>
+	<summary_s>What is ITER and how it can shape the future of humanity.</summary_s>
+	<origin item-list="true">	<item>	<key>/site/origins/852160d4-0c30-1da7-03f9-2b3557d7945a.xml</key>
+	<value>Big Buck Bunny</value>
+	<include>/site/origins/852160d4-0c30-1da7-03f9-2b3557d7945a.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></origin>
+	<thumbnail>/static-assets/images/videos/6f1b063a-cb5d-6afd-ce79-02972ba88fb9/auditorium-benches-chairs-207691.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;What is ITER and how it can shape the future of humanity.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;What is ITER and how it can shape the future of humanity.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-09-01T04:00:00.000Z</date_dt>
+	<startDate_dt>2018-09-01T08:00:00.000Z</startDate_dt>
+	<endDate_dt>2018-09-30T22:00:00.000Z</endDate_dt>
+	<createdDate>2018-04-26T15:27:12.911Z</createdDate>
+	<createdDate_dt>2018-04-26T15:27:12.911Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T22:06:22.386Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T22:06:22.386Z</lastModifiedDate_dt>
+	<startDate_dt_tz>Etc/GMT</startDate_dt_tz>
+	<endDate_dt_tz>Etc/GMT</endDate_dt_tz>
+	<channels>	<item>	<key>physics</key>
+	<value_smv>Physics</value_smv>
+	</item></channels>
+</component>

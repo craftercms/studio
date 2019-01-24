@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>f446</objectGroupId>
+	<objectId>f4465f1c-c056-0a93-def8-9deba80cd764</objectId>
+	<file-name>are-machines-better-at-quantum-physics-than-humans.xml</file-name>
+	<folder-name/>
+	<internal-name>Are Machines Better at Quantum Physics than Humans?</internal-name>
+	<title_s tokenized="true">Are Machines Better at Quantum Physics than Humans?</title_s>
+	<youTubeVideo>2cXHwkQqgU8</youTubeVideo>
+	<summary_s>Machine learning is an exciting and growing field of computer science. Physics is using machine learning in the field of quantum mechanics to learn about unusual phase transitions.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/f4465f1c-c056-0a93-def8-9deba80cd764/are-machines-better-at-quantum-physics-than-humans.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Machine learning is an exciting and growing field of computer science. Physics is using machine learning in the field of quantum mechanics to learn about unusual phase transitions.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Machine learning is an exciting and growing field of computer science. Physics is using machine learning in the field of quantum mechanics to learn about unusual phase transitions.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-04-18T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T19:55:51.021Z</createdDate>
+	<createdDate_dt>2018-04-24T19:55:51.021Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:14:20.869Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:14:20.869Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>physics</key>
+	<value_smv>Physics</value_smv>
+	</item></channels>
+</component>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>4752</objectGroupId>
+	<objectId>47521766-bd78-b30a-6cdc-121206e93876</objectId>
+	<file-name>x-rays-from-messier-80.xml</file-name>
+	<folder-name/>
+	<internal-name>X-rays from Messier 80</internal-name>
+	<title_s tokenized="true">X-rays from Messier 80</title_s>
+	<youTubeVideo>NCtKmS7s-QE</youTubeVideo>
+	<summary_s>Featuring Dr Becky Smethurst.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/47521766-bd78-b30a-6cdc-121206e93876/x-rays-from-messier-80.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Featuring Dr Becky Smethurst.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Featuring Dr Becky Smethurst.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-03-01T05:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:09:56.752Z</createdDate>
+	<createdDate_dt>2018-04-24T20:09:56.752Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:16:53.979Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:16:53.979Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>biology</key>
+	<value_smv>Biology</value_smv>
+	</item></channels>
+</component>

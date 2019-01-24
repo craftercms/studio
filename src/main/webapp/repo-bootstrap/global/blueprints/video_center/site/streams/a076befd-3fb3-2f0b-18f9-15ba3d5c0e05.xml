@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/stream</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>a076</objectGroupId>
+	<objectId>a076befd-3fb3-2f0b-18f9-15ba3d5c0e05</objectId>
+	<file-name>a076befd-3fb3-2f0b-18f9-15ba3d5c0e05.xml</file-name>
+	<internal-name>AlphaGo</internal-name>
+	<title_s tokenized="true">AlphaGo</title_s>
+	<summary_s>When AlphaGo beat Lee Sedol it introduced humans to new and interesting Go formations and changed that game forever. This event will describe AlphaGo's AI design and why it's so different from IBM's Deep Blue.</summary_s>
+	<origin item-list="true">	<item>	<key>/site/origins/416d952c-92a8-e0e9-178e-23c43734facb.xml</key>
+	<value>ShakaDemo</value>
+	<include>/site/origins/416d952c-92a8-e0e9-178e-23c43734facb.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></origin>
+	<thumbnail>/static-assets/images/videos/6f1b063a-cb5d-6afd-ce79-02972ba88fb9/auditorium-benches-chairs-207691.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;When AlphaGo beat Lee Sedol it introduced humans to new and interesting Go formations and changed that game forever. This event will describe AlphaGo&amp;#39;s AI design and why it&amp;#39;s so different from IBM&amp;#39;s Deep Blue.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;When AlphaGo beat Lee Sedol it introduced humans to new and interesting Go formations and changed that game forever. This event will describe AlphaGo&amp;#39;s AI design and why it&amp;#39;s so different from IBM&amp;#39;s Deep Blue.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2018-01-06T05:00:00.000Z</date_dt>
+	<startDate_dt>2018-07-06T08:00:00.000Z</startDate_dt>
+	<endDate_dt>2018-07-06T22:00:00.000Z</endDate_dt>
+	<createdDate>2018-04-26T15:23:05.072Z</createdDate>
+	<createdDate_dt>2018-04-26T15:23:05.072Z</createdDate_dt>
+	<lastModifiedDate>2018-08-03T22:03:44.237Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-08-03T22:03:44.237Z</lastModifiedDate_dt>
+	<startDate_dt_tz>Etc/GMT</startDate_dt_tz>
+	<endDate_dt_tz>Etc/GMT</endDate_dt_tz>
+	<channels>	<item>	<key>computer-science</key>
+	<value_smv>Computer Science</value_smv>
+	</item></channels>
+</component>

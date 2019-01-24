@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>9dac</objectGroupId>
+	<objectId>9dac3fec-37af-fbe1-c96a-5fc58972e53c</objectId>
+	<items>	<item>	<key>application/x-mpegURL</key>
+	<value>application/x-mpegURL</value>
+	</item></items>
+	<file-name>encodings.xml</file-name>
+	<folder-name/>
+	<internal-name>Encodings</internal-name>
+	<createdDate>2018-03-07T20:49:22.220Z</createdDate>
+	<createdDate_dt>2018-03-07T20:49:22.220Z</createdDate_dt>
+	<lastModifiedDate>2018-03-07T20:49:22.220Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-03-07T20:49:22.220Z</lastModifiedDate_dt>
+</component>

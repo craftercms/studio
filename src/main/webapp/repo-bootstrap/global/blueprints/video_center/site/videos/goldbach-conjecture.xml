@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>766f</objectGroupId>
+	<objectId>766fea3b-3ba8-e6a7-0d11-88608826a577</objectId>
+	<file-name>goldbach-conjecture.xml</file-name>
+	<folder-name/>
+	<internal-name>Goldbach Conjecture</internal-name>
+	<title_s tokenized="true">Goldbach Conjecture</title_s>
+	<youTubeVideo>MxiTG96QOxw</youTubeVideo>
+	<summary_s>Professor David Eisenbud on the famed Goldbach Conjecture.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/766fea3b-3ba8-e6a7-0d11-88608826a577/goldbach-conjecture.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Professor David Eisenbud on the famed Goldbach Conjecture.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Professor David Eisenbud on the famed Goldbach Conjecture.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2017-05-24T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:20:41.675Z</createdDate>
+	<createdDate_dt>2018-04-24T20:20:41.675Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:14:49.026Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:14:49.026Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>mathematics</key>
+	<value_smv>Mathematics</value_smv>
+	</item></channels>
+</component>

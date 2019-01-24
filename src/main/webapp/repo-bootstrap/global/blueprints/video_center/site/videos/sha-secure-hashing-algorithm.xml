@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>437e</objectGroupId>
+	<objectId>437efd7c-e5c6-5959-322b-1f0a71f43bc2</objectId>
+	<file-name>sha-secure-hashing-algorithm.xml</file-name>
+	<folder-name/>
+	<internal-name>SHA: Secure Hashing Algorithm</internal-name>
+	<title_s tokenized="true">SHA: Secure Hashing Algorithm</title_s>
+	<youTubeVideo>DMtFhACPnTY</youTubeVideo>
+	<summary_s>Secure Hashing Algorithm (SHA1) explained. Dr Mike Pound explains how files are used to generate seemingly random hash strings.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/437efd7c-e5c6-5959-322b-1f0a71f43bc2/sha.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Secure Hashing Algorithm (SHA1) explained. Dr Mike Pound explains how files are used to generate seemingly random hash strings.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:825,&amp;quot;3&amp;quot;:[null,0],&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Secure Hashing Algorithm (SHA1) explained. Dr Mike Pound explains how files are used to generate seemingly random hash strings.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2017-04-11T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T19:27:37.953Z</createdDate>
+	<createdDate_dt>2018-04-24T19:27:37.953Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:16:04.566Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:16:04.566Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>computer-science</key>
+	<value_smv>Computer Science</value_smv>
+	</item></channels>
+</component>

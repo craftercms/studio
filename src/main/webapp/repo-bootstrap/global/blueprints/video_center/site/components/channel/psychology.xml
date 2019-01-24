@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/component-channel</content-type>	<display-template>/templates/web/entry.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>cfde</objectGroupId>
+	<objectId>cfde9dfa-bbfc-68fb-b154-d884c518ebd9</objectId>
+	<internal-name>Psychology</internal-name>
+	<description>Lorem ipsum dolor sit amet, consetetur sadipscing elitr</description>
+	<file-name>psychology.xml</file-name>
+	<folder-name/>
+	<heroImage>/static-assets/images/channels/cfde9dfa-bbfc-68fb-b154-d884c518ebd9/psychology.jpg</heroImage>
+	<thumbnailImage>/static-assets/images/channels/cfde9dfa-bbfc-68fb-b154-d884c518ebd9/psychology-thumbnail.jpg</thumbnailImage>
+	<createdDate>2018-05-25T19:50:35.971Z</createdDate>
+	<createdDate_dt>2018-05-25T19:50:35.971Z</createdDate_dt>
+	<lastModifiedDate>2019-01-23T16:22:48.405Z</lastModifiedDate>
+	<lastModifiedDate_dt>2019-01-23T16:22:48.405Z</lastModifiedDate_dt>
+	<featured>false</featured>
+	<tags item-list="true">	<item>	<value>psychology</value>
+	</item>	<item>	<value>mind</value>
+	</item>	<item>	<value>neural</value>
+	</item>	<item>	<value>emotion</value>
+	</item>	<item>	<value>personality</value>
+	</item></tags>
+	<maxVideosDisplay>6</maxVideosDisplay>
+	<maxChannelsDisplay>3</maxChannelsDisplay>
+	<channelKey>psychology</channelKey>
+</component>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>e55f</objectGroupId>
+	<objectId>e55f68aa-3599-f060-1726-75b6734f7abc</objectId>
+	<file-name>computing-limit.xml</file-name>
+	<folder-name/>
+	<internal-name>Computing Limit</internal-name>
+	<title_s tokenized="true">Computing Limit</title_s>
+	<youTubeVideo>jv2H9fp9dT8</youTubeVideo>
+	<summary_s>Just how far can we go with processing speed? Physicist Professor Phil Moriarty talks about the hard limits of computing.</summary_s>
+	<featured>true</featured>
+	<thumbnail>/static-assets/images/videos/e55f68aa-3599-f060-1726-75b6734f7abc/computing-limit.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Just how far can we go with processing speed? Physicist Professor Phil Moriarty talks about the hard limits of computing.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Just how far can we go with processing speed? Physicist Professor Phil Moriarty talks about the hard limits of computing.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2017-11-03T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T19:36:01.313Z</createdDate>
+	<createdDate_dt>2018-04-24T19:36:01.313Z</createdDate_dt>
+	<lastModifiedDate>2018-05-28T21:05:02.214Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-28T21:05:02.214Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>computer-science</key>
+	<value_smv>Computer Science</value_smv>
+	</item></channels>
+</component>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/video</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>d358</objectGroupId>
+	<objectId>d3580f77-7e3c-70dd-5ab9-ada8cc783e18</objectId>
+	<file-name>the-ingenious-design-of-the-aluminum-beverage-can.xml</file-name>
+	<folder-name/>
+	<internal-name>The Ingenious Design of the Aluminum Beverage Can</internal-name>
+	<title_s tokenized="true">The Ingenious Design of the Aluminum Beverage Can</title_s>
+	<youTubeVideo>hUhisi2FBuw</youTubeVideo>
+	<summary_s>Bill details the engineering choices underlying the design of a beverage can He explains why it is cylindrical, outlines the manufacturing steps needed to created the can, notes why the can narrows near it lid, show close ups of the double-seam that hold the lid on, and details the complex operation of the tab that opens the can.</summary_s>
+	<featured>false</featured>
+	<thumbnail>/static-assets/images/videos/d3580f77-7e3c-70dd-5ab9-ada8cc783e18/the-ingenious-design-of-the-aluminum-beverage-can.jpg</thumbnail>
+	<description_html>&lt;p&gt;&lt;span data-sheets-value="{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:&amp;quot;Bill details the engineering choices underlying the design of a beverage can He explains why it is cylindrical, outlines the manufacturing steps needed to created the can, notes why the can narrows near it lid, show close ups of the double-seam that hold the lid on, and details the complex operation of the tab that opens the can.&amp;quot;}" data-sheets-userformat="{&amp;quot;2&amp;quot;:829,&amp;quot;3&amp;quot;:[null,0],&amp;quot;5&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;6&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;7&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;8&amp;quot;:{&amp;quot;1&amp;quot;:[{&amp;quot;1&amp;quot;:2,&amp;quot;2&amp;quot;:0,&amp;quot;5&amp;quot;:[null,2,0]},{&amp;quot;1&amp;quot;:0,&amp;quot;2&amp;quot;:0,&amp;quot;3&amp;quot;:3},{&amp;quot;1&amp;quot;:1,&amp;quot;2&amp;quot;:0,&amp;quot;4&amp;quot;:1}]},&amp;quot;11&amp;quot;:4,&amp;quot;12&amp;quot;:0}"&gt;Bill details the engineering choices underlying the design of a beverage can He explains why it is cylindrical, outlines the manufacturing steps needed to created the can, notes why the can narrows near it lid, show close ups of the double-seam that hold the lid on, and details the complex operation of the tab that opens the can.&lt;/span&gt;&lt;/p&gt;</description_html>
+	<date_dt>2015-04-14T04:00:00.000Z</date_dt>
+	<createdDate>2018-04-24T20:47:26.287Z</createdDate>
+	<createdDate_dt>2018-04-24T20:47:26.287Z</createdDate_dt>
+	<lastModifiedDate>2018-05-25T20:16:24.006Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-25T20:16:24.006Z</lastModifiedDate_dt>
+	<channels>	<item>	<key>engineering</key>
+	<value_smv>Engineering</value_smv>
+	</item></channels>
+</component>

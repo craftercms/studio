@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/component-footer</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>6cdb</objectGroupId>
+	<objectId>6cdbf4e0-c7b7-b02e-296d-316b0cdcbaa1</objectId>
+	<file-name>footer.xml</file-name>
+	<folder-name/>
+	<internal-name>Site Footer</internal-name>
+	<copyrightLabel>Copyright © 2018 Crafter Software Corporation. All rights reserved.</copyrightLabel>
+	<nav/>
+	<createdDate>2018-05-17T15:49:10.604Z</createdDate>
+	<createdDate_dt>2018-05-17T15:49:10.604Z</createdDate_dt>
+	<lastModifiedDate>2018-07-11T20:42:21.519Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-07-11T20:42:21.519Z</lastModifiedDate_dt>
+</component>

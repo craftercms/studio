@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/component-slider</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>83ae</objectGroupId>
+	<objectId>83ae18c2-b043-8e2c-b1b7-dd21d07f4159</objectId>
+	<slides>	<item>	<tItle>test</tItle>
+	<subtitle>test</subtitle>
+	<vod>test</vod>
+	<background>/static-assets/images/videos/74d66d4b-1127-2e8c-fd59-f9988a62c091/how-quantum-biology-might-explain-life-s-biggest-questions.jpg</background>
+	<logo/>
+	</item></slides>
+	<file-name>oneslide.xml</file-name>
+	<folder-name/>
+	<internal-name>One Slide</internal-name>
+	<createdDate>2018-05-17T15:54:00.814Z</createdDate>
+	<createdDate_dt>2018-05-17T15:54:00.814Z</createdDate_dt>
+	<lastModifiedDate>2018-05-17T15:54:00.814Z</lastModifiedDate>
+	<lastModifiedDate_dt>2018-05-17T15:54:00.814Z</lastModifiedDate_dt>
+</component>
