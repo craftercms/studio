@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.search.elasticsearch.ElasticSearchWrapper;
 import org.craftercms.search.elasticsearch.impl.AbstractElasticSearchWrapper;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -28,10 +29,14 @@ import org.elasticsearch.client.RequestOptions;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
+ * Implementation of {@link ElasticSearchWrapper} specific for authoring indexes
  * @author joseross
  */
 public class PermissionAwareSearchService extends AbstractElasticSearchWrapper {
 
+    /**
+     * The suffix to append to the site name
+     */
     protected String indexSuffix;
 
     @Required

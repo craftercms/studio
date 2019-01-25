@@ -20,12 +20,19 @@ package org.craftercms.studio.model.search;
 import java.util.Map;
 
 /**
+ * Holds the data for a single facet
  * @author joseross
  */
 public class SearchFacet {
 
+    /**
+     * The label of the facet
+     */
     protected String name;
 
+    /**
+     * The values and counts of the facet
+     */
     protected Map<Object, Object> values;
 
     public String getName() {

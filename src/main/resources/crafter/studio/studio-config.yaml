@@ -516,16 +516,35 @@ studio.cors.maxage: -1
 ################################################################
 ##                           Search                           ##
 ################################################################
+# URLs to connect to ElasticSearch
 studio.search.urls: http://localhost:9201
+# Suffix added to the name for authoring indexes
 studio.search.index.suffix: -authoring
+# Name of the field for paths
 studio.search.field.path: localId
+# Name of the field for last edit date
 studio.search.field.edit: lastEditedOn
+# Name of the field for last edit user
 studio.search.field.editor: lastEditedBy
+# Name of the field for file size
 studio.search.field.size: contentLength
+# List of fields to include in the search
+studio.search.fields.search: localId, content, _text_
+# List of fields to include for highlighting
+studio.search.fields.highlight: localId, content, *_html
+# The size of each highlight snippet
+studio.search.snippets.size: 50
+# The number of highlight snippets to generate
+studio.search.snippets.number: 1
+# The default value for unknown types
 studio.search.default.type: Other
+# The type mapping to use during search
 studio.search.types:
+    # The label that will be returned
   - name: Image
+    # The field that will be compared
     field: contentType
+    # The regex that will be compared
     matches: ^image/.*$
   - name: Video
     field: contentType
@@ -554,16 +573,24 @@ studio.search.types:
   - name: Taxonomy
     field: content-type
     matches: ^/taxonomy$
+# The list of field facets to return
 studio.search.facets.fields:
+    # The label that will be returned
   - name: content-type
+    # The field that will be used
     field: content-type
   - name: contentType
     field: contentType
+# The list of range facets to return
 studio.search.facets.ranges:
+    # The label that will be returned
   - name: contentLength
+    # The field that will be used
     field: contentLength
-    offset: 100
-    interval: 99900
+    # The offset to start the range
+    offset: 0
+    # The interval to generate the range
+    interval: 10000
   - name: width
     field: width
     offset: 0

@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.search.internal;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
@@ -39,20 +42,19 @@ import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.util.LinkedMultiValueMap;
 
 /**
  * @author joseross
@@ -77,6 +79,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected String lastEditorFieldName;
     protected String sizeFieldName;
 
+    protected String[] searchFields;
+    protected String[] highlightFields;
+
+    protected int snippetSize;
+    protected int numberOfSnippets;
+
     protected String defaultType;
 
     protected PermissionAwareSearchService elasticSearchService;
@@ -85,7 +93,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
     protected List<AggregationBuilder> aggregations;
 
-    protected List<HierarchicalConfiguration<ImmutableNode>> types;
+    protected Map<String, HierarchicalConfiguration<ImmutableNode>> facets;
+    protected Map<String, HierarchicalConfiguration<ImmutableNode>> types;
 
     @Required
     public void setPathFieldName(final String pathFieldName) {
@@ -113,6 +122,26 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     @Required
+    public void setSearchFields(final String[] searchFields) {
+        this.searchFields = searchFields;
+    }
+
+    @Required
+    public void setHighlightFields(final String[] highlightFields) {
+        this.highlightFields = highlightFields;
+    }
+
+    @Required
+    public void setSnippetSize(final int snippetSize) {
+        this.snippetSize = snippetSize;
+    }
+
+    @Required
+    public void setNumberOfSnippets(final int numberOfSnippets) {
+        this.numberOfSnippets = numberOfSnippets;
+    }
+
+    @Required
     public void setElasticSearchService(final PermissionAwareSearchService elasticSearchService) {
         this.elasticSearchService = elasticSearchService;
     }
@@ -123,37 +152,53 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     public void init() {
+        loadFacetsFromConfiguration(studioConfiguration);
+        loadTypesFromConfiguration(studioConfiguration);
+    }
+
+    protected void loadFacetsFromConfiguration(final StudioConfiguration studioConfiguration) {
+        facets = new HashMap<>();
         aggregations = new LinkedList<>();
 
-        List<HierarchicalConfiguration<ImmutableNode>> facets =
+        List<HierarchicalConfiguration<ImmutableNode>> facetsConfig =
             studioConfiguration.getSubConfigs(CONFIG_KEY_FACETS_FIELDS);
 
-        if(CollectionUtils.isNotEmpty(facets)) {
-            facets.forEach(facet ->
-                aggregations.add(
-                    AggregationBuilders.terms(facet.getString(CONFIG_KEY_FACET_NAME))
-                        .field(facet.getString(CONFIG_KEY_FACET_FIELD))
-                        .minDocCount(1)
-                )
-            );
+        if(CollectionUtils.isNotEmpty(facetsConfig)) {
+            facetsConfig.forEach(facet -> {
+                facets.put(facet.getString(CONFIG_KEY_FACET_NAME), facet);
+
+                aggregations.add(AggregationBuilders
+                    .terms(facet.getString(CONFIG_KEY_FACET_NAME))
+                    .field(facet.getString(CONFIG_KEY_FACET_FIELD))
+                    .minDocCount(1));
+            });
         }
 
-        facets = studioConfiguration.getSubConfigs(CONFIG_KEY_FACETS_RANGES);
+        facetsConfig = studioConfiguration.getSubConfigs(CONFIG_KEY_FACETS_RANGES);
 
-        if(CollectionUtils.isNotEmpty(facets)) {
-            facets.forEach(facet ->
-                aggregations.add(
-                    AggregationBuilders.histogram(facet.getString(CONFIG_KEY_FACET_NAME))
-                        .field(facet.getString(CONFIG_KEY_FACET_FIELD))
-                        .minDocCount(1)
-                        .keyed(true)
-                        .offset(facet.getDouble(CONFIG_KEY_FACET_OFFSET))
-                        .interval(facet.getDouble(CONFIG_KEY_FACET_INTERVAL))
-                )
-            );
+        if(CollectionUtils.isNotEmpty(facetsConfig)) {
+            facetsConfig.forEach(facet -> {
+                facets.put(facet.getString(CONFIG_KEY_FACET_NAME), facet);
+
+                aggregations.add(AggregationBuilders
+                    .histogram(facet.getString(CONFIG_KEY_FACET_NAME))
+                    .field(facet.getString(CONFIG_KEY_FACET_FIELD))
+                    .offset(facet.getDouble(CONFIG_KEY_FACET_OFFSET))
+                    .interval(facet.getDouble(CONFIG_KEY_FACET_INTERVAL))
+                    .minDocCount(1)
+                    .keyed(true));
+            });
         }
+    }
 
-        types = studioConfiguration.getSubConfigs(CONFIG_KEY_TYPES);
+    protected void loadTypesFromConfiguration(final StudioConfiguration studioConfiguration) {
+        types = new HashMap<>();
+
+        List<HierarchicalConfiguration<ImmutableNode>> typesConfig =
+            studioConfiguration.getSubConfigs(CONFIG_KEY_TYPES);
+
+        typesConfig.forEach(type -> types.put(type.getString(CONFIG_KEY_TYPE_NAME), type));
+
     }
 
     //TODO: Implement highlights
@@ -164,6 +209,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         item.setLastModifier(source.get(lastEditorFieldName).toString());
         item.setSize(Long.parseLong(source.get(sizeFieldName).toString()));
         item.setType(getItemType(source));
+        item.setSnippets(getItemSnippets(highlights));
         return item;
     }
 
@@ -171,16 +217,42 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
         throws IOException {
 
-        BoolQueryBuilder query = QueryBuilders.boolQuery()
-            .must(QueryBuilders.matchAllQuery());
-//            .must(QueryBuilders.multiMatchQuery(params.getQuery(), pathFieldName));
+        BoolQueryBuilder query = QueryBuilders.boolQuery();
+
+        if(StringUtils.isNotEmpty(params.getQuery())) {
+            query.should(QueryBuilders.regexpQuery(pathFieldName, ".*" + params.getQuery() + ".*"));
+            query.should(QueryBuilders.multiMatchQuery(params.getQuery(), searchFields));
+        }
+
+        if(MapUtils.isNotEmpty(params.getFilters())) {
+            params.getFilters().forEach((filter, value) -> {
+                if(facets.containsKey(filter)) {
+                    HierarchicalConfiguration<ImmutableNode> facetConfig = facets.get(filter);
+                    if(facetConfig.containsKey(CONFIG_KEY_FACET_INTERVAL)) {
+                        query.filter(QueryBuilders
+                            .rangeQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD))
+                            .gte(value)
+                            .lt(((Number)value).doubleValue() + facetConfig.getDouble(CONFIG_KEY_FACET_INTERVAL)));
+                    } else {
+                        query.filter(QueryBuilders.matchQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD), value));
+                    }
+                }
+            });
+        }
 
         SearchSourceBuilder builder = new SearchSourceBuilder()
             .query(query)
             .from(params.getOffset())
             .size(params.getLimit())
-//            .sort(params.getSort().getField(), SortOrder.valueOf(params.getSort().getOrder().name().toLowerCase()))
-            .highlighter(SearchSourceBuilder.highlight());
+            .sort(params.getSortBy(), SortOrder.valueOf(params.getSortOrder()));
+
+        if(ArrayUtils.isNotEmpty(highlightFields)) {
+            HighlightBuilder highlight = SearchSourceBuilder.highlight();
+            for (String field : highlightFields) {
+                highlight.field(field, snippetSize, numberOfSnippets);
+            }
+            builder.highlighter(highlight);
+        }
 
         aggregations.forEach(builder::aggregation);
 
@@ -214,27 +286,25 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                 Map values = new TreeMap();
                 if(aggregation instanceof Terms) {
                     Terms terms = (Terms) aggregation;
-                    terms.getBuckets().forEach(bucket -> {
-                        values.put(bucket.getKey(), bucket.getDocCount());
-                    });
+                    terms.getBuckets().forEach(bucket -> values.put(bucket.getKey(), bucket.getDocCount()));
 
 
                 } else if(aggregation instanceof Histogram) {
                     Histogram histogram = (Histogram) aggregation;
-                    histogram.getBuckets().forEach(bucket -> {
-                        values.put(bucket.getKey(), bucket.getDocCount());
-                    });
+                    histogram.getBuckets().forEach(bucket -> values.put(bucket.getKey(), bucket.getDocCount()));
                 }
-                facet.setValues(values);
-                facets.add(facet);
+                if(MapUtils.isNotEmpty(values)) {
+                    facet.setValues(values);
+                    facets.add(facet);
+                }
             });
         }
         return facets;
     }
 
     protected String getItemType(Map<String, Object> source) {
-        if(CollectionUtils.isNotEmpty(types)) {
-            for (HierarchicalConfiguration<ImmutableNode> typeConfig : types) {
+        if(MapUtils.isNotEmpty(types)) {
+            for (HierarchicalConfiguration<ImmutableNode> typeConfig : types.values()) {
                 String fieldName = typeConfig.getString(CONFIG_KEY_TYPE_FIELD);
                 if(source.containsKey(fieldName)) {
                     String fieldValue = source.get(fieldName).toString();
@@ -248,5 +318,17 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         return defaultType;
     }
 
+    protected List<String> getItemSnippets(Map<String, HighlightField> highlights) {
+        if(MapUtils.isNotEmpty(highlights)) {
+            List<String> snippets = new LinkedList<>();
+            highlights.values().forEach(highlight -> {
+                for(Text text : highlight.getFragments()) {
+                    snippets.add(text.string());
+                }
+            });
+            return snippets;
+        }
+        return null;
+    }
 
 }

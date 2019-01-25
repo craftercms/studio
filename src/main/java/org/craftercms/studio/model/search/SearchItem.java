@@ -18,19 +18,48 @@
 package org.craftercms.studio.model.search;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
+ * Holds the data of a single search result
  * @author joseross
  */
 public class SearchItem {
 
+    /**
+     * The path of the file
+     */
     protected String path;
+
+    /**
+     * The type of the file
+     */
     protected String type;
+
+    /**
+     * The preview URL of the file
+     */
     protected String previewUrl;
+
+    /**
+     * The last user that modified the file
+     */
     protected String lastModifier;
 
+    /**
+     * The last date that the file was modified
+     */
     protected Instant lastModified;
+
+    /**
+     * The size of the file, in bytes
+     */
     protected long size;
+
+    /**
+     * Snippets relevant to the search query
+     */
+    protected List<String> snippets;
 
     public String getPath() {
         return path;
@@ -78,6 +107,14 @@ public class SearchItem {
 
     public void setSize(final long size) {
         this.size = size;
+    }
+
+    public List<String> getSnippets() {
+        return snippets;
+    }
+
+    public void setSnippets(final List<String> snippets) {
+        this.snippets = snippets;
     }
 
 }

@@ -20,14 +20,24 @@ package org.craftercms.studio.model.search;
 import java.util.List;
 
 /**
+ * Holds all the data for a search operation
  * @author joseross
  */
 public class SearchResult {
 
+    /**
+     * The total files that matched the search
+     */
     protected long total;
 
+    /**
+     * The list of files
+     */
     protected List<SearchItem> items;
 
+    /**
+     * The facets of the matched files
+     */
     protected List<SearchFacet> facets;
 
     public long getTotal() {

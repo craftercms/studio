@@ -17,15 +17,43 @@
 
 package org.craftercms.studio.model.search;
 
+import java.util.Map;
+
 /**
+ * Holds the data needed to perform a search operation
  * @author joseross
  */
 public class SearchParams {
 
+    /**
+     * The term to search in the files
+     */
     protected String query;
-    protected int offset;
-    protected int limit;
-    protected Sort sort;
+
+    /**
+     * The offset to paginate the results
+     */
+    protected int offset = 0;
+
+    /**
+     * The limit to paginate the results
+     */
+    protected int limit = 20;
+
+    /**
+     * The field to sort the results
+     */
+    protected String sortBy = "_score";
+
+    /**
+     * The order to sort the results
+     */
+    protected String sortOrder = "DESC";
+
+    /**
+     * The filters to search the files
+     */
+    protected Map<String, Object> filters;
 
     public String getQuery() {
         return query;
@@ -51,12 +79,28 @@ public class SearchParams {
         this.limit = limit;
     }
 
-    public Sort getSort() {
-        return sort;
+    public String getSortBy() {
+        return sortBy;
     }
 
-    public void setSort(final Sort sort) {
-        this.sort = sort;
+    public void setSortBy(final String sortBy) {
+        this.sortBy = sortBy;
+    }
+
+    public String getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(final String sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public Map<String, Object> getFilters() {
+        return filters;
+    }
+
+    public void setFilters(final Map<String, Object> filters) {
+        this.filters = filters;
     }
 
 }
