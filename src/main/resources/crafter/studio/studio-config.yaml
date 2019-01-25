@@ -412,7 +412,7 @@ studio.db.validationQuery: SELECT 1
 # Use a value less than or equal to 0 for no timeout.
 studio.db.validationInterval: 34000
 # Base folder for the embedded database
-studio.db.basePath: ${sys:crafter.home}/dbms
+studio.db.basePath: ${sys:crafter.bin.dir}/dbms
 # Data folder for the embedded database
 studio.db.dataPath: ${sys:crafter.data.dir}/db
 # Port number for the embedded database (note this must match what's in the connection URLs in this config file)
