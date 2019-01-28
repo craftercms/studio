@@ -65,6 +65,10 @@
         <studio.ui.alpha.path>target/ui-alpha</studio.ui.alpha.path>
         <studio.ui.alpha.version>develop</studio.ui.alpha.version>
 
+        <!-- Video Center BP -->
+        <studio.videoCenter.path>target/video-center</studio.videoCenter.path>
+        <studio.videoCenter.version>master</studio.videoCenter.version>
+
     </properties>
 
     <licenses>
@@ -545,6 +549,25 @@
                 <version>1.5.0</version>
                 <executions>
                     <execution>
+                        <id>get video center</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <executable>git</executable>
+                            <arguments>
+                                <argument>clone</argument>
+                                <argument>--depth</argument>
+                                <argument>1</argument>
+                                <argument>-b</argument>
+                                <argument>${studio.videoCenter.version}</argument>
+                                <argument>https://github.com/craftercms/video-center-blueprint</argument>
+                                <argument>${studio.videoCenter.path}</argument>
+                            </arguments>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>git get ui</id>
                         <phase>generate-resources</phase>
                         <configuration>
@@ -754,6 +777,12 @@
                             <targetPath>default-site/templates/alpha</targetPath>
                         </resource>
 
+                        <!-- Video Center BP -->
+                        <resource>
+                            <directory>${studio.videoCenter.path}</directory>
+                            <filtering>false</filtering>
+                            <targetPath>repo-bootstrap/global/blueprints/video_center</targetPath>
+                        </resource>
                     </webResources>
                 </configuration>
             </plugin>
