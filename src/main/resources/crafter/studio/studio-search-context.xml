@@ -23,6 +23,7 @@
     <bean id="elasticSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
         <property name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
         <property name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
+        <property name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
     </bean>
 
     <bean id="searchServiceInternal" init-method="init"

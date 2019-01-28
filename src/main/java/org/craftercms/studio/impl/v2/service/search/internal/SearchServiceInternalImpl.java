@@ -57,6 +57,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
+ * Default implementation of {@link SearchServiceInternal}
  * @author joseross
  */
 public class SearchServiceInternalImpl implements SearchServiceInternal {
@@ -74,26 +75,74 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String CONFIG_KEY_TYPE_NAME = CONFIG_KEY_FACET_NAME;
     public static final String CONFIG_KEY_TYPE_MATCHES = "matches";
 
+    /**
+     * Name of the field for paths
+     */
     protected String pathFieldName;
+
+    /**
+     * Name of the field for last edit date
+     */
     protected String lastEditFieldName;
+
+    /**
+     * Name of the field for last edit user
+     */
     protected String lastEditorFieldName;
+
+    /**
+     * Name of the field for size
+     */
     protected String sizeFieldName;
 
+    /**
+     * List of fields to include during searching
+     */
     protected String[] searchFields;
+
+    /**
+     * List of fields to include during highlighting
+     */
     protected String[] highlightFields;
 
+    /**
+     * Number of characters to include for snippets
+     */
     protected int snippetSize;
+
+    /**
+     * Number of snippets to generate for each file
+     */
     protected int numberOfSnippets;
 
+    /**
+     * Default label used for unknown file types
+     */
     protected String defaultType;
 
+    /**
+     * The ElasticSearch service
+     */
     protected PermissionAwareSearchService elasticSearchService;
 
+    /**
+     * The Studio configuration
+     */
     protected StudioConfiguration studioConfiguration;
 
+    /**
+     * List of {@link AggregationBuilder} to include in all searches
+     */
     protected List<AggregationBuilder> aggregations;
 
+    /**
+     * Configurations for facets
+     */
     protected Map<String, HierarchicalConfiguration<ImmutableNode>> facets;
+
+    /**
+     * Configurations for types
+     */
     protected Map<String, HierarchicalConfiguration<ImmutableNode>> types;
 
     @Required
@@ -151,11 +200,18 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         this.studioConfiguration = studioConfiguration;
     }
 
+    /**
+     * Loads facets & type mapping from the configuration
+     */
     public void init() {
         loadFacetsFromConfiguration(studioConfiguration);
         loadTypesFromConfiguration(studioConfiguration);
     }
 
+    /**
+     * Loads the facets from the given configuration
+     * @param studioConfiguration the studio configuration
+     */
     protected void loadFacetsFromConfiguration(final StudioConfiguration studioConfiguration) {
         facets = new HashMap<>();
         aggregations = new LinkedList<>();
@@ -191,6 +247,10 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         }
     }
 
+    /**
+     * Loads the type mapping from the given configuration
+     * @param studioConfiguration the studio configuration
+     */
     protected void loadTypesFromConfiguration(final StudioConfiguration studioConfiguration) {
         types = new HashMap<>();
 
@@ -201,8 +261,14 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
     }
 
-    //TODO: Implement highlights
-    protected SearchItem processHit(Map<String, Object> source, Map<String, HighlightField> highlights) {
+    /**
+     * Maps the information from ElasticSearch for a single {@link SearchItem}
+     * @param source the fields returned by ElasticSearch
+     * @param highlights the highlights returned by ElasticSearch
+     * @return the search item object
+     */
+    //TODO: Implement previewUrl for supported types
+    protected SearchItem processSearchHit(Map<String, Object> source, Map<String, HighlightField> highlights) {
         SearchItem item = new SearchItem();
         item.setPath((String) source.get(pathFieldName));
         item.setLastModified(Instant.parse((String) source.get(lastEditFieldName)));
@@ -213,6 +279,62 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         return item;
     }
 
+    /**
+     * Adds the required filters based on the given parameters
+     * @param query the query to update
+     * @param params the parameters to add
+     */
+    protected void updateFilters(BoolQueryBuilder query, SearchParams params) {
+        params.getFilters().forEach((filter, value) -> {
+            if(facets.containsKey(filter)) {
+                HierarchicalConfiguration<ImmutableNode> facetConfig = facets.get(filter);
+                if(facetConfig.containsKey(CONFIG_KEY_FACET_INTERVAL)) {
+                    query.filter(QueryBuilders
+                        .rangeQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD))
+                        .gte(value)
+                        .lt(((Number)value).doubleValue() + facetConfig.getDouble(CONFIG_KEY_FACET_INTERVAL)));
+                } else {
+                    query.filter(QueryBuilders.matchQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD), value));
+                }
+            }
+        });
+    }
+
+    /**
+     * Adds the configured highlighting to the given builder
+     * @param builder the search builder to update
+     */
+    protected void updateHighlighting(SearchSourceBuilder builder) {
+        HighlightBuilder highlight = SearchSourceBuilder.highlight();
+        for (String field : highlightFields) {
+            highlight.field(field, snippetSize, numberOfSnippets);
+        }
+        builder.highlighter(highlight);
+    }
+
+    /**
+     * Maps the ElasticSearch {@link SearchResponse} to a {@link SearchResult} object
+     * @param response the response to map
+     * @return the search result object
+     */
+    protected SearchResult processResults(SearchResponse response) {
+        SearchResult result = new SearchResult();
+        result.setTotal(response.getHits().getTotalHits());
+
+        List<SearchItem> items = Stream.of(response.getHits().getHits())
+            .map(hit -> processSearchHit(hit.getSourceAsMap(), hit.getHighlightFields()))
+            .collect(Collectors.toList());
+
+        result.setItems(items);
+
+        result.setFacets(processAggregations(response));
+
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
         throws IOException {
@@ -225,19 +347,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         }
 
         if(MapUtils.isNotEmpty(params.getFilters())) {
-            params.getFilters().forEach((filter, value) -> {
-                if(facets.containsKey(filter)) {
-                    HierarchicalConfiguration<ImmutableNode> facetConfig = facets.get(filter);
-                    if(facetConfig.containsKey(CONFIG_KEY_FACET_INTERVAL)) {
-                        query.filter(QueryBuilders
-                            .rangeQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD))
-                            .gte(value)
-                            .lt(((Number)value).doubleValue() + facetConfig.getDouble(CONFIG_KEY_FACET_INTERVAL)));
-                    } else {
-                        query.filter(QueryBuilders.matchQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD), value));
-                    }
-                }
-            });
+            updateFilters(query, params);
         }
 
         SearchSourceBuilder builder = new SearchSourceBuilder()
@@ -247,11 +357,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             .sort(params.getSortBy(), SortOrder.valueOf(params.getSortOrder()));
 
         if(ArrayUtils.isNotEmpty(highlightFields)) {
-            HighlightBuilder highlight = SearchSourceBuilder.highlight();
-            for (String field : highlightFields) {
-                highlight.field(field, snippetSize, numberOfSnippets);
-            }
-            builder.highlighter(highlight);
+            updateHighlighting(builder);
         }
 
         aggregations.forEach(builder::aggregation);
@@ -261,20 +367,14 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
         SearchResponse response = elasticSearchService.search(siteId, allowedPaths, request);
 
-        SearchResult result = new SearchResult();
-        result.setTotal(response.getHits().getTotalHits());
-
-        List<SearchItem> items = Stream.of(response.getHits().getHits())
-            .map(hit -> processHit(hit.getSourceAsMap(), hit.getHighlightFields()))
-            .collect(Collectors.toList());
-
-        result.setItems(items);
-
-        result.setFacets(processAggregations(response));
-
-        return result;
+        return processResults(response);
     }
 
+    /**
+     * Maps the ElasticSearch aggregations to {@link SearchFacet} objects
+     * @param response the ElasticSearch response to map
+     * @return the list of search facet objects
+     */
     @SuppressWarnings("unchecked")
     private List<SearchFacet> processAggregations(final SearchResponse response) {
         List<SearchFacet> facets = new LinkedList<>();
@@ -302,6 +402,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         return facets;
     }
 
+    /**
+     * Maps the item type for the given source based on the configuration
+     * @param source the source to map
+     * @return the item type
+     */
     protected String getItemType(Map<String, Object> source) {
         if(MapUtils.isNotEmpty(types)) {
             for (HierarchicalConfiguration<ImmutableNode> typeConfig : types.values()) {
@@ -318,6 +423,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         return defaultType;
     }
 
+    /**
+     * Maps the ElasticSearch highlighting to simple text snippets
+     * @param highlights the highlighting to map
+     * @return the list of snippets
+     */
     protected List<String> getItemSnippets(Map<String, HighlightField> highlights) {
         if(MapUtils.isNotEmpty(highlights)) {
             List<String> snippets = new LinkedList<>();

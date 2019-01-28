@@ -31,11 +31,19 @@ import org.craftercms.studio.model.search.SearchResult;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
+ * Default implementation for {@link SearchService}
  * @author joseross
  */
 public class SearchServiceImpl implements SearchService {
 
+    /**
+     * The security service
+     */
     protected SecurityService securityService;
+
+    /**
+     * The internal search service
+     */
     protected SearchServiceInternal searchServiceInternal;
 
     @Required
@@ -48,6 +56,9 @@ public class SearchServiceImpl implements SearchService {
         this.searchServiceInternal = searchServiceInternal;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SearchResult search(final String siteId, final SearchParams params)
         throws AuthenticationException, IOException {

@@ -24,10 +24,19 @@ import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 /**
+ * Provides access to ElasticSearch for authoring indexes
  * @author joseross
  */
 public interface SearchService {
 
+    /**
+     * Performs a search operation for a given site
+     * @param siteId the id of the site
+     * @param params the parameters for the search
+     * @return the search results
+     * @throws AuthenticationException if there is an error checking the current user
+     * @throws IOException if there is an error connecting to ElasticSearch
+     */
     SearchResult search(String siteId, SearchParams params) throws AuthenticationException, IOException;
 
 }
