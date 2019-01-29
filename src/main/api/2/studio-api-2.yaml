@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.12'
+  version: '2.0.13'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1164,7 +1164,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Blueprint'
+                      $ref: '#/components/schemas/BlueprintWrapper'
         '500':
           $ref: '#/components/responses/InternalServerError'
 components:
@@ -1346,158 +1346,144 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
-    Blueprint:
+    BlueprintWrapper:
       type: object
       properties:
         descriptorVersion:
           type: integer
           description: 'Blueprint descriptor version number'
         blueprint:
-          $ref: '#/components/schemas/Blueprint.blueprint'
-    Blueprint.blueprint:
-      type: object
-      properties:
-        id:
-          type: string
-          format: package name
-          description: 'Blueprint id'
-        name:
-          type: string
-          description: 'Blueprint name'
-        tags:
-          type: string
-          description: 'Tags applied for blueprint'
-        version:
-          $ref: '#/components/schemas/Blueprint.blueprint.version'
-        description:
-          type: string
-          description: 'Blueprint description'
-        website:
-          $ref: '#/components/schemas/Blueprint.blueprint.website'
-        media:
-          $ref: '#/components/schemas/Blueprint.blueprint.media'
-        build:
-          $ref: '#/components/schemas/Blueprint.blueprint.build'
-        license:
-          $ref: '#/components/schemas/Blueprint.blueprint.license'
-        craftercmsVersionsSupported:
-          type: array
-          items:
-            version:
-              $ref: '#/components/schemas/Blueprint.blueprint.supporetedVesion'
-    Blueprint.blueprint.version:
-      type: object
-      properties:
-        major:
-          type: integer
-          description: 'Major version number'
-        minor:
-          type: integer
-          description: 'Minor version number'
-        patch:
-          type: integer
-          description: 'Patch version number'
-    Blueprint.blueprint.website:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'Blueprint website'
-        url:
-          type: string
-          description: 'Blueprint website URL'
-    Blueprint.blueprint.media:
-      type: object
-      properties:
-        screenshots:
-          type: array
-          items:
-            screenshot:
-              $ref: '#/components/schemas/Blueprint.blueprint.media.screenshot'
-        videos:
-          type: array
-          items:
-            video:
-              $ref: '#/components/schemas/Blueprint.blueprint.media.video'
-        developer:
           type: object
           properties:
-            people:
+            id:
+              type: string
+              format: package name
+              description: 'Blueprint id'
+            name:
+              type: string
+              description: 'Blueprint name'
+            tags:
+              type: string
+              description: 'Tags applied for blueprint'
+            version:
+              type: object
+              properties:
+                major:
+                  type: integer
+                  description: 'Major version number'
+                minor:
+                  type: integer
+                  description: 'Minor version number'
+                patch:
+                  type: integer
+                  description: 'Patch version number'
+            description:
+              type: string
+              description: 'Blueprint description'
+            website:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Blueprint website'
+                url:
+                  type: string
+                  description: 'Blueprint website URL'
+            media:
+              type: object
+              properties:
+                screenshots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      screenshot:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            description: 'Screenshot title'
+                          description:
+                            type: string
+                            description: 'Screenshot description'
+                          url:
+                            type: string
+                            description: 'Screenshot URL'
+                videos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      video:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            description: 'Video title'
+                          description:
+                            type: string
+                            description: 'Video description'
+                          url:
+                            type: string
+                            description: 'Video URL'
+                developer:
+                  type: object
+                  properties:
+                    people:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          person:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: 'Developer name'
+                              email:
+                                type: string
+                                description: "Developer's email address"
+                              url:
+                                type: string
+                                description: "Developer's website"
+                    company:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: 'Company name'
+                        email:
+                          type: string
+                          description: "Company's email address"
+                        url:
+                          type: string
+                          description: "Company's website"
+            build:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: 'Blueprint build ID'
+                date:
+                  type: string
+                  description: 'Bluperint build date'
+            license:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'License name'
+                url:
+                  type: string
+                  description: 'License website URL'
+            craftercmsVersionsSupported:
               type: array
               items:
-                person:
-                  $ref: '#/components/schemas/Blueprint.blueprint.media.person'
-            company:
-              $ref: '#/components/schemas/Blueprint.blueprint.media.company'
-    Blueprint.blueprint.media.screenshot:
-      type: object
-      properties:
-        title:
-          type: string
-          description: 'Screenshot title'
-        description:
-          type: string
-          description: 'Screenshot description'
-        url:
-          type: string
-          description: 'Screenshot URL'
-    Blueprint.blueprint.media.video:
-      type: object
-      properties:
-        title:
-          type: string
-          description: 'Video title'
-        description:
-          type: string
-          description: 'Video description'
-        url:
-          type: string
-          description: 'Video URL'
-    Blueprint.blueprint.media.person:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'Developer name'
-        email:
-          type: string
-          description: "Developer's email address"
-        url:
-          type: string
-          description: "Developer's website"
-    Blueprint.blueprint.media.company:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'Company name'
-        email:
-          type: string
-          description: "Company's email address"
-        url:
-          type: string
-          description: "Company's website"
-    Blueprint.blueprint.build:
-      type: object
-      properties:
-        id:
-          type: string
-          description: 'Blueprint build ID'
-        date:
-          type: string
-          description: 'Bluperint build date'
-    Blueprint.blueprint.license:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'License name'
-        url:
-          type: string
-          description: 'License website URL'
-    Blueprint.blueprint.supporetedVesion:
-      type: string
-      description: 'Blueprint supported in Crafter CMS version'
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: 'Blueprint supported in Crafter CMS version'
   responses:
     NotFound:
       description: Resource not found
