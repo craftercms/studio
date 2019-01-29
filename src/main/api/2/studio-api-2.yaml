@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.12'
+  version: '2.0.13'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1166,7 +1166,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Blueprint'
+                      $ref: '#/components/schemas/BlueprintWrapper'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /search/search:
@@ -1381,240 +1381,226 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
-    Blueprint:
+    BlueprintWrapper:
       type: object
       properties:
         descriptorVersion:
           type: integer
           description: 'Blueprint descriptor version number'
         blueprint:
-          $ref: '#/components/schemas/Blueprint.blueprint'
-    Blueprint.blueprint:
-      type: object
-      properties:
-        id:
-          type: string
-          format: package name
-          description: 'Blueprint id'
-        name:
-          type: string
-          description: 'Blueprint name'
-        tags:
-          type: string
-          description: 'Tags applied for blueprint'
-        version:
-          $ref: '#/components/schemas/Blueprint.blueprint.version'
-        description:
-          type: string
-          description: 'Blueprint description'
-        website:
-          $ref: '#/components/schemas/Blueprint.blueprint.website'
-        media:
-          $ref: '#/components/schemas/Blueprint.blueprint.media'
-        build:
-          $ref: '#/components/schemas/Blueprint.blueprint.build'
-        license:
-          $ref: '#/components/schemas/Blueprint.blueprint.license'
-        craftercmsVersionsSupported:
-          type: array
-          items:
-            version:
-              $ref: '#/components/schemas/Blueprint.blueprint.supporetedVesion'
-    Blueprint.blueprint.version:
-      type: object
-      properties:
-        major:
-          type: integer
-          description: 'Major version number'
-        minor:
-          type: integer
-          description: 'Minor version number'
-        patch:
-          type: integer
-          description: 'Patch version number'
-    Blueprint.blueprint.website:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'Blueprint website'
-        url:
-          type: string
-          description: 'Blueprint website URL'
-    Blueprint.blueprint.media:
-      type: object
-      properties:
-        screenshots:
-          type: array
-          items:
-            screenshot:
-              $ref: '#/components/schemas/Blueprint.blueprint.media.screenshot'
-        videos:
-          type: array
-          items:
-            video:
-              $ref: '#/components/schemas/Blueprint.blueprint.media.video'
-        developer:
           type: object
           properties:
-            people:
+            id:
+              type: string
+              format: package name
+              description: 'Blueprint id'
+            name:
+              type: string
+              description: 'Blueprint name'
+            tags:
+              type: string
+              description: 'Tags applied for blueprint'
+            version:
+              type: object
+              properties:
+                major:
+                  type: integer
+                  description: 'Major version number'
+                minor:
+                  type: integer
+                  description: 'Minor version number'
+                patch:
+                  type: integer
+                  description: 'Patch version number'
+            description:
+              type: string
+              description: 'Blueprint description'
+            website:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Blueprint website'
+                url:
+                  type: string
+                  description: 'Blueprint website URL'
+            media:
+              type: object
+              properties:
+                screenshots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      screenshot:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            description: 'Screenshot title'
+                          description:
+                            type: string
+                            description: 'Screenshot description'
+                          url:
+                            type: string
+                            description: 'Screenshot URL'
+                videos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      video:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            description: 'Video title'
+                          description:
+                            type: string
+                            description: 'Video description'
+                          url:
+                            type: string
+                            description: 'Video URL'
+                developer:
+                  type: object
+                  properties:
+                    people:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          person:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: 'Developer name'
+                              email:
+                                type: string
+                                description: "Developer's email address"
+                              url:
+                                type: string
+                                description: "Developer's website"
+                    company:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: 'Company name'
+                        email:
+                          type: string
+                          description: "Company's email address"
+                        url:
+                          type: string
+                          description: "Company's website"
+            build:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: 'Blueprint build ID'
+                date:
+                  type: string
+                  description: 'Bluperint build date'
+            license:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'License name'
+                url:
+                  type: string
+                  description: 'License website URL'
+            craftercmsVersionsSupported:
               type: array
               items:
-                person:
-                  $ref: '#/components/schemas/Blueprint.blueprint.media.person'
-            company:
-              $ref: '#/components/schemas/Blueprint.blueprint.media.company'
-    Blueprint.blueprint.media.screenshot:
-      type: object
-      properties:
-        title:
-          type: string
-          description: 'Screenshot title'
-        description:
-          type: string
-          description: 'Screenshot description'
-        url:
-          type: string
-          description: 'Screenshot URL'
-    Blueprint.blueprint.media.video:
-      type: object
-      properties:
-        title:
-          type: string
-          description: 'Video title'
-        description:
-          type: string
-          description: 'Video description'
-        url:
-          type: string
-          description: 'Video URL'
-    Blueprint.blueprint.media.person:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'Developer name'
-        email:
-          type: string
-          description: "Developer's email address"
-        url:
-          type: string
-          description: "Developer's website"
-    Blueprint.blueprint.media.company:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'Company name'
-        email:
-          type: string
-          description: "Company's email address"
-        url:
-          type: string
-          description: "Company's website"
-    Blueprint.blueprint.build:
-      type: object
-      properties:
-        id:
-          type: string
-          description: 'Blueprint build ID'
-        date:
-          type: string
-          description: 'Bluperint build date'
-    Blueprint.blueprint.license:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 'License name'
-        url:
-          type: string
-          description: 'License website URL'
-    Blueprint.blueprint.supporetedVesion:
-      type: string
-      description: 'Blueprint supported in Crafter CMS version'
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: 'Blueprint supported in Crafter CMS version'
 
-  SearchParams:
-    type: object
-    properties:
-      query:
-        type: string
-        description: The term to search for in the files
-      offset:
-        type: integer
-        format: int64
-        description: The offset to paginate the results (defaults to 0)
-      limit:
-        type: integer
-        format: int64
-        description: The limit to paginate the results (defaults to 10)
-      sortBy:
-        type: string
-        description: The name of the field to sort the results (defaults to sort by relevance)
-      sortOrder:
-        type: string
-        description: The order to sort the results (defaults to DESC)
-      filters:
-        type: object
-        description: >-
-          Object containing field names and values to filter the results, all values should be taken
-          from the 'facets' list returned in a previous search
-        additionalProperties: true
-    SearchResult:
+    SearchParams:
       type: object
       properties:
-        total:
+        query:
+          type: string
+          description: The term to search for in the files
+        offset:
           type: integer
           format: int64
-          description: Total number of results found
-        items:
-          type: array
-          description: List of items based on the pagination parameters
-          items:
-            $ref: '#/components/schemas/SearchResultItem'
-        facets:
-          type: array
-          description: List of facets based on the results found
-          items:
-            $ref: '#/components/schemas/SearchFacet'
-    SearchResultItem:
-      type: object
-      properties:
-        path:
-          type: string
-          description: The path of the file
-        type:
-          type: string
-          description: The type of the file
-        previewUrl:
-          type: string
-          description: The preview URL of the file
-        lastModifier:
-          type: string
-          description: The last user that modified the file
-        lastModified:
-          type: string
-          format: date-time
-          description: The last date that the file was modified
-        size:
+          description: The offset to paginate the results (defaults to 0)
+        limit:
           type: integer
           format: int64
-          description: The size of the file, in bytes
-        snippets:
-          type: array
-          description: Snippets relevant to the search query
-          items:
-            type: string
-    SearchFacet:
-      type: object
-      properties:
-        name:
+          description: The limit to paginate the results (defaults to 10)
+        sortBy:
           type: string
-          description: The label of the facet
-        values:
+          description: The name of the field to sort the results (defaults to sort by relevance)
+        sortOrder:
+          type: string
+          description: The order to sort the results (defaults to DESC)
+        filters:
           type: object
-          description: The values and counts of the facet
+          description: >-
+            Object containing field names and values to filter the results, all values should be taken
+            from the 'facets' list returned in a previous search
           additionalProperties: true
+      SearchResult:
+        type: object
+        properties:
+          total:
+            type: integer
+            format: int64
+            description: Total number of results found
+          items:
+            type: array
+            description: List of items based on the pagination parameters
+            items:
+              $ref: '#/components/schemas/SearchResultItem'
+          facets:
+            type: array
+            description: List of facets based on the results found
+            items:
+              $ref: '#/components/schemas/SearchFacet'
+      SearchResultItem:
+        type: object
+        properties:
+          path:
+            type: string
+            description: The path of the file
+          type:
+            type: string
+            description: The type of the file
+          previewUrl:
+            type: string
+            description: The preview URL of the file
+          lastModifier:
+            type: string
+            description: The last user that modified the file
+          lastModified:
+            type: string
+            format: date-time
+            description: The last date that the file was modified
+          size:
+            type: integer
+            format: int64
+            description: The size of the file, in bytes
+          snippets:
+            type: array
+            description: Snippets relevant to the search query
+            items:
+              type: string
+      SearchFacet:
+        type: object
+        properties:
+          name:
+            type: string
+            description: The label of the facet
+          values:
+            type: object
+            description: The values and counts of the facet
+            additionalProperties: true
 
   responses:
     NotFound:
