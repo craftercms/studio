@@ -561,15 +561,18 @@ studio.search.types:
   - name: Template
     field: contentType
     matches: ^text/x-freemarker$
+  - name: PDF
+    field: contentType
+    matches: ^application/pdf$
   - name: MS Word
     field: contentType
     matches: ^application/(msword|vnd.openxmlformats-officedocument.wordprocessingml.document)$
   - name: MS Excel
     field: contentType
-    matches: ^text/(vnd.ms-excel|vnd.openxmlformats-officedocument.spreadsheetml.sheet)$
+    matches: ^application/(vnd.ms-excel|vnd.openxmlformats-officedocument.spreadsheetml.sheet)$
   - name: MS PowerPoint
     field: contentType
-    matches: ^text/(vnd.ms-powerpoint|vnd.openxmlformats-officedocument.presentationml.presentation)$
+    matches: ^application/(vnd.ms-powerpoint|vnd.openxmlformats-officedocument.presentationml.presentation)$
   - name: Page
     field: content-type
     matches: ^/page/.*$
