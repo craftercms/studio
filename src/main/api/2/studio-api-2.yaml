@@ -1146,10 +1146,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /site/available-blueprints:
+  /sites/available_blueprints:
     get:
       tags:
-        - site
+        - sites
       summary: Get all available blueprints
       description: 'Required Permission: "LOGGED_IN"'
       operationId: availableBlueprints
@@ -1166,7 +1166,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/BlueprintWrapper'
+                      $ref: '#/components/schemas/Blueprint'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /search/search:
@@ -1381,7 +1381,7 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
-    BlueprintWrapper:
+    Blueprint:
       type: object
       properties:
         descriptorVersion:
