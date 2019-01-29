@@ -33,7 +33,7 @@ public class SearchResult {
     /**
      * The list of files
      */
-    protected List<SearchItem> items;
+    protected List<SearchResultItem> items;
 
     /**
      * The facets of the matched files
@@ -48,11 +48,11 @@ public class SearchResult {
         this.total = total;
     }
 
-    public List<SearchItem> getItems() {
+    public List<SearchResultItem> getItems() {
         return items;
     }
 
-    public void setItems(final List<SearchItem> items) {
+    public void setItems(final List<SearchResultItem> items) {
         this.items = items;
     }
 

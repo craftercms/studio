@@ -1378,7 +1378,9 @@ components:
           description: The order to sort the results (defaults to DESC)
         filters:
           type: object
-          description: Map containing field names and values to filter the results
+          description: >-
+            Object containing field names and values to filter the results, all values should be taken
+            from the 'facets' list returned in a previous search
           additionalProperties: true
     SearchResult:
       type: object
@@ -1391,13 +1393,13 @@ components:
           type: array
           description: List of items based on the pagination parameters
           items:
-            $ref: '#/components/schemas/SearchItem'
+            $ref: '#/components/schemas/SearchResultItem'
         facets:
           type: array
           description: List of facets based on the results found
           items:
             $ref: '#/components/schemas/SearchFacet'
-    SearchItem:
+    SearchResultItem:
       type: object
       properties:
         path:

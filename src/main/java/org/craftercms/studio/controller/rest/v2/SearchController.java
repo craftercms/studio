@@ -27,14 +27,13 @@ import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * Controller to access the search service
@@ -54,7 +53,7 @@ public class SearchController {
         this.searchService = searchService;
     }
 
-    @RequestMapping(value = "/search", method = { GET, POST })
+    @PostMapping(value = "/search")
     public ResponseBody search(@RequestParam String siteId, @RequestBody SearchParams params)
         throws AuthenticationException, IOException {
 

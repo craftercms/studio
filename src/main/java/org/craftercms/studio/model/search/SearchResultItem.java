@@ -24,7 +24,7 @@ import java.util.List;
  * Holds the data of a single search result
  * @author joseross
  */
-public class SearchItem {
+public class SearchResultItem {
 
     /**
      * The path of the file

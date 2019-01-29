@@ -37,7 +37,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
 import org.craftercms.studio.model.search.SearchFacet;
-import org.craftercms.studio.model.search.SearchItem;
+import org.craftercms.studio.model.search.SearchResultItem;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 import org.elasticsearch.action.search.SearchRequest;
@@ -262,14 +262,14 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the information from ElasticSearch for a single {@link SearchItem}
+     * Maps the information from ElasticSearch for a single {@link SearchResultItem}
      * @param source the fields returned by ElasticSearch
      * @param highlights the highlights returned by ElasticSearch
      * @return the search item object
      */
     //TODO: Implement previewUrl for supported types
-    protected SearchItem processSearchHit(Map<String, Object> source, Map<String, HighlightField> highlights) {
-        SearchItem item = new SearchItem();
+    protected SearchResultItem processSearchHit(Map<String, Object> source, Map<String, HighlightField> highlights) {
+        SearchResultItem item = new SearchResultItem();
         item.setPath((String) source.get(pathFieldName));
         item.setLastModified(Instant.parse((String) source.get(lastEditFieldName)));
         item.setLastModifier(source.get(lastEditorFieldName).toString());
@@ -321,7 +321,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         SearchResult result = new SearchResult();
         result.setTotal(response.getHits().getTotalHits());
 
-        List<SearchItem> items = Stream.of(response.getHits().getHits())
+        List<SearchResultItem> items = Stream.of(response.getHits().getHits())
             .map(hit -> processSearchHit(hit.getSourceAsMap(), hit.getHighlightFields()))
             .collect(Collectors.toList());
 
