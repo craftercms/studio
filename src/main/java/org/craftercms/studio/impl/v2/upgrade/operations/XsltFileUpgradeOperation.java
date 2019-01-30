@@ -72,8 +72,7 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
-        super.init(sourceVersion, targetVersion, config);
+    public void doInit(final Configuration config) {
         if(StringUtils.isEmpty(path)) {
             path = config.getString(CONFIG_KEY_PATH);
         }
@@ -99,8 +98,7 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
                     transformer.setParameter(PARAM_KEY_SITE, site);
                     transformer.setParameter(PARAM_KEY_VERSION, nextVersion);
                     transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
-                    writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()),
-                        "Upgrade from v" + currentVersion + " to v" + nextVersion);
+                    writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()));
                 }
             } else {
                 logger.warn("Source file {0} doesn't exist in site {1}", path, site);

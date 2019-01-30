@@ -53,8 +53,7 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
-        super.init(sourceVersion, targetVersion, config);
+    public void doInit(final Configuration config) {
         path = config.getString(CONFIG_KEY_PATH);
         file = new ClassPathResource(config.getString(CONFIG_KEY_FILE));
     }
@@ -68,7 +67,7 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
             if(contentRepository.contentExists(site, path)) {
                 logger.info("File {0} already exist in site {1}, it will not be changed", path, site);
             } else {
-                writeToRepo(site, path, is, "Added new file for v" + nextVersion);
+                writeToRepo(site, path, is);
             }
         } catch (IOException e) {
             throw new UpgradeException("Error upgrading file " + path + " for site " + site, e);

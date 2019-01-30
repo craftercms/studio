@@ -193,6 +193,7 @@ pipelines:
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-urlrewrite.xml
           file: crafter/studio/upgrade/3.1.0.1/sample-urlrewrite.xml
+          commitDetails: Add sample file for url rewrite
         - type: versionFileUpgrader
 
     - currentVersion: 3.1.0.1
@@ -201,12 +202,29 @@ pipelines:
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-webdav.xml
           file: crafter/studio/upgrade/3.1.0.2/sample-webdav.xml
+          commitDetails: Add sample file for webdav
         - type: versionFileUpgrader
 
     - currentVersion: 3.1.0.2
       nextVersion: 3.1.0.3
       operations:
         - type: addSiteUuidUpgrader
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.0.3
+      nextVersion: 3.1.0.4
+      operations:
+        - type: boxControlUpgrader
+          includedPaths: /?site/.*\.xml
+          formDefinitionXpath: /form/sections/section/fields/field/type[text()='box-file-upload']
+          fieldNameXpath: /form/sections/section/fields/field/type[text()='box-file-upload']/../id
+          profileIdXpath: /form/sections/section/fields/field/id[text()='${id}']/../properties/property/name[text()='profile_id']/../value
+          itemXpath: //${id}/item
+          itemIdXpath: id
+          itemNameXpath: name
+          urlElementName: url
+          urlTemplate: /remote-assets/box/${profile}/${id}.${extension}
+          commitDetails: Add new <url> tag to fields that use the Box File Upload control
         - type: versionFileUpgrader
 
     # For older sites just add the version file (those will require a manual upgrade)
@@ -236,6 +254,7 @@ configurations:
           - type: xsltFileUpgrader
             path: *role-mappings-config
             template: crafter/studio/upgrade/3.1.0/role-mappings-config-2.xslt
+            commitDetails: Update role mappings configuration
           - type: xsltFileUpgrader
             path: *role-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
@@ -250,6 +269,7 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/3.1.0.1/config-list-2.xslt
+            commitDetails: Add url rewrite to configuration list
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
@@ -259,6 +279,7 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/3.1.0.2/config-list-3.xslt
+            commitDetails: Add webdav to configuration list
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
@@ -272,6 +293,7 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/3.1.0.2/site-config-tools-2.xslt
+            commitDetails: Add webdav datasources to site configuration
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
