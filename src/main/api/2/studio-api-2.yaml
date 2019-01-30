@@ -26,6 +26,8 @@ tags:
     description: AWS operations
   - name: cluster
     description: Cluster management operations
+  - name: search
+    description: Search operations
 paths:
 
   /groups:
@@ -1142,6 +1144,39 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /search/search:
+    post:
+      tags:
+      - search
+      summary: Performs a search for the given site
+      operationId: search
+      parameters:
+      - name: siteId
+        in: query
+        description: The site ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Search Parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchParams'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/SearchResult'
+
 components:
   schemas:
     ApiResponse:
@@ -1321,6 +1356,87 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
+    SearchParams:
+      type: object
+      properties:
+        query:
+          type: string
+          description: The term to search for in the files
+        offset:
+          type: integer
+          format: int64
+          description: The offset to paginate the results (defaults to 0)
+        limit:
+          type: integer
+          format: int64
+          description: The limit to paginate the results (defaults to 10)
+        sortBy:
+          type: string
+          description: The name of the field to sort the results (defaults to sort by relevance)
+        sortOrder:
+          type: string
+          description: The order to sort the results (defaults to DESC)
+        filters:
+          type: object
+          description: >-
+            Object containing field names and values to filter the results, all values should be taken
+            from the 'facets' list returned in a previous search
+          additionalProperties: true
+    SearchResult:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: Total number of results found
+        items:
+          type: array
+          description: List of items based on the pagination parameters
+          items:
+            $ref: '#/components/schemas/SearchResultItem'
+        facets:
+          type: array
+          description: List of facets based on the results found
+          items:
+            $ref: '#/components/schemas/SearchFacet'
+    SearchResultItem:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The path of the file
+        type:
+          type: string
+          description: The type of the file
+        previewUrl:
+          type: string
+          description: The preview URL of the file
+        lastModifier:
+          type: string
+          description: The last user that modified the file
+        lastModified:
+          type: string
+          format: date-time
+          description: The last date that the file was modified
+        size:
+          type: integer
+          format: int64
+          description: The size of the file, in bytes
+        snippets:
+          type: array
+          description: Snippets relevant to the search query
+          items:
+            type: string
+    SearchFacet:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The label of the facet
+        values:
+          type: object
+          description: The values and counts of the facet
+          additionalProperties: true
 
   responses:
     NotFound:

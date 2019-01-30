@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="elasticSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
+        <property name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
+        <property name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
+        <property name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
+    </bean>
+
+    <bean id="searchServiceInternal" init-method="init"
+          class="org.craftercms.studio.impl.v2.service.search.internal.SearchServiceInternalImpl">
+        <property name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
+        <property name="lastEditFieldName" value="#{studioConfiguration.getProperty('studio.search.field.edit')}"/>
+        <property name="lastEditorFieldName" value="#{studioConfiguration.getProperty('studio.search.field.editor')}"/>
+        <property name="sizeFieldName" value="#{studioConfiguration.getProperty('studio.search.field.size')}"/>
+        <property name="searchFields" value="#{studioConfiguration.getProperty('studio.search.fields.search')}"/>
+        <property name="highlightFields" value="#{studioConfiguration.getProperty('studio.search.fields.highlight')}"/>
+        <property name="snippetSize" value="#{studioConfiguration.getProperty('studio.search.snippets.size')}"/>
+        <property name="numberOfSnippets" value="#{studioConfiguration.getProperty('studio.search.snippets.number')}"/>
+        <property name="defaultType" value="#{studioConfiguration.getProperty('studio.search.default.type')}"/>
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+    </bean>
+
+    <bean id="searchService" class="org.craftercms.studio.impl.v2.service.search.SearchServiceImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="searchServiceInternal" ref="searchServiceInternal"/>
+    </bean>
+
+</beans>
