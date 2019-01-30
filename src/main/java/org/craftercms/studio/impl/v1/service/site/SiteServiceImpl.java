@@ -144,7 +144,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
 
 /**
  * Note: consider renaming
@@ -1080,9 +1079,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private String getDestroySitePreviewContextUrl(String site) {
-	    StringBuilder sb = new StringBuilder(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
-        sb.append(studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL));
-        String url = sb.toString();
+        String url = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL);
         url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
         return url;
     }

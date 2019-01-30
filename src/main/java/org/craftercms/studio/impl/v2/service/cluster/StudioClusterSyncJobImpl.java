@@ -56,7 +56,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
@@ -212,9 +211,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     }
 
     private String getDestroySitePreviewContextUrl(String site) {
-        StringBuilder sb = new StringBuilder(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
-        sb.append(studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL));
-        String url = sb.toString();
+        String url = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL);
         url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
         return url;
     }

@@ -105,7 +105,7 @@ studio.configuration.site.dataSources.configBasePath: /config/studio/data-source
 # File name where data sources configuration is stored.
 studio.configuration.site.dataSources.configFileName: cmis-config.xml
 # Destroy site context url for preview engine
-studio.configuration.site.preview.destroy.context.url: /api/1/site/context/destroy.json?crafterSite={siteName}
+studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api/1/site/context/destroy.json?crafterSite={siteName}
 # Location pattern where dependency resolver specific configuration for a site is stored
 studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
@@ -331,8 +331,6 @@ studio.preview.createTargetUrl: http://localhost:9191/api/1/target/upsert
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete-if-exists/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
 studio.preview.repoUrl: ${sys:crafter.data.dir}/repos/sites/{siteName}/sandbox
-# URL to the preview Crafter Engine
-studio.preview.engineUrl: http://localhost:8080
 # Name of template to use with the deployer for preview
 studio.preview.templateName: local
 # Replace existing configuration if one exists?

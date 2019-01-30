@@ -50,7 +50,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFA
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_DELETE_TARGET_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DISABLE_DEPLOY_CRON;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_REPLACE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_REPO_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_TEMPLATE_NAME;
@@ -184,7 +183,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         Path repoUrlPath = Paths.get(repoUrl);
         repoUrl = repoUrlPath.normalize().toAbsolutePath().toString();
         requestBody.setRepoUrl(repoUrl);
-        requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
         requestBody.setSearchEngine(searchEngine);
         return requestBody.toJson();
     }
@@ -303,14 +301,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
         public void setRepoUrl(String repoUrl) {
             this.repoUrl = repoUrl;
-        }
-
-        public String getEngineUrl() {
-            return engineUrl;
-        }
-
-        public void setEngineUrl(String engineUrl) {
-            this.engineUrl = engineUrl;
         }
 
         public String getSearchEngine() {
