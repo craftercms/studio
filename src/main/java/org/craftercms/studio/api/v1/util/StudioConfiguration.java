@@ -35,6 +35,7 @@ public interface StudioConfiguration {
     String REPO_SANDBOX_BRANCH = "studio.repo.siteSandboxBranch";
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
+    String REPO_BLUEPRINTS_DESCRIPTOR_FILENAME = "studio.repo.blueprints.descriptor.filename";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
     String REPO_SANDBOX_WRITE_COMMIT_MESSAGE = "studio.repo.sandbox.write.commitMessage";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
