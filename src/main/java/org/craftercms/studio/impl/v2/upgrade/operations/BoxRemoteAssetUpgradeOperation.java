@@ -188,7 +188,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
      * @return true if any field was updated
      * @throws XPathExpressionException if there is an error evaluating a XPath selector
      */
-    boolean updateField(Document descriptor, Node item, String profileId, String fieldName)
+    protected boolean updateField(Document descriptor, Node item, String profileId, String fieldName)
         throws XPathExpressionException {
         String fileId = (String) select(item, itemIdXpath, XPathConstants.STRING);
         String fileName = (String) select(item, itemNameXpath, XPathConstants.STRING);
