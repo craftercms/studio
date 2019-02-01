@@ -48,6 +48,19 @@ import com.google.common.cache.CacheBuilder;
 
 /**
  * Base implementation of {@link UpgradeOperation} for all content-type related upgrades
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>includedContentTypes</strong0>: (optional) list of content-types that can be handled by this
+ *     operation, if left unset all content-types will be included</li>
+ *     <li><strong>formDefinitionXpath</strong>: (optional) XPath selector to evaluate if a content-type should be
+ *     handled by this operation, if left unset all content-types will be included</li>
+ *     <li><strong>maxCacheItems</strong>: (optional) maximum number of items in the cache, can be used for
+ *     performance tuning in case an upgrade needs to parse too many files in the repository. Defaults to 200
+ *     </li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public abstract class AbstractContentTypeUpgradeOperation extends AbstractContentUpgradeOperation {
@@ -56,15 +69,18 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
 
     public static final String CONFIG_KEY_CONTENT_TYPES = "includedContentTypes";
     public static final String CONFIG_KEY_FORM_DEFINITION = "formDefinitionXpath";
+    public static final String CONFIG_KEY_MAX_ITEMS = "maxCacheItems";
     public static final String NAME_PLACEHOLDER = "\\{name}";
 
+    public static final int DEFAULT_MAX_ITEMS = 200;
+
     /**
-     * List of content-types that can be handled by this class (optional)
+     * List of content-types that can be handled by this operation (optional)
      */
     protected List<String> includedContentTypes;
 
     /**
-     * XPath to evaluate if a content-type can be handled by this class (optional)
+     * XPath to evaluate if a content-type can be handled by this operation (optional)
      */
     protected String formDefinitionXpath;
 
@@ -79,12 +95,9 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
     protected String formDefinitionTemplate;
 
     /**
-     * Cache used to avoid parsing the same file multiple times during the execution of this class
+     * Cache used to avoid parsing the same file multiple times during the execution of this operation
      */
-    protected Cache<Path, Document> cache = CacheBuilder
-        .newBuilder()
-        .maximumSize(200)
-        .build();
+    protected Cache<Path, Document> cache;
 
     protected DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     protected XPathFactory xPathFactory = XPathFactory.newInstance();
@@ -105,6 +118,11 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
         super.doInit(config);
         includedContentTypes = config.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
         formDefinitionXpath = config.getString(CONFIG_KEY_FORM_DEFINITION);
+        int maxCacheItems = config.getInt(CONFIG_KEY_MAX_ITEMS, DEFAULT_MAX_ITEMS);
+        cache = CacheBuilder
+            .newBuilder()
+            .maximumSize(maxCacheItems)
+            .build();
     }
 
     @Override

@@ -34,6 +34,13 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.GLOBAL_REPO_
 
 /**
  * Implementation of {@link UpgradeOperation} that updates files on the global repository.
+ *
+ * <p>Suported YAML properties:
+ * <ul>
+ *     <li><strong>files</strong>: (required) list of paths to update from the bootstrap repo</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {

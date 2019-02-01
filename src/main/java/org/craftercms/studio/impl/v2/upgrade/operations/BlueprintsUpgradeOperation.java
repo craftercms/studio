@@ -54,6 +54,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 
+/**
+ * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that syncs the blueprints in the
+ * global repository from the bootstrap repo.
+ * @author joseross
+ */
 public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation implements ServletContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(BlueprintsUpgradeOperation.class);

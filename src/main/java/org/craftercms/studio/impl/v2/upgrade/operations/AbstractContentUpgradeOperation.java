@@ -39,6 +39,13 @@ import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 
 /**
  * Base implementation of {@link UpgradeOperation} for all site content upgrades
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>includedPaths</strong>: (required) list of patterns to check for files in the repository</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOperation {

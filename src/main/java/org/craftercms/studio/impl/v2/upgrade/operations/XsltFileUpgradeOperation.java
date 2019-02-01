@@ -39,6 +39,14 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VE
 
 /**
  * Implementation if {@link UpgradeOperation} that updates a file using a XSLT template.
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>path</strong>: (required) the relative path to update in the repository</li>
+ *     <li><strong>template</strong>: (required) the path to the XSLT template to apply</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {

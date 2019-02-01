@@ -30,6 +30,14 @@ import org.springframework.core.io.Resource;
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that adds a new file to
  * a repository.
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>path</strong>: (required) the relative path to write the file in the repository</li>
+ *     <li><strong>file</strong>: (required) the location of the file to copy</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public class AddFileUpgradeOperation extends AbstractUpgradeOperation {

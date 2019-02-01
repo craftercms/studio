@@ -24,8 +24,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 
 /**
+ * Implementation of {@link UpgradeOperation} that replaces text in the content repository.
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>pattern</strong>: (required) the pattern to search in the files, can be a regular expression</li>
+ *     <li><strong>replacement</strong>: (required) the expression to replace in the files, can use matched groups
+ *     from the regular expression in the pattern</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public class FindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperation {
@@ -35,7 +46,14 @@ public class FindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperat
     public static final String CONFIG_KEY_PATTERN = "pattern";
     public static final String CONFIG_KEY_REPLACEMENT = "replacement";
 
+    /**
+     * The pattern to search in the files
+     */
     protected String pattern;
+
+    /**
+     * The expression to replace in the files
+     */
     protected String replacement;
 
     @Override
