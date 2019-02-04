@@ -27,8 +27,6 @@ import java.util.List;
 
 public class SitesServiceImpl implements SitesService {
 
-    private final static Logger logger = LoggerFactory.getLogger(SitesServiceImpl.class);
-
     private SitesServiceInternal sitesServiceInternal;
 
     @Override

@@ -37,8 +37,6 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/sites")
 public class SitesController {
 
-    private final static Logger logger = LoggerFactory.getLogger(SitesController.class);
-
     private SitesService sitesService;
 
     @GetMapping("/available_blueprints")

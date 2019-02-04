@@ -48,7 +48,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     public List<BlueprintDescriptor> getAvailbleBlueprints() {
         RepositoryItem[] blueprintsFolders =
                 contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-        int idx = 0;
         List<BlueprintDescriptor> toRet = new ArrayList<BlueprintDescriptor>();
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
