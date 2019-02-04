@@ -118,6 +118,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                             StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
                                             nodeSandobxSyncTask.setSiteId(site);
                                             nodeSandobxSyncTask.setSiteUuid(siteFeed.getSiteUuid());
+                                            nodeSandobxSyncTask.setSearchEngine(siteFeed.getSearchEngine());
                                             nodeSandobxSyncTask.setPreviewDeployer(previewDeployer);
                                             nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
                                             nodeSandobxSyncTask.setContentRepository(contentRepository);
@@ -130,6 +131,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                             StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
                                             nodePublishedSyncTask.setSiteId(site);
                                             nodePublishedSyncTask.setSiteUuid(siteFeed.getSiteUuid());
+                                            nodePublishedSyncTask.setSearchEngine(siteFeed.getSearchEngine());
                                             nodePublishedSyncTask.setPreviewDeployer(previewDeployer);
                                             nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
                                             nodePublishedSyncTask.setContentRepository(contentRepository);
