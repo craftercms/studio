@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
+import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.springframework.core.task.TaskExecutor;
 
 import java.io.IOException;
@@ -94,6 +95,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                     if (memberRemoved) {
                         logger.info("Cluster member " + localAddress + " is removed from cluster. Not syncing with other " +
                                 "members");
+                        DeployContentToEnvironmentStore.signalToStop(true);
                     } else {
                         logger.debug("Cluster members count " + cm.size());
                         try {
