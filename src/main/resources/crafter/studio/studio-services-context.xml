@@ -363,6 +363,16 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <bean id="sitesService" class="org.craftercms.studio.impl.v2.service.site.SitesServiceImpl">
+        <property name="sitesServiceInternal" ref="sitesServiceInternal"/>
+    </bean>
+
+    <bean id="sitesServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->

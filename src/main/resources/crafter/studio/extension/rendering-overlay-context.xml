@@ -62,6 +62,10 @@
         <property name="clusterManagementService" ref="clusterManagementService" />
     </bean>
 
+    <bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
+        <property name="sitesService" ref="sitesService" />
+    </bean>
+
     <bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">
         <property name="searchService" ref="searchService"/>
     </bean>

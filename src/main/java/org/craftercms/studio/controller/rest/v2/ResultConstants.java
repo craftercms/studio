@@ -44,6 +44,8 @@ public interface ResultConstants {
 
     String RESULT_KEY_ENVIRONMENT = "environment";
 
+    String RESULT_KEY_BLUEPRINTS = "blueprints";
+
     String RESULT_KEY_RESULT = "result";
 
 }

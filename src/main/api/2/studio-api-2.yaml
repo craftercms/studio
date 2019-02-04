@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.12'
+  version: '2.0.13'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -26,6 +26,8 @@ tags:
     description: AWS operations
   - name: cluster
     description: Cluster management operations
+  - name: site
+    description: Site management operations
   - name: search
     description: Search operations
 paths:
@@ -488,10 +490,10 @@ paths:
               schema:
                 type: object
                 properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    users:
-                      $ref: '#/components/schemas/User'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  users:
+                    $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -778,7 +780,7 @@ paths:
           description: The site ID
           required: true
           schema:
-            type: string            
+            type: string
       responses:
         '200':
           description: OK
@@ -800,7 +802,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'          
+          $ref: '#/components/responses/InternalServerError'
 
   /users/me:
     get:
@@ -825,7 +827,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-          
+
   /users/me/sites:
     get:
       tags:
@@ -972,7 +974,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'          
+          $ref: '#/components/responses/InternalServerError'
 
   /aws/s3/list:
     get:
@@ -982,32 +984,32 @@ paths:
       operationId: listItems
       description: 'Required Permission: "LOGGED_IN"'
       parameters:
-      - name: siteId
-        in: query
-        description: The site ID
-        required: true
-        schema:
-          type: integer
-          format: int64
-      - name: profileId
-        in: query
-        description: The profile ID
-        required: true
-        schema:
-          type: integer
-          format: int64
-      - name: path
-        in: query
-        description: The path of the directory to list (defaults to the root)
-        required: false
-        schema:
-          type: string
-      - name: type
-        in: query
-        description: The type of items to list (defaults to all types)
-        required: false
-        schema:
-          type: string
+        - name: siteId
+          in: query
+          description: The site ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: profileId
+          in: query
+          description: The profile ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: path
+          in: query
+          description: The path of the directory to list (defaults to the root)
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: The type of items to list (defaults to all types)
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1144,6 +1146,29 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/available_blueprints:
+    get:
+      tags:
+        - sites
+      summary: Get all available blueprints
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: availableBlueprints
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  blueprints:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Blueprint'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /search/search:
     post:
       tags:
@@ -1182,32 +1207,32 @@ components:
     ApiResponse:
       type: object
       description: |-
-            The response of an API operation. Possible responses are:
-              * `CODE:` 0, `MESSAGE:` OK
-              * `CODE:` 1, `MESSAGE:` Created
-              * `CODE:` 2, `MESSAGE:` Deleted
-              * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
-              * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
-              * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
-              * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
-              * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
-              * `CODE:` 3000, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
-              * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
-              * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
-              * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
-              * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
-              * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
-              * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
-              * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
-              * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
-              * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
-              * `CODE:` 9000, `MESSAGE:` Search is unreachable, `REMEDIAL ACTION:` Advise the user that the search engine is not reachable
-              * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
-              * `CODE:` 11000, `MESSAGE:` Cluster member not found, `REMEDIAL ACTION:` Check if you sent in the right Cluster Member Id
-              * `CODE:` 11001, `MESSAGE:` Cluster member already exists, `REMEDIAL ACTION:` Get the list of cluster members to validate
-              * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
-              * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
-              * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
+        The response of an API operation. Possible responses are:
+          * `CODE:` 0, `MESSAGE:` OK
+          * `CODE:` 1, `MESSAGE:` Created
+          * `CODE:` 2, `MESSAGE:` Deleted
+          * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
+          * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
+          * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
+          * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
+          * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
+          * `CODE:` 3000, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
+          * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
+          * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
+          * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
+          * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
+          * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
+          * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
+          * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
+          * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
+          * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
+          * `CODE:` 9000, `MESSAGE:` Search is unreachable, `REMEDIAL ACTION:` Advise the user that the search engine is not reachable
+          * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
+          * `CODE:` 11000, `MESSAGE:` Cluster member not found, `REMEDIAL ACTION:` Check if you sent in the right Cluster Member Id
+          * `CODE:` 11001, `MESSAGE:` Cluster member already exists, `REMEDIAL ACTION:` Get the list of cluster members to validate
+          * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
+          * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
+          * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
       properties:
         code:
           type: integer
@@ -1356,6 +1381,145 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
+    Blueprint:
+      type: object
+      properties:
+        descriptorVersion:
+          type: integer
+          description: 'Blueprint descriptor version number'
+        blueprint:
+          type: object
+          properties:
+            id:
+              type: string
+              format: package name
+              description: 'Blueprint id'
+            name:
+              type: string
+              description: 'Blueprint name'
+            tags:
+              type: string
+              description: 'Tags applied for blueprint'
+            version:
+              type: object
+              properties:
+                major:
+                  type: integer
+                  description: 'Major version number'
+                minor:
+                  type: integer
+                  description: 'Minor version number'
+                patch:
+                  type: integer
+                  description: 'Patch version number'
+            description:
+              type: string
+              description: 'Blueprint description'
+            website:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Blueprint website'
+                url:
+                  type: string
+                  description: 'Blueprint website URL'
+            media:
+              type: object
+              properties:
+                screenshots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      screenshot:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            description: 'Screenshot title'
+                          description:
+                            type: string
+                            description: 'Screenshot description'
+                          url:
+                            type: string
+                            description: 'Screenshot URL'
+                videos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      video:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            description: 'Video title'
+                          description:
+                            type: string
+                            description: 'Video description'
+                          url:
+                            type: string
+                            description: 'Video URL'
+                developer:
+                  type: object
+                  properties:
+                    people:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          person:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: 'Developer name'
+                              email:
+                                type: string
+                                description: "Developer's email address"
+                              url:
+                                type: string
+                                description: "Developer's website"
+                    company:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: 'Company name'
+                        email:
+                          type: string
+                          description: "Company's email address"
+                        url:
+                          type: string
+                          description: "Company's website"
+            build:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: 'Blueprint build ID'
+                date:
+                  type: string
+                  description: 'Bluperint build date'
+            license:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'License name'
+                url:
+                  type: string
+                  description: 'License website URL'
+            craftercmsVersionsSupported:
+              type: array
+              items:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: 'Blueprint supported in Crafter CMS version'
+
     SearchParams:
       type: object
       properties:
@@ -1382,61 +1546,61 @@ components:
             Object containing field names and values to filter the results, all values should be taken
             from the 'facets' list returned in a previous search
           additionalProperties: true
-    SearchResult:
-      type: object
-      properties:
-        total:
-          type: integer
-          format: int64
-          description: Total number of results found
-        items:
-          type: array
-          description: List of items based on the pagination parameters
+      SearchResult:
+        type: object
+        properties:
+          total:
+            type: integer
+            format: int64
+            description: Total number of results found
           items:
-            $ref: '#/components/schemas/SearchResultItem'
-        facets:
-          type: array
-          description: List of facets based on the results found
-          items:
-            $ref: '#/components/schemas/SearchFacet'
-    SearchResultItem:
-      type: object
-      properties:
-        path:
-          type: string
-          description: The path of the file
-        type:
-          type: string
-          description: The type of the file
-        previewUrl:
-          type: string
-          description: The preview URL of the file
-        lastModifier:
-          type: string
-          description: The last user that modified the file
-        lastModified:
-          type: string
-          format: date-time
-          description: The last date that the file was modified
-        size:
-          type: integer
-          format: int64
-          description: The size of the file, in bytes
-        snippets:
-          type: array
-          description: Snippets relevant to the search query
-          items:
+            type: array
+            description: List of items based on the pagination parameters
+            items:
+              $ref: '#/components/schemas/SearchResultItem'
+          facets:
+            type: array
+            description: List of facets based on the results found
+            items:
+              $ref: '#/components/schemas/SearchFacet'
+      SearchResultItem:
+        type: object
+        properties:
+          path:
             type: string
-    SearchFacet:
-      type: object
-      properties:
-        name:
-          type: string
-          description: The label of the facet
-        values:
-          type: object
-          description: The values and counts of the facet
-          additionalProperties: true
+            description: The path of the file
+          type:
+            type: string
+            description: The type of the file
+          previewUrl:
+            type: string
+            description: The preview URL of the file
+          lastModifier:
+            type: string
+            description: The last user that modified the file
+          lastModified:
+            type: string
+            format: date-time
+            description: The last date that the file was modified
+          size:
+            type: integer
+            format: int64
+            description: The size of the file, in bytes
+          snippets:
+            type: array
+            description: Snippets relevant to the search query
+            items:
+              type: string
+      SearchFacet:
+        type: object
+        properties:
+          name:
+            type: string
+            description: The label of the facet
+          values:
+            type: object
+            description: The values and counts of the facet
+            additionalProperties: true
 
   responses:
     NotFound:
