@@ -108,7 +108,7 @@ public class PublisherTask implements Runnable {
                     logger.error("Failed to sync database from repository for site " + site, e);
                     siteService.enablePublishing(site, false);
                 }
-                if (siteService.isPublishingEnabled(site)) {
+                if (contentRepository.repositoryExists(site) && siteService.isPublishingEnabled(site)) {
                     if (!publishingManager.isPublishingBlocked(site)) {
                         try {
                             Set<String> environments = getAllPublishingEnvironments(site);
