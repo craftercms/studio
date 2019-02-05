@@ -167,6 +167,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                     previewDeployer.deleteTarget(siteFeed.getName());
                     destroySitePreviewContext(siteFeed.getName());
                     contentRepository.deleteSite(siteFeed.getName());
+                    StudioNodeSyncBaseTask.createdSites.remove(siteFeed.getSiteId());
                 }
                 deletedSitesMap.put(key, siteFeed.getName());
             }

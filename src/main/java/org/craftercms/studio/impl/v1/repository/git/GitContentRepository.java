@@ -2367,6 +2367,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
+    @Override
+    public boolean repositoryExists(String site) {
+        return commitIdExists(site, Constants.HEAD);
+    }
+
     public void setServletContext(ServletContext ctx) {
         this.ctx = ctx;
     }
