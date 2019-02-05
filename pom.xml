@@ -40,10 +40,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
         <testng.version>6.9.10</testng.version>
-        <selenium.version>2.45.0</selenium.version>
-        <ghostdriver.version>1.2.0</ghostdriver.version>
-        <phantomjs.version>1.9.8</phantomjs.version>
-        <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
@@ -528,10 +524,6 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>data/</directory>
-                            <followSymlinks>false</followSymlinks>
-                        </fileset>
-                        <fileset>
                             <directory>overlays/</directory>
                             <followSymlinks>false</followSymlinks>
                         </fileset>
@@ -546,7 +538,7 @@
                 <executions>
                     <execution>
                         <id>git get ui</id>
-                        <phase>generate-resources</phase>
+                        <phase>prepare-package</phase>
                         <configuration>
                             <executable>git</executable>
                             <arguments>
@@ -565,7 +557,7 @@
                     </execution>
                     <execution>
                         <id>get alpha ui</id>
-                        <phase>generate-resources</phase>
+                        <phase>prepare-package</phase>
                         <configuration>
                             <executable>git</executable>
                             <arguments>
@@ -595,6 +587,7 @@
                 <executions>
                     <execution>
                         <id>install node and yarn</id>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
@@ -605,12 +598,14 @@
                     </execution>
                     <execution>
                         <id>install alpha ui</id>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>build alpha ui</id>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -834,67 +829,6 @@
         </profile>
 
         <profile>
-            <id>test</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.klieber</groupId>
-                        <artifactId>phantomjs-maven-plugin</artifactId>
-                        <version>${phantomjs.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>install</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <version>${phantomjs.version}</version>
-                        </configuration>
-                    </plugin>
-
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>2.18</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <skip>false</skip>
-                            <suiteXmlFiles>
-                                <suiteXmlFile>${project.basedir}/src/test/resources/testng.xml</suiteXmlFile>
-                            </suiteXmlFiles>
-                        </configuration>
-                    </plugin>
-
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>properties-maven-plugin</artifactId>
-                        <version>1.0-alpha-2</version>
-                        <executions>
-                            <execution>
-                                <phase>test-compile</phase>
-                                <goals>
-                                    <goal>write-project-properties</goal>
-                                </goals>
-                                <configuration>
-                                    <outputFile>
-                                        ${project.build.outputDirectory}/application.properties
-                                    </outputFile>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
             <id>release-sign-artifacts</id>
             <activation>
                 <property>
@@ -925,52 +859,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <id>local</id>
-            <properties>
-                <selenium.baseUrl>http://localhost:9080/studio/</selenium.baseUrl>
-            </properties>
-        </profile>
-
-        <profile>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <id>phantom</id>
-            <properties>
-                <selenium.browser>phantom</selenium.browser>
-                <selenium.componentTimeOut>30</selenium.componentTimeOut>
-            </properties>
-        </profile>
-        <profile>
-            <id>safari</id>
-            <properties>
-                <selenium.browser>safari</selenium.browser>
-                <selenium.componentTimeOut>30</selenium.componentTimeOut>
-            </properties>
-        </profile>
-        <profile>
-            <id>firefox</id>
-            <properties>
-                <selenium.browser>firefox</selenium.browser>
-                <selenium.componentTimeOut>30</selenium.componentTimeOut>
-            </properties>
-        </profile>
-        <profile>
-            <id>chrome</id>
-            <properties>
-                <selenium.browser>chrome</selenium.browser>
-                <selenium.componentTimeOut>30</selenium.componentTimeOut>
-            </properties>
-        </profile>
-        <profile>
-            <id>ie</id>
-            <properties>
-                <selenium.browser>ie</selenium.browser>
-                <selenium.componentTimeOut>30</selenium.componentTimeOut>
-            </properties>
         </profile>
     </profiles>
 
