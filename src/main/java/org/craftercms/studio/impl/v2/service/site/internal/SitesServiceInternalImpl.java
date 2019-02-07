@@ -61,6 +61,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
                         Yaml yaml = new Yaml();
                         BlueprintDescriptor bdp = yaml.loadAs(fr, BlueprintDescriptor.class);
                         if (bdp != null) {
+                            bdp.getBlueprint().setFolderName(folder.name);
                             toRet.add(bdp);
                         }
                     }
