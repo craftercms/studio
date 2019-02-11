@@ -320,3 +320,12 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.0.3/site-config-tools-3.xslt
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
