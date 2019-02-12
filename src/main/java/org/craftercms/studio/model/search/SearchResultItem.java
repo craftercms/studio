@@ -32,6 +32,11 @@ public class SearchResultItem {
     protected String path;
 
     /**
+     * The name of the item
+     */
+    protected String name;
+
+    /**
      * The type of the file
      */
     protected String type;
@@ -67,6 +72,14 @@ public class SearchResultItem {
 
     public void setPath(final String path) {
         this.path = path;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
     }
 
     public String getType() {

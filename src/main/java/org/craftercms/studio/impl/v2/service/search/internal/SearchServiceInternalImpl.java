@@ -81,6 +81,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected String pathFieldName;
 
     /**
+     * Name of the field for internal name
+     */
+    protected String internalNameFieldName;
+
+    /**
      * Name of the field for last edit date
      */
     protected String lastEditFieldName;
@@ -148,6 +153,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     @Required
     public void setPathFieldName(final String pathFieldName) {
         this.pathFieldName = pathFieldName;
+    }
+
+    @Required
+    public void setInternalNameFieldName(final String internalNameFieldName) {
+        this.internalNameFieldName = internalNameFieldName;
     }
 
     @Required
@@ -271,6 +281,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected SearchResultItem processSearchHit(Map<String, Object> source, Map<String, HighlightField> highlights) {
         SearchResultItem item = new SearchResultItem();
         item.setPath((String) source.get(pathFieldName));
+        item.setName((String) source.get(internalNameFieldName));
         item.setLastModified(Instant.parse((String) source.get(lastEditFieldName)));
         item.setLastModifier(source.get(lastEditorFieldName).toString());
         item.setSize(Long.parseLong(source.get(sizeFieldName).toString()));

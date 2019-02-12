@@ -522,6 +522,8 @@ studio.search.urls: http://localhost:9201
 studio.search.index.suffix: -authoring
 # Name of the field for paths
 studio.search.field.path: localId
+# Name of the field for internal name
+studio.search.field.name: internalName
 # Name of the field for last edit date
 studio.search.field.edit: lastEditedOn
 # Name of the field for last edit user
