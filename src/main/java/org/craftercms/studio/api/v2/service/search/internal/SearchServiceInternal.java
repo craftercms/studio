@@ -17,9 +17,9 @@
 
 package org.craftercms.studio.api.v2.service.search.internal;
 
-import java.io.IOException;
 import java.util.List;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
@@ -35,8 +35,8 @@ public interface SearchServiceInternal {
      * @param allowedPaths list of paths that should be included in the results
      * @param params the search parameters
      * @return the search results
-     * @throws IOException if there is an error connecting to ElasticSearch
+     * @throws ServiceLayerException if there is any error executing the search in ElasticSearch
      */
-    SearchResult search(String siteId, List<String> allowedPaths, SearchParams params) throws IOException;
+    SearchResult search(String siteId, List<String> allowedPaths, SearchParams params) throws ServiceLayerException;
 
 }

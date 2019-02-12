@@ -17,8 +17,7 @@
 
 package org.craftercms.studio.api.v2.service.search;
 
-import java.io.IOException;
-
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
@@ -35,8 +34,8 @@ public interface SearchService {
      * @param params the parameters for the search
      * @return the search results
      * @throws AuthenticationException if there is an error checking the current user
-     * @throws IOException if there is an error connecting to ElasticSearch
+     * @throws ServiceLayerException if there is any error executing the search in ElasticSearch
      */
-    SearchResult search(String siteId, SearchParams params) throws AuthenticationException, IOException;
+    SearchResult search(String siteId, SearchParams params) throws AuthenticationException, ServiceLayerException;
 
 }

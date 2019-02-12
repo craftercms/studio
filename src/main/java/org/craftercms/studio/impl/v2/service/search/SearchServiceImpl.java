@@ -17,11 +17,11 @@
 
 package org.craftercms.studio.impl.v2.service.search;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.search.SearchService;
@@ -61,7 +61,7 @@ public class SearchServiceImpl implements SearchService {
      */
     @Override
     public SearchResult search(final String siteId, final SearchParams params)
-        throws AuthenticationException, IOException {
+        throws AuthenticationException, ServiceLayerException {
         String user = securityService.getCurrentUser();
         if(StringUtils.isNotEmpty(user)) {
             // TODO: Get allowed paths from the security service
