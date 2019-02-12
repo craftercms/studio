@@ -20,8 +20,6 @@ package scripts.api.impl.content
 import org.apache.commons.lang3.tuple.Pair
 import org.craftercms.studio.model.search.SearchParams
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH
-
 class ContentMonitoring {
 
 	static doMonitoringForAllSites(context, logger) {
@@ -54,10 +52,6 @@ class ContentMonitoring {
 		def notificationService = context.get("cstudioNotificationService")
 		def siteService = context.get("cstudioSiteServiceSimple")
 
-        def siteFeed = siteService.getSite(site);
-        if (siteFeed.searchEngine == SEARCH_ENGINE_ELASTIC_SEARCH) {
-
-        }
 		def config = siteService.getConfiguration(site, "/site-config.xml", "", false);
 
 		if(config.contentMonitoring != null && config.contentMonitoring.monitor != null) {
@@ -99,8 +93,9 @@ class ContentMonitoring {
 						items.findAll { it && it.path =~ path.pattern }.each { item ->
 							def notifyItem = [
 									id : item.path,
-									internalName : item["internal-name"]
+									internalName : item.name
 							]
+							//TODO: Move this logic to search service, maybe add a 'renderUrl' to all items?
 							if(notifyItem.id.contains("/site/website")) {
 								def uri = notifyItem.id.replace("/site/website", "").replace("/index.xml","").replace(".xml", "")
 								notifyItem.url = "$authoringBaseUrl/preview/#/?page=$uri&site=$site".toString()
