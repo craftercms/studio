@@ -19,6 +19,7 @@ import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.log.LoggerFactory
 import scripts.api.SecurityServices
+import org.apache.commons.text.StringEscapeUtils
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_EMAIL
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_ENABLED
@@ -66,4 +67,4 @@ model.userEmail = profile.email
 model.userFirstName = profile.first_name
 model.userLastName =  profile.last_name
 model.authenticationType =  profile.authentication_type
-model.cookieDomain = request.getServerName();
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())

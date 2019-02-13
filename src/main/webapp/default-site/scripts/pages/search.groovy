@@ -18,12 +18,13 @@
 import org.craftercms.commons.validation.validators.impl.NoTagsValidator
 import org.craftercms.engine.exception.HttpStatusCodeException
 import org.springframework.http.HttpStatus
+import org.apache.commons.text.StringEscapeUtils
 
 import scripts.libs.EnvironmentOverrides
 import scripts.libs.utils.ValidationUtils
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
-model.cookieDomain = request.getServerName()
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 model.keywordTerm = (request.getParameter("s")) ? request.getParameter("s") : ""
 model.mode = (request.getParameter("mode")) ? request.getParameter("mode") : "select"
 model.context = (request.getParameter("context")) ? request.getParameter("context") : "default"
