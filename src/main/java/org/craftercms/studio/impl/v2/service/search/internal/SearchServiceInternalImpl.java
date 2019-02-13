@@ -33,6 +33,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
@@ -337,7 +338,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      */
     @Override
     public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
-        throws IOException {
+        throws ServiceLayerException {
 
         BoolQueryBuilder query = QueryBuilders.boolQuery();
 
@@ -358,7 +359,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             .query(query)
             .from(params.getOffset())
             .size(params.getLimit())
-            .sort(params.getSortBy(), SortOrder.valueOf(params.getSortOrder()));
+            .sort(getSortFieldName(params.getSortBy()), SortOrder.fromString(params.getSortOrder()));
 
         if(ArrayUtils.isNotEmpty(highlightFields)) {
             updateHighlighting(builder);
@@ -369,9 +370,27 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         SearchRequest request = new SearchRequest()
             .source(builder);
 
-        SearchResponse response = elasticSearchService.search(siteId, allowedPaths, request);
+        try {
+            SearchResponse response = elasticSearchService.search(siteId, allowedPaths, request);
+            return processResults(response);
+        } catch (IOException e) {
+            throw new ServiceLayerException("Error connecting to ElasticSearch", e);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Error executing search in ElasticSearch", e);
+        }
+    }
 
-        return processResults(response);
+    /**
+     * Maps the field name from the configured facets, if its not found returns the same value.
+     * @param name the facet name
+     * @return name of the field to sort
+     */
+    protected String getSortFieldName(String name) {
+        String field = name;
+        if(facets.containsKey(field)) {
+            field = facets.get(field).getString(CONFIG_KEY_FACET_FIELD);
+        }
+        return field;
     }
 
     /**

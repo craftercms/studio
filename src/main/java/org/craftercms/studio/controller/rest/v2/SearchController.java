@@ -17,8 +17,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import java.io.IOException;
-
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -55,7 +54,7 @@ public class SearchController {
 
     @PostMapping(value = "/search")
     public ResponseBody search(@RequestParam String siteId, @RequestBody SearchParams params)
-        throws AuthenticationException, IOException {
+        throws AuthenticationException, ServiceLayerException {
 
         SearchResult searchResult = searchService.search(siteId, params);
 
