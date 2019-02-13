@@ -19,8 +19,9 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import scripts.api.ContentServices
+import org.apache.commons.text.StringEscapeUtils
 
-model.cookieDomain = request.getServerName()
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
 def result = [:]
 def site = ""

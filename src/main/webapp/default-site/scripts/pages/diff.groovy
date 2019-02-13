@@ -18,7 +18,7 @@
 import scripts.libs.EnvironmentOverrides
 import scripts.libs.HTMLCompareTools
 import scripts.api.ContentServices
-import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 
 
 def result = [:]
@@ -60,8 +60,8 @@ model.diff = HTMLCompareTools.diff(model.variantA, model.variantB)
 
 model.dir = path
 
-model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)  
-model.cookieDomain = request.getServerName()     
+model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
 
 

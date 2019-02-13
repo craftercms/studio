@@ -17,6 +17,7 @@
 
 import scripts.libs.EnvironmentOverrides
 import scripts.api.SecurityServices
+import org.apache.commons.text.StringEscapeUtils
 
 def result = [:]
 def ticket = request.getSession().getValue("alf_ticket");
@@ -30,7 +31,7 @@ model.userEmail = profile.email
 model.userFirstName = profile.firstName
 model.userLastName =  profile.lastName
 model.authenticationType =  profile.authentication_type
-model.cookieDomain = request.getServerName();
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
 model.username = username
 model.ticket = ticket
