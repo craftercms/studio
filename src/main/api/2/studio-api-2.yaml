@@ -1525,7 +1525,10 @@ components:
       properties:
         query:
           type: string
-          description: The term to search for in the files
+          description: The main Lucene query to execute
+        keywords:
+          type: string
+          description: The keywords to search in the files
         offset:
           type: integer
           format: int64

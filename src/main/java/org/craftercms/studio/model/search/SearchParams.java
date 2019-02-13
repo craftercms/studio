@@ -26,7 +26,12 @@ import java.util.Map;
 public class SearchParams {
 
     /**
-     * The term to search in the files
+     * Keywords to search in the files.
+     */
+    protected String keywords;
+
+    /**
+     * Lucene query to execute.
      */
     protected String query;
 
@@ -54,6 +59,14 @@ public class SearchParams {
      * The filters to search the files
      */
     protected Map<String, Object> filters;
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(final String keywords) {
+        this.keywords = keywords;
+    }
 
     public String getQuery() {
         return query;

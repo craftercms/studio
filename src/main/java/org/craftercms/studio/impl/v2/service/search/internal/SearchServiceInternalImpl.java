@@ -342,8 +342,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         BoolQueryBuilder query = QueryBuilders.boolQuery();
 
         if(StringUtils.isNotEmpty(params.getQuery())) {
-            query.should(QueryBuilders.regexpQuery(pathFieldName, ".*" + params.getQuery() + ".*"));
-            query.should(QueryBuilders.multiMatchQuery(params.getQuery(), searchFields));
+            query.must(QueryBuilders.queryStringQuery(params.getQuery()));
+        }
+
+        if(StringUtils.isNotEmpty(params.getKeywords())) {
+            query.should(QueryBuilders.regexpQuery(pathFieldName, ".*" + params.getKeywords() + ".*"));
+            query.should(QueryBuilders.multiMatchQuery(params.getKeywords(), searchFields));
         }
 
         if(MapUtils.isNotEmpty(params.getFilters())) {
