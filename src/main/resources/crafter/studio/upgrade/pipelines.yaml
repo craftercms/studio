@@ -250,6 +250,18 @@ pipelines:
           commitDetails: Add new <url> tag to fields that use the Box File Upload control
         - type: versionFileUpgrader
 
+    - currentVersion: 3.1.0.4
+      nextVersion: 3.1.0.5
+      operations:
+        - type: addFileUpgrader
+          path: /config/studio/form-control-config/rte/rte-setup-tinymce4.xml
+          file: crafter/studio/upgrade/3.1.0.5/rte-setup-tinymce4.xml
+        - type: addFileUpgrader
+          path: /config/studio/administration/samples/sample-form-control-rte-setupt-tinymce4.xml
+          file: crafter/studio/upgrade/3.1.0.5/sample-form-control-rte-setupt-tinymce4.xml
+        - type: versionFileUpgrader
+
+
     # For older sites just add the version file (those will require a manual upgrade)
     - currentVersion: 3.0.x
       nextVersion: 3.0.x
