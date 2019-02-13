@@ -1,7 +1,3 @@
-model.args = [:]
-model.url = [:]
-model.url.context = "/studio"
-model.cookieDomain = request.getServerName()
 /*
  * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
  *
@@ -18,5 +14,12 @@ model.cookieDomain = request.getServerName()
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+import org.apache.commons.text.StringEscapeUtils
+
+model.args = [:]
+model.url = [:]
+model.url.context = "/studio"
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
 //request.params

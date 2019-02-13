@@ -15,7 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+import org.apache.commons.text.StringEscapeUtils
 import scripts.libs.EnvironmentOverrides
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
-model.cookieDomain = request.getServerName()
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())

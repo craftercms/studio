@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+import org.apache.commons.text.StringEscapeUtils
 import scripts.libs.EnvironmentOverrides
 import scripts.api.SecurityServices
 
@@ -30,7 +32,7 @@ model.userEmail = profile.email
 model.userFirstName = profile.firstName
 model.userLastName =  profile.lastName
 model.authenticationType =  profile.authentication_type
-model.cookieDomain = request.getServerName();
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
 model.username = username
 model.ticket = ticket
