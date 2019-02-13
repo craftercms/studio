@@ -29,6 +29,7 @@
     <bean id="searchServiceInternal" init-method="init"
           class="org.craftercms.studio.impl.v2.service.search.internal.SearchServiceInternalImpl">
         <property name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
+        <property name="internalNameFieldName" value="#{studioConfiguration.getProperty('studio.search.field.name')}"/>
         <property name="lastEditFieldName" value="#{studioConfiguration.getProperty('studio.search.field.edit')}"/>
         <property name="lastEditorFieldName" value="#{studioConfiguration.getProperty('studio.search.field.editor')}"/>
         <property name="sizeFieldName" value="#{studioConfiguration.getProperty('studio.search.field.size')}"/>

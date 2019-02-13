@@ -1572,6 +1572,9 @@ components:
           path:
             type: string
             description: The path of the file
+          name:
+            type: string
+            description: The internal name of the file
           type:
             type: string
             description: The type of the file
