@@ -16,6 +16,7 @@
  */
 
 import scripts.libs.EnvironmentOverrides
+import org.apache.commons.text.StringEscapeUtils
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
-model.cookieDomain = org.apache.commons.lang3.StringEscapeUtils.escapeXml10(request.getServerName())
+model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
