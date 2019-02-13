@@ -209,6 +209,18 @@ pipelines:
         - type: addSiteUuidUpgrader
         - type: versionFileUpgrader
 
+    - currentVersion: 3.1.0.3
+      nextVersion: 3.1.0.4
+      operations:
+        - type: addFileUpgrader
+          path: /config/studio/form-control-config/rte/rte-setup-tinymce4.xml
+          file: crafter/studio/upgrade/3.1.0.4/rte-setup-tinymce4.xml
+        - type: addFileUpgrader
+          path: /config/studio/administration/samples/sample-form-control-rte-setupt-tinymce4.xml
+          file: crafter/studio/upgrade/3.1.0.4/sample-form-control-rte-setupt-tinymce4.xml
+        - type: versionFileUpgrader
+
+
     # For older sites just add the version file (those will require a manual upgrade)
     - currentVersion: 3.0.x
       nextVersion: 3.0.x
@@ -280,7 +292,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *site-config-tools
-            template: crafter/studio/upgrade/3.1.0.3/site-config-tools-3.xslt
+            template: crafter/studio/upgrade/3.1.0.4/site-config-tools-3.xslt
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
