@@ -79,4 +79,4 @@ model.userEmail = profile.email
 model.userFirstName = profile.first_name
 model.userLastName =  profile.last_name
 model.authenticationType =  profile.authentication_type
-model.cookieDomain = request.getServerName()
+model.cookieDomain = org.apache.commons.lang3.StringEscapeUtils.escapeXml10(request.getServerName())
