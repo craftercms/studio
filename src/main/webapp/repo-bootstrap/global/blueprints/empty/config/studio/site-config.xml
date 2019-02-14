@@ -141,7 +141,7 @@
         </monitor>
         <monitor>
             <name>Content Expiring In Two Months</name>
-            <query>expired_dt:[now+60d/d TO now+6d/d]</query>
+            <query>expired_dt:[now+60d/d TO now+62d/d]</query>
             <paths>
                 <path>
                     <name>All Site</name>
