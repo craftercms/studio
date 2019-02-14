@@ -1172,16 +1172,16 @@ paths:
   /search/search:
     post:
       tags:
-      - search
+        - search
       summary: Performs a search for the given site
       operationId: search
       parameters:
-      - name: siteId
-        in: query
-        description: The site ID
-        required: true
-        schema:
-          type: string
+        - name: siteId
+          in: query
+          description: The site ID
+          required: true
+          schema:
+            type: string
       requestBody:
         description: Search Parameters
         required: true
@@ -1357,9 +1357,15 @@ components:
           type: integer
           format: int64
           description: 'Cluster Member ID, unique and immutable'
-        localIp:
+        localAddress:
           type: string
           description: 'Cluster Member local IP address, immutable'
+        state:
+          type: string
+          description: 'Cluster Member state'
+        heartbeat:
+          type: timestamp
+          description: 'Timestamp of last heartbeat update of cluster member'
         gitUrl:
           type: string
           description: 'Git URL, unique'
@@ -1525,10 +1531,7 @@ components:
       properties:
         query:
           type: string
-          description: The main Lucene query to execute
-        keywords:
-          type: string
-          description: The keywords to search in the files
+          description: The term to search for in the files
         offset:
           type: integer
           format: int64
@@ -1572,9 +1575,6 @@ components:
           path:
             type: string
             description: The path of the file
-          name:
-            type: string
-            description: The internal name of the file
           type:
             type: string
             description: The type of the file
