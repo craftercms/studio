@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <!-- Appenders -->
+    <Appenders>
+        <Console name="consoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%p] %d{ISO8601} [%t] [%c{2}] | %m %n"/>
+        </Console>
+
+        <RollingFile name="default.file" fileName="${sys:application.logs}/studio.log"
+                     filePattern="${sys:application.logs}/studio.%d{MM-dd-yyyy-HH-mm}.log.gz" append="false">
+            <PatternLayout pattern="[%p] %d{ISO8601} [%t] [%c{2}] | %m %n"/>
+            <SizeBasedTriggeringPolicy size="10 MB"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Application Loggers -->
+        <Logger name="org.craftercms.engine" level="info"/>
+
+        <Logger name="org.craftercms.security" level="info"/>
+
+        <!-- 3rdparty Loggers -->
+        <Logger name="org.springframework.core" level="info"/>
+
+        <Logger name="org.springframework.beans" level="info"/>
+
+        <Logger name="org.springframework.context" level="info"/>
+
+        <Logger name="org.springframework.web" level="info"/>
+
+        <Logger name="org.mongodb.driver" level="warn"/>
+
+        <Logger name="org.tuckey" level="info"/>
+
+        <!-- Root Logger -->
+        <Root level="info">
+            <AppenderRef ref="consoleAppender"/>
+            <AppenderRef ref="default.file"/>
+        </Root>
+    </Loggers>
+</Configuration>
