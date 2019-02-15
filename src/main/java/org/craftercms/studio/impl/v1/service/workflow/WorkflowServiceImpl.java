@@ -208,6 +208,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     submittedItemsPaths.add(stringItem);
                 }
                 List<String> submittedPaths = new ArrayList<String>();
+                submittedPaths.addAll(submittedItemsPaths);
                 submittedPaths.addAll(dependencyService.getPublishingDepenencies(site, submittedItemsPaths));
                 objectStateService.setSystemProcessingBulk(site, submittedPaths, true);
                 List<DmError> errors = submitToGoLive(submittedPaths, scheduledDate, sendEmail, delete, requestContext, submissionComment);
