@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.activation.MimetypesFileTypeMap;
+
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 
@@ -48,7 +51,11 @@ public abstract class AwsUtils {
         int partNumber = 1;
         long totalBytes = 0;
 
-        InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(inputBucket, inputKey);
+        MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
+        ObjectMetadata meta = new ObjectMetadata();
+        meta.setContentType(mimeMap.getContentType(filename));
+
+        InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(inputBucket, inputKey, meta);
         initResult = s3Client.initiateMultipartUpload(initRequest);
         byte[] buffer = new byte[partSize];
         int read;
