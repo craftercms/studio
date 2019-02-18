@@ -160,7 +160,7 @@ public class PublisherTask implements Runnable {
                 }
             } catch (Exception err) {
                 logger.error("Error while executing deployment to environment store", err);
-                notificationService.notifyDeploymentError("UNKNOWN", err);
+                notificationService.notifyDeploymentError(site, err);
                 publishingManager.resetProcessingQueue(site, env);
             } finally {
                 singleWorkerLock.unlock();

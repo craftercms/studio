@@ -569,7 +569,7 @@ public class GitContentRepositoryHelper {
                     if (buildSiteRepo(site)) {
                         repo = sandboxes.get(site);
                     } else {
-                        logger.error("error getting the sandbox repository for site: " + site);
+                        logger.warn("Couldn't get the sandbox repository for site: " + site);
                     }
                 }
                 break;
@@ -579,7 +579,7 @@ public class GitContentRepositoryHelper {
                     if (buildSiteRepo(site)) {
                         repo = published.get(site);
                     } else {
-                        logger.error("error getting the published repository for site: " + site);
+                        logger.warn("Couldn't get the published repository for site: " + site);
                     }
                 }
                 break;
@@ -589,7 +589,7 @@ public class GitContentRepositoryHelper {
                     try {
                         globalRepo = openRepository(globalConfigRepoPath);
                     } catch (IOException e) {
-                        logger.error("error getting the global repository.", e);
+                        logger.error("Error getting the global repository.", e);
                     }
                 }
                 repo = globalRepo;

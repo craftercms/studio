@@ -1668,11 +1668,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean commitIdExists(String site, String commitId) {
         boolean toRet = false;
         try (Repository repo = helper.getRepository(site, SANDBOX)) {
-            ObjectId objCommitId = repo.resolve(commitId);
-            if (objCommitId != null) {
-                RevCommit revCommit = repo.parseCommit(objCommitId);
-                if (revCommit != null) {
-                    toRet = true;
+            if (repo != null) {
+                ObjectId objCommitId = repo.resolve(commitId);
+                if (objCommitId != null) {
+                    RevCommit revCommit = repo.parseCommit(objCommitId);
+                    if (revCommit != null) {
+                        toRet = true;
+                    }
                 }
             }
         } catch (IOException e) {
