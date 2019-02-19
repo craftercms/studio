@@ -1364,7 +1364,8 @@ components:
           type: string
           description: 'Cluster Member state'
         heartbeat:
-          type: timestamp
+          type: string
+          format: date-time
           description: 'Timestamp of last heartbeat update of cluster member'
         gitUrl:
           type: string
@@ -1525,7 +1526,6 @@ components:
                   version:
                     type: string
                     description: 'Blueprint supported in Crafter CMS version'
-
     SearchParams:
       type: object
       properties:
@@ -1555,64 +1555,64 @@ components:
             Object containing field names and values to filter the results, all values should be taken
             from the 'facets' list returned in a previous search
           additionalProperties: true
-      SearchResult:
-        type: object
-        properties:
-          total:
-            type: integer
-            format: int64
-            description: Total number of results found
+    SearchResult:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: Total number of results found
+        items:
+          type: array
+          description: List of items based on the pagination parameters
           items:
-            type: array
-            description: List of items based on the pagination parameters
-            items:
-              $ref: '#/components/schemas/SearchResultItem'
-          facets:
-            type: array
-            description: List of facets based on the results found
-            items:
-              $ref: '#/components/schemas/SearchFacet'
-      SearchResultItem:
-        type: object
-        properties:
-          path:
+            $ref: '#/components/schemas/SearchResultItem'
+        facets:
+          type: array
+          description: List of facets based on the results found
+          items:
+            $ref: '#/components/schemas/SearchFacet'
+    SearchResultItem:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The path of the file
+        name:
+          type: string
+          description: The internal name of the file
+        type:
+          type: string
+          description: The type of the file
+        previewUrl:
+          type: string
+          description: The preview URL of the file
+        lastModifier:
+          type: string
+          description: The last user that modified the file
+        lastModified:
+          type: string
+          format: date-time
+          description: The last date that the file was modified
+        size:
+          type: integer
+          format: int64
+          description: The size of the file, in bytes
+        snippets:
+          type: array
+          description: Snippets relevant to the search query
+          items:
             type: string
-            description: The path of the file
-          name:
-            type: string
-            description: The internal name of the file
-          type:
-            type: string
-            description: The type of the file
-          previewUrl:
-            type: string
-            description: The preview URL of the file
-          lastModifier:
-            type: string
-            description: The last user that modified the file
-          lastModified:
-            type: string
-            format: date-time
-            description: The last date that the file was modified
-          size:
-            type: integer
-            format: int64
-            description: The size of the file, in bytes
-          snippets:
-            type: array
-            description: Snippets relevant to the search query
-            items:
-              type: string
-      SearchFacet:
-        type: object
-        properties:
-          name:
-            type: string
-            description: The label of the facet
-          values:
-            type: object
-            description: The values and counts of the facet
-            additionalProperties: true
+    SearchFacet:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The label of the facet
+        values:
+          type: object
+          description: The values and counts of the facet
+          additionalProperties: true
 
   responses:
     NotFound:
