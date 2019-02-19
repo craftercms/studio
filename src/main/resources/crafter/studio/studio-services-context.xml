@@ -474,6 +474,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="clusterDAO" ref="clusterDao" />
         <property name="repositoryType" value="SANDBOX" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
     </bean>
 
     <bean id="studioClusterPublishedSyncJob"
@@ -486,6 +487,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="clusterDAO" ref="clusterDao" />
         <property name="repositoryType" value="PUBLISHED" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
     </bean>
 
     <bean id="studioClusterNodeHeartbeatJob"

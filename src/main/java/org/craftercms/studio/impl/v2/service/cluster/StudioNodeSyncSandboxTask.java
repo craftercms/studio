@@ -129,6 +129,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                 logger.debug("Create site from remote for site " + siteId);
                 createSiteFromRemote();
                 addSiteUuidFile(siteId, siteUuid);
+                deploymentService.syncAllContentToPreview(siteId, true);
                 createdSites.add(siteId);
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException |IOException e) {

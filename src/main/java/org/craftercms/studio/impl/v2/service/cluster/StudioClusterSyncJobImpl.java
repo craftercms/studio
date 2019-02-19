@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -74,6 +75,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private ClusterDAO clusterDAO;
     private ServicesConfig servicesConfig;
     private GitRepositories repositoryType;
+    private DeploymentService deploymentService;
 
     private ReentrantLock singleWorkerLock = new ReentrantLock();
     private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
@@ -127,6 +129,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                             nodeSandobxSyncTask.setSiteService(siteService);
                                             nodeSandobxSyncTask.setServicesConfig(servicesConfig);
                                             nodeSandobxSyncTask.setClusterNodes(clusterMembers);
+                                            nodeSandobxSyncTask.setDeploymentService(deploymentService);
                                             taskExecutor.execute(nodeSandobxSyncTask);
                                             break;
                                         case PUBLISHED:
@@ -140,6 +143,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                             nodePublishedSyncTask.setSiteService(siteService);
                                             nodePublishedSyncTask.setServicesConfig(servicesConfig);
                                             nodePublishedSyncTask.setClusterNodes(clusterMembers);
+                                            nodePublishedSyncTask.setDeploymentService(deploymentService);
                                             taskExecutor.execute(nodePublishedSyncTask);
                                     }
                                 }
@@ -287,5 +291,13 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     public void setRepositoryType(GitRepositories repositoryType) {
         this.repositoryType = repositoryType;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
     }
 }
