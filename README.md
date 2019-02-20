@@ -80,6 +80,32 @@ pipelines:
     ...
 ```
 
+### Site Content
+When there is a change that breaks existing sites like the format of a field in the descriptors or the name of a 
+service in the Groovy scripts a new operation should be added to make the necessary changes in the repository. Any
+operation of this kind should extend the [`AbstractContentUpgradeOperation`](https://github.com/craftercms/studio/tree/develop/src/main/java/org/craftercms/studio/impl/v2/upgrade/operations/AbstractContentUpgradeOperation.java)
+which handles committing the changes in the repository. Implementations of this 
+class
+only need to concern about finding the files that need to be updated (by using path patterns, content-types 
+xpath selectors or any other condition) and changing the files in the file system (without committing to git)
+
+Example:
+
+```yaml
+pipelines:
+  site:
+    ...
+    - currentVersion: 3.1.0
+      nextVersion: 3.1.0.1
+      operations:
+        - type: findAndReplaceUpgrader
+          includedPaths: /?site/scripts/.*
+          pattern: mockService\((.*))
+          replacement: mockService2(mockService2.someConstant, $1)
+          commitDetails: Update uses of mockService in all scripts
+    ...
+```
+
 **Note: Every version in the site pipeline must include the `versionFileUpgrader` operation.**
 
 ### Site Configuration

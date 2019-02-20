@@ -156,4 +156,14 @@
           class="org.craftercms.studio.impl.v2.upgrade.operations.AddSiteUuidOperation" >
         <property name="siteFeedMapper" ref="siteFeedMapper"/>
     </bean>
+
+    <bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.FindAndReplaceUpgradeOperation"/>
+
+    <bean id="boxControlUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.BoxRemoteAssetUpgradeOperation">
+        <property name="contentTypeXpath" value="#{studioConfiguration.getProperty('studio.upgrade.xpath.contentType')}"/>
+        <property name="formDefinitionTemplate" value="#{studioConfiguration.getProperty('studio.upgrade.template.formDefinition')}"/>
+    </bean>
+
 </beans>

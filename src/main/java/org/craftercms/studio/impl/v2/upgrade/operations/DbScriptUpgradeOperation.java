@@ -36,6 +36,15 @@ import org.springframework.core.io.Resource;
 
 /**
  * Implementation of {@link UpgradeOperation} that executes a database script.
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>filename</strong>: (required) the name of the db script file</li>
+ *     <li><strong>updateIntegrity</strong>: (optional) indicates if the db integrity should be updated, defaults to
+ *     true</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
@@ -84,8 +93,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
-        super.init(sourceVersion, targetVersion, config);
+    public void doInit(final Configuration config) {
         fileName = config.getString(CONFIG_KEY_FILENAME);
         updateIntegrity = config.getBoolean(CONFIG_KEY_INTEGRITY, true);
     }

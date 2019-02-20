@@ -34,6 +34,13 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.GLOBAL_REPO_
 
 /**
  * Implementation of {@link UpgradeOperation} that updates files on the global repository.
+ *
+ * <p>Suported YAML properties:
+ * <ul>
+ *     <li><strong>files</strong>: (required) list of paths to update from the bootstrap repo</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
@@ -51,8 +58,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
-        super.init(sourceVersion, targetVersion, config);
+    public void doInit(final Configuration config) {
         files = (String[]) config.getArray(String.class, CONFIG_KEY_FILES);
     }
 
@@ -74,7 +80,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
             logger.debug("Upgrading configuration file: {0}", file);
             try (InputStream is = globalConfigurationBootstrap.createRelative(file).getInputStream()) {
 
-                writeToRepo(site, file, is, "Global Repo Upgrade v" + currentVersion + " to v" + nextVersion);
+                writeToRepo(site, file, is);
 
             } catch (IOException e) {
                 throw new UpgradeException("Upgrade for global repo failed", e);

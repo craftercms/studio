@@ -44,18 +44,10 @@ public class SiteVersionUpgradeOperation extends XsltFileUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
-        super.init(sourceVersion, targetVersion, config);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void execute(final String site) throws UpgradeException {
         if(!contentRepository.contentExists(site, path)) {
             try(InputStream is = defaultFile.getInputStream()) {
-                writeToRepo(site, path, is, "Added file to track site version");
+                writeToRepo(site, path, is);
             } catch (IOException e) {
                 throw new UpgradeException("Error adding version file to site " + site, e);
             }

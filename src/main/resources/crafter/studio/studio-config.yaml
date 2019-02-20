@@ -461,6 +461,9 @@ studio.upgrade.pipeline.configurations: configurations
 # Folder to look for database scripts
 studio.upgrade.scriptFolder: crafter/studio/database/
 
+studio.upgrade.xpath.contentType: '*/content-type'
+studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-definition.xml
+
 ################################################################
 ##                   Publishing Thread Pool                   ##
 ################################################################

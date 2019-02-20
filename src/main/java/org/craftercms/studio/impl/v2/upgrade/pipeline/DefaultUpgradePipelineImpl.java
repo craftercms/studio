@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.springframework.util.StopWatch;
 
 /**
  * Default implementation for {@link UpgradePipeline}.
@@ -59,15 +60,22 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
         if(isEmpty()) {
             return;
         }
+        StopWatch watch = new StopWatch(name + " pipeline");
         logger.info("============================================================");
         logger.info("Starting execution of upgrade pipeline: {0}", name);
         for(UpgradeOperation operation : operations) {
             logger.info("------- Starting execution of operation {0} -------", operation.getClass().getSimpleName());
+            watch.start(operation.getClass().getSimpleName());
             operation.execute(site);
+            watch.stop();
             logger.info("------- Execution of operation completed -------");
         }
         logger.info("Execution of pipeline {0} completed", name);
         logger.info("============================================================");
+
+        if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+            logger.debug("Pipeline Duration:\n" + watch.prettyPrint());
+        }
     }
 
     /**

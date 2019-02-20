@@ -39,6 +39,14 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VE
 
 /**
  * Implementation if {@link UpgradeOperation} that updates a file using a XSLT template.
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>path</strong>: (required) the relative path to update in the repository</li>
+ *     <li><strong>template</strong>: (required) the path to the XSLT template to apply</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
@@ -72,8 +80,7 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
-        super.init(sourceVersion, targetVersion, config);
+    public void doInit(final Configuration config) {
         if(StringUtils.isEmpty(path)) {
             path = config.getString(CONFIG_KEY_PATH);
         }
@@ -99,8 +106,7 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
                     transformer.setParameter(PARAM_KEY_SITE, site);
                     transformer.setParameter(PARAM_KEY_VERSION, nextVersion);
                     transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
-                    writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()),
-                        "Upgrade from v" + currentVersion + " to v" + nextVersion);
+                    writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()));
                 }
             } else {
                 logger.warn("Source file {0} doesn't exist in site {1}", path, site);

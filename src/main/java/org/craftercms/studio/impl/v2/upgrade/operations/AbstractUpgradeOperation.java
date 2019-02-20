@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -54,11 +55,23 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 
 /**
  * Provides access to system components for all upgrade operations.
+ *
+ * <p>Supported YAML properties:
+ * <ul>
+ *     <li><strong>currentVersion</strong>: (required) the version number that will be upgraded</li>
+ *     <li><strong>nextVersion</strong> (required) the version number to use after the upgrade</li>
+ *     <li><strong>commitDetails</strong>(optional) any additional details to include in the commits if there are
+ *     repository changes</li>
+ * </ul>
+ * </p>
+ *
  * @author joseross
  */
 public abstract class AbstractUpgradeOperation implements UpgradeOperation, ServletContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
+
+    public static final String CONFIG_KEY_COMMIT_DETAILS = "commitDetails";
 
     /**
      * The current version.
@@ -69,6 +82,11 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
      * The next version.
      */
     protected String nextVersion;
+
+    /**
+     * Additional details for the commit message (optional)
+     */
+    protected String commitDetails;
 
     /**
      * The Studio configuration.
@@ -126,9 +144,15 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
     public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
         this.currentVersion = sourceVersion;
         this.nextVersion = targetVersion;
+        this.commitDetails = config.getString(CONFIG_KEY_COMMIT_DETAILS);
+        doInit(config);
     }
 
-    protected void writeToRepo(String site, String path, InputStream content, String message) {
+    protected void doInit(final Configuration config) {
+        // do nothing by default
+    }
+
+    protected void writeToRepo(String site, String path, InputStream content) {
         try {
             Path repositoryPath = getRepositoryPath(site);
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -184,7 +208,7 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
                 // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
                 if (status.hasUncommittedChanges() || !status.isClean()) {
                     RevCommit commit;
-                    commit = git.commit().setOnly(gitPath).setMessage(message).call();
+                    commit = git.commit().setOnly(gitPath).setMessage(getCommitMessage()).call();
                     commit.getName();
                 }
             } catch (GitAPIException e) {
@@ -193,6 +217,42 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
 
         } catch (IOException e) {
             logger.error("error writing file: site: " + site + " path: " + path, e);
+        }
+    }
+
+    protected void commitAllChanges(String site) throws UpgradeException {
+        try {
+            Path repositoryPath = getRepositoryPath(site);
+            FileRepositoryBuilder builder = new FileRepositoryBuilder();
+            Repository repo = builder
+                .setGitDir(repositoryPath.toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+
+            try (Git git = new Git(repo)) {
+                git.add().addFilepattern(".").call();
+
+                Status status = git.status().call();
+
+                if (status.hasUncommittedChanges() || !status.isClean()) {
+                    git.commit()
+                        .setAll(true)
+                        .setMessage(getCommitMessage())
+                        .call();
+                }
+            }
+        } catch (IOException | GitAPIException e) {
+            throw new UpgradeException("Error committing changes for site " + site, e);
+        }
+    }
+
+    protected String getCommitMessage() {
+        String header = "Site upgrade from v" + currentVersion + " to v" + nextVersion;
+        if(StringUtils.isNotEmpty(commitDetails)) {
+            return header + "\n" + commitDetails;
+        } else {
+            return header;
         }
     }
 
@@ -212,7 +272,7 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
         return toRet;
     }
 
-    private Path getRepositoryPath(String site) {
+    protected Path getRepositoryPath(String site) {
         if(StringUtils.isEmpty(site)) {
             return Paths.get(
                 studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
