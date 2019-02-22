@@ -590,26 +590,26 @@ studio.search.types:
 # The list of field facets to return
 studio.search.facets.fields:
     # The label that will be returned
-  - name: content-type
+  - name: Content Type
     # The field that will be used
     field: content-type
-  - name: contentType
+  - name: MIME Type
     field: contentType
 # The list of range facets to return
 studio.search.facets.ranges:
     # The label that will be returned
-  - name: contentLength
+  - name: Size
     # The field that will be used
     field: contentLength
     # The offset to start the range
     offset: 0
     # The interval to generate the range
     interval: 10000
-  - name: width
+  - name: Width
     field: width
     offset: 0
     interval: 10
-  - name: height
+  - name: Height
     field: height
     offset: 0
     interval: 10

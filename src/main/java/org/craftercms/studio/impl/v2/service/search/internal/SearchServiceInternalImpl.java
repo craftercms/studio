@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.service.search.internal;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
@@ -75,6 +77,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String CONFIG_KEY_TYPE_FIELD = CONFIG_KEY_FACET_FIELD;
     public static final String CONFIG_KEY_TYPE_NAME = CONFIG_KEY_FACET_NAME;
     public static final String CONFIG_KEY_TYPE_MATCHES = "matches";
+
+    public static final String FACET_RANGE_MIN = "min";
+    public static final String FACET_RANGE_MAX = "max";
 
     /**
      * Name of the field for paths
@@ -237,7 +242,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                 aggregations.add(AggregationBuilders
                     .terms(facet.getString(CONFIG_KEY_FACET_NAME))
                     .field(facet.getString(CONFIG_KEY_FACET_FIELD))
-                    .minDocCount(1));
+                    .minDocCount(1)
+                    .size(1000));
             });
         }
 
@@ -296,17 +302,27 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * @param query the query to update
      * @param params the parameters to add
      */
+    @SuppressWarnings("unchecked")
     protected void updateFilters(BoolQueryBuilder query, SearchParams params) {
         params.getFilters().forEach((filter, value) -> {
             if(facets.containsKey(filter)) {
                 HierarchicalConfiguration<ImmutableNode> facetConfig = facets.get(filter);
+                String fieldName = facetConfig.getString(CONFIG_KEY_FACET_FIELD);
                 if(facetConfig.containsKey(CONFIG_KEY_FACET_INTERVAL)) {
-                    query.filter(QueryBuilders
-                        .rangeQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD))
-                        .gte(value)
-                        .lt(((Number)value).doubleValue() + facetConfig.getDouble(CONFIG_KEY_FACET_INTERVAL)));
+                    RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(fieldName);
+                    if(value instanceof Map) {
+                        Map<String, Number> range = (Map<String, Number>) value;
+                        rangeQuery
+                            .gte(range.get(FACET_RANGE_MIN))
+                            .lte(range.get(FACET_RANGE_MAX));
+                    } else {
+                        rangeQuery
+                            .gte(value)
+                            .lt(((Number)value).doubleValue() + facetConfig.getDouble(CONFIG_KEY_FACET_INTERVAL));
+                    }
+                    query.filter(rangeQuery);
                 } else {
-                    query.filter(QueryBuilders.matchQuery(facetConfig.getString(CONFIG_KEY_FACET_FIELD), value));
+                    query.filter(QueryBuilders.matchQuery(fieldName, value));
                 }
             }
         });
@@ -358,8 +374,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         }
 
         if(StringUtils.isNotEmpty(params.getKeywords())) {
-            query.should(QueryBuilders.regexpQuery(pathFieldName, ".*" + params.getKeywords() + ".*"));
-            query.should(QueryBuilders.multiMatchQuery(params.getKeywords(), searchFields));
+            query.must(
+                QueryBuilders.boolQuery()
+                    .should(QueryBuilders.regexpQuery(pathFieldName, ".*" + params.getKeywords() + ".*"))
+                    .should(QueryBuilders.multiMatchQuery(params.getKeywords(), searchFields))
+            );
         }
 
         if(MapUtils.isNotEmpty(params.getFilters())) {
@@ -417,15 +436,20 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             aggregations.getAsMap().forEach((name, aggregation) -> {
                 SearchFacet facet = new SearchFacet();
                 facet.setName(name);
-                Map values = new TreeMap();
+                Map values = null;
                 if(aggregation instanceof Terms) {
+                    values = new LinkedHashMap();
                     Terms terms = (Terms) aggregation;
-                    terms.getBuckets().forEach(bucket -> values.put(bucket.getKey(), bucket.getDocCount()));
-
-
+                    for(Terms.Bucket bucket : terms.getBuckets()) {
+                        values.put(bucket.getKey(), bucket.getDocCount());
+                    }
                 } else if(aggregation instanceof Histogram) {
+                    values = new TreeMap();
                     Histogram histogram = (Histogram) aggregation;
-                    histogram.getBuckets().forEach(bucket -> values.put(bucket.getKey(), bucket.getDocCount()));
+                    for(Histogram.Bucket bucket : histogram.getBuckets()) {
+                        values.put(bucket.getKey(), bucket.getDocCount());
+                    }
+                    facet.setRange(true);
                 }
                 if(MapUtils.isNotEmpty(values)) {
                     facet.setValues(values);
