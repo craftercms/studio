@@ -17,27 +17,37 @@
 
 package org.craftercms.studio.api.v1.service.cmis;
 
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
+import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v1.to.CmisContentItemTO;
 
+import java.io.InputStream;
 import java.util.List;
 
 /** Cmis Service **/
 public interface CmisService {
 
     int listTotal(String site, String cmisRepo, String path)
-        throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
     List<CmisContentItemTO> list(String site, String cmisRepo, String path, int start, int number)
-        throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
     long searchTotal(String site, String cmisRepo, String searchTerm, String path)
-        throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
     List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number)
-        throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
     void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath)
-        throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException,
-        StudioPathNotFoundException, CmisRepositoryNotFoundException;
+            throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException,
+            StudioPathNotFoundException, CmisRepositoryNotFoundException;
+
+    void uploadContent(String siteId, String cmisRepoId, String cmisPath, String filename, InputStream content)
+            throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException,
+            CmisRepositoryNotFoundException;
 }

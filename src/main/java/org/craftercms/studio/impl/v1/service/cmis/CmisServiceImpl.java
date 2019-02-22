@@ -17,7 +17,13 @@
 
 package org.craftercms.studio.impl.v1.service.cmis;
 
-import org.apache.chemistry.opencmis.client.api.*;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.QueryResult;
+import org.apache.chemistry.opencmis.client.api.Repository;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
@@ -32,7 +38,12 @@ import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
+import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.cmis.CmisService;
@@ -44,13 +55,24 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
-import javax.net.ssl.*;
-import java.nio.file.*;
+import javax.activation.MimetypesFileTypeMap;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH;
@@ -75,13 +97,17 @@ public class CmisServiceImpl implements CmisService {
 
     private static final String MIME_TYPE_FOLDER = "folder";
 
-    private static final String CMIS_SEARCH_QUERY = "select * from cmis:document where IN_TREE('{folderId}') and cmis:name like '%{searchTerm}%'";
+    private static final String CMIS_SEARCH_QUERY =
+            "select * from cmis:document where IN_TREE('{folderId}') and cmis:name like '%{searchTerm}%'";
     private static final String CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE = "{folderId}";
     private static final String CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE = "{searchTerm}";
 
     @Override
     @ValidateParams
-    public int listTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateSecurePathParam(name = "path") String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    public int listTotal(@ValidateStringParam(name = "site") String site,
+                         @ValidateStringParam(name = "cmisRepo") String cmisRepo,
+                         @ValidateSecurePathParam(name = "path") String path)
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         int toRet = 0;
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -107,7 +133,12 @@ public class CmisServiceImpl implements CmisService {
 
     @Override
     @ValidateParams
-    public List<CmisContentItemTO> list(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    public List<CmisContentItemTO> list(@ValidateStringParam(name = "site") String site,
+                                        @ValidateStringParam(name = "cmisRepo") String cmisRepo,
+                                        @ValidateSecurePathParam(name = "path") String path,
+                                        @ValidateIntegerParam(name = "start") int start,
+                                        @ValidateIntegerParam(name = "number") int number)
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -128,7 +159,8 @@ public class CmisServiceImpl implements CmisService {
                                 CmisObject cmisItem = iterator.next();
                                 item.setItem_name(cmisItem.getName());
                                 if (BaseTypeId.CMIS_DOCUMENT.equals(cmisItem.getBaseTypeId())) {
-                                    org.apache.chemistry.opencmis.client.api.Document cmisDoc = (org.apache.chemistry.opencmis.client.api.Document)cmisItem;
+                                    org.apache.chemistry.opencmis.client.api.Document cmisDoc =
+                                            (org.apache.chemistry.opencmis.client.api.Document)cmisItem;
                                     item.setItem_path(cmisDoc.getPaths().get(0));
                                     item.setMime_type(cmisDoc.getContentStreamMimeType());
                                     String contentId = cmisDoc.getId();
@@ -180,7 +212,8 @@ public class CmisServiceImpl implements CmisService {
                 throw new CmisRepositoryNotFoundException();
             }
         } catch (DocumentException e) {
-            logger.error("Error while getting configuration for site: " + site + " cmis: " + cmisRepo + " (config path: " + configPath + ")");
+            logger.error("Error while getting configuration for site: " + site + " cmis: " + cmisRepo +
+                    " (config path: " + configPath + ")");
         }
         return repositoryConfig;
     }
@@ -193,7 +226,8 @@ public class CmisServiceImpl implements CmisService {
         return StringUtils.EMPTY;
     }
 
-    private Session createCMISSession(DataSourceRepositoryTO config) throws CmisUnavailableException, CmisTimeoutException {
+    private Session createCMISSession(DataSourceRepositoryTO config)
+            throws CmisUnavailableException, CmisTimeoutException {
 
         if (config.isUseSsl()) {
             SSLContext sc = null;
@@ -265,7 +299,11 @@ public class CmisServiceImpl implements CmisService {
 
     @Override
     @ValidateParams
-    public long searchTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateStringParam(name = "searchTerm") String searchTerm, @ValidateSecurePathParam(name = "path") String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    public long searchTotal(@ValidateStringParam(name = "site") String site,
+                            @ValidateStringParam(name = "cmisRepo") String cmisRepo,
+                            @ValidateStringParam(name = "searchTerm") String searchTerm,
+                            @ValidateSecurePathParam(name = "path") String path)
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         long toRet = 0;
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -275,7 +313,8 @@ public class CmisServiceImpl implements CmisService {
                 CmisObject cmisObject = session.getObjectByPath(contentPath);
                 if (cmisObject != null) {
                     if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
-                        String queryString = CMIS_SEARCH_QUERY.replace(CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE, cmisObject.getId()).replace(CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE, searchTerm);
+                        String queryString = CMIS_SEARCH_QUERY.replace(CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE,
+                                cmisObject.getId()).replace(CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE, searchTerm);
                         ItemIterable<QueryResult> result = session.query(queryString, false);
                         toRet = result.getTotalNumItems();
                     }
@@ -287,7 +326,13 @@ public class CmisServiceImpl implements CmisService {
 
     @Override
     @ValidateParams
-    public List<CmisContentItemTO> search(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateStringParam(name = "searchTerm") String searchTerm, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    public List<CmisContentItemTO> search(@ValidateStringParam(name = "site") String site,
+                                          @ValidateStringParam(name = "cmisRepo") String cmisRepo,
+                                          @ValidateStringParam(name = "searchTerm") String searchTerm,
+                                          @ValidateSecurePathParam(name = "path") String path,
+                                          @ValidateIntegerParam(name = "start") int start,
+                                          @ValidateIntegerParam(name = "number") int number)
+            throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -297,7 +342,8 @@ public class CmisServiceImpl implements CmisService {
                 CmisObject cmisObject = session.getObjectByPath(contentPath);
                 if (cmisObject != null) {
                     if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
-                        String queryString = CMIS_SEARCH_QUERY.replace(CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE, cmisObject.getId()).replace(CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE, searchTerm);
+                        String queryString = CMIS_SEARCH_QUERY.replace(CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE,
+                                cmisObject.getId()).replace(CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE, searchTerm);
                         ItemIterable<QueryResult> result = session.query(queryString, false);
                         result.skipTo(start);
                         Iterator<QueryResult> iterator = result.iterator();
@@ -313,7 +359,8 @@ public class CmisServiceImpl implements CmisService {
                                     item.setItem_id(st.nextToken());
                                 }
                                 CmisObject qrObject = session.getObject(item.getItem_id());
-                                org.apache.chemistry.opencmis.client.api.Document cmisDoc = (org.apache.chemistry.opencmis.client.api.Document)qrObject;
+                                org.apache.chemistry.opencmis.client.api.Document cmisDoc =
+                                        (org.apache.chemistry.opencmis.client.api.Document)qrObject;
                                 item.setItem_name(cmisDoc.getName());
                                 item.setItem_path(cmisDoc.getPaths().get(0));
                                 item.setMime_type(cmisDoc.getContentStreamMimeType());
@@ -333,13 +380,12 @@ public class CmisServiceImpl implements CmisService {
 
     @Override
     @ValidateParams
-    public void cloneContent(
-        @ValidateStringParam(name = "siteId") String siteId,
-        @ValidateStringParam(name = "cmisRepoId") String cmisRepoId,
-        @ValidateSecurePathParam(name = "cmisPath") String cmisPath,
-        @ValidateSecurePathParam(name = "studioPath") String studioPath)
-        throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException,
-        StudioPathNotFoundException, CmisRepositoryNotFoundException {
+    public void cloneContent(@ValidateStringParam(name = "siteId") String siteId,
+                             @ValidateStringParam(name = "cmisRepoId") String cmisRepoId,
+                             @ValidateSecurePathParam(name = "cmisPath") String cmisPath,
+                             @ValidateSecurePathParam(name = "studioPath") String studioPath)
+            throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException,
+            StudioPathNotFoundException, CmisRepositoryNotFoundException {
         if (!contentService.contentExists(siteId, studioPath)) throw new StudioPathNotFoundException();
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);
@@ -354,12 +400,56 @@ public class CmisServiceImpl implements CmisService {
                     if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
                         throw new CmisPathNotFoundException();
                     } else if (BaseTypeId.CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
-                        org.apache.chemistry.opencmis.client.api.Document cmisDoc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                        org.apache.chemistry.opencmis.client.api.Document cmisDoc =
+                                (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                         String fileName = cmisDoc.getName();
                         String savePath = studioPath + FILE_SEPARATOR + fileName;
                         ContentStream cs = cmisDoc.getContentStream();
                         logger.debug("Save CMIS file to: " + savePath);
                         contentService.writeContent(siteId, savePath, cs.getStream());
+                    }
+                } else {
+                    throw new CmisPathNotFoundException();
+                }
+            } else {
+                throw new CmisUnauthorizedException();
+            }
+        }
+    }
+
+    @Override
+    @ValidateParams
+    public void uploadContent(@ValidateStringParam(name = "siteId") String siteId,
+                              @ValidateStringParam(name = "cmisRepoId") String cmisRepoId,
+                              @ValidateSecurePathParam(name = "cmisPath") String cmisPath,
+                              @ValidateSecurePathParam(name = "filename") String filename, InputStream content)
+            throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException,
+            CmisRepositoryNotFoundException {
+        List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
+        DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);
+        if (repositoryConfig != null) {
+            logger.debug("Create new CMIS session");
+            Session session = createCMISSession(repositoryConfig);
+            if (session != null) {
+                String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
+                logger.debug("Find object for CMIS path: " + contentPath);
+                CmisObject cmisObject = session.getObjectByPath(contentPath);
+                if (cmisObject != null) {
+                    if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
+                        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+                        String mimeType = mimeTypesMap.getContentType(filename);
+                        ContentStream contentStream =
+                                session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
+                        Folder folder  = (Folder)cmisObject;
+                        Map<String, Object> properties = new HashMap<String, Object>();
+                        properties.put(PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value());
+                        properties.put(PropertyIds.NAME, filename);
+                        org.apache.chemistry.opencmis.client.api.Document newDoc =
+                                folder.createDocument(properties, contentStream, null);
+                        session.removeObjectFromCache(newDoc.getId());
+                        session.clear();
+                    } else if (BaseTypeId.CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
+                        throw new CmisPathNotFoundException();
                     }
                 } else {
                     throw new CmisPathNotFoundException();
@@ -378,11 +468,21 @@ public class CmisServiceImpl implements CmisService {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME);
     }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
     protected StudioConfiguration studioConfiguration;
     protected ContentService contentService;

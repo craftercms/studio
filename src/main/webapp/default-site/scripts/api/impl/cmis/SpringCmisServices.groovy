@@ -19,6 +19,8 @@ package scripts.api.impl.cmis
 
 class SpringCmisServices {
 
+    static CMIS_SERVICES_BEAN = "studioCmisService"
+
     def context = null
 
     /**
@@ -31,27 +33,32 @@ class SpringCmisServices {
     }
 
     def listTotal(site, cmisRepo, path) {
-        def springBackedService = this.context.applicationContext.get("studioCmisService")
+        def springBackedService = this.context.applicationContext.get(CMIS_SERVICES_BEAN)
         return springBackedService.listTotal(site, cmisRepo, path)
     }
 
     def list(site, cmisRepo, path, start, number) {
-        def springBackedService = this.context.applicationContext.get("studioCmisService")
+        def springBackedService = this.context.applicationContext.get(CMIS_SERVICES_BEAN)
         return springBackedService.list(site, cmisRepo, path, start, number)
     }
 
     def searchTotal(site, cmisRepo, searchTerm, path) {
-        def springBackedService = this.context.applicationContext.get("studioCmisService")
+        def springBackedService = this.context.applicationContext.get(CMIS_SERVICES_BEAN)
         return springBackedService.searchTotal(site, cmisRepo, searchTerm, path)
     }
 
     def search(site, cmisRepo, searchTerm, path, start, number) {
-        def springBackedService = this.context.applicationContext.get("studioCmisService")
+        def springBackedService = this.context.applicationContext.get(CMIS_SERVICES_BEAN)
         return springBackedService.search(site, cmisRepo, searchTerm, path, start, number)
     }
 
     def cloneContent(site, cmisRepoId, cmisPath, studioPath) {
-        def springBackedService = this.context.applicationContext.get("studioCmisService")
+        def springBackedService = this.context.applicationContext.get(CMIS_SERVICES_BEAN)
         return springBackedService.cloneContent(site, cmisRepoId, cmisPath, studioPath)
+    }
+
+    def uploadContent(site, cmisRepoId, cmisPath, filename, content) {
+        def springBackedService = this.context.applicationContext.get(CMIS_SERVICES_BEAN)
+        return springBackedService.uploadContent(site, cmisRepoId, cmisPath, filename, content)
     }
 }
