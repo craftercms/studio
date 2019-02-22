@@ -27,6 +27,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v2.dal.ClusterMember.State.INACTIVE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVE_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_MEMBER_IDS;
+
 public class ClusterManagementServiceInternalImpl implements ClusterManagementServiceInternal {
 
     private ClusterDAO clusterDao;
@@ -41,7 +45,8 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
     public boolean removeMembers(List<Long> memberIds) {
         if (CollectionUtils.isNotEmpty(memberIds)) {
             Map<String, Object> params = new HashMap<String, Object>();
-            params.put("memberIds", memberIds);
+            params.put(CLUSTER_MEMBER_IDS, memberIds);
+            params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
             int result = clusterDao.removeMembers(params);
             return result > 0;
         } else {
