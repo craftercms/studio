@@ -17,7 +17,13 @@
 
 package org.craftercms.studio.impl.v1.service.cmis;
 
-import org.apache.chemistry.opencmis.client.api.*;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.QueryResult;
+import org.apache.chemistry.opencmis.client.api.Repository;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
@@ -32,7 +38,12 @@ import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
+import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.cmis.CmisService;
@@ -44,13 +55,24 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
-import javax.net.ssl.*;
-import java.nio.file.*;
+import javax.activation.MimetypesFileTypeMap;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH;
@@ -354,6 +376,49 @@ public class CmisServiceImpl implements CmisService {
                         ContentStream cs = cmisDoc.getContentStream();
                         logger.debug("Save CMIS file to: " + savePath);
                         contentService.writeContent(siteId, savePath, cs.getStream());
+                    }
+                } else {
+                    throw new CmisPathNotFoundException();
+                }
+            } else {
+                throw new CmisUnauthorizedException();
+            }
+        }
+    }
+
+    @Override
+    @ValidateParams
+    public void uploadContent(@ValidateStringParam(name = "siteId") String siteId,
+                              @ValidateStringParam(name = "cmisRepoId") String cmisRepoId,
+                              @ValidateSecurePathParam(name = "cmisPath") String cmisPath,
+                              @ValidateSecurePathParam(name = "filename") String filename, InputStream content)
+            throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException,
+            CmisRepositoryNotFoundException {
+        List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
+        DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);
+        if (repositoryConfig != null) {
+            logger.debug("Create new CMIS session");
+            Session session = createCMISSession(repositoryConfig);
+            if (session != null) {
+                String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
+                logger.debug("Find object for CMIS path: " + contentPath);
+                CmisObject cmisObject = session.getObjectByPath(contentPath);
+                if (cmisObject != null) {
+                    if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
+                        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+                        String mimeType = mimeTypesMap.getContentType(filename);
+                        ContentStream contentStream =
+                                session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
+                        Folder folder  = (Folder)cmisObject;
+                        Map<String, Object> properties = new HashMap<String, Object>();
+                        properties.put(PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value());
+                        properties.put(PropertyIds.NAME, filename);
+                        org.apache.chemistry.opencmis.client.api.Document newDoc =
+                                folder.createDocument(properties, contentStream, null);
+                        session.removeObjectFromCache(newDoc.getId());
+                        session.clear();
+                    } else if (BaseTypeId.CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
+                        throw new CmisPathNotFoundException();
                     }
                 } else {
                     throw new CmisPathNotFoundException();
