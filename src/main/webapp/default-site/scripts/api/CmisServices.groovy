@@ -60,4 +60,9 @@ class CmisServices {
         def cmisServiceImpl = ServiceFactory.getCmisServices(context)
         return cmisServiceImpl.cloneContent(siteId, cmisRepoId, cmisPath, studioPath)
     }
+
+    static uploadContent(context, siteId, cmisRepoId, cmisPath, filename, content) {
+        def cmisServiceImpl = ServiceFactory.getCmisServices(context)
+        return cmisServiceImpl.uploadContent(siteId, cmisRepoId, cmisPath, filename, content)
+    }
 }
