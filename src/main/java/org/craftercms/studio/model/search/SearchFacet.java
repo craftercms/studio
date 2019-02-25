@@ -31,6 +31,11 @@ public class SearchFacet {
     protected String name;
 
     /**
+     * Indicates if the facet values are ranges
+     */
+    protected boolean range;
+
+    /**
      * The values and counts of the facet
      */
     protected Map<Object, Object> values;
@@ -41,6 +46,14 @@ public class SearchFacet {
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    public boolean isRange() {
+        return range;
+    }
+
+    public void setRange(final boolean range) {
+        this.range = range;
     }
 
     public Map<Object, Object> getValues() {

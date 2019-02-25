@@ -1552,8 +1552,9 @@ components:
         filters:
           type: object
           description: >-
-            Object containing field names and values to filter the results, all values should be taken
-            from the 'facets' list returned in a previous search
+            Object containing facets to filter the search results. Facets can be simple key-value pairs like "MIME
+            Type":"text/css" or nested objects for range facets like "Width": { "min": 0, "max": 150 }. Both keys and
+             values can be taken from the facets object of a previous search.
           additionalProperties: true
     SearchResult:
       type: object
@@ -1609,6 +1610,9 @@ components:
         name:
           type: string
           description: The label of the facet
+        range:
+          type: boolean
+          description: Indicates if the values of the facet are ranges
         values:
           type: object
           description: The values and counts of the facet
