@@ -17,11 +17,15 @@
 
 package org.craftercms.studio.api.v1.service.cmis;
 
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
+import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v1.to.CmisContentItemTO;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.util.List;
 
 /** Cmis Service **/
@@ -36,4 +40,8 @@ public interface CmisService {
     List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
     void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException, CmisRepositoryNotFoundException;
+
+    void uploadContent(String siteId, String cmisRepoId, String cmisPath, String filename, InputStream content)
+            throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException,
+            CmisRepositoryNotFoundException;
 }

@@ -40,6 +40,7 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
 
     private final static String LIST = "/api/1/services/api/1/cmis/list.json";
     private final static String SEARCH = "/api/1/services/api/1/cmis/search.json";
+    private final static String UPLOAD = "/api/1/services/api/1/cmis/upload.json";
 
     @Override
     public boolean supports(ConfigAttribute configAttribute) {
@@ -66,6 +67,7 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
                 }
             }
             switch (requestUri) {
+                case UPLOAD:
                 case SEARCH:
                 case LIST:
                     if (currentUser != null && isSiteMember(siteParam, currentUser)) {
