@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
 import org.craftercms.studio.model.search.SearchFacet;
+import org.craftercms.studio.model.search.SearchFacetRange;
 import org.craftercms.studio.model.search.SearchResultItem;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
@@ -52,6 +53,8 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
+import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -71,8 +74,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
     public static final String CONFIG_KEY_FACET_NAME = "name";
     public static final String CONFIG_KEY_FACET_FIELD = "field";
-    public static final String CONFIG_KEY_FACET_OFFSET = "offset";
-    public static final String CONFIG_KEY_FACET_INTERVAL = "interval";
+    public static final String CONFIG_KEY_FACET_RANGE = "ranges";
+    public static final String CONFIG_KEY_FACET_RANGE_FROM = "from";
+    public static final String CONFIG_KEY_FACET_RANGE_TO = "to";
 
     public static final String CONFIG_KEY_TYPE_FIELD = CONFIG_KEY_FACET_FIELD;
     public static final String CONFIG_KEY_TYPE_NAME = CONFIG_KEY_FACET_NAME;
@@ -265,13 +269,25 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             facetsConfig.forEach(facet -> {
                 facets.put(facet.getString(CONFIG_KEY_FACET_NAME), facet);
 
-                aggregations.add(AggregationBuilders
-                    .histogram(facet.getString(CONFIG_KEY_FACET_NAME))
+                RangeAggregationBuilder rangeAggregation = AggregationBuilders
+                    .range(facet.getString(CONFIG_KEY_FACET_NAME))
                     .field(facet.getString(CONFIG_KEY_FACET_FIELD))
-                    .offset(facet.getDouble(CONFIG_KEY_FACET_OFFSET))
-                    .interval(facet.getDouble(CONFIG_KEY_FACET_INTERVAL))
-                    .minDocCount(1)
-                    .keyed(true));
+                    .keyed(true);
+
+                for(HierarchicalConfiguration<ImmutableNode> range :
+                    facet.configurationsAt(CONFIG_KEY_FACET_RANGE)) {
+                    if(range.containsKey(CONFIG_KEY_FACET_RANGE_TO) && range.containsKey(CONFIG_KEY_FACET_RANGE_FROM)) {
+                        rangeAggregation.addRange(range.getDouble(CONFIG_KEY_FACET_RANGE_FROM),
+                            range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
+                    } else if(range.containsKey(CONFIG_KEY_FACET_RANGE_FROM)) {
+                        rangeAggregation.addUnboundedFrom(range.getDouble(CONFIG_KEY_FACET_RANGE_FROM));
+                    } else {
+                        rangeAggregation.addUnboundedTo(range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
+                    }
+
+                }
+
+                aggregations.add(rangeAggregation);
             });
         }
     }
@@ -321,17 +337,13 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             if(facets.containsKey(filter)) {
                 HierarchicalConfiguration<ImmutableNode> facetConfig = facets.get(filter);
                 String fieldName = facetConfig.getString(CONFIG_KEY_FACET_FIELD);
-                if(facetConfig.containsKey(CONFIG_KEY_FACET_INTERVAL)) {
+                if(facetConfig.containsKey(CONFIG_KEY_FACET_RANGE)) {
                     RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(fieldName);
                     if(value instanceof Map) {
                         Map<String, Number> range = (Map<String, Number>) value;
                         rangeQuery
                             .gte(range.get(FACET_RANGE_MIN))
                             .lte(range.get(FACET_RANGE_MAX));
-                    } else {
-                        rangeQuery
-                            .gte(value)
-                            .lt(((Number)value).doubleValue() + facetConfig.getDouble(CONFIG_KEY_FACET_INTERVAL));
                     }
                     query.filter(rangeQuery);
                 } else {
@@ -456,11 +468,15 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                     for(Terms.Bucket bucket : terms.getBuckets()) {
                         values.put(bucket.getKey(), bucket.getDocCount());
                     }
-                } else if(aggregation instanceof Histogram) {
+                } else if(aggregation instanceof Range) {
                     values = new TreeMap();
-                    Histogram histogram = (Histogram) aggregation;
-                    for(Histogram.Bucket bucket : histogram.getBuckets()) {
-                        values.put(bucket.getKey(), bucket.getDocCount());
+                    Range range = (Range) aggregation;
+                    for(Range.Bucket bucket : range.getBuckets()) {
+                        SearchFacetRange rangeValues = new SearchFacetRange();
+                        rangeValues.setCount(bucket.getDocCount());
+                        rangeValues.setFrom((Number) bucket.getFrom());
+                        rangeValues.setTo((Number) bucket.getTo());
+                        values.put(bucket.getKey(), rangeValues);
                     }
                     facet.setRange(true);
                 }

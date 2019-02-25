@@ -603,15 +603,34 @@ studio.search.facets.ranges:
   - name: size
     # The field that will be used
     field: contentLength
-    # The offset to start the range
-    offset: 0
-    # The interval to generate the range
-    interval: 10000
-  - name: width
+    # The list of ranges to search
+    ranges:
+      - to: 500000
+      - from: 500000
+        to: 1000000
+      - from: 2000000
+      - from: 2000000
+        to: 4000000
+      - from: 4000000
+  - name: Width
     field: width
-    offset: 0
-    interval: 10
-  - name: height
+    ranges:
+      - to: 32
+      - from: 32
+        to: 52
+      - from: 52
+        to: 200
+      - from: 200
+        to: 600
+      - from: 600
+  - name: Height
     field: height
-    offset: 0
-    interval: 10
+    ranges:
+      - to: 32
+      - from: 32
+        to: 52
+      - from: 52
+        to: 200
+      - from: 200
+        to: 600
+      - from: 600
