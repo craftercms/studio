@@ -32,13 +32,6 @@ import static org.testng.AssertJUnit.assertTrue;
 @WebAppConfiguration
 public class SpringContextTest extends AbstractTestNGSpringContextTests{
 
-    @BeforeTest
-    public static void beforeTest(){
-        System.setProperty("crafter.engine.extension.base", "classpath*:crafter/studio/extension");
-        System.setProperty("crafter.bin.dir", "target/test-resources/bin");
-        System.setProperty("crafter.data.dir", "target/test-resources/data");
-    }
-
     @AfterTest
     public static void afterTest(){
         System.clearProperty("crafter.engine.extension.base");

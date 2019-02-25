@@ -40,7 +40,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
         <testng.version>6.9.10</testng.version>
-        <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
         <spring.version>4.3.18.RELEASE</spring.version>
@@ -138,14 +137,6 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -354,12 +345,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.23</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.23</version>
         </dependency>
 
@@ -785,9 +770,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18</version>
                 <configuration>
-                    <excludes>
-                        <exclude>org.craftercms.studio.testing.it.*</exclude>
-                    </excludes>
+                    <systemPropertyVariables>
+                        <application.logs>target/test-logs</application.logs>
+                        <crafter.engine.extension.base>classpath*:crafter/studio/extension</crafter.engine.extension.base>
+                        <crafter.bin.dir>target/test-resources/bin</crafter.bin.dir>
+                        <crafter.data.dir>target/test-resources/data</crafter.data.dir>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 
