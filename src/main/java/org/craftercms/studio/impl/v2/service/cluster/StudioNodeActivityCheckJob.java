@@ -39,6 +39,7 @@ import static org.craftercms.studio.api.v2.dal.ClusterMember.State.INACTIVE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_HEARTBEAT_STALE_LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVE_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVITY_LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_MEMBER_IDS;
 
 public class StudioNodeActivityCheckJob implements Runnable{
 
@@ -98,7 +99,8 @@ public class StudioNodeActivityCheckJob implements Runnable{
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(idsToRemove)) {
             Map<String, Object> params = new HashMap<String, Object>();
-            params.put("memberIds", idsToRemove);
+            params.put(CLUSTER_MEMBER_IDS, idsToRemove);
+            params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
             int result = clusterDao.removeMembers(params);
         }
     }

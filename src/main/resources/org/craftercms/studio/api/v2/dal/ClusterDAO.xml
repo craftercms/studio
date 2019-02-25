@@ -76,7 +76,7 @@
     </update>
 
     <delete id="removeMembers" parameterType="java.util.Map">
-        DELETE FROM cluster WHERE id IN
+        DELETE FROM cluster WHERE state = #{inactiveState} AND id IN
         <foreach collection="memberIds" index="index" separator="," item="memberId" open="(" close=")">
             #{memberId}
         </foreach>

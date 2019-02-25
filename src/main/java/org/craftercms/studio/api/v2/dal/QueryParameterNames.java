@@ -79,14 +79,17 @@ public abstract class QueryParameterNames {
     public static final String ENABLED = "enabled";
 
     /* Cluster */
+    // Local address
     public static final String CLUSTER_LOCAL_ADDRESS = "localAddress";
-
+    // State
     public static final String CLUSTER_STATE = "state";
-
+    // Member ids list
+    public static final String CLUSTER_MEMBER_IDS = "memberIds";
+    // Inactivity limit
     public static final String CLUSTER_INACTIVITY_LIMIT = "inactivityLimit";
-
+    // Inactive state
     public static final String CLUSTER_INACTIVE_STATE = "inactiveState";
-
+    // Stale heartbeat limit
     public static final String CLUSTER_HEARTBEAT_STALE_LIMIT = "heartbeatStaleLimit";
 
     /* Publish request */
