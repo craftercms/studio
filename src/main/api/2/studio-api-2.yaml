@@ -1201,6 +1201,68 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   result:
                     $ref: '#/components/schemas/SearchResult'
+  /audit:
+    get:
+      tags:
+        - audit
+      summary: Get audit log
+      description: 'Required permission "AUDIT_LOG"'
+      operationId: getAuditLog
+      parameters:
+        - name: site_id
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: start
+          in: query
+          description: Offset of first record in the response
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: number
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: user
+          in: query
+          description: Filter log by user name
+          required: false
+          schema:
+            type: string
+        - name: actions
+          in: query
+          description: Filter log by action
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  auditLog:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -1617,6 +1679,36 @@ components:
           type: object
           description: The values and counts of the facet
           additionalProperties: true
+    AuditLog:
+      type: object
+      properties:
+        modified_date:
+          type: string
+          description: Modified date of audit log entry
+        creation_date:
+          type: string
+          description: Create date of audit log entry
+        summary:
+          type: string
+          description: Summary of audit log entry
+        summary_format:
+          type: string
+          description: Format of summary, deafult 'json'
+        content_id:
+          type: string
+          description: Content identifier to which audit log entry belongs to
+        content_type:
+          type: string
+          description: Content type to which audit log entry belongs to 
+        type:
+          type: string
+          description: Type of action
+        username:
+          type: string
+          description: User that perfomed action
+        site_id:
+          type: string
+          description: Site to which audit log entry belongs to
 
   responses:
     NotFound:
