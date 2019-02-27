@@ -1215,14 +1215,14 @@ paths:
           required: true
           schema:
             type: string
-        - name: start
+        - name: offset
           in: query
           description: Offset of first record in the response
           required: false
           schema:
             type: integer
             format: int32
-        - name: number
+        - name: limit
           in: query
           description: Number of records to return
           required: false
@@ -1685,7 +1685,7 @@ components:
         modified_date:
           type: string
           description: Modified date of audit log entry
-        creation_date:
+        created_date:
           type: string
           description: Create date of audit log entry
         summary:
