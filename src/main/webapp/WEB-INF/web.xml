@@ -58,6 +58,11 @@
     </listener>
 
     <filter>
+        <filter-name>log4jServletFilter</filter-name>
+        <filter-class>org.apache.logging.log4j.web.Log4jServletFilter</filter-class>
+    </filter>
+
+    <filter>
         <filter-name>MultiReadRequestWrapperFilter</filter-name>
         <filter-class>org.craftercms.studio.impl.v1.web.filter.MultiReadHttpServletRequestWrapperFilter</filter-class>
     </filter>
@@ -97,10 +102,14 @@
         <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     </filter>
 
-    <filter>
+    <filter-mapping>
         <filter-name>log4jServletFilter</filter-name>
-        <filter-class>org.apache.logging.log4j.web.Log4jServletFilter</filter-class>
-    </filter>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>INCLUDE</dispatcher>
+        <dispatcher>ERROR</dispatcher>
+    </filter-mapping>
 
     <filter-mapping>
         <filter-name>MultiReadRequestWrapperFilter</filter-name>
@@ -146,15 +155,6 @@
         <filter-name>crafter.corsFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
         <url-pattern>/static-assets/*</url-pattern>
-    </filter-mapping>
-
-    <filter-mapping>
-        <filter-name>log4jServletFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-        <dispatcher>REQUEST</dispatcher>
-        <dispatcher>FORWARD</dispatcher>
-        <dispatcher>INCLUDE</dispatcher>
-        <dispatcher>ERROR</dispatcher>
     </filter-mapping>
 
     <servlet>
