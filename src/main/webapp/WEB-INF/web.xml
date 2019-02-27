@@ -32,7 +32,7 @@
 	</context-param>
 
     <context-param>
-        <param-name>log4jConfigLocation</param-name>
+        <param-name>log4jConfiguration</param-name>
         <param-value>classpath:crafter/studio/extension/log4j-override.xml</param-value>
     </context-param>
     
@@ -42,7 +42,7 @@
     </context-param>
     
     <listener>
-        <listener-class>org.craftercms.engine.util.spring.ExtendedLog4jConfigListener</listener-class>
+        <listener-class>org.apache.logging.log4j.web.Log4jServletContextListener</listener-class>
     </listener>
 
 	<listener>
@@ -97,6 +97,11 @@
         <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     </filter>
 
+    <filter>
+        <filter-name>log4jServletFilter</filter-name>
+        <filter-class>org.apache.logging.log4j.web.Log4jServletFilter</filter-class>
+    </filter>
+
     <filter-mapping>
         <filter-name>MultiReadRequestWrapperFilter</filter-name>
         <url-pattern>/*</url-pattern>
@@ -141,6 +146,15 @@
         <filter-name>crafter.corsFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
         <url-pattern>/static-assets/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>log4jServletFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>INCLUDE</dispatcher>
+        <dispatcher>ERROR</dispatcher>
     </filter-mapping>
 
     <servlet>

@@ -15,19 +15,12 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<Configuration status="warn" monitorInterval="30">
+<Configuration>
     <!-- Appenders -->
     <Appenders>
         <Console name="consoleAppender" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%p] %d{ISO8601} [%t] [%c{2}] | %m %n"/>
+            <PatternLayout pattern="%-5p: %c - %m%n"/>
         </Console>
-
-        <RollingFile name="default.file" fileName="${sys:application.logs}/studio.log"
-                     filePattern="${sys:application.logs}/studio.%i.log.gz">
-            <PatternLayout pattern="[%p] %d{ISO8601} [%t] [%c{2}] | %m %n"/>
-            <DefaultRolloverStrategy max="10"/>
-            <SizeBasedTriggeringPolicy size="10 MB"/>
-        </RollingFile>
     </Appenders>
 
     <Loggers>
@@ -52,7 +45,6 @@
         <!-- Root Logger -->
         <Root level="info">
             <AppenderRef ref="consoleAppender"/>
-            <AppenderRef ref="default.file"/>
         </Root>
     </Loggers>
 </Configuration>
