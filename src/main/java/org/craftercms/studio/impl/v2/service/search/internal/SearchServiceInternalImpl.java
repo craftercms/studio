@@ -81,6 +81,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String FACET_RANGE_MIN = "min";
     public static final String FACET_RANGE_MAX = "max";
 
+    public static final String DEFAULT_MIME_TYPE = "application/xml";
+
     /**
      * Name of the field for paths
      */
@@ -105,6 +107,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * Name of the field for size
      */
     protected String sizeFieldName;
+
+    /**
+     * Name of the field for mimeType
+     */
+    protected String mimeTypeName;
 
     /**
      * List of fields to include during searching
@@ -179,6 +186,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     @Required
     public void setSizeFieldName(final String sizeFieldName) {
         this.sizeFieldName = sizeFieldName;
+    }
+
+    @Required
+    public void setMimeTypeName(final String mimeTypeName) {
+        this.mimeTypeName = mimeTypeName;
     }
 
     @Required
@@ -293,6 +305,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         item.setLastModifier(source.get(lastEditorFieldName).toString());
         item.setSize(Long.parseLong(source.get(sizeFieldName).toString()));
         item.setType(getItemType(source));
+        item.setMimeType(getMimeType(source));
         item.setSnippets(getItemSnippets(highlights));
         return item;
     }
@@ -497,6 +510,19 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             return snippets;
         }
         return null;
+    }
+
+    /**
+     * Finds the mime type for the given item
+     * @param source the item to map
+     * @return the mime type
+     */
+    protected String getMimeType(Map<String, Object> source) {
+        if(source.containsKey(mimeTypeName)) {
+            return source.get(mimeTypeName).toString();
+        } else {
+            return DEFAULT_MIME_TYPE;
+        }
     }
 
 }
