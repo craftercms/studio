@@ -100,6 +100,8 @@ public abstract class QueryParameterNames {
     // Ready state
     public static final String READY_STATE = "readyState";
 
+    /* Audit */
+    public static final String ACTIONS = "actions";
 
     private QueryParameterNames() { }
 }

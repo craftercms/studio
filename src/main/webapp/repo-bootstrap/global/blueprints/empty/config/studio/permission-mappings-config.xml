@@ -183,6 +183,7 @@
                 <permission>Create Folder</permission>
                 <permission>Create Content</permission>
                 <permission>Change Content Type</permission>
+                <permission>audit_log</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -193,6 +194,7 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>audit_log</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">

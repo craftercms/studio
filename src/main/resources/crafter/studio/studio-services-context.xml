@@ -373,6 +373,16 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+    </bean>
+
+    <bean id="auditServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.audit.internal.AuditServiceInternalImpl">
+        <property name="auditDao" ref="auditDao" />
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->

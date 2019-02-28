@@ -15,32 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v2.dal;
+
 
 import java.util.List;
 import java.util.Map;
 
-public interface AuditFeedMapper {
+public interface AuditDAO {
 
-    AuditFeed getDeletedActivity(Map params);
+    List<AuditLog> getAuditLogForSite(Map params);
 
-    List<AuditFeed> selectUserFeedEntries(Map params);
-
-    List<AuditFeed> selectUserFeedEntriesHideLive(Map params);
-
-    int getCountUserContentFeedEntries(Map params);
-
-    long insertActivityFeed(AuditFeed feed);
-
-    void updateActivityFeed(AuditFeed feed);
-
-    void renameContent(Map params);
-
-    void deleteActivitiesForSite(Map params);
-
-    @Deprecated
-    List<AuditFeed> getAuditLogForSite(Map params);
-
-    @Deprecated
-    long getAuditLogForSiteTotal(Map params);
+    int getAuditLogForSiteTotal(Map params);
 }
