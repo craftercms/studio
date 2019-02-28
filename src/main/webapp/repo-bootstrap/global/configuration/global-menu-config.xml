@@ -61,5 +61,11 @@
             <icon>fa-database</icon>
             <permission>create_cluster</permission>
         </item>
+        <item>
+            <id>home.globalMenu.audit</id>
+            <label>Audit</label>
+            <icon>fa-barst</icon>
+            <permission>audit_log</permission>
+        </item>
     </items>
 </globalMenu>
