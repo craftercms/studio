@@ -42,6 +42,11 @@ public class SearchResultItem {
     protected String type;
 
     /**
+     * The mime type of the file
+     */
+    protected String mimeType;
+
+    /**
      * The preview URL of the file
      */
     protected String previewUrl;
@@ -88,6 +93,14 @@ public class SearchResultItem {
 
     public void setType(final String type) {
         this.type = type;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(final String mimeType) {
+        this.mimeType = mimeType;
     }
 
     public String getPreviewUrl() {

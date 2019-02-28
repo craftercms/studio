@@ -1647,6 +1647,9 @@ components:
         type:
           type: string
           description: The type of the file
+        mimeType:
+          type: string
+          description: The MIME type of the file
         previewUrl:
           type: string
           description: The preview URL of the file
