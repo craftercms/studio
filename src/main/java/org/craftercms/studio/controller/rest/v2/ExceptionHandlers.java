@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
@@ -139,6 +140,13 @@ public class ExceptionHandlers {
     public ResponseBody handleClusterMemberAlreadyExistsException(HttpServletRequest request,
                                                                   ClusterMemberAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CLUSTER_MEMBER_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(SiteNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleSiteNotFoundException(HttpServletRequest request, SiteNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PROJECT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
