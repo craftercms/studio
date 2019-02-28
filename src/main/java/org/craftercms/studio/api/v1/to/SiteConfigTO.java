@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Map;
 
 /**
  * This class stores Site Configuration
@@ -68,6 +69,11 @@ public class SiteConfigTO implements Serializable {
 
     /** sandbox branch **/
     protected String sandboxBranch = null;
+
+    /**
+     * Configuration for the range facets in search
+     */
+    protected Map<String, FacetTO> facets;
 
     /**
      * @return the WEM project
@@ -147,4 +153,13 @@ public class SiteConfigTO implements Serializable {
     public void setStagingEnvironmentEnabled(boolean stagingEnvironmentEnabled) {
         this.stagingEnvironmentEnabled = stagingEnvironmentEnabled;
     }
+
+    public Map<String, FacetTO> getFacets() {
+        return facets;
+    }
+
+    public void setFacets(final Map<String, FacetTO> facets) {
+        this.facets = facets;
+    }
+
 }

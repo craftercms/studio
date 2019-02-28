@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +36,9 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.to.FacetRangeTO;
+import org.craftercms.studio.api.v1.to.FacetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
@@ -49,10 +53,8 @@ import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -68,13 +70,12 @@ import org.springframework.beans.factory.annotation.Required;
  */
 public class SearchServiceInternalImpl implements SearchServiceInternal {
 
-    public static final String CONFIG_KEY_FACETS_FIELDS = "studio.search.facets.fields";
-    public static final String CONFIG_KEY_FACETS_RANGES = "studio.search.facets.ranges";
+    public static final String CONFIG_KEY_FACETS = "studio.search.facets";
     public static final String CONFIG_KEY_TYPES = "studio.search.types";
 
     public static final String CONFIG_KEY_FACET_NAME = "name";
     public static final String CONFIG_KEY_FACET_FIELD = "field";
-    public static final String CONFIG_KEY_FACET_RANGE = "ranges";
+    public static final String CONFIG_KEY_FACET_RANGES = "ranges";
     public static final String CONFIG_KEY_FACET_RANGE_FROM = "from";
     public static final String CONFIG_KEY_FACET_RANGE_TO = "to";
 
@@ -153,9 +154,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected StudioConfiguration studioConfiguration;
 
     /**
-     * List of {@link AggregationBuilder} to include in all searches
+     * The site configuration
      */
-    protected List<AggregationBuilder> aggregations;
+    protected ServicesConfig servicesConfig;
 
     /**
      * Configurations for facets
@@ -232,71 +233,39 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         this.studioConfiguration = studioConfiguration;
     }
 
+    @Required
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
     /**
-     * Loads facets & type mapping from the configuration
+     * Loads facets & type mapping from the global configuration
      */
     public void init() {
-        loadFacetsFromConfiguration(studioConfiguration);
-        loadTypesFromConfiguration(studioConfiguration);
+        loadTypesFromGlobalConfiguration();
+        loadFacetsFromGlobalConfiguration();
     }
 
     /**
-     * Loads the facets from the given configuration
-     * @param studioConfiguration the studio configuration
+     * Loads the facets from the global configuration
      */
-    protected void loadFacetsFromConfiguration(final StudioConfiguration studioConfiguration) {
+    protected void loadFacetsFromGlobalConfiguration() {
         facets = new HashMap<>();
-        aggregations = new LinkedList<>();
 
         List<HierarchicalConfiguration<ImmutableNode>> facetsConfig =
-            studioConfiguration.getSubConfigs(CONFIG_KEY_FACETS_FIELDS);
+            studioConfiguration.getSubConfigs(CONFIG_KEY_FACETS);
 
         if(CollectionUtils.isNotEmpty(facetsConfig)) {
             facetsConfig.forEach(facet -> {
                 facets.put(facet.getString(CONFIG_KEY_FACET_NAME), facet);
-
-                aggregations.add(AggregationBuilders
-                    .terms(facet.getString(CONFIG_KEY_FACET_NAME))
-                    .field(facet.getString(CONFIG_KEY_FACET_FIELD))
-                    .minDocCount(1)
-                    .size(1000));
-            });
-        }
-
-        facetsConfig = studioConfiguration.getSubConfigs(CONFIG_KEY_FACETS_RANGES);
-
-        if(CollectionUtils.isNotEmpty(facetsConfig)) {
-            facetsConfig.forEach(facet -> {
-                facets.put(facet.getString(CONFIG_KEY_FACET_NAME), facet);
-
-                RangeAggregationBuilder rangeAggregation = AggregationBuilders
-                    .range(facet.getString(CONFIG_KEY_FACET_NAME))
-                    .field(facet.getString(CONFIG_KEY_FACET_FIELD))
-                    .keyed(true);
-
-                for(HierarchicalConfiguration<ImmutableNode> range :
-                    facet.configurationsAt(CONFIG_KEY_FACET_RANGE)) {
-                    if(range.containsKey(CONFIG_KEY_FACET_RANGE_TO) && range.containsKey(CONFIG_KEY_FACET_RANGE_FROM)) {
-                        rangeAggregation.addRange(range.getDouble(CONFIG_KEY_FACET_RANGE_FROM),
-                            range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
-                    } else if(range.containsKey(CONFIG_KEY_FACET_RANGE_FROM)) {
-                        rangeAggregation.addUnboundedFrom(range.getDouble(CONFIG_KEY_FACET_RANGE_FROM));
-                    } else {
-                        rangeAggregation.addUnboundedTo(range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
-                    }
-
-                }
-
-                aggregations.add(rangeAggregation);
             });
         }
     }
 
     /**
-     * Loads the type mapping from the given configuration
-     * @param studioConfiguration the studio configuration
+     * Loads the type mapping from the global configuration
      */
-    protected void loadTypesFromConfiguration(final StudioConfiguration studioConfiguration) {
+    protected void loadTypesFromGlobalConfiguration() {
         types = new HashMap<>();
 
         List<HierarchicalConfiguration<ImmutableNode>> typesConfig =
@@ -337,14 +306,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             if(facets.containsKey(filter)) {
                 HierarchicalConfiguration<ImmutableNode> facetConfig = facets.get(filter);
                 String fieldName = facetConfig.getString(CONFIG_KEY_FACET_FIELD);
-                if(facetConfig.containsKey(CONFIG_KEY_FACET_RANGE)) {
+                if(facetConfig.containsKey(CONFIG_KEY_FACET_RANGES)) {
                     RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(fieldName);
-                    if(value instanceof Map) {
-                        Map<String, Number> range = (Map<String, Number>) value;
-                        rangeQuery
-                            .gte(range.get(FACET_RANGE_MIN))
-                            .lte(range.get(FACET_RANGE_MAX));
-                    }
+                    Map<String, Number> range = (Map<String, Number>) value;
+                    rangeQuery
+                        .gte(range.get(FACET_RANGE_MIN))
+                        .lte(range.get(FACET_RANGE_MAX));
                     query.filter(rangeQuery);
                 } else {
                     query.filter(QueryBuilders.matchQuery(fieldName, value));
@@ -420,7 +387,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             updateHighlighting(builder);
         }
 
-        aggregations.forEach(builder::aggregation);
+        buildAggregations(builder, servicesConfig.getFacets(siteId));
 
         SearchRequest request = new SearchRequest()
             .source(builder);
@@ -432,6 +399,69 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             throw new ServiceLayerException("Error connecting to ElasticSearch", e);
         } catch (Exception e) {
             throw new ServiceLayerException("Error executing search in ElasticSearch", e);
+        }
+    }
+
+    /**
+     * Adds the aggregations needed to the given builder
+     * @param builder the search source builder
+     * @param siteFacets the facets from the site configuration
+     */
+    protected void buildAggregations(SearchSourceBuilder builder, Map<String, FacetTO> siteFacets) {
+        boolean empty = MapUtils.isEmpty(siteFacets);
+        facets.forEach((name, facet) -> {
+            if(empty || !siteFacets.containsKey(name)) {
+                if(CollectionUtils.isNotEmpty(facet.configurationsAt(CONFIG_KEY_FACET_RANGES))) {
+                    RangeAggregationBuilder aggregation = AggregationBuilders
+                        .range(name)
+                        .field(facet.getString(CONFIG_KEY_TYPE_FIELD))
+                        .keyed(true);
+                    for(HierarchicalConfiguration<ImmutableNode> range :
+                        facet.configurationsAt(CONFIG_KEY_FACET_RANGES)) {
+                        if(range.containsKey(CONFIG_KEY_FACET_RANGE_FROM) &&
+                            range.containsKey(CONFIG_KEY_FACET_RANGE_TO)) {
+                            aggregation.addRange(
+                                range.getDouble(CONFIG_KEY_FACET_RANGE_FROM),
+                                range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
+                        } else if(range.containsKey(CONFIG_KEY_FACET_RANGE_FROM)) {
+                            aggregation.addUnboundedFrom(range.getDouble(CONFIG_KEY_FACET_RANGE_FROM));
+                        } else {
+                            aggregation.addUnboundedTo(range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
+                        }
+                    }
+                    builder.aggregation(aggregation);
+                } else {
+                    builder.aggregation(AggregationBuilders
+                                    .terms(facet.getString(CONFIG_KEY_FACET_NAME))
+                                    .field(facet.getString(CONFIG_KEY_FACET_FIELD))
+                                    .minDocCount(1)
+                                    .size(1000));
+                }
+            }
+        });
+
+        if(!empty) {
+            siteFacets.forEach((name, facet) -> {
+                if(CollectionUtils.isNotEmpty(facet.getRanges())) {
+                    RangeAggregationBuilder aggregation = AggregationBuilders.range(name).field(facet.getField()).keyed(true);
+                    for (FacetRangeTO range : facet.getRanges()) {
+                        if (Objects.nonNull(range.getFrom()) && Objects.nonNull(range.getTo())) {
+                            aggregation.addRange(range.getFrom(), range.getTo());
+                        } else if (Objects.nonNull(range.getFrom())) {
+                            aggregation.addUnboundedFrom(range.getFrom());
+                        } else {
+                            aggregation.addUnboundedTo(range.getTo());
+                        }
+                    }
+                    builder.aggregation(aggregation);
+                } else {
+                    builder.aggregation(AggregationBuilders
+                        .terms(facet.getName())
+                        .field(facet.getField())
+                        .minDocCount(1)
+                        .size(1000));
+                }
+            });
         }
     }
 
