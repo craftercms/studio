@@ -33,7 +33,7 @@
 
     <context-param>
         <param-name>log4jConfiguration</param-name>
-        <param-value>classpath:crafter/studio/extension/log4j-override.xml</param-value>
+        <param-value>classpath:crafter/studio/extension/logging.xml</param-value>
     </context-param>
     
     <context-param>
