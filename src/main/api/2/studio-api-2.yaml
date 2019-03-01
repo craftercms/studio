@@ -1681,8 +1681,10 @@ components:
         values:
           type: object
           description: >-
-            The values and counts of the facet. If the facet is a range the values will be of type SearchFacetRange, otherwise it will be a single integer.
-            properties:
+            The values and counts of the facet. If the facet is a range
+            the values will be of type SearchFacetRange, otherwise it will
+            be a single integer.
+          properties:
             facet1:
               type: object
               properties:
@@ -1690,19 +1692,19 @@ components:
                   type: integer
             facet2:
               $ref: '#/components/schemas/SearchFacetRange'
-          SearchFacetRange:
-            type: object
-            properties:
-              count:
-                type: integer
-                format: int64
-                description: The number of files that match the range
-              from:
-                type: number
-                description: The starting limit of the range
-              to:
-                type: number
-                description: The ending limit of the range
+    SearchFacetRange:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int64
+          description: The number of files that match the range
+        from:
+          type: number
+          description: The starting limit of the range
+        to:
+          type: number
+          description: The ending limit of the range
     AuditLog:
       type: object
       properties:
@@ -1723,7 +1725,7 @@ components:
           description: Content identifier to which audit log entry belongs to
         content_type:
           type: string
-          description: Content type to which audit log entry belongs to 
+          description: Content type to which audit log entry belongs to
         type:
           type: string
           description: Type of action
