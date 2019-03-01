@@ -64,7 +64,7 @@
         <item>
             <id>home.globalMenu.audit</id>
             <label>Audit</label>
-            <icon>fa-barst</icon>
+            <icon>fa-bars</icon>
             <permission>audit_log</permission>
         </item>
     </items>
