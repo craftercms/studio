@@ -590,28 +590,43 @@ studio.search.types:
     field: content-type
     matches: ^/taxonomy$
 # The list of field facets to return
-studio.search.facets.fields:
+studio.search.facets:
     # The label that will be returned
   - name: content-type
     # The field that will be used
     field: content-type
   - name: mime-type
     field: contentType
-# The list of range facets to return
-studio.search.facets.ranges:
-    # The label that will be returned
   - name: size
-    # The field that will be used
     field: contentLength
-    # The offset to start the range
-    offset: 0
-    # The interval to generate the range
-    interval: 10000
+    # The list of ranges to search
+    ranges:
+      - to: 500000
+      - from: 500000
+        to: 1000000
+      - from: 2000000
+      - from: 2000000
+        to: 4000000
+      - from: 4000000
   - name: width
     field: width
-    offset: 0
-    interval: 10
+    ranges:
+      - to: 32
+      - from: 32
+        to: 52
+      - from: 52
+        to: 200
+      - from: 200
+        to: 600
+      - from: 600
   - name: height
     field: height
-    offset: 0
-    interval: 10
+    ranges:
+      - to: 32
+      - from: 32
+        to: 52
+      - from: 52
+        to: 200
+      - from: 200
+        to: 600
+      - from: 600

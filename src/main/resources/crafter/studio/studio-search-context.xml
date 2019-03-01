@@ -41,6 +41,7 @@
         <property name="defaultType" value="#{studioConfiguration.getProperty('studio.search.default.type')}"/>
         <property name="elasticSearchService" ref="elasticSearchService"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <bean id="searchService" class="org.craftercms.studio.impl.v2.service.search.SearchServiceImpl">

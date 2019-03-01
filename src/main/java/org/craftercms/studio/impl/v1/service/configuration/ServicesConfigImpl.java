@@ -16,9 +16,11 @@
  */
 package org.craftercms.studio.impl.v1.service.configuration;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -29,6 +31,8 @@ import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
+import org.craftercms.studio.api.v1.to.FacetRangeTO;
+import org.craftercms.studio.api.v1.to.FacetTO;
 import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
 import org.craftercms.studio.api.v1.to.SiteConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -45,6 +49,10 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
@@ -277,7 +285,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * load services configuration
 	 *
 	 */
-	 @SuppressWarnings("unchecked")
      protected SiteConfigTO loadConfiguration(String site) {
          String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
 
@@ -326,12 +333,52 @@ public class ServicesConfigImpl implements ServicesConfig {
              loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
              // set the last updated date
              siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
+
+             loadFacetConfiguration(configNode, siteConfig);
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + siteConfigPath);
          }
          return siteConfig;
      }
 
+    /**
+     * Loads the search facets configurations
+     * @param root configuration to read
+     * @param config configuration to update
+     */
+    @SuppressWarnings("unchecked")
+    protected void loadFacetConfiguration(Node root, SiteConfigTO config) {
+        List<Node> facetsConfig = root.selectNodes("search/facets/facet");
+        if(CollectionUtils.isNotEmpty(facetsConfig)) {
+            Map<String, FacetTO> facets = facetsConfig.stream()
+                .map(facetConfig -> {
+                    FacetTO facet = new FacetTO();
+                    facet.setName(XmlUtils.selectSingleNodeValue(facetConfig, "name/text()"));
+                    facet.setField(XmlUtils.selectSingleNodeValue(facetConfig, "field/text()"));
+                    List<Node> rangesConfig = facetConfig.selectNodes("ranges/range");
+                    if(CollectionUtils.isNotEmpty(rangesConfig)) {
+                        List<FacetRangeTO> ranges = rangesConfig.stream()
+                            .map(rangeConfig -> {
+                                FacetRangeTO range = new FacetRangeTO();
+                                String from =XmlUtils.selectSingleNodeValue(rangeConfig, "from/text()");
+                                if(StringUtils.isNotEmpty(from)) {
+                                    range.setFrom(Double.parseDouble(from));
+                                }
+                                String to = XmlUtils.selectSingleNodeValue(rangeConfig, "to/text()");
+                                if(StringUtils.isNotEmpty(to)) {
+                                    range.setTo(Double.parseDouble(to));
+                                }
+                                return range;
+                            })
+                            .collect(Collectors.toList());
+                        facet.setRanges(ranges);
+                    }
+                    return facet;
+                })
+                .collect(Collectors.toMap(FacetTO::getName, Function.identity()));
+            config.setFacets(facets);
+        }
+    }
 
     /**
      * load the web-project configuration
@@ -506,6 +553,18 @@ public class ServicesConfigImpl implements ServicesConfig {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null) {
             return config.getLiveEnvironment();
+        }
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, FacetTO> getFacets(final String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if(Objects.nonNull(config)) {
+            return config.getFacets();
         }
         return null;
     }

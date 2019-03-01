@@ -21,8 +21,10 @@ import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
+import org.craftercms.studio.api.v1.to.FacetTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class provides the repository configuration information
@@ -176,4 +178,12 @@ public interface ServicesConfig {
     String getLiveEnvironment(String site);
 
     boolean isStagingEnvironmentEnabled(String site);
+
+	/**
+	 * Returns the search facets configuration for the given site
+	 * @param site the site
+	 * @return the facets
+	 */
+	Map<String, FacetTO> getFacets(String site);
+
 }
