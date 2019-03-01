@@ -352,6 +352,10 @@
             <label>Configuration</label>
         </tool>
         <tool>
+            <name>audit</name>
+            <label>Audit</label>
+        </tool>
+        <tool>
             <name>workflow-states</name>
             <label>Workflow States</label>
         </tool>
