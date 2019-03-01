@@ -1733,6 +1733,9 @@ components:
         site_id:
           type: string
           description: Site to which audit log entry belongs to
+        source:
+          type: string
+          description: Source which generated audit log entry (UI or repo)
 
   responses:
     NotFound:

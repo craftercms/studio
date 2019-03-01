@@ -48,4 +48,7 @@ public interface ResultConstants {
 
     String RESULT_KEY_RESULT = "result";
 
+    /* Audit Controller */
+    String RESULT_KEY_AUDIT_LOG = "auditLog";
+
 }
