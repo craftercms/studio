@@ -1449,7 +1449,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 Repository repo = helper.getRepository(site, SANDBOX);
                 try {
                     ObjectId commitId = repo.resolve(Constants.HEAD);
-                    toReturn = commitId.getName();
+                    if (commitId != null) {
+                        toReturn = commitId.getName();
+                    }
                 } catch (IOException e) {
                     logger.error("Error getting last commit ID for site " + site, e);
                 }

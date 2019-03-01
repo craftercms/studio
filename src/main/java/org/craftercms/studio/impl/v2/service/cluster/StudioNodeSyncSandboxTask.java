@@ -127,10 +127,12 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         if (result) {
             try {
                 logger.debug("Create site from remote for site " + siteId);
-                createSiteFromRemote();
-                addSiteUuidFile(siteId, siteUuid);
-                deploymentService.syncAllContentToPreview(siteId, true);
-                createdSites.add(siteId);
+                result = createSiteFromRemote();
+                if (result) {
+                    addSiteUuidFile(siteId, siteUuid);
+                    deploymentService.syncAllContentToPreview(siteId, true);
+                    createdSites.add(siteId);
+                }
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException |IOException e) {
                 logger.error("Error while creating site on cluster node for site : " + siteId +
@@ -139,6 +141,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
             }
 
             if (!result) {
+                createdSites.remove(siteId);
                 contentRepository.deleteSite(siteId);
 
                 boolean deleted = previewDeployer.deleteTarget(siteId);
@@ -190,7 +193,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         boolean cloned = false;
         int idx = 0;
         while (!cloned && idx < clusterNodes.size()) {
-            ClusterMember remoteNode = clusterNodes.get(0);
+            ClusterMember remoteNode = clusterNodes.get(idx++);
             logger.debug("Cloning " + repoType.toString() + " repository for site " + siteId +
                     " from " + remoteNode.getLocalAddress());
             TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
@@ -306,20 +309,13 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
             } catch (InvalidRemoteException e) {
                 logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
                         " (" + remoteNode.getGitUrl() + ")", e);
-                throw new InvalidRemoteRepositoryException("Invalid remote repository: " +
-                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")");
             } catch (TransportException e) {
                 if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
                     logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
                             " (" + remoteNode.getGitUrl() + ")", e);
-                    throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                            remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ") for username "
-                            + remoteNode.getGitUsername(), e);
                 } else {
                     logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
                             " (" + remoteNode.getGitUrl() + ")", e);
-                    throw new RemoteRepositoryNotFoundException("Remote repository not found: " +
-                            remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")");
                 }
             } catch (GitAPIException | IOException e) {
                 logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
