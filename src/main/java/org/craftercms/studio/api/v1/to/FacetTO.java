@@ -19,6 +19,8 @@ package org.craftercms.studio.api.v1.to;
 
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
  * Holds the data for a search facet
  * @author joseross
@@ -62,6 +64,10 @@ public class FacetTO {
 
     public void setRanges(final List<FacetRangeTO> ranges) {
         this.ranges = ranges;
+    }
+
+    public boolean isRange() {
+        return CollectionUtils.isNotEmpty(ranges);
     }
 
 }

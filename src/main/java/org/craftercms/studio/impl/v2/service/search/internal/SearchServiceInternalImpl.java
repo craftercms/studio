@@ -161,7 +161,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     /**
      * Configurations for facets
      */
-    protected Map<String, HierarchicalConfiguration<ImmutableNode>> facets;
+    protected Map<String, FacetTO> facets;
 
     /**
      * Configurations for types
@@ -256,8 +256,33 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             studioConfiguration.getSubConfigs(CONFIG_KEY_FACETS);
 
         if(CollectionUtils.isNotEmpty(facetsConfig)) {
-            facetsConfig.forEach(facet -> {
-                facets.put(facet.getString(CONFIG_KEY_FACET_NAME), facet);
+            facetsConfig.forEach(facetConfig -> {
+                FacetTO facet = new FacetTO();
+                facet.setName(facetConfig.getString(CONFIG_KEY_FACET_NAME));
+                facet.setField(facetConfig.getString(CONFIG_KEY_FACET_FIELD));
+
+                List<HierarchicalConfiguration<ImmutableNode>> ranges =
+                    facetConfig.configurationsAt(CONFIG_KEY_FACET_RANGES);
+
+                if(CollectionUtils.isNotEmpty(ranges)) {
+                    facet.setRanges(
+                        ranges.stream().map(rangeConfig -> {
+                            FacetRangeTO range = new FacetRangeTO();
+                            if(rangeConfig.containsKey(CONFIG_KEY_FACET_RANGE_FROM) &&
+                                rangeConfig.containsKey(CONFIG_KEY_FACET_RANGE_TO)) {
+                                range.setFrom(rangeConfig.getDouble(CONFIG_KEY_FACET_RANGE_FROM));
+                                range.setTo(rangeConfig.getDouble(CONFIG_KEY_FACET_RANGE_TO));
+                            } else if(rangeConfig.containsKey(CONFIG_KEY_FACET_RANGE_FROM)) {
+                                range.setFrom(rangeConfig.getDouble(CONFIG_KEY_FACET_RANGE_FROM));
+                            } else {
+                                range.setTo(rangeConfig.getDouble(CONFIG_KEY_FACET_RANGE_TO));
+                            }
+                            return range;
+                        })
+                        .collect(Collectors.toList())
+                    );
+                }
+                facets.put(facet.getName(), facet);
             });
         }
     }
@@ -299,14 +324,20 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * Adds the required filters based on the given parameters
      * @param query the query to update
      * @param params the parameters to add
+     * @param siteFacets the facets configured for the site
      */
     @SuppressWarnings("unchecked")
-    protected void updateFilters(BoolQueryBuilder query, SearchParams params) {
+    protected void updateFilters(BoolQueryBuilder query, SearchParams params, Map<String, FacetTO> siteFacets) {
         params.getFilters().forEach((filter, value) -> {
-            if(facets.containsKey(filter)) {
-                HierarchicalConfiguration<ImmutableNode> facetConfig = facets.get(filter);
-                String fieldName = facetConfig.getString(CONFIG_KEY_FACET_FIELD);
-                if(facetConfig.containsKey(CONFIG_KEY_FACET_RANGES)) {
+            FacetTO facetConfig;
+            if(MapUtils.isNotEmpty(siteFacets)) {
+                facetConfig = siteFacets.getOrDefault(filter, facets.get(filter));
+            } else {
+                facetConfig = facets.get(filter);
+            }
+            if(Objects.nonNull(facetConfig)) {
+                String fieldName = facetConfig.getField();
+                if(facetConfig.isRange()) {
                     RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(fieldName);
                     Map<String, Number> range = (Map<String, Number>) value;
                     rangeQuery
@@ -359,6 +390,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
         throws ServiceLayerException {
 
+        Map<String, FacetTO> siteFacets = servicesConfig.getFacets(siteId);
         BoolQueryBuilder query = QueryBuilders.boolQuery();
 
         if(StringUtils.isNotEmpty(params.getQuery())) {
@@ -374,7 +406,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         }
 
         if(MapUtils.isNotEmpty(params.getFilters())) {
-            updateFilters(query, params);
+            updateFilters(query, params, siteFacets);
         }
 
         SearchSourceBuilder builder = new SearchSourceBuilder()
@@ -387,7 +419,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             updateHighlighting(builder);
         }
 
-        buildAggregations(builder, servicesConfig.getFacets(siteId));
+        buildAggregations(builder, siteFacets);
 
         SearchRequest request = new SearchRequest()
             .source(builder);
@@ -408,61 +440,34 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * @param siteFacets the facets from the site configuration
      */
     protected void buildAggregations(SearchSourceBuilder builder, Map<String, FacetTO> siteFacets) {
-        boolean empty = MapUtils.isEmpty(siteFacets);
-        facets.forEach((name, facet) -> {
-            if(empty || !siteFacets.containsKey(name)) {
-                if(CollectionUtils.isNotEmpty(facet.configurationsAt(CONFIG_KEY_FACET_RANGES))) {
-                    RangeAggregationBuilder aggregation = AggregationBuilders
-                        .range(name)
-                        .field(facet.getString(CONFIG_KEY_TYPE_FIELD))
-                        .keyed(true);
-                    for(HierarchicalConfiguration<ImmutableNode> range :
-                        facet.configurationsAt(CONFIG_KEY_FACET_RANGES)) {
-                        if(range.containsKey(CONFIG_KEY_FACET_RANGE_FROM) &&
-                            range.containsKey(CONFIG_KEY_FACET_RANGE_TO)) {
-                            aggregation.addRange(
-                                range.getDouble(CONFIG_KEY_FACET_RANGE_FROM),
-                                range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
-                        } else if(range.containsKey(CONFIG_KEY_FACET_RANGE_FROM)) {
-                            aggregation.addUnboundedFrom(range.getDouble(CONFIG_KEY_FACET_RANGE_FROM));
-                        } else {
-                            aggregation.addUnboundedTo(range.getDouble(CONFIG_KEY_FACET_RANGE_TO));
-                        }
+        Map<String, FacetTO> mergedFacets = new HashMap<>(facets);
+        if(MapUtils.isNotEmpty(siteFacets)) {
+            mergedFacets.putAll(siteFacets);
+        }
+        mergedFacets.forEach((name, facet) -> {
+            if(facet.isRange()) {
+                RangeAggregationBuilder aggregation = AggregationBuilders
+                    .range(name)
+                    .field(facet.getField())
+                    .keyed(true);
+                for (FacetRangeTO range : facet.getRanges()) {
+                    if (Objects.nonNull(range.getFrom()) && Objects.nonNull(range.getTo())) {
+                        aggregation.addRange(range.getFrom(), range.getTo());
+                    } else if (Objects.nonNull(range.getFrom())) {
+                        aggregation.addUnboundedFrom(range.getFrom());
+                    } else {
+                        aggregation.addUnboundedTo(range.getTo());
                     }
-                    builder.aggregation(aggregation);
-                } else {
-                    builder.aggregation(AggregationBuilders
-                                    .terms(facet.getString(CONFIG_KEY_FACET_NAME))
-                                    .field(facet.getString(CONFIG_KEY_FACET_FIELD))
-                                    .minDocCount(1)
-                                    .size(1000));
                 }
+                builder.aggregation(aggregation);
+            } else {
+                builder.aggregation(AggregationBuilders
+                    .terms(facet.getName())
+                    .field(facet.getField())
+                    .minDocCount(1)
+                    .size(1000));
             }
         });
-
-        if(!empty) {
-            siteFacets.forEach((name, facet) -> {
-                if(CollectionUtils.isNotEmpty(facet.getRanges())) {
-                    RangeAggregationBuilder aggregation = AggregationBuilders.range(name).field(facet.getField()).keyed(true);
-                    for (FacetRangeTO range : facet.getRanges()) {
-                        if (Objects.nonNull(range.getFrom()) && Objects.nonNull(range.getTo())) {
-                            aggregation.addRange(range.getFrom(), range.getTo());
-                        } else if (Objects.nonNull(range.getFrom())) {
-                            aggregation.addUnboundedFrom(range.getFrom());
-                        } else {
-                            aggregation.addUnboundedTo(range.getTo());
-                        }
-                    }
-                    builder.aggregation(aggregation);
-                } else {
-                    builder.aggregation(AggregationBuilders
-                        .terms(facet.getName())
-                        .field(facet.getField())
-                        .minDocCount(1)
-                        .size(1000));
-                }
-            });
-        }
     }
 
     /**
@@ -473,7 +478,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected String getSortFieldName(String name) {
         String field = name;
         if(facets.containsKey(field)) {
-            field = facets.get(field).getString(CONFIG_KEY_FACET_FIELD);
+            field = facets.get(field).getField();
         }
         return field;
     }
@@ -491,15 +496,13 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             aggregations.getAsMap().forEach((name, aggregation) -> {
                 SearchFacet facet = new SearchFacet();
                 facet.setName(name);
-                Map values = null;
+                Map values = new LinkedHashMap();
                 if(aggregation instanceof Terms) {
-                    values = new LinkedHashMap();
                     Terms terms = (Terms) aggregation;
                     for(Terms.Bucket bucket : terms.getBuckets()) {
                         values.put(bucket.getKey(), bucket.getDocCount());
                     }
                 } else if(aggregation instanceof Range) {
-                    values = new TreeMap();
                     Range range = (Range) aggregation;
                     for(Range.Bucket bucket : range.getBuckets()) {
                         SearchFacetRange rangeValues = new SearchFacetRange();
