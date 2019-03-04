@@ -127,10 +127,12 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         if (result) {
             try {
                 logger.debug("Create site from remote for site " + siteId);
-                createSiteFromRemote();
-                addSiteUuidFile(siteId, siteUuid);
-                deploymentService.syncAllContentToPreview(siteId, true);
-                createdSites.add(siteId);
+                result = createSiteFromRemote();
+                if (result) {
+                    addSiteUuidFile(siteId, siteUuid);
+                    deploymentService.syncAllContentToPreview(siteId, true);
+                    createdSites.add(siteId);
+                }
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException |IOException e) {
                 logger.error("Error while creating site on cluster node for site : " + siteId +
@@ -139,6 +141,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
             }
 
             if (!result) {
+                createdSites.remove(siteId);
                 contentRepository.deleteSite(siteId);
 
                 boolean deleted = previewDeployer.deleteTarget(siteId);
@@ -187,146 +190,142 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
     protected boolean cloneSiteInternal(String siteId, GitRepositories repoType)throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
         // we will eventually to catch up to the latest
-        ClusterMember remoteNode = clusterNodes.get(0);
-        logger.debug("Cloning " + repoType.toString() + " repository for site " + siteId +
-                " from " + remoteNode.getLocalAddress());
-        boolean toRet = true;
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-        // prepare a new folder for the cloned repository
-        Path siteSandboxPath = buildRepoPath(repoType);
-        File localPath = siteSandboxPath.toFile();
-        localPath.delete();
-        // then clone
-        logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
-        CloneCommand cloneCommand = Git.cloneRepository();
-        Git cloneResult = null;
+        boolean cloned = false;
+        int idx = 0;
+        while (!cloned && idx < clusterNodes.size()) {
+            ClusterMember remoteNode = clusterNodes.get(idx++);
+            logger.debug("Cloning " + repoType.toString() + " repository for site " + siteId +
+                    " from " + remoteNode.getLocalAddress());
+            TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            // prepare a new folder for the cloned repository
+            Path siteSandboxPath = buildRepoPath(repoType);
+            File localPath = siteSandboxPath.toFile();
+            localPath.delete();
+            // then clone
+            logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
+            CloneCommand cloneCommand = Git.cloneRepository();
+            Git cloneResult = null;
 
-        try {
-            final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
-            logger.debug("Add user credentials if provided");
-            switch (remoteNode.getGitAuthType()) {
-                case RemoteRepository.AuthenticationType.NONE:
-                    logger.debug("No authentication");
-                    break;
-                case RemoteRepository.AuthenticationType.BASIC:
-                    logger.debug("Basic authentication");
-                    String hashedPassword = remoteNode.getGitPassword();
-                    String password = encryptor.decrypt(hashedPassword);
-                    UsernamePasswordCredentialsProvider credentialsProviderUP =
-                            new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
-                    cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                        @Override
-                        public void configure(Transport transport) {
-                            SshTransport sshTransport = (SshTransport)transport;
-                            ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                                @Override
-                                protected void configure(OpenSshConfig.Host host, Session session) {
-                                    Properties config = new Properties();
-                                    config.put("StrictHostKeyChecking", "no");
-                                    session.setConfig(config);
-                                    session.setPassword(password);
-                                }
-                            });
-                        }
-                    });
-                    cloneCommand.setCredentialsProvider(credentialsProviderUP);
-                    break;
-                case RemoteRepository.AuthenticationType.TOKEN:
-                    logger.debug("Token based authentication");
-                    String hashedToken = remoteNode.getGitToken();
-                    String token = encryptor.decrypt(hashedToken);
-                    UsernamePasswordCredentialsProvider credentialsProvider =
-                            new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
-                    cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                        @Override
-                        public void configure(Transport transport) {
-                            SshTransport sshTransport = (SshTransport)transport;
-                            ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                                @Override
-                                protected void configure(OpenSshConfig.Host host, Session session) {
-                                    Properties config = new Properties();
-                                    config.put("StrictHostKeyChecking", "no");
-                                    session.setConfig(config);
-                                }
-                            });
-                        }
-                    });
-                    cloneCommand.setCredentialsProvider(credentialsProvider);
-                    break;
-                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                    logger.debug("Private key authentication");
-                    String hashedPrivateKey = remoteNode.getGitPrivateKey();
-                    String privateKey = encryptor.decrypt(hashedPrivateKey);
-                    tempKey.toFile().deleteOnExit();
-                    cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                        @Override
-                        public void configure(Transport transport) {
-                            SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
-                        }
-                    });
+            try {
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                logger.debug("Add user credentials if provided");
+                switch (remoteNode.getGitAuthType()) {
+                    case RemoteRepository.AuthenticationType.NONE:
+                        logger.debug("No authentication");
+                        break;
+                    case RemoteRepository.AuthenticationType.BASIC:
+                        logger.debug("Basic authentication");
+                        String hashedPassword = remoteNode.getGitPassword();
+                        String password = encryptor.decrypt(hashedPassword);
+                        UsernamePasswordCredentialsProvider credentialsProviderUP =
+                                new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
+                        cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport) transport;
+                                ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                                    @Override
+                                    protected void configure(OpenSshConfig.Host host, Session session) {
+                                        Properties config = new Properties();
+                                        config.put("StrictHostKeyChecking", "no");
+                                        session.setConfig(config);
+                                        session.setPassword(password);
+                                    }
+                                });
+                            }
+                        });
+                        cloneCommand.setCredentialsProvider(credentialsProviderUP);
+                        break;
+                    case RemoteRepository.AuthenticationType.TOKEN:
+                        logger.debug("Token based authentication");
+                        String hashedToken = remoteNode.getGitToken();
+                        String token = encryptor.decrypt(hashedToken);
+                        UsernamePasswordCredentialsProvider credentialsProvider =
+                                new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
+                        cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport) transport;
+                                ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                                    @Override
+                                    protected void configure(OpenSshConfig.Host host, Session session) {
+                                        Properties config = new Properties();
+                                        config.put("StrictHostKeyChecking", "no");
+                                        session.setConfig(config);
+                                    }
+                                });
+                            }
+                        });
+                        cloneCommand.setCredentialsProvider(credentialsProvider);
+                        break;
+                    case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                        logger.debug("Private key authentication");
+                        String hashedPrivateKey = remoteNode.getGitPrivateKey();
+                        String privateKey = encryptor.decrypt(hashedPrivateKey);
+                        tempKey.toFile().deleteOnExit();
+                        cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport) transport;
+                                sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                            }
+                        });
 
-                    break;
-                default:
-                    throw new ServiceLayerException("Unsupported authentication type " + remoteNode.getGitAuthType());
-            }
-            String cloneUrl = remoteNode.getGitUrl().replace("{siteId}", siteId);
-            switch (repoType) {
-                case SANDBOX:
-                    cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
-                    break;
-                case PUBLISHED:
-                    cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH);
-                    break;
-                default:
-            }
+                        break;
+                    default:
+                        throw new ServiceLayerException("Unsupported authentication type " + remoteNode.getGitAuthType());
+                }
+                String cloneUrl = remoteNode.getGitUrl().replace("{siteId}", siteId);
+                switch (repoType) {
+                    case SANDBOX:
+                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
+                        break;
+                    case PUBLISHED:
+                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH);
+                        break;
+                    default:
+                }
 
-            logger.debug("Executing clone command");
-            cloneResult = cloneCommand
-                    .setURI(cloneUrl)
-                    .setRemote(remoteNode.getGitRemoteName())
-                    .setDirectory(localPath)
-                    .setCloneAllBranches(true)
-                    .call();
-            Files.deleteIfExists(tempKey);
+                logger.debug("Executing clone command");
+                cloneResult = cloneCommand
+                        .setURI(cloneUrl)
+                        .setRemote(remoteNode.getGitRemoteName())
+                        .setDirectory(localPath)
+                        .setCloneAllBranches(true)
+                        .call();
+                Files.deleteIfExists(tempKey);
 
-            logger.debug("If cloned repo was published repo, than add local sandbox as origin");
-            if (repoType.equals(PUBLISHED)) {
-                try {
-                    addOriginRemote();
-                } catch (InvalidRemoteUrlException e) {
-                    logger.error("Failed to add sandbox as origin");
+                logger.debug("If cloned repo was published repo, than add local sandbox as origin");
+                if (repoType.equals(PUBLISHED)) {
+                    try {
+                        addOriginRemote();
+                    } catch (InvalidRemoteUrlException e) {
+                        logger.error("Failed to add sandbox as origin");
+                    }
+                }
+                cloned = true;
+
+            } catch (InvalidRemoteException e) {
+                logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
+                        " (" + remoteNode.getGitUrl() + ")", e);
+            } catch (TransportException e) {
+                if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                    logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
+                            " (" + remoteNode.getGitUrl() + ")", e);
+                } else {
+                    logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
+                            " (" + remoteNode.getGitUrl() + ")", e);
+                }
+            } catch (GitAPIException | IOException e) {
+                logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+            } finally {
+                if (cloneResult != null) {
+                    cloneResult.close();
                 }
             }
-
-        } catch (InvalidRemoteException e) {
-            logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
-                    " (" + remoteNode.getGitUrl() + ")", e);
-            throw new InvalidRemoteRepositoryException("Invalid remote repository: " +
-                    remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")");
-        } catch (TransportException e) {
-            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
-                                " (" + remoteNode.getGitUrl() + ")", e);
-                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ") for username "
-                        + remoteNode.getGitUsername(), e);
-            } else {
-                logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
-                                " (" + remoteNode.getGitUrl() + ")",  e);
-                throw new RemoteRepositoryNotFoundException("Remote repository not found: " +
-                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")");
-            }
-        } catch (GitAPIException | IOException e) {
-            logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
-            toRet = false;
-        } finally {
-            if (cloneResult != null) {
-                cloneResult.close();
-            }
         }
-        return toRet;
+        return cloned;
     }
 
     private void updateBranch(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
