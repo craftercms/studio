@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.17'
+  version: '2.0.18'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1212,7 +1212,7 @@ paths:
         - name: site_id
           in: query
           description: Site ID
-          required: true
+          required: false
           schema:
             type: string
         - name: offset
