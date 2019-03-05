@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v2.service.audit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -39,7 +40,7 @@ public class AuditServiceImpl implements AuditService {
     @HasPermission(type = DefaultPermission.class, action = "audit_log")
     public List<AuditLog> getAuditLogForSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, int offset, int limit,
                                              String user, List<String> actions) throws SiteNotFoundException {
-        if (!siteService.exists(site)) {
+        if (StringUtils.isNotEmpty(site) && !siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
         return auditServiceInternal.getAuditLogForSite(site, offset, limit, user, actions);
@@ -49,7 +50,7 @@ public class AuditServiceImpl implements AuditService {
     @HasPermission(type = DefaultPermission.class, action = "audit_log")
     public int getAuditLogForSiteTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, String user, List<String> actions)
             throws SiteNotFoundException {
-        if (!siteService.exists(site)) {
+        if (StringUtils.isNotEmpty(site) && !siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
         return auditServiceInternal.getAuditLogForSiteTotal(site, user, actions);

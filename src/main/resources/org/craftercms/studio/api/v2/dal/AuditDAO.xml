@@ -37,8 +37,11 @@
     <select id="getAuditLogForSite" parameterType="java.util.Map" resultMap="AuditLogMap">
         select *
         from audit
-        where site_network = #{siteId}
-        <if test="user != null and user != '' ">
+        where 1 = 1
+        <if test="siteId != null and siteId !=  '' ">
+        and site_network = #{siteId}
+        </if>
+        <if test="username != null and username != '' ">
             and post_user_id = #{username}
         </if>
         <if test="actions != null">
@@ -54,8 +57,11 @@
     <select id="getAuditLogForSiteTotal" parameterType="java.util.Map" resultType="int">
         select count(1)
         from audit
-        where site_network = #{siteId}
-        <if test="user != null and user != '' ">
+        where 1 = 1
+        <if test="siteId != null and siteId !=  '' ">
+            and site_network = #{siteId}
+        </if>
+        <if test="username != null and username != '' ">
             and post_user_id = #{username}
         </if>
         <if test="actions != null">
