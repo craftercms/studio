@@ -37,6 +37,10 @@ import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -51,12 +55,15 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
 
 public class PublisherTask implements Runnable {
 
@@ -171,12 +178,32 @@ public class PublisherTask implements Runnable {
     private void syncRepository(String site) throws SiteNotFoundException {
         logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
-        String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
-        if (StringUtils.isNotEmpty(lastProcessedCommit)) {
-            logger.debug("Syncing database with repository for site " + site + " from last processed commit "
-                    + lastProcessedCommit);
-            siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
+        if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
+            String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
+            if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+                logger.debug("Syncing database with repository for site " + site + " from last processed commit "
+                        + lastProcessedCommit);
+                siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
+            }
         }
+    }
+
+    private boolean checkSiteUuid(String siteId, String siteUuid) {
+        boolean toRet = false;
+        try {
+            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
+            List<String> lines = Files.readAllLines(path);
+            for (String line : lines) {
+                if (!StringUtils.startsWith(line, "#") && StringUtils.equals(line, siteUuid)) {
+                    toRet = true;
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            logger.info("Invaid site UUID. Local copy will not be deleted");
+        }
+        return toRet;
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {
