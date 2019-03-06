@@ -601,32 +601,45 @@ studio.search.facets:
     field: contentLength
     # The list of ranges to search
     ranges:
-      - to: 500000
-      - from: 500000
-        to: 1000000
-      - from: 2000000
-      - from: 2000000
-        to: 4000000
-      - from: 4000000
+      - to: 1024
+      - from: 1024
+        to: 25600
+      - from: 25600
+        to: 256000
+      - from: 256000
+        to: 1048576
+      - from: 1048576
+        to: 5242880
+      - from: 5242880
+        to: 1073741824
+      - from: 1073741824
   - name: width
     field: width
     ranges:
-      - to: 32
-      - from: 32
-        to: 52
-      - from: 52
-        to: 200
-      - from: 200
-        to: 600
-      - from: 600
+      - to: 64
+      - from: 64
+        to: 160
+      - from: 160
+        to: 480
+      - from: 480
+        to: 800
+      - from: 800
+        to: 1280
+      - from: 1280
+        to: 1600
+      - from: 1600
   - name: height
     field: height
     ranges:
-      - to: 32
-      - from: 32
-        to: 52
-      - from: 52
-        to: 200
-      - from: 200
-        to: 600
-      - from: 600
+      - to: 64
+      - from: 64
+        to: 120
+      - from: 120
+        to: 320
+      - from: 320
+        to: 480
+      - from: 480
+        to: 800
+      - from: 800
+        to: 1200
+      - from: 1200
