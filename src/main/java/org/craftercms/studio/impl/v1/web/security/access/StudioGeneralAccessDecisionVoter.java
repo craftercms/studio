@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -46,7 +47,7 @@ public class StudioGeneralAccessDecisionVoter extends StudioAbstractAccessDecisi
             FilterInvocation filterInvocation = (FilterInvocation) object;
             HttpServletRequest request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-            if (getPublicUrls().contains(requestUri)) {
+            if (RegexUtils.matchesAny(requestUri, getPublicUrls())) {
                 toRet = ACCESS_GRANTED;
             }
         }
