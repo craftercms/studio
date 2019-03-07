@@ -30,7 +30,7 @@ import javax.servlet.ServletContext;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.monitoring.VersionMonitor;
+import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -111,14 +111,14 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation impleme
             boolean blueprintManifestExists = Files.exists(Paths.get(blueprintsManifestLocation));
             InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
             Manifest studioManifest = new Manifest(studioManifestStream);
-            VersionMonitor studioVersion = VersionMonitor.getVersion(studioManifest);
+            VersionInfo studioVersion = VersionInfo.getVersion(studioManifest);
             InputStream blueprintsManifestStream = null;
             Manifest blueprintsManifest = null;
-            VersionMonitor blueprintsVersion = null;
+            VersionInfo blueprintsVersion = null;
             if (blueprintManifestExists) {
                 blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
                 blueprintsManifest = new Manifest(blueprintsManifestStream);
-                blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
+                blueprintsVersion = VersionInfo.getVersion(blueprintsManifest);
             }
 
             if (!blueprintManifestExists || !StringUtils.equals(studioVersion.getPackageBuild(),

@@ -17,9 +17,9 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.commons.monitoring.MemoryMonitor;
-import org.craftercms.commons.monitoring.StatusMonitor;
-import org.craftercms.commons.monitoring.VersionMonitor;
+import org.craftercms.commons.monitoring.MemoryInfo;
+import org.craftercms.commons.monitoring.StatusInfo;
+import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,26 +40,26 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 public class MonitoringController {
 
     @GetMapping(MEMORY_URL)
-    public ResultOne<MemoryMonitor> getCurrentMemory() {
-        ResultOne<MemoryMonitor> result = new ResultOne<>();
+    public ResultOne<MemoryInfo> getCurrentMemory() {
+        ResultOne<MemoryInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_MEMORY, MemoryMonitor.getCurrentMemory());
+        result.setEntity(RESULT_KEY_MEMORY, MemoryInfo.getCurrentMemory());
         return result;
     }
 
     @GetMapping(STATUS_URL)
-    public ResultOne<StatusMonitor> getCurrentStatus() {
-        ResultOne<StatusMonitor> result = new ResultOne<>();
+    public ResultOne<StatusInfo> getCurrentStatus() {
+        ResultOne<StatusInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_STAUS, StatusMonitor.getCurrentStatus());
+        result.setEntity(RESULT_KEY_STAUS, StatusInfo.getCurrentStatus());
         return result;
     }
 
     @GetMapping(VERSION_URL)
-    public ResultOne<VersionMonitor> getCurrentVersion() throws Exception {
-        ResultOne<VersionMonitor> result = new ResultOne<>();
+    public ResultOne<VersionInfo> getCurrentVersion() throws Exception {
+        ResultOne<VersionInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_VERSION, VersionMonitor.getVersion(getClass()));
+        result.setEntity(RESULT_KEY_VERSION, VersionInfo.getVersion(getClass()));
         return result;
     }
 
