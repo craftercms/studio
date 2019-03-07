@@ -41,7 +41,7 @@ public class AuditServiceImpl implements AuditService {
     public List<AuditLog> getAuditLogForSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, int offset, int limit,
                                              String user, List<String> actions) throws SiteNotFoundException {
         if (StringUtils.isNotEmpty(site) && !siteService.exists(site)) {
-            throw new SiteNotFoundException();
+            throw new SiteNotFoundException("Site " + site + " not found.");
         }
         return auditServiceInternal.getAuditLogForSite(site, offset, limit, user, actions);
     }

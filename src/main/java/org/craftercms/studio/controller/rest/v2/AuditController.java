@@ -17,7 +17,9 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -41,6 +43,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 public class AuditController {
 
     private AuditService auditService;
+    private SiteService siteService;
 
     @GetMapping("/api/2/audit")
     public ResponseBody getAuditLog(
@@ -50,6 +53,9 @@ public class AuditController {
             @RequestParam(value = REQUEST_PARAM_USER, required = false, defaultValue = "") String user,
             @RequestParam(value = REQUEST_PARAM_ACTIONS, required = false) List<String> actions) throws SiteNotFoundException {
 
+        if (StringUtils.isNotEmpty(siteId) && !siteService.exists(siteId)) {
+            throw new SiteNotFoundException("Site " + siteId + " not found.");
+        }
         int total = auditService.getAuditLogForSiteTotal(siteId, user, actions);
         List<AuditLog> auditLog = auditService.getAuditLogForSite(siteId, offset, limit, user, actions);
 
@@ -70,5 +76,13 @@ public class AuditController {
 
     public void setAuditService(AuditService auditService) {
         this.auditService = auditService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }
