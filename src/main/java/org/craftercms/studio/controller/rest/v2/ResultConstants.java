@@ -51,4 +51,8 @@ public interface ResultConstants {
     /* Audit Controller */
     String RESULT_KEY_AUDIT_LOG = "auditLog";
 
+    String RESULT_KEY_STAUS = "status";
+    String RESULT_KEY_VERSION = "version";
+    String RESULT_KEY_MEMORY = "memory";
+
 }

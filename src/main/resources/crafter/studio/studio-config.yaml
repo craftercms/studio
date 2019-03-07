@@ -171,7 +171,7 @@ studio.security.sessionTimeout: 60
 # Urls to be treated as exception to the rules.
 studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-session.json,/api/1/services/api/1/publish/status.json
 # Public URLs
-studio.security.publicUrls: /api/1/services/api/1/server/get-available-languages.json, /api/1/services/api/1/server/get-ui-resource-override.json, /api/1/services/api/1/monitor/status.json
+studio.security.publicUrls: /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/2/monitoring/.+
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)

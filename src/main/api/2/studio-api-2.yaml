@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.19'
+  version: '2.0.20'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -30,6 +30,8 @@ tags:
     description: Site management operations
   - name: search
     description: Search operations
+  - name: monitoring
+    description: Monitoring operations
 paths:
 
   /groups:
@@ -1266,6 +1268,69 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /monitoring/version:
+    get:
+      tags:
+        - monitoring
+      summary: Get the current version information
+      operationId: getVersion
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  version:
+                    $ref: '#/components/schemas/VersionItem'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /monitoring/status:
+    get:
+      tags:
+        - monitoring
+      summary: Get the current status information
+      operationId: getStatus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  version:
+                    $ref: '#/components/schemas/StatusItem'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /monitoring/memory:
+    get:
+      tags:
+        - monitoring
+      summary: Get the current memory information
+      operationId: getMemory
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  version:
+                    $ref: '#/components/schemas/MemoryItem'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -1740,7 +1805,82 @@ components:
         source:
           type: string
           description: Source which generated audit log entry (UI or repo)
-
+    VersionItem:
+      type: object
+      properties:
+        packageName:
+          type: string
+          description: The name of the current package
+        packageVersion:
+          type: string
+          description: The version of the current package
+        packageBuild:
+          type: string
+          description: The build of the current package
+        packageBuildDate:
+          type: string
+          format: date-time
+          description: The build date of the current package
+        osName:
+          type: string
+          description: The name of the operating system
+        osVersion:
+          type: string
+          description: The version of the operating system
+        osArch:
+          type: string
+          description: The architecture of the operating system
+        javaVersion:
+          type: string
+          description: The version of java being used
+        javaVendor:
+          type: string
+          description: The name of the JVM vendor
+        javaVm:
+          type: string
+          description: The name of the JVM
+    StatusItem:
+      type: object
+      properties:
+        uptime:
+          type: integer
+          format: int64
+          description: The time in seconds that the JVM has been up
+        startup:
+          type: string
+          format: date-time
+          description: The date and time when the JVM started
+    MemoryItem:
+      type: object
+      properties:
+        totalJvmMemory:
+          type: integer
+          format: int64
+          description: The memory in bytes used by the JVM
+        freeJvmMemory:
+          type: integer
+          format: int64
+          description: The remaining memory in bytes for the JVM
+        maxJvmMemory:
+          type: integer
+          format: int64
+          description: The maximum memory in bytes available to the JVM
+        totalOsMemory:
+          type: integer
+          format: int64
+          description: The total memory in bytes available for the operating system
+        freeOsMemory:
+          type: integer
+          format: int64
+          description: The remaining memory in bytes for the operating system
+        totalSwapMemory:
+          type: integer
+          format: int64
+          description: The total memory in bytes available for swap space
+        freeSwapMemory:
+          type: integer
+          format: int64
+          description: The remaining memory in bytes for swap space
   responses:
     NotFound:
       description: Resource not found
