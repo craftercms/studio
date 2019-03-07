@@ -121,9 +121,10 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation impleme
                 blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
             }
 
-            if (!blueprintManifestExists || !StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild())
-                || (StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) &&
-                !StringUtils.equals(studioVersion.getBuild_date(), blueprintsVersion.getBuild_date()))) {
+            if (!blueprintManifestExists || !StringUtils.equals(studioVersion.getPackageBuild(),
+                blueprintsVersion.getPackageBuild())
+                || (StringUtils.equals(studioVersion.getPackageBuild(), blueprintsVersion.getPackageBuild()) &&
+                !StringUtils.equals(studioVersion.getPackageBuildDate(), blueprintsVersion.getPackageBuildDate()))) {
                 String bootstrapBlueprintsFolderPath =
                     servletContext.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
                         FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR +

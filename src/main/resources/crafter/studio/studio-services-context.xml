@@ -286,9 +286,7 @@
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
-
-    <bean id="studioMonitorService" class="org.craftercms.studio.impl.v1.service.monitor.MonitorServiceImpl"/>
-
+    
     <bean id="studioCmisService" class="org.craftercms.studio.impl.v1.service.cmis.CmisServiceImpl" >
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="contentService" ref="cstudioContentService"/>
