@@ -21,19 +21,29 @@ blueprint:
     screenshots:
       - screenshot:
           title: Home Page
-          description: Screenshot of the homepage
-          url: https://example.com/home.png
-    videos:
-      - video:
-          title: Navigation
-          description: How to navigate on example blueprint
-          url: https://example.com/navigate.mp4
+          description: Screenshot of the home page
+          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_home.png
+      - screenshot:
+          title: Style Page
+          description: Screenshot of the style page
+          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_style.png
+      - screenshot:
+          title: Health Page
+          description: Screenshot of the health page
+          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_health.png
+      - screenshot:
+          title: Entertainment Page
+          description: Screenshot of the entertainment page
+          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_entertainment.png
+      - screenshot:
+          title: Technology Page
+          description: Screenshot of the technology page
+          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_technology.png
+      - screenshot:
+          title: Article Page
+          description: Screenshot of the article page
+          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_article.png
     developer:
-      people:
-        - person:
-            name: John Doe
-            email: john.doe@example.com
-            url: https://example.com
       company:
         name: Crafter Software
         email: info@craftersoftware.com

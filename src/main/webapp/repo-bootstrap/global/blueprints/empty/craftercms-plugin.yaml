@@ -16,24 +16,14 @@ blueprint:
     Simple empty blueprint
   website:
     name: Empty Blueprint
-    url: https://example.com
+    url: # https://example.com
   media:
     screenshots:
       - screenshot:
           title: Home Page
           description: Screenshot of the homepage
-          url: https://example.com/home.png
-    videos:
-      - video:
-          title: Navigation
-          description: How to navigate on example blueprint
-          url: https://example.com/navigate.mp4
+          url: /studio/static-assets/images/blueprints/empty/bp_empty.png
     developer:
-      people:
-        - person:
-            name: John Doe
-            email: john.doe@example.com
-            url: https://example.com
       company:
         name: Crafter Software
         email: info@craftersoftware.com
