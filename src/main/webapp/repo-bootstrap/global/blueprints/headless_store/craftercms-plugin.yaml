@@ -6,7 +6,7 @@ descriptorVersion: 1
 # Describe the blueprint
 blueprint:
   id: org.craftercms.blueprint.headless_store
-  name: Headless Blog Blueprint
+  name: Headless Store Blueprint
   tags: blueprint,website,headless
   version:
     major: 1

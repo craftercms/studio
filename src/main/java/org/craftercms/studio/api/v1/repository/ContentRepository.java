@@ -231,12 +231,12 @@ public interface ContentRepository {
     /**
      * Create a new site based on a blueprint
      *
-     * @param blueprintName
-     * @param siteId
-     * @param sandboxBranch
+     * @param blueprintLocation blueprint location
+     * @param siteId site identifier
+     * @param sandboxBranch sandbox branch name
      * @return true if successful, false otherwise
      */
-    boolean createSiteFromBlueprint(String blueprintName, String siteId, String sandboxBranch);
+    boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch);
 
     /**
      * Deletes an existing site.

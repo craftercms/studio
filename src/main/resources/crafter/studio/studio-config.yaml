@@ -33,7 +33,7 @@ studio.repo.published.staging: staging
 # Blueprints folder name under global
 studio.repo.blueprintsPath: blueprints
 # Blueprints descriptor filename under global
-studio.repo.blueprints.descriptor.filename: descriptor.yaml
+studio.repo.blueprints.descriptor.filename: craftercms-plugin.yaml
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
 studio.repo.bootstrapRepo: true
 # Sandbox repository write commit message

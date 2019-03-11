@@ -195,6 +195,19 @@ pipelines:
           path: /configuration/global-permission-mappings-config.xml
           template: crafter/studio/upgrade/3.1.0.14/global-permission-mappings-config-3.xslt
 
+    - currentVersion: 3.1.0.14
+      nextVersion: 3.1.0.15
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.14-to-3.1.0.15.sql
+          updateIntegrity: true
+        - type: globalRepoUpgrader
+          files:
+            - blueprints/empty/craftercms-plugin.yaml
+            - blueprints/headless_blog/craftercms-plugin.yaml
+            - blueprints/headless_store/craftercms-plugin.yaml
+            - blueprints/website_editorial/craftercms-plugin.yaml
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.1.0

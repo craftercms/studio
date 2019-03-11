@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v2.service.site.internal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -63,6 +64,35 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
                         if (bdp != null) {
                             bdp.getBlueprint().setFolderName(folder.name);
                             toRet.add(bdp);
+                        }
+                    }
+                } catch (FileNotFoundException e) {
+                    logger.error("Error while getting descriptor for blueprint " + folder.name, e);
+                }
+            }
+        }
+
+        return toRet;
+    }
+
+    @Override
+    public String getBlueprintLocation(String blueprintId) {
+        RepositoryItem[] blueprintsFolders =
+                contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+        String toRet = StringUtils.EMPTY;
+        for (RepositoryItem folder : blueprintsFolders) {
+            if (folder.isFolder) {
+                try {
+                    Path descriptorPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH),folder.path,
+                            folder.name,
+                            studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
+                    if (Files.exists(descriptorPath)) {
+                        FileReader fr = new FileReader(descriptorPath.toString());
+                        Yaml yaml = new Yaml();
+                        BlueprintDescriptor bdp = yaml.loadAs(fr, BlueprintDescriptor.class);
+                        if (bdp != null && bdp.getBlueprint().getId().equals(blueprintId)) {
+                            toRet = descriptorPath.getParent().toAbsolutePath().toString();
                         }
                     }
                 } catch (FileNotFoundException e) {

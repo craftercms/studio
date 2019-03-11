@@ -27,4 +27,12 @@ public interface SitesServiceInternal {
      * Get list of available blueprints
      */
     List<BlueprintDescriptor> getAvailbleBlueprints();
+
+    /**
+     * Get blueprint location
+     *
+     * @param blueprintId blueprint id
+     * @return blueprint location
+     */
+    String getBlueprintLocation(String blueprintId);
 }
