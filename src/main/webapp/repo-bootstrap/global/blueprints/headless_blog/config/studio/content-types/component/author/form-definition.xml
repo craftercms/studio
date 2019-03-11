@@ -248,7 +248,7 @@
                 </constraints>
             </field>
             <field>
-                <type>rte-tinymce4</type>
+                <type>rte-tinymce5</type>
                 <id>biography_html</id>
                 <iceId></iceId>
                 <title>Biography</title>
@@ -258,7 +258,7 @@
                 <properties>
                     <property>
                         <name>height</name>
-                        <value>300</value>
+                        <value>400</value>
                         <type>int</type>
                     </property>
                     <property>
@@ -283,7 +283,7 @@
                     </property>
                     <property>
                         <name>rteConfiguration</name>
-                        <value>rteTinyMCE4</value>
+                        <value>generic</value>
                         <type>string</type>
                     </property>
                     <property>

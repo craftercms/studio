@@ -637,7 +637,7 @@
                     </properties>
                     <fields>
                         <field>
-                            <type>rte-tinymce4</type>
+                            <type>rte-tinymce5</type>
                             <id>section_html</id>
                             <iceId>article</iceId>
                             <title>Section</title>
@@ -672,7 +672,7 @@
                                 </property>
                                 <property>
                                     <name>rteConfiguration</name>
-                                    <value>rteTinyMCE4</value>
+                                    <value>generic</value>
                                     <type>string</type>
                                 </property>
                                 <property>

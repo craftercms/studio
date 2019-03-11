@@ -57,10 +57,10 @@
             <samplePath>/studio/administration/samples/sample-form-control-rte-setup.xml</samplePath>
         </file>
         <file>
-            <path>/studio/form-control-config/rte/rte-setup-tinymce4.xml</path>
+            <path>/studio/form-control-config/rte/rte-setup-tinymce5.xml</path>
             <title>confTabRTEtMCE4Conf</title>
             <description>confTabRTEtMCE4ConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-form-control-rte-setup-tinymce4.xml</samplePath>
+            <samplePath>/studio/administration/samples/sample-form-control-rte-setup-tinymce5.xml</samplePath>
         </file>
         <file>
             <path>/studio/preview-tools/components-config.xml</path>
