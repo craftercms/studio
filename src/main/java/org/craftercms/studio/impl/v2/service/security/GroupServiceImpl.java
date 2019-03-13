@@ -21,25 +21,34 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.KEY_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 public class GroupServiceImpl implements GroupService {
 
@@ -48,6 +57,9 @@ public class GroupServiceImpl implements GroupService {
     private OrganizationServiceInternal organizationServiceInternal;
     private UserServiceInternal userServiceInternal;
     private GeneralLockService generalLockService;
+    private ActivityService activityService;
+    private StudioConfiguration studioConfiguration;
+    private UserService userService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
@@ -73,20 +85,38 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_groups")
-    public Group createGroup(long orgId, String groupName,
-                             String groupDescription) throws GroupAlreadyExistsException, ServiceLayerException {
-        return groupServiceInternal.createGroup(orgId, groupName, groupDescription);
+    public Group createGroup(long orgId, String groupName, String groupDescription)
+            throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
+        Group toRet = groupServiceInternal.createGroup(orgId, groupName, groupDescription);
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_GROUP);
+        activityService.postActivity(
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                userService.getCurrentUser().getUsername(), groupName,
+                activityType, ActivityService.ActivitySource.API, extraInfo);
+        return toRet;
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public Group updateGroup(long orgId, Group group) throws ServiceLayerException, GroupNotFoundException {
-        return groupServiceInternal.updateGroup(orgId, group);
+    public Group updateGroup(long orgId, Group group)
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
+        Group toRet = groupServiceInternal.updateGroup(orgId, group);
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_GROUP);
+        activityService.postActivity(
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                userService.getCurrentUser().getUsername(), group.getGroupName(),
+                activityType, ActivityService.ActivitySource.API, extraInfo);
+        return toRet;
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_groups")
-    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException, GroupNotFoundException {
+    public void deleteGroup(List<Long> groupIds)
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
         Group sysAdminGroup;
         try {
             sysAdminGroup = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
@@ -99,8 +129,17 @@ public class GroupServiceImpl implements GroupService {
                 throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
             }
         }
-
+        List<Group> groups = groupServiceInternal.getGroups(groupIds);
         groupServiceInternal.deleteGroup(groupIds);
+        for (Group g : groups) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETED;
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_GROUP);
+            activityService.postActivity(
+                    studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                    userService.getCurrentUser().getUsername(), g.getGroupName(),
+                    activityType, ActivityService.ActivitySource.API, extraInfo);
+        }
     }
 
     @Override
@@ -111,8 +150,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException,
-                                                                                               GroupNotFoundException {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
+            throws ServiceLayerException, GroupNotFoundException {
         return groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);
     }
 
@@ -124,17 +163,25 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public List<User> addGroupMembers(long groupId, List<Long> userIds,
-                                      List<String> usernames) throws ServiceLayerException, UserNotFoundException,
-                                                                     GroupNotFoundException {
-        return groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
+        List<User> users = groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
+        for (User user : users) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity(
+                    studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                    userService.getCurrentUser().getUsername(), user.getUsername(),
+                    activityType, ActivityService.ActivitySource.API, extraInfo);
+        }
+        return users;
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public void removeGroupMembers(long groupId, List<Long> userIds,
-                                   List<String> usernames) throws ServiceLayerException, UserNotFoundException,
-                                                                  GroupNotFoundException {
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
         Group group = getGroup(groupId);
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         try {
@@ -161,7 +208,19 @@ public class GroupServiceImpl implements GroupService {
                     }
                 }
             }
+            List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
+
             groupServiceInternal.removeGroupMembers(groupId, userIds, usernames);
+
+            for (User user : users) {
+                ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_USER_FROM_GROUP;
+                Map<String, String> extraInfo = new HashMap<String, String>();
+                extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                activityService.postActivity(
+                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                        userService.getCurrentUser().getUsername(), user.getUsername(),
+                        activityType, ActivityService.ActivitySource.API, extraInfo);
+            }
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }
@@ -205,5 +264,29 @@ public class GroupServiceImpl implements GroupService {
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public ActivityService getActivityService() {
+        return activityService;
+    }
+
+    public void setActivityService(ActivityService activityService) {
+        this.activityService = activityService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 }

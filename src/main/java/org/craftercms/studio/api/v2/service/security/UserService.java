@@ -38,12 +38,12 @@ public interface UserService {
 
     int getAllUsersTotal() throws ServiceLayerException;
 
-    User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
+    User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
 
-    void updateUser(User user) throws ServiceLayerException, UserNotFoundException;
+    void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
-    void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, AuthenticationException,
-                                                                        UserNotFoundException;
+    void deleteUsers(List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
     User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 

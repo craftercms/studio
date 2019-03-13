@@ -79,6 +79,14 @@ public interface GroupDAO {
     Group getGroup(Map params);
 
     /**
+     * Get groups by group ids
+     *
+     * @param params SQL query parameters
+     * @return List of groups or null if not found
+     */
+    List<Group> getGroups(Map params);
+
+    /**
      * Get group by group name
      *
      * @param params SQL query parameters

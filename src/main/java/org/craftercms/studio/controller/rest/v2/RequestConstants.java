@@ -23,9 +23,19 @@ public interface RequestConstants {
 
     String REQUEST_PARAM_LIMIT = "limit";
 
+    String REQUEST_PARAM_SORT = "sort";
+
+    String REQUEST_PARAM_ID = "id";
+
     String REQUEST_PARAM_SITE_ID = "site_id";
 
+    String REQUEST_PARAM_SITE = "site";
+
     String REQUEST_PARAM_USER = "user";
+
+    String REQUEST_PARAM_USER_ID = "userId";
+
+    String REQUEST_PARAM_USERNAME = "username";
 
     String REQUEST_PARAM_ACTIONS = "actions";
 }

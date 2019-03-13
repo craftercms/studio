@@ -114,6 +114,7 @@ package org.craftercms.studio.api.v1.constant;
     String CONTENT_TYPE_CONFIGURATION = "configuration";
     String CONTENT_TYPE_FOLDER = "folder";
     String CONTENT_TYPE_USER = "user";
+    String CONTENT_TYPE_GROUP = "group";
     String CONTENT_TYPE_TAXONOMY_REGEX = "/site/taxonomy/([^<]+)\\.xml";
     String CONTENT_TYPE_ALL = "all";
     String CONTENT_TYPE_FORM_DEFINITION = "formDefinition";
@@ -191,4 +192,7 @@ package org.craftercms.studio.api.v1.constant;
      */
     String SEARCH_ENGINE_ELASTIC_SEARCH = "ElasticSearch";
     String SEARCH_ENGINE_CRAFTER_SEARCH = "CrafterSearch";
+
+    /* Map keys */
+    String KEY_CONTENT_TYPE = "contentType";
 }
