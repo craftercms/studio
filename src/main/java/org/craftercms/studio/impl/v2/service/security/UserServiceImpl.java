@@ -37,8 +37,10 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -50,8 +52,10 @@ import org.craftercms.studio.model.Site;
 
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.KEY_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 public class UserServiceImpl implements UserService {
 
@@ -64,6 +68,8 @@ public class UserServiceImpl implements UserService {
     private EntitlementValidator entitlementValidator;
     private GeneralLockService generalLockService;
     private SecurityService securityService;
+    private ActivityService activityService;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -93,7 +99,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_users")
-    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
         try {
             long start = 0;
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
@@ -108,20 +114,35 @@ public class UserServiceImpl implements UserService {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact " +
                                             "your system administrator.", e);
         }
-        return userServiceInternal.createUser(user);
+        User toRet = userServiceInternal.createUser(user);
+
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+        activityService.postActivity(
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                getCurrentUser().getUsername(), user.getUsername(),
+                activityType, ActivityService.ActivitySource.API, extraInfo);
+        return toRet;
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
-    public void updateUser(User user) throws ServiceLayerException, UserNotFoundException {
+    public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         userServiceInternal.updateUser(user);
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+        activityService.postActivity(
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                getCurrentUser().getUsername(), user.getUsername(),
+                activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_users")
-    public void deleteUsers(List<Long> userIds,
-                            List<String> usernames) throws ServiceLayerException, AuthenticationException,
-                                                           UserNotFoundException {
+    public void deleteUsers(List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         User currentUser = getCurrentUser();
 
         if (CollectionUtils.containsAny(userIds, Arrays.asList(currentUser.getId())) ||
@@ -133,8 +154,8 @@ public class UserServiceImpl implements UserService {
         try {
             try {
                 Group g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
-                List<User> members = groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE,
-                                                                          StringUtils.EMPTY);
+                List<User> members =
+                        groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
                     List<User> membersAfterRemove = new ArrayList<User>();
                     membersAfterRemove.addAll(members);
@@ -159,7 +180,17 @@ public class UserServiceImpl implements UserService {
                 throw new ServiceLayerException("The System Admin group is not found.", e);
             }
 
+            List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
+            for (User deletedUser : toDelete) {
+                ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETED;
+                Map<String, String> extraInfo = new HashMap<String, String>();
+                extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                activityService.postActivity(
+                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                        getCurrentUser().getUsername(), deletedUser.getUsername(),
+                        activityType, ActivityService.ActivitySource.API, extraInfo);
+            }
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }
@@ -167,8 +198,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
-                                                                           UserNotFoundException {
+    public User getUserByIdOrUsername(long userId, String username)
+            throws ServiceLayerException, UserNotFoundException {
         return userServiceInternal.getUserByIdOrUsername(userId, username);
     }
 
@@ -209,8 +240,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException,
-                                                                                           UserNotFoundException {
+    public List<String> getUserSiteRoles(long userId, String username, String site)
+            throws ServiceLayerException, UserNotFoundException {
         List<Group> groups = userServiceInternal.getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
@@ -361,5 +392,21 @@ public class UserServiceImpl implements UserService {
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public ActivityService getActivityService() {
+        return activityService;
+    }
+
+    public void setActivityService(ActivityService activityService) {
+        this.activityService = activityService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

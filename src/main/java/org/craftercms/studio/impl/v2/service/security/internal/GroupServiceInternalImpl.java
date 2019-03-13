@@ -74,6 +74,25 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    public List<Group> getGroups(List<Long> groupId) throws GroupNotFoundException, ServiceLayerException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(GROUP_ID, groupId);
+
+        List<Group> groups;
+        try {
+            groups = groupDao.getGroups(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+
+        if (groups != null) {
+            return groups;
+        } else {
+            throw new GroupNotFoundException("No group found for id '" + groupId + "'");
+        }
+    }
+
+    @Override
     public Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAME, groupName);
@@ -135,8 +154,8 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
-                                                                                           ServiceLayerException {
+    public Group createGroup(long orgId, String groupName, String groupDescription)
+            throws GroupAlreadyExistsException, ServiceLayerException {
         if (groupExists(-1, groupName)) {
             throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
         }
@@ -200,8 +219,8 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws GroupNotFoundException,
-                                                                                               ServiceLayerException {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
+            throws GroupNotFoundException, ServiceLayerException {
         if (!groupExists(groupId, StringUtils.EMPTY)) {
             throw new GroupNotFoundException("No group found for id '" + groupId+ "'");
         }
@@ -234,9 +253,8 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public List<User> addGroupMembers(long groupId, List<Long> userIds,
-                                      List<String> usernames) throws GroupNotFoundException, UserNotFoundException,
-                                                                     ServiceLayerException {
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
         if (!groupExists(groupId, StringUtils.EMPTY)) {
             throw new GroupNotFoundException("No group found for id '" + groupId+ "'");
         }
@@ -257,9 +275,8 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public void removeGroupMembers(long groupId, List<Long> userIds,
-                                   List<String> usernames) throws GroupNotFoundException, UserNotFoundException,
-                                                                  ServiceLayerException {
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
         if (!groupExists(groupId, StringUtils.EMPTY)) {
             throw new GroupNotFoundException("No group found for id '" + groupId+ "'");
         }

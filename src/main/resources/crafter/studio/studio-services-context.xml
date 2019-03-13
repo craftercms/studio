@@ -303,6 +303,9 @@
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="organizationServiceInternal" ref="organizationServiceInternal" />
+        <property name="activityService" ref="cstudioActivityService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="userService" ref="userService" />
     </bean>
 
     <bean id="groupServiceInternal"
@@ -320,6 +323,7 @@
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="activityService" ref="cstudioActivityService" />
     </bean>
 
     <bean id="userServiceInternal"
