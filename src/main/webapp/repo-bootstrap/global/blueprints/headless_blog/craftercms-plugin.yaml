@@ -13,7 +13,7 @@ blueprint:
     minor: 0
     patch: 0
   description: |
-    Headles blog blueprint
+    Headless blog blueprint
   website:
     name: Headless Blog Blueprint
     url: https://craftercms.org
