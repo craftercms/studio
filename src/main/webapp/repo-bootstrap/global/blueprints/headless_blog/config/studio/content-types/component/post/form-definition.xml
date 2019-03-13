@@ -321,7 +321,7 @@
                 </constraints>
             </field>
             <field>
-                <type>rte-tinymce4</type>
+                <type>rte-tinymce5</type>
                 <id>body_html</id>
                 <iceId></iceId>
                 <title>Body</title>
@@ -356,7 +356,7 @@
                     </property>
                     <property>
                         <name>rteConfiguration</name>
-                        <value>rteTinyMCE4</value>
+                        <value>generic</value>
                         <type>string</type>
                     </property>
                     <property>

@@ -157,7 +157,7 @@
                 </constraints>
             </field>
             <field>
-                <type>rte-tinymce4</type>
+                <type>rte-tinymce5</type>
                 <id>description_html</id>
                 <iceId></iceId>
                 <title>Description</title>
@@ -167,7 +167,7 @@
                 <properties>
                     <property>
                         <name>height</name>
-                        <value>300</value>
+                        <value>350</value>
                         <type>int</type>
                     </property>
                     <property>
@@ -192,12 +192,12 @@
                     </property>
                     <property>
                         <name>rteConfiguration</name>
-                        <value>rteTinyMCE4</value>
+                        <value>generic</value>
                         <type>string</type>
                     </property>
                     <property>
                         <name>imageManager</name>
-                        <value>upload_images,existing_images</value>
+                        <value>existing_images,upload_images</value>
                         <type>datasource:image</type>
                     </property>
                     <property>
