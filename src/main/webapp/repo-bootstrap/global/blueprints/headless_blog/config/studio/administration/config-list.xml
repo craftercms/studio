@@ -58,8 +58,8 @@
         </file>
         <file>
             <path>/studio/form-control-config/rte/rte-setup-tinymce5.xml</path>
-            <title>confTabRTEtMCE4Conf</title>
-            <description>confTabRTEtMCE4ConfDesc</description>
+            <title>confTabRTEtMCE5Conf</title>
+            <description>confTabRTEtMCE5ConfDesc</description>
             <samplePath>/studio/administration/samples/sample-form-control-rte-setup-tinymce5.xml</samplePath>
         </file>
         <file>
