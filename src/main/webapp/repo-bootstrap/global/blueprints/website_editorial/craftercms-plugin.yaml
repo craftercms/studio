@@ -13,10 +13,10 @@ blueprint:
     minor: 0
     patch: 0
   description: |
-    Website editorial blueprint
+    Editorial blueprint
   website:
     name: Website Editorial Blueprint
-    url: https://example.com
+    url: https://craftercms.org
   media:
     screenshots:
       - screenshot:
