@@ -16,7 +16,7 @@ blueprint:
     Headles blog blueprint
   website:
     name: Headless Blog Blueprint
-    url: # https://example.com
+    url: https://craftercms.org
   media:
     screenshots:
       - screenshot:
