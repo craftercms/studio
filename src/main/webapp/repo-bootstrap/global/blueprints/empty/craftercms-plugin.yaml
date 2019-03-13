@@ -16,7 +16,7 @@ blueprint:
     Simple empty blueprint
   website:
     name: Empty Blueprint
-    url: # https://example.com
+    url: https://craftercms.org
   media:
     screenshots:
       - screenshot:
