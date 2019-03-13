@@ -13,27 +13,21 @@ blueprint:
     minor: 0
     patch: 0
   description: |
-    Headles blog blueprint
+    Headless blog blueprint
   website:
     name: Headless Blog Blueprint
-  #    url: https://example.com
+    url: https://craftercms.org
   media:
     screenshots:
       - screenshot:
-          title: Home Page
-          description: Screenshot of the homepage
-          url: https://example.com/home.png
-    videos:
-      - video:
-          title: Navigation
-          description: How to navigate on example blueprint
-          url: https://example.com/navigate.mp4
+          title: Author
+          description: Screenshot of the author item
+          url: /studio/static-assets/images/blueprints/headless_blog/bp_blog_author.png
+      - screenshot:
+          title: Post
+          description: Screenshot of the post item
+          url: /studio/static-assets/images/blueprints/headless/bp_blog_post.png
     developer:
-      people:
-        - person:
-            name: John Doe
-            email: john.doe@example.com
-            url: https://example.com
       company:
         name: Crafter Software
         email: info@craftersoftware.com

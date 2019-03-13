@@ -111,6 +111,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
@@ -177,9 +178,9 @@ public class SiteServiceImpl implements SiteService {
     protected EventService eventService;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
-		protected UpgradeManager upgradeManager;
-
+    protected UpgradeManager upgradeManager;
     protected StudioConfiguration studioConfiguration;
+    protected SitesService sitesService;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -384,7 +385,7 @@ public class SiteServiceImpl implements SiteService {
 
 	@Override
     @ValidateParams
-   	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName,
+   	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintId") String blueprintId,
                                            @ValidateNoTagsParam(name = "siteName") String siteName,
                                            @ValidateStringParam(name = "siteId") String siteId,
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
@@ -396,9 +397,8 @@ public class SiteServiceImpl implements SiteService {
 	        throw new SiteAlreadyExistsException();
         }
 
-        if (!contentService.contentExists(StringUtils.EMPTY,
-                studioConfiguration.getProperty(BLUE_PRINTS_PATH) + FILE_SEPARATOR +
-                        blueprintName)) {
+        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        if (StringUtils.isEmpty(blueprintLocation) || !Files.exists(Paths.get(blueprintLocation))) {
             throw new BlueprintNotFoundException();
         }
 
@@ -432,17 +432,17 @@ public class SiteServiceImpl implements SiteService {
         } catch (Exception e) {
             success = false;
             logger.error("Error while creating site: " + siteName + " ID: " + siteId +
-                    " from blueprint: " + blueprintName + ". Is the Preview Deployer running and configured " +
+                    " from blueprint: " + blueprintId + ". Is the Preview Deployer running and configured " +
                     "correctly in Studio?", e);
 
             throw new PreviewDeployerUnreachableException("Error while creating site: " + siteName + " ID: "
-                + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
+                + siteId + " from blueprint: " + blueprintId + ". Is the Preview Deployer running and "
                 + "configured correctly in Studio?");
         }
 
 	    if (success) {
 	 		try {
-                success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc);
 
                 upgradeManager.upgradeSite(siteId);
 
@@ -484,17 +484,17 @@ public class SiteServiceImpl implements SiteService {
 	        } catch(Exception e) {
 	            success = false;
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
-	                    blueprintName + ". Rolling back.", e);
+	                    blueprintId + ". Rolling back.", e);
 
 			    boolean deleted = previewDeployer.deleteTarget(siteId);
 				if (!deleted) {
 					logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
-						" from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
+						" from blueprint: " + blueprintId + ". This means the site's preview deployer target is " +
 						"still present, but the site is not successfully created.");
 				}
 
 			    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId +
-                        " from blueprint: " + blueprintName + ". Rolling back.");
+                        " from blueprint: " + blueprintId + ". Rolling back.");
 		    }
 	    }
 
@@ -524,13 +524,13 @@ public class SiteServiceImpl implements SiteService {
                 siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
-    protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId,
+    protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteName, String siteId,
                                                  String sandboxBranch, String desc)
             throws Exception {
         boolean success = true;
 
         // create site with git repo
-        contentRepository.createSiteFromBlueprint(blueprintName, siteId, sandboxBranch);
+        contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch);
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
@@ -823,7 +823,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintName,
+    private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintId,
                                         String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
                                         String remoteToken, String remotePrivateKey, String searchEngine)
@@ -832,8 +832,8 @@ public class SiteServiceImpl implements SiteService {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
-        if (!contentService.contentExists(StringUtils.EMPTY, studioConfiguration.getProperty(
-                BLUE_PRINTS_PATH) + FILE_SEPARATOR + blueprintName)) {
+        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        if (StringUtils.isEmpty(blueprintLocation) || !Files.exists(Paths.get(blueprintLocation))) {
             throw new BlueprintNotFoundException();
         }
         boolean success = true;
@@ -852,34 +852,34 @@ public class SiteServiceImpl implements SiteService {
         } catch (Exception e) {
             success = false;
             logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                    blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?", e);
+                    blueprintId + ". Is the Preview Deployer running and configured correctly in Studio?", e);
 
             throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
-                    + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
+                    + siteId + " from blueprint: " + blueprintId + ". Is the Preview Deployer running and "
                     + "configured correctly in Studio?");
         }
 
         if (success) {
             try {
-                logger.debug("Creating site " + siteId + " from blueprint " + blueprintName);
-                success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, sandboxBranch, description);
+                logger.debug("Creating site " + siteId + " from blueprint " + blueprintId);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description);
 
                 upgradeManager.upgradeSite(siteId);
 
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                        blueprintName + ". Rolling back.", e);
+                        blueprintId + ". Rolling back.", e);
 
                 boolean deleted = previewDeployer.deleteTarget(siteId);
                 if (!deleted) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
+                            " from blueprint: " + blueprintId + ". This means the site's preview deployer target is " +
                             "still present, but the site is not successfully created.");
                 }
 
                 throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " from blueprint: " + blueprintName + ". Rolling back.");
+                        " from blueprint: " + blueprintId + ". Rolling back.");
             }
 
             if (success) {
@@ -897,7 +897,7 @@ public class SiteServiceImpl implements SiteService {
                         InvalidRemoteUrlException | ServiceLayerException e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                            blueprintName + ". Rolling back.", e);
+                            blueprintId + ". Rolling back.", e);
 
                     contentRepository.removeRemote(siteId, remoteName);
 
@@ -906,7 +906,7 @@ public class SiteServiceImpl implements SiteService {
                     boolean deleted = previewDeployer.deleteTarget(siteId);
                     if (!deleted) {
                         logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                                " from blueprint: " + blueprintName + ". This means the site's preview deployer" +
+                                " from blueprint: " + blueprintId + ". This means the site's preview deployer" +
                                 " target is still present, but the site is not successfully created.");
                     }
 
@@ -958,18 +958,18 @@ public class SiteServiceImpl implements SiteService {
             } catch(Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                        blueprintName + ". Rolling back.", e);
+                        blueprintId + ". Rolling back.", e);
 
                 deleteSite(siteId);
                 boolean deleted = previewDeployer.deleteTarget(siteId);
                 if (!deleted) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
+                            " from blueprint: " + blueprintId + ". This means the site's preview deployer target is " +
                             "still present, but the site is not successfully created.");
                 }
 
                 throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " from blueprint: " + blueprintName + ". Rolling back.");
+                        " from blueprint: " + blueprintId + ". Rolling back.");
             }
         }
 
@@ -1898,4 +1898,11 @@ public class SiteServiceImpl implements SiteService {
 		this.upgradeManager = upgradeManager;
 	}
 
+    public SitesService getSitesService() {
+        return sitesService;
+    }
+
+    public void setSitesService(SitesService sitesService) {
+        this.sitesService = sitesService;
+    }
 }

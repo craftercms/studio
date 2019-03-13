@@ -45,7 +45,6 @@ public class BlueprintDescriptor {
 
         private String id;
         private String name;
-        private String folderName;
         private String tags;
         private Version version;
         private String description;
@@ -69,14 +68,6 @@ public class BlueprintDescriptor {
 
         public void setName(String name) {
             this.name = name;
-        }
-
-        public String getFolderName() {
-            return folderName;
-        }
-
-        public void setFolderName(String folderName) {
-            this.folderName = folderName;
         }
 
         public String getTags() {

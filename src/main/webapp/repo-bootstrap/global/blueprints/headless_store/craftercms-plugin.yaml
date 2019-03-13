@@ -6,34 +6,32 @@ descriptorVersion: 1
 # Describe the blueprint
 blueprint:
   id: org.craftercms.blueprint.headless_store
-  name: Headless Blog Blueprint
+  name: Headless Store Blueprint
   tags: blueprint,website,headless
   version:
     major: 1
     minor: 0
     patch: 0
   description: |
-    Headles store blueprint
+    Headless store blueprint
   website:
     name: Headless Store Blueprint
-    url: https://example.com
+    url: https://craftercms.org
   media:
     screenshots:
       - screenshot:
-          title: Home Page
-          description: Screenshot of the homepage
-          url: https://example.com/home.png
-    videos:
-      - video:
-          title: Navigation
-          description: How to navigate on example blueprint
-          url: https://example.com/navigate.mp4
+          title: Store Items
+          description: Screenshot of the store items
+          url: /studio/static-assets/images/blueprints/headless_store/bp_store_1.png
+      - screenshot:
+          title: Store Items
+          description: Screenshot of the store items
+          url: /studio/static-assets/images/blueprints/headless_store/bp_store_2.png
+      - screenshot:
+          title: Store Items
+          description: Screenshot of the store items
+          url: /studio/static-assets/images/blueprints/headless_store/bp_store_3.png
     developer:
-      people:
-        - person:
-            name: John Doe
-            email: john.doe@example.com
-            url: https://example.com
       company:
         name: Crafter Software
         email: info@craftersoftware.com
