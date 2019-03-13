@@ -13,10 +13,10 @@ blueprint:
     minor: 0
     patch: 0
   description: |
-    Headles store blueprint
+    Headless store blueprint
   website:
     name: Headless Store Blueprint
-    url: # https://example.com
+    url: https://craftercms.org
   media:
     screenshots:
       - screenshot:
