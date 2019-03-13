@@ -947,7 +947,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteFromBlueprint(String blueprintName, String site, String sandboxBranch) {
+    public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch) {
         boolean toReturn;
 
         // create git repository for site content
@@ -955,7 +955,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         if (toReturn) {
             // copy files from blueprint
-            toReturn = helper.copyContentFromBlueprint(blueprintName, site);
+            toReturn = helper.copyContentFromBlueprint(blueprintLocation, site);
         }
 
         if (toReturn) {

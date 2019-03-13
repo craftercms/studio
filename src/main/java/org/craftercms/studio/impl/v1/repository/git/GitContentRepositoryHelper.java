@@ -387,14 +387,13 @@ public class GitContentRepositoryHelper {
         return toReturn;
     }
 
-    public boolean copyContentFromBlueprint(String blueprint, String site) {
+    public boolean copyContentFromBlueprint(String blueprintLocation, String site) {
         boolean toReturn = true;
 
         // Build a path to the Sandbox repo we'll be copying to
         Path siteRepoPath = buildRepoPath(GitRepositories.SANDBOX, site);
         // Build a path to the blueprint
-        Path blueprintPath = buildRepoPath(GitRepositories.GLOBAL).resolve(Paths.get(studioConfiguration.getProperty
-            (StudioConfiguration.BLUE_PRINTS_PATH), blueprint));
+        Path blueprintPath = Paths.get(blueprintLocation);
         EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         // Let's copy!
         TreeCopier tc = new TreeCopier(blueprintPath, siteRepoPath);
