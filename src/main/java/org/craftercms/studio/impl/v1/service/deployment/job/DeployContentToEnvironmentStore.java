@@ -106,7 +106,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                     for (CopyToEnvironment item : itemList) {
                                         String lockKey = item.getSite() + ":" + item.getPath();
                                         generalLockService.lock(lockKey);
-                                        contentRepository.lockItem(item.getSite(), item.getPath());
+                                        if (contentService.contentExists(item.getSite(), item.getPath())) {
+                                            contentRepository.lockItem(item.getSite(), item.getPath());
+                                        }
                                     }
                                     
                                     try {
@@ -116,7 +118,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         for (CopyToEnvironment item : itemList) {
                                             String lockKey = item.getSite() + ":" + item.getPath();
                                             generalLockService.lock(lockKey);
-                                            contentRepository.lockItem(item.getSite(), item.getPath());
+                                            if (contentService.contentExists(item.getSite(), item.getPath())) {
+                                                contentRepository.lockItem(item.getSite(), item.getPath());
+                                            }
                                             try {
                                                 logger.debug("Processing [{0}] content item for site \"{1}\"", item.getPath(), site);
                                                 publishingManager.processItem(item);

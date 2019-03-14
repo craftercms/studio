@@ -56,9 +56,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/craftercms/studio2</connection>
-        <developerConnection>scm:git:git://github.com/craftercms/studio2</developerConnection>
-        <url>scm:git:git://github.com/craftercms/studio2</url>
+        <connection>scm:git:git://github.com/craftercms/studio</connection>
+        <developerConnection>scm:git:git://github.com/craftercms/studio</developerConnection>
+        <url>scm:git:git://github.com/craftercms/studio</url>
     </scm>
 
 
@@ -376,10 +376,10 @@
                                 <arguments>
                                     <argument>clone</argument>
                                     <argument>-b</argument>
-                                    <argument>v2.5.x</argument>
+                                    <argument>2.5.x</argument>
                                     <argument>--depth</argument>
                                     <argument>1</argument>
-                                    <argument>https://github.com/craftercms/studio2-ui.git</argument>
+                                    <argument>https://github.com/craftercms/studio-ui.git</argument>
                                     <argument>target/ui/</argument>
                                 </arguments>
                             </configuration>

@@ -457,12 +457,14 @@ public class PublishingManagerImpl implements PublishingManager {
 
             LOGGER.debug("Setting system processing for {0}:{1}", site, path);
             objectStateService.setSystemProcessing(site, path, true);
-            
+            boolean contentExists = contentService.contentExists(site, path);
             
             if (isLive) {
                 if (!importModeEnabled) {
                     String pubVersionComment = "Submitted by:" + user + ", " + submissionComment;
-                    contentRepository.createVersion(contentService.expandRelativeSitePath(site, path), pubVersionComment, true);
+                    if (contentExists) {
+                        contentRepository.createVersion(contentService.expandRelativeSitePath(site, path), pubVersionComment, true);
+                    }
                 }
                 else {
                     LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);
@@ -493,10 +495,11 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
             
-            
-            LOGGER.debug("Getting deployer for environment store.");
-            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
-            deployer.deployFile(site, path);
+            if (contentExists) {
+                LOGGER.debug("Getting deployer for environment store.");
+                Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+                deployer.deployFile(site, path);
+            }
 
 
             ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, path);
