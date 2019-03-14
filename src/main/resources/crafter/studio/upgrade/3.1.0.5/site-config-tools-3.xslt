@@ -30,14 +30,14 @@
         <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
     </xsl:template>
 
-    <xsl:template match="config/tools/tool/controls[not(control/name='rte-tinymce4')]">
+    <xsl:template match="config/tools/tool/controls[not(control/name='rte-tinymce5')]">
         <xsl:for-each select="control">
             <xsl:copy>
                 <xsl:apply-templates select="node() | @*"/>
             </xsl:copy>
             <xsl:if test="name = 'rte'">
                 <xsl:element name="control">
-                    <xsl:element name="name"><xsl:text>rte-tinymce4</xsl:text></xsl:element>
+                    <xsl:element name="name"><xsl:text>rte-tinymce5</xsl:text></xsl:element>
                     <xsl:element name="icon">
                         <xsl:element name="class"><xsl:text>fa-code</xsl:text></xsl:element>
                     </xsl:element>

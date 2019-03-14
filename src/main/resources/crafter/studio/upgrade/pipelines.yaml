@@ -254,11 +254,11 @@ pipelines:
       nextVersion: 3.1.0.5
       operations:
         - type: addFileUpgrader
-          path: /config/studio/form-control-config/rte/rte-setup-tinymce4.xml
-          file: crafter/studio/upgrade/3.1.0.5/rte-setup-tinymce4.xml
+          path: /config/studio/form-control-config/rte/rte-setup-tinymce5.xml
+          file: crafter/studio/upgrade/3.1.0.5/rte-setup-tinymce5.xml
         - type: addFileUpgrader
-          path: /config/studio/administration/samples/sample-form-control-rte-setupt-tinymce4.xml
-          file: crafter/studio/upgrade/3.1.0.5/sample-form-control-rte-setupt-tinymce4.xml
+          path: /config/studio/administration/samples/sample-form-control-rte-setupt-tinymce5.xml
+          file: crafter/studio/upgrade/3.1.0.5/sample-form-control-rte-setupt-tinymce5.xml
         - type: versionFileUpgrader
 
 
@@ -337,7 +337,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *site-config-tools
-            template: crafter/studio/upgrade/3.1.0.3/site-config-tools-3.xslt
+            template: crafter/studio/upgrade/3.1.0.5/site-config-tools-3.xslt
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
