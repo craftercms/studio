@@ -26,7 +26,7 @@ blueprint:
       - screenshot:
           title: Post
           description: Screenshot of the post item
-          url: /studio/static-assets/images/blueprints/headless/bp_blog_post.png
+          url: /studio/static-assets/images/blueprints/headless_blog/bp_blog_post.png
     developer:
       company:
         name: Crafter Software
