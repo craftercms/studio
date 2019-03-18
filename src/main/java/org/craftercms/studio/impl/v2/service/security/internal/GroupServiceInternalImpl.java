@@ -74,9 +74,9 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public List<Group> getGroups(List<Long> groupId) throws GroupNotFoundException, ServiceLayerException {
+    public List<Group> getGroups(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
-        params.put(GROUP_ID, groupId);
+        params.put(GROUP_IDS, groupIds);
 
         List<Group> groups;
         try {
@@ -88,7 +88,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         if (groups != null) {
             return groups;
         } else {
-            throw new GroupNotFoundException("No group found for id '" + groupId + "'");
+            throw new GroupNotFoundException("No group found for id '" + groupIds + "'");
         }
     }
 

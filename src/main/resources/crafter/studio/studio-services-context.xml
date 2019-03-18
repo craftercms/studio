@@ -325,6 +325,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="activityService" ref="cstudioActivityService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="userServiceInternal"
