@@ -18,8 +18,10 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath:crafter/studio/database-context.xml"/>
     <import resource="classpath:crafter/studio/studio-upgrade-context.xml"/>
     <import resource="classpath:crafter/studio/studio-search-context.xml"/>
@@ -602,19 +604,14 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).REPO_CLEANUP_CRON)}"/>
     </bean>
 
-    <bean id="studioSchedulerFactoryBean" name="studioSchedulerFactoryBean" class="org.craftercms.studio.impl.v1.util.spring.context.StudioSchedulerFactoryBean" destroy-method="destroy">
-        <property name="triggers">
-            <list>
-                <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
-                <ref bean="studioRepositoryCleanupJobTrigger"/>
-                <ref bean="cstudioClusterSandboxSyncJobsScheduled" />
-                <ref bean="cstudioClusterPublishedSyncJobsScheduled" />
-                <ref bean="cstudioClusterNodeHeartbeatJobsScheduled" />
-                <ref bean="cstudioClusterNodeInactivityCheckJobsScheduled" />
-            </list>
-        </property>
-        <property name="waitForJobsToCompleteOnShutdown" value="false" />
-    </bean>
+    <util:list id="crafter.jobTriggers">
+        <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
+        <ref bean="studioRepositoryCleanupJobTrigger"/>
+        <ref bean="cstudioClusterSandboxSyncJobsScheduled" />
+        <ref bean="cstudioClusterPublishedSyncJobsScheduled" />
+        <ref bean="cstudioClusterNodeHeartbeatJobsScheduled" />
+        <ref bean="cstudioClusterNodeInactivityCheckJobsScheduled" />
+    </util:list>
 
     <!-- ////////////////////////////////////// -->
     <!--         workflow                       -->
