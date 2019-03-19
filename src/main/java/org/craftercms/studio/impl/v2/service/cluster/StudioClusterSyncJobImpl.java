@@ -191,7 +191,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invaid site UUID. Local copy will not be deleted");
+            logger.info("Invalid site UUID. Local copy will not be deleted");
         }
         return toRet;
     }

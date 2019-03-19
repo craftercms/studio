@@ -477,14 +477,14 @@ studio.publishing.threadPool.maxPoolSize: 20
 ################################################################
 ##                   Clustering Thread Pool                   ##
 ################################################################
-# Sandbox Sync Job interval
+# Sandbox Sync Job interval in milliseconds which is how often to sync the work-area
 studio.clustering.sandboxSyncJob.interval: 5000
-# Published Sync Job interval
+# Published Sync Job interval in milliseconds which is how often to sync the published repos
 studio.clustering.publishedSyncJob.interval: 60000
-# Heartbeat Job interval
+# Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
 studio.clustering.heartbeatJob.interval: 10000
-# Inactivty Check Job interval
-studio.clustering.inactivtyCheckJob.interval: 30000
+# Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
+studio.clustering.inactivityCheckJob.interval: 30000
 # Thread name prefix
 studio.clustering.threadPool.namePrefix: Studio_Clustering_Thread_Pool
 # Thread pool size
@@ -494,7 +494,7 @@ studio.clustering.threadPool.maxPoolSize: 20
 # Cluster member after heartbeat stale for amount of minutes will be declared inactive
 studio.clustering.heartbeatStale.timeLimit: 5
 # Cluster member after being inactive for amount of minutes will be removed from cluster
-studio.clustering.incativity.timeLimit: 5
+studio.clustering.inactivity.timeLimit: 5
 
 ################################################################
 ##                             CORS                           ##
