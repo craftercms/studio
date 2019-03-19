@@ -759,12 +759,12 @@
                         <resource>
                             <directory>${studio.vcbp.path}</directory>
                             <filtering>false</filtering>
-                            <targetPath>repo-bootstrap/global/blueprints/video-center-blueprint</targetPath>
+                            <targetPath>repo-bootstrap/global/blueprints/video-center</targetPath>
                         </resource>
                         <resource>
                             <directory>${studio.vcbp.path}/static-assets/images/screenshots</directory>
                             <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/video_center</targetPath>
+                            <targetPath>default-site/static-assets/images/blueprints/video-center</targetPath>
                         </resource>
 
                     </webResources>
