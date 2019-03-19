@@ -68,9 +68,9 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard()
             .withCredentials(profile.getCredentialsProvider());
             
-        if(StringUtils.isNotEmpty(profile.getEndpoint()) && StringUtils.isNotEmpty(profile.getRegion())){
-            builder.withEndpointConfiguration( new AmazonS3ClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()));
-        } else if(StringUtils.isNotEmpty(profile.getRegion())) {
+        if (StringUtils.isNotEmpty(profile.getEndpoint()) && StringUtils.isNotEmpty(profile.getRegion())){
+            builder.withEndpointConfiguration(new AmazonS3ClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()));
+        } else if (StringUtils.isNotEmpty(profile.getRegion())) {
             builder.withRegion(profile.getRegion());
         }
 
