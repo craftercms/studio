@@ -53,6 +53,8 @@
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.8</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
+        <studio.vcbp.path>target/vcbp</studio.vcbp.path>
+        <studio.vcbp.version>develop</studio.vcbp.version>
 
         <!-- Alpha UI -->
         <node.version>v8.12.0</node.version>
@@ -559,6 +561,25 @@
                             <goal>exec</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>git get vcbp</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <executable>git</executable>
+                            <arguments>
+                                <argument>clone</argument>
+                                <argument>--depth</argument>
+                                <argument>1</argument>
+                                <argument>-b</argument>
+                                <argument>${studio.vcbp.version}</argument>
+                                <argument>https://github.com/craftercms/video-center-blueprint.git</argument>
+                                <argument>${studio.vcbp.path}</argument>
+                            </arguments>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -732,6 +753,18 @@
                             </includes>
                             <filtering>false</filtering>
                             <targetPath>default-site/templates/alpha</targetPath>
+                        </resource>
+
+                        <!-- video center blueprint -->
+                        <resource>
+                            <directory>${studio.vcbp.path}</directory>
+                            <filtering>false</filtering>
+                            <targetPath>repo-bootstrap/global/blueprints/video-center</targetPath>
+                        </resource>
+                        <resource>
+                            <directory>${studio.vcbp.path}/static-assets/images/screenshots</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets/images/blueprints/video-center</targetPath>
                         </resource>
 
                     </webResources>
