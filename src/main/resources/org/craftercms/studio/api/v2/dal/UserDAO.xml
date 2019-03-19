@@ -33,6 +33,7 @@
         <result property="locale" column="locale"/>
         <result property="email" column="email"/>
         <result property="enabledAsInt" column="enabled"/>
+        <result property="deletedAsInt" column="deleted"/>
 
         <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
             <result property="recordLastUpdated" column="record_last_updated"/>
@@ -54,7 +55,8 @@
         SELECT u.*
         FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
         INNER JOIN `group` g ON gu.group_id = g.id)
-        WHERE g.group_name IN
+        WHERE u.deleted = 0
+        AND g.group_name IN
         <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
             #{groupName}
         </foreach>
@@ -65,15 +67,16 @@
     <select id="getAllUsers" parameterType="java.util.Map" resultMap="UserMap">
         SELECT u.*
         FROM `user` u
+        WHERE u.deleted = 0
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
     
     <insert id="createUser" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
         INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
-                           externally_managed, timezone, locale, email, enabled)
+                           externally_managed, timezone, locale, email, enabled, deleted)
         VALUES (CURRENT_TIMESTAMP, #{username}, #{password}, #{firstName}, #{lastName},
-                           #{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled})
+                           #{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled}, 0)
         <selectKey resultType="long" order="AFTER" keyProperty="id">
             select LAST_INSERT_ID() as id
         </selectKey>
@@ -97,13 +100,13 @@
         </foreach>
     </select>
 
-    <delete id="deleteUsers" parameterType="java.util.Map">
-        DELETE FROM `user`
+    <update id="deleteUsers" parameterType="java.util.Map">
+        UPDATE `user` SET deleted = 1
         WHERE id IN
         <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
             #{userId}
         </foreach>
-    </delete>
+    </update>
 
     <select id="getUserByIdOrUsername" parameterType="java.util.Map" resultMap="UserMap">
         SELECT *
@@ -131,7 +134,7 @@
         SELECT count(1)
         FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
         INNER JOIN `group` g ON gu.group_id = g.id)
-        WHERE g.group_name IN
+        WHERE u.deleted = 0 AND g.group_name IN
         <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
             #{groupName}
         </foreach>
@@ -139,7 +142,7 @@
 
     <select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
             SELECT COUNT(DISTINCT username)
-            FROM `user`
+            FROM `user` WHERE deleted = 0
     </select>
 
     <update id="setUserPassword" parameterType="java.util.Map">

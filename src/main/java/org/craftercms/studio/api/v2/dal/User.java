@@ -43,6 +43,7 @@ public class User implements UserDetails {
     private String locale;
     private String email;
     private boolean enabled;
+    private boolean deleted;
     private List<UserGroup> groups = new ArrayList<>();
 
     @Override
@@ -75,6 +76,16 @@ public class User implements UserDetails {
     }
 
     @JsonIgnore
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    @JsonIgnore
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    @JsonIgnore
     public int getEnabledAsInt() {
         return enabled ? 1 : 0;
     }
@@ -83,6 +94,17 @@ public class User implements UserDetails {
     public void setEnabledAsInt(int enabled) {
         this.enabled = enabled > 0;
     }
+
+    @JsonIgnore
+    public int getDeletedAsInt() {
+        return deleted ? 1 : 0;
+    }
+
+    @JsonIgnore
+    public void setDeletedAsInt(int deleted) {
+        this.deleted = deleted > 0;
+    }
+
 
     @Override
     @JsonIgnore
