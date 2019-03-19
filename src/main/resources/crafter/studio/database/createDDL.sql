@@ -7,7 +7,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.15', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.16', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -166,6 +166,7 @@ CREATE TABLE IF NOT EXISTS `user`
   `locale`                VARCHAR(8)   NULL,
   `email`                 VARCHAR(255) NOT NULL,
   `enabled`               INT          NOT NULL,
+  `deleted`               INT          NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   INDEX `user_ix_record_last_updated` (`record_last_updated` DESC),
   UNIQUE INDEX `user_ix_username` (`username`),
@@ -177,9 +178,9 @@ CREATE TABLE IF NOT EXISTS `user`
   ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
-                           externally_managed, timezone, locale, email, enabled)
+                           externally_managed, timezone, locale, email, enabled, deleted)
 VALUES (1, CURRENT_TIMESTAMP, 'admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
-        'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1) ;
+        'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1, 0) ;
 
 CREATE TABLE IF NOT EXISTS `organization`
 (
