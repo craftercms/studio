@@ -61,12 +61,19 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         this.partSize = partSize;
     }
 
+    /** 
+    * Add withEndpointConfiguration() to direct requests to a S3 compatible storage service
+    */
     protected AmazonS3 getS3Client(S3Profile profile) {
         AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard()
             .withCredentials(profile.getCredentialsProvider());
-        if(StringUtils.isNotEmpty(profile.getRegion())) {
+            
+        if (StringUtils.isNotEmpty(profile.getEndpoint()) && StringUtils.isNotEmpty(profile.getRegion())){
+            builder.withEndpointConfiguration(new AmazonS3ClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()));
+        } else if (StringUtils.isNotEmpty(profile.getRegion())) {
             builder.withRegion(profile.getRegion());
         }
+
         return builder.build();
     }
 
