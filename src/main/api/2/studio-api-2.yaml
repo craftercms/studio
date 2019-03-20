@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.20'
+  version: '2.0.21'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -26,7 +26,7 @@ tags:
     description: AWS operations
   - name: cluster
     description: Cluster management operations
-  - name: site
+  - name: sites
     description: Site management operations
   - name: search
     description: Search operations
@@ -1171,6 +1171,7 @@ paths:
                       $ref: '#/components/schemas/Blueprint'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -1203,6 +1204,7 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   result:
                     $ref: '#/components/schemas/SearchResult'
+
   /audit:
     get:
       tags:
@@ -1211,7 +1213,7 @@ paths:
       description: 'Required permission "AUDIT_LOG"'
       operationId: getAuditLog
       parameters:
-        - name: site_id
+        - name: siteId
           in: query
           description: Site ID
           required: false
@@ -1237,14 +1239,57 @@ paths:
           required: false
           schema:
             type: string
-        - name: actions
+        - name: operations
           in: query
-          description: Filter log by action
+          description: Filter log by operations
           required: false
           schema:
             type: array
             items:
               type: string
+        - name: includeParameters
+          in: query
+          description: Include parameters into result set if `true`. Default `false` 
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  auditLog:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /audit/{id}:
+    get:
+      tags:
+        - audit
+      summary: Get audiy log entry
+      operationId: getAuditLogById
+      parameters:
+        - name: id
+          in: path
+          description: The log entry ID
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
@@ -1775,36 +1820,62 @@ components:
     AuditLog:
       type: object
       properties:
-        modified_date:
+        id:
+          type: integer
+          format: int64
+          description: Audit log entry ID
+        organizationId:
+          type: integer
+          format: int64
+          description: Organization ID
+        siteId: 
+          type: integer
+          format: int64
+          description: Site ID
+        operation:
           type: string
-          description: Modified date of audit log entry
-        created_date:
+          description: Operation that was executed
+        operationTimestamp:
           type: string
-          description: Create date of audit log entry
-        summary:
+          description: Timestamp when operation was executed
+        origin:
           type: string
-          description: Summary of audit log entry
-        summary_format:
+          description: Origin of operation (UI/API or Git)
+        primaryTargetId:
           type: string
-          description: Format of summary, deafult 'json'
-        content_id:
+          description: Target ID upon which operation was executed
+        primaryTargetType:
           type: string
-          description: Content identifier to which audit log entry belongs to
-        content_type:
+          description: Type of the target
+        primaryTargetSubtype:
           type: string
-          description: Content type to which audit log entry belongs to
-        type:
+          description: Subtype of the target
+        primaryTargetValue:
           type: string
-          description: Type of action
-        username:
+          description: Value of the target (e.g. content's path)
+        actorId:
           type: string
-          description: User that perfomed action
-        site_id:
+          description: Actor ID which invoked operation
+        actorDetails:
           type: string
+          description: Details of the actor which invoked 
+        parameters:
+          type: object
           description: Site to which audit log entry belongs to
-        source:
-          type: string
-          description: Source which generated audit log entry (UI or repo)
+          properties:
+            targetId:
+              type: string
+              description: Target ID upon which operation was executed
+            targetType:
+              type: string
+              description: Type of the target
+            targetSubtype:
+              type: string
+              description: Subtype of the target
+            targetValue:
+              type: string
+              description: Value of the target (e.g. content's path)
+
     VersionItem:
       type: object
       properties:
