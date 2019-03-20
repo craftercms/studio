@@ -215,6 +215,16 @@ pipelines:
           filename: upgrade-3.1.0.15-to-3.1.0.16.sql
           updateIntegrity: true
 
+    - currentVersion: 3.1.0.16
+      nextVersion: 3.1.0.17
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.7-to-3.1.0.8.sql
+          updateIntegrity: true
+        - type: xsltFileUpgrader
+          path: /configuration/global-menu-config.xml
+          template: crafter/studio/upgrade/3.1.0.17/global-menu-config-3.xslt
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.1.0
