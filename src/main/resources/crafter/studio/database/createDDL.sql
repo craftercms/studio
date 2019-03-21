@@ -7,7 +7,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.17', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.18', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -304,10 +304,10 @@ CREATE TABLE IF NOT EXISTS remote_repository
 CREATE TABLE IF NOT EXISTS cluster
 (
   `id`                  BIGINT(20)    NOT NULL AUTO_INCREMENT,
-  `local_address`            VARCHAR(40)   NOT NULL,
+  `local_address`            VARCHAR(255)   NOT NULL,
   `state`              VARCHAR(50)   NOT NULL,
-  `git_url`             VARCHAR(500)  NOT NULL,
-  `git_remote_name`     VARCHAR(50)   NOT NULL,
+  `git_url`             VARCHAR(1024)  NOT NULL,
+  `git_remote_name`     VARCHAR(255)   NOT NULL,
   `git_auth_type`       VARCHAR(16)   NOT NULL,
   `git_username`        VARCHAR(255)  NULL,
   `git_password`        VARCHAR(255)  NULL,
