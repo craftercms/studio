@@ -30,6 +30,45 @@ CREATE TABLE IF NOT EXISTS `audit` (
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
+CREATE TABLE IF NOT EXISTS `new_audit` (
+  `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `organization_id`           BIGINT(20)    NOT NULL,
+  `site_id`                   BIGINT(20)    NOT NULL,
+  `operation`                 VARCHAR(16)   NOT NULL,
+  `operation_timestamp`       DATETIME      NOT NULL,
+  `origin`                    VARCHAR(16)   NOT NULL,
+  `primary_target_id`         VARCHAR(256)  NOT NULL,
+  `primary_target_type`       VARCHAR(16)   NOT NULL,
+  `primary_target_subtype`    VARCHAR(32)   NOT NULL,
+  `primary_target_value`      VARCHAR(512)  NOT NULL,
+  `actor_id`                  VARCHAR(32)   NOT NULL,
+  `actor_details`             VARCHAR(64)   NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `audit_actor_idx` (`actor_id`),
+  KEY `audit_site_idx` (`site_id`),
+  KEY `audit_operation_idx` (`operation`),
+  KEY `audit_origin_idx` (`origin`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `audit_parameters` (
+  `id`                BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `audit_id`          BIGINT(20) NOT NULL,
+  `target_id`         VARCHAR(256)  NOT NULL,
+  `target_type`       VARCHAR(16)   NOT NULL,
+  `target_subtype`    VARCHAR(32)   NOT NULL,
+  `target_value`      VARCHAR(512)  NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `audit_parameters_audit_id_idx` (`audit_id`),
+  KEY `audit_parameters_target_id_idx` (`target_id`),
+  KEY `audit_parameters_target_value_idx` (`target_value`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
 CREATE TABLE IF NOT EXISTS `dependency` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
   `site`        VARCHAR(50) NOT NULL,
