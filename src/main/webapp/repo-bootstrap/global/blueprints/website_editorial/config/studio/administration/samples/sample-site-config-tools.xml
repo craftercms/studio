@@ -385,4 +385,11 @@
             </icon>
         </tool>
     </tools>
+    <tool>
+        <name>graphiql</name>
+        <label>GraphiQL</label>
+        <icon>
+            <class>fa-line-chart</class>
+        </icon>
+    </tool>
 </config>
