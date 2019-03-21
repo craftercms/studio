@@ -176,8 +176,8 @@
                     <name>img-cmis-repo</name>
                     <icon>
                         <class>fa-square</class>
-                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
                     </icon>
+                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
                 </datasource>
                 <datasource>
                     <name>file-desktop-upload</name>
@@ -379,6 +379,13 @@
             <label>Remote Repositories</label>
             <icon>
                 <class>fa-database</class>
+            </icon>
+        </tool>
+        <tool>
+            <name>graphiql</name>
+            <label>GraphiQL</label>
+            <icon>
+                <class>fa-line-chart</class>
             </icon>
         </tool>
     </tools>
