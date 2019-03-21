@@ -176,8 +176,8 @@
                     <name>img-cmis-repo</name>
                     <icon>
                         <class>fa-square</class>
-                    </icon>
                         <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
+                    </icon>
                 </datasource>
                 <datasource>
                     <name>file-desktop-upload</name>
