@@ -1215,7 +1215,7 @@ paths:
       parameters:
         - name: siteId
           in: query
-          description: Site ID
+          description: Site ID - optional for super admin user, otherwise required
           required: false
           schema:
             type: string
@@ -1253,6 +1253,39 @@ paths:
           required: false
           schema:
             type: boolean
+        - name: dateFrom
+          in: query
+          description: Lower boundary in date range query 
+          required: false
+          schema:
+            type: date
+        - name: dateTo
+          in: query
+          description: Upper boundary in date range query 
+          required: false
+          schema:
+            type: date
+        - name: target
+          in: query
+          description: Regular espression to filter target values
+          required: false
+          schema:
+            type: string
+        - name: origin
+          in: query
+          description: Origin filter for audit log. Possible values `API` and `GIT`
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort result set by specified field. Possible values `id`, `user`, `date`, `target`, `operation`.
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: Order in sorted result. Posible values `ASC` and `DESC`
       responses:
         '200':
           description: OK
