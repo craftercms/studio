@@ -109,7 +109,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
             // for backwards compatibility
             logger.warn("Could not validate database integrity", e);
         } catch (Exception e) {
-            throw new UpgradeNotSupportedException("The current database version can't be upgraded");
+            throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
         }
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
         logger.info("Executing db script {0}", scriptFile.getFilename());

@@ -24,8 +24,6 @@
     <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration" destroy-method="close">
         <property name="driverClassName" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DRIVER)}" />
         <property name="url" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_URL)}" />
-        <property name="username" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_USERNAME)}" />
-        <property name="password" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PASSWORD)}" />
         <property name="initialSize" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_INITIAL_CONNECTIONS)}" />
         <property name="maxTotal" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MAX_ACTIVE_CONNECTIONS)}" />
         <property name="maxIdle" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MAX_IDLE_CONNECTIONS)}" />

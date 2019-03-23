@@ -364,10 +364,6 @@ studio.publishingManager.publishingWithoutDependencies.enabled: false
 # Embedded database configuration
 # JDBC driver and Java class used for accessing crafter database
 studio.db.driver: org.mariadb.jdbc.Driver
-# Username used for authentication to access crafter database.
-studio.db.username: crafter
-# Password used for authentication to access crafter database.
-studio.db.password: crafter
 # Connection string used when connecting database with JDBC driver
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
