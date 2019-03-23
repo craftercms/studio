@@ -226,9 +226,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     }
 
     private boolean isRandomAdminPasswordEnabled() {
-        boolean toRet = Boolean.parseBoolean(
-                studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED));
-        return toRet;
+        return Boolean.parseBoolean(studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED));
     }
 
     public void setDelimiter(String delimiter) {
