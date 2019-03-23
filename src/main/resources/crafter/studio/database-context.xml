@@ -58,22 +58,6 @@
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean -->
 
-    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
-          init-method="initDataSource" depends-on="studioMariaDBService">
-        <property name="delimiter" value=" ;"/>
-        <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="integrityValidator" ref="crafter.databaseValidator"/>
-        <property name="embeddedService" ref="studioMariaDBService" />
-    </bean>
-
-    <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
-          destroy-method="stop" depends-on="studioConfiguration" >
-        <property name="defaultBaseDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_BASE_PATH)}" />
-        <property name="defaultDataDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DATA_PATH)}" />
-        <property name="defaultPort" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PORT)}"  />
-        <property name="defaultSocket" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_SOCKET)}" />
-    </bean>
-
     <!-- MyBatis Mappers -->
     <bean id="auditFeedMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.AuditFeedMapper" />
@@ -149,4 +133,31 @@
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.AuditDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
+
+    <beans profile="!crafter.studio.externalDb">
+        <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
+              init-method="initDataSource" depends-on="studioMariaDBService">
+            <property name="delimiter" value=" ;"/>
+            <property name="studioConfiguration" ref="studioConfiguration"/>
+            <property name="integrityValidator" ref="crafter.databaseValidator"/>
+        </bean>
+
+        <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
+              destroy-method="stop" depends-on="studioConfiguration" >
+            <property name="defaultBaseDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_BASE_PATH)}" />
+            <property name="defaultDataDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DATA_PATH)}" />
+            <property name="defaultPort" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PORT)}"  />
+            <property name="defaultSocket" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_SOCKET)}" />
+        </bean>
+    </beans>
+
+    <beans profile="crafter.studio.externalDb">
+        <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
+              init-method="initDataSource">
+            <property name="delimiter" value=" ;"/>
+            <property name="studioConfiguration" ref="studioConfiguration"/>
+            <property name="integrityValidator" ref="crafter.databaseValidator"/>
+        </bean>
+    </beans>
+
 </beans>
