@@ -70,19 +70,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
-
     protected DbIntegrityValidator integrityValidator;
-
-    protected MariaDB4jSpringService embeddedService;
 
     @Override
     public void initDataSource() {
-
-        // Stop embedded service in clustered environment
-        if (studioConfiguration.getProperty(CLUSTERING_NODE_REGISTRATION, new HashMap<String, String>().getClass()) != null) {
-            embeddedService.stop();
-        }
-
         if (isEnabled()) {
             String configureDbScriptPath = getConfigureDBScriptPath();
 
@@ -212,8 +203,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     }
 
     public boolean isEnabled() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(DB_INITIALIZER_ENABLED));
-        return toReturn;
+        return Boolean.parseBoolean(studioConfiguration.getProperty(DB_INITIALIZER_ENABLED));
     }
 
     private String generateRandomPassword() {
@@ -236,9 +226,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     }
 
     private boolean isRandomAdminPasswordEnabled() {
-        boolean toRet = Boolean.parseBoolean(
-                studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED));
-        return toRet;
+        return Boolean.parseBoolean(studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED));
     }
 
     public void setDelimiter(String delimiter) {
@@ -253,11 +241,4 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         this.integrityValidator = integrityValidator;
     }
 
-    public MariaDB4jSpringService getEmbeddedService() {
-        return embeddedService;
-    }
-
-    public void setEmbeddedService(MariaDB4jSpringService embeddedService) {
-        this.embeddedService = embeddedService;
-    }
 }
