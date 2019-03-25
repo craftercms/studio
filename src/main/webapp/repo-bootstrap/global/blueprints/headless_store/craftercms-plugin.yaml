@@ -13,9 +13,9 @@ blueprint:
     minor: 1
     patch: 0
   description: |
-    Headless store blueprint that uses GraphQL to fetch all site content
+    GraphQL-based and headless blueprint for a storefront
   website:
-    name: Headless Store Blueprint
+    name: GraphQL Headless Store Blueprint
     url: https://craftercms.org
   media:
     screenshots:
