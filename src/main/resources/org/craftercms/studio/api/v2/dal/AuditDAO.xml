@@ -72,4 +72,19 @@
             </foreach>
         </if>
     </select>
+
+    <select id="getAuditLogEntry" parameterType="java.util.Map" resultMap="AuditLogMap">
+        SELECT * FROM audit WHERE id = #{id}
+    </select>
+
+    <select id="getAuditLog" parameterType="java.util.Map" resultMap="AuditLogMap">
+        SELECT * FROM audit
+    </select>
+
+    <insert id="insertAuditLog" parameterType="java.util.Map">
+        INSERT INTO audit (organization_id, site_id, operation, operation_timestamp, origin, primary_target_id,
+        primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details)
+        VALUES (#{organizationId}, #{siteId}, #{operation}, CURRENT_TIMESTAMP, #{origin}, #{primaryTargetId},
+        #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId}, #{actorDetails});
+    </insert>
 </mapper>
