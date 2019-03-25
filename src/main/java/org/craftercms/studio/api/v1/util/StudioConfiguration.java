@@ -55,8 +55,6 @@ public interface StudioConfiguration {
     /** Database */
     String DB_DRIVER = "studio.db.driver";
     String DB_URL = "studio.db.url";
-    String DB_USERNAME = "studio.db.username";
-    String DB_PASSWORD = "studio.db.password";
     String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
     String DB_POOL_MAX_ACTIVE_CONNECTIONS = "studio.db.pool.maxActiveConnections";
     String DB_POOL_MAX_IDLE_CONNECTIONS = "studio.db.pool.maxIdleConnections";
