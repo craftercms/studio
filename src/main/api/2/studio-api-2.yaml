@@ -1219,6 +1219,12 @@ paths:
           required: false
           schema:
             type: string
+        - name: siteName
+          in: query
+          description: Site name - optional for super admin user, otherwise required
+          required: false
+          schema:
+            type: string
         - name: offset
           in: query
           description: Offset of first record in the response
@@ -1277,15 +1283,24 @@ paths:
           required: false
           schema:
             type: string
+        - name: clusterNodeId
+          in: query
+          description: Cluster node id filter for audit log
+          required: false
+          schema:
+            type: string
         - name: sort
           in: query
-          description: Sort result set by specified field. Possible values `id`, `user`, `date`, `target`, `operation`.
+          description: Sort result set by specified field. Possible values `date`.
           required: false
           schema:
             type: string
         - name: order
           in: query
           description: Order in sorted result. Posible values `ASC` and `DESC`
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1865,6 +1880,10 @@ components:
           type: integer
           format: int64
           description: Site ID
+        siteName:
+          type: string
+          format: string
+          description: Site name
         operation:
           type: string
           description: Operation that was executed
@@ -1892,6 +1911,9 @@ components:
         actorDetails:
           type: string
           description: Details of the actor which invoked 
+        clusterNodeId:
+          type: string
+          description: Cluster node Id
         parameters:
           type: object
           description: Site to which audit log entry belongs to
