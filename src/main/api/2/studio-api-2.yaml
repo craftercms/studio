@@ -1264,13 +1264,13 @@ paths:
           description: Lower boundary in date range query 
           required: false
           schema:
-            type: date
+            type: string
         - name: dateTo
           in: query
           description: Upper boundary in date range query 
           required: false
           schema:
-            type: date
+            type: string
         - name: target
           in: query
           description: Regular espression to filter target values
