@@ -7,13 +7,13 @@ descriptorVersion: 1
 blueprint:
   id: org.craftercms.blueprint.headless_store
   name: Headless Store Blueprint
-  tags: blueprint,website,headless
+  tags: blueprint,website,headless,graphql
   version:
     major: 1
-    minor: 0
+    minor: 1
     patch: 0
   description: |
-    Headless store blueprint
+    Headless store blueprint that uses GraphQL to fetch all site content
   website:
     name: Headless Store Blueprint
     url: https://craftercms.org

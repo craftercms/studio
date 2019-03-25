@@ -1,229 +1,165 @@
+<!--
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
 <#import "/templates/system/common/cstudio-support.ftl" as studio />
 
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>${model.title}</title>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-		<style>
-			[v-cloak] { display:none; }
-		</style>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-	</head>
-	<body>
-		<div id="catalog" class="container" v-cloak>
-			<div class="row">
-				<div class="page-header">
-					<h1>Store Catalog</h1>
-				</div>
-			</div>
-			<div class="row">
-				<nav class="navbar navbar-default">
-					<ul class="nav navbar-nav">
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Company<span class="caret"></span></a>
-							<ul class="dropdown-menu">
-								<li v-for="company in companies.items" v-bind:class="{ active: selectedCompany == company }">
-									<a href="#" v-on:click="updateCompany(selectedCompany != company? company : null)">
-										{{ company.name }}
-									</a>
-								</li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Category<span class="caret"></span></a>
-							<ul class="dropdown-menu">
-								<li v-for="category in categories.items" v-if="selectedCategories.indexOf(category) == -1"><a href="#" v-on:click="updateCategories(category)">{{ category.label }}</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Tag<span class="caret"></span></a>
-							<ul class="dropdown-menu">
-								<li v-for="tag in tags.items" v-if="selectedTags.indexOf(tag) == -1"><a href="#" v-on:click="updateTags(tag)">{{ tag.label }}</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Show: {{ pagination.rows }}<span class="caret"></span></a>
-							<ul class="dropdown-menu">
-								<li><a href="#" v-on:click="updateRows(5)">5</a></li>
-								<li><a href="#" v-on:click="updateRows(10)">10</a></li>
-								<li><a href="#" v-on:click="updateRows(20)">20</a></li>
-							</ul>
-						</li>
-					</ul>
-				</nav>
-			</div>
-			<div class="row" v-if="selectedCompany">
-				<div class="col-sm-12">
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<div class="col-sm-2">
-								<img class="img-responsive img-circle center-block" v-bind:src="selectedCompany.logo"/>
-							</div>
-							<div class="col-sm-10 text-center">
-								<h2><a v-bind:href="selectedCompany.website">{{ selectedCompany.name }}</a></h2>
-								<div v-html="selectedCompany.description"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row" v-if="selectedTags.length > 0 || selectedCategories.length > 0">
-				<div class="col-sm-12">
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<strong>Filtering By:&nbsp;</strong>
-							<span class="label label-primary" style="margin-right:5px" v-for="category in selectedCategories">
-								{{ category.label }}
-								&nbsp;
-								<span class="glyphicon glyphicon-remove" v-on:click="removeCategory(category)"></span>
-							</span>
-							<span class="label label-primary" style="margin-right:5px" v-for="tag in selectedTags">
-								{{ tag.label }}
-								&nbsp;
-								<span class="glyphicon glyphicon-remove" v-on:click="removeTag(tag)"></span>
-							</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-3" v-for="product in products.items">
-					<div class="panel panel-default" v-bind:data-studio-component-path="product.itemUrl" v-bind:data-studio-component="product.itemUrl" data-studio-ice="" v-bind:data-studio-ice-path="product.itemUrl">
-						<div class="panel-body">
-							<img v-bind:src="product.image" data-toggle="popover" data-trigger="hover" v-bind:data-content="product.description" data-html="true" class="img-responsive img-thumbnail center-block"/>
-							<h4>{{ product.name }}<small> by {{ product.company }}<small></h4>
-							<span class="badge pull-right">&#36;{{ product.price }}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-12" v-if="pagination.total > 1">
-					<nav aria-label="Page navigation" class="text-center">
-						<ul class="pagination">
-							<li v-bind:class="{ disabled: !pagination.hasPrev }">
-								<a href="#" aria-label="Previous" v-on:click="pagination.hasPrev? changePage(pagination.current - 1) : null">
-									<span aria-hidden="true">&laquo;</span>
-								</a>
-							</li>
-							<li v-for="n in pagination.total" v-bind:class="{ active: n == pagination.current }"><a href="#" v-on:click="changePage(n)">{{ n }}</a></li>
-							<li v-bind:class="{ disabled: !pagination.hasNext }">
-								<a href="#" aria-label="Next" v-on:click="pagination.hasNext? changePage(pagination.current + 1) : null">
-									<span aria-hidden="true">&raquo;</span>
-								</a>
-							</li>
-						</ul>
-					</nav>
-				</div>
-			</div>
-		</div>
-		<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-		<script src="https://unpkg.com/vue"></script>
-		<script src="https://unpkg.com/vue-resource"></script>
-		<script>
-			var catalog = new Vue({
-				el: '#catalog',
-				data: {
-					companies: [],
-					selectedCompany: null,
-					categories: [],
-					selectedCategories: [],
-					tags: [],
-					selectedTags: [],
-					products: [],
-					pagination: {
-						rows: 5,
-						total: 0,
-						current: 1,
-						hasPrev: false,
-						hasNext: false
-					}
-				},
-				methods: {
-					updateCompany: function(company) {
-						this.selectedCompany = company;
-						this.loadProducts();
-					},
-					updateCategories: function(category) {
-						this.selectedCategories.push(category);
-						this.loadProducts();
-					},
-					removeCategory: function(category) {
-						this.selectedCategories.splice(this.selectedCategories.indexOf(category), 1);
-						this.loadProducts();
-					},
-					updateTags: function(tag) {
-						this.selectedTags.push(tag);
-						this.loadProducts();
-					},
-					removeTag: function(tag) {
-						this.selectedTags.splice(this.selectedTags.indexOf(tag), 1);
-						this.loadProducts();
-					},
-					updateRows: function(rows) {
-						this.pagination.rows = rows;
-						this.pagination.current = 1;
-						this.pagination.hasPrev = false;
-						this.loadProducts();
-					},
-					changePage: function(page) {
-						this.pagination.current = page;
-						this.pagination.hasPrev = page != 1;
-						this.pagination.hasNext = page < this.pagination.total;
-						this.loadProducts();
-					},
-					loadFilters: function() {
-						var self = this;
-						this.$http.get('/api/1/company/list.json').then(function(response) {
-							self.companies = response.body;
-						});
-						this.$http.get('/api/1/category/list.json').then(function(response) {
-							self.categories = response.body;
-						});
-						this.$http.get('/api/1/tag/list.json').then(function(response) {
-							self.tags = response.body;
-						});
-					},
-					loadProducts: function() {
-						var self = this;
-						var params = { 
-							rows: this.pagination.rows,
-							start: (this.pagination.current-1) * this.pagination.rows
-						};
-						if(this.selectedCompany) {
-							params.company = this.selectedCompany.id;
-						}
-						if(this.selectedCategories.length > 0) {
-							params.categories = this.selectedCategories.map(function(cat){ return cat.value }).join(",")
-						}
-						if(this.selectedTags.length > 0) {
-							params.tags = this.selectedTags.map(function(tag){ return tag.value }).join(",")
-						}
-						this.$http.get('/api/1/product/list.json', { params: params }).then(function(response) {
-							self.products = response.body;
-							self.pagination.total = Math.ceil(parseInt(response.body.total) / self.pagination.rows);
-							self.pagination.hasNext = self.pagination.current < self.pagination.total;
-                           	self.$nextTick(function(){
-								if(window.studioICERepaint) {
-									studioICERepaint();
-								}
-                                $('[data-toggle="popover"]').popover();
-							});
-						});
-					}
-				},
-				mounted: function() {
-					this.loadFilters();
-					this.loadProducts();
-					$(function () {
-					  $('[data-toggle="popover"]').popover()
-					})
-				}
-			});
-		</script>
-		<@studio.toolSupport/>
-	</body>
+<head>
+  <meta charset="utf-8">
+  <title>${model.title}</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <style>
+    [v-cloak] { display:none; }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div id="catalog" class="container" v-cloak>
+    <div class="row">
+      <div class="page-header">
+        <h1>Store Catalog</h1>
+      </div>
+    </div>
+    <div class="row">
+      <nav class="navbar navbar-default">
+        <ul class="nav navbar-nav">
+          <li class="dropdown" v-if="filters && filters.companies">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Company<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li v-for="company in filters.companies" v-bind:class="{ active: selection.company == company }">
+                <a href="#" v-on:click="selection.company = company">
+                  {{ company.name_s }}
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li class="dropdown" v-if="filters && filters.categories">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Category<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li v-for="category in filters.categories"><a href="#" v-on:click="selection.category = category">{{ category.value }}</a></li>
+            </ul>
+          </li>
+          <li class="dropdown" v-if="filters && filters.tags">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Tag<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li v-for="tag in filters.tags"><a href="#" v-on:click="selection.tag = tag">{{ tag.value }}</a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Show: {{ numberOfProducts }}<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#" v-on:click="numberOfProducts = 4; currentPage = 1">4</a></li>
+              <li><a href="#" v-on:click="numberOfProducts = 8; currentPage = 1">8</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="row" v-if="selection.company || selection.category || selection.tag">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <strong>Filtering By:&nbsp;</strong>
+                    <span class="label label-primary" style="margin-right:5px" v-if="selection.company">
+                        {{ selection.company.name_s }}
+                        &nbsp;
+                        <span class="glyphicon glyphicon-remove" v-on:click="selection.company = null"></span>
+                    </span>
+                    <span class="label label-primary" style="margin-right:5px" v-if="selection.category">
+                        {{ selection.category.value }}
+                        &nbsp;
+                        <span class="glyphicon glyphicon-remove" v-on:click="selection.category = null"></span>
+                    </span>
+                    <span class="label label-primary" style="margin-right:5px" v-if="selection.tag">
+                        {{ selection.tag.value }}
+                        &nbsp;
+                        <span class="glyphicon glyphicon-remove" v-on:click="selection.tag = null"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" v-if="selection.company">
+      <div class="col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="col-sm-2">
+              <img class="img-responsive img-circle center-block" v-bind:src="selection.company.logo_s"/>
+            </div>
+            <div class="col-sm-10 text-center">
+              <h2><a v-bind:href="selection.company.website_s">{{ selection.company.name_s }}</a></h2>
+              <div v-html="selection.company.description_html_raw"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" v-if="products && products.items">
+        <div v-for="(product, i) in products.items">
+            <div class="col-md-3">
+                <div class="panel panel-default" v-bind:data-studio-component-path="product.localId"
+                     v-bind:data-studio-component="product.localId" data-studio-ice=""
+                     v-bind:data-studio-ice-path="product.localId">
+                    <div class="panel-body">
+                        <img v-bind:src="product.image_s" class="img-responsive img-thumbnail center-block"
+                             data-toggle="popover" data-trigger="hover" v-bind:data-content="product.description_html_raw"
+                             data-html="true"/>
+                        <h4>{{ product.name_s }}<small> by {{ product.company.item[0].component.name_s }}<small></h4>
+                        <span class="badge pull-right">&#36;{{ product.price_d }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix" v-if="(i + 1) % 4 == 0"></div>
+        </div>
+    </div>
+    <div class="row" v-if="products.total == 0">
+        <div class="col-md-12 well text-center">
+            <h2>No products found</h2>
+        </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12" v-if="pagination.total > 1">
+        <nav aria-label="Page navigation" class="text-center">
+          <ul class="pagination">
+            <li v-bind:class="{ disabled: !pagination.hasPrev }">
+              <a href="#" aria-label="Previous" v-on:click="currentPage--">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            <li v-for="n in pagination.total" v-bind:class="{ active: n == currentPage }">
+                <a href="#" v-on:click="currentPage = n">{{ n }}</a>
+            </li>
+            <li v-bind:class="{ disabled: !pagination.hasNext }">
+              <a href="#" aria-label="Next" v-on:click="currentPage++">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://unpkg.com/vue@2.6.10/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/vue-resource@1.5.1/dist/vue-resource.min.js"></script>
+  <script src="https://unpkg.com/vue-async-computed@3.6.1/dist/vue-async-computed.js"></script>
+  <script src="/static-assets/js/catalog.js"></script>
+  <@studio.toolSupport/>
+</body>
 </html>
