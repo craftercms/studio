@@ -281,8 +281,8 @@ pipelines:
           path: /config/studio/form-control-config/rte/rte-setup-tinymce4.xml
           file: crafter/studio/upgrade/3.1.0.5/rte-setup-tinymce5.xml
         - type: addFileUpgrader
-          path: /config/studio/administration/samples/sample-form-control-rte-setupt-tinymce5.xml
-          file: crafter/studio/upgrade/3.1.0.5/sample-form-control-rte-setupt-tinymce5.xml
+          path: /config/studio/administration/samples/sample-form-control-rte-setup-tinymce5.xml
+          file: crafter/studio/upgrade/3.1.0.5/sample-form-control-rte-setup-tinymce5.xml
         - type: versionFileUpgrader
 
     # For older sites just add the version file (those will require a manual upgrade)
