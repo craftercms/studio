@@ -56,6 +56,17 @@ public class AuditServiceImpl implements AuditService {
         return auditServiceInternal.getAuditLogForSiteTotal(site, user, actions);
     }
 
+    @Override
+    public List<AuditLog> getAuditLog() {
+        return auditServiceInternal.getAuditLog();
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "audit_log")
+    public AuditLog getAuditLogEntry(long auditLogId) {
+        return auditServiceInternal.getAuditLogEntry(auditLogId);
+    }
+
     public AuditServiceInternal getAuditServiceInternal() {
         return auditServiceInternal;
     }

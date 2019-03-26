@@ -48,4 +48,27 @@ public interface AuditServiceInternal {
      * @throws SiteNotFoundException thrown if site does not exist
      */
     int getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException;
+
+    /**
+     * Get audit log filtered by parameters
+     *
+     * @return List of audit log entries
+     */
+    List<AuditLog> getAuditLog();
+
+    /**
+     * Get audit log entry by id
+     *
+     * @param auditLogId id of audit log entry to get
+     * @return
+     */
+    AuditLog getAuditLogEntry(long auditLogId);
+
+    /**
+     * Insert log audit entry
+     *
+     * @param auditLog Audit log to insert
+     * @return true if successful, otherwise false
+     */
+    boolean insertAuditLog(AuditLog auditLog);
 }

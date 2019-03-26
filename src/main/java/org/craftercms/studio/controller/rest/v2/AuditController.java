@@ -25,14 +25,18 @@ import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ACTIONS;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
@@ -56,15 +60,23 @@ public class AuditController {
         if (StringUtils.isNotEmpty(siteId) && !siteService.exists(siteId)) {
             throw new SiteNotFoundException("Site " + siteId + " not found.");
         }
-        int total = auditService.getAuditLogForSiteTotal(siteId, user, actions);
-        List<AuditLog> auditLog = auditService.getAuditLogForSite(siteId, offset, limit, user, actions);
+        List<AuditLog> auditLog = auditService.getAuditLog();
 
         ResponseBody responseBody = new ResponseBody();
-        PaginatedResultList<AuditLog> result = new PaginatedResultList<AuditLog>();
+        ResultList<AuditLog> result = new ResultList<AuditLog>();
         result.setEntities(RESULT_KEY_AUDIT_LOG, auditLog);
-        result.setTotal(total);
-        result.setOffset(offset);
-        result.setLimit(CollectionUtils.isEmpty(auditLog) ? 0 : auditLog.size());
+        result.setResponse(ApiResponse.OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping("/api/2/audit/{id}")
+    public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId) {
+        AuditLog auditLogEntry = auditService.getAuditLogEntry(auditLogId);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<AuditLog> result = new ResultOne<AuditLog>();
+        result.setEntity(RESULT_KEY_AUDIT_LOG, auditLogEntry);
         result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         return responseBody;

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 
 import java.util.HashMap;
@@ -65,6 +66,26 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
             params.put(ACTIONS, actions);
         }
         return auditDao.getAuditLogForSiteTotal(params);
+    }
+
+
+    @Override
+    public List<AuditLog> getAuditLog() {
+        Map<String, Object> params = new HashMap<String, Object>();
+        return auditDao.getAuditLog(params);
+    }
+
+    @Override
+    public AuditLog getAuditLogEntry(long auditLogId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(QueryParameterNames.ID, auditLogId);
+        return auditDao.getAuditLogEntry(params);
+    }
+
+    @Override
+    public boolean insertAuditLog(AuditLog auditLog) {
+        int result = auditDao.insertAuditLog(auditLog);
+        return result > 0;
     }
 
     public AuditDAO getAuditDao() {

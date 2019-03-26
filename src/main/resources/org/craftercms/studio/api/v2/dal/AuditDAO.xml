@@ -21,17 +21,19 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.AuditDAO">
     <resultMap id="AuditLogMap" type="org.craftercms.studio.api.v2.dal.AuditLog">
-        <id property="id" column="id"/>
-        <result property="modifiedDate" column="modified_date"/>
-        <result property="createdDate" column="creation_date"/>
-        <result property="summary" column="summary"/>
-        <result property="summaryFormat" column="summary_format"/>
-        <result property="contentId" column="content_id"/>
-        <result property="siteId" column="site_network"/>
-        <result property="type" column="activity_type"/>
-        <result property="contentType" column="content_type"/>
-        <result property="username" column="post_user_id"/>
-        <result property="source" column="source" />
+        <id property="id" column="id" />
+        <result property="organizationId" column="organization_id" />
+        <result property="siteId" column="site_id" />
+        <result property="operation" column="operation" />
+        <result property="operationTimestamp" column="operation_timestamp" />
+        <result property="origin" column="origin" />
+        <result property="primaryTargetId" column="primary_target_id" />
+        <result property="primaryTargetType" column="primary_target_type" />
+        <result property="primaryTargetSubtype" column="primary_target_subtype" />
+        <result property="primaryTargetValue" column="primary_target_value" />
+        <result property="actorId" column="actor_id" />
+        <result property="actorDetails" column="actor_details" />
+        <result property="clusterNodeId" column="cluster_node_id" />
     </resultMap>
 
     <select id="getAuditLogForSite" parameterType="java.util.Map" resultMap="AuditLogMap">
@@ -78,10 +80,10 @@
     </select>
 
     <select id="getAuditLog" parameterType="java.util.Map" resultMap="AuditLogMap">
-        SELECT * FROM audit
+        SELECT * FROM audit WHERE 1 = 1
     </select>
 
-    <insert id="insertAuditLog" parameterType="java.util.Map">
+    <insert id="insertAuditLog" parameterType="org.craftercms.studio.api.v2.dal.AuditLog">
         INSERT INTO audit (organization_id, site_id, operation, operation_timestamp, origin, primary_target_id,
         primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details)
         VALUES (#{organizationId}, #{siteId}, #{operation}, CURRENT_TIMESTAMP, #{origin}, #{primaryTargetId},
