@@ -20,7 +20,7 @@ import org.craftercms.blueprints.headless.AuthorSearchHelper
 def start = params.start?.toInteger() ?: 0
 def rows = params.rows?.toInteger() ?: 10
 
-def authors = new AuthorSearchHelper(elasticSearch, siteItemService)
+def authors = new AuthorSearchHelper(elasticsearch, siteItemService)
 						.from(start)
 						.to(rows)
 						.getItems()

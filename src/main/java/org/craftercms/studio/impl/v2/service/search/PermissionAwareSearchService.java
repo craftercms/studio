@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.search.elasticsearch.ElasticSearchWrapper;
-import org.craftercms.search.elasticsearch.impl.AbstractElasticSearchWrapper;
+import org.craftercms.search.elasticsearch.ElasticsearchWrapper;
+import org.craftercms.search.elasticsearch.impl.AbstractElasticsearchWrapper;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -32,10 +32,10 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Implementation of {@link ElasticSearchWrapper} specific for authoring indexes
+ * Implementation of {@link ElasticsearchWrapper} specific for authoring indexes
  * @author joseross
  */
-public class PermissionAwareSearchService extends AbstractElasticSearchWrapper {
+public class PermissionAwareSearchService extends AbstractElasticsearchWrapper {
 
     /**
      * The suffix to append to the site name
@@ -63,7 +63,7 @@ public class PermissionAwareSearchService extends AbstractElasticSearchWrapper {
      * @param allowedPaths the paths that should be included in the results
      * @param request the search request
      * @return the search response
-     * @throws IOException if there is an error connecting to ElasticSearch
+     * @throws IOException if there is an error connecting to Elasticsearch
      */
     public SearchResponse search(String siteId, List<String> allowedPaths, SearchRequest request) throws IOException {
         return search(siteId, allowedPaths, request, RequestOptions.DEFAULT);
@@ -76,7 +76,7 @@ public class PermissionAwareSearchService extends AbstractElasticSearchWrapper {
      * @param request the search request
      * @param options the request options
      * @return the search response
-     * @throws IOException if there is an error connecting to ElasticSearch
+     * @throws IOException if there is an error connecting to Elasticsearch
      */
     public SearchResponse search(String siteId, List<String> allowedPaths, SearchRequest request,
                                  RequestOptions options) throws IOException {

@@ -22,8 +22,8 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class AuthorSearchHelper extends SearchHelper {
 	
-	def AuthorSearchHelper(elasticSearch, siteItemService) {
-		super(elasticSearch, siteItemService)
+	def AuthorSearchHelper(elasticsearch, siteItemService) {
+		super(elasticsearch, siteItemService)
 		filter("content-type:\"/component/author\"")
 		sortBy("name_s", "desc")
 	}

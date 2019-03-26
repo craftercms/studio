@@ -24,7 +24,7 @@ import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 /**
- * Provides access to ElasticSearch for authoring indexes
+ * Provides access to Elasticsearch for authoring indexes
  * @author joseross
  */
 public interface SearchServiceInternal {
@@ -35,7 +35,7 @@ public interface SearchServiceInternal {
      * @param allowedPaths list of paths that should be included in the results
      * @param params the search parameters
      * @return the search results
-     * @throws ServiceLayerException if there is any error executing the search in ElasticSearch
+     * @throws ServiceLayerException if there is any error executing the search in Elasticsearch
      */
     SearchResult search(String siteId, List<String> allowedPaths, SearchParams params) throws ServiceLayerException;
 

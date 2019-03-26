@@ -20,7 +20,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="elasticSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
+    <bean id="elasticsearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
         <property name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
         <property name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
         <property name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
@@ -39,7 +39,7 @@
         <property name="snippetSize" value="#{studioConfiguration.getProperty('studio.search.snippets.size')}"/>
         <property name="numberOfSnippets" value="#{studioConfiguration.getProperty('studio.search.snippets.number')}"/>
         <property name="defaultType" value="#{studioConfiguration.getProperty('studio.search.default.type')}"/>
-        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="elasticsearchService" ref="elasticsearchService"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>

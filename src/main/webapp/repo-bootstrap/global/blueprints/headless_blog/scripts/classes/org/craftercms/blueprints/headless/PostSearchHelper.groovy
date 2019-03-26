@@ -22,8 +22,8 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class PostSearchHelper extends SearchHelper {
 	
-	def PostSearchHelper(elasticSearch, siteItemService) {
-		super(elasticSearch, siteItemService)
+	def PostSearchHelper(elasticsearch, siteItemService) {
+		super(elasticsearch, siteItemService)
 		filter("content-type:\"/component/post\"")
 		sortBy("createdDate_dt", "desc")
 	}
