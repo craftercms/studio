@@ -515,7 +515,7 @@ studio.cors.maxage: -1
 ################################################################
 ##                           Search                           ##
 ################################################################
-# URLs to connect to ElasticSearch
+# URLs to connect to Elasticsearch
 studio.search.urls: http://localhost:9201
 # Suffix added to the name for authoring indexes
 studio.search.index.suffix: -authoring

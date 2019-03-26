@@ -32,11 +32,11 @@ class SearchHelper {
   static final int DEFAULT_START = 0
   static final int DEFAULT_ROWS = 10
 
-  def elasticSearch
+  def elasticsearch
   UrlTransformationService urlTransformationService
 
-  SearchHelper(elasticSearch, UrlTransformationService urlTransformationService) {
-    this.elasticSearch = elasticSearch
+  SearchHelper(elasticsearch, UrlTransformationService urlTransformationService) {
+    this.elasticsearch = elasticsearch
     this.urlTransformationService = urlTransformationService
   }
 
@@ -66,7 +66,7 @@ class SearchHelper {
       .size(rows)
       .highlighter(highlighter)
     
-    def result = elasticSearch.search(new SearchRequest().source(builder))
+    def result = elasticsearch.search(new SearchRequest().source(builder))
 
     if (result) {
       return processUserSearchResults(result)
@@ -101,7 +101,7 @@ class SearchHelper {
       .size(rows)
       .sort(new FieldSortBuilder("date_dt").order(SortOrder.DESC))
     
-    def result = elasticSearch.search(new SearchRequest().source(builder))
+    def result = elasticsearch.search(new SearchRequest().source(builder))
 
     if (result) {
       return processArticleListingResults(result)
