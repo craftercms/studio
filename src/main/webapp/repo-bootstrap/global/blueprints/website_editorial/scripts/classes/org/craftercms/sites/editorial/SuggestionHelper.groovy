@@ -26,13 +26,13 @@ class SuggestionHelper {
 	static final String DEFAULT_CONTENT_TYPE_QUERY = "content-type:\"/page/article\""
 	static final String DEFAULT_SEARCH_FIELD = "subject"
 	
-	def elasticSearch
+	def elasticsearch
 	
 	String contentTypeQuery = DEFAULT_CONTENT_TYPE_QUERY
 	String searchField = DEFAULT_SEARCH_FIELD
 	
-	SuggestionHelper(elasticSearch) {
-		this.elasticSearch = elasticSearch
+	SuggestionHelper(elasticsearch) {
+		this.elasticsearch = elasticsearch
 	}
 	
 	def getSuggestions(String term) {
@@ -40,7 +40,7 @@ class SuggestionHelper {
 		def builder = new SearchSourceBuilder()
 			.query(QueryBuilders.queryStringQuery(queryStr))
 
-		def result = elasticSearch.search(new SearchRequest().source(builder))
+		def result = elasticsearch.search(new SearchRequest().source(builder))
 
 		return process(result)
 	}

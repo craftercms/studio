@@ -17,7 +17,7 @@
 
 import org.craftercms.blueprints.headless.TaxonomySearchHelper
 
-def categories = new TaxonomySearchHelper("categories", elasticSearch, siteItemService)
+def categories = new TaxonomySearchHelper("categories", elasticsearch, siteItemService)
 						.getItems()
 
 return categories

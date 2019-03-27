@@ -28,15 +28,15 @@ import org.elasticsearch.search.sort.SortOrder
 @Slf4j
 class SearchHelper {
 	
-	protected def elasticSearch
+	protected def elasticsearch
 	protected def siteItemService
 	protected def queryStr = "*:*"
 	protected def builder
 	protected def filters = []
 	protected def sort
 	
-	def SearchHelper(elasticSearch, siteItemService) {
-		this.elasticSearch = elasticSearch
+	def SearchHelper(elasticsearch, siteItemService) {
+		this.elasticsearch = elasticsearch
 		this.siteItemService = siteItemService
 		builder = new SearchSourceBuilder()
 	}
@@ -79,7 +79,7 @@ class SearchHelper {
 		}
 		builder.query(queryBuilder)
 		log.info("Running query: {}", builder)
-		def results = elasticSearch.search(new SearchRequest().source(builder))
+		def results = elasticsearch.search(new SearchRequest().source(builder))
 		processResults(results)
 	}
 	

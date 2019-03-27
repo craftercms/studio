@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.21'
+  version: '2.0.22'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1215,7 +1215,13 @@ paths:
       parameters:
         - name: siteId
           in: query
-          description: Site ID
+          description: Site ID - optional for super admin user, otherwise required
+          required: false
+          schema:
+            type: string
+        - name: siteName
+          in: query
+          description: Site name - optional for super admin user, otherwise required
           required: false
           schema:
             type: string
@@ -1253,6 +1259,48 @@ paths:
           required: false
           schema:
             type: boolean
+        - name: dateFrom
+          in: query
+          description: Lower boundary in date range query 
+          required: false
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          description: Upper boundary in date range query 
+          required: false
+          schema:
+            type: string
+        - name: target
+          in: query
+          description: Regular espression to filter target values
+          required: false
+          schema:
+            type: string
+        - name: origin
+          in: query
+          description: Origin filter for audit log. Possible values `API` and `GIT`
+          required: false
+          schema:
+            type: string
+        - name: clusterNodeId
+          in: query
+          description: Cluster node id filter for audit log
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort result set by specified field. Possible values `date`.
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: Order in sorted result. Posible values `ASC` and `DESC`
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1832,6 +1880,10 @@ components:
           type: integer
           format: int64
           description: Site ID
+        siteName:
+          type: string
+          format: string
+          description: Site name
         operation:
           type: string
           description: Operation that was executed
@@ -1859,6 +1911,9 @@ components:
         actorDetails:
           type: string
           description: Details of the actor which invoked 
+        clusterNodeId:
+          type: string
+          description: Cluster node Id
         parameters:
           type: object
           description: Site to which audit log entry belongs to

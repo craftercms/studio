@@ -19,6 +19,6 @@ import org.craftercms.sites.editorial.SuggestionHelper
 
 def term = params.term
 
-def helper = new SuggestionHelper(elasticSearch)
+def helper = new SuggestionHelper(elasticsearch)
 
 return helper.getSuggestions(term)

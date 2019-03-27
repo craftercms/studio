@@ -30,3 +30,5 @@ derby.log
 
 # VScode
 .vscode
+
+.factorypath
