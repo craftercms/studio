@@ -55,7 +55,6 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
-        <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="eventService" ref="studioEventService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
@@ -64,6 +63,8 @@
         <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
         <property name="contentTypeService" ref="cstudioContentTypeService" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="userService" ref="userService" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -100,7 +101,6 @@
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dependencyService" ref="studioDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="activityService" ref="cstudioActivityService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
@@ -118,6 +118,7 @@
         <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="upgradeManager" ref="upgradeManager"/>
         <property name="sitesService" ref="sitesService" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -145,12 +146,11 @@
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="activityService" ref="cstudioActivityService" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
          <property name="contentService" ref="cstudioContentService"/>
-         <property name="activityService" ref="cstudioActivityService" />
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
          <property name="dependencyService" ref="studioDependencyService" />
          <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
@@ -194,16 +194,6 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
-    <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
-          parent="cstudioRegistrableService">
-        <property name="contentService" ref="cstudioContentService" />
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
-        <property name="auditFeedMapper" ref="auditFeedMapper" />
-    </bean>
-
     <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
         <property name="dependencyService" ref="studioDependencyService" />
     </bean>
@@ -228,11 +218,11 @@
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
         <property name="userDetailsManager" ref="studioUserDetailsManager" />
         <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory"/>
-        <property name="activityService" ref="cstudioActivityService" />
         <property name="groupService" ref="groupService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="authenticationChain" ref="crafter.studioAuthenticationChain" />
         <property name="configurationService" ref="configurationService" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -306,9 +296,9 @@
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="organizationServiceInternal" ref="organizationServiceInternal" />
-        <property name="activityService" ref="cstudioActivityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="userService" ref="userService" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="groupServiceInternal"
@@ -326,8 +316,8 @@
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="activityService" ref="cstudioActivityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="userServiceInternal"
@@ -387,6 +377,7 @@
     <bean id="auditServiceInternal"
           class="org.craftercms.studio.impl.v2.service.audit.internal.AuditServiceInternalImpl">
         <property name="auditDao" ref="auditDao" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -465,9 +456,9 @@
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="eventService" ref="studioEventService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="activityService" ref="cstudioActivityService" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="taskExecutor" ref="studioPublisherTaskExecutor" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="studioNodeSyncTaskExecutor"
@@ -808,7 +799,6 @@
     </bean>
 
     <bean id="cstudioPostActivityProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.PostActivityProcessor">
-        <property name="activityService" ref="cstudioActivityService"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>

@@ -83,7 +83,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -108,6 +107,8 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -145,6 +146,18 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_MEMBERS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 /**
  * Note: consider renaming
@@ -165,7 +178,6 @@ public class SiteServiceImpl implements SiteService {
     protected ObjectStateService objectStateService;
     protected DependencyService dependencyService;
     protected SecurityService securityService;
-    protected ActivityService activityService;
     protected DeploymentService deploymentService;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -181,6 +193,7 @@ public class SiteServiceImpl implements SiteService {
     protected UpgradeManager upgradeManager;
     protected StudioConfiguration studioConfiguration;
     protected SitesService sitesService;
+    protected AuditServiceInternal auditServiceInternal;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -193,9 +206,9 @@ public class SiteServiceImpl implements SiteService {
                                       @ValidateSecurePathParam(name = "path") String path, InputStream content)
             throws ServiceLayerException {
         // Write site configuration
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+        String operation = OPERATION_UPDATE;
         if (!contentRepository.contentExists(site, path)) {
-            activityType = ActivityService.ActivityType.CREATED;
+            operation = OPERATION_CREATE;
         }
         String commitId = contentRepository.writeContent(site, path, content);
         contentRepository.reloadRepository(site);
@@ -211,7 +224,13 @@ public class SiteServiceImpl implements SiteService {
         } else {
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONFIGURATION);
         }
-        activityService.postActivity(site, user, path, activityType, ActivityService.ActivitySource.API, extraInfo);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(operation);
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(site + ":" + path);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+        auditLog.setPrimaryTargetValue(path);
+        auditServiceInternal.insertAuditLog(auditLog);
         objectStateService.transition(site, path, TransitionEvent.SAVE);
         if (!objectMetadataManager.metadataExist(site, path)) {
             objectMetadataManager.insertNewObjectMetadata(site, path);
@@ -516,12 +535,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void insertCreateSiteAuditLog(String siteId) {
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATE_SITE;
         String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
-        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
-                siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
+	    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteId);
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteName, String siteId,
@@ -1029,7 +1050,6 @@ public class SiteServiceImpl implements SiteService {
 		    // delete database records
 		    logger.debug("Deleting database records");
 			siteFeedMapper.deleteSite(siteId);
-			activityService.deleteActivitiesForSite(siteId);
 			dependencyService.deleteSiteDependencies(siteId);
 	        deploymentService.deleteDeploymentDataForSite(siteId);
 	        objectStateService.deleteObjectStatesForSite(siteId);
@@ -1047,12 +1067,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void insertDeleteSiteAuditLog(String siteId) {
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETE_SITE;
         String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
-        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
-                siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_DELETE);
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(user);
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     private boolean destroySitePreviewContext(String site) {
@@ -1295,9 +1317,15 @@ public class SiteServiceImpl implements SiteService {
                         }
                         if (generateAuditLog) {
                             logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                    ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY,
-                                    activityInfo);
+                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                            auditLog.setOperation(OPERATION_REMOVE_MEMBERS);
+                            auditLog.setActorId(repoOperation.getAuthor());
+                            auditLog.setActorDetails(repoOperation.getAuthor());
+                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditLog.setOrigin(ORIGIN_GIT);
+                            auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
 
@@ -1326,9 +1354,15 @@ public class SiteServiceImpl implements SiteService {
                         }
                         if (generateAuditLog) {
                             logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                    ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
-                                    activityInfo);
+                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                            auditLog.setOperation(OPERATION_UPDATE);
+                            auditLog.setActorId(repoOperation.getAuthor());
+                            auditLog.setActorDetails(repoOperation.getAuthor());
+                            auditLog.setOrigin(ORIGIN_GIT);
+                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
 
@@ -1350,9 +1384,15 @@ public class SiteServiceImpl implements SiteService {
                         }
                         if (generateAuditLog) {
                             logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                    ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY,
-                                    activityInfo);
+                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                            auditLog.setOperation(OPERATION_DELETE);
+                            auditLog.setOrigin(ORIGIN_GIT);
+                            auditLog.setActorId(repoOperation.getAuthor());
+                            auditLog.setActorDetails(repoOperation.getAuthor());
+                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
 
@@ -1428,9 +1468,15 @@ public class SiteServiceImpl implements SiteService {
                         if (generateAuditLog) {
                             logger.debug("Insert audit log for site: " + site + " path: " +
                                     repoOperation.getMoveToPath());
-                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
-                                    ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
-                                    activityInfo);
+                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                            auditLog.setOperation(OPERATION_MOVE);
+                            auditLog.setActorId(repoOperation.getAuthor());
+                            auditLog.setActorDetails(repoOperation.getAuthor());
+                            auditLog.setOrigin(ORIGIN_GIT);
+                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getMoveToPath());
+                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLog.setPrimaryTargetValue(repoOperation.getMoveToPath());
+                            auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
 
@@ -1651,12 +1697,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void insertAddRemoteAuditLog(String siteId, String remoteName) {
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_REMOTE;
         String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
-        activityService.postActivity(siteId, user,
-                remoteName , activityType, ActivityService.ActivitySource.API, extraInfo);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_ADD_REMOTE);
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(remoteName);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
+        auditLog.setPrimaryTargetValue(remoteName);
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
@@ -1670,12 +1718,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void insertRemoveRemoteAuditLog(String siteId, String remoteName) {
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_REMOTE;
         String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
-        activityService.postActivity(siteId, user,
-                remoteName , activityType, ActivityService.ActivitySource.API, extraInfo);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_REMOVE_REMOTE);
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(remoteName);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
+        auditLog.setPrimaryTargetValue(remoteName);
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
@@ -1784,13 +1834,6 @@ public class SiteServiceImpl implements SiteService {
 	}
 	public void setSecurityService(SecurityService securityService) {
 	    this.securityService = securityService;
-	}
-
-	public ActivityService getActivityService() {
-	    return activityService;
-	}
-	public void setActivityService(ActivityService activityService) {
-	    this.activityService = activityService;
 	}
 
 	public DeploymentService getDeploymentService() {
@@ -1904,5 +1947,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setSitesService(SitesService sitesService) {
         this.sitesService = sitesService;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

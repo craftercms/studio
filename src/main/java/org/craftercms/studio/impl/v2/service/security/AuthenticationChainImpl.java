@@ -25,10 +25,11 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.AuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -43,6 +44,9 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 public class AuthenticationChainImpl implements AuthenticationChain {
 
@@ -51,10 +55,10 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     private List<AuthenticationProvider> authentitcationChain;
 
     private UserServiceInternal userServiceInternal;
-    private ActivityService activityService;
     private StudioConfiguration studioConfiguration;
     private UserDAO userDao;
     private GroupDAO groupDao;
+    private AuditServiceInternal auditServiceInternal;
 
     public void init() {
         List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
@@ -87,20 +91,24 @@ public class AuthenticationChainImpl implements AuthenticationChain {
         }
         String ipAddress = request.getRemoteAddr();
         if (authenticated) {
-
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN;
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
-                    ActivityService.ActivitySource.API, extraInfo);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_LOGIN);
+            auditLog.setActorId(username);
+            auditLog.setPrimaryTargetId(username);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(username);
+            auditServiceInternal.insertAuditLog(auditLog);
 
             logger.info("User " + username + " logged in from IP: " + ipAddress);
         } else {
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN_FAILED;
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), StringUtils.isEmpty(username) ? StringUtils.EMPTY : username,
-                    ipAddress, activityType, ActivityService.ActivitySource.API, extraInfo);
+
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_LOGIN_FAILED);
+            auditLog.setActorId(username);
+            auditLog.setPrimaryTargetId(StringUtils.isEmpty(username) ? StringUtils.EMPTY : username);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(username);
+            auditServiceInternal.insertAuditLog(auditLog);
 
             logger.info("Failed to authenticate user " + username + " logging in from IP: " + ipAddress);
 
@@ -122,14 +130,6 @@ public class AuthenticationChainImpl implements AuthenticationChain {
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public ActivityService getActivityService() {
-        return activityService;
-    }
-
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
     }
 
     public StudioConfiguration getStudioConfiguration() {
@@ -154,5 +154,13 @@ public class AuthenticationChainImpl implements AuthenticationChain {
 
     public void setGroupDao(GroupDAO groupDao) {
         this.groupDao = groupDao;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

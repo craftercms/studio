@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -28,10 +30,11 @@ import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsExcepti
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -45,10 +48,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.KEY_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_MEMBERS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_MEMBERS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_GROUP;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 public class GroupServiceImpl implements GroupService {
 
@@ -57,9 +70,9 @@ public class GroupServiceImpl implements GroupService {
     private OrganizationServiceInternal organizationServiceInternal;
     private UserServiceInternal userServiceInternal;
     private GeneralLockService generalLockService;
-    private ActivityService activityService;
     private StudioConfiguration studioConfiguration;
     private UserService userService;
+    private AuditServiceInternal auditServiceInternal;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
@@ -88,13 +101,14 @@ public class GroupServiceImpl implements GroupService {
     public Group createGroup(long orgId, String groupName, String groupDescription)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group toRet = groupServiceInternal.createGroup(orgId, groupName, groupDescription);
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_GROUP);
-        activityService.postActivity(
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                userService.getCurrentUser().getUsername(), groupName,
-                activityType, ActivityService.ActivitySource.API, extraInfo);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(groupName);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
+        auditLog.setPrimaryTargetValue(groupName);
+        auditServiceInternal.insertAuditLog(auditLog);
+
         return toRet;
     }
 
@@ -103,13 +117,13 @@ public class GroupServiceImpl implements GroupService {
     public Group updateGroup(long orgId, Group group)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
         Group toRet = groupServiceInternal.updateGroup(orgId, group);
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_GROUP);
-        activityService.postActivity(
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                userService.getCurrentUser().getUsername(), group.getGroupName(),
-                activityType, ActivityService.ActivitySource.API, extraInfo);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_UPDATE);
+        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(group.getGroupName());
+        auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
+        auditLog.setPrimaryTargetValue(group.getGroupName());
+        auditServiceInternal.insertAuditLog(auditLog);
         return toRet;
     }
 
@@ -131,14 +145,15 @@ public class GroupServiceImpl implements GroupService {
         }
         List<Group> groups = groupServiceInternal.getGroups(groupIds);
         groupServiceInternal.deleteGroup(groupIds);
+        // TODO: Make it bulk
         for (Group g : groups) {
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETED;
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_GROUP);
-            activityService.postActivity(
-                    studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                    userService.getCurrentUser().getUsername(), g.getGroupName(),
-                    activityType, ActivityService.ActivitySource.API, extraInfo);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_DELETE);
+            auditLog.setActorId(userService.getCurrentUser().getUsername());
+            auditLog.setPrimaryTargetId(g.getGroupName());
+            auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
+            auditLog.setPrimaryTargetValue(g.getGroupName());
+            auditServiceInternal.insertAuditLog(auditLog);
         }
     }
 
@@ -166,14 +181,15 @@ public class GroupServiceImpl implements GroupService {
     public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
         List<User> users = groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
+        // TODO: Make it bulk
         for (User user : users) {
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(
-                    studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                    userService.getCurrentUser().getUsername(), user.getUsername(),
-                    activityType, ActivityService.ActivitySource.API, extraInfo);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_ADD_MEMBERS);
+            auditLog.setActorId(userService.getCurrentUser().getUsername());
+            auditLog.setPrimaryTargetId(user.getUsername());
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(user.getUsername());
+            auditServiceInternal.insertAuditLog(auditLog);
         }
         return users;
     }
@@ -212,14 +228,15 @@ public class GroupServiceImpl implements GroupService {
 
             groupServiceInternal.removeGroupMembers(groupId, userIds, usernames);
 
+            // TODO: Make it bulk
             for (User user : users) {
-                ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_USER_FROM_GROUP;
-                Map<String, String> extraInfo = new HashMap<String, String>();
-                extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity(
-                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                        userService.getCurrentUser().getUsername(), user.getUsername(),
-                        activityType, ActivityService.ActivitySource.API, extraInfo);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(OPERATION_REMOVE_MEMBERS);
+                auditLog.setActorId(userService.getCurrentUser().getUsername());
+                auditLog.setPrimaryTargetId(group.getGroupName() + ":" + user.getUsername());
+                auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+                auditLog.setPrimaryTargetValue(user.getUsername());
+                auditServiceInternal.insertAuditLog(auditLog);
             }
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
@@ -266,14 +283,6 @@ public class GroupServiceImpl implements GroupService {
         this.generalLockService = generalLockService;
     }
 
-    public ActivityService getActivityService() {
-        return activityService;
-    }
-
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
-    }
-
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -288,5 +297,13 @@ public class GroupServiceImpl implements GroupService {
 
     public void setUserService(UserService userService) {
         this.userService = userService;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

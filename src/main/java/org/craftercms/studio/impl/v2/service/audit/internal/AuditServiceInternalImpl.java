@@ -18,8 +18,11 @@
 package org.craftercms.studio.impl.v2.service.audit.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.QueryParameterNames;
@@ -29,6 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIONS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
@@ -38,6 +44,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     private AuditDAO auditDao;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
@@ -88,11 +95,34 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         return result > 0;
     }
 
+    @Override
+    public AuditLog createAuditLogEntry() {
+        AuditLog auditLog = new AuditLog();
+        String clusterNodeId = StringUtils.EMPTY;
+        HierarchicalConfiguration<ImmutableNode> clusterNodeData =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        if (clusterNodeData != null && !clusterNodeData.isEmpty()) {
+            clusterNodeId = clusterNodeData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+        }
+        auditLog.setOrganizationId(1);
+        auditLog.setOrigin(ORIGIN_API);
+        auditLog.setClusterNodeId(clusterNodeId);
+        return auditLog;
+    }
+
     public AuditDAO getAuditDao() {
         return auditDao;
     }
 
     public void setAuditDao(AuditDAO auditDao) {
         this.auditDao = auditDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

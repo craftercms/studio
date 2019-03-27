@@ -71,4 +71,13 @@ public interface AuditServiceInternal {
      * @return true if successful, otherwise false
      */
     boolean insertAuditLog(AuditLog auditLog);
+
+    /**
+     * Create Audit log entry and populate common properties
+     *
+     * @return Audit log entry
+     */
+    AuditLog createAuditLogEntry();
+
+
 }

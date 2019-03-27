@@ -23,12 +23,12 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 import org.springframework.core.task.TaskExecutor;
@@ -52,9 +52,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected GeneralLockService generalLockService;
     protected EventService eventService;
     protected StudioConfiguration studioConfiguration;
-    protected ActivityService activityService;
     protected ServicesConfig servicesConfig;
     protected TaskExecutor taskExecutor;
+    protected AuditServiceInternal auditServiceInternal;
 
     public static synchronized void signalToStop(boolean toStop) {
         stopSignaled = toStop;
@@ -92,7 +92,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                 for (String site : siteNames) {
 
                     PublisherTask publisherTask = new PublisherTask(site, studioConfiguration, siteService,
-                            publishingManager, servicesConfig,contentRepository, activityService, notificationService);
+                            publishingManager, servicesConfig,contentRepository, notificationService, auditServiceInternal);
                     taskExecutor.execute(publisherTask);
                 }
             }
@@ -160,14 +160,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public ActivityService getActivityService() {
-        return activityService;
-    }
-
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
-    }
-
     public ServicesConfig getServicesConfig() {
         return servicesConfig;
     }
@@ -182,5 +174,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     public void setTaskExecutor(TaskExecutor taskExecutor) {
         this.taskExecutor = taskExecutor;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

@@ -58,7 +58,6 @@ import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -66,8 +65,10 @@ import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -125,6 +126,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FOR
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGOUT;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 /**
  * @author Dejan Brkic
@@ -134,7 +137,6 @@ public class SecurityServiceImpl implements SecurityService {
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
     protected ContentTypeService contentTypeService;
-    protected ActivityService activityService;
     protected ContentService contentService;
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
@@ -146,6 +148,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected UserServiceInternal userServiceInternal;
     protected AuthenticationChain authenticationChain;
     protected ConfigurationService configurationService;
+    protected AuditServiceInternal auditServiceInternal;
 
     @Override
     @ValidateParams
@@ -680,11 +683,13 @@ public class SecurityServiceImpl implements SecurityService {
             httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
             httpSession.invalidate();
 
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGOUT;
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
-                    ActivityService.ActivitySource.API, extraInfo);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_LOGOUT);
+            auditLog.setActorId(username);
+            auditLog.setPrimaryTargetId(username);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(username);
+            auditServiceInternal.insertAuditLog(auditLog);
 
             logger.info("User " + username + " logged out from IP: " + ipAddress);
         }
@@ -1123,14 +1128,6 @@ public class SecurityServiceImpl implements SecurityService {
         this.freeMarkerConfig = freeMarkerConfig;
     }
 
-    public ActivityService getActivityService() {
-        return activityService;
-    }
-
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
-    }
-
     public GroupService getGroupService() {
         return groupService;
     }
@@ -1161,5 +1158,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

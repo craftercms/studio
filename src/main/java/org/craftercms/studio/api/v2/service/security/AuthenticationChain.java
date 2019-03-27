@@ -17,10 +17,10 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,11 +32,11 @@ public interface AuthenticationChain {
 
     UserServiceInternal getUserServiceInternal();
 
-    ActivityService getActivityService();
-
     StudioConfiguration getStudioConfiguration();
 
     UserDAO getUserDao();
 
     GroupDAO getGroupDao();
+
+    AuditServiceInternal getAuditServiceInternal();
 }

@@ -17,7 +17,6 @@
  */
 package scripts.api.impl.activity
 
-import org.craftercms.studio.api.v1.service.activity.ActivityService.ActivityType;
 
 /**
  * @author Dejan Brkic

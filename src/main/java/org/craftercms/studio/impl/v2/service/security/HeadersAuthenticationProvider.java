@@ -27,13 +27,14 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserGroup;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.BaseAuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -48,7 +49,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_MEMBERS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
@@ -89,7 +93,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
 
                     try {
                         UserServiceInternal userServiceInternal = authenticationChain.getUserServiceInternal();
-                        ActivityService activityService = authenticationChain.getActivityService();
+                        AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
                         StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
                         if (userServiceInternal.userExists(-1, usernameHeaderValue)) {
                             User user = userServiceInternal.getUserByIdOrUsername(-1, usernameHeaderValue);
@@ -100,14 +104,13 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 logger.debug("If user already exists in studio DB, update details.");
                                 try {
                                     userServiceInternal.updateUser(user);
-
-                                    ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
-                                    Map<String, String> extraInfo = new HashMap<String, String>();
-                                    extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                    activityService.postActivity(
-                                            studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                                            usernameHeader, usernameHeader,
-                                            activityType, ActivityService.ActivitySource.API, extraInfo);
+                                    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                                    auditLog.setOperation(OPERATION_UPDATE);
+                                    auditLog.setActorId(usernameHeaderValue);
+                                    auditLog.setPrimaryTargetId(usernameHeaderValue);
+                                    auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+                                    auditLog.setPrimaryTargetValue(user.getUsername());
+                                    auditServiceInternal.insertAuditLog(auditLog);
 
                                 } catch (Exception e) {
                                     logger.debug("Error updating user " + usernameHeaderValue +
@@ -130,13 +133,13 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 user.setExternallyManaged(true);
                                 user.setEnabled(true);
                                 userServiceInternal.createUser(user);
-                                ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-                                Map<String, String> extraInfo = new HashMap<String, String>();
-                                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                activityService.postActivity(
-                                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                                        usernameHeaderValue, usernameHeaderValue,
-                                        activityType, ActivityService.ActivitySource.API, extraInfo);
+                                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                                auditLog.setOperation(OPERATION_CREATE);
+                                auditLog.setActorId(usernameHeaderValue);
+                                auditLog.setPrimaryTargetId(usernameHeaderValue);
+                                auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+                                auditLog.setPrimaryTargetValue(user.getUsername());
+                                auditServiceInternal.insertAuditLog(auditLog);
                             } catch (UserAlreadyExistsException | ServiceLayerException e) {
                                 logger.debug("Error adding user " + usernameHeaderValue + " from authentication " +
                                              "headers", e);
@@ -193,7 +196,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
     protected boolean upsertUserGroup(String groupName, String username, AuthenticationChain authenticationChain) {
         GroupDAO groupDao = authenticationChain.getGroupDao();
         UserDAO userDao = authenticationChain.getUserDao();
-        ActivityService activityService = authenticationChain.getActivityService();
+        AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
 
         try {
             Map<String, Object> params = new HashMap<>();
@@ -223,12 +226,13 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
 
             try {
                 groupDao.addGroupMembers(params);
-
-                ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
-                Map<String, String> extraInfo = new HashMap<>();
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity("", "LDAP", username + " > " + groupName , activityType,
-                        ActivityService.ActivitySource.API, extraInfo);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(OPERATION_ADD_MEMBERS);
+                auditLog.setActorId(username);
+                auditLog.setPrimaryTargetId(group.getGroupName() + ":" + user.getUsername());
+                auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+                auditLog.setPrimaryTargetValue(user.getUsername());
+                auditServiceInternal.insertAuditLog(auditLog);
             } catch (Exception e) {
                 logger.debug("Unknown database error", e);
             }

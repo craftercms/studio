@@ -24,6 +24,7 @@ import java.util.Map;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -262,7 +263,7 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-        InvalidRemoteUrlException;
+            InvalidRemoteUrlException, AuthenticationException;
 
     /**
      * Pull from remote repository
@@ -272,5 +273,5 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-        InvalidRemoteUrlException;
+            InvalidRemoteUrlException, AuthenticationException;
 }

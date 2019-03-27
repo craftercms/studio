@@ -9,10 +9,10 @@ CREATE TABLE IF NOT EXISTS `new_audit` (
   `origin`                    VARCHAR(16)   NOT NULL,
   `primary_target_id`         VARCHAR(256)  NOT NULL,
   `primary_target_type`       VARCHAR(32)   NOT NULL,
-  `primary_target_subtype`    VARCHAR(32)   NOT NULL,
+  `primary_target_subtype`    VARCHAR(32)   NULL,
   `primary_target_value`      VARCHAR(512)  NOT NULL,
   `actor_id`                  VARCHAR(32)   NOT NULL,
-  `actor_details`             VARCHAR(64)   NOT NULL,
+  `actor_details`             VARCHAR(64)   NULL,
   `cluster_node_id`           VARCHAR(255)  NULL,
   PRIMARY KEY (`id`),
   KEY `audit_actor_idx` (`actor_id`),
@@ -86,7 +86,7 @@ CREATE PROCEDURE migrate_audit ()
         WHEN v_activity_type = 'ADD_REMOTE' THEN 'ADD_REMOTE'
         WHEN v_activity_type = 'REMOVE_REMOTE' THEN 'REMOVE_REMOTE'
         WHEN v_activity_type = 'PUSH_TO_REMOTE' THEN 'PUSH_TO_REMOTE'
-        WHEN v_activity_type = 'PULL_FROM_REMOTE' THEN 'PULL_TO_REMOTE'
+        WHEN v_activity_type = 'PULL_FROM_REMOTE' THEN 'PULL_FROM_REMOTE'
         WHEN v_activity_type = 'REQUEST_PUBLISH' THEN 'REQUEST_PUBLISH'
         WHEN v_activity_type = 'APPROVE' THEN 'APPROVE'
         WHEN v_activity_type = 'APPROVE_SCHEDULED' THEN 'APPROVE_SCHEDULED'

@@ -21,8 +21,9 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.to.ResultTO;
+
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 
 public class DmWorkflowProcessor extends BaseContentProcessor {
 
@@ -53,12 +54,6 @@ public class DmWorkflowProcessor extends BaseContentProcessor {
 
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
         String type = (String) content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
-        boolean edit = (ActivityService.ActivityType.CREATED.toString().equals(type)) ? false : true;
-        /*if (edit) {
-              String path = (String) content.getProperty(WcmConstants.KEY_PATH);
-              String site = (String) content.getProperty(WcmConstants.KEY_SITE);
-              _wcmWorkflowService.updateWorkflowSandboxes(site, path);
-          }*/
-
+        boolean edit = (OPERATION_CREATE.equals(type)) ? false : true;
     }
 }

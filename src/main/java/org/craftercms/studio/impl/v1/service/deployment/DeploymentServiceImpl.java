@@ -42,7 +42,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -65,6 +64,7 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -106,7 +106,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
-    protected ActivityService activityService;
     protected DependencyService dependencyService;
     protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
@@ -579,22 +578,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         ContentItemTO item = null;
         if (!contentService.contentExists(site, path)) {
             item = contentService.createDummyDmContentItemForDeletedNode(site, path);
-            AuditFeed activity = activityService.getDeletedActivity(site, path);
-            if (activity != null) {
-                JSONObject summaryObject = JSONObject.fromObject(activity.getSummary());
-                if (summaryObject.containsKey(StudioConstants.CONTENT_TYPE)) {
-                    String contentType = (String)summaryObject.get(StudioConstants.CONTENT_TYPE);
-                    item.contentType = contentType;
-                }
-                if(summaryObject.containsKey(StudioConstants.INTERNAL_NAME)) {
-                    String internalName = (String)summaryObject.get(StudioConstants.INTERNAL_NAME);
-                    item.internalName = internalName;
-                }
-                if(summaryObject.containsKey(StudioConstants.BROWSER_URI)) {
-                    String browserUri = (String)summaryObject.get(StudioConstants.BROWSER_URI);
-                    item.browserUri = browserUri;
-                }
-            }
             item.setLockOwner("");
         } else {
             item = contentService.getContentItem(site, path, 0);
@@ -1025,10 +1008,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.contentService = contentService;
     }
 
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
-    }
-
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
@@ -1129,4 +1108,5 @@ public class DeploymentServiceImpl implements DeploymentService {
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
     }
+
 }

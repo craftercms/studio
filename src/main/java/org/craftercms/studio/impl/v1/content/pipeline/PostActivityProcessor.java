@@ -19,11 +19,12 @@ package org.craftercms.studio.impl.v1.content.pipeline;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -32,6 +33,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_MEMBERS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 public class PostActivityProcessor extends BaseContentProcessor {
 
@@ -58,8 +64,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
         if (result.getCommitId() != null) {
             String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
             String user = content.getProperty(DmConstants.KEY_USER);
-            ActivityService.ActivityType activityType = (ActivityService.ActivityType.CREATED.toString().equals(type))
-                    ? ActivityService.ActivityType.CREATED : ActivityService.ActivityType.UPDATED;
+            String activityType = OPERATION_CREATE.equals(type) ? OPERATION_CREATE : OPERATION_UPDATE;
             String site = (String) content.getProperty(DmConstants.KEY_SITE);
             String folderPath = (String) content.getProperty(DmConstants.KEY_FOLDER_PATH);
             String fileName = (String) content.getProperty(DmConstants.KEY_FILE_NAME);
@@ -73,17 +78,20 @@ public class PostActivityProcessor extends BaseContentProcessor {
                     + fileName;
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
             if (ContentUtils.matchesPatterns(uri, displayPatterns)) {
-                Map<String, String> extraInfo = new HashMap<String, String>();
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, uri));
-                activityService.postActivity(site, user, uri, activityType, ActivityService.ActivitySource.API,
-                        extraInfo);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(activityType);
+                auditLog.setActorId(user);
+                auditLog.setPrimaryTargetId(site + ":" + uri);
+                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                auditLog.setPrimaryTargetValue(user);
+                auditServiceInternal.insertAuditLog(auditLog);
             }
         }
     }
 
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
-    protected ActivityService activityService;
+    protected AuditServiceInternal auditServiceInternal;
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
@@ -91,6 +99,11 @@ public class PostActivityProcessor extends BaseContentProcessor {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public ActivityService getActivityService() { return activityService; }
-    public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
 }

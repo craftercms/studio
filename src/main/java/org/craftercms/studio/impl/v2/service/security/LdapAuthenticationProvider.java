@@ -27,13 +27,14 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserGroup;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.BaseAuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -64,6 +65,10 @@ import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_MEMBERS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
@@ -178,7 +183,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         if (user != null) {
             // When user authenticated against LDAP, upsert user data into studio database
             UserServiceInternal userServiceInternal = authenticationChain.getUserServiceInternal();
-            ActivityService activityService = authenticationChain.getActivityService();
+            AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
             StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
             try {
                 if (userServiceInternal.userExists(-1, username)) {
@@ -189,22 +194,24 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                         throw new IllegalStateException(e);
                     }
 
-                    ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
-                    Map<String, String> extraInfo = new HashMap<>();
-                    extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                    activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                                                 user.getUsername(), user.getUsername(),
-                                                 activityType, ActivityService.ActivitySource.API, extraInfo);
+                    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                    auditLog.setOperation(OPERATION_UPDATE);
+                    auditLog.setActorId(user.getUsername());
+                    auditLog.setPrimaryTargetId(user.getUsername());
+                    auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+                    auditLog.setPrimaryTargetValue(user.getUsername());
+                    auditServiceInternal.insertAuditLog(auditLog);
 
                 } else {
                     try {
                         userServiceInternal.createUser(user);
-                        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-                        Map<String, String> extraInfo = new HashMap<>();
-                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                                                     user.getUsername(), user.getUsername(),
-                                                     activityType, ActivityService.ActivitySource.API, extraInfo);
+                        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                        auditLog.setOperation(OPERATION_CREATE);
+                        auditLog.setActorId(user.getUsername());
+                        auditLog.setPrimaryTargetId(user.getUsername());
+                        auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+                        auditLog.setPrimaryTargetValue(user.getUsername());
+                        auditServiceInternal.insertAuditLog(auditLog);
                     } catch (UserAlreadyExistsException e) {
                         logger.debug("Error adding user " + username + " from external authentication provider",
                                      e);
@@ -278,7 +285,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
     protected boolean upsertUserGroup(String groupName, String username, AuthenticationChain authenticationChain) {
         UserDAO userDao = authenticationChain.getUserDao();
         GroupDAO groupDao = authenticationChain.getGroupDao();
-        ActivityService activityService = authenticationChain.getActivityService();
+        AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
         try {
             Map<String, Object> params = new HashMap<>();
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
@@ -305,11 +312,13 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             try {
                 groupDao.addGroupMembers(params);
 
-                ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
-                Map<String, String> extraInfo = new HashMap<>();
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity("", "LDAP", username + " > " + groupName, activityType,
-                                             ActivityService.ActivitySource.API, extraInfo);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(OPERATION_ADD_MEMBERS);
+                auditLog.setActorId(user.getUsername());
+                auditLog.setPrimaryTargetId(group.getGroupName() + ":" + user.getUsername());
+                auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+                auditLog.setPrimaryTargetValue(user.getUsername());
+                auditServiceInternal.insertAuditLog(auditLog);
             } catch (Exception e) {
                 logger.debug("Unknown database error", e);
             }
