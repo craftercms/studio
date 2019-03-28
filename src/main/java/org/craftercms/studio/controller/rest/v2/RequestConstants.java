@@ -29,6 +29,10 @@ public interface RequestConstants {
 
     String REQUEST_PARAM_SITE_ID = "site_id";
 
+    String REQUEST_PARAM_SITEID = "siteId";
+
+    String REQUEST_PARAM_SITE_NAME = "siteName";
+
     String REQUEST_PARAM_SITE = "site";
 
     String REQUEST_PARAM_USER = "user";
@@ -37,5 +41,19 @@ public interface RequestConstants {
 
     String REQUEST_PARAM_USERNAME = "username";
 
-    String REQUEST_PARAM_ACTIONS = "actions";
+    String REQUEST_PARAM_OPERATIONS = "operations";
+
+    String REQUEST_PARAM_INCLUDE_PARAMETERS = "includeParameters";
+
+    String REQUEST_PARAM_DATE_FROM = "dateFrom";
+
+    String REQUEST_PARAM_DATE_TO = "dateTo";
+
+    String REQUEST_PARAM_TARGET = "target";
+
+    String REQUEST_PARAM_ORIGIN = "origin";
+
+    String REQUEST_PARAM_CLUSTER_NODE_ID = "clusterNodeId";
+
+    String REQUEST_PARAM_ORDER = "order";
 }

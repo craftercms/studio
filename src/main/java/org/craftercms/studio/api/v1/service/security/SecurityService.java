@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -66,7 +67,7 @@ public interface SecurityService {
 
     void reloadGlobalConfiguration();
 
-    boolean logout();
+    boolean logout() throws SiteNotFoundException;
 
     /**
      * Check if user exists

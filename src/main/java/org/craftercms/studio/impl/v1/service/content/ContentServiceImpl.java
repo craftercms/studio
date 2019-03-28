@@ -43,21 +43,21 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentItemIdGenerator;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -85,6 +85,9 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -116,6 +119,15 @@ import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REVERT;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_FROM_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 
 /**
  * Content Services that other services may use
@@ -139,7 +151,6 @@ public class ContentServiceImpl implements ContentService {
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected EventService eventService;
     protected SiteService siteService;
@@ -148,6 +159,8 @@ public class ContentServiceImpl implements ContentService {
     protected DependencyDiffService dependencyDiffService;
     protected ContentTypeService contentTypeService;
     protected EntitlementValidator entitlementValidator;
+    protected AuditServiceInternal auditServiceInternal;
+    protected UserService userService;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -475,8 +488,7 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_SYSTEM_ASSET, String.valueOf(isSystemAsset));
 
         boolean exists = contentExists(site, path+ FILE_SEPARATOR + assetName);
-        params.put(DmConstants.KEY_ACTIVITY_TYPE, (exists ? ActivityService.ActivityType.UPDATED.toString() :
-                ActivityService.ActivityType.CREATED.toString()));
+        params.put(DmConstants.KEY_ACTIVITY_TYPE, (exists ? OPERATION_UPDATE : OPERATION_CREATE));
 
         String id = site + ":" + path + ":" + assetName + ":" + "";
         // processContent will close the input stream
@@ -570,18 +582,19 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean createFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name) {
+                                @ValidateStringParam(name = "name") String name) throws SiteNotFoundException {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-            String user = securityService.getCurrentUser();
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
-            activityService.postActivity(site, user, path + FILE_SEPARATOR + name, activityType,
-                    ActivityService.ActivitySource.API, extraInfo);
-            // TODO: SJ: we're currently not keeping meta-data for folders and therefore nothing to update
-            // TODO: SJ: rethink this for 3.1+
+            SiteFeed siteFeed = siteService.getSite(site);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_CREATE);
+            auditLog.setSiteId(siteFeed.getId());
+            auditLog.setActorId(securityService.getCurrentUser());
+            auditLog.setPrimaryTargetId(site + ":" + path + FILE_SEPARATOR + name);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
+            auditLog.setPrimaryTargetValue(path + FILE_SEPARATOR + name);
+            auditServiceInternal.insertAuditLog(auditLog);
             toRet = true;
         }
 
@@ -592,7 +605,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean deleteContent(@ValidateStringParam(name = "site") String site,
                                  @ValidateSecurePathParam(name = "path") String path,
-                                 @ValidateStringParam(name = "approver") String approver) {
+                                 @ValidateStringParam(name = "approver") String approver) throws SiteNotFoundException {
         return deleteContent(site, path, true, approver);
     }
 
@@ -600,7 +613,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean deleteContent(@ValidateStringParam(name = "site") String site,
                                  @ValidateSecurePathParam(name = "path") String path, boolean generateActivity,
-                                 @ValidateStringParam(name = "approver") String approver) {
+                                 @ValidateStringParam(name = "approver") String approver) throws SiteNotFoundException {
         String commitId;
         boolean toReturn = false;
         if (generateActivity) {
@@ -635,7 +648,7 @@ public class ContentServiceImpl implements ContentService {
         return toReturn;
     }
 
-    protected void generateDeleteActivity(String site, String path, String approver) {
+    protected void generateDeleteActivity(String site, String path, String approver) throws SiteNotFoundException {
         // This method creates a database record to show the activity of deleting a file
         // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
         // TODO: SJ: activities. Fix in 3.1+ by introducing the audit service and refactoring accordingly
@@ -655,9 +668,15 @@ public class ContentServiceImpl implements ContentService {
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
             }
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
-
-            activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED,
-                    ActivityService.ActivitySource.API, extraInfo);
+            SiteFeed siteFeed = siteService.getSite(site);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_DELETE);
+            auditLog.setSiteId(siteFeed.getId());
+            auditLog.setActorId(user);
+            auditLog.setPrimaryTargetId(site + ":" + path);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLog.setPrimaryTargetValue(path);
+            auditServiceInternal.insertAuditLog(auditLog);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
 
@@ -938,7 +957,7 @@ public class ContentServiceImpl implements ContentService {
         return movePath;
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) {
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) throws SiteNotFoundException {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -991,14 +1010,19 @@ public class ContentServiceImpl implements ContentService {
         }
 
         // write activity stream
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.MOVED;
-        Map<String, String> extraInfo = new HashMap<String, String>();
+        SiteFeed siteFeed = siteService.getSite(site);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_MOVE);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(site + ":" + movePath);
         if (renamedItem.isFolder()) {
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
         } else {
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, movePath));
+            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         }
-        activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.API, extraInfo);
+        auditLog.setPrimaryTargetValue(movePath);
+        auditServiceInternal.insertAuditLog(auditLog);
 
         updateDependenciesOnMove(site, fromPath, movePath);
     }
@@ -1017,7 +1041,7 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    protected void updateChildrenOnMove(String site, String fromPath, String movePath) {
+    protected void updateChildrenOnMove(String site, String fromPath, String movePath) throws SiteNotFoundException {
         logger.debug("updateChildrenOnMove from {0} to {1}", fromPath, movePath);
 
         // get the list of children
@@ -2443,36 +2467,40 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
         boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
-
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.PUSH_TO_REMOTE;
-        String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
-        activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
-                ActivityService.ActivitySource.API, extraInfo);
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_PUSH_TO_REMOTE);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(remoteName + "/" + remoteBranch);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
+        auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
+        auditServiceInternal.insertAuditLog(auditLog);
 
         return toRet;
     }
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
         boolean toRet = _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
-
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.PULL_FROM_REMOTE;
-        String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
-        activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
-                ActivityService.ActivitySource.API, extraInfo);
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_PULL_FROM_REMOTE);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(remoteName + "/" + remoteBranch);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
+        auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
+        auditServiceInternal.insertAuditLog(auditLog);
         
         return toRet;
     }
@@ -2540,13 +2568,6 @@ public class ContentServiceImpl implements ContentService {
         this.dmPageNavigationOrderService = dmPageNavigationOrderService;
     }
 
-    public ActivityService getActivityService() {
-        return activityService;
-    }
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
-    }
-
     public DmContentLifeCycleService getDmContentLifeCycleService() {
         return dmContentLifeCycleService;
     }
@@ -2598,5 +2619,21 @@ public class ContentServiceImpl implements ContentService {
 
     public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
         this.entitlementValidator = entitlementValidator;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 }

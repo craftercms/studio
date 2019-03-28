@@ -18,25 +18,45 @@
 package org.craftercms.studio.impl.v2.service.audit.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIONS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_NODE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.INCLUDE_PARAMETERS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OPERATIONS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORIGIN;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TARGET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 
 public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     private AuditDAO auditDao;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
@@ -67,11 +87,147 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         return auditDao.getAuditLogForSiteTotal(params);
     }
 
+
+    @Override
+    public List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
+                                      List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
+                                      ZonedDateTime dateTo, String target, String origin, String clusterNodeId,
+                                      String sort, String order) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(OFFSET, offset);
+        params.put(LIMIT, limit);
+        if (StringUtils.isNotEmpty(siteId)) {
+            params.put(SITE_ID, siteId);
+        }
+        if (StringUtils.isNotEmpty(siteName)) {
+            params.put(SITE_NAME, siteName);
+        }
+        if (StringUtils.isNotEmpty(user)) {
+            params.put(USERNAME, user);
+        }
+        if (CollectionUtils.isNotEmpty(operations)) {
+            params.put(OPERATIONS, operations);
+        }
+        if (dateFrom != null) {
+            params.put(DATE_FROM, dateFrom);
+        }
+        if (dateTo != null) {
+            params.put(DATE_TO, dateTo);
+        }
+        if (StringUtils.isNotEmpty(target)) {
+            params.put(TARGET, target);
+        }
+        if (StringUtils.isNotEmpty(origin)) {
+            if (StringUtils.equalsIgnoreCase(origin, ORIGIN_API)) {
+                params.put(ORIGIN, ORIGIN_API);
+            } else if (StringUtils.equalsIgnoreCase(origin, ORIGIN_GIT)) {
+                params.put(ORIGIN, ORIGIN_GIT);
+            }
+        }
+        if (StringUtils.isNotEmpty(clusterNodeId)) {
+            params.put(CLUSTER_NODE_ID, clusterNodeId);
+        }
+        if (StringUtils.isNotEmpty(sort)) {
+            params.put(SORT, sort);
+        }
+        if (StringUtils.isNotEmpty(order)) {
+            if (StringUtils.equalsIgnoreCase("DESC", order)) {
+                params.put(ORDER, "DESC");
+            } else {
+                params.put(ORDER, "ASC");
+            }
+        }
+        params.put(INCLUDE_PARAMETERS, includeParameters);
+        return auditDao.getAuditLog(params);
+    }
+
+    @Override
+    public int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
+                                           boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                           String target, String origin, String clusterNodeId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        if (StringUtils.isNotEmpty(siteId)) {
+            params.put(SITE_ID, siteId);
+        }
+        if (StringUtils.isNotEmpty(siteName)) {
+            params.put(SITE_NAME, siteName);
+        }
+        if (StringUtils.isNotEmpty(user)) {
+            params.put(USERNAME, user);
+        }
+        if (CollectionUtils.isNotEmpty(operations)) {
+            params.put(OPERATIONS, operations);
+        }
+        if (dateFrom != null) {
+            params.put(DATE_FROM, dateFrom);
+        }
+        if (dateTo != null) {
+            params.put(DATE_TO, dateTo);
+        }
+        if (StringUtils.isNotEmpty(target)) {
+            params.put(TARGET, target);
+        }
+        if (StringUtils.isNotEmpty(origin)) {
+            if (StringUtils.equalsIgnoreCase(origin, ORIGIN_API)) {
+                params.put(ORIGIN, ORIGIN_API);
+            } else if (StringUtils.equalsIgnoreCase(origin, ORIGIN_GIT)) {
+                params.put(ORIGIN, ORIGIN_GIT);
+            }
+        }
+        if (StringUtils.isNotEmpty(clusterNodeId)) {
+            params.put(CLUSTER_NODE_ID, clusterNodeId);
+        }
+        params.put(INCLUDE_PARAMETERS, includeParameters);
+        return auditDao.getAuditLogTotal(params);
+    }
+
+    @Override
+    public AuditLog getAuditLogEntry(long auditLogId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(QueryParameterNames.ID, auditLogId);
+        return auditDao.getAuditLogEntry(params);
+    }
+
+    @Override
+    public boolean insertAuditLog(AuditLog auditLog) {
+        int result = auditDao.insertAuditLog(auditLog);
+        if (CollectionUtils.isNotEmpty(auditLog.getParameters())) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("auditId", auditLog.getId());
+            params.put("parameters", auditLog.getParameters());
+            auditDao.insertAuditLogParams(params);
+        }
+        return result > 0;
+    }
+
+    @Override
+    public AuditLog createAuditLogEntry() {
+        AuditLog auditLog = new AuditLog();
+        String clusterNodeId = StringUtils.EMPTY;
+        HierarchicalConfiguration<ImmutableNode> clusterNodeData =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        if (clusterNodeData != null && !clusterNodeData.isEmpty()) {
+            clusterNodeId = clusterNodeData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+        }
+        auditLog.setOrganizationId(1);
+        auditLog.setOrigin(ORIGIN_API);
+        auditLog.setClusterNodeId(clusterNodeId);
+        return auditLog;
+    }
+
     public AuditDAO getAuditDao() {
         return auditDao;
     }
 
     public void setAuditDao(AuditDAO auditDao) {
         this.auditDao = auditDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

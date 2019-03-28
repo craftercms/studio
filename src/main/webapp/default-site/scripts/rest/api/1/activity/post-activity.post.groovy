@@ -17,7 +17,7 @@
 
 
 import org.apache.commons.lang3.StringUtils
-import org.craftercms.studio.api.v1.service.activity.ActivityService
+
 import scripts.api.ActivityServices
 
 def result = [:]

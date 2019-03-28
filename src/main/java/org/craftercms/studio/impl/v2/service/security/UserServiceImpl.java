@@ -26,7 +26,6 @@ import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -37,12 +36,14 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParamter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
@@ -50,12 +51,22 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.KEY_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 public class UserServiceImpl implements UserService {
 
@@ -68,8 +79,8 @@ public class UserServiceImpl implements UserService {
     private EntitlementValidator entitlementValidator;
     private GeneralLockService generalLockService;
     private SecurityService securityService;
-    private ActivityService activityService;
     private StudioConfiguration studioConfiguration;
+    private AuditServiceInternal auditServiceInternal;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -115,14 +126,15 @@ public class UserServiceImpl implements UserService {
                                             "your system administrator.", e);
         }
         User toRet = userServiceInternal.createUser(user);
-
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-        activityService.postActivity(
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                getCurrentUser().getUsername(), user.getUsername(),
-                activityType, ActivityService.ActivitySource.API, extraInfo);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(user.getUsername());
+        auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+        auditLog.setPrimaryTargetValue(user.getUsername());
+        auditServiceInternal.insertAuditLog(auditLog);
         return toRet;
     }
 
@@ -130,13 +142,15 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = "update_users")
     public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         userServiceInternal.updateUser(user);
-        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-        activityService.postActivity(
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                getCurrentUser().getUsername(), user.getUsername(),
-                activityType, ActivityService.ActivitySource.API, extraInfo);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_UPDATE);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(user.getUsername());
+        auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+        auditLog.setPrimaryTargetValue(user.getUsername());
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
@@ -182,15 +196,23 @@ public class UserServiceImpl implements UserService {
 
             List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
+            SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_DELETE);
+            auditLog.setActorId(getCurrentUser().getUsername());
+            auditLog.setPrimaryTargetId(siteFeed.getSiteId());
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(siteFeed.getName());
+            List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
             for (User deletedUser : toDelete) {
-                ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETED;
-                Map<String, String> extraInfo = new HashMap<String, String>();
-                extraInfo.put(KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity(
-                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                        getCurrentUser().getUsername(), deletedUser.getUsername(),
-                        activityType, ActivityService.ActivitySource.API, extraInfo);
+                AuditLogParamter paramter = new AuditLogParamter();
+                paramter.setTargetId(Long.toString(deletedUser.getId()));
+                paramter.setTargetType(TARGET_TYPE_USER);
+                paramter.setTargetValue(deletedUser.getUsername());
+                paramters.add(paramter);
             }
+            auditLog.setParameters(paramters);
+            auditServiceInternal.insertAuditLog(auditLog);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }
@@ -394,19 +416,19 @@ public class UserServiceImpl implements UserService {
         this.securityService = securityService;
     }
 
-    public ActivityService getActivityService() {
-        return activityService;
-    }
-
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
-    }
-
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

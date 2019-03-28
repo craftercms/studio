@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -83,7 +84,11 @@ public class RebuildRepositoryMetadata {
             logger.debug("Cleaning existing repository metadata for site " + site);
             cleanOldMetadata(site);
             logger.debug("Initiate rebuild metadata process for site " + site);
-            rebuildMetadata(site);
+            try {
+                rebuildMetadata(site);
+            } catch (SiteNotFoundException e) {
+                logger.error("Error while rebuilding metadata", e);
+            }
             CronJobContext.clear();
             logger.debug("Finished rebuilding repository metadata for site " + site);
         }
@@ -137,7 +142,7 @@ public class RebuildRepositoryMetadata {
     }
 
 
-    protected boolean rebuildMetadata(String site) {
+    protected boolean rebuildMetadata(String site) throws SiteNotFoundException {
         siteService.syncDatabaseWithRepo(site, null);
         return true;
     }

@@ -21,17 +21,26 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.AuditDAO">
     <resultMap id="AuditLogMap" type="org.craftercms.studio.api.v2.dal.AuditLog">
-        <id property="id" column="id"/>
-        <result property="modifiedDate" column="modified_date"/>
-        <result property="createdDate" column="creation_date"/>
-        <result property="summary" column="summary"/>
-        <result property="summaryFormat" column="summary_format"/>
-        <result property="contentId" column="content_id"/>
-        <result property="siteId" column="site_network"/>
-        <result property="type" column="activity_type"/>
-        <result property="contentType" column="content_type"/>
-        <result property="username" column="post_user_id"/>
-        <result property="source" column="source" />
+        <id property="id" column="id" />
+        <result property="organizationId" column="organization_id" />
+        <result property="siteId" column="site_id" />
+        <result property="operation" column="operation" />
+        <result property="operationTimestamp" column="operation_timestamp" />
+        <result property="origin" column="origin" />
+        <result property="primaryTargetId" column="primary_target_id" />
+        <result property="primaryTargetType" column="primary_target_type" />
+        <result property="primaryTargetSubtype" column="primary_target_subtype" />
+        <result property="primaryTargetValue" column="primary_target_value" />
+        <result property="actorId" column="actor_id" />
+        <result property="actorDetails" column="actor_details" />
+        <result property="clusterNodeId" column="cluster_node_id" />
+
+        <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParamter">
+            <result property="targetId" column="target_id"/>
+            <result property="targetType" column="target_type" />
+            <result property="targetSubtype" column="target_subtype" />
+            <result property="targetValue" column="target_value"/>
+        </collection>
     </resultMap>
 
     <select id="getAuditLogForSite" parameterType="java.util.Map" resultMap="AuditLogMap">
@@ -72,4 +81,108 @@
             </foreach>
         </if>
     </select>
+
+    <select id="getAuditLogEntry" parameterType="java.util.Map" resultMap="AuditLogMap">
+        SELECT * FROM audit a LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id WHERE a.id = #{id}
+    </select>
+
+    <select id="getAuditLog" parameterType="java.util.Map" resultMap="AuditLogMap">
+        SELECT a.*
+        <if test="includeParameters">
+            , ap.*
+        </if>
+        FROM audit a INNER JOIN site s on a.site_id = s.id
+        <if test="includeParameters">
+            LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id
+        </if>
+        WHERE 1 = 1
+        <if test="siteId != null and siteId !=  '' ">
+            AND a.site_id = #{siteId}
+        </if>
+        <if test="siteName != null and siteName !=  '' ">
+            AND s.name = #{siteName}
+        </if>
+        <if test="username != null and username !=  '' ">
+            AND a.actor_id = #{username}
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND a.operation_timestamp BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND a.operation_timestamp >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= a.operation_timestamp
+            </when>
+        </choose>
+        <if test="target != null and target !=  '' ">
+            AND a.primary_target_value RLIKE #{target}
+        </if>
+        <if test="origin != null and origin !=  '' ">
+            AND a.origin = #{origin}
+        </if>
+        <if test="clusterNodeId != null and clusterNodeId !=  '' ">
+            AND a.cluster_node_id = #{clusterNodeId}
+        </if>
+        <choose>
+          <when test="sort != null and sort !=  '' and order != null and oder != '' ">
+            ORDER BY #{sort} #{order}
+          </when>
+          <when test="sort != null and sort !=  '' and order == null and oder == '' ">
+            ORDER BY #{sort}
+          </when>
+        </choose>
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="getAuditLogTotal" parameterType="java.util.Map" resultType="int">
+        SELECT count (1)
+        FROM audit a INNER JOIN site s on a.site_id = s.id
+        WHERE 1 = 1
+        <if test="siteId != null and siteId !=  '' ">
+            AND a.site_id = #{siteId}
+        </if>
+        <if test="siteName != null and siteName !=  '' ">
+            AND s.name = #{siteName}
+        </if>
+        <if test="username != null and username !=  '' ">
+            AND a.actor_id = #{username}
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND a.operation_timestamp BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND a.operation_timestamp >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= a.operation_timestamp
+            </when>
+        </choose>
+        <if test="target != null and target !=  '' ">
+            AND a.primary_target_value RLIKE #{target}
+        </if>
+        <if test="origin != null and origin !=  '' ">
+            AND a.origin = #{origin}
+        </if>
+        <if test="clusterNodeId != null and clusterNodeId !=  '' ">
+            AND a.cluster_node_id = #{clusterNodeId}
+        </if>
+    </select>
+
+    <insert id="insertAuditLog" parameterType="org.craftercms.studio.api.v2.dal.AuditLog" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO audit (organization_id, site_id, operation, operation_timestamp, origin, primary_target_id,
+        primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details)
+        VALUES (#{organizationId}, #{siteId}, #{operation}, CURRENT_TIMESTAMP, #{origin}, #{primaryTargetId},
+        #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId}, #{actorDetails});
+    </insert>
+
+    <insert id="insertAuditLogParams" parameterType="java.util.Map">
+        INSERT INTO audit_parameters (audit_id, target_id, target_type, target_subtype, target_value) VALUES
+        <foreach collection="parameters" item="element" index="index" separator="," >
+            (#{auditId}, #{element.targetId}, #{element.targetType}, #{element.targetSubtype}, #{element.targetValue})
+        </foreach>
+    </insert>
 </mapper>

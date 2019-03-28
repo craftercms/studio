@@ -17,111 +17,134 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.time.ZonedDateTime;
+import java.util.List;
 
 public class AuditLog {
-
     private long id;
-    private ZonedDateTime modifiedDate;
-    private ZonedDateTime createdDate;
-    private String summary;
-    private String summaryFormat;
-    private String contentId;
-    private String contentType;
-    private String type;
-    private String username;
-    private String siteId;
-    private String source;
+    private long organizationId;
+    private long siteId;
+    private String operation;
+    private ZonedDateTime operationTimestamp;
+    private String origin;
+    private String primaryTargetId;
+    private String primaryTargetType;
+    private String primaryTargetSubtype;
+    private String primaryTargetValue;
+    private String actorId;
+    private String actorDetails;
+    private String clusterNodeId;
+    private List<AuditLogParamter> parameters;
 
-    @JsonIgnore
     public long getId() {
         return id;
     }
 
-    @JsonIgnore
     public void setId(long id) {
         this.id = id;
     }
 
-    public ZonedDateTime getModifiedDate() {
-        return modifiedDate;
+    public long getOrganizationId() {
+        return organizationId;
     }
 
-    public void setModifiedDate(ZonedDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
+    public void setOrganizationId(long organizationId) {
+        this.organizationId = organizationId;
     }
 
-    public ZonedDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(ZonedDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public String getSummary() {
-        return summary;
-    }
-
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
-
-    public String getSummaryFormat() {
-        return summaryFormat;
-    }
-
-    public void setSummaryFormat(String summaryFormat) {
-        this.summaryFormat = summaryFormat;
-    }
-
-    public String getContentId() {
-        return contentId;
-    }
-
-    public void setContentId(String contentId) {
-        this.contentId = contentId;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getSiteId() {
+    public long getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(String siteId) {
+    public void setSiteId(long siteId) {
         this.siteId = siteId;
     }
 
-    public String getSource() {
-        return source;
+    public String getOperation() {
+        return operation;
     }
 
-    public void setSource(String source) {
-        this.source = source;
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public ZonedDateTime getOperationTimestamp() {
+        return operationTimestamp;
+    }
+
+    public void setOperationTimestamp(ZonedDateTime operationTimestamp) {
+        this.operationTimestamp = operationTimestamp;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getPrimaryTargetId() {
+        return primaryTargetId;
+    }
+
+    public void setPrimaryTargetId(String primaryTargetId) {
+        this.primaryTargetId = primaryTargetId;
+    }
+
+    public String getPrimaryTargetType() {
+        return primaryTargetType;
+    }
+
+    public void setPrimaryTargetType(String primaryTargetType) {
+        this.primaryTargetType = primaryTargetType;
+    }
+
+    public String getPrimaryTargetSubtype() {
+        return primaryTargetSubtype;
+    }
+
+    public void setPrimaryTargetSubtype(String primaryTargetSubtype) {
+        this.primaryTargetSubtype = primaryTargetSubtype;
+    }
+
+    public String getPrimaryTargetValue() {
+        return primaryTargetValue;
+    }
+
+    public void setPrimaryTargetValue(String primaryTargetValue) {
+        this.primaryTargetValue = primaryTargetValue;
+    }
+
+    public String getActorId() {
+        return actorId;
+    }
+
+    public void setActorId(String actorId) {
+        this.actorId = actorId;
+    }
+
+    public String getActorDetails() {
+        return actorDetails;
+    }
+
+    public void setActorDetails(String actorDetails) {
+        this.actorDetails = actorDetails;
+    }
+
+    public String getClusterNodeId() {
+        return clusterNodeId;
+    }
+
+    public void setClusterNodeId(String clusterNodeId) {
+        this.clusterNodeId = clusterNodeId;
+    }
+
+    public List<AuditLogParamter> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<AuditLogParamter> parameters) {
+        this.parameters = parameters;
     }
 }

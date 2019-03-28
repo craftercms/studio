@@ -7,24 +7,43 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.18', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.19', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
-  `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
-  `modified_date`  DATETIME     NOT NULL,
-  `creation_date`  DATETIME     NOT NULL,
-  `summary`        TEXT         NOT NULL,
-  `summary_format` VARCHAR(255) NOT NULL,
-  `content_id`     TEXT         NOT NULL,
-  `site_network`   VARCHAR(50)  NOT NULL,
-  `activity_type`  VARCHAR(255) NOT NULL,
-  `content_type`   VARCHAR(255) NOT NULL,
-  `post_user_id`   VARCHAR(255) NOT NULL,
-  `source`         VARCHAR(255) NOT NULL,
+  `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `organization_id`           BIGINT(20)    NOT NULL,
+  `site_id`                   BIGINT(20)    NOT NULL,
+  `operation`                 VARCHAR(16)   NOT NULL,
+  `operation_timestamp`       DATETIME      NOT NULL,
+  `origin`                    VARCHAR(16)   NOT NULL,
+  `primary_target_id`         VARCHAR(256)  NOT NULL,
+  `primary_target_type`       VARCHAR(16)   NOT NULL,
+  `primary_target_subtype`    VARCHAR(32)   NULL,
+  `primary_target_value`      VARCHAR(512)  NOT NULL,
+  `actor_id`                  VARCHAR(32)   NOT NULL,
+  `actor_details`             VARCHAR(64)   NULL,
+  `cluster_node_id`           VARCHAR(255)  NULL,
   PRIMARY KEY (`id`),
-  KEY `audit_user_idx` (`post_user_id`),
-  KEY `audit_site_idx` (`site_network`),
-  KEY `audit_content_idx` (`content_id`(1000))
+  KEY `audit_actor_idx` (`actor_id`),
+  KEY `audit_site_idx` (`site_id`),
+  KEY `audit_operation_idx` (`operation`),
+  KEY `audit_origin_idx` (`origin`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `audit_parameters` (
+  `id`                BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `audit_id`          BIGINT(20) NOT NULL,
+  `target_id`         VARCHAR(256)  NOT NULL,
+  `target_type`       VARCHAR(16)   NOT NULL,
+  `target_subtype`    VARCHAR(32)   NULL,
+  `target_value`      VARCHAR(512)  NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `audit_parameters_audit_id_idx` (`audit_id`),
+  KEY `audit_parameters_target_id_idx` (`target_id`),
+  KEY `audit_parameters_target_value_idx` (`target_value`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

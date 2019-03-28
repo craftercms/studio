@@ -26,4 +26,14 @@ public interface AuditDAO {
     List<AuditLog> getAuditLogForSite(Map params);
 
     int getAuditLogForSiteTotal(Map params);
+
+    List<AuditLog> getAuditLog(Map params);
+
+    int getAuditLogTotal(Map params);
+
+    AuditLog getAuditLogEntry(Map params);
+
+    int insertAuditLog(AuditLog auditLog);
+
+    void insertAuditLogParams(Map params);
 }

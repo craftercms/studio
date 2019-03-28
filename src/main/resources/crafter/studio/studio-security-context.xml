@@ -120,11 +120,12 @@
     <!-- Authentication chain -->
     <bean id="crafter.studioAuthenticationChain"
           class="org.craftercms.studio.impl.v2.service.security.AuthenticationChainImpl" init-method="init">
-        <property name="activityService" ref="cstudioActivityService" />
         <property name="groupDao" ref="groupDAO" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="userDao" ref="userDAO" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- CORS -->

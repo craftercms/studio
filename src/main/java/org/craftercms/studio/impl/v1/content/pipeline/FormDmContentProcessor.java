@@ -25,10 +25,10 @@ import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
@@ -115,7 +117,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     InputStream existingContent = contentService.getContent(site, path);
 
                     updateFile(site, item, path, input, user, isPreview, unlock, result);
-                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
+                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                     if (unlock) {
                         // TODO: We need ability to lock/unlock content in repo
                         contentService.unLockContent(site, path);
@@ -134,7 +136,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
                         InputStream existingContent = contentService.getContent(site, path);
                         updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
+                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                         if (unlock) {
                             // TODO: We need ability to lock/unlock content in repo
                             contentService.unLockContent(site, path);
@@ -143,7 +145,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         return;
                     } else {
                         ContentItemTO newFileItem = createNewFile(site, parentItem, fileName, contentType, input, user, unlock, result);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.CREATED.toString());
+                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
                         return;
                     }
                 }
@@ -192,7 +194,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      */
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input,
     		String user, boolean unlock, ResultTO result)
-            throws ContentNotFoundException {
+            throws ContentNotFoundException, SiteNotFoundException {
         ContentItemTO fileItem = null;
 
         if (parentItem != null) {
@@ -338,7 +340,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     }
 
     @Override
-    public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) {
+    public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) throws SiteNotFoundException {
         // create parent folders if missing
         String [] levels = path.split(FILE_SEPARATOR);
         String parentPath = "";
@@ -358,7 +360,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 
     @Override
-    public String fileToFolder(String site, String path) {
+    public String fileToFolder(String site, String path) throws SiteNotFoundException {
         // Check if it is already a folder
 
         if (contentService.contentExists(site, path)) {

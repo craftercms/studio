@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v1.repository.job;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -56,7 +57,11 @@ public class SyncDatabaseWithRepository {
         @Override
         public void run() {
             logger.debug("Start synchronizing database with repository  for site " + site);
-            siteService.syncDatabaseWithRepo(site, lastDbCommitId);
+            try {
+                siteService.syncDatabaseWithRepo(site, lastDbCommitId);
+            } catch (SiteNotFoundException e) {
+                logger.error("Error while syncing database with repository", e);
+            }
         }
     }
 

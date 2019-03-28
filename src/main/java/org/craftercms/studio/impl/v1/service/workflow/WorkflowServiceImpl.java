@@ -42,12 +42,12 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -77,6 +77,9 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParamter;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreGoLiveOperation;
@@ -90,6 +93,12 @@ import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE_SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 
 /**
  * workflow service implementation
@@ -143,7 +152,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected ObjectMetadataManager objectMetadataManager;
     protected NotificationService notificationService;
     protected StudioConfiguration studioConfiguration;
-    protected ActivityService activityService;
+    protected AuditServiceInternal auditServiceInternal;
 
     @Override
     @ValidateParams
@@ -218,8 +227,15 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext,
                         submissionComment, environment);
-                generateWorkflowActivity(site, submittedPaths, submittedBy,
-                        ActivityService.ActivityType.REQUEST_PUBLISH);
+                SiteFeed siteFeed = siteService.getSite(site);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(OPERATION_REQUEST_PUBLISH);
+                auditLog.setActorId(submittedBy);
+                auditLog.setSiteId(siteFeed.getId());
+                auditLog.setPrimaryTargetId(site);
+                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                auditLog.setPrimaryTargetValue(site);
+                auditServiceInternal.insertAuditLog(auditLog);
                 result.setSuccess(true);
                 result.setStatus(200);
                 result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
@@ -972,17 +988,30 @@ public class WorkflowServiceImpl implements WorkflowService {
                                 addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
                         goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
+                        List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             goLivePaths.add(goLiveItem.getUri());
+                            AuditLogParamter auditLogParamter = new AuditLogParamter();
+                            auditLogParamter.setTargetId(site + ":" + goLiveItem.getUri());
+                            auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLogParamter.setTargetValue(goLiveItem.getUri());
+                            auditLogParamters.add(auditLogParamter);
                         }
                         goLive(site, goLiveItems, approver, mcpContext);
+                        SiteFeed siteFeed = siteService.getSite(site);
+                        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                        auditLog.setActorId(approver);
+                        auditLog.setSiteId(siteFeed.getId());
+                        auditLog.setPrimaryTargetId(site);
+                        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+                        auditLog.setPrimaryTargetValue(site);
+                        auditLog.setParameters(auditLogParamters);
                         if (scheduledDate != null && !isNow) {
-                            generateWorkflowActivity(site, goLivePaths, approver,
-                                    ActivityService.ActivityType .APPROVE_SCHEDULED);
+                            auditLog.setOperation(OPERATION_APPROVE_SCHEDULED);
                         } else {
-                            generateWorkflowActivity(site, goLivePaths, approver,
-                                    ActivityService.ActivityType.APPROVE);
+                            auditLog.setOperation(OPERATION_APPROVE);
                         }
+                        auditServiceInternal.insertAuditLog(auditLog);
                     }
 
                     if (!renameItems.isEmpty()) {
@@ -1017,12 +1046,28 @@ public class WorkflowServiceImpl implements WorkflowService {
                     responseMessageKey = NotificationService.COMPLETE_DELETE;
                     List<String> deletePaths = new ArrayList<>();
                     List<String> nodeRefs = new ArrayList<String>();
+                    List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
                     for (DmDependencyTO deletedItem : submittedItems) {
                         //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
                         deletePaths.add(deletedItem.getUri());
+                        AuditLogParamter auditLogParamter = new AuditLogParamter();
+                        auditLogParamter.setTargetId(site + ":" + deletedItem.getUri());
+                        auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                        auditLogParamter.setTargetValue(deletedItem.getUri());
+                        auditLogParamters.add(auditLogParamter);
                     }
                     doDelete(site, submittedItems, approver);
-                    generateWorkflowActivity(site, deletePaths, approver, ActivityService.ActivityType.APPROVE);
+                    SiteFeed siteFeed = siteService.getSite(site);
+                    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                    auditLog.setOperation(OPERATION_APPROVE);
+                    auditLog.setActorId(approver);
+                    auditLog.setSiteId(siteFeed.getId());
+                    auditLog.setPrimaryTargetId(site);
+                    auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+                    auditLog.setPrimaryTargetValue(site);
+                    auditLog.setParameters(auditLogParamters);
+                    auditServiceInternal.insertAuditLog(auditLog);
+
             }
             result.setSuccess(true);
             result.setStatus(200);
@@ -2191,17 +2236,32 @@ public class WorkflowServiceImpl implements WorkflowService {
                     submittedItems.add(submittedItem);
                 }
                 List<String> paths = new ArrayList<String>();
+                List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
                 for (DmDependencyTO goLiveItem : submittedItems) {
                     if (contentService.contentExists(site, goLiveItem.getUri())) {
                         paths.add(goLiveItem.getUri());
                     }
+                    AuditLogParamter auditLogParamter = new AuditLogParamter();
+                    auditLogParamter.setTargetId(site + ":" + goLiveItem.getUri());
+                    auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                    auditLogParamter.setTargetValue(goLiveItem.getUri());
+                    auditLogParamters.add(auditLogParamter);
                 }
                 objectStateService.setSystemProcessingBulk(site, paths, true);
                 Set<String> cancelPaths = new HashSet<String>();
                 cancelPaths.addAll(paths);
                 deploymentService.cancelWorkflowBulk(site, cancelPaths);
                 reject(site, submittedItems, reason, approver);
-                generateWorkflowActivity(site, paths, approver, ActivityService.ActivityType.REJECT);
+                SiteFeed siteFeed = siteService.getSite(site);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(OPERATION_REJECT);
+                auditLog.setActorId(approver);
+                auditLog.setSiteId(siteFeed.getId());
+                auditLog.setPrimaryTargetId(site);
+                auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+                auditLog.setPrimaryTargetValue(site);
+                auditLog.setParameters(auditLogParamters);
+                auditServiceInternal.insertAuditLog(auditLog);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);
                 result.setStatus(200);
@@ -2216,18 +2276,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setMessage(e.getMessage());
         }
         return result;
-    }
-
-    protected void generateWorkflowActivity(String site, List<String> paths, String username,
-                                            ActivityService.ActivityType activityType) {
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        StringBuilder sb = new StringBuilder();
-        for (String p : paths) {
-            sb.append(p).append("; ");
-        }
-        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-        activityService.postActivity(site, username, sb.toString(), activityType,
-                ActivityService.ActivitySource.API, extraInfo);
     }
 
     protected void reject(String site, List<DmDependencyTO> submittedItems, String reason, String approver) {
@@ -2408,12 +2456,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public ActivityService getActivityService() {
-        return activityService;
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
     }
 
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

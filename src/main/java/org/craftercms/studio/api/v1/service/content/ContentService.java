@@ -23,7 +23,9 @@ import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -93,7 +95,7 @@ public interface ContentService {
      * @param name a folder name to create
      * @return return the reference to the folder created
      */
-    boolean createFolder(String site, String path, String name);
+    boolean createFolder(String site, String path, String name) throws SiteNotFoundException;
 
     /**
      * delete content at the path
@@ -102,9 +104,9 @@ public interface ContentService {
      * @param path path to content
      * @return return true if successful
      */
-    boolean deleteContent(String site, String path, String approver);
+    boolean deleteContent(String site, String path, String approver) throws SiteNotFoundException;
 
-    boolean deleteContent(String site, String path, boolean generateActivity, String approver);
+    boolean deleteContent(String site, String path, boolean generateActivity, String approver) throws SiteNotFoundException;
 
     /**
      * copy content fromPath to toPath
@@ -262,7 +264,7 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-        InvalidRemoteUrlException;
+            InvalidRemoteUrlException, AuthenticationException;
 
     /**
      * Pull from remote repository
@@ -272,5 +274,5 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-        InvalidRemoteUrlException;
+            InvalidRemoteUrlException, AuthenticationException;
 }

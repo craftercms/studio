@@ -153,7 +153,7 @@ public interface SiteService {
 	 * @param fromCommitId commit ID to start at and sync up until current commit
 	 * @return true if successful, false otherwise
 	 */
-	boolean syncDatabaseWithRepo(String siteId, String fromCommitId);
+	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws SiteNotFoundException;
 
     /**
      * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
@@ -164,7 +164,7 @@ public interface SiteService {
      * @param generateAuditLog if true add operations to audit log
      * @return true if successful, false otherwise
      */
-    boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog);
+    boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog) throws SiteNotFoundException;
 
    	/**
    	 * get a list of available blueprints

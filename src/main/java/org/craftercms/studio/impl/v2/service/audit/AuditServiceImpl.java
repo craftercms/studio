@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -54,6 +55,29 @@ public class AuditServiceImpl implements AuditService {
             throw new SiteNotFoundException();
         }
         return auditServiceInternal.getAuditLogForSiteTotal(site, user, actions);
+    }
+
+    @Override
+    public List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
+                                      List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
+                                      ZonedDateTime dateTo, String target, String origin, String clusterNodeId,
+                                      String sort, String order) {
+        return auditServiceInternal.getAuditLog(siteId, siteName, offset, limit, user, operations, includeParameters,
+                dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
+    }
+
+    @Override
+    public int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
+                                           boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                           String target, String origin, String clusterNodeId) {
+        return auditServiceInternal.getAuditLogTotal(siteId, siteName, user, operations, includeParameters, dateFrom,
+                dateTo, target, origin, clusterNodeId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "audit_log")
+    public AuditLog getAuditLogEntry(long auditLogId) {
+        return auditServiceInternal.getAuditLogEntry(auditLogId);
     }
 
     public AuditServiceInternal getAuditServiceInternal() {

@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -40,6 +39,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
 
@@ -151,12 +152,12 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 if (exists) {
                     contentItem = contentService.getContentItem(site, path + FILE_SEPARATOR + assetName, 0);
                     updateFile(site, contentItem, contentPath, in, user, isPreview, unlock, result);
-                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
+                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                 } else {
                     // TODO: define content type
                     contentItem = createNewFile(site, parentContentItem, assetName, null, in, user,
                             unlock, result);
-                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.CREATED.toString());
+                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
                     objectStateService.insertNewEntry(site, contentItem);
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
