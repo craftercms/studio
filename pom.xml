@@ -53,6 +53,8 @@
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.8</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
+        <apache.cxf.version>3.1.18</apache.cxf.version>
+
         <studio.vcbp.path>target/vcbp</studio.vcbp.path>
         <studio.vcbp.version>develop</studio.vcbp.version>
 
@@ -411,6 +413,7 @@
             <version>${spring.data.version}</version>
         </dependency>
 
+        <!-- Apache Chemistry (for CMIS) -->
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-client-impl</artifactId>
@@ -421,6 +424,21 @@
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
+            <version>${apache.cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+            <version>${apache.cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-ws-policy</artifactId>
+            <version>${apache.cxf.version}</version>
         </dependency>
 
         <dependency>
