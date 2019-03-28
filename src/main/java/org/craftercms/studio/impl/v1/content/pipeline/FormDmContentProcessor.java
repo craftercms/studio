@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -193,7 +194,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      */
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input,
     		String user, boolean unlock, ResultTO result)
-            throws ContentNotFoundException {
+            throws ContentNotFoundException, SiteNotFoundException {
         ContentItemTO fileItem = null;
 
         if (parentItem != null) {
@@ -339,7 +340,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     }
 
     @Override
-    public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) {
+    public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) throws SiteNotFoundException {
         // create parent folders if missing
         String [] levels = path.split(FILE_SEPARATOR);
         String parentPath = "";
@@ -359,7 +360,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 
     @Override
-    public String fileToFolder(String site, String path) {
+    public String fileToFolder(String site, String path) throws SiteNotFoundException {
         // Check if it is already a folder
 
         if (contentService.contentExists(site, path)) {

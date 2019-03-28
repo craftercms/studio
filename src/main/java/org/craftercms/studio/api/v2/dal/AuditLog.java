@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v2.dal;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 public class AuditLog {
     private long id;
@@ -33,6 +34,7 @@ public class AuditLog {
     private String actorId;
     private String actorDetails;
     private String clusterNodeId;
+    private List<AuditLogParamter> parameters;
 
     public long getId() {
         return id;
@@ -136,5 +138,13 @@ public class AuditLog {
 
     public void setClusterNodeId(String clusterNodeId) {
         this.clusterNodeId = clusterNodeId;
+    }
+
+    public List<AuditLogParamter> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<AuditLogParamter> parameters) {
+        this.parameters = parameters;
     }
 }

@@ -17,7 +17,9 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+
 public interface ImportService {
 
-    void importSite(String configLocation);
+    void importSite(String configLocation) throws SiteNotFoundException;
 }

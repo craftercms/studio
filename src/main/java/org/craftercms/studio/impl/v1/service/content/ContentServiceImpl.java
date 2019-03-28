@@ -43,9 +43,9 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -582,12 +582,14 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean createFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name) {
+                                @ValidateStringParam(name = "name") String name) throws SiteNotFoundException {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
+            SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
+            auditLog.setSiteId(siteFeed.getId());
             auditLog.setActorId(securityService.getCurrentUser());
             auditLog.setPrimaryTargetId(site + ":" + path + FILE_SEPARATOR + name);
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
@@ -603,7 +605,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean deleteContent(@ValidateStringParam(name = "site") String site,
                                  @ValidateSecurePathParam(name = "path") String path,
-                                 @ValidateStringParam(name = "approver") String approver) {
+                                 @ValidateStringParam(name = "approver") String approver) throws SiteNotFoundException {
         return deleteContent(site, path, true, approver);
     }
 
@@ -611,7 +613,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean deleteContent(@ValidateStringParam(name = "site") String site,
                                  @ValidateSecurePathParam(name = "path") String path, boolean generateActivity,
-                                 @ValidateStringParam(name = "approver") String approver) {
+                                 @ValidateStringParam(name = "approver") String approver) throws SiteNotFoundException {
         String commitId;
         boolean toReturn = false;
         if (generateActivity) {
@@ -646,7 +648,7 @@ public class ContentServiceImpl implements ContentService {
         return toReturn;
     }
 
-    protected void generateDeleteActivity(String site, String path, String approver) {
+    protected void generateDeleteActivity(String site, String path, String approver) throws SiteNotFoundException {
         // This method creates a database record to show the activity of deleting a file
         // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
         // TODO: SJ: activities. Fix in 3.1+ by introducing the audit service and refactoring accordingly
@@ -666,9 +668,10 @@ public class ContentServiceImpl implements ContentService {
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
             }
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
-
+            SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
+            auditLog.setSiteId(siteFeed.getId());
             auditLog.setActorId(user);
             auditLog.setPrimaryTargetId(site + ":" + path);
             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
@@ -954,7 +957,7 @@ public class ContentServiceImpl implements ContentService {
         return movePath;
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) {
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) throws SiteNotFoundException {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -1007,8 +1010,10 @@ public class ContentServiceImpl implements ContentService {
         }
 
         // write activity stream
+        SiteFeed siteFeed = siteService.getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_MOVE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(site + ":" + movePath);
         if (renamedItem.isFolder()) {
@@ -1036,7 +1041,7 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    protected void updateChildrenOnMove(String site, String fromPath, String movePath) {
+    protected void updateChildrenOnMove(String site, String fromPath, String movePath) throws SiteNotFoundException {
         logger.debug("updateChildrenOnMove from {0} to {1}", fromPath, movePath);
 
         // get the list of children
@@ -2467,9 +2472,10 @@ public class ContentServiceImpl implements ContentService {
             throw new SiteNotFoundException();
         }
         boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
-
+        SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PUSH_TO_REMOTE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(userService.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(remoteName + "/" + remoteBranch);
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
@@ -2486,9 +2492,10 @@ public class ContentServiceImpl implements ContentService {
             throw new SiteNotFoundException(siteId);
         }
         boolean toRet = _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
-
+        SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PULL_FROM_REMOTE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(userService.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(remoteName + "/" + remoteBranch);
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);

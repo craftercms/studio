@@ -18,20 +18,20 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParamter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -44,22 +44,16 @@ import org.craftercms.studio.api.v2.service.security.internal.OrganizationServic
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.KEY_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_MEMBERS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_MEMBERS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_GROUP;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
@@ -73,6 +67,7 @@ public class GroupServiceImpl implements GroupService {
     private StudioConfiguration studioConfiguration;
     private UserService userService;
     private AuditServiceInternal auditServiceInternal;
+    private SiteService siteService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
@@ -101,8 +96,10 @@ public class GroupServiceImpl implements GroupService {
     public Group createGroup(long orgId, String groupName, String groupDescription)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group toRet = groupServiceInternal.createGroup(orgId, groupName, groupDescription);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(userService.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(groupName);
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
@@ -117,8 +114,10 @@ public class GroupServiceImpl implements GroupService {
     public Group updateGroup(long orgId, Group group)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
         Group toRet = groupServiceInternal.updateGroup(orgId, group);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_UPDATE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(userService.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(group.getGroupName());
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
@@ -145,16 +144,24 @@ public class GroupServiceImpl implements GroupService {
         }
         List<Group> groups = groupServiceInternal.getGroups(groupIds);
         groupServiceInternal.deleteGroup(groupIds);
-        // TODO: Make it bulk
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_DELETE);
+        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setPrimaryTargetId(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
+        auditLog.setPrimaryTargetValue(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
         for (Group g : groups) {
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(OPERATION_DELETE);
-            auditLog.setActorId(userService.getCurrentUser().getUsername());
-            auditLog.setPrimaryTargetId(g.getGroupName());
-            auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
-            auditLog.setPrimaryTargetValue(g.getGroupName());
-            auditServiceInternal.insertAuditLog(auditLog);
+            AuditLogParamter paramter = new AuditLogParamter();
+            paramter.setTargetId(Long.toString(g.getId()));
+            paramter.setTargetType(TARGET_TYPE_GROUP);
+            paramter.setTargetValue(g.getGroupName());
+            paramters.add(paramter);
         }
+        auditLog.setParameters(paramters);
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
@@ -181,16 +188,25 @@ public class GroupServiceImpl implements GroupService {
     public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
         List<User> users = groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
-        // TODO: Make it bulk
+        Group group = groupServiceInternal.getGroup(groupId);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
         for (User user : users) {
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(OPERATION_ADD_MEMBERS);
-            auditLog.setActorId(userService.getCurrentUser().getUsername());
-            auditLog.setPrimaryTargetId(user.getUsername());
-            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
-            auditLog.setPrimaryTargetValue(user.getUsername());
-            auditServiceInternal.insertAuditLog(auditLog);
+            AuditLogParamter paramter = new AuditLogParamter();
+            paramter.setTargetId(Long.toString(user.getId()));
+            paramter.setTargetType(TARGET_TYPE_USER);
+            paramter.setTargetValue(user.getUsername());
+            paramters.add(paramter);
         }
+        auditLog.setParameters(paramters);
+        auditLog.setOperation(OPERATION_ADD_MEMBERS);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(Long.toString(groupId));
+        auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
+        auditLog.setPrimaryTargetValue(group.getGroupName());
+        auditServiceInternal.insertAuditLog(auditLog);
         return users;
     }
 
@@ -227,17 +243,24 @@ public class GroupServiceImpl implements GroupService {
             List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
 
             groupServiceInternal.removeGroupMembers(groupId, userIds, usernames);
-
-            // TODO: Make it bulk
+            SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_REMOVE_MEMBERS);
+            auditLog.setActorId(userService.getCurrentUser().getUsername());
+            auditLog.setSiteId(siteFeed.getId());
+            auditLog.setPrimaryTargetId(Long.toString(group.getId()));
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(group.getGroupName());
+            List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
             for (User user : users) {
-                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                auditLog.setOperation(OPERATION_REMOVE_MEMBERS);
-                auditLog.setActorId(userService.getCurrentUser().getUsername());
-                auditLog.setPrimaryTargetId(group.getGroupName() + ":" + user.getUsername());
-                auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
-                auditLog.setPrimaryTargetValue(user.getUsername());
-                auditServiceInternal.insertAuditLog(auditLog);
+                AuditLogParamter paramter = new AuditLogParamter();
+                paramter.setTargetId(Long.toString(user.getId()));
+                paramter.setTargetType(TARGET_TYPE_USER);
+                paramter.setTargetValue(user.getUsername());
+                paramters.add(paramter);
             }
+            auditLog.setParameters(paramters);
+            auditServiceInternal.insertAuditLog(auditLog);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }
@@ -305,5 +328,13 @@ public class GroupServiceImpl implements GroupService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

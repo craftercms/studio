@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -39,4 +40,6 @@ public interface AuthenticationChain {
     GroupDAO getGroupDao();
 
     AuditServiceInternal getAuditServiceInternal();
+
+    SiteService getSiteService();
 }

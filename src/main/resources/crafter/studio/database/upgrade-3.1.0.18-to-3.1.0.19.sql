@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `audit_parameters` (
   `audit_id`          BIGINT(20) NOT NULL,
   `target_id`         VARCHAR(256)  NOT NULL,
   `target_type`       VARCHAR(16)   NOT NULL,
-  `target_subtype`    VARCHAR(32)   NOT NULL,
+  `target_subtype`    VARCHAR(32)   NULL,
   `target_value`      VARCHAR(512)  NOT NULL,
   PRIMARY KEY (`id`),
   KEY `audit_parameters_audit_id_idx` (`audit_id`),

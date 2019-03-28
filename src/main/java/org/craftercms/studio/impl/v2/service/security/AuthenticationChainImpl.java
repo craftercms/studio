@@ -20,11 +20,11 @@ package org.craftercms.studio.impl.v2.service.security;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
@@ -37,10 +37,8 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
@@ -59,6 +57,7 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     private UserDAO userDao;
     private GroupDAO groupDao;
     private AuditServiceInternal auditServiceInternal;
+    private SiteService siteService;
 
     public void init() {
         List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
@@ -90,10 +89,12 @@ public class AuthenticationChainImpl implements AuthenticationChain {
             }
         }
         String ipAddress = request.getRemoteAddr();
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         if (authenticated) {
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_LOGIN);
             auditLog.setActorId(username);
+            auditLog.setSiteId(siteFeed.getId());
             auditLog.setPrimaryTargetId(username);
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(username);
@@ -105,6 +106,7 @@ public class AuthenticationChainImpl implements AuthenticationChain {
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_LOGIN_FAILED);
             auditLog.setActorId(username);
+            auditLog.setSiteId(siteFeed.getId());
             auditLog.setPrimaryTargetId(StringUtils.isEmpty(username) ? StringUtils.EMPTY : username);
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(username);
@@ -162,5 +164,13 @@ public class AuthenticationChainImpl implements AuthenticationChain {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

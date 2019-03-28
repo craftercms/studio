@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -77,6 +78,7 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParamter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -227,10 +229,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext,
                         submissionComment, environment);
-
+                SiteFeed siteFeed = siteService.getSite(site);
                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                 auditLog.setOperation(OPERATION_REQUEST_PUBLISH);
                 auditLog.setActorId(submittedBy);
+                auditLog.setSiteId(siteFeed.getId());
                 auditLog.setPrimaryTargetId(site);
                 auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
                 auditLog.setPrimaryTargetValue(site);
@@ -987,27 +990,30 @@ public class WorkflowServiceImpl implements WorkflowService {
                                 addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
                         goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
+                        List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             goLivePaths.add(goLiveItem.getUri());
+                            AuditLogParamter auditLogParamter = new AuditLogParamter();
+                            auditLogParamter.setTargetId(site + ":" + goLiveItem.getUri());
+                            auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLogParamter.setTargetValue(goLiveItem.getUri());
+                            auditLogParamters.add(auditLogParamter);
                         }
                         goLive(site, goLiveItems, approver, mcpContext);
+                        SiteFeed siteFeed = siteService.getSite(site);
+                        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                        auditLog.setActorId(approver);
+                        auditLog.setSiteId(siteFeed.getId());
+                        auditLog.setPrimaryTargetId(site);
+                        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+                        auditLog.setPrimaryTargetValue(site);
+                        auditLog.setParameters(auditLogParamters);
                         if (scheduledDate != null && !isNow) {
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_APPROVE_SCHEDULED);
-                            auditLog.setActorId(approver);
-                            auditLog.setPrimaryTargetId(site);
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-                            auditLog.setPrimaryTargetValue(site);
-                            auditServiceInternal.insertAuditLog(auditLog);
                         } else {
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_APPROVE);
-                            auditLog.setActorId(approver);
-                            auditLog.setPrimaryTargetId(site);
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-                            auditLog.setPrimaryTargetValue(site);
-                            auditServiceInternal.insertAuditLog(auditLog);
                         }
+                        auditServiceInternal.insertAuditLog(auditLog);
                     }
 
                     if (!renameItems.isEmpty()) {
@@ -1042,18 +1048,26 @@ public class WorkflowServiceImpl implements WorkflowService {
                     responseMessageKey = NotificationService.COMPLETE_DELETE;
                     List<String> deletePaths = new ArrayList<>();
                     List<String> nodeRefs = new ArrayList<String>();
+                    List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
                     for (DmDependencyTO deletedItem : submittedItems) {
                         //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
                         deletePaths.add(deletedItem.getUri());
+                        AuditLogParamter auditLogParamter = new AuditLogParamter();
+                        auditLogParamter.setTargetId(site + ":" + deletedItem.getUri());
+                        auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                        auditLogParamter.setTargetValue(deletedItem.getUri());
+                        auditLogParamters.add(auditLogParamter);
                     }
                     doDelete(site, submittedItems, approver);
-                    // TODO: Make it bulk
+                    SiteFeed siteFeed = siteService.getSite(site);
                     AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                     auditLog.setOperation(OPERATION_APPROVE);
                     auditLog.setActorId(approver);
+                    auditLog.setSiteId(siteFeed.getId());
                     auditLog.setPrimaryTargetId(site);
                     auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                     auditLog.setPrimaryTargetValue(site);
+                    auditLog.setParameters(auditLogParamters);
                     auditServiceInternal.insertAuditLog(auditLog);
 
             }
@@ -2224,22 +2238,31 @@ public class WorkflowServiceImpl implements WorkflowService {
                     submittedItems.add(submittedItem);
                 }
                 List<String> paths = new ArrayList<String>();
+                List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
                 for (DmDependencyTO goLiveItem : submittedItems) {
                     if (contentService.contentExists(site, goLiveItem.getUri())) {
                         paths.add(goLiveItem.getUri());
                     }
+                    AuditLogParamter auditLogParamter = new AuditLogParamter();
+                    auditLogParamter.setTargetId(site + ":" + goLiveItem.getUri());
+                    auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                    auditLogParamter.setTargetValue(goLiveItem.getUri());
+                    auditLogParamters.add(auditLogParamter);
                 }
                 objectStateService.setSystemProcessingBulk(site, paths, true);
                 Set<String> cancelPaths = new HashSet<String>();
                 cancelPaths.addAll(paths);
                 deploymentService.cancelWorkflowBulk(site, cancelPaths);
                 reject(site, submittedItems, reason, approver);
+                SiteFeed siteFeed = siteService.getSite(site);
                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                 auditLog.setOperation(OPERATION_REJECT);
                 auditLog.setActorId(approver);
+                auditLog.setSiteId(siteFeed.getId());
                 auditLog.setPrimaryTargetId(site);
                 auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                 auditLog.setPrimaryTargetValue(site);
+                auditLog.setParameters(auditLogParamters);
                 auditServiceInternal.insertAuditLog(auditLog);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);

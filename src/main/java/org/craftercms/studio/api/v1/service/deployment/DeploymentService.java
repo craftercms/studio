@@ -43,7 +43,7 @@ public interface DeploymentService {
 
     // document
     void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate)
-            throws DeploymentException;
+            throws DeploymentException, SiteNotFoundException;
 
     List<PublishRequest> getScheduledItems(String site);
 

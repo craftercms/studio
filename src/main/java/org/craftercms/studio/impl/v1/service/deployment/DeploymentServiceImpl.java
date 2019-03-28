@@ -288,7 +288,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @ValidateParams
     public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
                        @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate)
-            throws DeploymentException {
+            throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
 
@@ -324,7 +324,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
-                                                   String approver, ZonedDateTime scheduledDate) {
+                                                   String approver, ZonedDateTime scheduledDate) throws SiteNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         String packageId = UUID.randomUUID().toString();
         for (String path : paths) {
@@ -383,7 +383,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return newItems;
     }
 
-    private void deleteFolder(String site, String path, String user) {
+    private void deleteFolder(String site, String path, String user) throws SiteNotFoundException {
         String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         if (contentService.contentExists(site, path)) {
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);

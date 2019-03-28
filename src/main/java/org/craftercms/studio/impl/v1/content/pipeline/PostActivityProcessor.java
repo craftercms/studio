@@ -18,26 +18,19 @@ package org.craftercms.studio.impl.v1.content.pipeline;
 
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
-import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_MEMBERS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 public class PostActivityProcessor extends BaseContentProcessor {
 
@@ -60,7 +53,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
         super(name);
     }
 
-    public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+    public void process(PipelineContent content, ResultTO result) throws SiteNotFoundException {
         if (result.getCommitId() != null) {
             String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
             String user = content.getProperty(DmConstants.KEY_USER);
@@ -76,28 +69,21 @@ public class PostActivityProcessor extends BaseContentProcessor {
             }
             String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR
                     + fileName;
-            List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-            if (ContentUtils.matchesPatterns(uri, displayPatterns)) {
-                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                auditLog.setOperation(activityType);
-                auditLog.setActorId(user);
-                auditLog.setPrimaryTargetId(site + ":" + uri);
-                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                auditLog.setPrimaryTargetValue(user);
-                auditServiceInternal.insertAuditLog(auditLog);
-            }
+            SiteFeed siteFeed = siteService.getSite(site);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(activityType);
+            auditLog.setActorId(user);
+            auditLog.setSiteId(siteFeed.getId());
+            auditLog.setPrimaryTargetId(site + ":" + uri);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLog.setPrimaryTargetValue(user);
+            auditServiceInternal.insertAuditLog(auditLog);
+
         }
     }
 
-    protected ServicesConfig servicesConfig;
-    protected ContentService contentService;
     protected AuditServiceInternal auditServiceInternal;
-
-    public ServicesConfig getServicesConfig() { return servicesConfig; }
-    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
-
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    protected SiteService siteService;
 
     public AuditServiceInternal getAuditServiceInternal() {
         return auditServiceInternal;
@@ -105,5 +91,13 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v2.service.audit.internal;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface AuditServiceInternal {
@@ -54,7 +55,14 @@ public interface AuditServiceInternal {
      *
      * @return List of audit log entries
      */
-    List<AuditLog> getAuditLog();
+    List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
+                               List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
+                               ZonedDateTime dateTo, String target, String origin, String clusterNodeId, String sort,
+                               String order);
+
+    int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
+                                    boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                    String target, String origin, String clusterNodeId);
 
     /**
      * Get audit log entry by id

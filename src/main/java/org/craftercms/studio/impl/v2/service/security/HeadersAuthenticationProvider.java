@@ -19,14 +19,15 @@ package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_MEMBERS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
@@ -95,6 +97,9 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                         UserServiceInternal userServiceInternal = authenticationChain.getUserServiceInternal();
                         AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
                         StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
+                        SiteService siteService = authenticationChain.getSiteService();
+                        SiteFeed siteFeed =
+                                siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
                         if (userServiceInternal.userExists(-1, usernameHeaderValue)) {
                             User user = userServiceInternal.getUserByIdOrUsername(-1, usernameHeaderValue);
                             user.setFirstName(firstName);
@@ -107,6 +112,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                     AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                                     auditLog.setOperation(OPERATION_UPDATE);
                                     auditLog.setActorId(usernameHeaderValue);
+                                    auditLog.setSiteId(siteFeed.getId());
                                     auditLog.setPrimaryTargetId(usernameHeaderValue);
                                     auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
                                     auditLog.setPrimaryTargetValue(user.getUsername());
@@ -135,6 +141,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 userServiceInternal.createUser(user);
                                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_CREATE);
+                                auditLog.setSiteId(siteFeed.getId());
                                 auditLog.setActorId(usernameHeaderValue);
                                 auditLog.setPrimaryTargetId(usernameHeaderValue);
                                 auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
@@ -166,13 +173,18 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                         String[] groupsArray = groups.split(",");
                         for (int i = 0; i < groupsArray.length; i++) {
                             Group g = new Group();
-                            g.setGroupName(StringUtils.trim(groupsArray[i]));
-                            g.setGroupDescription("Externally managed group");
-                            g.setOrganization(null);
-                            UserGroup ug = new UserGroup();
-                            ug.setGroup(g);
-                            user.getGroups().add(ug);
-                            upsertUserGroup(g.getGroupName(), usernameHeaderValue, authenticationChain);
+                            try {
+                                g.setGroupName(StringUtils.trim(groupsArray[i]));
+                                g.setGroupDescription("Externally managed group");
+                                g.setOrganization(null);
+                                UserGroup ug = new UserGroup();
+                                ug.setGroup(g);
+                                user.getGroups().add(ug);
+                                upsertUserGroup(g.getGroupName(), usernameHeaderValue, authenticationChain);
+                            } catch (Exception e) {
+                                logger.debug("Error updating user group " + g.getGroupName() +
+                                        " with data from authentication headers", e);
+                            }
                         }
                     }
 
@@ -193,11 +205,14 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
         }
     }
 
-    protected boolean upsertUserGroup(String groupName, String username, AuthenticationChain authenticationChain) {
+    protected boolean upsertUserGroup(String groupName, String username, AuthenticationChain authenticationChain)
+            throws SiteNotFoundException {
         GroupDAO groupDao = authenticationChain.getGroupDao();
         UserDAO userDao = authenticationChain.getUserDao();
         AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
-
+        SiteService siteService = authenticationChain.getSiteService();
+        StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         try {
             Map<String, Object> params = new HashMap<>();
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
@@ -228,6 +243,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                 groupDao.addGroupMembers(params);
                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                 auditLog.setOperation(OPERATION_ADD_MEMBERS);
+                auditLog.setSiteId(siteFeed.getId());
                 auditLog.setActorId(username);
                 auditLog.setPrimaryTargetId(group.getGroupName() + ":" + user.getUsername());
                 auditLog.setPrimaryTargetType(TARGET_TYPE_USER);

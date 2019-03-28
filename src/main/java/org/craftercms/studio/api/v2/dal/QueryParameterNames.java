@@ -28,6 +28,8 @@ public abstract class QueryParameterNames {
     // Sort
     public static final String SORT = "sort";
 
+    public static final String ORDER = "order";
+
     /* Organizations */
 
     // Organization ID
@@ -102,6 +104,20 @@ public abstract class QueryParameterNames {
 
     /* Audit */
     public static final String ACTIONS = "actions";
+
+    public static final String OPERATIONS = "operations";
+
+    public static final String DATE_FROM = "dateFrom";
+
+    public static final String DATE_TO = "dateTo";
+
+    public static final String TARGET = "target";
+
+    public static final String ORIGIN = "origin";
+
+    public static final String CLUSTER_NODE_ID = "clusterNodeId";
+
+    public static final String INCLUDE_PARAMETERS = "includeParameters";
 
     private QueryParameterNames() { }
 }

@@ -17,10 +17,7 @@
 
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -39,7 +36,6 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,9 +55,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
@@ -71,7 +65,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_C
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 
 public class PublisherTask implements Runnable {
@@ -401,22 +394,13 @@ public class PublisherTask implements Runnable {
 
     protected void generateWorkflowActivity(String site, String path, String username, String operation) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
-        String clusterNodeId = StringUtils.EMPTY;
-        HierarchicalConfiguration<ImmutableNode> clusterNodeData =
-                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
-        if (clusterNodeData != null && !clusterNodeData.isEmpty()) {
-            clusterNodeId = clusterNodeData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-        }
-        AuditLog auditLog = new AuditLog();
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
         auditLog.setActorId(username);
-        auditLog.setOrganizationId(1);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setOrigin(ORIGIN_API);
         auditLog.setPrimaryTargetId(site + ":" + path);
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         auditLog.setPrimaryTargetValue(path);
-        auditLog.setClusterNodeId(clusterNodeId);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 

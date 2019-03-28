@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.content.pipeline;
 
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 /**
@@ -36,7 +37,7 @@ public interface ContentProcessor {
 	 * 			result to return
 	 * @throws ContentProcessException 
 	 */
-	public void process(PipelineContent content, ResultTO result) throws ContentProcessException;
+	public void process(PipelineContent content, ResultTO result) throws ContentProcessException, SiteNotFoundException;
 	
 	/**
 	 * determines if the content is processable by the given parameters

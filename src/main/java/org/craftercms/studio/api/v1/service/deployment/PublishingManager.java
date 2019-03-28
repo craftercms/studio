@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public interface PublishingManager {
 
     List<PublishRequest> getItemsReadyForDeployment(String site, String environment);
 
-    DeploymentItemTO processItem(PublishRequest item) throws DeploymentException;
+    DeploymentItemTO processItem(PublishRequest item) throws DeploymentException, SiteNotFoundException;
 
     void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems)
         throws DeploymentException;

@@ -23,6 +23,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -63,7 +64,7 @@ public class ImportServiceImpl implements ImportService {
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public void importSite(@ValidateSecurePathParam(name = "configLocation") String configLocation) {
+    public void importSite(@ValidateSecurePathParam(name = "configLocation") String configLocation) throws SiteNotFoundException {
         Document document = loadConfiguration(configLocation);
         if (document != null) {
             Element root = document.getRootElement();
@@ -116,7 +117,7 @@ public class ImportServiceImpl implements ImportService {
     @SuppressWarnings("unchecked")
     private void importFromConfigNode(final String site, String publishChannelGroup, final Node node,
                                       final String fileRoot, final String targetRoot,
-                                      boolean publish, int chunkSize, int delayInterval, int delayLength) {
+                                      boolean publish, int chunkSize, int delayInterval, int delayLength) throws SiteNotFoundException {
         if (!inProgress) {
             inProgress = true;
             if (delayInterval > 0) pauseEanbeld = true;
@@ -176,7 +177,7 @@ public class ImportServiceImpl implements ImportService {
     @SuppressWarnings("unchecked")
     private void createFolders(String site, Set<String> importedPaths, List<String> importedFullPaths,
                                List<Node> nodes, String fileRoot, String targetRoot, String parentPath,
-                               boolean overWrite, String user) {
+                               boolean overWrite, String user) throws SiteNotFoundException {
         logger.info("[IMPORT] createFolders : site[" + site + "] " + "] fileRoot [" + fileRoot + "] targetRoot [ "
                 + targetRoot + "] parentPath [" + parentPath + "] overwrite[" + overWrite + "]");
 
@@ -230,7 +231,7 @@ public class ImportServiceImpl implements ImportService {
      * @param user
      */
     protected void importRootFileList(String site, Set<String> importedPaths, List<String> importedFullPaths,
-                                      String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) {
+                                      String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) throws SiteNotFoundException {
         URL resourceUrl = getResourceUrl(fileRoot);
         if (resourceUrl != null) {
             String resourcePath = resourceUrl.getFile();
@@ -294,7 +295,7 @@ public class ImportServiceImpl implements ImportService {
      * @param user
      */
     protected void importFileList(String site, Set<String> importedPaths, List<String> importedFullPaths,
-                                  String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) {
+                                  String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) throws SiteNotFoundException {
         logger.info("[IMPORT] importFileList: fileRoot [" + fileRoot + "] name [" + targetRoot + "] overwrite["
                 + overWrite + "]");
         URL resourceUrl = getResourceUrl(fileRoot);

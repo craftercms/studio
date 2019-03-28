@@ -224,8 +224,10 @@ public class SiteServiceImpl implements SiteService {
         } else {
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONFIGURATION);
         }
+        SiteFeed siteFeed = getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(site + ":" + path);
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
@@ -534,10 +536,12 @@ public class SiteServiceImpl implements SiteService {
 	    }
     }
 
-    private void insertCreateSiteAuditLog(String siteId) {
+    private void insertCreateSiteAuditLog(String siteId) throws SiteNotFoundException {
+	    SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
 	    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
@@ -1066,10 +1070,12 @@ public class SiteServiceImpl implements SiteService {
 	 	return success;
     }
 
-    private void insertDeleteSiteAuditLog(String siteId) {
+    private void insertDeleteSiteAuditLog(String siteId) throws SiteNotFoundException {
+	    SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_DELETE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
@@ -1224,7 +1230,7 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
-                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
+                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId) throws SiteNotFoundException {
         return syncDatabaseWithRepo(site, fromCommitId, true);
     }
 
@@ -1232,7 +1238,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId,
-                                        boolean generateAuditLog) {
+                                        boolean generateAuditLog) throws SiteNotFoundException {
 		boolean toReturn = true;
         List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
@@ -1251,6 +1257,7 @@ public class SiteServiceImpl implements SiteService {
 
 	    boolean diverged = false;
 	    GitLog current = null;
+	    SiteFeed siteFeed = getSite(site);
 
 	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
@@ -1318,7 +1325,8 @@ public class SiteServiceImpl implements SiteService {
                         if (generateAuditLog) {
                             logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
                             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_REMOVE_MEMBERS);
+                            auditLog.setOperation(OPERATION_CREATE);
+                            auditLog.setSiteId(siteFeed.getId());
                             auditLog.setActorId(repoOperation.getAuthor());
                             auditLog.setActorDetails(repoOperation.getAuthor());
                             auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
@@ -1356,6 +1364,7 @@ public class SiteServiceImpl implements SiteService {
                             logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
                             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_UPDATE);
+                            auditLog.setSiteId(siteFeed.getId());
                             auditLog.setActorId(repoOperation.getAuthor());
                             auditLog.setActorDetails(repoOperation.getAuthor());
                             auditLog.setOrigin(ORIGIN_GIT);
@@ -1386,6 +1395,7 @@ public class SiteServiceImpl implements SiteService {
                             logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
                             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_DELETE);
+                            auditLog.setSiteId(siteFeed.getId());
                             auditLog.setOrigin(ORIGIN_GIT);
                             auditLog.setActorId(repoOperation.getAuthor());
                             auditLog.setActorDetails(repoOperation.getAuthor());
@@ -1470,6 +1480,7 @@ public class SiteServiceImpl implements SiteService {
                                     repoOperation.getMoveToPath());
                             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_MOVE);
+                            auditLog.setSiteId(siteFeed.getId());
                             auditLog.setActorId(repoOperation.getAuthor());
                             auditLog.setActorDetails(repoOperation.getAuthor());
                             auditLog.setOrigin(ORIGIN_GIT);
@@ -1696,10 +1707,12 @@ public class SiteServiceImpl implements SiteService {
         return toRet;
     }
 
-    private void insertAddRemoteAuditLog(String siteId, String remoteName) {
+    private void insertAddRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
+	    SiteFeed siteFeed = getSite(siteId);
         String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_ADD_REMOTE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(remoteName);
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
@@ -1717,11 +1730,13 @@ public class SiteServiceImpl implements SiteService {
         return toRet;
     }
 
-    private void insertRemoveRemoteAuditLog(String siteId, String remoteName) {
+    private void insertRemoveRemoteAuditLog(String siteId, String remoteName) throws SiteNotFoundException {
+	    SiteFeed siteFeed = getSite(siteId);
         String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_REMOVE_REMOTE);
         auditLog.setActorId(user);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setPrimaryTargetId(remoteName);
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
         auditLog.setPrimaryTargetValue(remoteName);

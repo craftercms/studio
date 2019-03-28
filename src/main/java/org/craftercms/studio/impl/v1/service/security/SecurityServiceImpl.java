@@ -49,8 +49,10 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -62,6 +64,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -149,6 +152,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected AuthenticationChain authenticationChain;
     protected ConfigurationService configurationService;
     protected AuditServiceInternal auditServiceInternal;
+    protected SiteService siteService;
 
     @Override
     @ValidateParams
@@ -671,7 +675,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean logout() {
+    public boolean logout() throws SiteNotFoundException {
         String username = getCurrentUser();
         deleteAuthentication();
         RequestContext context = RequestContext.getCurrent();
@@ -683,9 +687,11 @@ public class SecurityServiceImpl implements SecurityService {
             httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
             httpSession.invalidate();
 
+            SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_LOGOUT);
             auditLog.setActorId(username);
+            auditLog.setSiteId(siteFeed.getId());
             auditLog.setPrimaryTargetId(username);
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(username);
@@ -1166,5 +1172,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

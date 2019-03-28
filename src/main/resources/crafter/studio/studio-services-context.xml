@@ -223,6 +223,7 @@
         <property name="authenticationChain" ref="crafter.studioAuthenticationChain" />
         <property name="configurationService" ref="configurationService" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -299,6 +300,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="userService" ref="userService" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="groupServiceInternal"
@@ -799,8 +801,8 @@
     </bean>
 
     <bean id="cstudioPostActivityProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.PostActivityProcessor">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">

@@ -18,8 +18,7 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -27,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
@@ -185,7 +185,9 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             UserServiceInternal userServiceInternal = authenticationChain.getUserServiceInternal();
             AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
             StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
+            SiteService siteService = authenticationChain.getSiteService();
             try {
+                SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
                 if (userServiceInternal.userExists(-1, username)) {
                     try {
                         userServiceInternal.updateUser(user);
@@ -196,6 +198,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
                     AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                     auditLog.setOperation(OPERATION_UPDATE);
+                    auditLog.setSiteId(siteFeed.getId());
                     auditLog.setActorId(user.getUsername());
                     auditLog.setPrimaryTargetId(user.getUsername());
                     auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
@@ -207,6 +210,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                         userServiceInternal.createUser(user);
                         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                         auditLog.setOperation(OPERATION_CREATE);
+                        auditLog.setSiteId(siteFeed.getId());
                         auditLog.setActorId(user.getUsername());
                         auditLog.setPrimaryTargetId(user.getUsername());
                         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
@@ -286,6 +290,8 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         UserDAO userDao = authenticationChain.getUserDao();
         GroupDAO groupDao = authenticationChain.getGroupDao();
         AuditServiceInternal auditServiceInternal = authenticationChain.getAuditServiceInternal();
+        SiteService siteService = authenticationChain.getSiteService();
+        StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
         try {
             Map<String, Object> params = new HashMap<>();
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
@@ -311,10 +317,12 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             params.put(GROUP_ID, group.getId());
             try {
                 groupDao.addGroupMembers(params);
-
+                SiteFeed siteFeed =
+                        siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                 auditLog.setOperation(OPERATION_ADD_MEMBERS);
                 auditLog.setActorId(user.getUsername());
+                auditLog.setSiteId(siteFeed.getId());
                 auditLog.setPrimaryTargetId(group.getGroupName() + ":" + user.getUsername());
                 auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
                 auditLog.setPrimaryTargetValue(user.getUsername());

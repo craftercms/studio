@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParamter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -127,8 +128,10 @@ public class UserServiceImpl implements UserService {
                                             "your system administrator.", e);
         }
         User toRet = userServiceInternal.createUser(user);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(user.getUsername());
         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
@@ -141,8 +144,10 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = "update_users")
     public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         userServiceInternal.updateUser(user);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_UPDATE);
+        auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(user.getUsername());
         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
@@ -193,15 +198,23 @@ public class UserServiceImpl implements UserService {
 
             List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
+            SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_DELETE);
+            auditLog.setActorId(getCurrentUser().getUsername());
+            auditLog.setPrimaryTargetId(siteFeed.getSiteId());
+            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+            auditLog.setPrimaryTargetValue(siteFeed.getName());
+            List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
             for (User deletedUser : toDelete) {
-                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                auditLog.setOperation(OPERATION_DELETE);
-                auditLog.setActorId(getCurrentUser().getUsername());
-                auditLog.setPrimaryTargetId(deletedUser.getUsername());
-                auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
-                auditLog.setPrimaryTargetValue(deletedUser.getUsername());
-                auditServiceInternal.insertAuditLog(auditLog);
+                AuditLogParamter paramter = new AuditLogParamter();
+                paramter.setTargetId(Long.toString(deletedUser.getId()));
+                paramter.setTargetType(TARGET_TYPE_USER);
+                paramter.setTargetValue(deletedUser.getUsername());
+                paramters.add(paramter);
             }
+            auditLog.setParameters(paramters);
+            auditServiceInternal.insertAuditLog(auditLog);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }

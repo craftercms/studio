@@ -29,6 +29,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -101,7 +102,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
         try {
             deploymentService.delete(site, paths, approver, scheduleDate);
-        } catch (DeploymentException ex) {
+        } catch (DeploymentException | SiteNotFoundException ex) {
             logger.error("Unable to delete files due a error ",ex);
         }
     }

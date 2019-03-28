@@ -125,6 +125,7 @@
         <property name="userDao" ref="userDAO" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- CORS -->
