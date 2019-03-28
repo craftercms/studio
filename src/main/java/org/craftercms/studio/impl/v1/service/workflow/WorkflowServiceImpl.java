@@ -96,11 +96,9 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.WORKFLOW_PUB
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE_SCHEDULED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_MEMBERS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
 /**
  * workflow service implementation
