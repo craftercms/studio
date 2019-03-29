@@ -95,6 +95,7 @@ import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
@@ -170,6 +171,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -1895,6 +1897,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceLayerException {
+        boolean isValid = false;
         try {
             logger.debug("Add remote " + remoteName + " to the sandbox repo for the site " + siteId);
             Repository repo = helper.getRepository(siteId, SANDBOX);
@@ -1911,21 +1914,76 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 remoteAddCommand.setName(remoteName);
                 remoteAddCommand.setUri(new URIish(remoteUrl));
                 remoteAddCommand.call();
+
+                try {
+                    isValid = isRemoteValid(siteId, git, remoteName, authenticationType, remoteUsername, remotePassword,
+                            remoteToken, remotePrivateKey);
+                } finally {
+                    if (!isValid) {
+                        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+                        remoteRemoveCommand.setName(remoteName);
+                        remoteRemoveCommand.call();
+                    }
+                }
+
             } catch (URISyntaxException e) {
                 logger.error("Remote URL is invalid " + remoteUrl, e);
                 throw new InvalidRemoteUrlException();
-            } catch (GitAPIException e) {
+            } catch (GitAPIException | IOException e) {
                 logger.error("Error while adding remote " + remoteName + " (url: " + remoteUrl + ") for site " +
                         siteId, e);
                 throw new ServiceLayerException("Error while adding remote " + remoteName + " (url: " + remoteUrl +
                         ") for site " + siteId, e);
             }
 
-            insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
-                    remoteToken, remotePrivateKey);
+            if (isValid) {
+                insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                        remoteToken, remotePrivateKey);
+            }
         } catch (CryptoException e) {
             throw new ServiceLayerException(e);
         }
+        return isValid;
+    }
+
+    private boolean isRemoteValid(String siteId, Git git, String remote, String authenticationType,
+                                  String remoteUsername, String remotePassword, String remoteToken,
+                                  String remotePrivateKey)
+            throws CryptoException, IOException, ServiceLayerException, GitAPIException {
+        LsRemoteCommand lsRemoteCommand = git.lsRemote();
+        lsRemoteCommand.setRemote(remote);
+        switch (authenticationType) {
+            case RemoteRepository.AuthenticationType.NONE:
+                logger.debug("No authentication");
+                break;
+            case RemoteRepository.AuthenticationType.BASIC:
+                logger.debug("Basic authentication");
+                lsRemoteCommand.setCredentialsProvider(
+                        new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword));
+                break;
+            case RemoteRepository.AuthenticationType.TOKEN:
+                logger.debug("Token based authentication");
+                lsRemoteCommand.setCredentialsProvider(
+                        new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY));
+                break;
+            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                logger.debug("Private key authentication");
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                tempKey.toFile().deleteOnExit();
+                lsRemoteCommand.setTransportConfigCallback(
+                        new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport) transport;
+                                sshTransport.setSshSessionFactory(getSshSessionFactory(remotePrivateKey, tempKey));
+                            }
+                        });
+                Files.delete(tempKey);
+                break;
+            default:
+                throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
+        }
+        Collection<Ref> result = lsRemoteCommand.call();
         return true;
     }
 
@@ -2009,45 +2067,47 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         params.put("siteId", siteId);
                         params.put("remoteName", conf.getName());
                         RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
-                        switch (remoteRepository.getAuthenticationType()) {
-                            case RemoteRepository.AuthenticationType.NONE:
-                                logger.debug("No authentication");
-                                git.fetch().setRemote(conf.getName()).call();
-                                break;
-                            case RemoteRepository.AuthenticationType.BASIC:
-                                logger.debug("Basic authentication");
-                                String hashedPassword = remoteRepository.getRemotePassword();
-                                String password = encryptor.decrypt(hashedPassword);
-                                git.fetch().setRemote(conf.getName()).setCredentialsProvider(
-                                        new UsernamePasswordCredentialsProvider(
-                                                remoteRepository.getRemoteUsername(), password)).call();
-                                break;
-                            case RemoteRepository.AuthenticationType.TOKEN:
-                                logger.debug("Token based authentication");
-                                String hashedToken = remoteRepository.getRemoteToken();
-                                String remoteToken = encryptor.decrypt(hashedToken);
-                                git.fetch().setRemote(conf.getName()).setCredentialsProvider(
-                                        new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY)).call();
-                                break;
-                            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                                logger.debug("Private key authentication");
-                                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
-                                String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
-                                String privateKey = encryptor.decrypt(hashedPrivateKey);
-                                tempKey.toFile().deleteOnExit();
-                                git.fetch().setRemote(conf.getName()).setTransportConfigCallback(
-                                        new TransportConfigCallback() {
-                                    @Override
-                                    public void configure(Transport transport) {
-                                        SshTransport sshTransport = (SshTransport)transport;
-                                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
-                                    }
-                                }).call();
-                                Files.delete(tempKey);
-                                break;
-                            default:
-                                throw new ServiceLayerException("Unsupported authentication type " +
-                                        remoteRepository.getAuthenticationType());
+                        if (remoteRepository != null) {
+                            switch (remoteRepository.getAuthenticationType()) {
+                                case RemoteRepository.AuthenticationType.NONE:
+                                    logger.debug("No authentication");
+                                    git.fetch().setRemote(conf.getName()).call();
+                                    break;
+                                case RemoteRepository.AuthenticationType.BASIC:
+                                    logger.debug("Basic authentication");
+                                    String hashedPassword = remoteRepository.getRemotePassword();
+                                    String password = encryptor.decrypt(hashedPassword);
+                                    git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                            new UsernamePasswordCredentialsProvider(
+                                                    remoteRepository.getRemoteUsername(), password)).call();
+                                    break;
+                                case RemoteRepository.AuthenticationType.TOKEN:
+                                    logger.debug("Token based authentication");
+                                    String hashedToken = remoteRepository.getRemoteToken();
+                                    String remoteToken = encryptor.decrypt(hashedToken);
+                                    git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                            new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY)).call();
+                                    break;
+                                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                                    logger.debug("Private key authentication");
+                                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                                    String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                                    String privateKey = encryptor.decrypt(hashedPrivateKey);
+                                    tempKey.toFile().deleteOnExit();
+                                    git.fetch().setRemote(conf.getName()).setTransportConfigCallback(
+                                            new TransportConfigCallback() {
+                                                @Override
+                                                public void configure(Transport transport) {
+                                                    SshTransport sshTransport = (SshTransport) transport;
+                                                    sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                                                }
+                                            }).call();
+                                    Files.delete(tempKey);
+                                    break;
+                                default:
+                                    throw new ServiceLayerException("Unsupported authentication type " +
+                                            remoteRepository.getAuthenticationType());
+                            }
                         }
                     }
                     List<Ref> resultRemoteBranches = git.branchList()
