@@ -505,12 +505,7 @@ public class SiteServiceImpl implements SiteService {
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 	                    blueprintId + ". Rolling back.", e);
 
-			    boolean deleted = previewDeployer.deleteTarget(siteId);
-				if (!deleted) {
-					logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
-						" from blueprint: " + blueprintId + ". This means the site's preview deployer target is " +
-						"still present, but the site is not successfully created.");
-				}
+				deleteSite(siteId);
 
 			    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId +
                         " from blueprint: " + blueprintId + ". Rolling back.");
@@ -894,6 +889,8 @@ public class SiteServiceImpl implements SiteService {
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                         blueprintId + ". Rolling back.", e);
 
+                contentRepository.deleteSite(siteId);
+
                 boolean deleted = previewDeployer.deleteTarget(siteId);
                 if (!deleted) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
@@ -984,12 +981,6 @@ public class SiteServiceImpl implements SiteService {
                         blueprintId + ". Rolling back.", e);
 
                 deleteSite(siteId);
-                boolean deleted = previewDeployer.deleteTarget(siteId);
-                if (!deleted) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintId + ". This means the site's preview deployer target is " +
-                            "still present, but the site is not successfully created.");
-                }
 
                 throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
                         " from blueprint: " + blueprintId + ". Rolling back.");
