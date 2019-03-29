@@ -145,13 +145,14 @@
     <select id="getGroupMembers" parameterType="java.util.Map" resultMap="UserMap">
         SELECT u.* FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
         WHERE gu.group_id = #{groupId}
+        AND u.deleted = 0
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
 
     <select id="getGroupMembersTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
         SELECT COUNT(*) FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
-        WHERE gu.group_id = #{groupId}
+        WHERE gu.group_id = #{groupId} AND u.deleted = 0
     </select>
 
     <insert id="addGroupMembers" parameterType="java.util.Map" >
