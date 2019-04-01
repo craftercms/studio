@@ -1916,7 +1916,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 remoteAddCommand.call();
 
                 try {
-                    isValid = isRemoteValid(siteId, git, remoteName, authenticationType, remoteUsername, remotePassword,
+                    isValid = isRemoteValid(git, remoteName, authenticationType, remoteUsername, remotePassword,
                             remoteToken, remotePrivateKey);
                 } finally {
                     if (!isValid) {
@@ -1946,7 +1946,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return isValid;
     }
 
-    private boolean isRemoteValid(String siteId, Git git, String remote, String authenticationType,
+    private boolean isRemoteValid(Git git, String remote, String authenticationType,
                                   String remoteUsername, String remotePassword, String remoteToken,
                                   String remotePrivateKey)
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
@@ -1983,7 +1983,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             default:
                 throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
         }
-        Collection<Ref> result = lsRemoteCommand.call();
+        lsRemoteCommand.call();
         return true;
     }
 
