@@ -784,6 +784,30 @@
                             <filtering>false</filtering>
                             <targetPath>default-site/static-assets/images/blueprints/video-center</targetPath>
                         </resource>
+                        <!-- empty blueprint -->
+                        <resource>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/empty/static-assets/images/screenshots</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets/images/blueprints/empty</targetPath>
+                        </resource>
+                        <!-- headless blog blueprint -->
+                        <resource>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/headless_blog/static-assets/images/screenshots</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets/images/blueprints/headless_blog</targetPath>
+                        </resource>
+                        <!-- headless store blueprint -->
+                        <resource>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/headless_store/static-assets/images/screenshots</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets/images/blueprints/headless_store</targetPath>
+                        </resource>
+                        <!-- editorial blueprint -->
+                        <resource>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/website_editorial/static-assets/images/screenshots</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets/images/blueprints/website_editorial</targetPath>
+                        </resource>
 
                     </webResources>
                 </configuration>
