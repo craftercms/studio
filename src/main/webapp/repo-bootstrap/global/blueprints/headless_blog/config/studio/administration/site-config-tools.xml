@@ -360,10 +360,6 @@
             <label>Workflow States</label>
         </tool>
         <tool>
-            <name>logging</name>
-            <label>Logging Levels</label>
-        </tool>
-        <tool>
             <name>log-view</name>
             <label>Log Console</label>
         </tool>
