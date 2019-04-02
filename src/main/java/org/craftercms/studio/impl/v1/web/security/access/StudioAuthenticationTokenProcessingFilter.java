@@ -66,7 +66,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     private StudioConfiguration studioConfiguration;
 
     private boolean authenticationHeadersEnabled = false;
-    List<String> usernameHeaders = null;
+    private List<String> usernameHeaders = null;
 
     public void init() {
         List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
