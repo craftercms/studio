@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED;
@@ -65,6 +66,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     private StudioConfiguration studioConfiguration;
 
     private boolean authenticationHeadersEnabled = false;
+    List<String> usernameHeaders = null;
 
     public void init() {
         List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
@@ -74,6 +76,13 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                     providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()
                             .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
                             providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED));
+            usernameHeaders = chainConfig.stream().filter(providerConfig ->
+                    providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()
+                            .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
+                            providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED))
+                    .map(providerConfig -> {
+                        return providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER);
+                    }).collect(Collectors.toList());
         }
     }
 
@@ -113,18 +122,21 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                 }
             } else { if (isAuthenticationHeadersEnabled()) {
                     // If user not authenticated check for authentication headers
-                    String usernameHeader =
-                            httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER));
-                    if (StringUtils.isNotEmpty(usernameHeader)) {
-                        try {
-                            securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
-                            UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
-                            UsernamePasswordAuthenticationToken authentication =
-                                    new UsernamePasswordAuthenticationToken(userDetails, null,
-                                            userDetails.getAuthorities());
-                            SecurityContextHolder.getContext().setAuthentication(authentication);
-                        } catch (Exception e) {
-                            crafterLogger.error("Unable to authenticate user using authentication headers.", e);
+                    String usernameHeader = null;
+                    for (String header : usernameHeaders) {
+                        usernameHeader = httpRequest.getHeader(header);
+                        if (StringUtils.isNotEmpty(usernameHeader)) {
+                            try {
+                                securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
+                                UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
+                                UsernamePasswordAuthenticationToken authentication =
+                                        new UsernamePasswordAuthenticationToken(userDetails, null,
+                                                userDetails.getAuthorities());
+                                SecurityContextHolder.getContext().setAuthentication(authentication);
+                                break;
+                            } catch (Exception e) {
+                                crafterLogger.error("Unable to authenticate user using authentication headers.", e);
+                            }
                         }
                     }
                 }
