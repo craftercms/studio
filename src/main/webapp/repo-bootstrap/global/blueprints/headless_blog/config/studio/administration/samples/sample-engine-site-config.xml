@@ -80,6 +80,21 @@
 
     (Security Properties)
     <security>
+        <saml>
+            <token/> (The expected value for the secure key request header)
+			<groups>
+			    <group>
+				    <name/> (The name of the group from the request header)
+					<role/> (The value to use for the role in the profile)
+				</group>
+			</groups>
+			<attributes>
+			    <attribute>
+				    <name/> (The name of the request header for the attribute)
+					<field/> (The name of the field to use in the profile)
+				</attribute>
+			</attributes>
+        </saml/>
         <login>
             <formUrl /> (The URL of the login form page)
             <defaultSuccessUrl /> (The URL to redirect to if the login was successful and the user could not be redirected to the previous page)
@@ -190,6 +205,21 @@
 
     <!-- Security properties -->
     <security>
+        <saml>
+            <token>SOME_RANDOM_TOKEN</token>
+            <groups>
+                <group>
+                    <name>MEMBER</name>
+                    <role>memberUser</role>
+                </group>
+            </groups>
+            <attributes>
+                <attribute>
+                    <name>givenName</name>
+                    <field>firstName</field>
+                </attribute>
+            </attributes>
+        </saml>
         <login>
             <formUrl>/signin</formUrl>
             <defaultSuccessUrl>/home</defaultSuccessUrl>
