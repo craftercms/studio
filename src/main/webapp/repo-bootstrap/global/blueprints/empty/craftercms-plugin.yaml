@@ -36,3 +36,4 @@ blueprint:
     url: https://opensource.org/licenses/MIT
   craftercmsVersionsSupported:
     - version: 3.1.0
+  searchEngine: Elasticsearch

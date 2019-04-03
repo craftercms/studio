@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `publishing_status_message`       VARCHAR(2000) NULL,
   `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
-  `search_engine`                   VARCHAR(20)   NOT NULL DEFAULT 'ElasticSearch',
+  `search_engine`                   VARCHAR(20)   NOT NULL DEFAULT 'Elasticsearch',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),
