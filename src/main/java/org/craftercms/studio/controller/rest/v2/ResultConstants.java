@@ -54,5 +54,6 @@ public interface ResultConstants {
     String RESULT_KEY_STAUS = "status";
     String RESULT_KEY_VERSION = "version";
     String RESULT_KEY_MEMORY = "memory";
+    String RESULT_KEY_EVENTS = "events";
 
 }
