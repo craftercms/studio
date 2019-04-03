@@ -19,7 +19,6 @@ package org.craftercms.studio.controller.rest.v2;
 
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.monitoring.MemoryInfo;
 import org.craftercms.commons.monitoring.StatusInfo;
 import org.craftercms.commons.monitoring.VersionInfo;
