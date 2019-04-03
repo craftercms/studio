@@ -17,16 +17,24 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.monitoring.MemoryInfo;
 import org.craftercms.commons.monitoring.StatusInfo;
 import org.craftercms.commons.monitoring.VersionInfo;
+import org.craftercms.engine.util.logging.CircularQueueLogAppender;
 import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.*;
+import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_EVENTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MEMORY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_STAUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_VERSION;
@@ -60,6 +68,14 @@ public class MonitoringController {
         ResultOne<VersionInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(RESULT_KEY_VERSION, VersionInfo.getVersion(getClass()));
+        return result;
+    }
+
+    @GetMapping(LOG_URL)
+    public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since) {
+        ResultList<Map<String,Object>> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(RESULT_KEY_EVENTS, CircularQueueLogAppender.getLoggedEvents("craftercms", since));
         return result;
     }
 

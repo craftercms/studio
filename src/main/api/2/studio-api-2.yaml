@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.22'
+  version: '2.0.23'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1424,6 +1424,38 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /monitoring/log:
+    get:
+      tags:
+        - monitoring
+      summary: Get the log events for a specific time period
+      operationId: getLogEvents
+      parameters:
+        - name: since
+          in: query
+          description: The time in milliseconds from which events should be fetched
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LogEvent'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -2007,6 +2039,32 @@ components:
           type: integer
           format: int64
           description: The remaining memory in bytes for swap space
+    LogEvent:
+      type: object
+      properties:
+        exception:
+          type: string
+          description: The exception message if any
+        site:
+          type: string
+          description: The site name
+        level:
+          type: string
+          description: The level of the log event
+        thread:
+          type: string
+          description: The name of the thread
+        message:
+          type: string
+          description: The message of the log event
+        timestamp:
+          type: string
+          format: datetime
+          description: The timestamp of the log event
+        timestampm:
+          type: integer
+          format: int64
+          description: The time in milliseconds of the log event
   responses:
     NotFound:
       description: Resource not found
