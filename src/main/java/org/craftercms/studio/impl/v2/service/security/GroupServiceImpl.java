@@ -191,15 +191,15 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupServiceInternal.getGroup(groupId);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
+        List<AuditLogParamter> parameters = new ArrayList<AuditLogParamter>();
         for (User user : users) {
-            AuditLogParamter paramter = new AuditLogParamter();
-            paramter.setTargetId(Long.toString(user.getId()));
-            paramter.setTargetType(TARGET_TYPE_USER);
-            paramter.setTargetValue(user.getUsername());
-            paramters.add(paramter);
+            AuditLogParamter parameter = new AuditLogParamter();
+            parameter.setTargetId(Long.toString(user.getId()));
+            parameter.setTargetType(TARGET_TYPE_USER);
+            parameter.setTargetValue(user.getUsername());
+            parameters.add(parameter);
         }
-        auditLog.setParameters(paramters);
+        auditLog.setParameters(parameters);
         auditLog.setOperation(OPERATION_ADD_MEMBERS);
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(userService.getCurrentUser().getUsername());

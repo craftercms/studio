@@ -26,6 +26,7 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -67,8 +68,10 @@ public class AuditController {
             @RequestParam(value = REQUEST_PARAM_USER, required = false, defaultValue = "") String user,
             @RequestParam(value = REQUEST_PARAM_OPERATIONS, required = false) List<String> operations,
             @RequestParam(value = REQUEST_PARAM_INCLUDE_PARAMETERS, required = false) boolean includeParameters,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false) ZonedDateTime dateTo,
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false) @DateTimeFormat(iso =
+                    DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
+            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false) @DateTimeFormat(iso =
+                    DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @RequestParam(value = REQUEST_PARAM_TARGET, required = false) String target,
             @RequestParam(value = REQUEST_PARAM_ORIGIN, required = false) String origin,
             @RequestParam(value = REQUEST_PARAM_CLUSTER_NODE_ID, required = false) String clusterNodeId,
