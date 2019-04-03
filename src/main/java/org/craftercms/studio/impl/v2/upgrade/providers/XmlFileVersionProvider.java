@@ -26,6 +26,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
@@ -38,6 +40,13 @@ import org.w3c.dom.Document;
  * @author joseross
  */
 public class XmlFileVersionProvider implements VersionProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(XmlFileVersionProvider.class);
+
+    /**
+     * The initial site version to use when there is no version file in the repo
+     */
+    public static final String INITIAL_VERSION = "3.1.0";
 
     /**
      * Name of the site.
@@ -101,7 +110,8 @@ public class XmlFileVersionProvider implements VersionProvider {
                 throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
             }
         } else if(!contentRepository.contentExists(site, path)) {
-            throw new UpgradeNotSupportedException("Site '" + site + "' from 3.0.x can't be automatically upgraded");
+            logger.warn("No version found for site {0}, trying to upgrade from 3.0.x", site);
+            currentVersion = INITIAL_VERSION;
         } else {
             try(InputStream is = contentRepository.getContent(site, path)) {
                 DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();

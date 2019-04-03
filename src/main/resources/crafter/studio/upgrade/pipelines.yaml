@@ -292,12 +292,6 @@ pipelines:
           file: crafter/studio/upgrade/3.1.0.5/sample-form-control-rte-setup-tinymce5.xml
         - type: versionFileUpgrader
 
-    # For older sites just add the version file (those will require a manual upgrade)
-    - currentVersion: 3.0.x
-      nextVersion: 3.0.x
-      operations:
-        - type: versionFileUpgrader
-
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
