@@ -103,15 +103,19 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void upgradeSite(final String site) throws UpgradeException {
+    public void upgradeSite(final String site) {
         logger.info("Checking upgrades for site {0}", site);
 
-        VersionProvider versionProvider = getVersionProvider("siteVersionProvider", site, siteVersionFilePath);
-        UpgradePipeline pipeline = getPipeline(versionProvider, "sitePipelineFactory");
+        try {
+            VersionProvider versionProvider = getVersionProvider("siteVersionProvider", site, siteVersionFilePath);
+            UpgradePipeline pipeline = getPipeline(versionProvider, "sitePipelineFactory");
 
-        pipeline.execute(site);
+            pipeline.execute(site);
 
-        upgradeSiteConfiguration(site);
+            upgradeSiteConfiguration(site);
+        } catch (UpgradeException e) {
+            logger.error("Error during upgrade for site " + site, e);
+        }
     }
 
     /**
@@ -129,11 +133,15 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
             String path = configFile.getString(CONFIG_KEY_PATH);
             logger.info("Checking upgrades for file {0}", path);
 
-            VersionProvider versionProvider = getVersionProvider("fileVersionProvider", site, path);
-            UpgradePipeline pipeline = getPipeline(versionProvider, "filePipelineFactory",
-                configFile.getRootElementName() + CONFIG_PIPELINE_SUFFIX);
+            try {
+                VersionProvider versionProvider = getVersionProvider("fileVersionProvider", site, path);
+                UpgradePipeline pipeline = getPipeline(versionProvider, "filePipelineFactory",
+                    configFile.getRootElementName() + CONFIG_PIPELINE_SUFFIX);
 
-            pipeline.execute(site);
+                pipeline.execute(site);
+            } catch (UpgradeException e) {
+                logger.error("Error upgrading configuration file "+ path, e);
+            }
         }
     }
 
