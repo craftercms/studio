@@ -209,8 +209,8 @@
             <token>SOME_RANDOM_TOKEN</token>
             <groups>
                 <group>
-                    <name>PAID</name>
-                    <role>paidUser</role>
+                    <name>MEMBER</name>
+                    <role>memberUser</role>
                 </group>
             </groups>
             <attributes>
