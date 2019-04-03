@@ -67,5 +67,17 @@
             <icon>fa-bars</icon>
             <permission>audit_log</permission>
         </item>
+        <item>
+            <id>home.globalMenu.logging-levels</id>
+            <label>Logging Levels</label>
+            <icon>fa-level-down</icon>
+            <permission>audit_log</permission>
+        </item>
+        <item>
+            <id>home.globalMenu.log-console</id>
+            <label>Log Console</label>
+            <icon>fa-align-left</icon>
+            <permission>audit_log</permission>
+        </item>
     </items>
 </globalMenu>
