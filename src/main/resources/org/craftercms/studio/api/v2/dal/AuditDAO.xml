@@ -24,6 +24,7 @@
         <id property="id" column="id" />
         <result property="organizationId" column="organization_id" />
         <result property="siteId" column="site_id" />
+        <result property="siteName" column="site_name" />
         <result property="operation" column="operation" />
         <result property="operationTimestamp" column="operation_timestamp" />
         <result property="origin" column="origin" />
@@ -83,11 +84,14 @@
     </select>
 
     <select id="getAuditLogEntry" parameterType="java.util.Map" resultMap="AuditLogMap">
-        SELECT * FROM audit a LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id WHERE a.id = #{id}
+        SELECT a.*, ap.*, s.site_id as site_name
+        FROM (audit a INNER JOIN site s on a.site_id = s.id) LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id
+        WHERE a.id = #{id}
     </select>
 
     <select id="getAuditLog" parameterType="java.util.Map" resultMap="AuditLogMap">
-        SELECT a.*
+        <bind name="sortBy" value="'a.' + sort"/>
+        SELECT a.*, s.site_id as site_name
         <if test="includeParameters">
             , ap.*
         </if>
@@ -104,6 +108,13 @@
         </if>
         <if test="username != null and username !=  '' ">
             AND a.actor_id = #{username}
+        </if>
+        <if test="operations != null">
+            and a.operation in
+            <foreach item="operation" index="index" collection="operations"
+                     open="(" separator="," close=")">
+                #{operation}
+            </foreach>
         </if>
         <choose>
             <when test="dateFrom != null and dateTo != null ">
@@ -126,12 +137,15 @@
             AND a.cluster_node_id = #{clusterNodeId}
         </if>
         <choose>
-          <when test="sort != null and sort !=  '' and order != null and oder != '' ">
-            ORDER BY #{sort} #{order}
+          <when test="sort != null and sort !=  '' and order != null and order != '' ">
+            ORDER BY #{sortBy} #{order}
           </when>
-          <when test="sort != null and sort !=  '' and order == null and oder == '' ">
-            ORDER BY #{sort}
+          <when test="sort != null and sort !=  '' and order == null and order == '' ">
+            ORDER BY #{sortBy}
           </when>
+          <otherwise>
+            ORDER BY a.operation_timestamp DESC
+          </otherwise>
         </choose>
         LIMIT #{offset}, #{limit}
     </select>
@@ -148,6 +162,13 @@
         </if>
         <if test="username != null and username !=  '' ">
             AND a.actor_id = #{username}
+        </if>
+        <if test="operations != null">
+            and a.operation in
+            <foreach item="operation" index="index" collection="operations"
+                     open="(" separator="," close=")">
+                #{operation}
+            </foreach>
         </if>
         <choose>
             <when test="dateFrom != null and dateTo != null ">

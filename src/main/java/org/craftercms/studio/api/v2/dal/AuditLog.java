@@ -24,6 +24,7 @@ public class AuditLog {
     private long id;
     private long organizationId;
     private long siteId;
+    private String siteName;
     private String operation;
     private ZonedDateTime operationTimestamp;
     private String origin;
@@ -58,6 +59,14 @@ public class AuditLog {
 
     public void setSiteId(long siteId) {
         this.siteId = siteId;
+    }
+
+    public String getSiteName() {
+        return siteName;
+    }
+
+    public void setSiteName(String siteName) {
+        this.siteName = siteName;
     }
 
     public String getOperation() {

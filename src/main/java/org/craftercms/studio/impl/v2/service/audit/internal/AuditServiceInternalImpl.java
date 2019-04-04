@@ -127,8 +127,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         if (StringUtils.isNotEmpty(clusterNodeId)) {
             params.put(CLUSTER_NODE_ID, clusterNodeId);
         }
-        if (StringUtils.isNotEmpty(sort)) {
-            params.put(SORT, sort);
+        if (StringUtils.isNotEmpty(sort) && StringUtils.equalsIgnoreCase(sort, "date")) {
+            params.put(SORT, "operation_timestamp");
         }
         if (StringUtils.isNotEmpty(order)) {
             if (StringUtils.equalsIgnoreCase("DESC", order)) {

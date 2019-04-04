@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.23'
+  version: '2.0.24'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1947,21 +1947,23 @@ components:
           type: string
           description: Cluster node Id
         parameters:
-          type: object
-          description: Site to which audit log entry belongs to
-          properties:
-            targetId:
-              type: string
-              description: Target ID upon which operation was executed
-            targetType:
-              type: string
-              description: Type of the target
-            targetSubtype:
-              type: string
-              description: Subtype of the target
-            targetValue:
-              type: string
-              description: Value of the target (e.g. content's path)
+          type: array
+          description: Additional parameters of audit log
+          items:
+            type: object
+            properties:
+              targetId:
+                type: string
+                description: Target ID upon which operation was executed
+              targetType:
+                type: string
+                description: Type of the target
+              targetSubtype:
+                type: string
+                description: Subtype of the target
+              targetValue:
+                type: string
+                description: Value of the target (e.g. content's path)
 
     VersionItem:
       type: object
