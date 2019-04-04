@@ -26,7 +26,14 @@ public interface SitesServiceInternal {
     /**
      * Get list of available blueprints
      */
-    List<BlueprintDescriptor> getAvailbleBlueprints();
+    List<BlueprintDescriptor> getAvailableBlueprints();
+
+    /**
+     * Get the blueprint descriptor from the global repo
+     * @param id the id of the blueprint
+     * @return the descriptor object or null if not found
+     */
+    BlueprintDescriptor getBlueprintDescriptor(String id);
 
     /**
      * Get blueprint location
@@ -35,4 +42,12 @@ public interface SitesServiceInternal {
      * @return blueprint location
      */
     String getBlueprintLocation(String blueprintId);
+
+    /**
+     * Get the blueprint descriptor from a site repo
+     * @param id the id of the site
+     * @return the blueprint object or null if not found
+     */
+    BlueprintDescriptor getSiteBlueprintDescriptor(String id);
+
 }

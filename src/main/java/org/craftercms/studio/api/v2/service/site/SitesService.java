@@ -29,10 +29,25 @@ public interface SitesService {
     List<BlueprintDescriptor> getAvailableBlueprints();
 
     /**
+     * Get the blueprint descriptor from the global repo
+     * @param id the id of the blueprint
+     * @return the descriptor object or null if not found
+     */
+    BlueprintDescriptor getBlueprintDescriptor(String id);
+
+    /**
      * Get blueprint location
      *
      * @param blueprintId blueprint id
      * @return blueprint location
      */
     String getBlueprintLocation(String blueprintId);
+
+    /**
+     * Get the blueprint descriptor from a site repo
+     * @param id the id of the site
+     * @return the blueprint object or null if not found
+     */
+    BlueprintDescriptor getSiteBlueprintDescriptor(String id);
+
 }

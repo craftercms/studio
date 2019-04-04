@@ -27,8 +27,9 @@ import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,61 +47,90 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     private StudioConfiguration studioConfiguration;
 
     @Override
-    public List<BlueprintDescriptor> getAvailbleBlueprints() {
-        RepositoryItem[] blueprintsFolders =
-                contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+    public List<BlueprintDescriptor> getAvailableBlueprints() {
+        RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
         List<BlueprintDescriptor> toRet = new ArrayList<BlueprintDescriptor>();
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
-                try {
-                    Path descriptorPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH),folder.path,
-                            folder.name,
-                            studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
-                    if (Files.exists(descriptorPath)) {
-                        FileReader fr = new FileReader(descriptorPath.toString());
-                        Yaml yaml = new Yaml();
-                        BlueprintDescriptor bdp = yaml.loadAs(fr, BlueprintDescriptor.class);
-                        if (bdp != null) {
-                            toRet.add(bdp);
-                        }
-                    }
-                } catch (FileNotFoundException e) {
-                    logger.error("Error while getting descriptor for blueprint " + folder.name, e);
+                BlueprintDescriptor descriptor = loadDescriptor(folder);
+                if (descriptor != null) {
+                    toRet.add(descriptor);
                 }
             }
         }
-
         return toRet;
     }
 
     @Override
-    public String getBlueprintLocation(String blueprintId) {
-        RepositoryItem[] blueprintsFolders =
-                contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-        String toRet = StringUtils.EMPTY;
+    public BlueprintDescriptor getBlueprintDescriptor(final String id) {
+        RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
-                try {
-                    Path descriptorPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH),folder.path,
-                            folder.name,
-                            studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
-                    if (Files.exists(descriptorPath)) {
-                        FileReader fr = new FileReader(descriptorPath.toString());
-                        Yaml yaml = new Yaml();
-                        BlueprintDescriptor bdp = yaml.loadAs(fr, BlueprintDescriptor.class);
-                        if (bdp != null && bdp.getBlueprint().getId().equals(blueprintId)) {
-                            toRet = descriptorPath.getParent().toAbsolutePath().toString();
-                        }
-                    }
-                } catch (FileNotFoundException e) {
-                    logger.error("Error while getting descriptor for blueprint " + folder.name, e);
+                BlueprintDescriptor descriptor = loadDescriptor(folder);
+                if (descriptor != null && descriptor.getBlueprint().getId().equals(id)) {
+                    return descriptor;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getBlueprintLocation(String blueprintId) {
+        RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
+        for (RepositoryItem folder : blueprintsFolders) {
+            if (folder.isFolder) {
+                Path descriptorPath = getBlueprintPath(folder);
+                BlueprintDescriptor descriptor = loadDescriptor(folder);
+                if (descriptor != null && descriptor.getBlueprint().getId().equals(blueprintId)) {
+                    return descriptorPath.getParent().toAbsolutePath().toString();
                 }
             }
         }
 
-        return toRet;
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    public BlueprintDescriptor getSiteBlueprintDescriptor(final String id) {
+        String descriptorPath = studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME);
+        if (contentRepository.contentExists(id, descriptorPath)) {
+            try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
+                return loadDescriptor(is);
+            } catch (Exception e) {
+                logger.error("Error while getting blueprint descriptor for site " + id, e);
+            }
+        }
+        return null;
+    }
+
+    protected RepositoryItem[] getBlueprintsFolders() {
+        return contentRepository.getContentChildren(
+            StringUtils.EMPTY, studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+    }
+
+    protected Path getBlueprintPath(RepositoryItem folder) {
+        return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), folder.path, folder.name,
+            studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
+    }
+
+    protected BlueprintDescriptor loadDescriptor(InputStream is) {
+        Yaml yaml = new Yaml();
+        return yaml.loadAs(is, BlueprintDescriptor.class);
+    }
+
+    protected BlueprintDescriptor loadDescriptor(RepositoryItem folder) {
+        Path descriptorPath = getBlueprintPath(folder);
+        if (Files.exists(descriptorPath)) {
+            try (FileReader reader = new FileReader(descriptorPath.toString())) {
+                Yaml yaml = new Yaml();
+                return yaml.loadAs(reader, BlueprintDescriptor.class);
+            } catch (IOException e) {
+                logger.error("Error while getting descriptor for blueprint " + folder.name, e);
+            }
+        }
+        return null;
     }
 
     public ContentRepository getContentRepository() {
