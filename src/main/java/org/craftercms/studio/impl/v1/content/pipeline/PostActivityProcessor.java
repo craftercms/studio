@@ -76,7 +76,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
             auditLog.setSiteId(siteFeed.getId());
             auditLog.setPrimaryTargetId(site + ":" + uri);
             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLog.setPrimaryTargetValue(user);
+            auditLog.setPrimaryTargetValue(uri);
             auditServiceInternal.insertAuditLog(auditLog);
 
         }

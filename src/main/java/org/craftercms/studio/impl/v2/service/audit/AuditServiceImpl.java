@@ -21,21 +21,33 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class AuditServiceImpl implements AuditService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuditServiceImpl.class);
+
     private AuditServiceInternal auditServiceInternal;
     private SiteService siteService;
+    private ContentService contentService;
+    private DeploymentService deploymentService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "audit_log")
@@ -80,6 +92,81 @@ public class AuditServiceImpl implements AuditService {
         return auditServiceInternal.getAuditLogEntry(auditLogId);
     }
 
+    @Override
+    public List<ContentItemTO> getUserActivities(String site, String user, int limit, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceLayerException {
+        int startPos = 0;
+        List<ContentItemTO> contentItems = new ArrayList<ContentItemTO>();
+        boolean hasMoreItems = true;
+        while(contentItems.size() < limit && hasMoreItems){
+            int remainingItems = limit - contentItems.size();
+            hasMoreItems = getActivityFeeds(user, site, startPos, limit , filterType, excludeLive,contentItems,
+                    remainingItems);
+            startPos = startPos + limit;
+        }
+        if(contentItems.size() > limit){
+            return contentItems.subList(0, limit);
+        }
+        return contentItems;
+    }
+
+    protected boolean getActivityFeeds(String user, String site,int startPos, int size, String filterType,
+                                       boolean hideLiveItems, List<ContentItemTO> contentItems, int remainingItem) {
+
+        List<AuditLog> activityFeeds = auditServiceInternal.selectUserFeedEntries(user, site, startPos, size, filterType,
+                hideLiveItems);
+
+        boolean hasMoreItems = true;
+
+        //if number of items returned is less than size it means that table has no more records
+        if(activityFeeds.size()<size){
+            hasMoreItems=false;
+        }
+
+        if (activityFeeds != null && activityFeeds.size() > 0) {
+            for (int index = 0; index < activityFeeds.size() && remainingItem!=0; index++) {
+                AuditLog auditLog = activityFeeds.get(index);
+                String id = auditLog.getPrimaryTargetValue();
+                ContentItemTO item = createActivityItem(site, auditLog, id);
+                item.published = true;
+                item.setPublished(true);
+                ZonedDateTime pubDate = deploymentService.getLastDeploymentDate(site, id);
+                item.publishedDate = pubDate;
+                item.setPublishedDate(pubDate);
+                contentItems.add(item);
+                remainingItem--;
+            }
+        }
+        logger.debug("Total Item post live filter : " + contentItems.size() + " hasMoreItems : "+hasMoreItems);
+
+        return hasMoreItems;
+    }
+
+    protected ContentItemTO createActivityItem(String site, AuditLog auditLog, String id) {
+        try {
+            ContentItemTO item = contentService.getContentItem(site, id, 0);
+            if(item == null || item.isDeleted()) {
+                item = contentService.createDummyDmContentItemForDeletedNode(site, id);
+                String modifier = auditLog.getActorId();
+                if(modifier != null && !modifier.isEmpty()) {
+                    item.user = modifier;
+                }
+                item.contentType = auditLog.getPrimaryTargetSubtype();
+                item.setLockOwner("");
+            }
+            ZonedDateTime editedDate = auditLog.getOperationTimestamp();
+            if (editedDate != null) {
+                item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
+            } else {
+                item.eventDate = editedDate;
+            }
+
+            return item;
+        } catch (Exception e) {
+            logger.error("Error fetching content item for [" + id + "]", e.getMessage());
+            return null;
+        }
+    }
+
     public AuditServiceInternal getAuditServiceInternal() {
         return auditServiceInternal;
     }
@@ -94,5 +181,21 @@ public class AuditServiceImpl implements AuditService {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
     }
 }

@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v2.dal;
 
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,4 +37,8 @@ public interface AuditDAO {
     int insertAuditLog(AuditLog auditLog);
 
     void insertAuditLogParams(Map params);
+
+    List<AuditLog> selectUserFeedEntriesHideLive(Map params);
+
+    List<AuditLog> selectUserFeedEntries(Map params);
 }

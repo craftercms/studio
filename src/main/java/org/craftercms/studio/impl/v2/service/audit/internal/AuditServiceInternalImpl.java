@@ -22,6 +22,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -29,6 +30,8 @@ import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +39,10 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIONS;
@@ -213,6 +220,29 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         auditLog.setOrigin(ORIGIN_API);
         auditLog.setClusterNodeId(clusterNodeId);
         return auditLog;
+    }
+
+    public List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset,
+                                            int limit, String contentType, boolean hideLiveItems) {
+        HashMap<String,Object> params = new HashMap<String,Object>();
+        params.put("userId", user);
+        params.put("siteId", siteId);
+        params.put("offset", offset);
+        params.put("limit", limit);
+        params.put("operations", Arrays.asList(OPERATION_CREATE, OPERATION_DELETE, OPERATION_UPDATE, OPERATION_MOVE));
+        if(StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")){
+            params.put("contentType",contentType.toLowerCase());
+        }
+        if (hideLiveItems) {
+            List<String> statesValues = new ArrayList<String>();
+            for (State state : State.LIVE_STATES) {
+                statesValues.add(state.name());
+            }
+            params.put("states", statesValues);
+            return auditDao.selectUserFeedEntriesHideLive(params);
+        } else {
+            return auditDao.selectUserFeedEntries(params);
+        }
     }
 
     public AuditDAO getAuditDao() {
