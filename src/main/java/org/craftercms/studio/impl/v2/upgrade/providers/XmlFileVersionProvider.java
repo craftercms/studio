@@ -44,11 +44,6 @@ public class XmlFileVersionProvider implements VersionProvider {
     private static final Logger logger = LoggerFactory.getLogger(XmlFileVersionProvider.class);
 
     /**
-     * The initial site version to use when there is no version file in the repo
-     */
-    public static final String INITIAL_VERSION = "3.1.0";
-
-    /**
      * Name of the site.
      */
     protected String site;
@@ -110,8 +105,7 @@ public class XmlFileVersionProvider implements VersionProvider {
                 throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
             }
         } else if(!contentRepository.contentExists(site, path)) {
-            logger.warn("No version found for site {0}, trying to upgrade from 3.0.x", site);
-            currentVersion = INITIAL_VERSION;
+            logger.warn("No version found for {0} @ {1} using default {2}", path, site, defaultVersion);
         } else {
             try(InputStream is = contentRepository.getContent(site, path)) {
                 DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();

@@ -248,6 +248,37 @@ pipelines:
 
   # Pipeline to upgrade site repositories
   site:
+    - currentVersion: 3.0.x
+      nextVersion: 3.1.0
+      operations:
+        # Try to update content monitor queries with Elasticsearch datetime syntax
+        - type: findAndReplaceUpgrader
+          includedPaths:
+            - config/studio/site-config.xml
+          pattern: NOW
+          replacement: now
+        - type: findAndReplaceUpgrader
+          includedPaths:
+            - config/studio/site-config.xml
+          pattern: DAYS?
+          replacement: d
+        - type: findAndReplaceUpgrader
+          includedPaths:
+            - config/studio/site-config.xml
+          pattern: MONTHS?
+          replacement: m
+        - type: findAndReplaceUpgrader
+          includedPaths:
+            - config/studio/site-config.xml
+          pattern: YEARS?
+          replacement: y
+        - type: findAndReplaceUpgrader
+          includedPaths:
+            - config/studio/site-config.xml
+          pattern: \/(d|m|y)(\+|\-)([^\s\]]+)
+          replacement: $2$3/$1
+        - type: versionFileUpgrader
+
     - currentVersion: 3.1.0
       nextVersion: 3.1.0.1
       operations:
@@ -292,7 +323,7 @@ pipelines:
       nextVersion: 3.1.0.5
       operations:
         - type: addFileUpgrader
-          path: /config/studio/form-control-config/rte/rte-setup-tinymce4.xml
+          path: /config/studio/form-control-config/rte/rte-setup-tinymce5.xml
           file: crafter/studio/upgrade/3.1.0.5/rte-setup-tinymce5.xml
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-form-control-rte-setup-tinymce5.xml
@@ -309,6 +340,20 @@ pipelines:
 
 # Managed Configuration Files
 configurations:
+
+  permission-mappings-config:
+    path: &permission-mappings-config '/config/studio/permission-mappings-config.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.0.x/permission-mappings-config-2.xslt
+            commitDetails: Add new S3 permissions
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
 
   role-mappings-config:
     path: &role-mappings-config '/config/studio/role-mappings-config.xml'
@@ -369,6 +414,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/3.1.0.5/site-config-tools-3.xslt
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 3
+        nextVersion: 4
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.0.18/site-config-tools-4.xslt
+            commitDetails: Add S3 datasources, GraphiQL and remove Logging Levels from site configuration
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt

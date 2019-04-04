@@ -250,7 +250,7 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
     protected String getCommitMessage() {
         String header = "Site upgrade from v" + currentVersion + " to v" + nextVersion;
         if(StringUtils.isNotEmpty(commitDetails)) {
-            return header + "\n" + commitDetails;
+            return header + ":\n" + commitDetails;
         } else {
             return header;
         }
