@@ -136,6 +136,13 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
+    <bean id="blueprintRenameUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.BlueprintRenameFolderUpgradeOperation">
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+    </bean>
+
     <bean id="xsltFileUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.XsltFileUpgradeOperation"/>
 

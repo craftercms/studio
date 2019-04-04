@@ -7,7 +7,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.19', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.21', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `audit` (
   `operation_timestamp`       DATETIME      NOT NULL,
   `origin`                    VARCHAR(16)   NOT NULL,
   `primary_target_id`         VARCHAR(256)  NOT NULL,
-  `primary_target_type`       VARCHAR(16)   NOT NULL,
+  `primary_target_type`       VARCHAR(32)   NOT NULL,
   `primary_target_subtype`    VARCHAR(32)   NULL,
   `primary_target_value`      VARCHAR(512)  NOT NULL,
   `actor_id`                  VARCHAR(32)   NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `audit_parameters` (
   `id`                BIGINT(20) NOT NULL AUTO_INCREMENT,
   `audit_id`          BIGINT(20) NOT NULL,
   `target_id`         VARCHAR(256)  NOT NULL,
-  `target_type`       VARCHAR(16)   NOT NULL,
+  `target_type`       VARCHAR(32)   NOT NULL,
   `target_subtype`    VARCHAR(32)   NULL,
   `target_value`      VARCHAR(512)  NOT NULL,
   PRIMARY KEY (`id`),
