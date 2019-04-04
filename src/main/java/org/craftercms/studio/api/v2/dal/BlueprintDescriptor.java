@@ -53,6 +53,7 @@ public class BlueprintDescriptor {
         private Build build;
         private License license;
         private List<CraftercmsVersionSupported> craftercmsVersionsSupported;
+        private String searchEngine;
 
         public String getId() {
             return id;
@@ -132,6 +133,14 @@ public class BlueprintDescriptor {
 
         public void setCraftercmsVersionsSupported(List<CraftercmsVersionSupported> craftercmsVersionsSupported) {
             this.craftercmsVersionsSupported = craftercmsVersionsSupported;
+        }
+
+        public String getSearchEngine() {
+            return searchEngine;
+        }
+
+        public void setSearchEngine(final String searchEngine) {
+            this.searchEngine = searchEngine;
         }
     }
 

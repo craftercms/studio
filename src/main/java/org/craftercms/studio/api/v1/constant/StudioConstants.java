@@ -190,7 +190,7 @@ package org.craftercms.studio.api.v1.constant;
     /**
      * Search Engines
      */
-    String SEARCH_ENGINE_ELASTIC_SEARCH = "ElasticSearch";
+    String SEARCH_ENGINE_ELASTIC_SEARCH = "Elasticsearch";
     String SEARCH_ENGINE_CRAFTER_SEARCH = "CrafterSearch";
 
     /* Map keys */
