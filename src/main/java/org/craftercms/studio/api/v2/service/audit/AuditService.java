@@ -17,7 +17,9 @@
 
 package org.craftercms.studio.api.v2.service.audit;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 
 import java.time.ZonedDateTime;
@@ -66,4 +68,20 @@ public interface AuditService {
      * @return audit log entry
      */
     AuditLog getAuditLogEntry(long auditLogId);
+
+    /**
+     * Get user activities
+     *
+     * @param site site
+     * @param user username
+     * @param limit limit
+     * @param sort sort by
+     * @param ascending true if ascending order, otherwise false
+     * @param excludeLive exclude live items
+     * @param filterType filter type
+     * @return list of content items
+     * @throws ServiceLayerException
+     */
+    List<ContentItemTO> getUserActivities(String site, String user, int limit, String sort, boolean ascending,
+                                      boolean excludeLive, String filterType) throws ServiceLayerException;
 }

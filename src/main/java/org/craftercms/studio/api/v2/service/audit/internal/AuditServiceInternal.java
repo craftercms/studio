@@ -87,5 +87,6 @@ public interface AuditServiceInternal {
      */
     AuditLog createAuditLogEntry();
 
-
+    List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset,
+                                                int limit, String contentType, boolean hideLiveItems);
 }

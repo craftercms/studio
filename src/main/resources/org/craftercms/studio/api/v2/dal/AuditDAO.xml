@@ -206,4 +206,78 @@
             (#{auditId}, #{element.targetId}, #{element.targetType}, #{element.targetSubtype}, #{element.targetValue})
         </foreach>
     </insert>
+
+    <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="AuditLogMap">
+        select cs1.*
+        from audit cs1
+        inner join (select MAX(operation_timestamp) as mdate, primary_target_value from audit a, site s1
+        where a.site_id = s1.id and a.actor_id = #{userId} and s1.site_id = #{siteId}
+        and operation in
+        <foreach item="operation" index="index" collection="operations"
+                 open="(" separator="," close=")">
+            #{operation}
+        </foreach>
+        <if test="contentType != null and contentType != 'all' ">
+            and primary_target_subtype = #{contentType}
+        </if>
+        group by primary_target_value) as cs2
+        on (cs1.primary_target_value = cs2.primary_target_value and cs1.operation_timestamp = cs2.mdate), site s2
+        where cs1.site_id = s2.id and cs1.actor_id = #{userId} and s2.site_id = #{siteId}
+        and cs1.operation in
+        <foreach item="operation" index="index" collection="operations"
+                 open="(" separator="," close=")">
+            #{operation}
+        </foreach>
+        <if test="contentType != null and contentType != 'all' ">
+            and cs1.primary_target_subtype = #{contentType}
+        </if>
+        order by cs1.operation_timestamp desc limit #{offset},#{limit}
+    </select>
+
+    <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="AuditLogMap">
+        select act.*
+        from (
+        select cs1.*
+        from audit cs1
+        inner join (select MAX(operation_timestamp) as mdate, primary_target_value from audit a, site s1
+        where a.site_id = s1.id and actor_id = #{userId} and s1.site_id  = #{siteId}
+        and operation in
+        <foreach item="operation" index="index" collection="operations"
+                 open="(" separator="," close=")">
+            #{operation}
+        </foreach>
+        <if test="contentType != null and contentType != 'all' ">
+            and primary_target_subtype = #{contentType}
+        </if>
+        group by primary_target_value) as cs2
+        on (cs1.primary_target_value = cs2.primary_target_value and cs1.operation_timestamp = cs2.mdate), site s2
+        where cs1.site_id = s2.id and cs1.actor_id = #{userId} and s2.site_id = #{siteId}
+        and cs1.operation in
+        <foreach item="operation" index="index" collection="operations"
+                 open="(" separator="," close=")">
+            #{operation}
+        </foreach>
+        <if test="contentType != null and contentType != 'all' ">
+            and cs1.primary_target_subtype = #{contentType}
+        </if>
+        ) act
+        inner join item_state os on act.site_id=os.site and act.primary_target_value=os.path, site s3
+        where act.site_id = s3.id
+        and act.actor_id = #{userId}
+        and s3.site_id = #{siteId}
+        and act.operation in
+        <foreach item="operation" index="index" collection="operations"
+                 open="(" separator="," close=")">
+            #{operation}
+        </foreach>
+        <if test="contentType != null and contentType != 'all' ">
+            and act.primary_target_value = #{contentType}
+        </if>
+        and os.state NOT IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        order by act.operation_timestamp desc limit #{offset},#{limit}
+    </select>
 </mapper>
