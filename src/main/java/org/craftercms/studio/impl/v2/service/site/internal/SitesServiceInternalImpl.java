@@ -116,8 +116,13 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     protected BlueprintDescriptor loadDescriptor(InputStream is) {
-        Yaml yaml = new Yaml();
-        return yaml.loadAs(is, BlueprintDescriptor.class);
+        try {
+            Yaml yaml = new Yaml();
+            return yaml.loadAs(is, BlueprintDescriptor.class);
+        } catch (Exception e) {
+            logger.error("Error while getting descriptor from stream", e);
+        }
+        return null;
     }
 
     protected BlueprintDescriptor loadDescriptor(RepositoryItem folder) {
