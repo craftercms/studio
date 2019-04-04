@@ -106,10 +106,9 @@ public interface SiteService {
      * @param siteName site name
      * @param siteId site identifier
      * @param desc description
-     * @param searchEngine search engine for site to be used
      */
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
-                                 String desc, String searchEngine)
+                                 String desc)
             throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
             BlueprintNotFoundException;
 
@@ -130,13 +129,11 @@ public interface SiteService {
      * @param remoteToken remote repository username to use for authentication
      * @param remotePrivateKey remote repository username to use for authentication
      * @param createOption remote repository username to use for authentication
-     * @param searchEngine search engine for site to be used
      */
     void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
                                     String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                     String authenticationType, String remoteUsername, String remotePassword,
-                                    String remoteToken, String remotePrivateKey, String createOption,
-                                    String searchEngine)
+                                    String remoteToken, String remotePrivateKey, String createOption)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 

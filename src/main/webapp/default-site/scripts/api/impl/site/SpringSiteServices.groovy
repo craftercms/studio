@@ -61,18 +61,18 @@ class SpringSiteServices {
         return springBackedService.getAllAvailableSites()
     }
 
-    def createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine) {
+    def createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine)
+        return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc)
     }
 
     def createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl, remoteBranch,
                                    singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                                   remotePrivateKey, createOption, searchEngine) {
+                                   remotePrivateKey, createOption) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
                 remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption, searchEngine)
+                remotePrivateKey, createOption)
     }
 
     def deleteSite(siteId) {

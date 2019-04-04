@@ -20,6 +20,8 @@ package org.craftercms.studio.api.v2.dal;
 
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
+
 public class BlueprintDescriptor {
 
     private String descriptorVersion;
@@ -53,7 +55,7 @@ public class BlueprintDescriptor {
         private Build build;
         private License license;
         private List<CraftercmsVersionSupported> craftercmsVersionsSupported;
-        private String searchEngine;
+        private String searchEngine = SEARCH_ENGINE_ELASTIC_SEARCH;
 
         public String getId() {
             return id;

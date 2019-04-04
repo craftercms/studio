@@ -61,18 +61,18 @@ class SiteServices {
         return siteServicesImpl.getAllAvailableSites()
     }
 
-    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine) {
+    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, sandboxBranch, desc) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine)
+        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc)
     }
 
     static createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl,
                                       remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                                      remoteToken, remotePrivateKey, createOption, searchEngine) {
+                                      remoteToken, remotePrivateKey, createOption) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
                 remoteUrl, remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption, searchEngine)
+                remotePrivateKey, createOption)
     }
 
     static deleteSite(context, siteId) {

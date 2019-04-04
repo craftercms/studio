@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -108,6 +109,7 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
@@ -133,6 +135,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVI
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
@@ -408,18 +411,20 @@ public class SiteServiceImpl implements SiteService {
                                            @ValidateNoTagsParam(name = "siteName") String siteName,
                                            @ValidateStringParam(name = "siteId") String siteId,
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-                                           @ValidateNoTagsParam(name = "desc") String desc,
-                                           @ValidateStringParam(name = "searchEngine") String searchEngine)
+                                           @ValidateNoTagsParam(name = "desc") String desc)
             throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
             BlueprintNotFoundException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
         }
 
-        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
-        if (StringUtils.isEmpty(blueprintLocation) || !Files.exists(Paths.get(blueprintLocation))) {
+        BlueprintDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
+
+        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        String searchEngine = descriptor.getBlueprint().getSearchEngine();
 
         try {
 	    	long start = 0;
@@ -681,8 +686,7 @@ public class SiteServiceImpl implements SiteService {
                                            String remoteBranch, boolean singleBranch, String authenticationType,
                                            String remoteUsername, String remotePassword, String remoteToken,
                                            String remotePrivateKey,
-                                           @ValidateStringParam(name = "createOption") String createOption,
-                                           @ValidateStringParam(name = "searchEngine") String searchEngine)
+                                           @ValidateStringParam(name = "createOption") String createOption)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -708,14 +712,14 @@ public class SiteServiceImpl implements SiteService {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
-                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, searchEngine);
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.debug("Push to remote repository create option selected");
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey, searchEngine);
+                        remotePrivateKey);
                 break;
 
             default:
@@ -729,7 +733,7 @@ public class SiteServiceImpl implements SiteService {
     private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
-                                       String remoteToken, String remotePrivateKey, String searchEngine)
+                                       String remoteToken, String remotePrivateKey)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -738,51 +742,57 @@ public class SiteServiceImpl implements SiteService {
         // For example: Create site => create Deployer Target (fail) = fail
         // and rollback the whole thing.
         // What we need to do for site creation and the order of execution:
-        // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
+        // 1) git repo, 2) deployer target, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
-        // Create the site in the preview deployer
-        try {
-            logger.debug("Creating preview deployer target for site " + siteId);
-            success = previewDeployer.createTarget(siteId, searchEngine);
-        } catch (Exception e) {
-            success = false;
-            logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
-                    " remote repository: " + remoteName + " (" + remoteUrl + "). Is the Preview Deployer running " +
-                    "and configured correctly in Studio?", e);
+        BlueprintDescriptor descriptor = null;
 
-            throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
-                    + siteId + " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). " +
-                    "Is the Preview Deployer running and configured correctly in Studio?");
+        try {
+            // create site by cloning remote git repo
+            logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName +
+                " (" + remoteUrl + ")");
+            success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
+                remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
+                remotePrivateKey);
+
+            if (success) {
+                descriptor = sitesService.getSiteBlueprintDescriptor(siteId);
+            }
+
+        } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
+            RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
+
+            contentRepository.deleteSite(siteId);
+
+            logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
+                "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
+
+            throw e;
         }
 
+        // try to get the search engine from the blueprint descriptor file
+        String searchEngine = Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())?
+            descriptor.getBlueprint().getSearchEngine() : SEARCH_ENGINE_ELASTIC_SEARCH;
 
         if (success) {
+            // Create the site in the preview deployer
             try {
-                // create site by cloning remote git repo
-                logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName +
-                        " (" + remoteUrl + ")");
-                contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
-                        singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey);
+                logger.debug("Creating preview deployer target for site " + siteId);
+                success = previewDeployer.createTarget(siteId, searchEngine);
+            } catch (Exception e) {
+                success = false;
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
+                    " remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back", e);
 
-            } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
-                    RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
+                boolean deleted = contentRepository.deleteSite(siteId);
 
-                contentRepository.deleteSite(siteId);
-
-                boolean deleted = previewDeployer.deleteTarget(siteId);
                 if (!deleted) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). This means" +
-                            " the site's preview deployer target is still present, but the site is not " +
-                            "successfully created.");
+                    logger.error("Error while rolling back site: " + siteId);
                 }
 
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
-                        "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
-
-                throw e;
+                throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
+                    + siteId + " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). " +
+                    "Is the Preview Deployer running and configured correctly in Studio?");
             }
         }
 
@@ -844,16 +854,21 @@ public class SiteServiceImpl implements SiteService {
     private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintId,
                                         String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
-                                        String remoteToken, String remotePrivateKey, String searchEngine)
+                                        String remoteToken, String remotePrivateKey)
             throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
-        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
-        if (StringUtils.isEmpty(blueprintLocation) || !Files.exists(Paths.get(blueprintLocation))) {
+
+        BlueprintDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
+
+        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        String searchEngine = descriptor.getBlueprint().getSearchEngine();
+
         boolean success = true;
 
         // We must fail site creation if any of the site creations steps fail and rollback

@@ -29,12 +29,22 @@ public class SitesServiceImpl implements SitesService {
 
     @Override
     public List<BlueprintDescriptor> getAvailableBlueprints() {
-        return sitesServiceInternal.getAvailbleBlueprints();
+        return sitesServiceInternal.getAvailableBlueprints();
+    }
+
+    @Override
+    public BlueprintDescriptor getBlueprintDescriptor(final String id) {
+        return sitesServiceInternal.getBlueprintDescriptor(id);
     }
 
     @Override
     public String getBlueprintLocation(String blueprintId) {
         return sitesServiceInternal.getBlueprintLocation(blueprintId);
+    }
+
+    @Override
+    public BlueprintDescriptor getSiteBlueprintDescriptor(final String id) {
+        return sitesServiceInternal.getSiteBlueprintDescriptor(id);
     }
 
     public SitesServiceInternal getSitesServiceInternal() {
