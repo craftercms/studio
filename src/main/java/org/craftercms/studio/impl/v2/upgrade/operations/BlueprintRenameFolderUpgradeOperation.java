@@ -35,6 +35,7 @@ import org.springframework.web.context.ServletContextAware;
 
 import javax.servlet.ServletContext;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
@@ -109,6 +110,7 @@ public class BlueprintRenameFolderUpgradeOperation extends AbstractUpgradeOperat
             if (blueprintFolder.exists()) {
                 Path newBlueprintPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                         studioConfiguration.getProperty(BLUE_PRINTS_PATH), newFolderName);
+                Files.deleteIfExists(newBlueprintPath);
                 blueprintFolder.renameTo(newBlueprintPath.toFile());
             }
 
