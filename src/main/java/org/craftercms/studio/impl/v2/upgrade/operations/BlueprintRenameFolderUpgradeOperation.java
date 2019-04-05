@@ -20,13 +20,7 @@ package org.craftercms.studio.impl.v2.upgrade.operations;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.springframework.beans.factory.annotation.Required;
-
-import javax.servlet.ServletContext;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,27 +33,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_
  */
 public class BlueprintRenameFolderUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(BlueprintRenameFolderUpgradeOperation.class);
-
-
     public static final String CONFIG_KEY_BLUEPRINT_FOLDER_NAME = "blueprintFolderName";
     public static final String CONFIG_KEY_NEW_FOLDER_NAME = "newFolderName";
 
-    protected ServletContext servletContext;
-    protected ServicesConfig servicesConfig;
-
     protected String blueprintFolderName;
     protected String newFolderName;
-
-    @Override
-    public void setServletContext(final ServletContext servletContext) {
-        this.servletContext = servletContext;
-    }
-
-    @Required
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
 
     /**
      * {@inheritDoc}
