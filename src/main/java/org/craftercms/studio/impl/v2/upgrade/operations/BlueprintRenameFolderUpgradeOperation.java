@@ -36,7 +36,6 @@ import org.springframework.web.context.ServletContextAware;
 
 import javax.servlet.ServletContext;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
@@ -102,9 +101,6 @@ public class BlueprintRenameFolderUpgradeOperation extends AbstractUpgradeOperat
             GitContentRepositoryHelper helper =
                 new GitContentRepositoryHelper(studioConfiguration, servicesConfig, userServiceInternal, securityService);
             Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
-            Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
-                studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-
             Path blueprintPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                     studioConfiguration.getProperty(BLUE_PRINTS_PATH), blueprintFolderName);
             File blueprintFolder = blueprintPath.toFile();
