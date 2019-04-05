@@ -24,14 +24,13 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that renames the blueprint in the
  * global repository.
  * @author Dejan Brkic
  */
-public class BlueprintRenameFolderUpgradeOperation extends AbstractUpgradeOperation {
+public class RenameUpgradeOperation extends AbstractUpgradeOperation {
 
     public static final String CONFIG_KEY_SITE = "site";
     public static final String CONFIG_KEY_OLD_PATH = "oldPath";
