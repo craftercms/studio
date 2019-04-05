@@ -35,8 +35,7 @@ class EnvironmentOverrides {
         result.environment = serverProperties["environment"]
 
         def contextPath = request.getContextPath()
-        result.authoringServer = (request.getHeader("x-forwarded-proto") ?: request.getScheme()) +
-                "://" + request.getServerName()
+        result.authoringServer = (request.getHeader("x-forwarded-proto") ?: request.getRequestURL().toString().replace(request.getPathInfo().toString(), "").replace(contextPath, ""))
         if (contextPath.startsWith("/")) {
             contextPath = contextPath.substring(1)
         }
