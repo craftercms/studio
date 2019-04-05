@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -110,8 +111,9 @@ public class BlueprintRenameFolderUpgradeOperation extends AbstractUpgradeOperat
             if (blueprintFolder.exists()) {
                 Path newBlueprintPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                         studioConfiguration.getProperty(BLUE_PRINTS_PATH), newFolderName);
-                Files.deleteIfExists(newBlueprintPath);
-                blueprintFolder.renameTo(newBlueprintPath.toFile());
+                File newBlueprintFolder = newBlueprintPath.toFile();
+                FileUtils.deleteDirectory(newBlueprintFolder);
+                blueprintFolder.renameTo(newBlueprintFolder);
             }
 
             Repository globalRepo = helper.getRepository(site, GitRepositories.GLOBAL);
