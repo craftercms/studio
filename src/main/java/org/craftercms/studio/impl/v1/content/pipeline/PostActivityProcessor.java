@@ -37,6 +37,9 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public static final String NAME = "PostActivityProcessor";
 
+    protected AuditServiceInternal auditServiceInternal;
+    protected SiteService siteService;
+    protected ContentService contentService;
 
     /**
      * default constructor
@@ -83,10 +86,6 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
         }
     }
-
-    protected AuditServiceInternal auditServiceInternal;
-    protected SiteService siteService;
-    protected ContentService contentService;
 
     public AuditServiceInternal getAuditServiceInternal() {
         return auditServiceInternal;
