@@ -54,8 +54,8 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
     public void execute(final String site) throws UpgradeException {
         try {
 
-            Path oldP = Paths.get(getRepositoryPath(siteId).toAbsolutePath().toString(), oldPath);
-            Path newP = Paths.get(getRepositoryPath(siteId).toAbsolutePath().toString(), newPath);
+            Path oldP = Paths.get(getRepositoryPath(siteId).getParent().toAbsolutePath().toString(), oldPath);
+            Path newP = Paths.get(getRepositoryPath(siteId).getParent().toAbsolutePath().toString(), newPath);
 
             File oldF = oldP.toFile();
             File newF = newP.toFile();
