@@ -125,4 +125,6 @@
     <!-- Remove the ones not needed any more -->
     <xsl:template match="tool[name/text()='logging']"/>
 
+    <xsl:template match="tool[name/text()='groups']"/>
+
 </xsl:stylesheet>
