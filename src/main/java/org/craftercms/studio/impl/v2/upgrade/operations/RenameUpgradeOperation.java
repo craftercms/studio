@@ -59,6 +59,9 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
 
             File oldF = oldP.toFile();
             File newF = newP.toFile();
+            if (newF.exists()) {
+                FileUtils.forceDelete(newF);
+            }
             if (oldF.isDirectory()) {
                 FileUtils.moveDirectory(oldF, newF);
             } else if (oldF.isFile()) {
