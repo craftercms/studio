@@ -805,6 +805,7 @@
     <bean id="cstudioPostActivityProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.PostActivityProcessor">
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">

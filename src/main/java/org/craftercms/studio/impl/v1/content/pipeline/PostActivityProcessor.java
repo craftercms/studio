@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -36,6 +37,9 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public static final String NAME = "PostActivityProcessor";
 
+    protected AuditServiceInternal auditServiceInternal;
+    protected SiteService siteService;
+    protected ContentService contentService;
 
     /**
      * default constructor
@@ -77,13 +81,11 @@ public class PostActivityProcessor extends BaseContentProcessor {
             auditLog.setPrimaryTargetId(site + ":" + uri);
             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
             auditLog.setPrimaryTargetValue(uri);
+            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
             auditServiceInternal.insertAuditLog(auditLog);
 
         }
     }
-
-    protected AuditServiceInternal auditServiceInternal;
-    protected SiteService siteService;
 
     public AuditServiceInternal getAuditServiceInternal() {
         return auditServiceInternal;
@@ -99,5 +101,13 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
     }
 }

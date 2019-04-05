@@ -1336,6 +1336,8 @@ public class SiteServiceImpl implements SiteService {
                             auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
                             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
                             auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                    repoOperation.getPath()));
                             auditLog.setOrigin(ORIGIN_GIT);
                             auditServiceInternal.insertAuditLog(auditLog);
                         }
@@ -1375,6 +1377,8 @@ public class SiteServiceImpl implements SiteService {
                             auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
                             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
                             auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                    repoOperation.getPath()));
                             auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
@@ -1406,6 +1410,8 @@ public class SiteServiceImpl implements SiteService {
                             auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
                             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
                             auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                    repoOperation.getPath()));
                             auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
@@ -1491,6 +1497,8 @@ public class SiteServiceImpl implements SiteService {
                             auditLog.setPrimaryTargetId(site + ":" + repoOperation.getMoveToPath());
                             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
                             auditLog.setPrimaryTargetValue(repoOperation.getMoveToPath());
+                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                    repoOperation.getMoveToPath()));
                             auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
