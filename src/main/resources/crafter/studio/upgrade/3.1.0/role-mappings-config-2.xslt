@@ -18,6 +18,10 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
+    <!-- to keep the right formatting -->
+    <xsl:output method="xml" indent="yes" />
+    <xsl:strip-space elements="*"/>
+
     <!-- define parameter -->
     <xsl:param name="site_id" />
 

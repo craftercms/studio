@@ -34,16 +34,37 @@
         <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
     </xsl:template>
 
-    <xsl:template match="files[not(file/path = '/engine/urlrewrite.xml')]">
-        <files>
+    <xsl:template match="*/role[@name='author']|*/role[@name='publisher']|*/role[@name='developer']|*/role[@name='admin']">
+        <role>
+            <!-- copy all existing rules -->
             <xsl:apply-templates select="node() | @*"/>
-            <file>
-                <path>/engine/urlrewrite.xml</path>
-                <title>Engine URL Rewrite Configuration (XML Style)</title>
-                <description>Engine URL Rewrite Configuration (XML Style)</description>
-                <samplePath>/studio/administration/samples/sample-urlrewrite.xml</samplePath>
-            </file>
-        </files>
+
+            <!-- add new ones if missing -->
+            <xsl:if test="not(rule/allowed-permissions/permission/text() = 'S3 Read')">
+                <rule regex=".*">
+                    <allowed-permissions>
+                        <permission>S3 Read</permission>
+                        <permission>S3 Write</permission>
+                    </allowed-permissions>
+                </rule>
+            </xsl:if>
+        </role>
+    </xsl:template>
+
+    <xsl:template match="*/role[@name='reviewer']|*/role[@name='*']">
+        <role>
+            <!-- copy all existing rules -->
+            <xsl:apply-templates select="node() | @*"/>
+
+            <!-- add new ones if missing -->
+            <xsl:if test="not(rule/allowed-permissions/permission/text() = 'S3 Read')">
+                <rule regex=".*">
+                    <allowed-permissions>
+                        <permission>S3 Read</permission>
+                    </allowed-permissions>
+                </rule>
+            </xsl:if>
+        </role>
     </xsl:template>
 
 </xsl:stylesheet>
