@@ -676,6 +676,7 @@ public class ContentServiceImpl implements ContentService {
             auditLog.setPrimaryTargetId(site + ":" + path);
             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
             auditLog.setPrimaryTargetValue(path);
+            auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
             auditServiceInternal.insertAuditLog(auditLog);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
@@ -1022,6 +1023,7 @@ public class ContentServiceImpl implements ContentService {
             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         }
         auditLog.setPrimaryTargetValue(movePath);
+        auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, movePath));
         auditServiceInternal.insertAuditLog(auditLog);
 
         updateDependenciesOnMove(site, fromPath, movePath);

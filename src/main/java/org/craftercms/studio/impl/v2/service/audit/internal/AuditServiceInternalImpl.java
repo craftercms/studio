@@ -45,6 +45,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIONS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_NODE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
@@ -230,6 +231,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         params.put("offset", offset);
         params.put("limit", limit);
         params.put("operations", Arrays.asList(OPERATION_CREATE, OPERATION_DELETE, OPERATION_UPDATE, OPERATION_MOVE));
+        params.put("targetType", TARGET_TYPE_CONTENT_ITEM);
         if(StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")){
             params.put("contentType",contentType.toLowerCase());
         }

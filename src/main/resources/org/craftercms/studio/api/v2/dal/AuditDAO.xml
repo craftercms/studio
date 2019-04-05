@@ -217,6 +217,7 @@
                  open="(" separator="," close=")">
             #{operation}
         </foreach>
+        and primary_target_type = #{targetType}
         <if test="contentType != null and contentType != 'all' ">
             and primary_target_subtype = #{contentType}
         </if>
@@ -228,6 +229,7 @@
                  open="(" separator="," close=")">
             #{operation}
         </foreach>
+        and primary_target_type = #{targetType}
         <if test="contentType != null and contentType != 'all' ">
             and cs1.primary_target_subtype = #{contentType}
         </if>
@@ -246,6 +248,7 @@
                  open="(" separator="," close=")">
             #{operation}
         </foreach>
+        and primary_target_type = #{targetType}
         <if test="contentType != null and contentType != 'all' ">
             and primary_target_subtype = #{contentType}
         </if>
@@ -257,6 +260,7 @@
                  open="(" separator="," close=")">
             #{operation}
         </foreach>
+        and primary_target_type = #{targetType}
         <if test="contentType != null and contentType != 'all' ">
             and cs1.primary_target_subtype = #{contentType}
         </if>
@@ -270,6 +274,7 @@
                  open="(" separator="," close=")">
             #{operation}
         </foreach>
+        and primary_target_type = #{targetType}
         <if test="contentType != null and contentType != 'all' ">
             and act.primary_target_value = #{contentType}
         </if>
