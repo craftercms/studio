@@ -394,6 +394,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 3
+        nextVersion: 4
+        operations:
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.0.18/config-list-4.xslt
+            commitDetails: Add rte-tinymce5 to configuration list
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
 
   site-config-tools:
     path: &site-config-tools '/config/studio/administration/site-config-tools.xml'
