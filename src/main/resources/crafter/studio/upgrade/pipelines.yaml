@@ -252,25 +252,25 @@ pipelines:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.20-to-3.1.0.21.sql
           updateIntegrity: true
-        - type: blueprintRenameUpgrader
-          blueprintFolderName: website_editorial
-          newFolderName: 1000_website_editorial
+        - type: renameUpgrader
+          oldPath: blueprints/website_editorial
+          newPath: blueprints/1000_website_editorial
           commitDetails: Rename Editorial blueprint
-        - type: blueprintRenameUpgrader
-          blueprintFolderName: headless_store
-          newFolderName: 2000_headless_store
+        - type: renameUpgrader
+          oldPath: blueprints/headless_store
+          newPath: blueprints/2000_headless_store
           commitDetails: Rename Headless Store blueprint
-        - type: blueprintRenameUpgrader
-          blueprintFolderName: video-center
-          newFolderName: 3000_video-center
+        - type: renameUpgrader
+          oldPath: blueprints/video-center
+          newPath: blueprints/3000_video-center
           commitDetails: Rename Video Center blueprint
-        - type: blueprintRenameUpgrader
-          blueprintFolderName: empty
-          newFolderName: 4000_empty
+        - type: renameUpgrader
+          oldPath: blueprints/empty
+          newPath: blueprints/4000_empty
           commitDetails: Rename Empty blueprint
-        - type: blueprintRenameUpgrader
-          blueprintFolderName: headless_blog
-          newFolderName: 5000_headless_blog
+        - type: renameUpgrader
+          oldPath: blueprints/headless_blog
+          newPath: blueprints/5000_headless_blog
           commitDetails: Rename Headless Blog blueprint
 
   # Pipeline to upgrade site repositories
