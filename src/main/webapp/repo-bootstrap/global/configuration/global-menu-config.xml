@@ -71,13 +71,13 @@
             <id>home.globalMenu.logging-levels</id>
             <label>Logging Levels</label>
             <icon>fa-level-down</icon>
-            <permission>audit_log</permission>
+            <permission>read_logs</permission>
         </item>
         <item>
             <id>home.globalMenu.log-console</id>
             <label>Log Console</label>
             <icon>fa-align-left</icon>
-            <permission>audit_log</permission>
+            <permission>read_logs</permission>
         </item>
     </items>
 </globalMenu>
