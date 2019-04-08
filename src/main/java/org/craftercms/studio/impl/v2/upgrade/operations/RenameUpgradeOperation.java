@@ -36,12 +36,10 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(RenameUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_SITE = "site";
     public static final String CONFIG_KEY_OLD_PATH = "oldPath";
     public static final String CONFIG_KEY_NEW_PATH = "newPath";
     public static final String CONFIG_KEY_OVERWRITE = "overwrite";
 
-    protected String siteId;
     protected String oldPath;
     protected String newPath;
     protected boolean overwrite;
@@ -51,7 +49,6 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void doInit(final Configuration config) {
-        siteId = config.getString(CONFIG_KEY_SITE);
         oldPath = config.getString(CONFIG_KEY_OLD_PATH);
         newPath = config.getString(CONFIG_KEY_NEW_PATH);
         overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE);
@@ -61,8 +58,8 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
     public void execute(final String site) throws UpgradeException {
         try {
 
-            Path oldP = Paths.get(getRepositoryPath(siteId).getParent().toAbsolutePath().toString(), oldPath);
-            Path newP = Paths.get(getRepositoryPath(siteId).getParent().toAbsolutePath().toString(), newPath);
+            Path oldP = Paths.get(getRepositoryPath(site).getParent().toAbsolutePath().toString(), oldPath);
+            Path newP = Paths.get(getRepositoryPath(site).getParent().toAbsolutePath().toString(), newPath);
 
             File oldF = oldP.toFile();
             File newF = newP.toFile();
@@ -81,10 +78,10 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
                 FileUtils.moveFile(oldF, newF);
             }
 
-            commitAllChanges(siteId);
+            commitAllChanges(site);
         } catch (Exception e) {
             throw new UpgradeException("Error moving path " + oldPath + " to path " + newPath + " for repo " +
-                    (StringUtils.isEmpty(siteId) ? "global" : siteId), e);
+                    (StringUtils.isEmpty(site) ? "global" : site), e);
         }
     }
 
