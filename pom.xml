@@ -777,7 +777,7 @@
                         <resource>
                             <directory>${studio.vcbp.path}</directory>
                             <filtering>false</filtering>
-                            <targetPath>repo-bootstrap/global/blueprints/video-center</targetPath>
+                            <targetPath>repo-bootstrap/global/blueprints/3000_video-center</targetPath>
                         </resource>
                         <resource>
                             <directory>${studio.vcbp.path}/static-assets/images/screenshots</directory>
@@ -786,25 +786,25 @@
                         </resource>
                         <!-- empty blueprint -->
                         <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/empty/static-assets/images/screenshots</directory>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/4000_empty/static-assets/images/screenshots</directory>
                             <filtering>false</filtering>
                             <targetPath>default-site/static-assets/images/blueprints/empty</targetPath>
                         </resource>
                         <!-- headless blog blueprint -->
                         <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/headless_blog/static-assets/images/screenshots</directory>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/5000_headless_blog/static-assets/images/screenshots</directory>
                             <filtering>false</filtering>
                             <targetPath>default-site/static-assets/images/blueprints/headless_blog</targetPath>
                         </resource>
                         <!-- headless store blueprint -->
                         <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/headless_store/static-assets/images/screenshots</directory>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/2000_headless_store/static-assets/images/screenshots</directory>
                             <filtering>false</filtering>
                             <targetPath>default-site/static-assets/images/blueprints/headless_store</targetPath>
                         </resource>
                         <!-- editorial blueprint -->
                         <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/website_editorial/static-assets/images/screenshots</directory>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/1000_website_editorial/static-assets/images/screenshots</directory>
                             <filtering>false</filtering>
                             <targetPath>default-site/static-assets/images/blueprints/website_editorial</targetPath>
                         </resource>

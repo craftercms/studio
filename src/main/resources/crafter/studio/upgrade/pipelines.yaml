@@ -246,6 +246,34 @@ pipelines:
           filename: upgrade-3.1.0.19-to-3.1.0.20.sql
           updateIntegrity: true
 
+    - currentVersion: 3.1.0.20
+      nextVersion: 3.1.0.21
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.20-to-3.1.0.21.sql
+          updateIntegrity: true
+        - type: renameUpgrader
+          oldPath: blueprints/website_editorial
+          newPath: blueprints/1000_website_editorial
+          commitDetails: Rename Editorial blueprint
+        - type: renameUpgrader
+          oldPath: blueprints/headless_store
+          newPath: blueprints/2000_headless_store
+          commitDetails: Rename Headless Store blueprint
+        - type: renameUpgrader
+          oldPath: blueprints/video-center
+          newPath: blueprints/3000_video-center
+          commitDetails: Rename Video Center blueprint
+        - type: renameUpgrader
+          oldPath: blueprints/empty
+          newPath: blueprints/4000_empty
+          commitDetails: Rename Empty blueprint
+        - type: renameUpgrader
+          oldPath: blueprints/headless_blog
+          newPath: blueprints/5000_headless_blog
+          commitDetails: Rename Headless Blog blueprint
+          overwrite: true
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x

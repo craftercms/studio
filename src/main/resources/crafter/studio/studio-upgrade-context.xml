@@ -136,6 +136,9 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
+    <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.RenameUpgradeOperation"/>
+
     <bean id="xsltFileUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.XsltFileUpgradeOperation"/>
 

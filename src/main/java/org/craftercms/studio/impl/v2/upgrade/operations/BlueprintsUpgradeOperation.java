@@ -59,7 +59,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  * global repository from the bootstrap repo.
  * @author joseross
  */
-public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation implements ServletContextAware {
+public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(BlueprintsUpgradeOperation.class);
 
