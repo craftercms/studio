@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v2.upgrade.operations;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import java.io.File;
 import java.nio.file.Path;
@@ -32,13 +34,17 @@ import java.nio.file.Paths;
  */
 public class RenameUpgradeOperation extends AbstractUpgradeOperation {
 
+    private static final Logger logger = LoggerFactory.getLogger(RenameUpgradeOperation.class);
+
     public static final String CONFIG_KEY_SITE = "site";
     public static final String CONFIG_KEY_OLD_PATH = "oldPath";
     public static final String CONFIG_KEY_NEW_PATH = "newPath";
+    public static final String CONFIG_KEY_OVERWRITE = "overwrite";
 
     protected String siteId;
     protected String oldPath;
     protected String newPath;
+    protected boolean overwrite;
 
     /**
      * {@inheritDoc}
@@ -48,6 +54,7 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
         siteId = config.getString(CONFIG_KEY_SITE);
         oldPath = config.getString(CONFIG_KEY_OLD_PATH);
         newPath = config.getString(CONFIG_KEY_NEW_PATH);
+        overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE);
     }
 
     @Override
@@ -60,7 +67,13 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
             File oldF = oldP.toFile();
             File newF = newP.toFile();
             if (newF.exists()) {
-                FileUtils.forceDelete(newF);
+                if (overwrite) {
+                    FileUtils.forceDelete(newF);
+                } else {
+                    logger.info("Rename operation not executed beacuse target path " + newP.toString() + " already " +
+                            "exists.");
+                    return;
+                }
             }
             if (oldF.isDirectory()) {
                 FileUtils.moveDirectory(oldF, newF);

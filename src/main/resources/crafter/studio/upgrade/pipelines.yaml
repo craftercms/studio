@@ -272,6 +272,7 @@ pipelines:
           oldPath: blueprints/headless_blog
           newPath: blueprints/5000_headless_blog
           commitDetails: Rename Headless Blog blueprint
+          overwrite: true
 
   # Pipeline to upgrade site repositories
   site:
