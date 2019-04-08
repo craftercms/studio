@@ -63,6 +63,7 @@
                 <permission>update_cluster</permission>
                 <permission>delete_cluster</permission>
                 <permission>audit_log</permission>
+                <permission>read_logs</permission>
             </allowed-permissions>
         </rule>
     </role>
