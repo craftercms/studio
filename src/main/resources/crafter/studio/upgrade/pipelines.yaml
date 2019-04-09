@@ -256,18 +256,22 @@ pipelines:
           oldPath: blueprints/website_editorial
           newPath: blueprints/1000_website_editorial
           commitDetails: Rename Editorial blueprint
+          overwrite: true
         - type: renameUpgrader
           oldPath: blueprints/headless_store
           newPath: blueprints/2000_headless_store
           commitDetails: Rename Headless Store blueprint
+          overwrite: true
         - type: renameUpgrader
           oldPath: blueprints/video-center
           newPath: blueprints/3000_video-center
           commitDetails: Rename Video Center blueprint
+          overwrite: true
         - type: renameUpgrader
           oldPath: blueprints/empty
           newPath: blueprints/4000_empty
           commitDetails: Rename Empty blueprint
+          overwrite: true
         - type: renameUpgrader
           oldPath: blueprints/headless_blog
           newPath: blueprints/5000_headless_blog
