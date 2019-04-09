@@ -51,7 +51,7 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
     public void doInit(final Configuration config) {
         oldPath = config.getString(CONFIG_KEY_OLD_PATH);
         newPath = config.getString(CONFIG_KEY_NEW_PATH);
-        overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE);
+        overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, false);
     }
 
     @Override
