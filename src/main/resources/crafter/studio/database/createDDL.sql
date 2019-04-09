@@ -7,13 +7,13 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.21', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.22', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
   `organization_id`           BIGINT(20)    NOT NULL,
   `site_id`                   BIGINT(20)    NOT NULL,
-  `operation`                 VARCHAR(16)   NOT NULL,
+  `operation`                 VARCHAR(32)   NOT NULL,
   `operation_timestamp`       DATETIME      NOT NULL,
   `origin`                    VARCHAR(16)   NOT NULL,
   `primary_target_id`         VARCHAR(256)  NOT NULL,
