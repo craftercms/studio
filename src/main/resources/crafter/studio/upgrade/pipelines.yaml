@@ -274,6 +274,13 @@ pipelines:
           commitDetails: Rename Headless Blog blueprint
           overwrite: true
 
+    - currentVersion: 3.1.0.21
+      nextVersion: 3.1.0.22
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.21-to-3.1.0.22.sql
+          updateIntegrity: true
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `new_audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
   `organization_id`           BIGINT(20)    NOT NULL,
   `site_id`                   BIGINT(20)    NOT NULL,
-  `operation`                 VARCHAR(16)   NOT NULL,
+  `operation`                 VARCHAR(32)   NOT NULL,
   `operation_timestamp`       DATETIME      NOT NULL,
   `origin`                    VARCHAR(16)   NOT NULL,
   `primary_target_id`         VARCHAR(256)  NOT NULL,
@@ -58,7 +58,7 @@ CREATE PROCEDURE migrate_audit ()
     DECLARE v_post_user_id VARCHAR(255);
     DECLARE v_source VARCHAR(255);
     DECLARE v_site_id BIGINT(20);
-    DECLARE v_operation VARCHAR(16) DEFAULT '';
+    DECLARE v_operation VARCHAR(32) DEFAULT '';
     DECLARE v_origin VARCHAR(16);
     DECLARE v_target_type VARCHAR(32);
     -- declare cursor for audit log
