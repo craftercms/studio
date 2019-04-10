@@ -924,7 +924,6 @@ public class SiteServiceImpl implements SiteService {
                             remoteUrl + ")");
                     contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                             remotePassword, remoteToken, remotePrivateKey);
-                    insertAddRemoteAuditLog(siteId, remoteName);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
@@ -966,6 +965,8 @@ public class SiteServiceImpl implements SiteService {
                 siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
+
+                insertAddRemoteAuditLog(siteId, remoteName);
 
                 // Add default groups
                 logger.debug("Adding default groups for site " + siteId);
