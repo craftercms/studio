@@ -54,6 +54,7 @@
         <sardine.version>5.8</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
         <apache.cxf.version>3.1.18</apache.cxf.version>
+        <nekohtml.version>1.9.22</nekohtml.version>
 
         <studio.vcbp.path>target/vcbp</studio.vcbp.path>
         <studio.vcbp.version>develop</studio.vcbp.version>
@@ -509,7 +510,7 @@
         <dependency>
             <groupId>net.sourceforge.nekohtml</groupId>
             <artifactId>nekohtml</artifactId>
-            <version>1.9.22</version>
+            <version>${nekohtml.version}</version>
         </dependency>
     </dependencies>
 
