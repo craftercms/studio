@@ -55,6 +55,7 @@
         <saxon.version>9.8.0-14</saxon.version>
         <apache.cxf.version>3.1.18</apache.cxf.version>
         <nekohtml.version>1.9.22</nekohtml.version>
+        <xerces.version>2.12.0</xerces.version>
 
         <studio.vcbp.path>target/vcbp</studio.vcbp.path>
         <studio.vcbp.version>develop</studio.vcbp.version>
@@ -511,6 +512,17 @@
             <groupId>net.sourceforge.nekohtml</groupId>
             <artifactId>nekohtml</artifactId>
             <version>${nekohtml.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>${xerces.version}</version>
         </dependency>
     </dependencies>
 
