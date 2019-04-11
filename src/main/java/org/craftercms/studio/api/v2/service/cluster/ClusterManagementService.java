@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.api.v2.service.cluster;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 
 import java.util.List;
@@ -37,5 +38,5 @@ public interface ClusterManagementService {
      * @param memberIds List of ids of member to remover from cluster
      * @return True if success, otherwise false
      */
-    boolean removeMembers(List<Long> memberIds);
+    boolean removeMembers(List<Long> memberIds) throws SiteNotFoundException;
 }

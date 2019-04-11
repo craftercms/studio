@@ -215,7 +215,7 @@ public class UsersController {
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
@@ -236,7 +236,7 @@ public class UsersController {
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false);

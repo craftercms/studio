@@ -38,6 +38,12 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_APPROVE_SCHEDULED = "APPROVE_SCHEDULED";
     public static final String OPERATION_REJECT = "REJECT";
     public static final String OPERATION_PUBLISHED = "PUBLISHED";
+    public static final String OPERATION_REVERT = "REVERT";
+    public static final String OPERATION_ENABLE = "ENABLE";
+    public static final String OPERATION_DISABLE = "DISABLE";
+    public static final String OPERATION_START_PUBLISHER = "START_PUBLISHER";
+    public static final String OPERATION_STOP_PUBLISHER = "STOP_PUBLISHER";
+    public static final String OPERATION_REMOVE_CLUSTER_NODE = "REMOVE_CLUSTER_NODE";
     public static final String OPERATION_UNKNOWN = "UNKNOWN";
 
     /** Origin **/
@@ -51,5 +57,6 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_FOLDER = "Folder";
     public static final String TARGET_TYPE_CONTENT_ITEM = "Content Item";
     public static final String TARGET_TYPE_REMOTE_REPOSITORY = "Remote Repository";
+    public static final String TARGET_TYPE_CLUSTER_NODE = "Cluster Node";
     public static final String TARGET_TYPE_UNKNOWN = "unknown";
 }

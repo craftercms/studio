@@ -48,7 +48,7 @@ public interface UserService {
     User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
     List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
-            throws ServiceLayerException, UserNotFoundException;
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
     List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 

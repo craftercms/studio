@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
@@ -62,6 +63,8 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParamter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
@@ -92,6 +95,9 @@ import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.D
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration
         .JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
@@ -118,6 +124,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected StudioConfiguration studioConfiguration;
     protected PublishRequestMapper publishRequestMapper;
+    protected AuditServiceInternal auditServiceInternal;
 
     @Override
     @ValidateParams
@@ -855,6 +862,21 @@ public class DeploymentServiceImpl implements DeploymentService {
         message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",
                 ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
         siteService.updatePublishingStatusMessage(site, message);
+
+        SiteFeed siteFeed = siteService.getSite(site);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setSiteId(siteFeed.getId());
+        if (enabled) {
+            auditLog.setOperation(OPERATION_START_PUBLISHER);
+        } else {
+            auditLog.setOperation(OPERATION_STOP_PUBLISHER);
+        }
+        auditLog.setActorId(securityService.getCurrentUser());
+        auditLog.setPrimaryTargetId(siteFeed.getSiteId());
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteFeed.getName());
+        auditServiceInternal.insertAuditLog(auditLog);
+
         return toRet;
     }
 
@@ -1107,4 +1129,11 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.publishRequestMapper = publishRequestMapper;
     }
 
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
 }
