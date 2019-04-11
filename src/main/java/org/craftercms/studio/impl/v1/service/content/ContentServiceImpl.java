@@ -124,6 +124,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELET
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_FROM_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REVERT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
@@ -1893,7 +1894,7 @@ public class ContentServiceImpl implements ContentService {
     public boolean revertContentItem(@ValidateStringParam(name = "site") String site,
                                      @ValidateSecurePathParam(name = "path") String path,
                                      @ValidateStringParam(name = "version") String version, boolean major,
-                                     @ValidateStringParam(name = "comment") String comment) {
+                                     @ValidateStringParam(name = "comment") String comment) throws SiteNotFoundException {
         boolean toReturn = false;
         String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
@@ -1909,6 +1910,18 @@ public class ContentServiceImpl implements ContentService {
             objectMetadataManager.updateCommitId(site, path, commitId);
             _contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
+
+            SiteFeed siteFeed = siteService.getSite(site);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_REVERT);
+            auditLog.setSiteId(siteFeed.getId());
+            auditLog.setActorId(securityService.getCurrentUser());
+            auditLog.setPrimaryTargetId(site + ":" + path);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLog.setPrimaryTargetValue(path);
+            auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
+            auditServiceInternal.insertAuditLog(auditLog);
+
             toReturn = true;
         }
 

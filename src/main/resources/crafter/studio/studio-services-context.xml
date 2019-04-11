@@ -166,6 +166,7 @@
          <property name="deploymentHistoryProvider" ref="contentRepository"/>
          <property name="studioConfiguration" ref="studioConfiguration" />
          <property name="publishRequestMapper" ref="publishRequestMapper" />
+         <property name="auditServiceInternal" ref="auditServiceInternal" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -353,6 +354,9 @@
         <property name="clusterManagementServiceInternal" ref="clusterManagementServiceInternal" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="clusterManagementServiceInternal"

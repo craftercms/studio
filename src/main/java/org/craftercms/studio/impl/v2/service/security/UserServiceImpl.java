@@ -65,6 +65,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DISABLE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ENABLE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 
@@ -228,8 +230,31 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
     public List<User> enableUsers(List<Long> userIds, List<String> usernames,
-                                  boolean enabled) throws ServiceLayerException, UserNotFoundException {
-        return userServiceInternal.enableUsers(userIds, usernames, enabled);
+                                  boolean enabled) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+        List<User> users = userServiceInternal.enableUsers(userIds, usernames, enabled);
+        SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setSiteId(siteFeed.getId());
+        if (enabled) {
+            auditLog.setOperation(OPERATION_ENABLE);
+        } else {
+            auditLog.setOperation(OPERATION_DISABLE);
+        }
+        auditLog.setActorId(getCurrentUser().getUsername());
+        auditLog.setPrimaryTargetId(siteFeed.getSiteId());
+        auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
+        auditLog.setPrimaryTargetValue(siteFeed.getName());
+        List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
+        for (User u : users) {
+            AuditLogParamter paramter = new AuditLogParamter();
+            paramter.setTargetId(Long.toString(u.getId()));
+            paramter.setTargetType(TARGET_TYPE_USER);
+            paramter.setTargetValue(u.getUsername());
+            paramters.add(paramter);
+        }
+        auditLog.setParameters(paramters);
+        auditServiceInternal.insertAuditLog(auditLog);
+        return users;
     }
 
     @Override

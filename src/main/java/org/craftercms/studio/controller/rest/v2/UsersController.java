@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.EnableUsers;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -215,7 +214,7 @@ public class UsersController {
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
@@ -236,7 +235,7 @@ public class UsersController {
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false);
