@@ -74,6 +74,14 @@ public class SecurityServiceImpl implements SecurityService {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
         }
+        StudioCacheContext usersCacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        Object groupsCacheKey = cacheTemplate.getKey(CStudioConstants.CACHE_USERS_SCOPE, username,
+                CStudioConstants.CACHE_KEY_USERS_GROUPS);
+        Object userProfileCacheKey = cacheTemplate.getKey(CStudioConstants.CACHE_USERS_SCOPE, username,
+                CStudioConstants.CACHE_KEY_USERS_PROFILE);
+        cacheService.remove(usersCacheContext, groupsCacheKey);
+        cacheService.remove(usersCacheContext, userProfileCacheKey);
         return toRet;
     }
 
@@ -602,6 +610,15 @@ public class SecurityServiceImpl implements SecurityService {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
         }
+
+        StudioCacheContext usersCacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        Object groupsCacheKey = cacheTemplate.getKey(CStudioConstants.CACHE_USERS_SCOPE, user,
+                CStudioConstants.CACHE_KEY_USERS_GROUPS);
+        Object userProfileCacheKey = cacheTemplate.getKey(CStudioConstants.CACHE_USERS_SCOPE, user,
+                CStudioConstants.CACHE_KEY_USERS_PROFILE);
+        cacheService.remove(usersCacheContext, groupsCacheKey);
+        cacheService.remove(usersCacheContext, userProfileCacheKey);
         return toRet;
     }
 
