@@ -70,7 +70,7 @@ CREATE PROCEDURE migrate_audit ()
     get_audit_entry: LOOP
       FETCH audit_cursor INTO v_id, v_modified_date, v_creation_date, v_summary, v_summary_format, v_content_id, v_site_network, v_activity_type, v_content_type, v_post_user_id, v_source;
       IF v_finished = 1 THEN LEAVE get_audit_entry; END IF;
-      SELECT id INTO v_site_id FROM site WHERE site_id = v_site_network;
+      SELECT id INTO v_site_id FROM site WHERE site_id = v_site_network and deleted = 0;
       SELECT CASE
         WHEN v_activity_type = 'CREATED' THEN 'CREATE'
         WHEN v_activity_type = 'UPDATED' THEN 'UPDATE'
