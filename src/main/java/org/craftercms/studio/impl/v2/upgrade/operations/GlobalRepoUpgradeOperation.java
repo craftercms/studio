@@ -19,6 +19,8 @@ package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.lang.UrlUtils;
@@ -26,6 +28,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
@@ -37,7 +40,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.GLOBAL_REPO_
  *
  * <p>Suported YAML properties:
  * <ul>
- *     <li><strong>files</strong>: (required) list of paths to update from the bootstrap repo</li>
+ *     <li>
+ *         <strong>files</strong>: (required) list of paths to copy to the global repository. The format of each
+ *         entry of this list is {CLASSPATH_SRC_PATH}:{GLOBAL_REPO_DEST_PATH}. The first component is the classpath
+ *         of the source file to copy, and the second component is the destination path in the global repo.
+ *     </li>
  * </ul>
  * </p>
  *
@@ -47,19 +54,37 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalRepoUpgradeOperation.class);
 
+    public static final String FILE_MAPPING_SEPARATOR = ":";
     public static final String CONFIG_KEY_FILES = "files";
 
     /**
      * List of paths to update.
      */
-    protected String[] files;
+    protected Map<Resource, String> files;
+
+    public GlobalRepoUpgradeOperation() {
+        files = new HashMap<>();
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
     public void doInit(final Configuration config) {
-        files = (String[]) config.getArray(String.class, CONFIG_KEY_FILES);
+        String[] fileMappings = (String[]) config.getArray(String.class, CONFIG_KEY_FILES);
+        for (String fileMapping : fileMappings) {
+            String[] splitMapping = fileMapping.split(FILE_MAPPING_SEPARATOR);
+            if (splitMapping.length == 2) {
+                Resource srcFile = new ClassPathResource(splitMapping[0]);
+                String destFile = splitMapping[1];
+
+                files.put(srcFile, destFile);
+            } else {
+                throw new IllegalStateException("Configuration for global upgrade operation is invalid: format of " +
+                                                "file mapping " + fileMapping + " should be {CLASSPATH_SRC_PATH}" +
+                                                FILE_MAPPING_SEPARATOR + "{GLOBAL_REPO_DEST_PATH}");
+            }
+        }
     }
 
     /**
@@ -67,23 +92,15 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        Resource globalConfigurationBootstrap = getServletResource(UrlUtils.concat(
-            FILE_SEPARATOR,
-            BOOTSTRAP_REPO_PATH,
-            getProperty(GLOBAL_REPO_PATH),
-            FILE_SEPARATOR)
-        );
-
         logger.info("Upgrading global repo files");
 
-        for(String file : files) {
-            logger.debug("Upgrading configuration file: {0}", file);
-            try (InputStream is = globalConfigurationBootstrap.createRelative(file).getInputStream()) {
+        for(Map.Entry<Resource, String> entry : files.entrySet()) {
+            logger.debug("Upgrading global repo file: {0}", entry.getValue());
 
-                writeToRepo(site, file, is);
-
+            try (InputStream is = entry.getKey().getInputStream()) {
+                writeToRepo(site, entry.getValue(), is);
             } catch (IOException e) {
-                throw new UpgradeException("Upgrade for global repo failed", e);
+                throw new UpgradeException("Error while upgrading global repo file " + entry.getValue(), e);
             }
         }
 
