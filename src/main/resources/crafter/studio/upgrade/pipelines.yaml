@@ -310,6 +310,33 @@ pipelines:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.23-to-3.1.0.24.sql
           updateIntegrity: true
+        - type: globalRepoUpgrader
+          commitDetails: Move sample files to global repository
+          files:
+            - configuration/samples/sample-asset-processing-config.xml
+            - configuration/samples/sample-aws.xml
+            - configuration/samples/sample-box.xml
+            - configuration/samples/sample-cmis-config.xml
+            - configuration/samples/sample-config-list.xml
+            - configuration/samples/sample-contextual-nav.xml
+            - configuration/samples/sample-engine-application-context.xml
+            - configuration/samples/sample-engine-site-config.xml
+            - configuration/samples/sample-environment-config.xml
+            - configuration/samples/sample-form-control-rte-setup.xml
+            - configuration/samples/sample-form-control-rte-setup-tinymce5.xml
+            - configuration/samples/sample-mime-type.xml
+            - configuration/samples/sample-notification-config.xml
+            - configuration/samples/sample-permission-mappings-config.xml
+            - configuration/samples/sample-preview-components-config.xml
+            - configuration/samples/sample-preview-panel.xml
+            - configuration/samples/sample-resolver-config.xml
+            - configuration/samples/sample-role-mappings-config.xml
+            - configuration/samples/sample-sidebar.xml
+            - configuration/samples/sample-site-config.xml
+            - configuration/samples/sample-site-config-tools.xml
+            - configuration/samples/sample-targeting-config.xml
+            - configuration/samples/sample-urlrewrite.xml
+            - configuration/samples/sample-webdav.xml
 
   # Pipeline to upgrade site repositories
   site:
@@ -404,7 +431,15 @@ pipelines:
         - type: addFileUpgrader
           path: /config/engine/site-config.xml
           file: crafter/studio/upgrade/3.1.0.6/site-config.xml
-        - type: versionFileUpgrader    
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.0.6
+      nextVersion: 3.1.0.7
+      operations:
+        - type: deleteUpgrader
+          commitDetails: Delete sample files
+          paths:
+            - /config/studio/administration/samples
 
   # Pipeline to upgrade blueprints
   blueprint:
