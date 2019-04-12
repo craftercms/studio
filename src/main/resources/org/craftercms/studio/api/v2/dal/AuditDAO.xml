@@ -195,9 +195,10 @@
     <insert id="insertAuditLog" parameterType="org.craftercms.studio.api.v2.dal.AuditLog" useGeneratedKeys="true"
             keyProperty="id">
         INSERT INTO audit (organization_id, site_id, operation, operation_timestamp, origin, primary_target_id,
-        primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details)
+        primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details, cluster_node_id)
         VALUES (#{organizationId}, #{siteId}, #{operation}, CURRENT_TIMESTAMP, #{origin}, #{primaryTargetId},
-        #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId}, #{actorDetails});
+        #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId}, #{actorDetails},
+        #{clusterNodeId});
     </insert>
 
     <insert id="insertAuditLogParams" parameterType="java.util.Map">
