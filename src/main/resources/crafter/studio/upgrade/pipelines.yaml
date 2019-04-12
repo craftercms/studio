@@ -226,7 +226,7 @@ pipelines:
       nextVersion: 3.1.0.17
       operations:
         - type: dbScriptUpgrader
-          filename: upgrade-3.1.0.7-to-3.1.0.8.sql
+          filename: upgrade-3.1.0.16-to-3.1.0.17.sql
           updateIntegrity: true
         - type: xsltFileUpgrader
           path: /configuration/global-menu-config.xml
@@ -304,6 +304,12 @@ pipelines:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.22-to-3.1.0.23.sql
           updateIntegrity: false
+    - currentVersion: 3.1.0.23
+      nextVersion: 3.1.0.24
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.23-to-3.1.0.24.sql
+          updateIntegrity: true
 
   # Pipeline to upgrade site repositories
   site:
@@ -507,3 +513,14 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
+
+  environment-config:
+    path: &environment-config '/config/studio/environment/environment-config.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *environment-config
+            template: crafter/studio/upgrade/3.1.0.24/environment-config.xslt
+            commitDetails: Add previewEngineServerUrl and graphqlServerUrl properties to environment configuration

@@ -27,6 +27,8 @@ public interface SiteEnvironmentConfig {
     String PUBLISHING_TARGET_XPATH = "publishing-targets/target";
     String XML_TAG_REPO_BRANCH_NAME = "repo-branch-name";
     String XML_TAG_DISPLAY_LABEL = "display-label";
+    String XML_TAG_PREVIEW_ENGINE_SERVER_URL = "preview-engine-server-url";
+    String XML_TAG_GRAPHQL_SERVER_URL = "graphql-server-url";
 
 	/**
 	 * get the common preview server URL for all content in the given site
@@ -35,6 +37,22 @@ public interface SiteEnvironmentConfig {
 	 * @return preview server url
 	 */
 	String getPreviewServerUrl(String site);
+
+    /**
+     * get the common preview engine server URL for all content in the given site
+     *
+     * @param site
+     * @return preview engine server url
+     */
+    String getPreviewEngineServerUrl(String site);
+
+    /**
+     * get the common graphql server URL for all content in the given site
+     *
+     * @param site
+     * @return graphql server url
+     */
+    String getGraphqlServerUrl(String site);
 	
 	/**
 	 * get the live site url 
