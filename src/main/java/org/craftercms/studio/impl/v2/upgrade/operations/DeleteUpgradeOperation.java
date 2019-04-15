@@ -21,8 +21,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 
 import java.io.File;
@@ -30,13 +28,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that renames the blueprint in the
- * global repository.
+ * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that deletes files and folders in the
+ * repository
  * @author Dejan Brkic
  */
 public class DeleteUpgradeOperation extends AbstractUpgradeOperation {
-
-    private static final Logger logger = LoggerFactory.getLogger(DeleteUpgradeOperation.class);
 
     public static final String CONFIG_KEY_PATHS = "paths";
 
