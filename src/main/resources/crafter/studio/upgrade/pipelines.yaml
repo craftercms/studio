@@ -515,6 +515,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 4
+        nextVersion: 5
+        operations:
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.0.24/config-list-5.xslt
+            commitDetails: Move sample configuration files to global configuration
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
 
   site-config-tools:
     path: &site-config-tools '/config/studio/administration/site-config-tools.xml'
