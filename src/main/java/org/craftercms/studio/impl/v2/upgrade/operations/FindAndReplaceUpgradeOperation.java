@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v2.upgrade.operations;
 import java.nio.file.Path;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -57,7 +59,7 @@ public class FindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperat
     protected String replacement;
 
     @Override
-    protected void doInit(final Configuration config) {
+    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         super.doInit(config);
         pattern = config.getString(CONFIG_KEY_PATTERN);
         replacement = config.getString(CONFIG_KEY_REPLACEMENT);

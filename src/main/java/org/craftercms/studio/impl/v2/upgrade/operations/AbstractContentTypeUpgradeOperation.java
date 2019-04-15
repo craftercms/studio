@@ -36,6 +36,8 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -114,7 +116,7 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
     }
 
     @Override
-    protected void doInit(final Configuration config) {
+    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         super.doInit(config);
         includedContentTypes = config.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
         formDefinitionXpath = config.getString(CONFIG_KEY_FORM_DEFINITION);

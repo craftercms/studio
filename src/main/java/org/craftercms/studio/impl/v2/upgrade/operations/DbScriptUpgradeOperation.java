@@ -23,6 +23,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -93,7 +95,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final Configuration config) {
+    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         fileName = config.getString(CONFIG_KEY_FILENAME);
         updateIntegrity = config.getBoolean(CONFIG_KEY_INTEGRITY, true);
     }

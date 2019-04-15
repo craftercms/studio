@@ -20,9 +20,13 @@ package org.craftercms.studio.impl.v2.upgrade.operations;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -54,8 +58,9 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalRepoUpgradeOperation.class);
 
-    public static final String FILE_MAPPING_SEPARATOR = ":";
     public static final String CONFIG_KEY_FILES = "files";
+    public static final String CONFIG_KEY_SRC = "src";
+    public static final String CONFIG_KEY_DEST = "dest";
 
     /**
      * List of paths to update.
@@ -70,20 +75,20 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final Configuration config) {
-        String[] fileMappings = (String[]) config.getArray(String.class, CONFIG_KEY_FILES);
-        for (String fileMapping : fileMappings) {
-            String[] splitMapping = fileMapping.split(FILE_MAPPING_SEPARATOR);
-            if (splitMapping.length == 2) {
-                Resource srcFile = new ClassPathResource(splitMapping[0]);
-                String destFile = splitMapping[1];
+    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+        List<HierarchicalConfiguration<ImmutableNode>> fileMappings = config.configurationsAt(CONFIG_KEY_FILES);
+        for (HierarchicalConfiguration<ImmutableNode> fileMapping : fileMappings) {
+            String src = fileMapping.getString(CONFIG_KEY_SRC);
+            String dest = fileMapping.getString(CONFIG_KEY_DEST);
 
-                files.put(srcFile, destFile);
-            } else {
-                throw new IllegalStateException("Configuration for global upgrade operation is invalid: format of " +
-                                                "file mapping " + fileMapping + " should be {CLASSPATH_SRC_PATH}" +
-                                                FILE_MAPPING_SEPARATOR + "{GLOBAL_REPO_DEST_PATH}");
+            if (StringUtils.isEmpty(src)) {
+                throw new IllegalStateException("'" + CONFIG_KEY_SRC + "' config key not specified");
             }
+            if (StringUtils.isEmpty(dest)) {
+                throw new IllegalStateException("'" + CONFIG_KEY_DEST + "' config key not specified");
+            }
+
+            files.put(new ClassPathResource(src), dest);
         }
     }
 
