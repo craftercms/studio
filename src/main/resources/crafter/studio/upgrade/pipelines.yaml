@@ -93,9 +93,9 @@ pipelines:
           filename: upgrade-3.1.0-to-3.1.0.1.sql
         - type: globalRepoUpgrader
           files:
-            - configuration/global-menu-config.xml
-            - configuration/global-permission-mappings-config.xml
-            - configuration/global-role-mappings-config.xml
+            - crafter/studio/upgrade/3.1.0.1/repo-bootstrap/global/configuration/global-menu-config.xml:configuration/global-menu-config.xml
+            - crafter/studio/upgrade/3.1.0.1/repo-bootstrap/global/configuration/global-permission-mappings-config.xml:configuration/global-permission-mappings-config.xml
+            - crafter/studio/upgrade/3.1.0.1/repo-bootstrap/global/configuration/global-role-mappings-config.xml:configuration/global-role-mappings-config.xml
 
     - currentVersion: 3.1.0.1
       nextVersion: 3.1.0.2
@@ -203,10 +203,10 @@ pipelines:
           updateIntegrity: true
         - type: globalRepoUpgrader
           files:
-            - blueprints/empty/craftercms-plugin.yaml
-            - blueprints/headless_blog/craftercms-plugin.yaml
-            - blueprints/headless_store/craftercms-plugin.yaml
-            - blueprints/website_editorial/craftercms-plugin.yaml
+            - crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/empty/craftercms-plugin.yaml:blueprints/empty/craftercms-plugin.yaml
+            - crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/headless_blog/craftercms-plugin.yaml:blueprints/headless_blog/craftercms-plugin.yaml
+            - crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/headless_store/craftercms-plugin.yaml:blueprints/headless_store/craftercms-plugin.yaml
+            - crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/website_editorial/craftercms-plugin.yaml:blueprints/website_editorial/craftercms-plugin.yaml
 
     - currentVersion: 3.1.0.15
       nextVersion: 3.1.0.16
