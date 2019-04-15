@@ -1145,6 +1145,18 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
+    public String getPreviewEngineServerUrl(@ValidateStringParam(name = "site") String site) {
+        return environmentConfig.getPreviewEngineServerUrl(site);
+    }
+
+    @Override
+    @ValidateParams
+    public String getGraphqlServerUrl(@ValidateStringParam(name = "site") String site) {
+        return environmentConfig.getPreviewServerUrl(site);
+    }
+
+    @Override
+    @ValidateParams
     public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getLiveServerUrl(site);
     }

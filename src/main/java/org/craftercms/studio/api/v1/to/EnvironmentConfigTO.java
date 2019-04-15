@@ -16,6 +16,8 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -25,6 +27,8 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
     private static final long serialVersionUID = -8009424857607808612L;
     /** preview server URL **/
 	protected String previewServerUrl = "";
+	protected String previewEngineServerUrl = StringUtils.EMPTY;
+    protected String graphqlServerUrl = StringUtils.EMPTY;
 	/** authoring server URL **/
 	protected String authoringServerUrl = "";
 	/** live server url **/
@@ -87,7 +91,23 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
 		return previewServerUrl;
 	}
 
-	/**
+    public String getPreviewEngineServerUrl() {
+        return previewEngineServerUrl;
+    }
+
+    public void setPreviewEngineServerUrl(String previewEngineServerUrl) {
+        this.previewEngineServerUrl = previewEngineServerUrl;
+    }
+
+    public String getGraphqlServerUrl() {
+        return graphqlServerUrl;
+    }
+
+    public void setGraphqlServerUrl(String graphqlServerUrl) {
+        this.graphqlServerUrl = graphqlServerUrl;
+    }
+
+    /**
 	 * @param authoringServerUrl the authoringServerUrl to set
 	 */
 	public void setAuthoringServerUrl(String authoringServerUrl) {

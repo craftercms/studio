@@ -170,6 +170,10 @@ public interface SiteService {
 
     String getPreviewServerUrl(String site);
 
+    String getPreviewEngineServerUrl(String site);
+
+    String getGraphqlServerUrl(String site);
+
     String getLiveServerUrl(String site);
 
     String getAuthoringServerUrl(String site);

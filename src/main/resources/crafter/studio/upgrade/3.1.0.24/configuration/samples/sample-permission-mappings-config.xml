@@ -77,7 +77,7 @@
 
 -->
 <permissions>  
- <role name="author">
+  <role name="author">
     <rule regex="/site/website/.*">
       <allowed-permissions>
         <permission>Read</permission>
@@ -91,7 +91,7 @@
         <permission>Read</permission>
         <permission>Write</permission>
         <permission>Create Content</permission>
-         <permission>Create Folder</permission>
+        <permission>Create Folder</permission>
       </allowed-permissions>
     </rule>
     <rule regex="/static-assets/.*">
@@ -116,7 +116,7 @@
     <rule regex="^/site/(?!website/index\.xml)(.*)">
       <allowed-permissions>
         <permission>Delete</permission>
-        </allowed-permissions>
+      </allowed-permissions>
     </rule>
     <rule regex="/(static-assets|templates|scripts)/.*">
       <allowed-permissions>
@@ -197,5 +197,5 @@
         <permission>Read</permission>
       </allowed-permissions>
     </rule>
-  </role>
+  </role>  
 </permissions>

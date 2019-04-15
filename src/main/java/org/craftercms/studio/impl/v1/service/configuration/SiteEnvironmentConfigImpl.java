@@ -101,6 +101,26 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         return previewServerUrl;
 	}
 
+    @Override
+    @ValidateParams
+    public String getPreviewEngineServerUrl(@ValidateStringParam(name = "site") String site) {
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
+        if (config != null) {
+            return config.getPreviewEngineServerUrl();
+        }
+        return "";
+    }
+
+    @Override
+    @ValidateParams
+    public String getGraphqlServerUrl(@ValidateStringParam(name = "site") String site) {
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
+        if (config != null) {
+            return config.getGraphqlServerUrl();
+        }
+        return "";
+    }
+
 	@Override
     @ValidateParams
 	public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
@@ -163,6 +183,12 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 			config = new EnvironmentConfigTO();
 			String previewServerUrl = root.valueOf("preview-server-url");
 			config.setPreviewServerUrl(previewServerUrl);
+
+            String previewEngineServerUrl = root.valueOf(XML_TAG_PREVIEW_ENGINE_SERVER_URL);
+            config.setPreviewEngineServerUrl(previewEngineServerUrl);
+
+            String graphqlServerUrl = root.valueOf(XML_TAG_GRAPHQL_SERVER_URL);
+            config.setGraphqlServerUrl(graphqlServerUrl);
 
 			String openDropdown = root.valueOf("open-sidebar");
 			config.setOpenDropdown((openDropdown != null) ? Boolean.valueOf(openDropdown) : false);

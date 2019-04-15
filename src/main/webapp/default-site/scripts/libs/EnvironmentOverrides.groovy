@@ -43,10 +43,12 @@ class EnvironmentOverrides {
 
         try {
             def siteServiceSB = context.applicationContext.get(SITE_SERVICES_BEAN)
-            result.previewServerUrl = siteServiceSB.getPreviewServerUrl(Cookies.getCookieValue("crafterSite", request))
+            result.site = Cookies.getCookieValue("crafterSite", request)
+            result.previewServerUrl = siteServiceSB.getPreviewServerUrl(result.site)
+            result.previewEngineServerUrl = siteServiceSB.getPreviewEngineServerUrl(result.site)
+            result.graphqlServerUrl = siteServiceSB.getGraphqlServerUrl(result.site)
 
             result.user = SecurityServices.getCurrentUser(context)
-            result.site = Cookies.getCookieValue("crafterSite", request)
 
             def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
             def authenticationType = studioConfigurationSB.getProperty(SECURITY_TYPE)

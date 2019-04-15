@@ -17,7 +17,6 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations;
 
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
@@ -30,8 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that renames the blueprint in the
- * global repository.
+ * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that renames/moves files and
+ * folders in the repository.
  * @author Dejan Brkic
  */
 public class RenameUpgradeOperation extends AbstractUpgradeOperation {
