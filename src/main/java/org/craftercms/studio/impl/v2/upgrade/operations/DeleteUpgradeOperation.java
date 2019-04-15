@@ -17,7 +17,8 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations;
 
-import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -45,7 +46,7 @@ public class DeleteUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final Configuration config) {
+    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         paths = (String[]) config.getArray(String.class, CONFIG_KEY_PATHS);
     }
 
