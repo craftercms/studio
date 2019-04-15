@@ -30,6 +30,8 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -60,7 +62,7 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
     protected List<String> includedPaths;
 
     @Override
-    protected void doInit(final Configuration config) {
+    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         includedPaths = config.getList(String.class, CONFIG_KEY_INCLUDED_PATHS);
     }
 

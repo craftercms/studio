@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
@@ -61,7 +63,7 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final Configuration config) {
+    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         path = config.getString(CONFIG_KEY_PATH);
         file = new ClassPathResource(config.getString(CONFIG_KEY_FILE));
     }

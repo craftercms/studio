@@ -25,6 +25,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -110,7 +112,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
     protected String urlTemplate;
 
     @Override
-    protected void doInit(final Configuration config) {
+    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         super.doInit(config);
         fieldNameXpath = config.getString(CONFIG_KEY_FIELD_XPATH);
         profileIdXpath = config.getString(CONFIG_KEY_PROFILE_XPATH);

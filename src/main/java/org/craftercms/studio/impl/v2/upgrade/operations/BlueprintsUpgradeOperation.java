@@ -65,15 +65,9 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    protected ServletContext servletContext;
     protected ServicesConfig servicesConfig;
     protected SecurityService securityService;
     protected UserServiceInternal userServiceInternal;
-
-    @Override
-    public void setServletContext(final ServletContext servletContext) {
-        this.servletContext = servletContext;
-    }
 
     @Required
     public void setServicesConfig(final ServicesConfig servicesConfig) {

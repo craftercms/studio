@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -48,7 +50,7 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final Configuration config) {
+    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         oldPath = config.getString(CONFIG_KEY_OLD_PATH);
         newPath = config.getString(CONFIG_KEY_NEW_PATH);
         overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, false);

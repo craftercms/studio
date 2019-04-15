@@ -32,6 +32,8 @@ import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -132,23 +134,21 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
         return studioConfiguration.getProperty(key);
     }
 
-    protected Resource getServletResource(final String path) {
-        return new ServletContextResource(servletContext, path);
-    }
-
     public void setServletContext(final ServletContext servletContext) {
         this.servletContext = servletContext;
     }
 
     @Override
-    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
+    public void init(final String sourceVersion, final String targetVersion,
+                     final HierarchicalConfiguration<ImmutableNode> config) {
         this.currentVersion = sourceVersion;
         this.nextVersion = targetVersion;
         this.commitDetails = config.getString(CONFIG_KEY_COMMIT_DETAILS);
+
         doInit(config);
     }
 
-    protected void doInit(final Configuration config) {
+    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         // do nothing by default
     }
 
