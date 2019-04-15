@@ -313,30 +313,30 @@ pipelines:
         - type: globalRepoUpgrader
           commitDetails: Move sample files to global repository
           files:
-            - configuration/samples/sample-asset-processing-config.xml
-            - configuration/samples/sample-aws.xml
-            - configuration/samples/sample-box.xml
-            - configuration/samples/sample-cmis-config.xml
-            - configuration/samples/sample-config-list.xml
-            - configuration/samples/sample-contextual-nav.xml
-            - configuration/samples/sample-engine-application-context.xml
-            - configuration/samples/sample-engine-site-config.xml
-            - configuration/samples/sample-environment-config.xml
-            - configuration/samples/sample-form-control-rte-setup.xml
-            - configuration/samples/sample-form-control-rte-setup-tinymce5.xml
-            - configuration/samples/sample-mime-type.xml
-            - configuration/samples/sample-notification-config.xml
-            - configuration/samples/sample-permission-mappings-config.xml
-            - configuration/samples/sample-preview-components-config.xml
-            - configuration/samples/sample-preview-panel.xml
-            - configuration/samples/sample-resolver-config.xml
-            - configuration/samples/sample-role-mappings-config.xml
-            - configuration/samples/sample-sidebar.xml
-            - configuration/samples/sample-site-config.xml
-            - configuration/samples/sample-site-config-tools.xml
-            - configuration/samples/sample-targeting-config.xml
-            - configuration/samples/sample-urlrewrite.xml
-            - configuration/samples/sample-webdav.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-asset-processing-config.xml:configuration/samples/sample-asset-processing-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-aws.xml:configuration/samples/sample-aws.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-box.xml:configuration/samples/sample-box.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-cmis-config.xml:configuration/samples/sample-cmis-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-config-list.xml:configuration/samples/sample-config-list.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-contextual-nav.xml:configuration/samples/sample-contextual-nav.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-engine-application-context.xml:configuration/samples/sample-engine-application-context.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-engine-site-config.xml:configuration/samples/sample-engine-site-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-environment-config.xml:configuration/samples/sample-environment-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-form-control-rte-setup.xml:configuration/samples/sample-form-control-rte-setup.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-form-control-rte-setup-tinymce5.xml:configuration/samples/sample-form-control-rte-setup-tinymce5.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-mime-type.xml:configuration/samples/sample-mime-type.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-notification-config.xml:configuration/samples/sample-notification-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-permission-mappings-config.xml:configuration/samples/sample-permission-mappings-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-preview-components-config.xml:configuration/samples/sample-preview-components-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-preview-panel.xml:configuration/samples/sample-preview-panel.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-resolver-config.xml:configuration/samples/sample-resolver-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-role-mappings-config.xml:configuration/samples/sample-role-mappings-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-sidebar.xml:configuration/samples/sample-sidebar.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-site-config.xml:configuration/samples/sample-site-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-site-config-tools.xml:configuration/samples/sample-site-config-tools.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-targeting-config.xml:configuration/samples/sample-targeting-config.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-urlrewrite.xml:configuration/samples/sample-urlrewrite.xml
+            - crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-webdav.xml:configuration/samples/sample-webdav.xml
 
   # Pipeline to upgrade site repositories
   site:
