@@ -23,7 +23,6 @@ import scripts.api.impl.content.SpringContentTypeServices
 import scripts.api.impl.content.SpringPageNavigationOrderServices
 import scripts.api.impl.clipboard.SpringClipboardServices
 import scripts.api.impl.deployment.SpringDeploymentServices
-import scripts.api.impl.activity.SpringActivityServices
 import scripts.api.impl.workflow.SpringWorkflowServices
 import scripts.api.impl.security.SpringSecurityServices
 import scripts.api.impl.site.SpringSiteServices
@@ -85,16 +84,6 @@ class ServiceFactory {
 	 */
 	static getDeploymentServices(context) {
 		return new SpringDeploymentServices(context)
-	}
-
-	/**
-	 * return the implementation for activity services
-	 *
-	 * @param context site context
-	 * @return ActivityServices
-	 */
-	static getActivityServices(context) {
-		return new SpringActivityServices(context)
 	}
 
 	/**

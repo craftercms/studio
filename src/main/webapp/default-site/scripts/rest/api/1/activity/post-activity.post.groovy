@@ -16,44 +16,9 @@
  */
 
 
-import org.apache.commons.lang3.StringUtils
-
-import scripts.api.ActivityServices
-
 def result = [:]
-def site = request.getParameter("site_id")
-def user = request.getParameter("user")
-def path = request.getParameter("path")
-def activity = request.getParameter("activity")
-def contentTypeClass = request.getParameter("contentTypeClass")
-def activityType = ActivityService.ActivityType.valueOf(activity.toUpperCase())
-def extraInfo = [:]
-extraInfo.contentType = contentTypeClass
 
-/** Validate Parameters */
-def invalidParams = false
-def paramsList = []
+result.message = "API deprecated."
+response.setStatus(410)
 
-// site_id
-try {
-    if (StringUtils.isEmpty(site)) {
-        site = request.getParameter("site")
-        if (StringUtils.isEmpty(site)) {
-            invalidParams = true
-            paramsList.add("site_id")
-        }
-    }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("site_id")
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
-} else {
-    def context = ActivityServices.createContext(applicationContext, request)
-    result.result = ActivityServices.postActivity(context, site, user, path, activityType,
-            ActivityService.ActivitySource.API, extraInfo)
-}
 return result
