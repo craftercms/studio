@@ -35,19 +35,21 @@
     </xsl:template>
 
     <xsl:template match="config/tools/tool/controls[not(control/name='rte-tinymce5')]">
-        <xsl:for-each select="control">
-            <xsl:copy>
-                <xsl:apply-templates select="node() | @*"/>
-            </xsl:copy>
-            <xsl:if test="name = 'rte'">
-                <xsl:element name="control">
-                    <xsl:element name="name"><xsl:text>rte-tinymce5</xsl:text></xsl:element>
-                    <xsl:element name="icon">
-                        <xsl:element name="class"><xsl:text>fa-code</xsl:text></xsl:element>
+        <xsl:element name="controls">
+            <xsl:for-each select="control">
+                <xsl:copy>
+                    <xsl:apply-templates select="node() | @*"/>
+                </xsl:copy>
+                <xsl:if test="name = 'rte'">
+                    <xsl:element name="control">
+                        <xsl:element name="name"><xsl:text>rte-tinymce5</xsl:text></xsl:element>
+                        <xsl:element name="icon">
+                            <xsl:element name="class"><xsl:text>fa-code</xsl:text></xsl:element>
+                        </xsl:element>
                     </xsl:element>
-                </xsl:element>
-            </xsl:if>
-        </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:element>
     </xsl:template>
 
 </xsl:stylesheet>
