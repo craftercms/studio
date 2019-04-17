@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.24'
+  version: '2.0.25'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -30,8 +30,12 @@ tags:
     description: Site management operations
   - name: search
     description: Search operations
+  - name: audit
+    description: Audit operations
   - name: monitoring
     description: Monitoring operations
+  - name: content
+    dscription: Content operations
 paths:
 
   /groups:
@@ -1455,6 +1459,210 @@ paths:
 
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /content:
+    get:
+      tags:
+        - content
+      summary:
+      operationd:
+      parameters:
+      responses:
+        '200':
+          description: OK
+          content:
+  /content/types:
+    get:
+      tags:
+        - content, content type
+      summary: Get content types
+      operationId: getContentTypes
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: false
+          schema: 
+            type: string
+        - name: class
+          in: query
+          description: Content type class - e.g. `page`, `component`, `taxonomy` e.t.c.
+          required: false
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Target path where content type will be used
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  contentTypes:
+                    type: array
+                    items:
+                      $ref: '#/components/schema/ContentType'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unathorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - content, content type
+      summary: Create content type
+      description: 'Required Permission: "CREATE_CONTENT_TYPE"'
+      operationId: createContentType
+      requestBody:
+        description: Content Type entity to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentType'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponses'
+                  contentType:
+                    $ref: '#/components/schemas/ContentType'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unathorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - content, content type
+      summary: Update content type
+      description: 'Required Permission: UPDATE_CONTENT_TYPE'
+      operationId: updateContentType
+      requestBody:
+        description: Content Type entity to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentType'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  contentType:
+                    $ref: '#/components/schemas/ContentType'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - content, content type
+      summary: Delete content type(s)
+      description: 'Required Permission: "DELETE_CONTENT_TYPE"'
+      operationId: deleteContentType
+      parameters:
+        - name: id
+          in: query
+          description: The content type ID(s). Can be repeated for multiple deletes (id=1&id=2&id=3)
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unathorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /content/type/{id}:
+    get:
+      tags:
+        - content, content type
+      summary: Get content type by ID
+      description: 'Required Permission: "READ_CONTENT_TYPE"'
+      operationId: getContentType
+      parameters:
+        - name: id
+          in: path
+          description: The content type ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  contentType:
+                    $ref: '#/components/schemas/ContentType'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unathorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 
 components:
   schemas:
