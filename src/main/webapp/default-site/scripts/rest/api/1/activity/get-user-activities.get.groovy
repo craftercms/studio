@@ -15,11 +15,67 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @auhor Dejan Brkic
+ */
+
+import org.apache.commons.lang3.StringUtils
+import scripts.api.ActivityServices
+
 def result = [:]
+def site = params.site_id
+def user = params.user
+def num = 10
+def excludeLive = params.excludeLive
+def valid = true
+def filterType = params.filterType
 
-result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/users"
-response.addHeader("Location", locationHeader)
-response.setStatus(301)
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
+}
 
+// num
+try {
+    if (StringUtils.isNotEmpty(params.num)) {
+        num = params.num.toInteger()
+        if (num < 0) {
+            invalidParams = true
+            paramsList.add("num")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("num")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = ActivityServices.createContext(applicationContext, request)
+    def activities
+    if (excludeLive != null && excludeLive != "undefined" && excludeLive == "true") {
+        activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, true, filterType)
+
+    } else {
+        activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType)
+    }
+    result.total = activities.size()
+    result.sortedBy = "eventDate"
+    result.ascending = "false"
+    result.documents = activities
+}
 return result
