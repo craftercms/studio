@@ -204,16 +204,6 @@ pipelines:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.14-to-3.1.0.15.sql
           updateIntegrity: true
-        - type: globalRepoUpgrader
-          files:
-            - src: crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/empty/craftercms-plugin.yaml
-              dest: blueprints/empty/craftercms-plugin.yaml
-            - src: crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/headless_blog/craftercms-plugin.yaml
-              dest: blueprints/headless_blog/craftercms-plugin.yaml
-            - src: crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/headless_store/craftercms-plugin.yaml
-              dest: blueprints/headless_store/craftercms-plugin.yaml
-            - src: crafter/studio/upgrade/3.1.0.15/repo-bootstrap/global/blueprints/website_editorial/craftercms-plugin.yaml
-              dest: blueprints/website_editorial/craftercms-plugin.yaml
 
     - currentVersion: 3.1.0.15
       nextVersion: 3.1.0.16
@@ -259,31 +249,6 @@ pipelines:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.20-to-3.1.0.21.sql
           updateIntegrity: true
-        - type: renameUpgrader
-          oldPath: blueprints/website_editorial
-          newPath: blueprints/1000_website_editorial
-          commitDetails: Rename Editorial blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/headless_store
-          newPath: blueprints/2000_headless_store
-          commitDetails: Rename Headless Store blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/video-center
-          newPath: blueprints/3000_video-center
-          commitDetails: Rename Video Center blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/empty
-          newPath: blueprints/4000_empty
-          commitDetails: Rename Empty blueprint
-          overwrite: true
-        - type: renameUpgrader
-          oldPath: blueprints/headless_blog
-          newPath: blueprints/5000_headless_blog
-          commitDetails: Rename Headless Blog blueprint
-          overwrite: true
     - currentVersion: 3.1.0.21
       nextVersion: 3.1.0.22
       operations:
@@ -471,6 +436,31 @@ pipelines:
       nextVersion: 3.1.0
       operations:
         # This just overrides the blueprints in the repo, in the future this should be replaced with proper operations
+        - type: renameUpgrader
+          oldPath: blueprints/website_editorial
+          newPath: blueprints/1000_website_editorial
+          commitDetails: Rename Editorial blueprint
+          overwrite: true
+        - type: renameUpgrader
+          oldPath: blueprints/headless_store
+          newPath: blueprints/2000_headless_store
+          commitDetails: Rename Headless Store blueprint
+          overwrite: true
+        - type: renameUpgrader
+          oldPath: blueprints/video-center
+          newPath: blueprints/3000_video-center
+          commitDetails: Rename Video Center blueprint
+          overwrite: true
+        - type: renameUpgrader
+          oldPath: blueprints/empty
+          newPath: blueprints/4000_empty
+          commitDetails: Rename Empty blueprint
+          overwrite: true
+        - type: renameUpgrader
+          oldPath: blueprints/headless_blog
+          newPath: blueprints/5000_headless_blog
+          commitDetails: Rename Headless Blog blueprint
+          overwrite: true
         - type: blueprintsUpgrader
 
 # Managed Configuration Files
