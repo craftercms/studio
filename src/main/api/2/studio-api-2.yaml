@@ -35,7 +35,9 @@ tags:
   - name: monitoring
     description: Monitoring operations
   - name: content
-    dscription: Content operations
+    description: Content operations
+  - name: content type
+    description: Content Type operations
 paths:
 
   /groups:
@@ -1464,17 +1466,15 @@ paths:
     get:
       tags:
         - content
-      summary:
-      operationd:
-      parameters:
+      summary: content
+      operationId: content
       responses:
         '200':
           description: OK
-          content:
   /content/types:
     get:
       tags:
-        - content, content type
+        - content type
       summary: Get content types
       operationId: getContentTypes
       parameters:
@@ -1521,18 +1521,18 @@ paths:
                   contentTypes:
                     type: array
                     items:
-                      $ref: '#/components/schema/ContentType'
+                      $ref: '#/components/schemas/ContentType'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unathorized'
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - content, content type
+        - content type
       summary: Create content type
       description: 'Required Permission: "CREATE_CONTENT_TYPE"'
       operationId: createContentType
@@ -1552,20 +1552,20 @@ paths:
                 type: object
                 properties:
                   response:
-                    $ref: '#/components/schemas/ApiResponses'
+                    $ref: '#/components/schemas/ApiResponse'
                   contentType:
                     $ref: '#/components/schemas/ContentType'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unathorized'
+          $ref: '#/components/responses/Unauthorized'
         '409':
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
-        - content, content type
+        - content type
       summary: Update content type
       description: 'Required Permission: UPDATE_CONTENT_TYPE'
       operationId: updateContentType
@@ -1598,7 +1598,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - content, content type
+        - content type
       summary: Delete content type(s)
       description: 'Required Permission: "DELETE_CONTENT_TYPE"'
       operationId: deleteContentType
@@ -1624,14 +1624,14 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unathorized'
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
   
-  /content/type/{id}:
+  /content/types/{id}:
     get:
       tags:
-        - content, content type
+        - content type
       summary: Get content type by ID
       description: 'Required Permission: "READ_CONTENT_TYPE"'
       operationId: getContentType
@@ -1657,7 +1657,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unathorized'
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -2275,6 +2275,51 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds of the log event
+    ContentType:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Content type name
+        label:
+          type: string
+          description: Display label
+        type:
+          type: string
+          description: Content type type (page or component)
+        form:
+          type: string
+          description: Content type form definition
+        imageThumbnails:
+          type: string
+          description: Thumbnail image file name
+        noThumbnail:
+          type: boolean
+          description: No thumbnail image
+        previewable:
+          type: boolean
+          description: True if content of this type can be previewed
+        contentAsFolder:
+          type: boolean
+          description: Created content will be index.xml and folder name will be content name
+        useRoundedFolder:
+          type: boolean
+          description: Use rounded folder (UI)
+        allowedRoles:
+          type: string
+          description: roles that allow to create/edit content type
+        pathIncludes:
+          type: string
+          description: Regex to define where content can be created
+        pathExcludes:
+          type: string
+          description: Regex to define where content can not be created
+        copyDependencyPattern:
+          type: string
+          description: Regex pattern for copy dependencies rule
+        deleteDependencyPattern:
+          type: string
+          description: Regex pattern for delete dependencies rule
   responses:
     NotFound:
       description: Resource not found
