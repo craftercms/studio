@@ -108,6 +108,10 @@ studio.configuration.site.dataSources.configBasePath: /config/studio/data-source
 studio.configuration.site.dataSources.configFileName: cmis-config.xml
 # Destroy site context url for preview engine
 studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api/1/site/context/destroy.json?crafterSite={siteName}
+# Location pattern where default dependency resolver specific configuration for is stored
+studio.configuration.default.dependencyResolver.configBasePath: /configuration/dependency
+# File name where default dependency specific configuration is stored
+studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
 # Location pattern where dependency resolver specific configuration for a site is stored
 studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
