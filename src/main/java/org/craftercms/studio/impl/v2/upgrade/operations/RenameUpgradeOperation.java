@@ -64,22 +64,24 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
 
             File oldF = oldP.toFile();
             File newF = newP.toFile();
-            if (newF.exists()) {
-                if (overwrite) {
-                    FileUtils.forceDelete(newF);
-                } else {
-                    logger.info("Rename operation not executed beacuse target path " + newP.toString() + " already " +
-                            "exists.");
-                    return;
+            if (oldF.exists()) {
+                if (newF.exists()) {
+                    if (overwrite) {
+                        FileUtils.forceDelete(newF);
+                    } else {
+                        logger.info("Rename operation not executed beacuse target path " + newP.toString() + " already " +
+                                "exists.");
+                        return;
+                    }
                 }
-            }
-            if (oldF.isDirectory()) {
-                FileUtils.moveDirectory(oldF, newF);
-            } else if (oldF.isFile()) {
-                FileUtils.moveFile(oldF, newF);
-            }
+                if (oldF.isDirectory()) {
+                    FileUtils.moveDirectory(oldF, newF);
+                } else if (oldF.isFile()) {
+                    FileUtils.moveFile(oldF, newF);
+                }
 
-            commitAllChanges(site);
+                commitAllChanges(site);
+            }
         } catch (Exception e) {
             throw new UpgradeException("Error moving path " + oldPath + " to path " + newPath + " for repo " +
                     (StringUtils.isEmpty(site) ? "global" : site), e);
