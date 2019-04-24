@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -41,6 +42,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
@@ -92,12 +95,21 @@ public class RegexDependencyResolver implements DependencyResolver {
         DependencyResolverConfigTO config = null;
         logger.debug("Get configuration location for site " + site);
         String configLocation = getConfigLocation(site);
+        String defaultConfigLocation = getDefaultConfigLocation();
         Document document = null;
         try {
             logger.debug("Load configuration as xml document from " + configLocation);
             document = contentService.getContentAsDocument(site, configLocation);
         } catch (DocumentException e) {
             logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);
+        }
+        if (document == null) {
+            try {
+                logger.debug("Loading default dependency resolver configuration");
+                document = contentService.getContentAsDocument(StringUtils.EMPTY, defaultConfigLocation);
+            } catch (DocumentException e) {
+                logger.error("Failed to load dependency resolver configuration from location: " + defaultConfigLocation, e);
+            }
         }
         if (document != null) {
             Element root = document.getRootElement();
@@ -250,12 +262,24 @@ public class RegexDependencyResolver implements DependencyResolver {
         return configLocation;
     }
 
+    private String getDefaultConfigLocation() {
+        return getDefaultConfigPath() + FILE_SEPARATOR + getDefaultConfigFileName();
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH);
     }
 
     public String getConfigFileName() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME);
+    }
+
+    public String getDefaultConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH);
+    }
+
+    public String getDefaultConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME);
     }
 
     public ContentService getContentService() {
