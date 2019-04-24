@@ -246,15 +246,15 @@
             <!-- how to identify items of this type -->
             <includes>
                 <!-- path pattern regexes (multiple) -->
-				<!-- include only textual files that can be scanned -->
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.css</path-pattern>
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.js</path-pattern>
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.html</path-pattern>
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.xml</path-pattern>
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.json</path-pattern>
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.scss</path-pattern>
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.sass</path-pattern>
-				<path-pattern>/static-assets/([^&lt;"'\)]+)\.hbs</path-pattern>
+		<!-- include only textual files that can be scanned -->
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.css</path-pattern>
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.js</path-pattern>
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.html</path-pattern>
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.xml</path-pattern>
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.json</path-pattern>
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.scss</path-pattern>
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.sass</path-pattern>
+		<path-pattern>/static-assets/([^&lt;"'\)]+)\.hbs</path-pattern>
             </includes>
             <!-- how to find dependencies in these items -->
             <dependency-types>
