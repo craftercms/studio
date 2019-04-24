@@ -329,12 +329,12 @@ pipelines:
     - currentVersion: 3.1.0.24
       nextVersion: 3.1.0.25
       operations:
-        - type: dbScriptUpgrader
-          filename: upgrade-3.1.0.24-to-3.1.0.25.sql
         - type: globalRepoUpgrader
           files:
             - src: crafter/studio/upgrade/3.1.0.25/resolver-config.xml
               dest: configuration/dependency/resolver-config.xml
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.24-to-3.1.0.25.sql
 
   # Pipeline to upgrade site repositories
   site:
