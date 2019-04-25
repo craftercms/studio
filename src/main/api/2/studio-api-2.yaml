@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.25'
+  version: '2.0.26'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -36,7 +36,8 @@ tags:
     description: Monitoring operations
   - name: cmis
     description: CMIS operations
-
+  - name: repository
+    description: Repository operations
 paths:
 
   /groups:
@@ -1725,6 +1726,40 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /repository/add_remote:
+    post:
+      tags:
+        - repository
+      summary: Add remote repository to the site content repository
+      operationId: addRemoteRepository
+      requestBody:
+        description: Remote repository entity
+        required: true
+        content:
+          application:/json:
+            schema:
+              $ref: '#/components/schemas/RemoteRespository'
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/schemas/BadRequest'
+        '401':
+          $ref: '#/components/schemas/Unauthorized'
+        '404':
+          $ref: '#/components/schemas/NotFound'
+        '409':
+          $ref: '#/components/schemas/Conflict'
+        '500':
+          $ref: '#/components/schemas/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -2359,6 +2394,30 @@ components:
           format: int32
           description: Item size
 
+    RemoteRepository:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site identifier
+        remoteName:
+          type: string
+          description: remote repository name
+        remoteUrl:
+          type: string
+          format: URL
+          description: URL to access remote repository
+        authenticationType:
+          type: string
+          description: Authentication type to use to access remote repository
+          values:
+            - none: no authentication
+            - basic: username and password authentication
+            - token: token authentication
+            - key: key-based authentication
+        remoteUsername:
+          type: string
+          description: username to access remote repository
   responses:
     NotFound:
       description: Resource not found
@@ -2399,26 +2458,8 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
-    RequestTimeout:
-      description: Request Timeout (408)
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              response:
-                $ref: '#/components/schemas/ApiResponse'
     InternalServerError:
       description: Internal system failure
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              response:
-                $ref: '#/components/schemas/ApiResponse'
-    ServiceUnavailable:
-      description: Service unavailable (503)
       content:
         application/json:
           schema:
