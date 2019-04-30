@@ -1736,9 +1736,9 @@ paths:
         description: Remote repository entity
         required: true
         content:
-          application:/json:
+          application/json:
             schema:
-              $ref: '#/components/schemas/RemoteRespository'
+              $ref: '#/components/schemas/RemoteRepository'
       responses:
         '201':
           description: Added
@@ -1750,15 +1750,210 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
         '400':
-          $ref: '#/components/schemas/BadRequest'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/schemas/Unauthorized'
+          $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/schemas/NotFound'
+          $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/schemas/Conflict'
+          $ref: '#/components/responses/Conflict'
         '500':
-          $ref: '#/components/schemas/InternalServerError'
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/pull_from_remote:
+    post:
+      tags:
+        - repository
+      summary: Pull content from remote repository to site content repository
+      operationId: pullFromRemoteRepository
+      requestBody:
+        description: pull from remote repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+                remoteName:
+                  type: string
+                  description: Remote repository name to pull from
+                remoteBranch:
+                  type: string
+                  description: Remote repository branch to pull from
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/push_to_remote:
+    post:
+      tags:
+        - repository
+      summary: Push content to remote repository from site content repository
+      operationId: pushToRemoteRepository
+      requestBody:
+        description: push to remote repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+                remoteName:
+                  type: string
+                  description: Remote repository name to push to
+                remoteBranch:
+                  type: string
+                  description: Remote repository branch to push to
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/rebuild_databese:
+    post:
+      tags:
+        - repository
+      summary: Rebuild Crafter Studio’s database and object state with the underlying repository
+      operationId: rebuildDatabase
+      requestBody:
+        description: rebuild database request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/remove_remote:
+    post:
+      tags:
+        - repository
+      summary: Remove remote repository from site content repository
+      operationId: removeRemoteRepository
+      requestBody:
+        description: remove remote repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+                remoteName:
+                  type: string
+                  description: Remote repository name of remote to be removed
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /repository/list_remotes:
+    get:
+      tags:
+        - repository
+      summary: List remote repositories for a site
+      operationId: listRemoteRepositories
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  remotes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RemoteInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 
 components:
   schemas:
@@ -2409,15 +2604,50 @@ components:
           description: URL to access remote repository
         authenticationType:
           type: string
-          description: Authentication type to use to access remote repository
-          values:
-            - none: no authentication
-            - basic: username and password authentication
-            - token: token authentication
-            - key: key-based authentication
+          description: >-
+            Authentication type to use to access remote repository
+
+            Posible values:
+
+              - none: no authentication
+
+              - basic: username and password authentication
+
+              - token: token authentication
+
+              - key: key-based authentication
         remoteUsername:
           type: string
-          description: username to access remote repository
+          description: username to use to access remote repository
+        remotePassword:
+          type: string
+          description: password to use to access remote repository
+        remoteToken:
+          type: string
+          description: token to use to access remote repository
+        remotePrivateKey:
+          type: string
+          description: private key to access
+    RemoteInfo:
+      type:
+      properties:
+        name:
+          type: string
+          description: remote repository name
+        url:
+          type: string
+          description: remote repository url
+        fetch:
+          type: string
+          description: remote repository fetch references
+        push_url:
+          type: string
+          description: remote repository push url
+        branches:
+          type: array
+          items:
+            type: string
+            description: remote repository branch name
   responses:
     NotFound:
       description: Resource not found
