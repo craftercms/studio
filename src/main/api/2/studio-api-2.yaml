@@ -1,10 +1,13 @@
 openapi: 3.0.0
 servers:
+# Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/dejan-brkic/tttt/1111
   - url: 'http://localhost:8080/studio/api/2'
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.24'
+  version: "1111"
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -32,6 +35,9 @@ tags:
     description: Search operations
   - name: monitoring
     description: Monitoring operations
+  - name: cmis
+    description: CMIS operations
+
 paths:
 
   /groups:
@@ -1456,6 +1462,260 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /cmis/list:
+    get:
+      tags:
+        - cmis
+      summary: List files and folders in a CMIS repository with an optional range for pagination
+      operationId: cmisList
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: cmisRepoId
+          in: query
+          description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path to look under. Note this will be under the `base path` specified in cmis-config.xml
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: start offset
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: number of records to retrieve
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of the first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CmisItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /cmis/search:
+    get:
+      tags:
+        - cmis
+      summary: Search files and folders in a CMIS repository with an optional range for pagination
+      operationId: cmisSearch
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: cmisRepoId
+          in: query
+          description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+          required: true
+          schema:
+            type: string
+        - name: searchTerm
+          in: query
+          description: CMIS search term to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path to look under. Note this will be under the `base path` secified in cmis-config.xml
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: start offset
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: number of records to retrieve
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of the first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CmisItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /cmis/clone:
+    post:
+      tags:
+        - cmis
+      summary: Clone a file from a CMIS repository to Studio provided paths
+      operationId: cmisClone
+      requestBody:
+        description: cmis clone request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                cmisRepoId:
+                  type: string
+                  description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+                cmisPath:
+                  type: string
+                  description: path to read the asset from CMIS repo (source)
+                studioPath:
+                  type: string
+                  description: path to save the asset in Studio (destination)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /cmis/upload:
+    post:
+      tags:
+        - cmis
+      summary:  Upload an asset file to CMIS repository
+      operationId: cmisUpload
+      requestBody:
+        description: cmis upload request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                cmisRepoId:
+                  type: string
+                  description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+                cmisPath:
+                  type: string
+                  description: path to upload the asset to CMIS repo (destination)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
 components:
   schemas:
     ApiResponse:
@@ -2067,6 +2327,24 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds of the log event
+
+    CmisItem:
+      type: object
+      properties:
+        itemId:
+          type: string
+          description: Item id inside CMIS repository
+        itemName:
+          type: string
+          description: Item name
+        mimeType:
+          type: string
+          description: Item mime type
+        size:
+          type: integer
+          format: int32
+          description: Item size
+          
   responses:
     NotFound:
       description: Resource not found
@@ -2107,8 +2385,26 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
+    RequestTimeout:
+      description: Request Timeout (408)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
     InternalServerError:
       description: Internal system failure
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+    ServiceUnavailable:
+      description: Service unavailable (503)
       content:
         application/json:
           schema:
