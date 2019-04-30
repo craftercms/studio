@@ -93,11 +93,11 @@ pipelines:
           filename: upgrade-3.1.0-to-3.1.0.1.sql
         - type: globalRepoUpgrader
           files:
-            - src: crafter/studio/upgrade/3.1.0.1/repo-bootstrap/global/configuration/global-menu-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.1/system/global-menu-config.xml
               dest: configuration/global-menu-config.xml
-            - src: crafter/studio/upgrade/3.1.0.1/repo-bootstrap/global/configuration/global-permission-mappings-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.1/system/global-permission-mappings-config.xml
               dest: configuration/global-permission-mappings-config.xml
-            - src: crafter/studio/upgrade/3.1.0.1/repo-bootstrap/global/configuration/global-role-mappings-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.1/system/global-role-mappings-config.xml
               dest: configuration/global-role-mappings-config.xml
 
     - currentVersion: 3.1.0.1
@@ -148,10 +148,10 @@ pipelines:
         updateIntegrity: true
       - type: xsltFileUpgrader
         path: /configuration/global-menu-config.xml
-        template: crafter/studio/upgrade/3.1.0.8/global-menu-config-2.xslt
+        template: crafter/studio/upgrade/3.1.x/3.1.0.8/system/global-menu-config-2.xslt
       - type: xsltFileUpgrader
         path: /configuration/global-permission-mappings-config.xml
-        template: crafter/studio/upgrade/3.1.0.8/global-permission-mappings-config-2.xslt
+        template: crafter/studio/upgrade/3.1.x/3.1.0.8/system/global-permission-mappings-config-2.xslt
 
     - currentVersion: 3.1.0.8
       nextVersion: 3.1.0.9
@@ -196,7 +196,7 @@ pipelines:
           updateIntegrity: true
         - type: xsltFileUpgrader
           path: /configuration/global-permission-mappings-config.xml
-          template: crafter/studio/upgrade/3.1.0.14/global-permission-mappings-config-3.xslt
+          template: crafter/studio/upgrade/3.1.x/3.1.0.14/system/global-permission-mappings-config-3.xslt
 
     - currentVersion: 3.1.0.14
       nextVersion: 3.1.0.15
@@ -220,7 +220,7 @@ pipelines:
           updateIntegrity: true
         - type: xsltFileUpgrader
           path: /configuration/global-menu-config.xml
-          template: crafter/studio/upgrade/3.1.0.17/global-menu-config-3.xslt
+          template: crafter/studio/upgrade/3.1.x/3.1.0.17/system/global-menu-config-3.xslt
 
     - currentVersion: 3.1.0.17
       nextVersion: 3.1.0.18
@@ -260,11 +260,11 @@ pipelines:
       operations:
         - type: xsltFileUpgrader
           path: /configuration/global-menu-config.xml
-          template: crafter/studio/upgrade/3.1.0.23/global-menu-config.xslt
+          template: crafter/studio/upgrade/3.1.x/3.1.0.23/system/global-menu-config.xslt
           commitDetails: Add logging console & levels
         - type: xsltFileUpgrader
           path: /configuration/global-permission-mappings-config.xml
-          template: crafter/studio/upgrade/3.1.0.23/global-permission-mappings-config.xslt
+          template: crafter/studio/upgrade/3.1.x/3.1.0.23/system/global-permission-mappings-config.xslt
           commitDetails: Add logging permission
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.22-to-3.1.0.23.sql
@@ -278,60 +278,60 @@ pipelines:
         - type: globalRepoUpgrader
           commitDetails: Move sample files to global repository
           files:
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-asset-processing-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-asset-processing-config.xml
               dest: configuration/samples/sample-asset-processing-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-aws.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-aws.xml
               dest: configuration/samples/sample-aws.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-box.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-box.xml
               dest: configuration/samples/sample-box.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-cmis-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-cmis-config.xml
               dest: configuration/samples/sample-cmis-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-config-list.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-config-list.xml
               dest: configuration/samples/sample-config-list.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-contextual-nav.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-contextual-nav.xml
               dest: configuration/samples/sample-contextual-nav.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-engine-application-context.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-engine-application-context.xml
               dest: configuration/samples/sample-engine-application-context.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-engine-site-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-engine-site-config.xml
               dest: configuration/samples/sample-engine-site-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-environment-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-environment-config.xml
               dest: configuration/samples/sample-environment-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-form-control-rte-setup.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-form-control-rte-setup.xml
               dest: configuration/samples/sample-form-control-rte-setup.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-form-control-rte-setup-tinymce5.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-form-control-rte-setup-tinymce5.xml
               dest: configuration/samples/sample-form-control-rte-setup-tinymce5.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-mime-type.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-mime-type.xml
               dest: configuration/samples/sample-mime-type.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-notification-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-notification-config.xml
               dest: configuration/samples/sample-notification-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-permission-mappings-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-permission-mappings-config.xml
               dest: configuration/samples/sample-permission-mappings-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-preview-components-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-preview-components-config.xml
               dest: configuration/samples/sample-preview-components-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-preview-panel.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-preview-panel.xml
               dest: configuration/samples/sample-preview-panel.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-resolver-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-resolver-config.xml
               dest: configuration/samples/sample-resolver-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-role-mappings-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-role-mappings-config.xml
               dest: configuration/samples/sample-role-mappings-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-sidebar.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-sidebar.xml
               dest: configuration/samples/sample-sidebar.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-site-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-site-config.xml
               dest: configuration/samples/sample-site-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-site-config-tools.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-site-config-tools.xml
               dest: configuration/samples/sample-site-config-tools.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-targeting-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-targeting-config.xml
               dest: configuration/samples/sample-targeting-config.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-urlrewrite.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-urlrewrite.xml
               dest: configuration/samples/sample-urlrewrite.xml
-            - src: crafter/studio/upgrade/3.1.0.24/configuration/samples/sample-webdav.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.24/system/samples/sample-webdav.xml
               dest: configuration/samples/sample-webdav.xml
     - currentVersion: 3.1.0.24
       nextVersion: 3.1.0.25
       operations:
         - type: globalRepoUpgrader
           files:
-            - src: crafter/studio/upgrade/3.1.0.25/resolver-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.25/system/resolver-config.xml
               dest: configuration/dependency/resolver-config.xml
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.24-to-3.1.0.25.sql
@@ -374,7 +374,7 @@ pipelines:
       operations:
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-urlrewrite.xml
-          file: crafter/studio/upgrade/3.1.0.1/sample-urlrewrite.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.0.1/site/sample-urlrewrite.xml
           commitDetails: Add sample file for url rewrite
         - type: versionFileUpgrader
 
@@ -383,7 +383,7 @@ pipelines:
       operations:
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-webdav.xml
-          file: crafter/studio/upgrade/3.1.0.2/sample-webdav.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.0.2/site/sample-webdav.xml
           commitDetails: Add sample file for webdav
         - type: versionFileUpgrader
 
@@ -414,10 +414,10 @@ pipelines:
       operations:
         - type: addFileUpgrader
           path: /config/studio/form-control-config/rte/rte-setup-tinymce5.xml
-          file: crafter/studio/upgrade/3.1.0.5/rte-setup-tinymce5.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.0.5/site/rte-setup-tinymce5.xml
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-form-control-rte-setup-tinymce5.xml
-          file: crafter/studio/upgrade/3.1.0.5/sample-form-control-rte-setup-tinymce5.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.0.5/site/sample-form-control-rte-setup-tinymce5.xml
         - type: versionFileUpgrader
 
     - currentVersion: 3.1.0.5
@@ -425,10 +425,10 @@ pipelines:
       operations:
         - type: addFileUpgrader
           path: /config/engine/application-context.xml
-          file: crafter/studio/upgrade/3.1.0.6/application-context.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.0.6/site/application-context.xml
         - type: addFileUpgrader
           path: /config/engine/site-config.xml
-          file: crafter/studio/upgrade/3.1.0.6/site-config.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.0.6/site/site-config.xml
         - type: versionFileUpgrader
 
     - currentVersion: 3.1.0.6
@@ -483,7 +483,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *permission-mappings-config
-            template: crafter/studio/upgrade/3.0.x/permission-mappings-config-2.xslt
+            template: crafter/studio/upgrade/3.0.x/site/permission-mappings-config-2.xslt
             commitDetails: Add new S3 permissions
           - type: xsltFileUpgrader
             path: *permission-mappings-config
@@ -498,7 +498,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *role-mappings-config
-            template: crafter/studio/upgrade/3.1.0/role-mappings-config-2.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0/site/role-mappings-config-2.xslt
             commitDetails: Update role mappings configuration
           - type: xsltFileUpgrader
             path: *role-mappings-config
@@ -513,7 +513,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *config-list
-            template: crafter/studio/upgrade/3.1.0.1/config-list-2.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.1/site/config-list-2.xslt
             commitDetails: Add url rewrite to configuration list
           - type: xsltFileUpgrader
             path: *config-list
@@ -523,7 +523,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *config-list
-            template: crafter/studio/upgrade/3.1.0.2/config-list-3.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.2/site/config-list-3.xslt
             commitDetails: Add webdav to configuration list
           - type: xsltFileUpgrader
             path: *config-list
@@ -533,7 +533,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *config-list
-            template: crafter/studio/upgrade/3.1.0.18/config-list-4.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.18/site/config-list-4.xslt
             commitDetails: Add rte-tinymce5 to configuration list
           - type: xsltFileUpgrader
             path: *config-list
@@ -543,7 +543,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *config-list
-            template: crafter/studio/upgrade/3.1.0.24/config-list-5.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.24/site/config-list-5.xslt
             commitDetails: Move sample configuration files to global configuration
           - type: xsltFileUpgrader
             path: *config-list
@@ -557,7 +557,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *site-config-tools
-            template: crafter/studio/upgrade/3.1.0.2/site-config-tools-2.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.2/site/site-config-tools-2.xslt
             commitDetails: Add webdav datasources to site configuration
           - type: xsltFileUpgrader
             path: *site-config-tools
@@ -567,7 +567,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *site-config-tools
-            template: crafter/studio/upgrade/3.1.0.5/site-config-tools-3.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.5/site/site-config-tools-3.xslt
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
@@ -576,7 +576,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *site-config-tools
-            template: crafter/studio/upgrade/3.1.0.18/site-config-tools-4.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.18/site/site-config-tools-4.xslt
             commitDetails: Add S3 datasources, GraphiQL and remove Logging Levels from site configuration
           - type: xsltFileUpgrader
             path: *site-config-tools
@@ -590,5 +590,5 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *environment-config
-            template: crafter/studio/upgrade/3.1.0.24/environment-config.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.24/site/environment-config.xslt
             commitDetails: Add previewEngineServerUrl and graphqlServerUrl properties to environment configuration
