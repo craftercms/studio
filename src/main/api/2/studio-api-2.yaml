@@ -1954,41 +1954,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-
-  /repository/add_remote:
-    post:
-      tags:
-        - repository
-      summary: Add remote repository to the site content repository
-      operationId: addRemoteRepository
-      requestBody:
-        description: Remote repository entity
-        required: true
-        content:
-          application:/json:
-            schema:
-              $ref: '#/components/schemas/RemoteRespository'
-      responses:
-        '201':
-          description: Added
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/schemas/BadRequest'
-        '401':
-          $ref: '#/components/schemas/Unauthorized'
-        '404':
-          $ref: '#/components/schemas/NotFound'
-        '409':
-          $ref: '#/components/schemas/Conflict'
-        '500':
-          $ref: '#/components/schemas/InternalServerError'
-
 components:
   schemas:
     ApiResponse:
