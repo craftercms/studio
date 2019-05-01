@@ -41,7 +41,7 @@
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
         <testng.version>6.9.10</testng.version>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>v3.1.0</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.version>master</studio.ui.version><!-- craftercms ui version flag -->
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.7.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
@@ -58,7 +58,7 @@
         <xerces.version>2.12.0</xerces.version>
 
         <studio.vcbp.path>target/vcbp</studio.vcbp.path>
-        <studio.vcbp.version>develop</studio.vcbp.version>
+        <studio.vcbp.version>master</studio.vcbp.version>
 
         <!-- Alpha UI -->
         <node.version>v8.12.0</node.version>
