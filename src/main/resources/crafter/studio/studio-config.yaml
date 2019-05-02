@@ -219,7 +219,6 @@ studio.authentication.chain:
     #   Example:
     #   site_author,site_xyz_developer
     groupsHeader: groups
-
     # Enable/disable logout for headers authenticated users (SSO)
     logoutEnabled: false
     # If logout is enabled for headers authenticated users (SSO), set the endpoint of the SP or IdP logout, which should
