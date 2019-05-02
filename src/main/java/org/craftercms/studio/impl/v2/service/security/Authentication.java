@@ -28,11 +28,17 @@ public class Authentication {
     private String username;
     private String token;
     private AuthenticationType authenticationType;
+    private String ssoLogoutUrl;
 
     public Authentication(String username, String token, AuthenticationType authenticationType) {
         this.username = username;
         this.token = token;
         this.authenticationType = authenticationType;
+    }
+
+    public Authentication(String username, String token, AuthenticationType authenticationType, String ssoLogoutUrl) {
+        this(username, token, authenticationType);
+        this.ssoLogoutUrl = ssoLogoutUrl;
     }
 
     public String getUsername() {
@@ -47,4 +53,7 @@ public class Authentication {
         return authenticationType;
     }
 
+    public String getSsoLogoutUrl() {
+        return ssoLogoutUrl;
+    }
 }

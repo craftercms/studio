@@ -16,16 +16,12 @@
  */
 package org.craftercms.studio.impl.v2.service.configuration;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.http.HttpUtils;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.model.AuthenticationType;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -80,22 +76,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return roleMappings;
     }
 
-    @Override
-    public String getSsoLogoutUrl(AuthenticationType authType) {
-        if (authType == AuthenticationType.AUTH_HEADERS && isAuthenticationHeadersLogoutEnabled()) {
-            String logoutUrl = getAuthenticationHeadersLogoutUrl();
-            RequestContext requestContext = RequestContext.getCurrent();
-
-            if (requestContext != null) {
-                String baseUrl = HttpUtils.getFullUrl(requestContext.getRequest(), "");
-                logoutUrl = logoutUrl.replaceFirst(PATTERN_BASE_URL, baseUrl);
-            }
-
-            return logoutUrl;
-        } else {
-            return null;
-        }
-    }
 
     private String getSiteRoleMappingsConfigPath(String siteId) {
         return UrlUtils.concat(getSiteConfigPath(siteId), getSiteRoleMappingsConfigFileName());
@@ -107,14 +87,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String getSiteRoleMappingsConfigFileName() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
-    }
-
-    private boolean isAuthenticationHeadersLogoutEnabled() {
-        return BooleanUtils.toBoolean(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_ENABLED));
-    }
-
-    private String getAuthenticationHeadersLogoutUrl() {
-        return studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_URL);
     }
 
     @Required

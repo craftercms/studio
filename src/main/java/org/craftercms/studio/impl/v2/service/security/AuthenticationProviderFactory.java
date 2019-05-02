@@ -21,8 +21,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v2.service.security.AuthenticationProvider;
 
-import java.util.Map;
-
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_EMAIL_LDAP_ATTRIBUTE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED;
@@ -38,8 +36,10 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATI
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_LDAP_PASSWORD;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_LDAP_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_LDAP_USERNAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER_VALUE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE_DB;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS;
@@ -107,6 +107,8 @@ public class AuthenticationProviderFactory {
         provider.setLastNameHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER));
         provider.setEmailHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER));
         provider.setGroupsHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_GROUPS_HEADER));
+        provider.setLogoutEnabled(providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_ENABLED));
+        provider.setLogoutUrl(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_URL));
         return provider;
     }
 }
