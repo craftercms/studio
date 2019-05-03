@@ -23,6 +23,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
@@ -161,8 +162,19 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         }
 
         for(String site : sites) {
-            upgradeSite(site);
+            if (checkIfSiteRepoExists(site)) {
+                upgradeSite(site);
+            }
         }
+    }
+
+    protected boolean checkIfSiteRepoExists(String site) {
+        boolean toRet = false;
+        String firstCommitId = contentRepository.getRepoFirstCommitId(site);
+        if (!StringUtils.isEmpty(firstCommitId)) {
+            toRet = true;
+        }
+        return toRet;
     }
 
     /**
