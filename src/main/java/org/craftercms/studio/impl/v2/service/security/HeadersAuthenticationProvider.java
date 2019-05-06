@@ -74,6 +74,8 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
     private String lastNameHeader;
     private String emailHeader;
     private String groupsHeader;
+    private boolean logoutEnabled;
+    private String logoutUrl;
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
@@ -189,8 +191,13 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                     }
 
                     String token = createToken(user, authenticationChain);
-                    storeAuthentication(new Authentication(usernameHeaderValue, token, AuthenticationType.AUTH_HEADERS));
-
+                    if (isLogoutEnabled()) {
+                        storeAuthentication(new Authentication(usernameHeaderValue, token,
+                                AuthenticationType.AUTH_HEADERS, logoutUrl));
+                    } else {
+                        storeAuthentication(new Authentication(usernameHeaderValue, token,
+                                AuthenticationType.AUTH_HEADERS));
+                    }
                     return true;
                 }
             }
@@ -310,5 +317,21 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
 
     public void setGroupsHeader(String groupsHeader) {
         this.groupsHeader = groupsHeader;
+    }
+
+    public boolean isLogoutEnabled() {
+        return logoutEnabled;
+    }
+
+    public void setLogoutEnabled(boolean logoutEnabled) {
+        this.logoutEnabled = logoutEnabled;
+    }
+
+    public String geLogoutUrl() {
+        return logoutUrl;
+    }
+
+    public void setLogoutUrl(String logoutUrl) {
+        this.logoutUrl = logoutUrl;
     }
 }

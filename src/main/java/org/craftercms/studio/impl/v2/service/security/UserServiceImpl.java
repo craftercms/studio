@@ -383,7 +383,7 @@ public class UserServiceImpl implements UserService {
     public String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException {
         Authentication authentication = securityService.getAuthentication();
         if (authentication != null) {
-            return configurationService.getSsoLogoutUrl(authentication.getAuthenticationType());
+            return authentication.getSsoLogoutUrl();
         } else {
             throw new AuthenticationException("User should be authenticated");
         }

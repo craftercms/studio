@@ -155,7 +155,6 @@ public interface StudioConfiguration {
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
-    String AUTHENTICATION_HEADERS_LOGOUT_URL = "studio.authentication.headers.logout.url";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
@@ -249,6 +248,8 @@ public interface StudioConfiguration {
     String AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER = "lastNameHeader";
     String AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER = "emailHeader";
     String AUTHENTICATION_CHAIN_PROVIDER_GROUPS_HEADER = "groupsHeader";
+    String AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_ENABLED = "logoutEnabled";
+    String AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_URL = "logoutUrl";
 
     /** Publishing Thread Pool **/
     String PUBLISHING_THREAD_POOL_NAME_PREFIX = "studio.publishing.threadPool.namePrefix";
