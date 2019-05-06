@@ -80,7 +80,6 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
 
     /**
      * {@inheritDoc}
-     * @return
      */
     @Override
     public boolean isEmpty() {

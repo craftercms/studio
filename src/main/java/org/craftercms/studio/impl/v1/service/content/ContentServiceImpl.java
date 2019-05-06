@@ -845,6 +845,7 @@ public class ContentServiceImpl implements ContentService {
         return retNewFileName;
     }
 
+    @SuppressWarnings("unchecked")
     protected Document replaceCopyDependency(Document document, String depPath, String copyDepPath) {
         Element root = document.getRootElement();
         List<Node> includes = root.selectNodes(COPY_DEP_XPATH.replace(COPY_DEP, depPath));

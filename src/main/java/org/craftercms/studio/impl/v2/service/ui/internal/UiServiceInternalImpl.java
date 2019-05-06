@@ -68,6 +68,7 @@ public class UiServiceInternalImpl implements UiServiceInternal {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException {
         if (CollectionUtils.isNotEmpty(permissions)) {
             HierarchicalConfiguration menuConfig = getGlobalMenuConfig();

@@ -74,7 +74,7 @@ public interface UserDAO {
      * Get user by id or username
      *
      * @param params SQL query parameters
-     * @return
+     * @return User or null if not found
      */
     User getUserByIdOrUsername(Map params);
 
@@ -97,14 +97,14 @@ public interface UserDAO {
     /**
      * Get total number of users
      *
-     * @return
+     * @return total number of users for site
      */
     int getAllUsersForSiteTotal(Map params);
 
     /**
      * Get total number of users
      *
-     * @return
+     * @return total number of all users
      */
     int getAllUsersTotal();
 
@@ -120,7 +120,7 @@ public interface UserDAO {
      * Check if user exists
      *
      * @param params
-     * @return
+     * @return positive number if user exists, otherwise 0
      */
     Integer userExists(Map params);
 
