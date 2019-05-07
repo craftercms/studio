@@ -43,6 +43,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private StudioConfiguration studioConfiguration;
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException {
         // TODO: Refactor this to use Apache's Commons Configuration
         Map<String, List<String>> roleMappings = new HashMap<>();

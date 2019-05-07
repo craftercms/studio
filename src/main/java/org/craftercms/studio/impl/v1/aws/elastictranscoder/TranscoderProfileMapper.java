@@ -33,7 +33,7 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
- * ElasticTranscoder implementation of {@link }. It uses Apache Commons Configuration to read an XML
+ * ElasticTranscoder implementation of {@link AbstractAwsProfileMapper}. It uses Apache Commons Configuration to read an XML
  * transcoder profile like the following:
  *
  * <pre>

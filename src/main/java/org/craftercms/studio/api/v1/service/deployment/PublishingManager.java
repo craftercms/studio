@@ -60,7 +60,6 @@ public interface PublishingManager {
      * @param site site to use
      * @param environment environment to use
      *
-     * @return
      */
     void resetProcessingQueue(String site, String environment);
 }

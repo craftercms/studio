@@ -169,7 +169,7 @@ public interface ServicesConfig {
      * Get sandbox branch name for given site
      *
      * @param site
-     * @return
+     * @return Sandbox branch name
      */
     String getSandboxBranchName(String site);
 
