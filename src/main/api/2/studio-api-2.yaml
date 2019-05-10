@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.24'
+  version: '2.0.27'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -32,6 +32,8 @@ tags:
     description: Search operations
   - name: monitoring
     description: Monitoring operations
+  - name: publish
+    description: Publish operations
 paths:
 
   /groups:
@@ -1456,6 +1458,54 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /publish/available_environments:
+    get:
+      tags:
+        - publish
+      summary: Get available publishing environments
+      operationId: getAvailablePublishingEnvironments
+      requestBody:
+        description: Get available environments request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      item:
+                        type: string
+                        description: path of item to be published
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  environments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishEnvironment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/response/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -2067,6 +2117,21 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds of the log event
+
+    PublishEnvironment:
+      type: object
+      properties:
+        name:
+          type: string
+          description: environment name
+        label:
+          type: string
+          description: display label
+        order:
+          type: integer
+          format: int64
+          description: order index
+
   responses:
     NotFound:
       description: Resource not found
