@@ -25,7 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,6 +52,7 @@ import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.search.MatchQuery;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
@@ -291,7 +291,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * Loads the type mapping from the global configuration
      */
     protected void loadTypesFromGlobalConfiguration() {
-        types = new HashMap<>();
+        types = new LinkedHashMap<>();
 
         List<HierarchicalConfiguration<ImmutableNode>> typesConfig =
             studioConfiguration.getSubConfigs(CONFIG_KEY_TYPES);
@@ -397,12 +397,27 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             query.must(QueryBuilders.queryStringQuery(params.getQuery()));
         }
 
-        if(StringUtils.isNotEmpty(params.getKeywords())) {
-            query.must(
-                QueryBuilders.boolQuery()
-                    .should(QueryBuilders.regexpQuery(pathFieldName, ".*" + params.getKeywords() + ".*"))
-                    .should(QueryBuilders.multiMatchQuery(params.getKeywords(), searchFields))
-            );
+        String rawKeywords = params.getKeywords();
+        if (StringUtils.isNotEmpty(rawKeywords)) {
+            rawKeywords = rawKeywords
+                .replaceAll("[^\\p{IsAlphabetic}\\p{Digit}\\s]", StringUtils.EMPTY)
+                .trim();
+            BoolQueryBuilder keywordsQuery = QueryBuilders.boolQuery();
+            String[] keywords = rawKeywords.split(" ");
+            if (ArrayUtils.isNotEmpty(keywords)) {
+                keywordsQuery.should(
+                    QueryBuilders.multiMatchQuery(rawKeywords, searchFields)
+                        .type(MatchQuery.Type.PHRASE_PREFIX)
+                );
+
+                for (String keyword : keywords) {
+                    keywordsQuery
+                        .should(QueryBuilders.regexpQuery(pathFieldName, ".*" + keyword + ".*"))
+                        .should(QueryBuilders.multiMatchQuery(keyword, searchFields));
+                }
+            }
+
+            query.must(keywordsQuery);
         }
 
         if(MapUtils.isNotEmpty(params.getFilters())) {
