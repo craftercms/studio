@@ -1,13 +1,10 @@
 openapi: 3.0.0
 servers:
-# Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/dejan-brkic/tttt/1111
   - url: 'http://localhost:8080/studio/api/2'
 info:
   description: |-
     Crafter Studio API v2
-  version: "1111"
+  version: '2.0.24'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -33,6 +30,8 @@ tags:
     description: Site management operations
   - name: search
     description: Search operations
+  - name: audit
+    description: Audit log operations
   - name: monitoring
     description: Monitoring operations
   - name: cmis
@@ -1468,6 +1467,7 @@ paths:
         - cmis
       summary: List files and folders in a CMIS repository with an optional range for pagination
       operationId: cmisList
+      description: 'Required permissions: "Read", "Write", "Create Content"'
       parameters:
         - name: siteId
           in: query
@@ -1539,12 +1539,14 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+
   /cmis/search:
     get:
       tags:
         - cmis
       summary: Search files and folders in a CMIS repository with an optional range for pagination
       operationId: cmisSearch
+      description: 'Required permissions: "Read", "Write", "Create Content"'
       parameters:
         - name: siteId
           in: query
@@ -1622,12 +1624,14 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+
   /cmis/clone:
     post:
       tags:
         - cmis
       summary: Clone a file from a CMIS repository to Studio provided paths
       operationId: cmisClone
+      description: 'Required permissions: "Read", "Write", "Create Content"'
       requestBody:
         description: cmis clone request body
         required: true
@@ -1670,12 +1674,14 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+
   /cmis/upload:
     post:
       tags:
         - cmis
       summary:  Upload an asset file to CMIS repository
       operationId: cmisUpload
+      description: 'Required permissions: "Read", "Write", "Create Content"'
       requestBody:
         description: cmis upload request body
         required: true
