@@ -285,6 +285,8 @@
     <bean id="studioCmisService" class="org.craftercms.studio.impl.v1.service.cmis.CmisServiceImpl" >
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="configurationService" class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">

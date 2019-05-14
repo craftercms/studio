@@ -38,19 +38,25 @@ import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
 import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.cmis.CmisService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.CmisContentItemTO;
 import org.craftercms.studio.api.v1.to.DataSourceRepositoryTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -69,9 +75,11 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -101,6 +109,11 @@ public class CmisServiceImpl implements CmisService {
             "select * from cmis:document where IN_TREE('{folderId}') and cmis:name like '%{searchTerm}%'";
     private static final String CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE = "{folderId}";
     private static final String CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE = "{searchTerm}";
+
+    protected StudioConfiguration studioConfiguration;
+    protected ContentService contentService;
+    protected SiteService siteService;
+    protected SecurityService securityService;
 
     @Override
     @ValidateParams
@@ -425,6 +438,10 @@ public class CmisServiceImpl implements CmisService {
                               @ValidateSecurePathParam(name = "filename") String filename, InputStream content)
             throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException,
             CmisRepositoryNotFoundException {
+
+        if (!isSiteMember(siteId, securityService.getCurrentUser())) {
+            throw new
+        }
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);
         if (repositoryConfig != null) {
@@ -460,6 +477,26 @@ public class CmisServiceImpl implements CmisService {
         }
     }
 
+    protected boolean isSiteMember(String siteId, String currentUser) {
+        try {
+            int total = siteService.getSitesPerUserTotal(currentUser);
+            List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser, 0, total);
+
+            Set<String> sites = new HashSet<String>();
+            for (SiteFeed site : sitesFeed) {
+                sites.add(site.getSiteId());
+            }
+
+            return sites.contains(siteId);
+        } catch (UserNotFoundException e) {
+            logger.info("User is not site member", e);
+            return false;
+        } catch (ServiceLayerException e) {
+            logger.warn("Error getting user membership", e);
+            return false;
+        }
+    }
+
     private String getConfigLocation() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH);
     }
@@ -484,6 +521,19 @@ public class CmisServiceImpl implements CmisService {
         this.contentService = contentService;
     }
 
-    protected StudioConfiguration studioConfiguration;
-    protected ContentService contentService;
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 }

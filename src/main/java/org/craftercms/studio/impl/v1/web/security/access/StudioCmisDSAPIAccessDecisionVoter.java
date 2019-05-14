@@ -17,14 +17,23 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import net.sf.json.JSONException;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.User;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.Collection;
 
 public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
@@ -59,8 +68,15 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
                     return ACCESS_ABSTAIN;
                 }
             }
+
             switch (requestUri) {
                 case UPLOAD:
+                    if (currentUser != null) {
+                        toRet = ACCESS_GRANTED;
+                    } else {
+                        toRet = ACCESS_DENIED;
+                    }
+                    break;
                 case SEARCH:
                 case LIST:
                     if (currentUser != null && isSiteMember(siteParam, currentUser)) {
