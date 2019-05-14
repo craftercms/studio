@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.24'
+  version: '2.0.25'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1870,6 +1870,9 @@ components:
         range:
           type: boolean
           description: Indicates if the values of the facet are ranges
+        date:
+          type: boolean
+          description: Indicates if the values of the facet are dates
         values:
           type: object
           description: >-
@@ -1892,10 +1895,10 @@ components:
           format: int64
           description: The number of files that match the range
         from:
-          type: number
+          type: object
           description: The starting limit of the range
         to:
-          type: number
+          type: object
           description: The ending limit of the range
     AuditLog:
       type: object
