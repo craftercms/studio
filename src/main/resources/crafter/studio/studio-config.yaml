@@ -595,8 +595,10 @@ studio.search.facets:
   - name: content-type
     # The field that will be used
     field: content-type
+    multiple: true
   - name: mime-type
     field: contentType
+    multiple: true
   - name: size
     field: contentLength
     # The list of ranges to search

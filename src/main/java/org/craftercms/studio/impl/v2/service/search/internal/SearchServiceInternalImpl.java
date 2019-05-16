@@ -75,6 +75,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
     public static final String CONFIG_KEY_FACET_NAME = "name";
     public static final String CONFIG_KEY_FACET_FIELD = "field";
+    public static final String CONFIG_KEY_FACET_MULTIPLE = "multiple";
     public static final String CONFIG_KEY_FACET_RANGES = "ranges";
     public static final String CONFIG_KEY_FACET_RANGE_FROM = "from";
     public static final String CONFIG_KEY_FACET_RANGE_TO = "to";
@@ -260,6 +261,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                 FacetTO facet = new FacetTO();
                 facet.setName(facetConfig.getString(CONFIG_KEY_FACET_NAME));
                 facet.setField(facetConfig.getString(CONFIG_KEY_FACET_FIELD));
+                facet.setMultiple(facetConfig.getBoolean(CONFIG_KEY_FACET_MULTIPLE, false));
 
                 List<HierarchicalConfiguration<ImmutableNode>> ranges =
                     facetConfig.configurationsAt(CONFIG_KEY_FACET_RANGES);
@@ -344,6 +346,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                         .gte(range.get(FACET_RANGE_MIN))
                         .lte(range.get(FACET_RANGE_MAX));
                     query.filter(rangeQuery);
+                } else if (facetConfig.isMultiple() && value instanceof List) {
+                    List<Object> values = (List<Object>) value;
+                    BoolQueryBuilder orQuery = QueryBuilders.boolQuery();
+                    values.forEach(val -> orQuery.should(QueryBuilders.matchQuery(fieldName, val)));
+                    query.filter(QueryBuilders.boolQuery().must(orQuery));
                 } else {
                     query.filter(QueryBuilders.matchQuery(fieldName, value));
                 }
@@ -368,7 +375,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * @param response the response to map
      * @return the search result object
      */
-    protected SearchResult processResults(SearchResponse response) {
+    protected SearchResult processResults(SearchResponse response, Map<String, FacetTO> siteFacets) {
         SearchResult result = new SearchResult();
         result.setTotal(response.getHits().getTotalHits());
 
@@ -378,7 +385,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
         result.setItems(items);
 
-        result.setFacets(processAggregations(response));
+        result.setFacets(processAggregations(response, siteFacets));
 
         return result;
     }
@@ -426,7 +433,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
         try {
             SearchResponse response = elasticsearchService.search(siteId, allowedPaths, request);
-            return processResults(response);
+            return processResults(response, siteFacets);
         } catch (IOException e) {
             throw new ServiceLayerException("Error connecting to Elasticsearch", e);
         } catch (Exception e) {
@@ -489,13 +496,18 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * @return the list of search facet objects
      */
     @SuppressWarnings("unchecked")
-    private List<SearchFacet> processAggregations(final SearchResponse response) {
+    private List<SearchFacet> processAggregations(final SearchResponse response, Map<String, FacetTO> siteFacets) {
+        Map<String, FacetTO> mergedFacets = new HashMap<>(facets);
+        if(MapUtils.isNotEmpty(siteFacets)) {
+            mergedFacets.putAll(siteFacets);
+        }
         List<SearchFacet> facets = new LinkedList<>();
         Aggregations aggregations = response.getAggregations();
         if(aggregations != null) {
             aggregations.getAsMap().forEach((name, aggregation) -> {
                 SearchFacet facet = new SearchFacet();
                 facet.setName(name);
+                facet.setMultiple(mergedFacets.get(name).isMultiple());
                 Map values = new LinkedHashMap();
                 if(aggregation instanceof Terms) {
                     Terms terms = (Terms) aggregation;

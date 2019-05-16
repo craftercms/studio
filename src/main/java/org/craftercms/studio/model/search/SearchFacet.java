@@ -36,6 +36,13 @@ public class SearchFacet {
     protected boolean range;
 
     /**
+
+    /**
+     * Indicates if the facet supports multiple values
+     */
+    protected boolean multiple;
+
+    /**
      * The values and counts of the facet
      */
     protected Map<Object, Object> values;
@@ -54,6 +61,14 @@ public class SearchFacet {
 
     public void setRange(final boolean range) {
         this.range = range;
+    }
+
+    public boolean isMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(final boolean multiple) {
+        this.multiple = multiple;
     }
 
     public Map<Object, Object> getValues() {

@@ -355,6 +355,8 @@ public class ServicesConfigImpl implements ServicesConfig {
                     FacetTO facet = new FacetTO();
                     facet.setName(XmlUtils.selectSingleNodeValue(facetConfig, "name/text()"));
                     facet.setField(XmlUtils.selectSingleNodeValue(facetConfig, "field/text()"));
+                    facet.setMultiple(Boolean.parseBoolean(
+                        XmlUtils.selectSingleNodeValue(facetConfig, "multiple/text()")));
                     List<Node> rangesConfig = facetConfig.selectNodes("ranges/range");
                     if(CollectionUtils.isNotEmpty(rangesConfig)) {
                         List<FacetRangeTO> ranges = rangesConfig.stream()
