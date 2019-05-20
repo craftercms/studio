@@ -98,6 +98,14 @@ public class ApiResponse {
             new ApiResponse(50000, "CMIS server is unreachable", "Advise the user that the CMIS server is not " +
                                                                  "reachable", StringUtils.EMPTY);
 
+    public static final ApiResponse CMIS_TIMEOUT =
+            new ApiResponse(50001, "Request to CMIS server timed out", "Advise the user that the request to CMIS " +
+                    "server timed out", StringUtils.EMPTY);
+
+    public static final ApiResponse CMIS_NOT_FOUND =
+            new ApiResponse(50002, "CMIS server was not found", "Advise the user that the CMIS server was not " +
+                    "found", StringUtils.EMPTY);
+
     public static final ApiResponse BOX_UNREACHABLE =
             new ApiResponse(51000, "Box is unreachable", "Advise the user that Box is not reachable", StringUtils.EMPTY);
 
