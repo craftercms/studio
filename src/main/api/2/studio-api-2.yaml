@@ -1731,6 +1731,7 @@ paths:
       tags:
         - repository
       summary: Add remote repository to the site content repository
+      description: 'Required permission "add_remote"'
       operationId: addRemoteRepository
       requestBody:
         description: Remote repository entity
@@ -1765,6 +1766,7 @@ paths:
       tags:
         - repository
       summary: Pull content from remote repository to site content repository
+      description: 'Required permission "pull_from_remote"'
       operationId: pullFromRemoteRepository
       requestBody:
         description: pull from remote repository request body
@@ -1783,6 +1785,10 @@ paths:
                 remoteBranch:
                   type: string
                   description: Remote repository branch to pull from
+                mergeStrategy:
+                  type: string
+                  format: theirs, ours, resolve, recursive, simple two way in core 
+                  description: Merge strategy to use when pulling content from remote repository
       responses:
         '200':
           description: OK
@@ -1799,6 +1805,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1807,6 +1815,7 @@ paths:
       tags:
         - repository
       summary: Push content to remote repository from site content repository
+      description: 'Required permission "push_to_remote"'
       operationId: pushToRemoteRepository
       requestBody:
         description: push to remote repository request body
@@ -1825,6 +1834,9 @@ paths:
                 remoteBranch:
                   type: string
                   description: Remote repository branch to push to
+                force:
+                  type: boolean
+                  description: Indicates whether to force push to remote or not
       responses:
         '200':
           description: OK
@@ -1841,14 +1853,17 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responsed/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/rebuild_databese:
+  /repository/rebuild_database:
     post:
       tags:
         - repository
       summary: Rebuild Crafter Studio’s database and object state with the underlying repository
+      description: 'Required permission "rebuild_database"'
       operationId: rebuildDatabase
       requestBody:
         description: rebuild database request body
@@ -1885,6 +1900,7 @@ paths:
       tags:
         - repository
       summary: Remove remote repository from site content repository
+      description: 'Required permission "remove_remote"'
       operationId: removeRemoteRepository
       requestBody:
         description: remove remote repository request body
@@ -1918,11 +1934,13 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
   /repository/list_remotes:
     get:
       tags:
         - repository
       summary: List remote repositories for a site
+      description: 'Required permission "list_remote"'
       operationId: listRemoteRepositories
       parameters:
         - name: siteId
@@ -1944,7 +1962,7 @@ paths:
                   remotes:
                     type: array
                     items:
-                      $ref: '#/components/schemas/RemoteInfo'
+                      $ref: '#/components/schemas/RemoteRepositoryInfo'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2627,7 +2645,7 @@ components:
         remotePrivateKey:
           type: string
           description: private key to access
-    RemoteInfo:
+    RemoteRepositoryInfo:
       type:
       properties:
         name:
