@@ -87,6 +87,12 @@
                     </icon>
                 </control>
                 <control>
+                    <name>time</name>
+                    <icon>
+                        <class>fa-clock-o</class>
+                    </icon>
+                </control>
+                <control>
                     <name>date-time</name>
                     <icon>
                         <class>fa-calendar</class>
