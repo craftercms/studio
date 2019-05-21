@@ -1854,7 +1854,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responsed/Conflict'
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -2646,7 +2646,7 @@ components:
           type: string
           description: private key to access
     RemoteRepositoryInfo:
-      type:
+      type: object
       properties:
         name:
           type: string
