@@ -42,6 +42,11 @@ public class FacetTO {
      */
     protected List<FacetRangeTO> ranges;
 
+    /**
+     * Indicates if the range is a date
+     */
+    protected boolean date;
+
     public String getName() {
         return name;
     }
@@ -68,6 +73,14 @@ public class FacetTO {
 
     public boolean isRange() {
         return CollectionUtils.isNotEmpty(ranges);
+    }
+
+    public boolean isDate() {
+        return date;
+    }
+
+    public void setDate(final boolean date) {
+        this.date = date;
     }
 
 }
