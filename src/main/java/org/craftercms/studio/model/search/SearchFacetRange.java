@@ -31,12 +31,12 @@ public class SearchFacetRange {
     /**
      * The starting limit of the range
      */
-    protected Number from;
+    protected Object from;
 
     /**
      * The ending limit of the range
      */
-    protected Number to;
+    protected Object to;
 
     public Number getCount() {
         return count;
@@ -46,19 +46,19 @@ public class SearchFacetRange {
         this.count = count;
     }
 
-    public Number getFrom() {
+    public Object getFrom() {
         return from;
     }
 
-    public void setFrom(final Number from) {
+    public void setFrom(final Object from) {
         this.from = from;
     }
 
-    public Number getTo() {
+    public Object getTo() {
         return to;
     }
 
-    public void setTo(final Number to) {
+    public void setTo(final Object to) {
         this.to = to;
     }
 

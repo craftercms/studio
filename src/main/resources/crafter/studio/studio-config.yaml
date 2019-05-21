@@ -645,3 +645,19 @@ studio.search.facets:
       - from: 800
         to: 1200
       - from: 1200
+  - name: last-edit-date
+    field: lastEditedOn
+    date: true
+    ranges:
+      - label: older
+        to: now/d-365d
+      - label: within-a-year
+        from: now/d-365d
+      - label: within-6-months
+        from: now/d-180d
+      - label: within-a-month
+        from: now/d-30d
+      - label: within-a-week
+        from: now/d-7d
+      - label: today
+        from: now/d-1d

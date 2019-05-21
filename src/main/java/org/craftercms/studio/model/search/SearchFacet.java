@@ -36,6 +36,9 @@ public class SearchFacet {
     protected boolean range;
 
     /**
+     * Indicates if the facet values are dates
+     */
+    protected boolean date;
 
     /**
      * Indicates if the facet supports multiple values
@@ -69,6 +72,14 @@ public class SearchFacet {
 
     public void setMultiple(final boolean multiple) {
         this.multiple = multiple;
+    }
+
+    public boolean isDate() {
+        return date;
+    }
+
+    public void setDate(final boolean date) {
+        this.date = date;
     }
 
     public Map<Object, Object> getValues() {
