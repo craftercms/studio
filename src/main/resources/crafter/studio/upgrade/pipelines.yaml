@@ -335,6 +335,19 @@ pipelines:
               dest: configuration/dependency/resolver-config.xml
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.24-to-3.1.0.25.sql
+    - currentVersion: 3.1.0.25
+      nextVersion: 3.1.0.26
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.26/system/sample-permission-mappings-config.xslt
+          commitDetails: Add CMIS persmissions
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-site-configtools.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.26/system/sample-site-config-tools.xslt
+          commitDetails: Add CMIS datasources
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.25-to-3.1.0.26.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -488,6 +501,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.0.26/site/permission-mappings-config.xslt
+            commitDetails: Add new CMIS permissions
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
 
   role-mappings-config:
     path: &role-mappings-config '/config/studio/role-mappings-config.xml'
@@ -578,6 +601,16 @@ configurations:
             path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.18/site/site-config-tools-4.xslt
             commitDetails: Add S3 datasources, GraphiQL and remove Logging Levels from site configuration
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 4
+        nextVersion: 5
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/3.1.0.26/site/site-config-tools-5.xslt
+            commitDetails: Add CMIS datasources
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
