@@ -1467,7 +1467,7 @@ paths:
         - cmis
       summary: List files and folders in a CMIS repository with an optional range for pagination
       operationId: cmisList
-      description: 'Required permissions: "Read", "Write", "Create Content"'
+      description: 'Required permissions: "list_cmis"'
       parameters:
         - name: siteId
           in: query
@@ -1546,7 +1546,7 @@ paths:
         - cmis
       summary: Search files and folders in a CMIS repository with an optional range for pagination
       operationId: cmisSearch
-      description: 'Required permissions: "Read", "Write", "Create Content"'
+      description: 'Required permissions: "search_cmis"'
       parameters:
         - name: siteId
           in: query
@@ -1631,7 +1631,7 @@ paths:
         - cmis
       summary: Clone a file from a CMIS repository to Studio provided paths
       operationId: cmisClone
-      description: 'Required permissions: "Read", "Write", "Create Content"'
+      description: 'Required permissions: "clone_content_cmis"'
       requestBody:
         description: cmis clone request body
         required: true
@@ -1681,7 +1681,7 @@ paths:
         - cmis
       summary:  Upload an asset file to CMIS repository
       operationId: cmisUpload
-      description: 'Required permissions: "Read", "Write", "Create Content"'
+      description: 'Required permissions: "upload_content_cmis"'
       requestBody:
         description: cmis upload request body
         required: true
