@@ -2000,6 +2000,7 @@ components:
           * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
           * `CODE:` 11000, `MESSAGE:` Cluster member not found, `REMEDIAL ACTION:` Check if you sent in the right Cluster Member Id
           * `CODE:` 11001, `MESSAGE:` Cluster member already exists, `REMEDIAL ACTION:` Get the list of cluster members to validate
+          * `CODE:` 12001, `MESSAGE:` Remote repository already exists, `REMEDIAL ACTION:` Get the list of remote repositories to validate
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found

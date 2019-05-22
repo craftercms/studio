@@ -94,8 +94,8 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="remoteRepositoryMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper" />
+    <bean id="remoteRepositoryDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 

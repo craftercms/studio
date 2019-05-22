@@ -15,22 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v2.service.repository;
 
-import java.util.List;
-import java.util.Map;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 
-public interface RemoteRepositoryMapper {
+public interface RepositoryManagementService {
 
-    RemoteRepository getRemoteRepository(Map params);
-
-    void insertRemoteRepository(Map params);
-
-    void deleteRemoteRepositoryForSite(Map params);
-
-    void deleteRemoteRepository(Map params);
-
-    List<RemoteRepository> listRemoteRepositories(Map params);
-
-    void deleteRemoteRepositoriesForSite(Map params);
+    boolean addRemote(String siteId, RemoteRepository remoteRepository)
+            throws ServiceLayerException, InvalidRemoteUrlException;
 }
