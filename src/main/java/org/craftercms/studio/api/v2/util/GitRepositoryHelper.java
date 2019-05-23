@@ -22,6 +22,8 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -29,7 +31,9 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.LsRemoteCommand;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -51,6 +55,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 public class GitRepositoryHelper {
@@ -225,38 +231,11 @@ public class GitRepositoryHelper {
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         LsRemoteCommand lsRemoteCommand = git.lsRemote();
         lsRemoteCommand.setRemote(remote);
-        switch (authenticationType) {
-            case RemoteRepository.AuthenticationType.NONE:
-                logger.debug("No authentication");
-                break;
-            case RemoteRepository.AuthenticationType.BASIC:
-                logger.debug("Basic authentication");
-                lsRemoteCommand.setCredentialsProvider(
-                        new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword));
-                break;
-            case RemoteRepository.AuthenticationType.TOKEN:
-                logger.debug("Token based authentication");
-                lsRemoteCommand.setCredentialsProvider(
-                        new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY));
-                break;
-            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                logger.debug("Private key authentication");
-                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                tempKey.toFile().deleteOnExit();
-                lsRemoteCommand.setTransportConfigCallback(
-                        new TransportConfigCallback() {
-                            @Override
-                            public void configure(Transport transport) {
-                                SshTransport sshTransport = (SshTransport) transport;
-                                sshTransport.setSshSessionFactory(getSshSessionFactory(remotePrivateKey, tempKey));
-                            }
-                        });
-                Files.delete(tempKey);
-                break;
-            default:
-                throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
-        }
+        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+        lsRemoteCommand = setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername,
+                remotePassword, remoteToken, remotePrivateKey, tempKey);
         lsRemoteCommand.call();
+        Files.deleteIfExists(tempKey);
         return true;
     }
 
@@ -283,5 +262,74 @@ public class GitRepositoryHelper {
             logger.error("Failed to create private key for SSH connection.", e);
         }
         return null;
+    }
+
+    public <T extends TransportCommand> T setAuthenticationForCommand(T gitCommand,
+                                                                      String authenticationType, String username,
+                                                                      String password, String token,
+                                                                      String privateKey, Path tempKey)
+            throws CryptoException, ServiceLayerException {
+        switch (authenticationType) {
+            case RemoteRepository.AuthenticationType.NONE:
+                logger.debug("No authentication");
+                break;
+            case RemoteRepository.AuthenticationType.BASIC:
+                logger.debug("Basic authentication");
+                UsernamePasswordCredentialsProvider credentialsProviderUP =
+                        new UsernamePasswordCredentialsProvider(username, password);
+                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                            @Override
+                            protected void configure(OpenSshConfig.Host host, Session session) {
+                                Properties config = new Properties();
+                                config.put("StrictHostKeyChecking", "no");
+                                session.setConfig(config);
+                                session.setPassword(password);
+                            }
+                        });
+                    }
+                });
+                gitCommand.setCredentialsProvider(credentialsProviderUP);
+                break;
+            case RemoteRepository.AuthenticationType.TOKEN:
+                logger.debug("Token based authentication");
+                UsernamePasswordCredentialsProvider credentialsProvider =
+                        new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
+                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                            @Override
+                            protected void configure(OpenSshConfig.Host host, Session session) {
+                                Properties config = new Properties();
+                                config.put("StrictHostKeyChecking", "no");
+                                session.setConfig(config);
+                            }
+                        });
+                        sshTransport.setCredentialsProvider(credentialsProvider);
+                    }
+                });
+                break;
+            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                logger.debug("Private key authentication");
+                tempKey.toFile().deleteOnExit();
+                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                    }
+                });
+
+                break;
+            default:
+                throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
+        }
+
+        return gitCommand;
     }
 }

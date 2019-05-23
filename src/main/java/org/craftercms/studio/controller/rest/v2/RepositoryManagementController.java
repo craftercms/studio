@@ -20,13 +20,21 @@ package org.craftercms.studio.controller.rest.v2;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultList;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
+import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 public class RepositoryManagementController {
 
@@ -41,6 +49,18 @@ public class RepositoryManagementController {
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(CREATED);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping("/api/2/repository/list_remotes")
+    public ResponseBody listRemotes(@RequestParam(name = "siteId", required = true) String siteId) {
+        List<RemoteRepositoryInfo> remotes = repositoryManagementService.listRemotes(siteId);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<RemoteRepositoryInfo> result = new ResultList<RemoteRepositoryInfo>();
+        result.setEntities(RESULT_KEY_REMOTES, remotes);
+        result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
     }

@@ -18,11 +18,17 @@
 package org.craftercms.studio.api.v2.service.repository;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+
+import java.util.List;
 
 public interface RepositoryManagementService {
 
     boolean addRemote(String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException;
+
+    List<RemoteRepositoryInfo> listRemotes(String siteId) throws SiteNotFoundException;
 }

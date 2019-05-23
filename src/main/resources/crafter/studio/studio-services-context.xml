@@ -391,6 +391,7 @@
     <bean id="repositoryManagementService"
           class="org.craftercms.studio.impl.v2.service.repository.RepositoryManagementServiceImpl">
         <property name="repositoryManagementServiceInternal" ref="repositoryManagementServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="repositoryManagementServiceInternal"

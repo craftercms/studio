@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v2.service.repository.internal;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -29,23 +30,39 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.util.GitRepositoryHelper;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.RemoteConfig;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 
@@ -146,6 +163,146 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
         logger.debug("Insert site remote record into database");
         remoteRepositoryDao.insertRemoteRepository(params);
+    }
+
+    @Override
+    public List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch) throws ServiceLayerException {
+        List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+        try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
+            try (Git git = new Git(repo)) {
+                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+                List<RemoteConfig> resultRemotes = git.remoteList().call();
+                if (CollectionUtils.isNotEmpty(resultRemotes)) {
+                    for (RemoteConfig conf : resultRemotes) {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("siteId", siteId);
+                        params.put("remoteName", conf.getName());
+                        RemoteRepository remoteRepository = remoteRepositoryDao.getRemoteRepository(params);
+                        if (remoteRepository != null) {
+                            String password = StringUtils.EMPTY;
+                            FetchCommand fetchCommand = git.fetch().setRemote(conf.getName());
+                            fetchCommand = helper.setAuthenticationForCommand(fetchCommand,
+                                    remoteRepository.getAuthenticationType(), remoteRepository.getRemoteUsername(),
+                                    password,)
+                            switch (remoteRepository.getAuthenticationType()) {
+                                case RemoteRepository.AuthenticationType.NONE:
+                                    logger.debug("No authentication");
+                                    git.fetch().setRemote(conf.getName()).call();
+                                    break;
+                                case RemoteRepository.AuthenticationType.BASIC:
+                                    logger.debug("Basic authentication");
+                                    String hashedPassword = remoteRepository.getRemotePassword();
+                                    String password = encryptor.decrypt(hashedPassword);
+                                    git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                            new UsernamePasswordCredentialsProvider(
+                                                    remoteRepository.getRemoteUsername(), password)).call();
+                                    break;
+                                case RemoteRepository.AuthenticationType.TOKEN:
+                                    logger.debug("Token based authentication");
+                                    String hashedToken = remoteRepository.getRemoteToken();
+                                    String remoteToken = encryptor.decrypt(hashedToken);
+                                    git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                            new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY)).call();
+                                    break;
+                                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                                    logger.debug("Private key authentication");
+                                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                                    String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                                    String privateKey = encryptor.decrypt(hashedPrivateKey);
+                                    tempKey.toFile().deleteOnExit();
+                                    git.fetch().setRemote(conf.getName()).setTransportConfigCallback(
+                                            new TransportConfigCallback() {
+                                                @Override
+                                                public void configure(Transport transport) {
+                                                    SshTransport sshTransport = (SshTransport) transport;
+                                                    sshTransport.setSshSessionFactory(helper.getSshSessionFactory(privateKey, tempKey));
+                                                }
+                                            }).call();
+                                    Files.delete(tempKey);
+                                    break;
+                                default:
+                                    throw new ServiceLayerException("Unsupported authentication type " +
+                                            remoteRepository.getAuthenticationType());
+                            }
+                        }
+                    }
+                    List<Ref> resultRemoteBranches = git.branchList()
+                            .setListMode(ListBranchCommand.ListMode.REMOTE)
+                            .call();
+                    Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
+                    for (Ref remoteBranchRef : resultRemoteBranches) {
+                        String branchFullName = remoteBranchRef.getName().replace(Constants.R_REMOTES, "");
+                        String remotePart = StringUtils.EMPTY;
+                        String branchNamePart = StringUtils.EMPTY;
+                        int slashIndex = branchFullName.indexOf("/");
+                        if (slashIndex > 0) {
+                            remotePart = branchFullName.substring(0, slashIndex);
+                            branchNamePart = branchFullName.substring(slashIndex + 1);
+                        }
+
+                        if (!remoteBranches.containsKey(remotePart)) {
+                            remoteBranches.put(remotePart, new ArrayList<String>());
+                        }
+                        remoteBranches.get(remotePart).add(branchNamePart);
+                    }
+                    String sandboxBranchName = sandboxBranch;
+                    if (StringUtils.isEmpty(sandboxBranchName)) {
+                        sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+                    }
+                    for (RemoteConfig conf : resultRemotes) {
+                        RemoteRepositoryInfo rri = new RemoteRepositoryInfo();
+                        rri.setName(conf.getName());
+                        List<String> branches = remoteBranches.get(rri.getName());
+                        if (CollectionUtils.isEmpty(branches)) {
+                            branches = new ArrayList<String>();
+                            branches.add(sandboxBranchName);
+                        }
+                        rri.setBranches(branches);
+
+                        StringBuilder sbUrl = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getURIs())) {
+                            for (int i = 0; i < conf.getURIs().size(); i++) {
+                                sbUrl.append(conf.getURIs().get(i).toString());
+                                if (i < conf.getURIs().size() - 1) {
+                                    sbUrl.append(":");
+                                }
+                            }
+                        }
+                        rri.setUrl(sbUrl.toString());
+
+                        StringBuilder sbFetch = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
+                            for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
+                                sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
+                                if (i < conf.getFetchRefSpecs().size() - 1) {
+                                    sbFetch.append(":");
+                                }
+                            }
+                        }
+                        rri.setFetch(sbFetch.toString());
+
+                        StringBuilder sbPushUrl = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
+                            for (int i = 0; i < conf.getPushURIs().size(); i++) {
+                                sbPushUrl.append(conf.getPushURIs().get(i).toString());
+                                if (i < conf.getPushURIs().size() - 1) {
+                                    sbPushUrl.append(":");
+                                }
+                            }
+                        } else {
+                            sbPushUrl.append(rri.getUrl());
+                        }
+                        rri.setPushUrl(sbPushUrl.toString());
+                        res.add(rri);
+                    }
+                }
+            } catch (GitAPIException | CryptoException | IOException e) {
+                logger.error("Error getting remote repositories for site " + siteId, e);
+            }
+        }
+        return res;
     }
 
     public RemoteRepositoryDAO getRemoteRepositoryDao() {

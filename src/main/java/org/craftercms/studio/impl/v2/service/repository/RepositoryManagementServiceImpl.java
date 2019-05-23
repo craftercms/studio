@@ -20,17 +20,24 @@ package org.craftercms.studio.impl.v2.service.repository;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
+
+import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class RepositoryManagementServiceImpl implements RepositoryManagementService {
 
     private RepositoryManagementServiceInternal repositoryManagementServiceInternal;
+    private SiteService siteService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "add_remote")
@@ -39,11 +46,26 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
         return repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
     }
 
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "list_remotes")
+    public List<RemoteRepositoryInfo> listRemotes(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        return repositoryManagementServiceInternal.listRemotes(siteId, siteFeed.getSandboxBranch());
+    }
+
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {
         return repositoryManagementServiceInternal;
     }
 
     public void setRepositoryManagementServiceInternal(RepositoryManagementServiceInternal repositoryManagementServiceInternal) {
         this.repositoryManagementServiceInternal = repositoryManagementServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

@@ -56,4 +56,6 @@ public interface ResultConstants {
     String RESULT_KEY_MEMORY = "memory";
     String RESULT_KEY_EVENTS = "events";
 
+    /* Repository management controller */
+    String RESULT_KEY_REMOTES = "remotes";
 }
