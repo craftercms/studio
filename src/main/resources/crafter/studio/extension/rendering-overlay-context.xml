@@ -77,6 +77,10 @@
 
     <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController"/>
 
+    <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">
+        <property name="cmisService" ref="cmisService" />
+    </bean>
+
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
     </bean>
@@ -154,6 +158,10 @@
                 </entry>
             </map>
         </property>
+    </bean>
+
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
     </bean>
 
 </beans>

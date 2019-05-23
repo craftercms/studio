@@ -38,8 +38,8 @@ try {
             def profile = SecurityServices.getUserProfile(context, username)
 
             response.setStatus(200)
-            result = ["username": username, "first_name": profile.first_name, "last_name": profile.last_name,
-                      "email": profile.email, "authentication_type" : profile.authentication_type]
+            result = ["username": username, "firstName": profile.first_name, "lastName": profile.last_name,
+                      "email": profile.email, "authenticationType" : profile.authentication_type]
         } else {
             response.setStatus(500)
             result.message = "Internal server error"

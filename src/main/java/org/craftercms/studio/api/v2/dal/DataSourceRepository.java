@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.to;
+package org.craftercms.studio.api.v2.dal;
 
 import java.io.Serializable;
 
-public class DataSourceRepositoryTO implements Serializable{
+public class DataSourceRepository implements Serializable{
 
     private static final long serialVersionUID = -5566456509245127201L;
 
