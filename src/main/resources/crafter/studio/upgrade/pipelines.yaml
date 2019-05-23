@@ -348,6 +348,15 @@ pipelines:
           commitDetails: Add CMIS datasources
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.25-to-3.1.0.26.sql
+    - currentVersion: 3.1.0.26
+      nextVersion: 3.1.0.27
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-site-configtools.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.27/system/sample-site-config-tools.xslt
+          commitDetails: Add time control
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.26-to-3.1.0.27.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -611,6 +620,16 @@ configurations:
             path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.26/site/site-config-tools-5.xslt
             commitDetails: Add CMIS datasources
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 5
+        nextVersion: 6
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/3.1.0.27/site/site-config-tools-6.xslt
+            commitDetails: Add time control
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
