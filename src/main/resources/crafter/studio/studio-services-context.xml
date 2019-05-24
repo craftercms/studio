@@ -941,6 +941,8 @@
     <!-- v2 Service -->
     <bean id="awsS3Service" class="org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl">
         <property name="profileLoader" ref="studioS3ProfileLoader"/>
+        <property name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
+        <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
     </bean>
 
     <bean id="studioMediaConvert" class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertImpl"/>
@@ -948,6 +950,20 @@
     <bean id="studioMediaConvertService" class="org.craftercms.studio.impl.v1.service.aws.MediaConvertServiceImpl">
         <property name="profileLoader" ref="studioMediaConvertProfileLoader"/>
         <property name="mediaConvert" ref="studioMediaConvert"/>
+    </bean>
+
+    <!--  v2 Service  -->
+    <bean id="awsMediaConvertService"
+          class="org.craftercms.studio.impl.v2.service.aws.mediaconvert.AwsMediaConvertServiceImpl">
+        <property name="profileLoader" ref="studioMediaConvertProfileLoader"/>
+        <property name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
+        <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
+        <property name="hlsExtension"
+                  value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.hls')}"/>
+        <property name="dashExtension"
+                  value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.dash')}"/>
+        <property name="smoothExtension"
+                  value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.smooth')}"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
