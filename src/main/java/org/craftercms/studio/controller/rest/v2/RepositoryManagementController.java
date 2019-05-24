@@ -17,11 +17,18 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
+import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.PullFromRemoteRequest;
+import org.craftercms.studio.model.rest.PushToRemoteRequest;
+import org.craftercms.studio.model.rest.RebuildDatabaseRequest;
+import org.craftercms.studio.model.rest.RemoveRemoteRequest;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
@@ -54,12 +61,62 @@ public class RepositoryManagementController {
     }
 
     @GetMapping("/api/2/repository/list_remotes")
-    public ResponseBody listRemotes(@RequestParam(name = "siteId", required = true) String siteId) {
+    public ResponseBody listRemotes(@RequestParam(name = "siteId", required = true) String siteId)
+            throws ServiceLayerException, CryptoException {
         List<RemoteRepositoryInfo> remotes = repositoryManagementService.listRemotes(siteId);
 
         ResponseBody responseBody = new ResponseBody();
         ResultList<RemoteRepositoryInfo> result = new ResultList<RemoteRepositoryInfo>();
         result.setEntities(RESULT_KEY_REMOTES, remotes);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/repository/pull_from_remote")
+    public ResponseBody pullFromRemote(@RequestBody PullFromRemoteRequest pullFromRemoteRequest)
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+        repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
+                pullFromRemoteRequest.getRemoteName(), pullFromRemoteRequest.getRemoteBranch(),
+                pullFromRemoteRequest.getMergeStrategy());
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/repository/push_to_remote")
+    public ResponseBody pushToRemote(@RequestBody PushToRemoteRequest pushToRemoteRequest)
+            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
+        repositoryManagementService.pushToRemote(pushToRemoteRequest.getSiteId(), pushToRemoteRequest.getRemoteName(),
+                pushToRemoteRequest.getRemoteBranch(), pushToRemoteRequest.isForce());
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/repository/rebuild_database")
+    public ResponseBody rebuildDatabase(@RequestBody RebuildDatabaseRequest rebuildDatabaseRequest) {
+        repositoryManagementService.rebuildDatabase(rebuildDatabaseRequest.getSiteId());
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/repository/remove_remote")
+    public ResponseBody removeRemote(@RequestBody RemoveRemoteRequest removeRemoteRequest) throws CryptoException {
+        repositoryManagementService.removeRemote(removeRemoteRequest.getSiteId(), removeRemoteRequest.getRemoteName());
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;

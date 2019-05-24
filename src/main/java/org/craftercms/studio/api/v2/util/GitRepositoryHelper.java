@@ -66,6 +66,7 @@ public class GitRepositoryHelper {
     private static GitRepositoryHelper instance;
 
     private StudioConfiguration studioConfiguration;
+    private TextEncryptor encryptor;
 
     private Map<String, Repository> sandboxes = new HashMap<>();
     private Map<String, Repository> published = new HashMap<>();
@@ -73,10 +74,12 @@ public class GitRepositoryHelper {
 
     private GitRepositoryHelper() { }
 
-    public static GitRepositoryHelper getHelper(StudioConfiguration studioConfiguration) {
+    public static GitRepositoryHelper getHelper(StudioConfiguration studioConfiguration) throws CryptoException {
         if (instance == null) {
             instance = new GitRepositoryHelper();
             instance.studioConfiguration = studioConfiguration;
+            instance.encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         }
         return instance;
     }
@@ -233,7 +236,7 @@ public class GitRepositoryHelper {
         lsRemoteCommand.setRemote(remote);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         lsRemoteCommand = setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername,
-                remotePassword, remoteToken, remotePrivateKey, tempKey);
+                remotePassword, remoteToken, remotePrivateKey, tempKey, false);
         lsRemoteCommand.call();
         Files.deleteIfExists(tempKey);
         return true;
@@ -264,11 +267,26 @@ public class GitRepositoryHelper {
         return null;
     }
 
-    public <T extends TransportCommand> T setAuthenticationForCommand(T gitCommand,
-                                                                      String authenticationType, String username,
-                                                                      String password, String token,
-                                                                      String privateKey, Path tempKey)
+    public <T extends TransportCommand> T setAuthenticationForCommand(T gitCommand, String authenticationType,
+                                                                      String username, String password, String token,
+                                                                      String privateKey, Path tempKey, boolean decrypt)
             throws CryptoException, ServiceLayerException {
+        String passwordValue = password;
+        String tokenValue = token;
+        String privateKeyValue = privateKey;
+        if (decrypt) {
+            if (!StringUtils.isEmpty(password)) {
+                passwordValue = encryptor.decrypt(password);
+            }
+            if (!StringUtils.isEmpty(token)) {
+                tokenValue = encryptor.decrypt(token);
+            }
+            if (!StringUtils.isEmpty(privateKey)) {
+                privateKeyValue = encryptor.decrypt(privateKey);
+            }
+        }
+        final String p = passwordValue;
+        final String pk = privateKeyValue;
         switch (authenticationType) {
             case RemoteRepository.AuthenticationType.NONE:
                 logger.debug("No authentication");
@@ -276,7 +294,7 @@ public class GitRepositoryHelper {
             case RemoteRepository.AuthenticationType.BASIC:
                 logger.debug("Basic authentication");
                 UsernamePasswordCredentialsProvider credentialsProviderUP =
-                        new UsernamePasswordCredentialsProvider(username, password);
+                        new UsernamePasswordCredentialsProvider(username, passwordValue);
                 gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
                     @Override
                     public void configure(Transport transport) {
@@ -287,7 +305,7 @@ public class GitRepositoryHelper {
                                 Properties config = new Properties();
                                 config.put("StrictHostKeyChecking", "no");
                                 session.setConfig(config);
-                                session.setPassword(password);
+                                session.setPassword(p);
                             }
                         });
                     }
@@ -297,7 +315,7 @@ public class GitRepositoryHelper {
             case RemoteRepository.AuthenticationType.TOKEN:
                 logger.debug("Token based authentication");
                 UsernamePasswordCredentialsProvider credentialsProvider =
-                        new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
+                        new UsernamePasswordCredentialsProvider(tokenValue, StringUtils.EMPTY);
                 gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
                     @Override
                     public void configure(Transport transport) {
@@ -321,7 +339,7 @@ public class GitRepositoryHelper {
                     @Override
                     public void configure(Transport transport) {
                         SshTransport sshTransport = (SshTransport)transport;
-                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                        sshTransport.setSshSessionFactory(getSshSessionFactory(pk, tempKey));
                     }
                 });
 

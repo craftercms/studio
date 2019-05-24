@@ -2706,8 +2706,26 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
+    RequestTimeout:
+      description: Request Timeout (408)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
     InternalServerError:
       description: Internal system failure
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+    ServiceUnavailable:
+      description: Service unavailable (503)
       content:
         application/json:
           schema:

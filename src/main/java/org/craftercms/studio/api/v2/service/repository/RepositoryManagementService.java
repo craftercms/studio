@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.api.v2.service.repository;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -30,5 +31,15 @@ public interface RepositoryManagementService {
     boolean addRemote(String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException;
 
-    List<RemoteRepositoryInfo> listRemotes(String siteId) throws SiteNotFoundException;
+    List<RemoteRepositoryInfo> listRemotes(String siteId) throws ServiceLayerException, CryptoException;
+
+    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
+            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException;
+
+    boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException;
+
+    void rebuildDatabase(String siteId);
+
+    boolean removeRemote(String siteId, String remoteName) throws CryptoException;
 }

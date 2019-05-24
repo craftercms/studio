@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v2.service.repository;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -48,9 +49,38 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "list_remotes")
-    public List<RemoteRepositoryInfo> listRemotes(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+    public List<RemoteRepositoryInfo> listRemotes(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId)
+            throws ServiceLayerException, CryptoException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         return repositoryManagementServiceInternal.listRemotes(siteId, siteFeed.getSandboxBranch());
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "pull_from_remote")
+    public boolean pullFromRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
+                                  String remoteBranch, String mergeStrategy)
+            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
+        return repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch, mergeStrategy);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "push_to_remote")
+    public boolean pushToRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
+                                String remoteBranch, boolean force)
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+        return repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "rebuild_database")
+    public void rebuildDatabase(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        siteService.rebuildDatabase(siteId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "remove_remote")
+    public boolean removeRemote(String siteId, String remoteName) throws CryptoException {
+        return repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
     }
 
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {
