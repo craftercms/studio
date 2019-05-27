@@ -19,12 +19,10 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
-import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PullFromRemoteRequest;
 import org.craftercms.studio.model.rest.PushToRemoteRequest;
 import org.craftercms.studio.model.rest.RebuildDatabaseRequest;
@@ -36,13 +34,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
+import static org.craftercms.studio.model.rest.ApiResponse.INTERNAL_SYSTEM_FAILURE;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
+@RestController
 public class RepositoryManagementController {
 
     private RepositoryManagementService repositoryManagementService;
@@ -51,11 +52,15 @@ public class RepositoryManagementController {
     public ResponseBody addRemote(@RequestBody RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
 
-        repositoryManagementService.addRemote(remoteRepository.getSiteId(), remoteRepository);
+        boolean res = repositoryManagementService.addRemote(remoteRepository.getSiteId(), remoteRepository);
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
-        result.setResponse(CREATED);
+        if (res) {
+            result.setResponse(CREATED);
+        } else {
+            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+        }
         responseBody.setResult(result);
         return responseBody;
     }
@@ -76,13 +81,17 @@ public class RepositoryManagementController {
     @PostMapping("/api/2/repository/pull_from_remote")
     public ResponseBody pullFromRemote(@RequestBody PullFromRemoteRequest pullFromRemoteRequest)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
-        repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
+        boolean res = repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
                 pullFromRemoteRequest.getRemoteName(), pullFromRemoteRequest.getRemoteBranch(),
                 pullFromRemoteRequest.getMergeStrategy());
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
-        result.setResponse(OK);
+        if (res) {
+            result.setResponse(OK);
+        } else {
+            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+        }
         responseBody.setResult(result);
         return responseBody;
     }
@@ -90,12 +99,17 @@ public class RepositoryManagementController {
     @PostMapping("/api/2/repository/push_to_remote")
     public ResponseBody pushToRemote(@RequestBody PushToRemoteRequest pushToRemoteRequest)
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
-        repositoryManagementService.pushToRemote(pushToRemoteRequest.getSiteId(), pushToRemoteRequest.getRemoteName(),
-                pushToRemoteRequest.getRemoteBranch(), pushToRemoteRequest.isForce());
+        boolean res = repositoryManagementService.pushToRemote(pushToRemoteRequest.getSiteId(),
+                pushToRemoteRequest.getRemoteName(), pushToRemoteRequest.getRemoteBranch(),
+                pushToRemoteRequest.isForce());
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
-        result.setResponse(OK);
+        if (res) {
+            result.setResponse(OK);
+        } else {
+            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+        }
         responseBody.setResult(result);
         return responseBody;
     }
@@ -113,11 +127,16 @@ public class RepositoryManagementController {
 
     @PostMapping("/api/2/repository/remove_remote")
     public ResponseBody removeRemote(@RequestBody RemoveRemoteRequest removeRemoteRequest) throws CryptoException {
-        repositoryManagementService.removeRemote(removeRemoteRequest.getSiteId(), removeRemoteRequest.getRemoteName());
+        boolean res = repositoryManagementService.removeRemote(removeRemoteRequest.getSiteId(),
+                removeRemoteRequest.getRemoteName());
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
-        result.setResponse(OK);
+        if (res) {
+            result.setResponse(OK);
+        } else {
+            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+        }
         responseBody.setResult(result);
         return responseBody;
     }

@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
@@ -295,42 +294,12 @@ public class GitRepositoryHelper {
                 logger.debug("Basic authentication");
                 UsernamePasswordCredentialsProvider credentialsProviderUP =
                         new UsernamePasswordCredentialsProvider(username, passwordValue);
-                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                            @Override
-                            protected void configure(OpenSshConfig.Host host, Session session) {
-                                Properties config = new Properties();
-                                config.put("StrictHostKeyChecking", "no");
-                                session.setConfig(config);
-                                session.setPassword(p);
-                            }
-                        });
-                    }
-                });
                 gitCommand.setCredentialsProvider(credentialsProviderUP);
                 break;
             case RemoteRepository.AuthenticationType.TOKEN:
                 logger.debug("Token based authentication");
                 UsernamePasswordCredentialsProvider credentialsProvider =
                         new UsernamePasswordCredentialsProvider(tokenValue, StringUtils.EMPTY);
-                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                            @Override
-                            protected void configure(OpenSshConfig.Host host, Session session) {
-                                Properties config = new Properties();
-                                config.put("StrictHostKeyChecking", "no");
-                                session.setConfig(config);
-                            }
-                        });
-                        sshTransport.setCredentialsProvider(credentialsProvider);
-                    }
-                });
                 break;
             case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                 logger.debug("Private key authentication");
