@@ -1132,6 +1132,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   item:
                     $ref: '#/components/schemas/MediaConvertResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
