@@ -144,8 +144,10 @@ public class CmisController {
                             break;
                         case REQUEST_PARAM_CMIS_PATH:
                             cmisPath = Streams.asString(stream);
+                            break;
                         default:
                             // Unknown parameter, just skip it...
+                            break;
                     }
                 } else {
                     filename = item.getName();
