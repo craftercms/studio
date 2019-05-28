@@ -468,21 +468,21 @@ public class SiteServiceImpl implements SiteService {
 	 		try {
                 success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc);
 
+                // insert database records
+                SiteFeed siteFeed = new SiteFeed();
+                siteFeed.setName(siteName);
+                siteFeed.setSiteId(siteId);
+                siteFeed.setSiteUuid(siteUuid);
+                siteFeed.setDescription(desc);
+                siteFeed.setPublishingStatusMessage(
+                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+                siteFeed.setSandboxBranch(sandboxBranch);
+                siteFeed.setSearchEngine(searchEngine);
+                siteFeedMapper.createSite(siteFeed);
+
                 upgradeManager.upgradeSite(siteId);
 
                 addSiteUuidFile(siteId, siteUuid);
-
-			    // insert database records
-			    SiteFeed siteFeed = new SiteFeed();
-			    siteFeed.setName(siteName);
-			    siteFeed.setSiteId(siteId);
-			    siteFeed.setSiteUuid(siteUuid);
-			    siteFeed.setDescription(desc);
-			    siteFeed.setPublishingStatusMessage(
-			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
-			    siteFeed.setSandboxBranch(sandboxBranch);
-			    siteFeed.setSearchEngine(searchEngine);
-			    siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
 
@@ -798,9 +798,6 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             try {
-                upgradeManager.upgradeSite(siteId);
-
-                addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
@@ -814,6 +811,10 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSandboxBranch(sandboxBranch);
                 siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
+
+                upgradeManager.upgradeSite(siteId);
+
+                addSiteUuidFile(siteId, siteUuid);
 
                 insertCreateSiteAuditLog(siteId);
 
@@ -897,6 +898,19 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Creating site " + siteId + " from blueprint " + blueprintId);
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description);
 
+                // insert database records
+                logger.debug("Adding site record to database for site " + siteId);
+                SiteFeed siteFeed = new SiteFeed();
+                siteFeed.setName(siteId);
+                siteFeed.setSiteId(siteId);
+                siteFeed.setSiteUuid(siteUuid);
+                siteFeed.setDescription(description);
+                siteFeed.setPublishingStatusMessage(
+                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+                siteFeed.setSandboxBranch(sandboxBranch);
+                siteFeed.setSearchEngine(searchEngine);
+                siteFeedMapper.createSite(siteFeed);
+
                 upgradeManager.upgradeSite(siteId);
 
             } catch (Exception e) {
@@ -950,19 +964,6 @@ public class SiteServiceImpl implements SiteService {
 
             try {
                 addSiteUuidFile(siteId, siteUuid);
-                
-                // insert database records
-                logger.debug("Adding site record to database for site " + siteId);
-                SiteFeed siteFeed = new SiteFeed();
-                siteFeed.setName(siteId);
-                siteFeed.setSiteId(siteId);
-                siteFeed.setSiteUuid(siteUuid);
-                siteFeed.setDescription(description);
-                siteFeed.setPublishingStatusMessage(
-                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
-                siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeed.setSearchEngine(searchEngine);
-                siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
 
