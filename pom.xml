@@ -43,7 +43,7 @@
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
         <spring.version>4.3.18.RELEASE</spring.version>
-        <spring.security.version>4.2.7.RELEASE</spring.security.version>
+        <spring.security.version>4.2.12.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
         <box.sdk.version>2.25.1</box.sdk.version>
