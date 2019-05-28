@@ -185,6 +185,12 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         CreateJobResult createJobResult = mediaConvertClient.createJob(createJobRequest);
         logger.debug("Job {0} started", createJobResult.getJob().getArn());
 
+        return buildResult(jobTemplate, createJobResult, outputProfileId, originalName);
+    }
+
+
+    protected MediaConvertResult buildResult(JobTemplate jobTemplate, CreateJobResult createJobResult,
+                                             String outputProfileId, String originalName) {
         List<String> urls = new LinkedList<>();
         jobTemplate.getSettings().getOutputGroups().forEach(outputGroup -> {
             logger.debug("Adding urls from group {0}", outputGroup.getName());
@@ -193,55 +199,37 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                 case FILE_GROUP_SETTINGS:
                     FileGroupSettings fileSettings = outputGroup.getOutputGroupSettings().getFileGroupSettings();
                     outputGroup.getOutputs().forEach(output -> {
-                        String url = StringUtils.appendIfMissing(fileSettings.getDestination(), delimiter) +
-                            originalName + output.getNameModifier() + "." + output.getExtension();
-                        url = createUrl(outputProfileId, url);
-                        urls.add(url);
-                        logger.debug("Added url {0}", url);
+                        addUrl(urls, outputProfileId, fileSettings.getDestination(), originalName,
+                            output.getNameModifier(), output.getExtension());
                     });
                     break;
                 case HLS_GROUP_SETTINGS:
                     HlsGroupSettings hlsSettings = outputGroup.getOutputGroupSettings().getHlsGroupSettings();
                     outputGroup.getOutputs().forEach(output -> {
-                        String url = StringUtils.appendIfMissing(hlsSettings.getDestination(), delimiter) +
-                            originalName + "." + hlsExtension;
-                        url = createUrl(outputProfileId, url);
-                        urls.add(url);
-                        logger.debug("Added url {0}", url);
+                        addUrl(urls, outputProfileId, hlsSettings.getDestination(), originalName,
+                            StringUtils.EMPTY, hlsExtension);
                     });
                     break;
                 case DASH_ISO_GROUP_SETTINGS:
                     DashIsoGroupSettings dashSettings = outputGroup.getOutputGroupSettings().getDashIsoGroupSettings();
                     outputGroup.getOutputs().forEach(output -> {
-                        String url = StringUtils.appendIfMissing(dashSettings.getDestination(), delimiter) +
-                            originalName + "." + dashExtension;
-                        url = createUrl(outputProfileId, url);
-                        urls.add(url);
-                        logger.debug("Added url {0}", url);
+                        addUrl(urls, outputProfileId, dashSettings.getDestination(), originalName,
+                            StringUtils.EMPTY, dashExtension);
                     });
                     break;
                 case MS_SMOOTH_GROUP_SETTINGS:
                     MsSmoothGroupSettings smoothSettings = outputGroup.getOutputGroupSettings().getMsSmoothGroupSettings();
                     outputGroup.getOutputs().forEach(output -> {
-                        String url = StringUtils.appendIfMissing(smoothSettings.getDestination(), delimiter) +
-                            originalName + "." + smoothExtension;
-                        url = createUrl(outputProfileId, url);
-                        urls.add(url);
-                        logger.debug("Added url {0}", url);
+                        addUrl(urls, outputProfileId, smoothSettings.getDestination(), originalName,
+                            StringUtils.EMPTY, smoothExtension);
                     });
                     break;
                 case CMAF_GROUP_SETTINGS:
                     CmafGroupSettings cmafSettings = outputGroup.getOutputGroupSettings().getCmafGroupSettings();
-                    String url = StringUtils.appendIfMissing(cmafSettings.getDestination(), delimiter) +
-                        originalName  + "." + hlsExtension;
-                    url = createUrl(outputProfileId, url);
-                    urls.add(url);
-                    logger.debug("Added url {0}", url);
-                    url = StringUtils.appendIfMissing(cmafSettings.getDestination(), delimiter) +
-                        originalName + "." + dashExtension;
-                    url = createUrl(outputProfileId, url);
-                    urls.add(url);
-                    logger.debug("Added url {0}", url);
+                    addUrl(urls, outputProfileId, cmafSettings.getDestination(), originalName,
+                        StringUtils.EMPTY, hlsExtension);
+                    addUrl(urls, outputProfileId, cmafSettings.getDestination(), originalName,
+                        StringUtils.EMPTY, dashExtension);
                     break;
                 default:
                     // unknown settings ... do nothing
@@ -254,6 +242,14 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         result.setUrls(urls);
 
         return result;
+    }
+
+    protected void addUrl(List<String> urls, String outputProfileId, String destination, String originalName,
+                            String modifier, String extension) {
+        String url = StringUtils.appendIfMissing(destination, delimiter) + originalName + modifier + "." + extension;
+        url = createUrl(outputProfileId, url);
+        urls.add(url);
+        logger.debug("Added url {0}", url);
     }
 
     /**
