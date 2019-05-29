@@ -182,8 +182,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
-                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                 List<RemoteConfig> resultRemotes = git.remoteList().call();
                 if (CollectionUtils.isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
