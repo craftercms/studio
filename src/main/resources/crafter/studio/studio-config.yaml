@@ -659,3 +659,12 @@ studio.search.facets:
         from: now/d-7d
       - label: today
         from: now/d-1d
+
+################################################################
+##                           AWS                              ##
+################################################################
+studio.aws.s3.delimiter: /
+studio.aws.s3.url.pattern: /remote-assets/s3/%s/%s
+studio.aws.mediaconvert.extension.hls: m3u8
+studio.aws.mediaconvert.extension.dash: mpd
+studio.aws.mediaconvert.extension.smooth: ism

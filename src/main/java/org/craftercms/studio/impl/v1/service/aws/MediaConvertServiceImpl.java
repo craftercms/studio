@@ -32,7 +32,10 @@ import org.springframework.beans.factory.annotation.Required;
  * Default implementation of {@link MediaConvertService}.
  *
  * @author joseross
+ * @deprecated This service has been replaced with
+ *             {@link org.craftercms.studio.impl.v2.service.aws.mediaconvert.AwsMediaConvertServiceImpl}
  */
+@Deprecated
 public class MediaConvertServiceImpl extends AbstractAwsService<MediaConvertProfile> implements MediaConvertService {
 
     /**
