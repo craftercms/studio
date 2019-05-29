@@ -357,7 +357,15 @@ pipelines:
           commitDetails: Add time control
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.26-to-3.1.0.27.sql
-
+    - currentVersion: 3.1.0.27
+      nextVersion: 3.1.0.28
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.28/system/global-permission-mappings-config.xslt
+          commitDetails: Added repository management permissions
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.27-to-3.1.0.28.sql
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -516,6 +524,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.26/site/permission-mappings-config.xslt
+            commitDetails: Add new CMIS permissions
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 3
+        nextVersion: 4
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.0.28/site/permission-mappings-config.xslt
             commitDetails: Add new CMIS permissions
           - type: xsltFileUpgrader
             path: *permission-mappings-config

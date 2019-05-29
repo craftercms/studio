@@ -94,6 +94,10 @@ public class ApiResponse {
             new ApiResponse(11001, "Cluster member already exists", "Get the list of cluster members to validate",
                     StringUtils.EMPTY);
 
+    public static final ApiResponse REMOTE_REPOSITORY_ALREADY_EXISTS =
+            new ApiResponse(12001, "Remote repository already exists",
+                    "Get the list of remote repositories to validate", StringUtils.EMPTY);
+
     public static final ApiResponse CMIS_UNREACHABLE =
             new ApiResponse(50000, "CMIS server is unreachable", "Advise the user that the CMIS server is not " +
                                                                  "reachable", StringUtils.EMPTY);
