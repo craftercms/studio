@@ -388,6 +388,17 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <bean id="repositoryManagementService"
+          class="org.craftercms.studio.impl.v2.service.repository.RepositoryManagementServiceImpl">
+        <property name="repositoryManagementServiceInternal" ref="repositoryManagementServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+    </bean>
+
+    <bean id="repositoryManagementServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.repository.internal.RepositoryManagementServiceInternalImpl">
+        <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->
@@ -630,7 +641,7 @@
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="remoteRepositoryMapper" ref="remoteRepositoryMapper" />
+        <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="gitLogMapper" ref="gitLogMapper" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
@@ -941,6 +952,8 @@
     <!-- v2 Service -->
     <bean id="awsS3Service" class="org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl">
         <property name="profileLoader" ref="studioS3ProfileLoader"/>
+        <property name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
+        <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
     </bean>
 
     <bean id="studioMediaConvert" class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertImpl"/>
@@ -948,6 +961,20 @@
     <bean id="studioMediaConvertService" class="org.craftercms.studio.impl.v1.service.aws.MediaConvertServiceImpl">
         <property name="profileLoader" ref="studioMediaConvertProfileLoader"/>
         <property name="mediaConvert" ref="studioMediaConvert"/>
+    </bean>
+
+    <!--  v2 Service  -->
+    <bean id="awsMediaConvertService"
+          class="org.craftercms.studio.impl.v2.service.aws.mediaconvert.AwsMediaConvertServiceImpl">
+        <property name="profileLoader" ref="studioMediaConvertProfileLoader"/>
+        <property name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
+        <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
+        <property name="hlsExtension"
+                  value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.hls')}"/>
+        <property name="dashExtension"
+                  value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.dash')}"/>
+        <property name="smoothExtension"
+                  value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.smooth')}"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

@@ -63,8 +63,8 @@ import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.GitLogMapper;
-import org.craftercms.studio.api.v1.dal.RemoteRepository;
-import org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -171,7 +171,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -193,7 +192,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
     protected GitLogMapper gitLogMapper;
-    protected RemoteRepositoryMapper remoteRepositoryMapper;
+    protected RemoteRepositoryDAO remoteRepositoryDAO;
     protected UserServiceInternal userServiceInternal;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
@@ -2021,7 +2020,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         logger.debug("Insert site remote record into database");
-        remoteRepositoryMapper.insertRemoteRepository(params);
+        remoteRepositoryDAO.insertRemoteRepository(params);
     }
 
     @Override
@@ -2042,7 +2041,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        remoteRepositoryMapper.deleteRemoteRepository(params);
+        remoteRepositoryDAO.deleteRemoteRepository(params);
 
         return true;
     }
@@ -2051,7 +2050,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void removeRemoteRepositoriesForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
-        remoteRepositoryMapper.deleteRemoteRepositoriesForSite(params);
+        remoteRepositoryDAO.deleteRemoteRepositoriesForSite(params);
     }
 
     @Override
@@ -2066,7 +2065,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         Map<String, String> params = new HashMap<String, String>();
                         params.put("siteId", siteId);
                         params.put("remoteName", conf.getName());
-                        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+                        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
                         if (remoteRepository != null) {
                             switch (remoteRepository.getAuthenticationType()) {
                                 case RemoteRepository.AuthenticationType.NONE:
@@ -2194,7 +2193,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
 
         logger.debug("Prepare push command.");
         Repository repo = helper.getRepository(siteId, SANDBOX);
@@ -2278,7 +2277,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
 
         logger.debug("Prepare pull command");
         Repository repo = helper.getRepository(siteId, SANDBOX);
@@ -2460,12 +2459,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.gitLogMapper = gitLogMapper;
     }
 
-    public RemoteRepositoryMapper getRemoteRepositoryMapper() {
-        return remoteRepositoryMapper;
+    public RemoteRepositoryDAO getRemoteRepositoryDAO() {
+        return remoteRepositoryDAO;
     }
 
-    public void setRemoteRepositoryMapper(RemoteRepositoryMapper remoteRepositoryMapper) {
-        this.remoteRepositoryMapper = remoteRepositoryMapper;
+    public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
+        this.remoteRepositoryDAO = remoteRepositoryDAO;
     }
 
     public UserServiceInternal getUserServiceInternal() {

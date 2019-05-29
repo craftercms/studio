@@ -58,6 +58,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="siteSandboxBranch"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).REPO_SANDBOX_BRANCH)}"/>
         <property name="siteUpgradeBranch"

@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
 import org.craftercms.studio.model.aws.s3.S3Item;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
@@ -47,21 +48,38 @@ import java.util.List;
  */
 public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements AwsS3Service {
 
-    public static final String DELIMITER = "/";
     public static final String ITEM_FILTER = "item";
-    public static final String URL_FORMAT = "/remote-assets/s3/%s/%s";
 
-    protected int partSize;
+    /**
+     * The part size used for S3 uploads
+     */
+    protected int partSize = AwsUtils.MIN_PART_SIZE;
 
-    public AwsS3ServiceImpl() {
-        partSize = AwsUtils.MIN_PART_SIZE;
-    }
+    /**
+     * The delimiter for S3 paths
+     */
+    protected String delimiter;
 
+    /**
+     * The URL pattern for the generated files
+     */
+    protected String urlPattern;
+    
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
     }
 
-    /** 
+    @Required
+    public void setDelimiter(final String delimiter) {
+        this.delimiter = delimiter;
+    }
+
+    @Required
+    public void setUrlPattern(final String urlPattern) {
+        this.urlPattern = urlPattern;
+    }
+
+    /**
     * Add withEndpointConfiguration() to direct requests to a S3 compatible storage service
     */
     protected AmazonS3 getS3Client(S3Profile profile) {
@@ -90,7 +108,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
-        String key = StringUtils.isNotEmpty(path)? StringUtils.appendIfMissing(path, DELIMITER) + filename : filename;
+        String key = StringUtils.isNotEmpty(path)? StringUtils.appendIfMissing(path, delimiter) + filename : filename;
 
         AwsUtils.uploadStream(inputBucket, key, s3Client, partSize, filename, content);
 
@@ -114,19 +132,19 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         MimeType filerType =
             StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER)? MimeTypeUtils.ALL : new MimeType(type);
 
-        String prefix = StringUtils.isEmpty(path)? path : StringUtils.appendIfMissing(path, DELIMITER);
+        String prefix = StringUtils.isEmpty(path)? path : StringUtils.appendIfMissing(path, delimiter);
 
         ListObjectsV2Request request = new ListObjectsV2Request()
                                             .withBucketName(profile.getBucketName())
                                             .withPrefix(prefix)
-                                            .withDelimiter(DELIMITER);
+                                            .withDelimiter(delimiter);
 
         ListObjectsV2Result result;
 
         do {
             result = client.listObjectsV2(request);
             result.getCommonPrefixes().stream()
-                .map(p -> new S3Item(StringUtils.removeEnd(StringUtils.removeStart(p, prefix), DELIMITER), p, true))
+                .map(p -> new S3Item(StringUtils.removeEnd(StringUtils.removeStart(p, prefix), delimiter), p, true))
                 .forEach(items::add);
 
             result.getObjectSummaries().stream()
@@ -143,7 +161,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     }
 
     protected String createUrl(String profileId, String key) {
-        return String.format(URL_FORMAT, profileId, key);
+        return String.format(urlPattern, profileId, key);
     }
 
 }
