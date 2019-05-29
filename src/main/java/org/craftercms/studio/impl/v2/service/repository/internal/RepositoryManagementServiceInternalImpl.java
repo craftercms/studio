@@ -187,7 +187,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 List<RemoteConfig> resultRemotes = git.remoteList().call();
                 if (CollectionUtils.isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
-                        fetchRemote(siteId, git, conf, encryptor);
+                        fetchRemote(siteId, git, conf);
                     }
                     Map<String, List<String>> remoteBranches = getRemoteBranches(git);
                     String sandboxBranchName = sandboxBranch;
@@ -203,7 +203,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         return res;
     }
 
-    private void fetchRemote(String siteId, Git git, RemoteConfig conf, TextEncryptor encryptor)
+    private void fetchRemote(String siteId, Git git, RemoteConfig conf)
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, conf.getName());
@@ -310,8 +310,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
-            TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
             PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
             logger.debug("Set remote " + remoteName);

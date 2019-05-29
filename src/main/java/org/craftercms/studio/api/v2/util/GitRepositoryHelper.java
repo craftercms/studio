@@ -122,6 +122,7 @@ public class GitRepositoryHelper {
                 break;
             default:
                 repo = null;
+                break;
         }
 
         if (repo != null) {
@@ -205,6 +206,7 @@ public class GitRepositoryHelper {
                 break;
             default:
                 path = null;
+                break;
         }
 
         return path;
@@ -284,7 +286,6 @@ public class GitRepositoryHelper {
                 privateKeyValue = encryptor.decrypt(privateKey);
             }
         }
-        final String p = passwordValue;
         final String pk = privateKeyValue;
         switch (authenticationType) {
             case RemoteRepository.AuthenticationType.NONE:
@@ -300,6 +301,7 @@ public class GitRepositoryHelper {
                 logger.debug("Token based authentication");
                 UsernamePasswordCredentialsProvider credentialsProvider =
                         new UsernamePasswordCredentialsProvider(tokenValue, StringUtils.EMPTY);
+                gitCommand.setCredentialsProvider(credentialsProvider);
                 break;
             case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                 logger.debug("Private key authentication");
