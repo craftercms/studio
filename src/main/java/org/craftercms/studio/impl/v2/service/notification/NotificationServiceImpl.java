@@ -66,6 +66,8 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class NotificationServiceImpl implements NotificationService {
@@ -280,7 +282,19 @@ public class NotificationServiceImpl implements NotificationService {
             notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
         }
         Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<String, NotificationConfigTO>();
-        String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+        String configFullPath = StringUtils.EMPTY;
+        if (!StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
+            configFullPath =  getConfigPath()
+                    .replace(studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                            studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH))
+                    .replaceAll(PATTERN_ENVIRONMENT, studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+            if (!contentService.contentExists(site,configFullPath)) {
+                configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+            }
+        } else {
+            configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+        }
+
         try {
             Document document = contentService.getContentAsDocument(site, configFullPath);
             if (document != null) {

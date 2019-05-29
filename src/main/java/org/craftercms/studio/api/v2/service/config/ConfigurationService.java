@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.config;
 
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -30,4 +31,7 @@ public interface ConfigurationService {
 
     Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
 
+    String loadConfiguration(String siteId, String configurationFile, String environment);
+
+    void writeConfiguration(String siteId, String configurationFile, String environment, InputStream content);
 }

@@ -17,7 +17,16 @@
 
 package scripts.api.impl.content
 
-import scripts.api.impl.search.SolrSearch;
+import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.constant.StudioConstants
+import scripts.api.impl.search.SolrSearch
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH
 
 /**
  * content services
@@ -26,6 +35,7 @@ class SpringContentServices {
 
 	static CONTENT_SERVICES_BEAN = "cstudioContentService"
 	static ASSET_PROCESSING_SERVICE_BEAN = "studioAssetProcessingService"
+    static STUDIO_CONFIGURATION_BEAN = "studioConfiguration"
 
 	def context = null
 
@@ -221,7 +231,22 @@ class SpringContentServices {
 
 	def getContentAtPath(site, path) {
 		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.getContent(site, path)
+        def springBackedConfigurationBean = this.context.applicationContext.get(STUDIO_CONFIGURATION_BEAN)
+
+        def configBasePath = springBackedConfigurationBean.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH)
+        def calculatedPath = path
+        if (path.startsWith(configBasePath)) {
+            if (!StringUtils.isEmpty(springBackedConfigurationBean.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
+                System.out.println(1)
+                calculatedPath = path.replace(configBasePath, springBackedConfigurationBean.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH).replaceAll(PATTERN_ENVIRONMENT,springBackedConfigurationBean.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)))
+                if (!springBackedService.contentExists(site, calculatedPath )) {
+                    calculatedPath = path
+                    System.out.println(2)
+                }
+            }
+        }
+        System.out.println(calculatedPath)
+		return springBackedService.getContent(site, calculatedPath)
 	}
 
 	def lockContent(site, path) {

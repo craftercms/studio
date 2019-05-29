@@ -141,6 +141,7 @@ import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
@@ -289,7 +290,6 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
 	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site,
                                                 @ValidateSecurePathParam(name = "path") String path,
-                                                @ValidateStringParam(name = "environment") String environment,
                                                 boolean applyEnv) {
 		String configPath;
 		if (StringUtils.isEmpty(site)) {
@@ -297,7 +297,7 @@ public class SiteServiceImpl implements SiteService {
 		} else {
 		    if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
                 configPath = getSitesConfigPath() + path;
-            } else if (StringUtils.isEmpty(environment)) {
+            } else if (StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
                 if (applyEnv) {
                     configPath = getEnvironmentConfigPath().replaceAll(PATTERN_SITE, site).replaceAll(
                             PATTERN_ENVIRONMENT, getEnvironment()) + path;
@@ -305,7 +305,8 @@ public class SiteServiceImpl implements SiteService {
                     configPath = getSitesConfigPath() + path;
                 }
             } else {
-                configPath = getSitesMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT, environment) + path;
+                configPath = getSitesMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT,
+                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)) + path;
             }
 		}
 		String configContent = contentService.getContentAsString(site, configPath);

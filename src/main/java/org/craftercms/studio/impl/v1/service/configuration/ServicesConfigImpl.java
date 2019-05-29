@@ -55,13 +55,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
@@ -286,7 +289,16 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 *
 	 */
      protected SiteConfigTO loadConfiguration(String site) {
-         String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+         String siteConfigPath = StringUtils.EMPTY;
+         if (!StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
+             siteConfigPath = getMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT,
+                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+             if (!contentService.contentExists(site,siteConfigPath + FILE_SEPARATOR + getConfigFileName())) {
+                 siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+             }
+         } else {
+             siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+         }
 
          Document document = null;
          SiteConfigTO siteConfig = null;
@@ -513,6 +525,10 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+
+    public String getMultiEnvironmentConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH);
     }
 
     public String getConfigFileName() {

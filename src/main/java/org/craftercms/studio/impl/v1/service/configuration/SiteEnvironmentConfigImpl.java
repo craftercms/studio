@@ -42,11 +42,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_AUTHORING_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_PREVIEW_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 
 public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
@@ -70,7 +74,11 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	    return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME);
 	}
 
-	@Override
+    public String getMultiEnvironmentConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH);
+    }
+
+    @Override
     @ValidateParams
 	public EnvironmentConfigTO getEnvironmentConfig(@ValidateStringParam(name = "site") final String site) {
         return loadConfiguration(site);
@@ -168,9 +176,22 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     @SuppressWarnings("unchecked")
 	protected EnvironmentConfigTO loadConfiguration(String key) {
-		String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
-				.replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
-		configLocation = configLocation + FILE_SEPARATOR + getConfigFileName();
+        String siteConfigPath = StringUtils.EMPTY;
+        if (!StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
+            siteConfigPath =
+                    getConfigPath().replace(studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                            getMultiEnvironmentConfigPath().replaceFirst(PATTERN_ENVIRONMENT,
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)))
+                    .replaceAll(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
+            if (!contentService.contentExists(key,siteConfigPath + FILE_SEPARATOR + getConfigFileName())) {
+                siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
+                        .replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
+            }
+        } else {
+            siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
+                    .replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
+        }
+		String configLocation = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {

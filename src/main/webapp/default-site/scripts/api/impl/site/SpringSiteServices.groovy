@@ -51,9 +51,9 @@ class SpringSiteServices {
         return springBackedService.getConfiguration(site, path);
     }
 
-    def getConfiguration(site, path, environment, applyEnvironment) {
+    def getConfiguration(site, path, applyEnvironment) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.getConfiguration(site, path, environment, applyEnvironment);
+        return springBackedService.getConfiguration(site, path, applyEnvironment);
     }
 
     def getAllAvailableSites() {
