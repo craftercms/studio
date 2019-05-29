@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.cmis.CmisService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.rest.CmisCloneRequest;
@@ -122,7 +123,7 @@ public class CmisController {
     @PostMapping(value = "/api/2/cmis/upload")
     public ResponseBody uploadContent(HttpServletRequest httpServletRequest)
             throws IOException, CmisUnavailableException, CmisPathNotFoundException, CmisTimeoutException,
-            CmisRepositoryNotFoundException, FileUploadException {
+            CmisRepositoryNotFoundException, FileUploadException, InvalidParametersException {
 
         ServletFileUpload servletFileUpload = new ServletFileUpload();
         FileItemIterator itemIterator = servletFileUpload.getItemIterator(httpServletRequest);
@@ -151,6 +152,15 @@ public class CmisController {
                     }
                 } else {
                     filename = item.getName();
+                    if (StringUtils.isEmpty(siteId)) {
+                        throw new InvalidParametersException("Invalid siteId");
+                    }
+                    if (StringUtils.isEmpty(cmisRepoId)) {
+                        throw new InvalidParametersException("Invalid cmisRepoId");
+                    }
+                    if (StringUtils.isEmpty(cmisPath)) {
+                        throw new InvalidParametersException("Invalid cmisPath");
+                    }
                     cmisService.uploadContent(siteId, cmisRepoId, cmisPath, filename, stream);
                 }
             }
