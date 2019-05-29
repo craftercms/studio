@@ -19,8 +19,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper">
-    <resultMap id="RemoteRepositoryMap" type="org.craftercms.studio.api.v1.dal.RemoteRepository">
+<mapper namespace="org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO">
+    <resultMap id="RemoteRepositoryMap" type="org.craftercms.studio.api.v2.dal.RemoteRepository">
         <id property="id" column="id"/>
         <result property="siteId" column="site_id"/>
         <result property="remoteName" column="remote_name"/>
