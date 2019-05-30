@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
@@ -36,6 +35,7 @@ import org.craftercms.studio.api.v1.to.FacetTO;
 import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
 import org.craftercms.studio.api.v1.to.SiteConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -44,6 +44,7 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -54,17 +55,13 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
@@ -112,6 +109,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected ContentRepository contentRepository;
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
 
     protected SiteConfigTO getSiteConfig(final String site) {
         return loadConfiguration(site);
@@ -289,24 +287,13 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 *
 	 */
      protected SiteConfigTO loadConfiguration(String site) {
-         String siteConfigPath = StringUtils.EMPTY;
-         if (!StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
-             siteConfigPath = getMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT,
-                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-             if (!contentService.contentExists(site,siteConfigPath + FILE_SEPARATOR + getConfigFileName())) {
-                 siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-             }
-         } else {
-             siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-         }
-
          Document document = null;
          SiteConfigTO siteConfig = null;
          try {
-             document = contentService.getContentAsDocument(site,
-                     siteConfigPath + FILE_SEPARATOR +  getConfigFileName());
-         } catch (DocumentException e) {
-             LOGGER.error("Error while loading configuration for " + site + " at " + siteConfigPath, e);
+             document = configurationService.loadConfigurationDocument(site, getConfigFileName(),
+                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+         } catch (DocumentException | IOException e) {
+             LOGGER.error("Error while loading configuration for " + site + " at " + getConfigFileName(), e);
          }
          if (document != null) {
              Element root = document.getRootElement();
@@ -348,7 +335,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 
              loadFacetConfiguration(configNode, siteConfig);
          } else {
-             LOGGER.error("No site configuration found for " + site + " at " + siteConfigPath);
+             LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
          }
          return siteConfig;
      }
@@ -523,14 +510,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-    public String getConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
-    }
-
-    public String getMultiEnvironmentConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH);
-    }
-
     public String getConfigFileName() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME);
     }
@@ -624,5 +603,13 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -30,27 +29,24 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_AUTHORING_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_PREVIEW_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 
 public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
@@ -59,24 +55,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	/** environment key (e.g. dev, qa, staging..) **/
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
-
-	public ServicesConfig getServicesConfig() { return servicesConfig; }
-	public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
-
-	public ContentService getContentService() { return contentService; }
-	public void setContentService(ContentService contentService) { this.contentService = contentService; }
-
-    public String getConfigPath() {
-	    return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH);
-	}
-
-    public String getConfigFileName() {
-	    return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME);
-	}
-
-    public String getMultiEnvironmentConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH);
-    }
+	protected ConfigurationService configurationService;
+    protected GeneralLockService generalLockService;
+    protected StudioConfiguration studioConfiguration;
 
     @Override
     @ValidateParams
@@ -176,28 +157,14 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     @SuppressWarnings("unchecked")
 	protected EnvironmentConfigTO loadConfiguration(String key) {
-        String siteConfigPath = StringUtils.EMPTY;
-        if (!StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
-            siteConfigPath =
-                    getConfigPath().replace(studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                            getMultiEnvironmentConfigPath().replaceFirst(PATTERN_ENVIRONMENT,
-                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)))
-                    .replaceAll(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
-            if (!contentService.contentExists(key,siteConfigPath + FILE_SEPARATOR + getConfigFileName())) {
-                siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
-                        .replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
-            }
-        } else {
-            siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
-                    .replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
-        }
-		String configLocation = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {
-			document = contentService.getContentAsDocument(key, configLocation);
-		} catch (DocumentException e) {
-			logger.error("Error reading environment configuration for site " + key + " from path " + configLocation);
+			document = configurationService.loadConfigurationDocument(key, getConfigFileName(),
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+		} catch (DocumentException | IOException e) {
+			logger.error("Error reading environment configuration for site " + key + " from path " +
+                    getConfigFileName());
 		}
 		if (document != null) {
             Element root = document.getRootElement();
@@ -242,8 +209,10 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
                             int orderVal = Integer.parseInt(orderStr);
                             targetTO.setOrder(orderVal);
                         } catch (NumberFormatException exc) {
-                            logger.info(String.format("Order not defined for publishing group (%s) config [path: %s]", targetTO.getDisplayLabel(), configLocation));
-                            logger.info(String.format("Default order value (%d) will be used for publishing group [%s]", targetTO.getOrder(), targetTO.getDisplayLabel()));
+                            logger.info(String.format("Order not defined for publishing group (%s) config [path: %s]",
+                                    targetTO.getDisplayLabel(), getConfigFileName()));
+                            logger.info(String.format("Default order value (%d) will be used for publishing group [%s]",
+                                    targetTO.getOrder(), targetTO.getDisplayLabel()));
                         }
                     }
                 }
@@ -300,12 +269,49 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     }
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+    private String getConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME);
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    protected GeneralLockService generalLockService;
-    protected StudioConfiguration studioConfiguration;
+    public GeneralLockService getGeneralLockService() {
+	    return generalLockService;
+	}
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+	    this.generalLockService = generalLockService;
+	}
+
+    public StudioConfiguration getStudioConfiguration() {
+	    return studioConfiguration;
+	}
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+	    this.studioConfiguration = studioConfiguration;
+	}
+
+    public ServicesConfig getServicesConfig() {
+	    return servicesConfig;
+	}
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+	    this.servicesConfig = servicesConfig;
+	}
+
+    public ContentService getContentService() {
+	    return contentService;
+	}
+
+    public void setContentService(ContentService contentService) {
+	    this.contentService = contentService;
+	}
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
 }

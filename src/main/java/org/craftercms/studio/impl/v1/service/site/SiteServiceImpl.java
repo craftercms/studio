@@ -112,6 +112,7 @@ import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -196,6 +197,7 @@ public class SiteServiceImpl implements SiteService {
     protected StudioConfiguration studioConfiguration;
     protected SitesService sitesService;
     protected AuditServiceInternal auditServiceInternal;
+    protected ConfigurationService configurationService;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -292,24 +294,20 @@ public class SiteServiceImpl implements SiteService {
                                                 @ValidateSecurePathParam(name = "path") String path,
                                                 boolean applyEnv) {
 		String configPath;
+        String configContent;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
+			configContent = contentService.getContentAsString(site, configPath);
 		} else {
 		    if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
                 configPath = getSitesConfigPath() + path;
-            } else if (StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
-                if (applyEnv) {
-                    configPath = getEnvironmentConfigPath().replaceAll(PATTERN_SITE, site).replaceAll(
-                            PATTERN_ENVIRONMENT, getEnvironment()) + path;
-                } else {
-                    configPath = getSitesConfigPath() + path;
-                }
+                configContent = contentService.getContentAsString(site, configPath);
             } else {
-                configPath = getSitesMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT,
-                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)) + path;
+		        configContent = configurationService.loadConfiguration(site, path,
+                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
 		}
-		String configContent = contentService.getContentAsString(site, configPath);
+
 
 		Map<String, Object> toRet = null;
 		if (configContent != null) {
@@ -2007,5 +2005,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

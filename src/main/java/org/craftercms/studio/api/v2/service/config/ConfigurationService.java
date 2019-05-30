@@ -17,7 +17,10 @@
 package org.craftercms.studio.api.v2.service.config;
 
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +35,8 @@ public interface ConfigurationService {
     Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
 
     String loadConfiguration(String siteId, String configurationFile, String environment);
+
+    Document loadConfigurationDocument(String siteId, String configurationFile, String environment) throws DocumentException, IOException;
 
     void writeConfiguration(String siteId, String configurationFile, String environment, InputStream content);
 }

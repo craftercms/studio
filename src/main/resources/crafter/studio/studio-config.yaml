@@ -95,7 +95,7 @@ studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 # Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
 studio.configuration.site.environment: local
 # File name where environment specific configuration is stored
-studio.configuration.site.environment.configFileName: environment-config.xml
+studio.configuration.site.environment.configFileName: environment/environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
@@ -109,7 +109,7 @@ studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api
 # Location pattern where default dependency resolver specific configuration for is stored
 studio.configuration.default.dependencyResolver.configBasePath: /configuration/dependency
 # File name where default dependency specific configuration is stored
-studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
+studio.configuration.default.dependencyResolver.configFileName: dependency/resolver-config.xml
 # Location pattern where dependency resolver specific configuration for a site is stored
 studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
@@ -143,7 +143,7 @@ studio.import.assetChainName: assetContent
 ##                   Notification Service                   ##
 ##############################################################
 # Path where the notification configuration is located
-studio.notification.configurationFile: /config/studio/workflow/notification-config.xml
+studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
 studio.notification.timezone: UTC
 

@@ -59,6 +59,7 @@ import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.dom4j.Document;
@@ -86,6 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected SecurityService securityService;
     private Configuration configuration;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
 
     public NotificationServiceImpl() {
         notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
@@ -282,21 +284,9 @@ public class NotificationServiceImpl implements NotificationService {
             notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
         }
         Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<String, NotificationConfigTO>();
-        String configFullPath = StringUtils.EMPTY;
-        if (!StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
-            configFullPath =  getConfigPath()
-                    .replace(studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                            studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH))
-                    .replaceAll(PATTERN_ENVIRONMENT, studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            if (!contentService.contentExists(site,configFullPath)) {
-                configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-            }
-        } else {
-            configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        }
 
         try {
-            Document document = contentService.getContentAsDocument(site, configFullPath);
+            Document document = contentService.getContentAsDocument(site, getConfigPath());
             if (document != null) {
                 Element root = document.getRootElement();
                 final List<Element> languages = root.selectNodes("//lang");
@@ -330,7 +320,7 @@ public class NotificationServiceImpl implements NotificationService {
                 }
             }
         } catch (Exception ex) {
-            logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " + site, ex);
+            logger.error("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, ex);
         }
         notificationConfiguration.put(site, siteNotificationConfig);
     }
@@ -497,14 +487,6 @@ public class NotificationServiceImpl implements NotificationService {
         this.securityService = securityService;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -513,6 +495,12 @@ public class NotificationServiceImpl implements NotificationService {
         this.studioConfiguration = studioConfiguration;
     }
 
-    protected GeneralLockService generalLockService;
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 }
 
