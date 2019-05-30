@@ -31,6 +31,8 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -49,6 +51,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.dal.DataSourceRepository;
 import org.craftercms.studio.api.v2.service.cmis.CmisService;
+import org.craftercms.studio.model.rest.CmisUploadItem;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -111,6 +114,7 @@ public class CmisServiceImpl implements CmisService {
             "select * from cmis:document where IN_TREE('{folderId}') and cmis:name like '%{searchTerm}%'";
     private static final String CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE = "{folderId}";
     private static final String CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE = "{searchTerm}";
+    private static final String ITEM_ID = "{item_id}";
 
     protected StudioConfiguration studioConfiguration;
     protected ContentService contentService;
@@ -353,11 +357,13 @@ public class CmisServiceImpl implements CmisService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "upload_content_cmis")
-    public void uploadContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String cmisRepoId, String cmisPath,
+    public CmisUploadItem uploadContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String cmisRepoId,
+                             String cmisPath,
                               String filename, InputStream content)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
             CmisPathNotFoundException {
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
+        CmisUploadItem cmisUploadItem = new CmisUploadItem();
         if (repositoryConfig != null) {
             logger.debug("Create new CMIS session");
             Session session = createCMISSession(repositoryConfig);
@@ -391,6 +397,15 @@ public class CmisServiceImpl implements CmisService {
                             org.apache.chemistry.opencmis.client.api.Document newDoc =
                                     folder.createDocument(properties, contentStream, null);
                             session.removeObjectFromCache(newDoc.getId());
+                            cmisUploadItem.setName(filename);
+                            cmisUploadItem.setFolder(false);
+                            cmisUploadItem.setFileExtension(FilenameUtils.getExtension(filename));
+                            String contentId = newDoc.getId();
+                            StringTokenizer st = new StringTokenizer(contentId, ";");
+                            if (st.hasMoreTokens()) {
+                                cmisUploadItem.setUrl(repositoryConfig.getDownloadUrlRegex().replace(ITEM_ID,
+                                        st.nextToken()));
+                            }
                         }
                         session.clear();
                     } else if (CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
@@ -403,6 +418,7 @@ public class CmisServiceImpl implements CmisService {
                 throw new CmisUnauthorizedException();
             }
         }
+        return cmisUploadItem;
     }
 
     private String getConfigLocation() {
