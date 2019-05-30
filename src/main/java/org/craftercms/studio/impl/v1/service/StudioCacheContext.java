@@ -53,16 +53,6 @@ public class StudioCacheContext implements Context {
     }
 
     @Override
-    public String getStoreServerUrl() {
-        return null;
-    }
-
-    @Override
-    public String getRootFolderPath() {
-        return null;
-    }
-
-    @Override
     public boolean isMergingOn() {
         return DEFAULT_MERGING_ON;
     }

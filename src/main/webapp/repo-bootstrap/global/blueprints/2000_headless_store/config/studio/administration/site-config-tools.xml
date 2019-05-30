@@ -41,7 +41,7 @@
     </config>
 -->
 <config>
-    <version>4</version>
+    <version>6</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -85,6 +85,12 @@
                     <name>dropdown</name>
                     <icon>
                         <class>fa-sort-desc</class>
+                    </icon>
+                </control>
+                <control>
+                    <name>time</name>
+                    <icon>
+                        <class>fa-clock-o</class>
                     </icon>
                 </control>
                 <control>
@@ -173,13 +179,6 @@
                     </icon>
                 </datasource>
                 <datasource>
-                    <name>img-cmis-repo</name>
-                    <icon>
-                        <class>fa-square</class>
-                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
-                    </icon>
-                </datasource>
-                <datasource>
                     <name>file-desktop-upload</name>
                     <icon>
                         <class>fa-upload</class>
@@ -195,6 +194,40 @@
                     <name>CMIS-repo</name>
                     <icon>
                         <class>fa-plug</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>img-cmis-repo</name>
+                    <icon>
+                        <class>fa-square</class>
+                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-cmis-repo</name>
+                    <icon>
+                        <class>fa-square-o fa-video-square</class>
+                        <stackedclass>fa-plug fa-video-plug</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>CMIS-upload</name>
+                    <icon>
+                        <class>fa-plug</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>img-CMIS-upload</name>
+                    <icon>
+                        <class>fa-square</class>
+                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-CMIS-upload</name>
+                    <icon>
+                        <class>fa-square-o fa-video-square</class>
+                        <stackedclass>fa-plug fa-video-plug</stackedclass>
                     </icon>
                 </datasource>
                 <datasource>
@@ -285,13 +318,6 @@
                     <name>video-browse-repo</name>
                     <icon>
                         <class>fa-file-video-o</class>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>video-cmis-repo</name>
-                    <icon>
-                        <class>fa-square-o fa-video-square</class>
-                        <stackedclass>fa-plug fa-video-plug</stackedclass>
                     </icon>
                 </datasource>
                 <datasource>

@@ -20,8 +20,14 @@ package org.craftercms.studio.controller.rest.v2;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
+import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
+import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
@@ -149,6 +155,54 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.PROJECT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleRemoteAlreadyExistsException(HttpServletRequest request, RemoteAlreadyExistsException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleInvalidRemoteUrlException(HttpServletRequest request, RemoteAlreadyExistsException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisRepositoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleCmisRepositoryNotFoundException(HttpServletRequest request, SiteNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CMIS_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisTimeoutException.class)
+    @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
+    public ResponseBody handleCmisTimeoutException(HttpServletRequest request, SiteNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CMIS_TIMEOUT);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ResponseBody handleCmisUnavailableException(HttpServletRequest request, SiteNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CMIS_UNREACHABLE);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(StudioPathNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleStudioPathNotFoundException(HttpServletRequest request, SiteNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisPathNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleCmisPathNotFoundException(HttpServletRequest request, SiteNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
 
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
         logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) + " failed with response: " +

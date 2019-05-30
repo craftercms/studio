@@ -26,7 +26,10 @@ import org.craftercms.studio.api.v1.exception.AwsException;
  * Defines the operations available from AWS MediaConvert.
  *
  * @author joseross
+ * @deprecated This service has been replaced with
+ *              {@link org.craftercms.studio.api.v2.service.aws.mediaconvert.AwsMediaConvertService}
  */
+@Deprecated
 public interface MediaConvertService {
 
     /**

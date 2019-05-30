@@ -15,22 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.model.rest;
 
-import java.util.List;
-import java.util.Map;
+public class RebuildDatabaseRequest {
 
-public interface RemoteRepositoryMapper {
+    private String siteId;
 
-    RemoteRepository getRemoteRepository(Map params);
+    public String getSiteId() {
+        return siteId;
+    }
 
-    void insertRemoteRepository(Map params);
-
-    void deleteRemoteRepositoryForSite(Map params);
-
-    void deleteRemoteRepository(Map params);
-
-    List<RemoteRepository> listRemoteRepositories(Map params);
-
-    void deleteRemoteRepositoriesForSite(Map params);
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
 }

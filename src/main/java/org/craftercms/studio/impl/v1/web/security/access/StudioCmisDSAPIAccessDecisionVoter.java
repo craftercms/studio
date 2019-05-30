@@ -59,8 +59,15 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
                     return ACCESS_ABSTAIN;
                 }
             }
+
             switch (requestUri) {
                 case UPLOAD:
+                    if (currentUser != null) {
+                        toRet = ACCESS_GRANTED;
+                    } else {
+                        toRet = ACCESS_DENIED;
+                    }
+                    break;
                 case SEARCH:
                 case LIST:
                     if (currentUser != null && isSiteMember(siteParam, currentUser)) {

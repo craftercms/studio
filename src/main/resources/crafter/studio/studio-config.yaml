@@ -103,9 +103,7 @@ studio.configuration.defaultGroups: site_author,site_publisher,site_developer,si
 # Default admin group when site is created to add creator as admin
 studio.configuration.defaultAdminGroup: site_admin
 # Location where data sources configuration is stored for a site.
-studio.configuration.site.dataSources.configBasePath: /config/studio/data-sources
-# File name where data sources configuration is stored.
-studio.configuration.site.dataSources.configFileName: cmis-config.xml
+studio.configuration.site.dataSources.configLocation: /config/studio/data-sources/cmis-config.xml
 # Destroy site context url for preview engine
 studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api/1/site/context/destroy.json?crafterSite={siteName}
 # Location pattern where default dependency resolver specific configuration for is stored
@@ -595,8 +593,10 @@ studio.search.facets:
   - name: content-type
     # The field that will be used
     field: content-type
+    multiple: true
   - name: mime-type
     field: contentType
+    multiple: true
   - name: size
     field: contentLength
     # The list of ranges to search
@@ -643,3 +643,28 @@ studio.search.facets:
       - from: 800
         to: 1200
       - from: 1200
+  - name: last-edit-date
+    field: lastEditedOn
+    date: true
+    ranges:
+      - label: older
+        to: now/d-365d
+      - label: within-a-year
+        from: now/d-365d
+      - label: within-6-months
+        from: now/d-180d
+      - label: within-a-month
+        from: now/d-30d
+      - label: within-a-week
+        from: now/d-7d
+      - label: today
+        from: now/d-1d
+
+################################################################
+##                           AWS                              ##
+################################################################
+studio.aws.s3.delimiter: /
+studio.aws.s3.url.pattern: /remote-assets/s3/%s/%s
+studio.aws.mediaconvert.extension.hls: m3u8
+studio.aws.mediaconvert.extension.dash: mpd
+studio.aws.mediaconvert.extension.smooth: ism
