@@ -147,6 +147,9 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
             } else {
                 return true;
             }
+        } catch (ExecutionException e) {
+            logger.error("Invalid XML file found at " + file, e);
+            return false;
         } catch (Exception e) {
             throw new UpgradeException("Error parsing xml file " + file, e);
         }
