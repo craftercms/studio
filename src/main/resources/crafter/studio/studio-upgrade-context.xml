@@ -54,6 +54,7 @@
 
     <bean id="repoPipeline" scope="prototype"
           class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
+        <property name="continueOnError" value="true"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="securityService" ref="cstudioSecurityService" />
