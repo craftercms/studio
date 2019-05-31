@@ -468,6 +468,16 @@ pipelines:
           commitDetails: Delete sample files
           paths:
             - /config/studio/administration/samples
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.0.7
+      nextVersion: 3.1.0.8
+      operations:
+        - type: pluginDescriptorV2Upgrader
+          commitDetails: Upgrade blueprint descriptor to v2
+          descriptorPath: craftercms-plugin.yaml
+          descriptorVersion: 2
+        - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
   blueprint:
@@ -662,3 +672,6 @@ configurations:
             path: *environment-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.24/site/environment-config.xslt
             commitDetails: Add previewEngineServerUrl and graphqlServerUrl properties to environment configuration
+          - type: xsltFileUpgrader
+            path: *environment-config
+            template: crafter/studio/upgrade/update-version.xslt

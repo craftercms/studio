@@ -51,6 +51,8 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -109,7 +111,6 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
@@ -135,7 +136,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVI
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
@@ -418,13 +418,13 @@ public class SiteServiceImpl implements SiteService {
 	        throw new SiteAlreadyExistsException();
         }
 
-        BlueprintDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
         String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
-        String searchEngine = descriptor.getBlueprint().getSearchEngine();
+        String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         try {
 	    	long start = 0;
@@ -730,6 +730,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
@@ -745,7 +746,7 @@ public class SiteServiceImpl implements SiteService {
         // 1) git repo, 2) deployer target, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
-        BlueprintDescriptor descriptor = null;
+        PluginDescriptor descriptor = null;
 
         try {
             // create site by cloning remote git repo
@@ -771,8 +772,17 @@ public class SiteServiceImpl implements SiteService {
         }
 
         // try to get the search engine from the blueprint descriptor file
-        String searchEngine = Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())?
-            descriptor.getBlueprint().getSearchEngine() : SEARCH_ENGINE_ELASTIC_SEARCH;
+        String searchEngine = SearchEngines.ELASTICSEARCH;
+
+        if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
+            searchEngine = descriptor.getPlugin().getSearchEngine();
+            logger.info("Using searchEngine {0} from plugin descriptor", searchEngine);
+        } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
+            searchEngine = descriptor.getBlueprint().getSearchEngine();
+            logger.info("Using searchEngine {0} from blueprint descriptor", searchEngine);
+        } else {
+            logger.info("Missing descriptor, using default searchEngine {0}", searchEngine);
+        }
 
         if (success) {
             // Create the site in the preview deployer
@@ -862,13 +872,13 @@ public class SiteServiceImpl implements SiteService {
             throw new SiteAlreadyExistsException();
         }
 
-        BlueprintDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
         String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
-        String searchEngine = descriptor.getBlueprint().getSearchEngine();
+        String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         boolean success = true;
 

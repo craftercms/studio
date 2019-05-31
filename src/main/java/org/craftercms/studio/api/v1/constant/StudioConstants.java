@@ -187,12 +187,6 @@ package org.craftercms.studio.api.v1.constant;
     String CLUSTER_MEMBER_TOKEN = "token";
     String CLUSTER_MEMBER_PRIVATE_KEY = "privateKey";
 
-    /**
-     * Search Engines
-     */
-    String SEARCH_ENGINE_ELASTIC_SEARCH = "Elasticsearch";
-    String SEARCH_ENGINE_CRAFTER_SEARCH = "CrafterSearch";
-
     /* Map keys */
     String KEY_CONTENT_TYPE = "contentType";
 }

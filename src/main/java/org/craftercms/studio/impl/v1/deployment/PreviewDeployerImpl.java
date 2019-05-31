@@ -27,6 +27,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.ebus.EventListener;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
@@ -43,7 +44,6 @@ import java.nio.file.Paths;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
@@ -132,9 +132,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public boolean createTarget(String site, String searchEngine) {
-        return doCreateTarget(site, ENV_AUTHORING, SEARCH_ENGINE_ELASTIC_SEARCH,
+        return doCreateTarget(site, ENV_AUTHORING, SearchEngines.ELASTICSEARCH,
             studioConfiguration.getProperty(AUTHORING_TEMPLATE_NAME)) &&
             doCreateTarget(site, ENV_PREVIEW, searchEngine, studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
     }

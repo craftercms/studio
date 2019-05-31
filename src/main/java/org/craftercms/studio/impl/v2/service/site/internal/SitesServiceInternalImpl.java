@@ -18,14 +18,16 @@
 package org.craftercms.studio.impl.v2.service.site.internal;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.plugin.PluginDescriptorReader;
+import org.craftercms.commons.plugin.exception.PluginException;
+import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
-import org.yaml.snakeyaml.Yaml;
+import org.springframework.beans.factory.annotation.Required;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -43,16 +45,17 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
 
     private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
+    private PluginDescriptorReader descriptorReader;
     private ContentRepository contentRepository;
     private StudioConfiguration studioConfiguration;
 
     @Override
-    public List<BlueprintDescriptor> getAvailableBlueprints() {
+    public List<PluginDescriptor> getAvailableBlueprints() {
         RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
-        List<BlueprintDescriptor> toRet = new ArrayList<BlueprintDescriptor>();
+        List<PluginDescriptor> toRet = new ArrayList<PluginDescriptor>();
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
-                BlueprintDescriptor descriptor = loadDescriptor(folder);
+                PluginDescriptor descriptor = loadDescriptor(folder);
                 if (descriptor != null) {
                     toRet.add(descriptor);
                 }
@@ -62,12 +65,12 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    public BlueprintDescriptor getBlueprintDescriptor(final String id) {
+    public PluginDescriptor getBlueprintDescriptor(final String id) {
         RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
-                BlueprintDescriptor descriptor = loadDescriptor(folder);
-                if (descriptor != null && descriptor.getBlueprint().getId().equals(id)) {
+                PluginDescriptor descriptor = loadDescriptor(folder);
+                if (descriptor != null && descriptor.getPlugin().getId().equals(id)) {
                     return descriptor;
                 }
             }
@@ -81,8 +84,8 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
                 Path descriptorPath = getBlueprintPath(folder);
-                BlueprintDescriptor descriptor = loadDescriptor(folder);
-                if (descriptor != null && descriptor.getBlueprint().getId().equals(blueprintId)) {
+                PluginDescriptor descriptor = loadDescriptor(folder);
+                if (descriptor != null && descriptor.getPlugin().getId().equals(blueprintId)) {
                     return descriptorPath.getParent().toAbsolutePath().toString();
                 }
             }
@@ -92,7 +95,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    public BlueprintDescriptor getSiteBlueprintDescriptor(final String id) {
+    public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
         String descriptorPath = studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME);
         if (contentRepository.contentExists(id, descriptorPath)) {
             try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
@@ -115,27 +118,30 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
             studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
     }
 
-    protected BlueprintDescriptor loadDescriptor(InputStream is) {
+    protected PluginDescriptor loadDescriptor(InputStream is) {
         try {
-            Yaml yaml = new Yaml();
-            return yaml.loadAs(is, BlueprintDescriptor.class);
-        } catch (Exception e) {
+           return descriptorReader.read(is);
+        } catch (PluginException e) {
             logger.error("Error while getting descriptor from stream", e);
         }
         return null;
     }
 
-    protected BlueprintDescriptor loadDescriptor(RepositoryItem folder) {
+    protected PluginDescriptor loadDescriptor(RepositoryItem folder) {
         Path descriptorPath = getBlueprintPath(folder);
         if (Files.exists(descriptorPath)) {
             try (FileReader reader = new FileReader(descriptorPath.toString())) {
-                Yaml yaml = new Yaml();
-                return yaml.loadAs(reader, BlueprintDescriptor.class);
-            } catch (IOException e) {
+                return descriptorReader.read(reader);
+            } catch (PluginException | IOException e) {
                 logger.error("Error while getting descriptor for blueprint " + folder.name, e);
             }
         }
         return null;
+    }
+
+    @Required
+    public void setDescriptorReader(final PluginDescriptorReader descriptorReader) {
+        this.descriptorReader = descriptorReader;
     }
 
     public ContentRepository getContentRepository() {
