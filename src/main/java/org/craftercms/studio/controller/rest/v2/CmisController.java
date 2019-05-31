@@ -17,6 +17,11 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
@@ -25,23 +30,30 @@ import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.cmis.CmisService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.rest.CmisCloneRequest;
+import org.craftercms.studio.model.rest.CmisUploadItem;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
-import org.springframework.http.MediaType;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_CMIS_PATH;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_CMIS_REPO_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -111,18 +123,56 @@ public class CmisController {
         return responseBody;
     }
 
-    @PostMapping(value = "/api/2/cmis/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseBody uploadContent(@RequestParam(value = "siteId", required = true) String siteId,
-                                      @RequestParam(value = "cmisRepoId", required = true) String cmisRepoId,
-                                      @RequestParam(value = "cmisPath", required = true) String cmisPath,
-                                      @RequestParam(value = "file", required = true) MultipartFile file)
+    @PostMapping(value = "/api/2/cmis/upload")
+    public ResponseBody uploadContent(HttpServletRequest httpServletRequest)
             throws IOException, CmisUnavailableException, CmisPathNotFoundException, CmisTimeoutException,
-            CmisRepositoryNotFoundException {
-        cmisService.uploadContent(siteId, cmisRepoId, cmisPath, file.getOriginalFilename(), file.getInputStream());
+            CmisRepositoryNotFoundException, FileUploadException, InvalidParametersException {
 
+        ServletFileUpload servletFileUpload = new ServletFileUpload();
+        FileItemIterator itemIterator = servletFileUpload.getItemIterator(httpServletRequest);
+        String filename = StringUtils.EMPTY;
+        String siteId = StringUtils.EMPTY;
+        String cmisRepoId = StringUtils.EMPTY;
+        String cmisPath = StringUtils.EMPTY;
+        CmisUploadItem cmisUploadItem = new CmisUploadItem();
+        while (itemIterator.hasNext()) {
+            FileItemStream item = itemIterator.next();
+            String name = item.getFieldName();
+            try (InputStream stream = item.openStream()) {
+                if (item.isFormField()) {
+                    switch (name) {
+                        case REQUEST_PARAM_SITEID:
+                            siteId = Streams.asString(stream);
+                            break;
+                        case REQUEST_PARAM_CMIS_REPO_ID:
+                            cmisRepoId = Streams.asString(stream);
+                            break;
+                        case REQUEST_PARAM_CMIS_PATH:
+                            cmisPath = Streams.asString(stream);
+                            break;
+                        default:
+                            // Unknown parameter, just skip it...
+                            break;
+                    }
+                } else {
+                    filename = item.getName();
+                    if (StringUtils.isEmpty(siteId)) {
+                        throw new InvalidParametersException("Invalid siteId");
+                    }
+                    if (StringUtils.isEmpty(cmisRepoId)) {
+                        throw new InvalidParametersException("Invalid cmisRepoId");
+                    }
+                    if (StringUtils.isEmpty(cmisPath)) {
+                        throw new InvalidParametersException("Invalid cmisPath");
+                    }
+                    cmisUploadItem = cmisService.uploadContent(siteId, cmisRepoId, cmisPath, filename, stream);
+                }
+            }
+        }
         ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
+        ResultOne<CmisUploadItem> result = new ResultOne<CmisUploadItem>();
         result.setResponse(OK);
+        result.setEntity(RESULT_KEY_ITEM, cmisUploadItem);
         responseBody.setResult(result);
         return responseBody;
     }
