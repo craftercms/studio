@@ -34,9 +34,11 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.cmis.CmisService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.rest.CmisCloneRequest;
+import org.craftercms.studio.model.rest.CmisUploadItem;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,6 +53,7 @@ import java.util.List;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_CMIS_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_CMIS_REPO_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -131,6 +134,7 @@ public class CmisController {
         String siteId = StringUtils.EMPTY;
         String cmisRepoId = StringUtils.EMPTY;
         String cmisPath = StringUtils.EMPTY;
+        CmisUploadItem cmisUploadItem = new CmisUploadItem();
         while (itemIterator.hasNext()) {
             FileItemStream item = itemIterator.next();
             String name = item.getFieldName();
@@ -161,13 +165,14 @@ public class CmisController {
                     if (StringUtils.isEmpty(cmisPath)) {
                         throw new InvalidParametersException("Invalid cmisPath");
                     }
-                    cmisService.uploadContent(siteId, cmisRepoId, cmisPath, filename, stream);
+                    cmisUploadItem = cmisService.uploadContent(siteId, cmisRepoId, cmisPath, filename, stream);
                 }
             }
         }
         ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
+        ResultOne<CmisUploadItem> result = new ResultOne<CmisUploadItem>();
         result.setResponse(OK);
+        result.setEntity(RESULT_KEY_ITEM, cmisUploadItem);
         responseBody.setResult(result);
         return responseBody;
     }
