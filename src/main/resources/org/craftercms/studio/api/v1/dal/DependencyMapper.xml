@@ -246,6 +246,57 @@
         </foreach>
     </select>
 
+    <select id="calculateAllPublishingDependenciesForList" parameterType="java.util.Map"
+            resultType="java.util.Map" databaseId="oracle">
+        SELECT cd1.source_path, cd1.target_path
+        FROM (cstudio_DEPENDENCY cd1 INNER JOIN cstudio_objectstate co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
+        WHERE cd1.site = #{site}
+        AND cd1.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co1.state IN
+        <foreach item="state" index="index" collection="changeSetStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
+
+    <select id="calculateAllPublishingDependenciesForList" parameterType="java.util.Map"
+            resultType="java.util.Map" databaseId="postgres">
+        SELECT cd1.source_path, cd1.target_path
+        FROM (cstudio_DEPENDENCY cd1 INNER JOIN cstudio_objectstate co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
+        WHERE cd1.site = #{site}
+        AND cd1.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co1.state IN
+        <foreach item="state" index="index" collection="changeSetStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
+
+    <select id="calculateAllPublishingDependenciesForList" parameterType="java.util.Map"
+            resultType="java.util.Map">
+        SELECT cd1.source_path, cd1.target_path
+        FROM (cstudio_DEPENDENCY cd1 INNER JOIN cstudio_objectstate co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
+        WHERE cd1.site = #{site}
+        AND cd1.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co1.state IN
+        <foreach item="state" index="index" collection="changeSetStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
+
     <update id="moveDependency" databaseId="oracle" parameterType="java.util.Map" >
         UPDATE cstudio_DEPENDENCY
         SET source_path = CASE WHEN source_path = #{oldPath} THEN #{newPath} ELSE TO_CHAR(source_path) END,

@@ -248,6 +248,7 @@
         <property name="itemSpecificDependencies" value="#{'${crafter.studio.dependency.itemSpecificPattern}'.split(',')}"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="forceSoftDependencyPublish" value="${crafter.studio.dependency.forceSoftDependencyPublish}" />
     </bean>
 
     <bean id="cstudioDmDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyDiffService">

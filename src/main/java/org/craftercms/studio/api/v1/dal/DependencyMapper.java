@@ -35,6 +35,7 @@ public interface DependencyMapper {
     String REGEX_PARAM = "regex";
     String EDITED_STATES_PARAM = "editedStates";
     String NEW_STATES_PARAM = "newStates";
+    String CHANGE_SET_STATES_PARAM = "changeSetStates";
 
     String SORUCE_PATH_COLUMN_NAME = "source_path";
     String TARGET_PATH_COLUMN_NAME = "target_path";
@@ -62,6 +63,8 @@ public interface DependencyMapper {
     List<String> getItemsDependingOn(Map params);
 
     List<Map<String, String>> calculatePublishingDependenciesForList(Map params);
+
+    List<Map<String, String>> calculateAllPublishingDependenciesForList(Map params);
 
     void moveDependency(Map params);
 }

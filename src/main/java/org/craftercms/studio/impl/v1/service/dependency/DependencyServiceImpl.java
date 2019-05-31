@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.DmConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.CHANGE_SET_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.EDITED_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATHS_PARAM;
@@ -58,7 +59,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected List<String> itemSpecificDependencies;
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
-
+    protected boolean forceSoftDependencyPublish = false;
 
     @Override
     @ValidateParams
@@ -671,7 +672,9 @@ public class DependencyServiceImpl implements DependencyService {
             }
         }
         do {
-            List<Map<String, String>> deps = calculatePublishingDependenciesForListFromDB(site, pathsParams);
+            List<Map<String, String>> deps = forceSoftDependencyPublish ?
+                    calculateAllPublishingDependenciesForListFromDB(site, pathsParams) :
+                    calculatePublishingDependenciesForListFromDB(site, pathsParams);
             List<String> targetPaths = new ArrayList<String>();
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
@@ -738,6 +741,14 @@ public class DependencyServiceImpl implements DependencyService {
         return dependencyMapper.calculatePublishingDependenciesForList(params);
     }
 
+    private List<Map<String, String>> calculateAllPublishingDependenciesForListFromDB(String site, Set<String> paths) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(SITE_PARAM, site);
+        params.put(PATHS_PARAM, paths);
+        params.put(CHANGE_SET_STATES_PARAM, State.CHANGE_SET_STATES);
+        return dependencyMapper.calculateAllPublishingDependenciesForList(params);
+    }
+
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
@@ -758,4 +769,12 @@ public class DependencyServiceImpl implements DependencyService {
 
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
+    public boolean isForceSoftDependencyPublish() {
+        return forceSoftDependencyPublish;
+    }
+
+    public void setForceSoftDependencyPublish(boolean forceSoftDependencyPublish) {
+        this.forceSoftDependencyPublish = forceSoftDependencyPublish;
+    }
 }
