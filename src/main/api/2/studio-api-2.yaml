@@ -1767,6 +1767,21 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: filename of the uploaded content
+                      url:
+                        type: string
+                        description: url of uploaded content
+                      folder:
+                        type: boolean
+                        description: true if content is folder
+                      fileExtension:
+                        type: string
+                        description: file extension of uploaded content
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

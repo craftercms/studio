@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
+import org.craftercms.studio.model.rest.CmisUploadItem;
 
 import java.io.InputStream;
 import java.util.List;
@@ -40,7 +41,7 @@ public interface CmisService {
             throws StudioPathNotFoundException, CmisRepositoryNotFoundException, CmisUnavailableException,
             CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException;
 
-    void uploadContent(String siteId, String cmisRepoId, String cmisPath, String filename, InputStream content)
+    CmisUploadItem uploadContent(String siteId, String cmisRepoId, String cmisPath, String filename, InputStream content)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
             CmisPathNotFoundException;
 }
