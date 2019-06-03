@@ -647,18 +647,20 @@ studio.search.facets:
     field: lastEditedOn
     date: true
     ranges:
-      - label: older
-        to: now/d-365d
-      - label: within-a-year
-        from: now/d-365d
-      - label: within-6-months
-        from: now/d-180d
-      - label: within-a-month
-        from: now/d-30d
-      - label: within-a-week
-        from: now/d-7d
       - label: today
-        from: now/d-1d
+        from: now-1d
+        to: now+1d
+      - label: in-last-week
+        from: now/d-7d
+        to: now/d-1d
+      - label: over-a-month-ago
+        to: now/d-30d
+      - label: over-six-months-ago
+        to: now/d-180d
+      - label: over-a-week-ago
+        to: now/d-8d
+      - label: over-a-year-ago
+        to: now/d-365d
 
 ################################################################
 ##                           AWS                              ##
