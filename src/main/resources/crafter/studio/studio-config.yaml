@@ -647,7 +647,7 @@ studio.search.facets:
     field: lastEditedOn
     date: true
     ranges:
-      - label: in-last-day
+      - label: today
         from: now-1d
         to: now+1d
       - label: in-last-week
