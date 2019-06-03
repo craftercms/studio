@@ -38,6 +38,9 @@ tags:
     description: CMIS operations
   - name: repository
     description: Repository operations
+  - name: content
+    description: Content operations
+
 paths:
 
   /groups:
@@ -2038,6 +2041,43 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/quick_create:
+    get:
+      tags:
+        - content
+      summary: Get list of content types available for Quick Create functionality
+      description: 'Required permission "create_content"'
+      operationId: quickCreateContent
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuickCreateItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -2699,6 +2739,7 @@ components:
         remotePrivateKey:
           type: string
           description: private key to access
+
     RemoteRepositoryInfo:
       type: object
       properties:
@@ -2719,6 +2760,23 @@ components:
           items:
             type: string
             description: remote repository branch name
+
+    QuickCreateItem:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site id
+        label:
+          type: string
+          description: user friendly label for content type name
+        contentTypeId:
+          type: string
+          description: content type id
+        path:
+          type: string
+          description: path expression to generate path for quick create
+
   responses:
     NotFound:
       description: Resource not found
