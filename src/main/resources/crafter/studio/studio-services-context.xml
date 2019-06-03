@@ -364,8 +364,11 @@
         <property name="sitesServiceInternal" ref="sitesServiceInternal"/>
     </bean>
 
+    <bean id="pluginDescriptorReader" class="org.craftercms.commons.plugin.impl.PluginDescriptorReaderImpl"/>
+
     <bean id="sitesServiceInternal"
           class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
+        <property name="descriptorReader" ref="pluginDescriptorReader"/>
         <property name="contentRepository" ref="contentRepository" />
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>

@@ -17,10 +17,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -41,14 +39,14 @@ public class SitesController {
 
     @GetMapping("/available_blueprints")
     public ResponseBody getAvailableBlueprints() throws ServiceLayerException {
-        List<BlueprintDescriptor> blueprintDescriptors = null;
+        List<PluginDescriptor> blueprintDescriptors = null;
         try {
             blueprintDescriptors = sitesService.getAvailableBlueprints();
         } catch (Exception e) {
             throw new ServiceLayerException(e);
         }
         ResponseBody responseBody = new ResponseBody();
-        ResultList<BlueprintDescriptor> result = new ResultList<BlueprintDescriptor>();
+        ResultList<PluginDescriptor> result = new ResultList<>();
         result.setEntities(RESULT_KEY_BLUEPRINTS, blueprintDescriptors);
         result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);

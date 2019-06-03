@@ -15,12 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v2.upgrade.operations;
+package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.configuration2.Configuration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.springframework.core.io.Resource;
 

@@ -17,7 +17,7 @@
 
 package org.craftercms.studio.api.v2.service.site;
 
-import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
+import org.craftercms.commons.plugin.model.PluginDescriptor;
 
 import java.util.List;
 
@@ -26,14 +26,14 @@ public interface SitesService {
     /**
      * Get list of available blueprints
      */
-    List<BlueprintDescriptor> getAvailableBlueprints();
+    List<PluginDescriptor> getAvailableBlueprints();
 
     /**
      * Get the blueprint descriptor from the global repo
      * @param id the id of the blueprint
      * @return the descriptor object or null if not found
      */
-    BlueprintDescriptor getBlueprintDescriptor(String id);
+    PluginDescriptor getBlueprintDescriptor(String id);
 
     /**
      * Get blueprint location
@@ -48,6 +48,6 @@ public interface SitesService {
      * @param id the id of the site
      * @return the blueprint object or null if not found
      */
-    BlueprintDescriptor getSiteBlueprintDescriptor(String id);
+    PluginDescriptor getSiteBlueprintDescriptor(String id);
 
 }
