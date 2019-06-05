@@ -85,7 +85,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     @EventListener(EVENT_PREVIEW_SYNC)
     public void onPreviewSync(PreviewEventContext context) {
-        doDeployment(context.getSite(), ENV_AUTHORING, context.isWaitTillDeploymentIsDone());
+        doDeployment(context.getSite(), ENV_AUTHORING, false);
         doDeployment(context.getSite(), ENV_PREVIEW, context.isWaitTillDeploymentIsDone());
     }
 
