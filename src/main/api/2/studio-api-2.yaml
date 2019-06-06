@@ -1230,7 +1230,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Blueprint'
+                      $ref: '#/components/schemas/Plugin'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1317,19 +1317,19 @@ paths:
               type: string
         - name: includeParameters
           in: query
-          description: Include parameters into result set if `true`. Default `false` 
+          description: Include parameters into result set if `true`. Default `false`
           required: false
           schema:
             type: boolean
         - name: dateFrom
           in: query
-          description: Lower boundary in date range query 
+          description: Lower boundary in date range query
           required: false
           schema:
             type: string
         - name: dateTo
           in: query
-          description: Upper boundary in date range query 
+          description: Upper boundary in date range query
           required: false
           schema:
             type: string
@@ -1769,6 +1769,21 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: filename of the uploaded content
+                      url:
+                        type: string
+                        description: url of uploaded content
+                      folder:
+                        type: boolean
+                        description: true if content is folder
+                      fileExtension:
+                        type: string
+                        description: file extension of uploaded content
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1843,7 +1858,7 @@ paths:
                   description: Remote repository branch to pull from
                 mergeStrategy:
                   type: string
-                  format: theirs, ours, resolve, recursive, simple two way in core 
+                  format: theirs, ours, resolve, recursive, simple two way in core
                   description: Merge strategy to use when pulling content from remote repository
       responses:
         '200':
