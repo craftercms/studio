@@ -21,6 +21,7 @@ import org.craftercms.studio.model.QuickCreateItem;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 public class ContentController {
 
     @GetMapping("/api/2/content/quick_create")
-    public ResponseBody quickCreate() {
+    public ResponseBody quickCreate(@RequestParam(name = "siteId", required = true) String siteId) {
         ResponseBody responseBody = new ResponseBody();
         ResultList<QuickCreateItem> result = new ResultList<QuickCreateItem>();
         result.setResponse(OK);
