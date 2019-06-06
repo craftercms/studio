@@ -42,6 +42,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_AUTHORING_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_PREVIEW_URL;
@@ -160,7 +161,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {
-			document = configurationService.loadConfigurationDocument(key, getConfigFileName(),
+			document = configurationService.loadConfigurationDocument(key, MODULE_STUDIO, getConfigFileName(),
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
 		} catch (DocumentException | IOException e) {
 			logger.error("Error reading environment configuration for site " + key + " from path " +

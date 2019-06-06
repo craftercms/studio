@@ -78,8 +78,12 @@ studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 studio.configuration.global.systemSite: studio_root
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
-# Root location where configuration for all sites is stored inside repository.
+# Root location pattern where configuration for all sites is stored inside repository.
+studio.configuration.site.configBasePathPattern: /config/{module}
+# Root location where configuration for all sites is stored inside repository for specified environment.
 studio.configuration.site.multiEnvironment.configBasePath: /config/studio/env/{environment}
+# Root location pattern where configuration for all sites is stored inside repository for specified environment.
+studio.configuration.site.multiEnvironment.configBasePathPattern: /config/studio/env/{environment}
 # Location pattern where environment specific configuration for a site is stored
 studio.configuration.site.environment.configBasePath: /config/studio/environment
 # Location where content types are stored for a site.

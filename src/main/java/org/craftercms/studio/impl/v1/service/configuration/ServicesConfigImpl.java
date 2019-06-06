@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
@@ -290,7 +291,7 @@ public class ServicesConfigImpl implements ServicesConfig {
          Document document = null;
          SiteConfigTO siteConfig = null;
          try {
-             document = configurationService.loadConfigurationDocument(site, getConfigFileName(),
+             document = configurationService.loadConfigurationDocument(site, MODULE_STUDIO, getConfigFileName(),
                      studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
          } catch (DocumentException | IOException e) {
              LOGGER.error("Error while loading configuration for " + site + " at " + getConfigFileName(), e);

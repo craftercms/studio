@@ -133,6 +133,7 @@ import org.xml.sax.SAXException;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
@@ -303,7 +304,7 @@ public class SiteServiceImpl implements SiteService {
                 configPath = getSitesConfigPath() + path;
                 configContent = contentService.getContentAsString(site, configPath);
             } else {
-		        configContent = configurationService.loadConfiguration(site, path,
+		        configContent = configurationService.loadConfiguration(site, MODULE_STUDIO, path,
                         studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
 		}

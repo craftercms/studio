@@ -19,7 +19,10 @@ package org.craftercms.studio.impl.v2.service.configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -42,9 +45,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+
 
 public class ConfigurationServiceImpl implements ConfigurationService {
 
@@ -112,14 +128,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public String loadConfiguration(String siteId, String configurationFile, String environment) {
-        return loadEnvironmentConfiguration(siteId, configurationFile, environment);
+    public String loadConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
+                                    String location, String environment) {
+        return loadEnvironmentConfiguration(siteId, module, location, environment);
     }
 
     @Override
-    public Document loadConfigurationDocument(String siteId, String configurationFile, String environment)
+    public Document loadConfigurationDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
+                                              String location, String environment)
             throws DocumentException, IOException {
-        String content = loadEnvironmentConfiguration(siteId, configurationFile, environment);
+        String content = loadEnvironmentConfiguration(siteId, module, location, environment);
         Document retDocument = null;
         SAXReader saxReader = new SAXReader();
         try {
@@ -135,28 +153,60 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return retDocument;
     }
 
-    private String loadDefaultConfiguration(String siteId, String configurationFile) {
-        String configPath = Paths.get(studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                configurationFile).toString();
+    private String loadDefaultConfiguration(String siteId, String module, String location) {
+        String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                .replaceAll(PATTERN_MODULE, module);
+        String configPath = Paths.get(configBasePath, location).toString();
         return contentService.getContentAsString(siteId, configPath);
     }
 
-    private String loadEnvironmentConfiguration(String siteId, String configurationFile, String environment) {
+    private String loadEnvironmentConfiguration(String siteId, String module, String location, String environment) {
         if (!StringUtils.isEmpty(environment)) {
+            String configBasePath =
+                    studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
+                            .replaceAll(PATTERN_MODULE, module)
+                            .replaceAll(PATTERN_ENVIRONMENT, environment);
             String configPath =
-                    Paths.get(studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH)
-                                    .replaceAll(PATTERN_ENVIRONMENT, environment),
-                            configurationFile).toString();
+                    Paths.get(configBasePath, location).toString();
             if (contentService.contentExists(siteId, configPath)) {
                 return contentService.getContentAsString(siteId, configPath);
             }
         }
-        return loadDefaultConfiguration(siteId, configurationFile);
+        return loadDefaultConfiguration(siteId, module, location);
     }
 
     @Override
-    public void writeConfiguration(String siteId, String configurationFile, String environment, InputStream content) {
+    @HasPermission(type = DefaultPermission.class, action = "write_configuration")
+    public void writeConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
+                                   String location, String environment, InputStream content)
+            throws ServiceLayerException {
+        writeEnvironmentConfiguration(siteId, module, location, environment, content);
+    }
 
+    private void writeDefaultConfiguration(String siteId, String module, String location, InputStream content)
+            throws ServiceLayerException {
+        String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                .replaceAll(PATTERN_MODULE, module);
+        String configPath = Paths.get(configBasePath, location).toString();
+        contentService.writeContent(siteId, configPath, content);
+    }
+
+    private void writeEnvironmentConfiguration(String siteId, String module, String location, String environment,
+                                               InputStream content) throws ServiceLayerException {
+        if (!StringUtils.isEmpty(environment)) {
+            String configBasePath =
+                    studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
+                            .replaceAll(PATTERN_MODULE, module)
+                            .replaceAll(PATTERN_ENVIRONMENT, environment);
+            if (contentService.contentExists(siteId, configBasePath)) {
+                String configPath = Paths.get(configBasePath, location).toString();
+                contentService.writeContent(siteId, configPath, content);
+            } else {
+                writeDefaultConfiguration(siteId, module, location, content);
+            }
+        } else {
+            writeDefaultConfiguration(siteId, module, location, content);
+        }
     }
 
     @Required

@@ -41,6 +41,8 @@ tags:
   - name: content
     description: Content operations
 
+  - name: configuration
+    description: Configuration operations
 paths:
 
   /groups:
@@ -1228,7 +1230,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Plugin'
+                      $ref: '#/components/schemas/Blueprint'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1315,19 +1317,19 @@ paths:
               type: string
         - name: includeParameters
           in: query
-          description: Include parameters into result set if `true`. Default `false`
+          description: Include parameters into result set if `true`. Default `false` 
           required: false
           schema:
             type: boolean
         - name: dateFrom
           in: query
-          description: Lower boundary in date range query
+          description: Lower boundary in date range query 
           required: false
           schema:
             type: string
         - name: dateTo
           in: query
-          description: Upper boundary in date range query
+          description: Upper boundary in date range query 
           required: false
           schema:
             type: string
@@ -1767,21 +1769,6 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                        description: filename of the uploaded content
-                      url:
-                        type: string
-                        description: url of uploaded content
-                      folder:
-                        type: boolean
-                        description: true if content is folder
-                      fileExtension:
-                        type: string
-                        description: file extension of uploaded content
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1856,7 +1843,7 @@ paths:
                   description: Remote repository branch to pull from
                 mergeStrategy:
                   type: string
-                  format: theirs, ours, resolve, recursive, simple two way in core
+                  format: theirs, ours, resolve, recursive, simple two way in core 
                   description: Merge strategy to use when pulling content from remote repository
       responses:
         '200':
@@ -2040,6 +2027,108 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /configuration/get_configuration:
+    get:
+      tags:
+        - configuration
+      summary: Get configuration content for site and configuration location
+      description: 'Required permission "read_configuration"'
+      operationId: getConfiguration
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: module
+          in: query
+          description: Module name (e.g. studio, engine)
+          required: true
+          schema:
+            type: string
+        - name: location
+          in: query
+          description: Configuration file location, relative to /config/<module>
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: environment to use
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: configuration file content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /configuration/write_configuration:
+    post:
+      tags:
+        - configuration
+      summary: Write configuration content for site
+      description: 'Required permission "write_configuration"'
+      operationId: writeConfiguration
+      requestBody:
+        description: write configuration request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                module:
+                  type: string
+                  description: Module name (e.g. studio, engine)
+                location:
+                  type: string
+                  description: Configuration file location, relative to /config/<module>
+                environment:
+                  type: string
+                  description: environment to use
+                content:
+                  type: string
+                  description: configuration file content
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 
   /content/quick_create:
     get:

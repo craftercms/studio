@@ -107,6 +107,7 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNA
 import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
@@ -522,7 +523,7 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = configurationService.loadConfigurationDocument(site, filename,
+            document = configurationService.loadConfigurationDocument(site, MODULE_STUDIO, filename,
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
         } catch (DocumentException | IOException e) {
             logger.error("Permission mapping not found for " + site + ":" + filename);

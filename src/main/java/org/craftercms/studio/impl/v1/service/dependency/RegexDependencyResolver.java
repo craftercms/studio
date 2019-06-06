@@ -44,8 +44,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
@@ -103,7 +106,7 @@ public class RegexDependencyResolver implements DependencyResolver {
         Document document = null;
         try {
             logger.debug("Load configuration as xml document from " + configLocation);
-            document = configurationService.loadConfigurationDocument(site, configLocation,
+            document = configurationService.loadConfigurationDocument(site, MODULE_STUDIO, configLocation,
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
         } catch (DocumentException | IOException e) {
             logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);

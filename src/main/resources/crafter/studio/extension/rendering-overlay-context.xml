@@ -89,6 +89,10 @@
         <property name="repositoryManagementService" ref="repositoryManagementService" />
     </bean>
 
+    <bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
+        <property name="configurationService" ref="configurationService" />
+    </bean>
+
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
     </bean>
 
