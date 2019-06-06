@@ -47,7 +47,6 @@ import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -67,9 +66,8 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_TIMEZONE;
 
 public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
