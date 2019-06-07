@@ -107,13 +107,14 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNA
 import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_FROM_DEFAULT;
@@ -519,13 +520,12 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected PermissionsConfigTO loadConfiguration(String site, String filename) {
-        String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        String siteConfigFullPath = siteConfigPath + FILE_SEPARATOR + filename;
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(site, siteConfigFullPath);
-        } catch (DocumentException e) {
+            document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, filename,
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+        } catch (DocumentException | IOException e) {
             logger.error("Permission mapping not found for " + site + ":" + filename);
         }
         if (document != null) {
@@ -1025,10 +1025,6 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         return ticket;
-    }
-
-    public String getConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }
 
     public String getRoleMappingsFileName() {

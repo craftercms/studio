@@ -87,12 +87,11 @@ public interface SiteService {
 	 *
 	 * @param site
 	 * @param path
-     * @param environment
 	 * @param applyEnv
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
 	 */
-	Map<String, Object> getConfiguration(String site, String path, String environment, boolean applyEnv);
+	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
 
     List<PublishingTargetTO> getPublishingTargetsForSite(String site);
 

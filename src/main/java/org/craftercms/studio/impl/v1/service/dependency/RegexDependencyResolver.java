@@ -26,11 +26,13 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.to.DependencyResolverConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,8 +44,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
@@ -55,6 +61,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
 
     @Override
     public Map<String, Set<String>> resolve(String site, String path) {
@@ -99,8 +106,9 @@ public class RegexDependencyResolver implements DependencyResolver {
         Document document = null;
         try {
             logger.debug("Load configuration as xml document from " + configLocation);
-            document = contentService.getContentAsDocument(site, configLocation);
-        } catch (DocumentException e) {
+            document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configLocation,
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+        } catch (DocumentException | IOException e) {
             logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);
         }
         if (document == null) {
@@ -296,5 +304,13 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

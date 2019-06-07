@@ -112,6 +112,7 @@ import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -132,8 +133,7 @@ import org.xml.sax.SAXException;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
@@ -141,13 +141,12 @@ import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -195,6 +194,7 @@ public class SiteServiceImpl implements SiteService {
     protected StudioConfiguration studioConfiguration;
     protected SitesService sitesService;
     protected AuditServiceInternal auditServiceInternal;
+    protected ConfigurationService configurationService;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -289,26 +289,22 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
 	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site,
                                                 @ValidateSecurePathParam(name = "path") String path,
-                                                @ValidateStringParam(name = "environment") String environment,
                                                 boolean applyEnv) {
 		String configPath;
+        String configContent;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
+			configContent = contentService.getContentAsString(site, configPath);
 		} else {
 		    if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
                 configPath = getSitesConfigPath() + path;
-            } else if (StringUtils.isEmpty(environment)) {
-                if (applyEnv) {
-                    configPath = getEnvironmentConfigPath().replaceAll(PATTERN_SITE, site).replaceAll(
-                            PATTERN_ENVIRONMENT, getEnvironment()) + path;
-                } else {
-                    configPath = getSitesConfigPath() + path;
-                }
+                configContent = contentService.getContentAsString(site, configPath);
             } else {
-                configPath = getSitesMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT, environment) + path;
+		        configContent = configurationService.getConfigurationAsString(site, MODULE_STUDIO, path,
+                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
 		}
-		String configContent = contentService.getContentAsString(site, configPath);
+
 
 		Map<String, Object> toRet = null;
 		if (configContent != null) {
@@ -1809,16 +1805,8 @@ public class SiteServiceImpl implements SiteService {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }
 
-    public String getSitesMultiEnvironmentConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH);
-    }
-
     public String getEnvironment() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT);
-    }
-
-    public String getEnvironmentConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH);
     }
 
     public List<String> getDefaultGroups() {
@@ -2006,5 +1994,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

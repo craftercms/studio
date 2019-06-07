@@ -78,10 +78,12 @@ studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 studio.configuration.global.systemSite: studio_root
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
-# Root location where configuration for all sites is stored inside repository.
+# Root location pattern where configuration for all sites is stored inside repository.
+studio.configuration.site.configBasePathPattern: /config/{module}
+# Root location where configuration for all sites is stored inside repository for specified environment.
 studio.configuration.site.multiEnvironment.configBasePath: /config/studio/env/{environment}
-# Location pattern where environment specific configuration for a site is stored
-studio.configuration.site.environment.configBasePath: /config/studio/environment
+# Root location pattern where configuration for all sites is stored inside repository for specified environment.
+studio.configuration.site.multiEnvironment.configBasePathPattern: /config/{module}/env/{environment}
 # Location where content types are stored for a site.
 studio.configuration.site.contentTypes.configBasePath: /config/studio/content-types
 # Location where content types configuration files are stored for a site.
@@ -95,7 +97,7 @@ studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 # Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
 studio.configuration.site.environment: local
 # File name where environment specific configuration is stored
-studio.configuration.site.environment.configFileName: environment-config.xml
+studio.configuration.site.environment.configFileName: environment/environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
@@ -109,7 +111,7 @@ studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api
 # Location pattern where default dependency resolver specific configuration for is stored
 studio.configuration.default.dependencyResolver.configBasePath: /configuration/dependency
 # File name where default dependency specific configuration is stored
-studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
+studio.configuration.default.dependencyResolver.configFileName: dependency/resolver-config.xml
 # Location pattern where dependency resolver specific configuration for a site is stored
 studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
@@ -143,7 +145,7 @@ studio.import.assetChainName: assetContent
 ##                   Notification Service                   ##
 ##############################################################
 # Path where the notification configuration is located
-studio.notification.configurationFile: /config/studio/workflow/notification-config.xml
+studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
 studio.notification.timezone: UTC
 

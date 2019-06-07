@@ -47,7 +47,6 @@ import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -59,6 +58,7 @@ import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.dom4j.Document;
@@ -66,7 +66,8 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_TIMEZONE;
 
 public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
@@ -84,6 +85,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected SecurityService securityService;
     private Configuration configuration;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
 
     public NotificationServiceImpl() {
         notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
@@ -280,9 +282,9 @@ public class NotificationServiceImpl implements NotificationService {
             notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
         }
         Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<String, NotificationConfigTO>();
-        String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+
         try {
-            Document document = contentService.getContentAsDocument(site, configFullPath);
+            Document document = contentService.getContentAsDocument(site, getConfigPath());
             if (document != null) {
                 Element root = document.getRootElement();
                 final List<Element> languages = root.selectNodes("//lang");
@@ -316,7 +318,7 @@ public class NotificationServiceImpl implements NotificationService {
                 }
             }
         } catch (Exception ex) {
-            logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " + site, ex);
+            logger.error("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, ex);
         }
         notificationConfiguration.put(site, siteNotificationConfig);
     }
@@ -483,14 +485,6 @@ public class NotificationServiceImpl implements NotificationService {
         this.securityService = securityService;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -499,6 +493,12 @@ public class NotificationServiceImpl implements NotificationService {
         this.studioConfiguration = studioConfiguration;
     }
 
-    protected GeneralLockService generalLockService;
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 }
 

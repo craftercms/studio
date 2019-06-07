@@ -119,6 +119,7 @@
         <property name="upgradeManager" ref="upgradeManager"/>
         <property name="sitesService" ref="sitesService" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="configurationService" ref="configurationService" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -176,8 +177,8 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="configurationService" ref="configurationService" />
     </bean>
 
     <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
@@ -186,6 +187,7 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="configurationService" ref="configurationService" />
     </bean>
 
     <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl" >
@@ -193,6 +195,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="configurationService" ref="configurationService" />
     </bean>
 
     <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
@@ -911,6 +914,7 @@
     <bean id="studioDependencyResolver" class="org.craftercms.studio.impl.v1.service.dependency.RegexDependencyResolver">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="configurationService" ref="configurationService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

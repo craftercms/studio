@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.4'
+  version: '3.1.1.5'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -41,6 +41,8 @@ tags:
   - name: content
     description: Content operations
 
+  - name: configuration
+    description: Configuration operations
 paths:
 
   /groups:
@@ -2040,6 +2042,109 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /configuration/get_configuration:
+    get:
+      tags:
+        - configuration
+      summary: Get configuration content for site and configuration location
+      description: 'Required permission "read_configuration"'
+      operationId: getConfiguration
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: module
+          in: query
+          description: Module name (e.g. studio, engine)
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Configuration file path, relative to /config/<module>
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: environment to use
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: configuration file content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/write_configuration:
+    post:
+      tags:
+        - configuration
+      summary: Write configuration content for site
+      description: 'Required permission "write_configuration"'
+      operationId: writeConfiguration
+      requestBody:
+        description: write configuration request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                module:
+                  type: string
+                  description: Module name (e.g. studio, engine)
+                path:
+                  type: string
+                  description: Configuration file path, relative to /config/<module>
+                environment:
+                  type: string
+                  description: environment to use
+                content:
+                  type: string
+                  description: configuration file content
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 
   /content/quick_create:
     get:
