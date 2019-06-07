@@ -33,12 +33,49 @@ import java.util.Map;
  */
 public interface ConfigurationService {
 
+    /**
+     * Get role mappings configuration for given site
+     *
+     * @param siteId Site id to use
+     * @return role mappings configuration
+     * @throws ConfigurationException
+     */
     Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
 
-    String loadConfiguration(String siteId, String module, String location, String environment);
+    /**
+     * Get configuration as string for given parameters
+     *
+     * @param siteId site id to use
+     * @param module crafter CMS module
+     * @param path location of configuration file
+     * @param environment environment to use. if empty using default
+     * @return String content of configuration file
+     */
+    String getConfigurationAsString(String siteId, String module, String path, String environment);
 
-    Document loadConfigurationDocument(String siteId, String module,  String location, String environment)
+    /**
+     * Get configuration as DOM document for given parameters
+     *
+     * @param siteId site id to use
+     * @param module crafter CMS module
+     * @param path location of configuration file
+     * @param environment environment to use. if empty using default
+     * @return DOM document representing configuration file
+     * @throws DocumentException
+     * @throws IOException
+     */
+    Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
             throws DocumentException, IOException;
 
-    void writeConfiguration(String siteId, String module, String location, String environment, InputStream content) throws ServiceLayerException;
+    /**
+     * Write configuration file for given parameters
+     *
+     * @param siteId site id to use
+     * @param module crafter CMS module
+     * @param path location where to store configuration file
+     * @param environment environment to use. if empty using default
+     * @param content content of configuration file
+     * @throws ServiceLayerException
+     */
+    void writeConfiguration(String siteId, String module, String path, String environment, InputStream content) throws ServiceLayerException;
 }

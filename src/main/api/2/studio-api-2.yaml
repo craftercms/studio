@@ -2063,9 +2063,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: location
+        - name: path
           in: query
-          description: Configuration file location, relative to /config/<module>
+          description: Configuration file path, relative to /config/<module>
           schema:
             type: string
         - name: environment
@@ -2095,6 +2095,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
   /configuration/write_configuration:
     post:
       tags:
@@ -2116,9 +2117,9 @@ paths:
                 module:
                   type: string
                   description: Module name (e.g. studio, engine)
-                location:
+                path:
                   type: string
-                  description: Configuration file location, relative to /config/<module>
+                  description: Configuration file path, relative to /config/<module>
                 environment:
                   type: string
                   description: environment to use

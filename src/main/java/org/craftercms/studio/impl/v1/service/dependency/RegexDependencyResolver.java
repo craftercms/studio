@@ -106,7 +106,7 @@ public class RegexDependencyResolver implements DependencyResolver {
         Document document = null;
         try {
             logger.debug("Load configuration as xml document from " + configLocation);
-            document = configurationService.loadConfigurationDocument(site, MODULE_STUDIO, configLocation,
+            document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configLocation,
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
         } catch (DocumentException | IOException e) {
             logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);

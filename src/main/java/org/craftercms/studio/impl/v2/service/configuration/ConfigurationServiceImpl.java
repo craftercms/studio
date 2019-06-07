@@ -128,16 +128,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public String loadConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                    String location, String environment) {
-        return loadEnvironmentConfiguration(siteId, module, location, environment);
+    public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
+                                    String path, String environment) {
+        return getEnvironmentConfiguration(siteId, module, path, environment);
     }
 
     @Override
-    public Document loadConfigurationDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                              String location, String environment)
+    public Document getConfigurationAsDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
+                                               String path, String environment)
             throws DocumentException, IOException {
-        String content = loadEnvironmentConfiguration(siteId, module, location, environment);
+        String content = getEnvironmentConfiguration(siteId, module, path, environment);
         Document retDocument = null;
         SAXReader saxReader = new SAXReader();
         try {
@@ -145,7 +145,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
             saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
         }catch (SAXException ex){
-            logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+            logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
         }
         try (InputStream is = IOUtils.toInputStream(content)) {
             retDocument = saxReader.read(is);
@@ -153,26 +153,26 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return retDocument;
     }
 
-    private String loadDefaultConfiguration(String siteId, String module, String location) {
+    private String getDefaultConfiguration(String siteId, String module, String path) {
         String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                 .replaceAll(PATTERN_MODULE, module);
-        String configPath = Paths.get(configBasePath, location).toString();
+        String configPath = Paths.get(configBasePath, path).toString();
         return contentService.getContentAsString(siteId, configPath);
     }
 
-    private String loadEnvironmentConfiguration(String siteId, String module, String location, String environment) {
+    private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
         if (!StringUtils.isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
                             .replaceAll(PATTERN_MODULE, module)
                             .replaceAll(PATTERN_ENVIRONMENT, environment);
             String configPath =
-                    Paths.get(configBasePath, location).toString();
+                    Paths.get(configBasePath, path).toString();
             if (contentService.contentExists(siteId, configPath)) {
                 return contentService.getContentAsString(siteId, configPath);
             }
         }
-        return loadDefaultConfiguration(siteId, module, location);
+        return getDefaultConfiguration(siteId, module, path);
     }
 
     @Override

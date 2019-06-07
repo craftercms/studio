@@ -291,7 +291,7 @@ public class ServicesConfigImpl implements ServicesConfig {
          Document document = null;
          SiteConfigTO siteConfig = null;
          try {
-             document = configurationService.loadConfigurationDocument(site, MODULE_STUDIO, getConfigFileName(),
+             document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, getConfigFileName(),
                      studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
          } catch (DocumentException | IOException e) {
              LOGGER.error("Error while loading configuration for " + site + " at " + getConfigFileName(), e);

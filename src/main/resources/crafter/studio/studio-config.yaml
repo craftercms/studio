@@ -83,9 +83,7 @@ studio.configuration.site.configBasePathPattern: /config/{module}
 # Root location where configuration for all sites is stored inside repository for specified environment.
 studio.configuration.site.multiEnvironment.configBasePath: /config/studio/env/{environment}
 # Root location pattern where configuration for all sites is stored inside repository for specified environment.
-studio.configuration.site.multiEnvironment.configBasePathPattern: /config/studio/env/{environment}
-# Location pattern where environment specific configuration for a site is stored
-studio.configuration.site.environment.configBasePath: /config/studio/environment
+studio.configuration.site.multiEnvironment.configBasePathPattern: /config/{module}/env/{environment}
 # Location where content types are stored for a site.
 studio.configuration.site.contentTypes.configBasePath: /config/studio/content-types
 # Location where content types configuration files are stored for a site.

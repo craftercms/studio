@@ -161,7 +161,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {
-			document = configurationService.loadConfigurationDocument(key, MODULE_STUDIO, getConfigFileName(),
+			document = configurationService.getConfigurationAsDocument(key, MODULE_STUDIO, getConfigFileName(),
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
 		} catch (DocumentException | IOException e) {
 			logger.error("Error reading environment configuration for site " + key + " from path " +
