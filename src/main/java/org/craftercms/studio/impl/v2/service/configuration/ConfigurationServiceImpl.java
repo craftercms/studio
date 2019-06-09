@@ -118,7 +118,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH).replaceFirst(PATTERN_SITE, siteId);
             }
         } else {
-            studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH).replaceFirst(PATTERN_SITE, siteId);
+            siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH)
+                    .replaceFirst(PATTERN_SITE, siteId);
         }
         return siteConfigPath;
     }
