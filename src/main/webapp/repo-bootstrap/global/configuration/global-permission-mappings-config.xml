@@ -74,6 +74,8 @@
                 <permission>push_to_remote</permission>
                 <permission>rebuild_database</permission>
                 <permission>remove_remote</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
     </role>
