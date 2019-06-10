@@ -375,6 +375,14 @@ pipelines:
           commitDetails: Added repository management permissions
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.28-to-3.1.0.29.sql
+    - currentVersion: 3.1.0.29
+      nextVersion: 3.1.0.30
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.30/system/global-permission-mappings-config.xslt
+          commitDetails: Added s3 permissions
+        - type: dbVersionUpgrader
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x

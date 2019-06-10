@@ -179,4 +179,7 @@
         <property name="descriptorReader" ref="pluginDescriptorReader"/>
     </bean>
 
+    <bean id="dbVersionUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbVersionUpgradeOperation"/>
+
 </beans>
