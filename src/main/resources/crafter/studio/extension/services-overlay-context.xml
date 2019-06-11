@@ -59,4 +59,5 @@
 
     <import resource="classpath:crafter/studio/studio-services-context.xml"/>
     <import resource="classpath*:crafter/cstudio/extension/services-context.xml"/>
+    <import resource="classpath:crafter/entitlements/entitlements-context.xml"/>
 </beans>

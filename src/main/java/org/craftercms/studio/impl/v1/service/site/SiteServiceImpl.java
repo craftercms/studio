@@ -49,7 +49,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
-import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.SearchEngines;
@@ -423,15 +422,7 @@ public class SiteServiceImpl implements SiteService {
         String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         try {
-	    	long start = 0;
-	    	if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-	    		start = System.currentTimeMillis();
-	    		logger.debug("Starting entitlement validation");
-			}
-			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
-	    	if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-	    		logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-			}
+			entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
 		} catch (EntitlementException e) {
 	    	throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "
 				+ "system administrator.", e);
@@ -690,15 +681,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
 		try {
-        	long start = 0;
-			if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-				start = System.currentTimeMillis();
-				logger.debug("Starting entitlement validation");
-			}
-			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
-			if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-				logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-			}
+			entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
 		} catch (EntitlementException e) {
 			throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "
 				+ "system administrator.", e);
