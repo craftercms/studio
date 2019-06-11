@@ -111,11 +111,9 @@ studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api
 # Location pattern where default dependency resolver specific configuration for is stored
 studio.configuration.default.dependencyResolver.configBasePath: /configuration/dependency
 # File name where default dependency specific configuration is stored
-studio.configuration.default.dependencyResolver.configFileName: dependency/resolver-config.xml
-# Location pattern where dependency resolver specific configuration for a site is stored
-studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
+studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
 # File name where dependency specific configuration is stored
-studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
+studio.configuration.site.dependencyResolver.configFileName: dependency/resolver-config.xml
 # Repo path to read the AWS configuration
 studio.configuration.site.aws.configurationPath: /config/studio/aws/aws.xml
 # Repo path to read the Box configuration
