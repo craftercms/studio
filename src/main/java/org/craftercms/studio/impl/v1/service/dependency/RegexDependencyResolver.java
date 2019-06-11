@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -50,8 +49,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.
-        CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
+
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 
@@ -87,7 +85,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                     logger.debug("No dependency extraction required for site: " + site + ", path: " + path);
                 }
             } else {
-                String configLocation = getConfigLocation(site);
+                String configLocation = getConfigFileName();
                 logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists" +
                         " and it is valid XML file: " + configLocation);
             }
@@ -101,7 +99,7 @@ public class RegexDependencyResolver implements DependencyResolver {
     private DependencyResolverConfigTO getConfiguration(String site) {
         DependencyResolverConfigTO config = null;
         logger.debug("Get configuration location for site " + site);
-        String configLocation = getConfigLocation(site);
+        String configLocation = getConfigFileName();
         String defaultConfigLocation = getDefaultConfigLocation();
         Document document = null;
         try {
@@ -264,19 +262,10 @@ public class RegexDependencyResolver implements DependencyResolver {
         return toRet;
     }
 
-    private String getConfigLocation(String site) {
-        String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        configLocation = configLocation + FILE_SEPARATOR + getConfigFileName();
-        return configLocation;
-    }
-
     private String getDefaultConfigLocation() {
         return getDefaultConfigPath() + FILE_SEPARATOR + getDefaultConfigFileName();
     }
 
-    public String getConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH);
-    }
 
     public String getConfigFileName() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME);

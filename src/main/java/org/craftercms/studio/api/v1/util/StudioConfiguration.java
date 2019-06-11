@@ -108,8 +108,6 @@ public interface StudioConfiguration {
             "studio.configuration.default.dependencyResolver.configBasePath";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME =
             "studio.configuration.site.dependencyResolver.configFileName";
-    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH =
-            "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_SITE_AWS_CONFIGURATION_PATH = "studio.configuration.site.aws.configurationPath";
     String CONFIGURATION_SITE_BOX_CONFIGURATION_PATH = "studio.configuration.site.box.configurationPath";
     String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH = "studio.configuration.site.webdav.configurationPath";
