@@ -405,6 +405,22 @@
         <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
+
+    <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
+        <property name="contentServiceInternal" ref="contentServiceInternal"/>
+        <property name="contentTypeServiceInternal" ref="contnetTypeServiceInternal"/>
+    </bean>
+
+    <bean id="contentServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
+
+    </bean>
+
+    <bean id="contnetTypeServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl" >
+        <property name="contentTypeService" ref="cstudioContentTypeService" />
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->

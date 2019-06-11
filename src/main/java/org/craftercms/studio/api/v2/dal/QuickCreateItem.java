@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model;
+package org.craftercms.studio.api.v2.dal;
 
 public class QuickCreateItem {
 
