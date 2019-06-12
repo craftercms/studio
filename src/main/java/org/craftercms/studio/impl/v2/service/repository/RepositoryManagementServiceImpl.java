@@ -54,12 +54,12 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     public boolean addRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
         boolean toRet = repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
-        insertAddRemoteAuditLog(siteId, remoteRepository.getRemoteName(), OPERATION_ADD_REMOTE,
-                remoteRepository.getRemoteName(), remoteRepository.getRemoteName());
+        insertAddRemoteAuditLog(siteId, OPERATION_ADD_REMOTE, remoteRepository.getRemoteName(),
+                remoteRepository.getRemoteName());
         return toRet;
     }
 
-    private void insertAddRemoteAuditLog(String siteId, String remoteName, String operation, String primaryTargetId,
+    private void insertAddRemoteAuditLog(String siteId, String operation, String primaryTargetId,
                                          String primaryTargetValue) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         String user = securityService.getCurrentUser();
@@ -88,8 +88,8 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
         boolean toRet = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
                 mergeStrategy);
-        insertAddRemoteAuditLog(siteId, remoteName, OPERATION_PULL_FROM_REMOTE,
-                remoteName + "/" + remoteBranch, remoteName + "/" + remoteBranch);
+        insertAddRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,
+                remoteName + "/" + remoteBranch);
         return toRet;
     }
 
@@ -101,8 +101,8 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
                                 String remoteBranch, boolean force)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         boolean toRet = repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
-        insertAddRemoteAuditLog(siteId, remoteName, OPERATION_PUSH_TO_REMOTE,
-                remoteName + "/" + remoteBranch, remoteName + "/" + remoteBranch);
+        insertAddRemoteAuditLog(siteId, OPERATION_PUSH_TO_REMOTE,remoteName + "/" + remoteBranch,
+                remoteName + "/" + remoteBranch);
         return toRet;
     }
 
@@ -117,7 +117,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     public boolean removeRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName)
             throws CryptoException, SiteNotFoundException {
         boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
-        insertAddRemoteAuditLog(siteId, remoteName, OPERATION_ADD_REMOTE, remoteName, remoteName);
+        insertAddRemoteAuditLog(siteId, OPERATION_ADD_REMOTE, remoteName, remoteName);
         return toRet;
     }
 
