@@ -79,7 +79,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                         toRet = getDependencies(site, path, content, dependencyTypes);
                     } else {
                         logger.error("Failed to extract dependencies. " +
-                                "Content was empty/null found for site: " + site + ", path: " + path);
+                                "No content or empty content found for site: " + site + ", path: " + path);
                     }
                 } else {
                     logger.debug("No dependency extraction required for site: " + site + ", path: " + path);
@@ -90,7 +90,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                         " and it is valid XML file: " + configLocation);
             }
         } catch (Exception exc) {
-            logger.error("Unexcpected error resolving dependencies for site: " + site + " path: " + path);
+            logger.error("Unexpected error resolving dependencies for site: " + site + " path: " + path);
         }
         return toRet;
     }
