@@ -17,14 +17,16 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.studio.model.QuickCreateItem;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -33,42 +35,40 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RestController
 public class ContentController {
 
-    @GetMapping("/api/2/content/quick_create")
-    public ResponseBody quickCreate(@RequestParam(name = "siteId", required = true) String siteId) {
+    private ContentService contentService;
+    private SiteService siteService;
+
+    @GetMapping("/api/2/content/list_quick_create_content")
+    public ResponseBody listQuickCreateContent(@RequestParam(name = "siteId", required = true) String siteId)
+            throws SiteNotFoundException {
+
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        List<QuickCreateItem> items = contentService.getQuickCreatableContentTypes(siteId);
+
         ResponseBody responseBody = new ResponseBody();
         ResultList<QuickCreateItem> result = new ResultList<QuickCreateItem>();
         result.setResponse(OK);
-        result.setEntities(RESULT_KEY_ITEMS, getMockList());
+        result.setEntities(RESULT_KEY_ITEMS, items);
         responseBody.setResult(result);
         return responseBody;
     }
 
-    private List<QuickCreateItem> getMockList() {
-        List<QuickCreateItem> toRet = new ArrayList<QuickCreateItem>();
 
-        QuickCreateItem q1 = new QuickCreateItem();
-        q1.setSiteId("mysite");
-        q1.setLabel("Content Type 1");
-        q1.setContentTypeId("/page/ct1");
-        q1.setPath("/site/website");
-
-        QuickCreateItem q2 = new QuickCreateItem();
-        q2.setSiteId("mysite");
-        q2.setLabel("Content Type 2");
-        q2.setContentTypeId("/component/ct2");
-        q2.setPath("/site/components/{objectId}/{year}/{month}/{yyyy}/{mm}/{dd}");
-
-        QuickCreateItem q3 = new QuickCreateItem();
-        q3.setSiteId("mysite");
-        q3.setLabel("Content Type 3");
-        q3.setContentTypeId("/page/ct3");
-        q3.setPath("/site/website/articles");
-
-        toRet.add(q1);
-        toRet.add(q2);
-        toRet.add(q3);
-
-        return toRet;
+    public ContentService getContentService() {
+        return contentService;
     }
 
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
 }
