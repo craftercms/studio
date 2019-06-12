@@ -22,7 +22,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
-import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -114,15 +113,7 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = "create_users")
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
         try {
-            long start = 0;
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                start = System.currentTimeMillis();
-                logger.debug("Starting entitlement validation");
-            }
-            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.USER, getAllUsersTotal(), 1);
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-            }
+            entitlementValidator.validateEntitlement(EntitlementType.USER, 1);
         } catch (EntitlementException e) {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact " +
                                             "your system administrator.", e);

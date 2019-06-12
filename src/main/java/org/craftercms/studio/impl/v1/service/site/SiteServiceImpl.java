@@ -49,8 +49,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
-import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -109,8 +110,8 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -131,23 +132,20 @@ import org.xml.sax.SAXException;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -195,6 +193,7 @@ public class SiteServiceImpl implements SiteService {
     protected StudioConfiguration studioConfiguration;
     protected SitesService sitesService;
     protected AuditServiceInternal auditServiceInternal;
+    protected ConfigurationService configurationService;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -289,26 +288,22 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
 	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site,
                                                 @ValidateSecurePathParam(name = "path") String path,
-                                                @ValidateStringParam(name = "environment") String environment,
                                                 boolean applyEnv) {
 		String configPath;
+        String configContent;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
+			configContent = contentService.getContentAsString(site, configPath);
 		} else {
 		    if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
                 configPath = getSitesConfigPath() + path;
-            } else if (StringUtils.isEmpty(environment)) {
-                if (applyEnv) {
-                    configPath = getEnvironmentConfigPath().replaceAll(PATTERN_SITE, site).replaceAll(
-                            PATTERN_ENVIRONMENT, getEnvironment()) + path;
-                } else {
-                    configPath = getSitesConfigPath() + path;
-                }
+                configContent = contentService.getContentAsString(site, configPath);
             } else {
-                configPath = getSitesMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT, environment) + path;
+		        configContent = configurationService.getConfigurationAsString(site, MODULE_STUDIO, path,
+                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
 		}
-		String configContent = contentService.getContentAsString(site, configPath);
+
 
 		Map<String, Object> toRet = null;
 		if (configContent != null) {
@@ -418,24 +413,16 @@ public class SiteServiceImpl implements SiteService {
 	        throw new SiteAlreadyExistsException();
         }
 
-        BlueprintDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
         String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
-        String searchEngine = descriptor.getBlueprint().getSearchEngine();
+        String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         try {
-	    	long start = 0;
-	    	if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-	    		start = System.currentTimeMillis();
-	    		logger.debug("Starting entitlement validation");
-			}
-			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
-	    	if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-	    		logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-			}
+			entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
 		} catch (EntitlementException e) {
 	    	throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "
 				+ "system administrator.", e);
@@ -694,15 +681,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
 		try {
-        	long start = 0;
-			if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-				start = System.currentTimeMillis();
-				logger.debug("Starting entitlement validation");
-			}
-			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
-			if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-				logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-			}
+			entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
 		} catch (EntitlementException e) {
 			throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "
 				+ "system administrator.", e);
@@ -730,6 +709,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
@@ -745,7 +725,7 @@ public class SiteServiceImpl implements SiteService {
         // 1) git repo, 2) deployer target, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
-        BlueprintDescriptor descriptor = null;
+        PluginDescriptor descriptor = null;
 
         try {
             // create site by cloning remote git repo
@@ -771,8 +751,17 @@ public class SiteServiceImpl implements SiteService {
         }
 
         // try to get the search engine from the blueprint descriptor file
-        String searchEngine = Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())?
-            descriptor.getBlueprint().getSearchEngine() : SEARCH_ENGINE_ELASTIC_SEARCH;
+        String searchEngine = SearchEngines.ELASTICSEARCH;
+
+        if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
+            searchEngine = descriptor.getPlugin().getSearchEngine();
+            logger.info("Using searchEngine {0} from plugin descriptor", searchEngine);
+        } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
+            searchEngine = descriptor.getBlueprint().getSearchEngine();
+            logger.info("Using searchEngine {0} from blueprint descriptor", searchEngine);
+        } else {
+            logger.info("Missing descriptor, using default searchEngine {0}", searchEngine);
+        }
 
         if (success) {
             // Create the site in the preview deployer
@@ -862,13 +851,13 @@ public class SiteServiceImpl implements SiteService {
             throw new SiteAlreadyExistsException();
         }
 
-        BlueprintDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
         String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
-        String searchEngine = descriptor.getBlueprint().getSearchEngine();
+        String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         boolean success = true;
 
@@ -1799,16 +1788,8 @@ public class SiteServiceImpl implements SiteService {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }
 
-    public String getSitesMultiEnvironmentConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH);
-    }
-
     public String getEnvironment() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT);
-    }
-
-    public String getEnvironmentConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH);
     }
 
     public List<String> getDefaultGroups() {
@@ -1996,5 +1977,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

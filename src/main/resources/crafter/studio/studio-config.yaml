@@ -78,10 +78,12 @@ studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 studio.configuration.global.systemSite: studio_root
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
-# Root location where configuration for all sites is stored inside repository.
+# Root location pattern where configuration for all sites is stored inside repository.
+studio.configuration.site.configBasePathPattern: /config/{module}
+# Root location where configuration for all sites is stored inside repository for specified environment.
 studio.configuration.site.multiEnvironment.configBasePath: /config/studio/env/{environment}
-# Location pattern where environment specific configuration for a site is stored
-studio.configuration.site.environment.configBasePath: /config/studio/environment
+# Root location pattern where configuration for all sites is stored inside repository for specified environment.
+studio.configuration.site.multiEnvironment.configBasePathPattern: /config/{module}/env/{environment}
 # Location where content types are stored for a site.
 studio.configuration.site.contentTypes.configBasePath: /config/studio/content-types
 # Location where content types configuration files are stored for a site.
@@ -95,7 +97,7 @@ studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 # Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
 studio.configuration.site.environment: local
 # File name where environment specific configuration is stored
-studio.configuration.site.environment.configFileName: environment-config.xml
+studio.configuration.site.environment.configFileName: environment/environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
@@ -110,10 +112,8 @@ studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api
 studio.configuration.default.dependencyResolver.configBasePath: /configuration/dependency
 # File name where default dependency specific configuration is stored
 studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
-# Location pattern where dependency resolver specific configuration for a site is stored
-studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
-studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
+studio.configuration.site.dependencyResolver.configFileName: dependency/resolver-config.xml
 # Repo path to read the AWS configuration
 studio.configuration.site.aws.configurationPath: /config/studio/aws/aws.xml
 # Repo path to read the Box configuration
@@ -143,7 +143,7 @@ studio.import.assetChainName: assetContent
 ##                   Notification Service                   ##
 ##############################################################
 # Path where the notification configuration is located
-studio.notification.configurationFile: /config/studio/workflow/notification-config.xml
+studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
 studio.notification.timezone: UTC
 
@@ -647,18 +647,20 @@ studio.search.facets:
     field: lastEditedOn
     date: true
     ranges:
-      - label: older
-        to: now/d-365d
-      - label: within-a-year
-        from: now/d-365d
-      - label: within-6-months
-        from: now/d-180d
-      - label: within-a-month
-        from: now/d-30d
-      - label: within-a-week
-        from: now/d-7d
       - label: today
-        from: now/d-1d
+        from: now-1d
+        to: now+1d
+      - label: in-last-week
+        from: now/d-7d
+        to: now/d-1d
+      - label: over-a-month-ago
+        to: now/d-30d
+      - label: over-six-months-ago
+        to: now/d-180d
+      - label: over-a-week-ago
+        to: now/d-8d
+      - label: over-a-year-ago
+        to: now/d-365d
 
 ################################################################
 ##                           AWS                              ##

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v2.upgrade.operations;
+package org.craftercms.studio.impl.v2.upgrade.operations.global;
 
 import java.io.File;
 import java.io.InputStream;
@@ -25,8 +25,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.jar.Manifest;
-
-import javax.servlet.ServletContext;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,12 +38,12 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
+import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;

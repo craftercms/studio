@@ -384,10 +384,20 @@ public class CmisServiceImpl implements CmisService {
                         ContentStream contentStream =
                                 session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
                         Folder folder  = (Folder)cmisObject;
+                        cmisUploadItem.setName(filename);
+                        cmisUploadItem.setFolder(false);
+                        cmisUploadItem.setFileExtension(FilenameUtils.getExtension(filename));
                         if (docObject != null) {
                             org.apache.chemistry.opencmis.client.api.Document doc =
                                     (org.apache.chemistry.opencmis.client.api.Document)docObject;
                             doc.setContentStream(contentStream, true);
+
+                            String contentId = doc.getId();
+                            StringTokenizer st = new StringTokenizer(contentId, ";");
+                            if (st.hasMoreTokens()) {
+                                cmisUploadItem.setUrl(repositoryConfig.getDownloadUrlRegex().replace(ITEM_ID,
+                                        st.nextToken()));
+                            }
                             session.removeObjectFromCache(doc.getId());
                         } else {
                             Map<String, Object> properties = new HashMap<String, Object>();
@@ -396,9 +406,6 @@ public class CmisServiceImpl implements CmisService {
                             org.apache.chemistry.opencmis.client.api.Document newDoc =
                                     folder.createDocument(properties, contentStream, null);
                             session.removeObjectFromCache(newDoc.getId());
-                            cmisUploadItem.setName(filename);
-                            cmisUploadItem.setFolder(false);
-                            cmisUploadItem.setFileExtension(FilenameUtils.getExtension(filename));
                             String contentId = newDoc.getId();
                             StringTokenizer st = new StringTokenizer(contentId, ";");
                             if (st.hasMoreTokens()) {

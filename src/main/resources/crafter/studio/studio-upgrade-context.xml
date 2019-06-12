@@ -122,33 +122,33 @@
     </bean>
 
     <bean id="dbScriptUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.DbScriptUpgradeOperation">
+          class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbScriptUpgradeOperation">
         <property name="scriptFolder"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
 
     <bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.GlobalRepoUpgradeOperation"/>
+          class="org.craftercms.studio.impl.v2.upgrade.operations.global.GlobalRepoUpgradeOperation"/>
 
     <bean id="blueprintsUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.BlueprintsUpgradeOperation">
+          class="org.craftercms.studio.impl.v2.upgrade.operations.global.BlueprintsUpgradeOperation">
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.RenameUpgradeOperation"/>
+          class="org.craftercms.studio.impl.v2.upgrade.operations.file.RenameUpgradeOperation"/>
 
     <bean id="deleteUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.DeleteUpgradeOperation" />
+          class="org.craftercms.studio.impl.v2.upgrade.operations.file.DeleteUpgradeOperation" />
 
     <bean id="xsltFileUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.XsltFileUpgradeOperation"/>
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.XsltFileUpgradeOperation"/>
 
     <bean id="versionFileUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.SiteVersionUpgradeOperation">
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.SiteVersionUpgradeOperation">
         <property name="path"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).UPGRADE_VERSION_FILE)}"/>
         <property name="template"
@@ -158,20 +158,28 @@
     </bean>
 
     <bean id="addFileUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.AddFileUpgradeOperation"/>
+          class="org.craftercms.studio.impl.v2.upgrade.operations.file.AddFileUpgradeOperation"/>
 
     <bean id="addSiteUuidUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.AddSiteUuidOperation" >
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.AddSiteUuidOperation" >
         <property name="siteFeedMapper" ref="siteFeedMapper"/>
     </bean>
 
     <bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.FindAndReplaceUpgradeOperation"/>
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.FindAndReplaceUpgradeOperation"/>
 
     <bean id="boxControlUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.BoxRemoteAssetUpgradeOperation">
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.BoxRemoteAssetUpgradeOperation">
         <property name="contentTypeXpath" value="#{studioConfiguration.getProperty('studio.upgrade.xpath.contentType')}"/>
         <property name="formDefinitionTemplate" value="#{studioConfiguration.getProperty('studio.upgrade.template.formDefinition')}"/>
     </bean>
+
+    <bean id="pluginDescriptorV2Upgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.plugin.DescriptorV2UpgradeOperation">
+        <property name="descriptorReader" ref="pluginDescriptorReader"/>
+    </bean>
+
+    <bean id="dbVersionUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbVersionUpgradeOperation"/>
 
 </beans>

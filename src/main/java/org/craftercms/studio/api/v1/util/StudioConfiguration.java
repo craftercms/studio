@@ -85,9 +85,11 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_UI_RESOURCE_OVERRIDE_PATH = "studio.configuration.global.ui.resource.override.path";
     String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
-    String CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.multiEnvironment" +
-            ".configBasePath";
-    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
+    String CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN = "studio.configuration.site.configBasePathPattern";
+    String CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH =
+            "studio.configuration.site.multiEnvironment.configBasePath";
+    String CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN =
+            "studio.configuration.site.multiEnvironment.configBasePathPattern";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH = "studio.configuration.site.contentTypes.configBasePath";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH = "studio.configuration.site.contentTypes.configPath";
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
@@ -106,14 +108,12 @@ public interface StudioConfiguration {
             "studio.configuration.default.dependencyResolver.configBasePath";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME =
             "studio.configuration.site.dependencyResolver.configFileName";
-    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH =
-            "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_SITE_AWS_CONFIGURATION_PATH = "studio.configuration.site.aws.configurationPath";
     String CONFIGURATION_SITE_BOX_CONFIGURATION_PATH = "studio.configuration.site.box.configurationPath";
     String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH = "studio.configuration.site.webdav.configurationPath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
-    String CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH = "studio.configuration.site.asset.processing" +
-            ".configurationPath";
+    String CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH =
+            "studio.configuration.site.asset.processing.configurationPath";
 
     String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
     String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";

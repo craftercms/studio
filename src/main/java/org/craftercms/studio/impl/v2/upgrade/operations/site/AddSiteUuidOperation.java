@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v2.upgrade.operations;
+package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 
 import java.io.IOException;
 import java.nio.file.Files;

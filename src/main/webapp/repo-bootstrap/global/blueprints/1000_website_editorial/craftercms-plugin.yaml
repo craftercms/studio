@@ -1,13 +1,17 @@
-# This file describes a blueprint for use in Crafter Studio
+# This file describes a plugin for use in Crafter CMS
 
-# The version of this type of this file
-descriptorVersion: 1
+# The version of the format for this file
+descriptorVersion: 2
 
 # Describe the blueprint
-blueprint:
+plugin:
+  type: blueprint
   id: org.craftercms.blueprint.editorial
   name: Website Editorial Blueprint
-  tags: blueprint,website,editorial
+  tags:
+    - blueprint
+    - website
+    - editorial
   version:
     major: 1
     minor: 0
@@ -19,41 +23,40 @@ blueprint:
     url: https://craftercms.org
   media:
     screenshots:
-      - screenshot:
-          title: Home Page
-          description: Screenshot of the home page
-          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_home.png
-      - screenshot:
-          title: Style Page
-          description: Screenshot of the style page
-          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_style.png
-      - screenshot:
-          title: Health Page
-          description: Screenshot of the health page
-          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_health.png
-      - screenshot:
-          title: Entertainment Page
-          description: Screenshot of the entertainment page
-          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_entertainment.png
-      - screenshot:
-          title: Technology Page
-          description: Screenshot of the technology page
-          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_technology.png
-      - screenshot:
-          title: Article Page
-          description: Screenshot of the article page
-          url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_article.png
-    developer:
-      company:
-        name: Crafter Software
-        email: info@craftersoftware.com
-        url: https://craftersoftware.com/
+      - title: Home Page
+        description: Screenshot of the home page
+        url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_home.png
+      - title: Style Page
+        description: Screenshot of the style page
+        url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_style.png
+      - title: Health Page
+        description: Screenshot of the health page
+        url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_health.png
+      - title: Entertainment Page
+        description: Screenshot of the entertainment page
+        url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_entertainment.png
+      - title: Technology Page
+        description: Screenshot of the technology page
+        url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_technology.png
+      - title: Article Page
+        description: Screenshot of the article page
+        url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_article.png
+  developer:
+    company:
+      name: Crafter Software
+      email: info@craftersoftware.com
+      url: https://craftersoftware.com/
   build:
     id: c3d2a5444e6a24b5e0481d6ba87901d0b02716c8
     date: 2019-01-23T00:00:00Z
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-  craftercmsVersionsSupported:
-    - version: 3.1.0
+  crafterCmsVersions:
+    - major: 3
+      minor: 1
+      patch: 1
+  crafterCmsEditions:
+    - community
+    - enterprise
   searchEngine: Elasticsearch

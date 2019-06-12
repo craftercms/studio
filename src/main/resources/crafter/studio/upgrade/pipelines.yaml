@@ -366,6 +366,23 @@ pipelines:
           commitDetails: Added repository management permissions
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.27-to-3.1.0.28.sql
+    - currentVersion: 3.1.0.28
+      nextVersion: 3.1.0.29
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/sample/sample-config-list.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.29/system/sample-config-list.xslt
+          commitDetails: Added repository management permissions
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.28-to-3.1.0.29.sql
+    - currentVersion: 3.1.0.29
+      nextVersion: 3.1.0.30
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.30/system/global-permission-mappings-config.xslt
+          commitDetails: Added s3 permissions
+        - type: dbVersionUpgrader
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -468,6 +485,16 @@ pipelines:
           commitDetails: Delete sample files
           paths:
             - /config/studio/administration/samples
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.0.7
+      nextVersion: 3.1.0.8
+      operations:
+        - type: pluginDescriptorV2Upgrader
+          commitDetails: Upgrade blueprint descriptor to v2
+          descriptorPath: craftercms-plugin.yaml
+          descriptorVersion: 2
+        - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
   blueprint:
@@ -538,6 +565,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 4
+        nextVersion: 5
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.0.29/site/permission-mappings-config.xslt
+            commitDetails: Add configuration service permissions
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
 
   role-mappings-config:
     path: &role-mappings-config '/config/studio/role-mappings-config.xml'
@@ -598,7 +635,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
-
+      - currentVersion: 5
+        nextVersion: 6
+        operations:
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.x/3.1.0.29/site/config-list.xslt
+            commitDetails: Move sample configuration files to global configuration
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
   site-config-tools:
     path: &site-config-tools '/config/studio/administration/site-config-tools.xml'
     pipeline:
@@ -662,3 +708,6 @@ configurations:
             path: *environment-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.24/site/environment-config.xslt
             commitDetails: Add previewEngineServerUrl and graphqlServerUrl properties to environment configuration
+          - type: xsltFileUpgrader
+            path: *environment-config
+            template: crafter/studio/upgrade/update-version.xslt

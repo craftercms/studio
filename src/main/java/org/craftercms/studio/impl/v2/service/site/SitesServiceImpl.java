@@ -17,7 +17,7 @@
 
 package org.craftercms.studio.impl.v2.service.site;
 
-import org.craftercms.studio.api.v2.dal.BlueprintDescriptor;
+import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 
@@ -28,12 +28,12 @@ public class SitesServiceImpl implements SitesService {
     private SitesServiceInternal sitesServiceInternal;
 
     @Override
-    public List<BlueprintDescriptor> getAvailableBlueprints() {
+    public List<PluginDescriptor> getAvailableBlueprints() {
         return sitesServiceInternal.getAvailableBlueprints();
     }
 
     @Override
-    public BlueprintDescriptor getBlueprintDescriptor(final String id) {
+    public PluginDescriptor getBlueprintDescriptor(final String id) {
         return sitesServiceInternal.getBlueprintDescriptor(id);
     }
 
@@ -43,7 +43,7 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
-    public BlueprintDescriptor getSiteBlueprintDescriptor(final String id) {
+    public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
         return sitesServiceInternal.getSiteBlueprintDescriptor(id);
     }
 

@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.2'
+  version: '3.1.1.5'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -38,6 +38,11 @@ tags:
     description: CMIS operations
   - name: repository
     description: Repository operations
+  - name: content
+    description: Content operations
+
+  - name: configuration
+    description: Configuration operations
 paths:
 
   /groups:
@@ -1225,7 +1230,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Blueprint'
+                      $ref: '#/components/schemas/Plugin'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1312,19 +1317,19 @@ paths:
               type: string
         - name: includeParameters
           in: query
-          description: Include parameters into result set if `true`. Default `false` 
+          description: Include parameters into result set if `true`. Default `false`
           required: false
           schema:
             type: boolean
         - name: dateFrom
           in: query
-          description: Lower boundary in date range query 
+          description: Lower boundary in date range query
           required: false
           schema:
             type: string
         - name: dateTo
           in: query
-          description: Upper boundary in date range query 
+          description: Upper boundary in date range query
           required: false
           schema:
             type: string
@@ -1853,7 +1858,7 @@ paths:
                   description: Remote repository branch to pull from
                 mergeStrategy:
                   type: string
-                  format: theirs, ours, resolve, recursive, simple two way in core 
+                  format: theirs, ours, resolve, recursive, simple two way in core
                   description: Merge strategy to use when pulling content from remote repository
       responses:
         '200':
@@ -2029,6 +2034,146 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/RemoteRepositoryInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/get_configuration:
+    get:
+      tags:
+        - configuration
+      summary: Get configuration content for site and configuration location
+      description: 'Required permission "read_configuration"'
+      operationId: getConfiguration
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: module
+          in: query
+          description: Module name (e.g. studio, engine)
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Configuration file path, relative to /config/<module>
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: environment to use
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: configuration file content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/write_configuration:
+    post:
+      tags:
+        - configuration
+      summary: Write configuration content for site
+      description: 'Required permission "write_configuration"'
+      operationId: writeConfiguration
+      requestBody:
+        description: write configuration request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                module:
+                  type: string
+                  description: Module name (e.g. studio, engine)
+                path:
+                  type: string
+                  description: Configuration file path, relative to /config/<module>
+                environment:
+                  type: string
+                  description: environment to use
+                content:
+                  type: string
+                  description: configuration file content
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /content/list_quick_create_content:
+    get:
+      tags:
+        - content
+      summary: Get list of content types available for Quick Create functionality
+      description: 'Required permission "create content"'
+      operationId: quickCreateContent
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuickCreateItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2241,144 +2386,117 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
-    Blueprint:
+    Version:
+      type: object
+      properties:
+        major:
+          type: integer
+          format: int32
+          description: The major version
+        minor:
+          type: integer
+          format: int32
+          description: The minor version
+        patch:
+          type: integer
+          format: int32
+          description: The patch version
+    Link:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the link
+        url:
+          type: string
+          description: The URL of the link
+    Asset:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title of the asset
+        description:
+          type: string
+          description: The description of the asset
+        url:
+          type: string
+          description: The URL of the asset
+    Plugin:
       type: object
       properties:
         descriptorVersion:
           type: integer
-          description: 'Blueprint descriptor version number'
-        blueprint:
+          description: The version of the plugin descriptor
+        plugin:
           type: object
           properties:
+            type:
+              type: string
+              description: The type of plugin
             id:
               type: string
               format: package name
-              description: 'Blueprint id'
+              description: The plugin id
             name:
               type: string
-              description: 'Blueprint name'
+              description: The plugin name
             tags:
-              type: string
-              description: 'Tags applied for blueprint'
+              type: array
+              description: The plugin tags
+              items:
+                type: string
             version:
-              type: object
-              properties:
-                major:
-                  type: integer
-                  description: 'Major version number'
-                minor:
-                  type: integer
-                  description: 'Minor version number'
-                patch:
-                  type: integer
-                  description: 'Patch version number'
+              $ref: '#/components/schemas/Version'
             description:
               type: string
-              description: 'Blueprint description'
+              description: The plugin description
             website:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: 'Blueprint website'
-                url:
-                  type: string
-                  description: 'Blueprint website URL'
+              $ref: '#/components/schemas/Link'
             media:
               type: object
               properties:
                 screenshots:
                   type: array
+                  description: The screenshots of the plugin
                   items:
-                    type: object
-                    properties:
-                      screenshot:
-                        type: object
-                        properties:
-                          title:
-                            type: string
-                            description: 'Screenshot title'
-                          description:
-                            type: string
-                            description: 'Screenshot description'
-                          url:
-                            type: string
-                            description: 'Screenshot URL'
+                    $ref: '#/components/schemas/Asset'
                 videos:
                   type: array
+                  description: The videos of the plugin
                   items:
-                    type: object
-                    properties:
-                      video:
-                        type: object
-                        properties:
-                          title:
-                            type: string
-                            description: 'Video title'
-                          description:
-                            type: string
-                            description: 'Video description'
-                          url:
-                            type: string
-                            description: 'Video URL'
-                developer:
-                  type: object
-                  properties:
-                    people:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          person:
-                            type: object
-                            properties:
-                              name:
-                                type: string
-                                description: 'Developer name'
-                              email:
-                                type: string
-                                description: "Developer's email address"
-                              url:
-                                type: string
-                                description: "Developer's website"
-                    company:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: 'Company name'
-                        email:
-                          type: string
-                          description: "Company's email address"
-                        url:
-                          type: string
-                          description: "Company's website"
+                    $ref: '#/components/schemas/Asset'
+            developer:
+              type: object
+              properties:
+                people:
+                  type: array
+                  description: The people that worked on the plugin
+                  items:
+                    $ref: '#/components/schemas/Link'
+                company:
+                  $ref: '#/components/schemas/Link'
             build:
               type: object
               properties:
                 id:
                   type: string
-                  description: 'Blueprint build ID'
+                  description: Build id of the plugin
                 date:
                   type: string
-                  description: 'Bluperint build date'
+                  description: Build date of the plugin
             license:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: 'License name'
-                url:
-                  type: string
-                  description: 'License website URL'
-            craftercmsVersionsSupported:
+              $ref: '#/components/schemas/Link'
+            crafterCmsVersions:
               type: array
+              description: The supported Crafter CMS versions of the plugin
               items:
-                type: object
-                properties:
-                  version:
-                    type: string
-                    description: 'Blueprint supported in Crafter CMS version'
+                $ref: '#/components/schemas/Version'
+            crafterCmsEditions:
+              type: array
+              description: The supported Crafter CMS editions of the plugin
+              items:
+                type: string
     SearchParams:
       type: object
       properties:
@@ -2510,7 +2628,7 @@ components:
           type: integer
           format: int64
           description: Organization ID
-        siteId: 
+        siteId:
           type: integer
           format: int64
           description: Site ID
@@ -2544,7 +2662,7 @@ components:
           description: Actor ID which invoked operation
         actorDetails:
           type: string
-          description: Details of the actor which invoked 
+          description: Details of the actor which invoked
         clusterNodeId:
           type: string
           description: Cluster node Id
@@ -2726,6 +2844,7 @@ components:
         remotePrivateKey:
           type: string
           description: private key to access
+
     RemoteRepositoryInfo:
       type: object
       properties:
@@ -2746,6 +2865,23 @@ components:
           items:
             type: string
             description: remote repository branch name
+
+    QuickCreateItem:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site id
+        label:
+          type: string
+          description: user friendly label for content type name
+        contentTypeId:
+          type: string
+          description: content type id
+        path:
+          type: string
+          description: path expression to generate path for quick create
+
   responses:
     NotFound:
       description: Resource not found
