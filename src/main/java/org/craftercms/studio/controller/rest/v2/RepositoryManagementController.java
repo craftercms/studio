@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
@@ -126,7 +127,8 @@ public class RepositoryManagementController {
     }
 
     @PostMapping("/api/2/repository/remove_remote")
-    public ResponseBody removeRemote(@RequestBody RemoveRemoteRequest removeRemoteRequest) throws CryptoException {
+    public ResponseBody removeRemote(@RequestBody RemoveRemoteRequest removeRemoteRequest)
+            throws CryptoException, SiteNotFoundException {
         boolean res = repositoryManagementService.removeRemote(removeRemoteRequest.getSiteId(),
                 removeRemoteRequest.getRemoteName());
 
