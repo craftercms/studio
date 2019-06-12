@@ -28,6 +28,7 @@
             <menuItem>
                 <item><modulehook>wcm_logo</modulehook></item>
                 <item><modulehook>wcm_dropdown</modulehook></item>
+                <item><modulehook>quick-create</modulehook></item>
                 <item><modulehook>wcm_content</modulehook></item>
                 <item><modulehook>admin_console</modulehook></item>
             </menuItem>
@@ -47,6 +48,7 @@
         <modules> <!-- module definitions -->
             <module><moduleName>wcm_logo</moduleName><value>wcm_logo</value></module>
             <module><moduleName>wcm_dropdown</moduleName><value>wcm_dropdown</value></module>
+            <module><moduleName>quick-create</moduleName><value>quick-create</value></module>
             <module><moduleName>wcm_content</moduleName><value>wcm_content</value></module>
             <module><moduleName>admin_console</moduleName><value>admin_console</value></module>
 

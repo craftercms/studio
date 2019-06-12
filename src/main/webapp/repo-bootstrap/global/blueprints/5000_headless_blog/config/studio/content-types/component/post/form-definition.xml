@@ -21,6 +21,8 @@
     <objectType>component</objectType>
     <content-type>/component/post</content-type>
     <imageThumbnail>undefined</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
     <properties>		<property>
         <name>display-template</name>
         <label>Display Template</label>

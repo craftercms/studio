@@ -21,6 +21,8 @@
     <objectType>page</objectType>
     <content-type>/page/article</content-type>
     <imageThumbnail>page-article.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
     <properties>		<property>
         <name>display-template</name>
         <label>Display Template</label>

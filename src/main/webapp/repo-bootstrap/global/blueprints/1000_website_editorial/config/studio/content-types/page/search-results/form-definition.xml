@@ -21,6 +21,8 @@
 	<objectType>page</objectType>
 	<content-type>/page/search-results</content-type>
 	<imageThumbnail>page-search-results.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
