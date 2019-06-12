@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
-import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -265,16 +264,7 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: refactor for 2.7.x
 
         try {
-            long start = 0;
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                start = System.currentTimeMillis();
-                logger.debug("Starting entitlement validation");
-            }
-            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ITEM,
-                objectMetadataManager.countAllItems(), 1);
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-            }
+            entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
         } catch (EntitlementException e) {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
@@ -457,16 +447,7 @@ public class ContentServiceImpl implements ContentService {
                                                  String unlock, String systemAsset) throws ServiceLayerException {
 
         try {
-            long start = 0;
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                start = System.currentTimeMillis();
-                logger.debug("Starting entitlement validation");
-            }
-            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ITEM,
-                objectMetadataManager.countAllItems(), 1);
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-            }
+            entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
         } catch (EntitlementException e) {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");

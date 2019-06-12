@@ -20,13 +20,11 @@ package org.craftercms.studio.impl.v1.entitlement;
 import java.util.Arrays;
 import java.util.List;
 
-import org.craftercms.commons.entitlements.model.Entitlement;
+import org.craftercms.commons.entitlements.exception.UnsupportedEntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.usage.EntitlementUsageProvider;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -39,8 +37,6 @@ import static org.craftercms.commons.entitlements.model.Module.STUDIO;
  * @author joseross
  */
 public class StudioEntitlementUsageProvider implements EntitlementUsageProvider {
-
-    private static final Logger logger = LoggerFactory.getLogger(EntitlementUsageProvider.class);
 
     /**
      * Current instance of {@link ObjectMetadataManager}.
@@ -82,25 +78,38 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
      * {@inheritDoc}
      */
     @Override
-    public List<Entitlement> getCurrentUsage() {
-        Entitlement sites = new Entitlement();
-        sites.setType(EntitlementType.SITE);
-        sites.setValue(siteService.countSites());
+    public List<EntitlementType> getSupportedEntitlements() {
+        return Arrays.asList(EntitlementType.SITE, EntitlementType.USER, EntitlementType.ITEM);
+    }
 
-        Entitlement users = new Entitlement();
-        users.setType(EntitlementType.USER);
-        try {
-            users.setValue(userServiceInternal.getAllUsersTotal());
-        } catch (ServiceLayerException e) {
-            logger.warn("Error getting total users", e);
-            users.setValue(0);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int doGetEntitlementUsage(final EntitlementType type) throws UnsupportedEntitlementException,
+        ServiceLayerException {
+        switch (type) {
+            case SITE:
+                return countSites();
+            case USER:
+                return countUsers();
+            case ITEM:
+                return countItems();
+            default:
+                throw new UnsupportedEntitlementException(STUDIO, type);
         }
+    }
 
-        Entitlement items = new Entitlement();
-        items.setType(EntitlementType.ITEM);
-        items.setValue(objectMetadataManager.countAllItems());
+    protected int countSites() {
+        return siteService.countSites();
+    }
 
-        return Arrays.asList(sites, users, items, items);
+    protected int countUsers() throws ServiceLayerException {
+        return userServiceInternal.getAllUsersTotal();
+    }
+
+    protected int countItems() {
+        return objectMetadataManager.countAllItems();
     }
 
 }
