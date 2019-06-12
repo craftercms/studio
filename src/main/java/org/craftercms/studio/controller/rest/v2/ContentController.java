@@ -38,8 +38,8 @@ public class ContentController {
     private ContentService contentService;
     private SiteService siteService;
 
-    @GetMapping("/api/2/content/quick_create")
-    public ResponseBody quickCreate(@RequestParam(name = "siteId", required = true) String siteId)
+    @GetMapping("/api/2/content/list_quick_create_content")
+    public ResponseBody listQuickCreateContent(@RequestParam(name = "siteId", required = true) String siteId)
             throws SiteNotFoundException {
 
         if (!siteService.exists(siteId)) {

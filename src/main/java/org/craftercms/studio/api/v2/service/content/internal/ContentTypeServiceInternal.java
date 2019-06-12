@@ -23,5 +23,11 @@ import java.util.List;
 
 public interface ContentTypeServiceInternal {
 
+    /**
+     * Get list of content types marked as quick creatable for given site
+     *
+     * @param siteId
+     * @return
+     */
     List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
 }

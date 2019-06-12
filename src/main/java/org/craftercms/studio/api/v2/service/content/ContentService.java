@@ -17,12 +17,17 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 
 import java.util.List;
 
 public interface ContentService {
 
-    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
+    /**
+     * Get list of content types marked as quick creatable for given site
+     *
+     * @param siteId site id to use
+     * @return list of content types
+     */
+    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
 }
