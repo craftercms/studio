@@ -23,27 +23,54 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_FROM_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class RepositoryManagementServiceImpl implements RepositoryManagementService {
 
     private RepositoryManagementServiceInternal repositoryManagementServiceInternal;
     private SiteService siteService;
+    private AuditServiceInternal auditServiceInternal;
+    private SecurityService securityService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "add_remote")
     public boolean addRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
-        return repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
+        boolean toRet = repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
+        insertAddRemoteAuditLog(siteId, remoteRepository.getRemoteName(), OPERATION_ADD_REMOTE,
+                remoteRepository.getRemoteName(), remoteRepository.getRemoteName());
+        return toRet;
+    }
+
+    private void insertAddRemoteAuditLog(String siteId, String remoteName, String operation, String primaryTargetId,
+                                         String primaryTargetValue) throws SiteNotFoundException {
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        String user = securityService.getCurrentUser();
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(operation);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(primaryTargetId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
+        auditLog.setPrimaryTargetValue(primaryTargetValue);
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     @Override
@@ -59,15 +86,24 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     public boolean pullFromRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
                                   String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
-        return repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch, mergeStrategy);
+        boolean toRet = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
+                mergeStrategy);
+        insertAddRemoteAuditLog(siteId, remoteName, OPERATION_PULL_FROM_REMOTE,
+                remoteName + "/" + remoteBranch, remoteName + "/" + remoteBranch);
+        return toRet;
     }
+
+
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "push_to_remote")
     public boolean pushToRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
                                 String remoteBranch, boolean force)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
-        return repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
+        boolean toRet = repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
+        insertAddRemoteAuditLog(siteId, remoteName, OPERATION_PUSH_TO_REMOTE,
+                remoteName + "/" + remoteBranch, remoteName + "/" + remoteBranch);
+        return toRet;
     }
 
     @Override
@@ -79,8 +115,10 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "remove_remote")
     public boolean removeRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName)
-            throws CryptoException {
-        return repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
+            throws CryptoException, SiteNotFoundException {
+        boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
+        insertAddRemoteAuditLog(siteId, remoteName, OPERATION_ADD_REMOTE, remoteName, remoteName);
+        return toRet;
     }
 
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {
@@ -97,5 +135,21 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 }
