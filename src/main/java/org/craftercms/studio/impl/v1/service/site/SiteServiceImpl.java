@@ -51,7 +51,6 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
-import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -751,16 +750,16 @@ public class SiteServiceImpl implements SiteService {
         }
 
         // try to get the search engine from the blueprint descriptor file
-        String searchEngine = SearchEngines.ELASTICSEARCH;
+        String searchEngine = studioConfiguration.getProperty(StudioConfiguration.PREVIEW_SEARCH_ENGINE);
 
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
-            logger.info("Using searchEngine {0} from plugin descriptor", searchEngine);
+            logger.info("Using search engine {0} from plugin descriptor", searchEngine);
         } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
             searchEngine = descriptor.getBlueprint().getSearchEngine();
-            logger.info("Using searchEngine {0} from blueprint descriptor", searchEngine);
+            logger.info("Using search engine {0} from blueprint descriptor", searchEngine);
         } else {
-            logger.info("Missing descriptor, using default searchEngine {0}", searchEngine);
+            logger.info("Missing descriptor, using default search engine {0}", searchEngine);
         }
 
         if (success) {

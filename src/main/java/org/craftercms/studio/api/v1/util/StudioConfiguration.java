@@ -214,6 +214,7 @@ public interface StudioConfiguration {
     /** Preview Search **/
     String PREVIEW_SEARCH_CREATE_URL = "studio.preview.search.createUrl";
     String PREVIEW_SEARCH_DELETE_URL = "studio.preview.search.deleteUrl";
+    String PREVIEW_SEARCH_ENGINE = "studio.preview.search.engine";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
