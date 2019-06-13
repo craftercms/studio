@@ -348,7 +348,7 @@ studio.authoring.templateName: authoring
 ############################################################
 ##                   Preview Search                       ##
 ############################################################
-# The default search engine to use when creating targets for preview
+# The default search engine to use when creating targets for preview and nothing is indicated in the blueprint
 studio.preview.search.engine: CrafterSearch
 studio.preview.search.createUrl: http://localhost:8080/crafter-search/api/2/admin/index/create
 studio.preview.search.deleteUrl: http://localhost:8080/crafter-search/api/2/admin/index/delete/{siteName}
