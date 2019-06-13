@@ -39,6 +39,7 @@ import java.util.List;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_FROM_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
@@ -117,7 +118,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     public boolean removeRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName)
             throws CryptoException, SiteNotFoundException {
         boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
-        insertAddRemoteAuditLog(siteId, OPERATION_ADD_REMOTE, remoteName, remoteName);
+        insertAddRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
         return toRet;
     }
 
