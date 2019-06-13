@@ -69,7 +69,8 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
     public void execute(final String site) throws UpgradeException {
         Path descriptorFile = getRepositoryPath(site).getParent().resolve(descriptorPath);
         if (Files.notExists(descriptorFile)) {
-            throw new UpgradeException("Plugin descriptor file not found for site " + site);
+            logger.info("Plugin descriptor file not found for site {0}", site);
+            return;
         }
         try (Reader reader = Files.newBufferedReader(descriptorFile)) {
             PluginDescriptor descriptor = descriptorReader.read(reader);
