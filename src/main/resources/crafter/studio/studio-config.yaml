@@ -534,9 +534,9 @@ studio.search.field.size: contentLength
 # Name of the field for mimeType
 studio.search.field.mimeType: contentType
 # List of fields to include in the search
-studio.search.fields.search: localId, internal-name, content, _text_
+studio.search.fields.search: localId, internal-name, title, content, *_html, *_t, *_txt
 # List of fields to include for highlighting
-studio.search.fields.highlight: localId, internal-name, content, *_html
+studio.search.fields.highlight: localId, internal-name, title, content, *_html, *_t, *_txt
 # The size of each highlight snippet
 studio.search.snippets.size: 50
 # The number of highlight snippets to generate
