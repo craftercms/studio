@@ -42,9 +42,9 @@ public class ConfigurationController {
     @GetMapping("/api/2/configuration/get_configuration")
     public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
                                          @RequestParam(name = "module", required = true) String module,
-                                         @RequestParam(name = "location", required = true) String location,
+                                         @RequestParam(name = "path", required = true) String path,
                                          @RequestParam(name = "environment", required = false) String environment) {
-        String content = configurationService.getConfigurationAsString(siteId, module, location, environment);
+        String content = configurationService.getConfigurationAsString(siteId, module, path, environment);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<String>();
@@ -58,7 +58,7 @@ public class ConfigurationController {
     public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent());
-        configurationService.writeConfiguration(wcRequest.getSiteId(), wcRequest.getModule(), wcRequest.getLocation(),
+        configurationService.writeConfiguration(wcRequest.getSiteId(), wcRequest.getModule(), wcRequest.getPath(),
                 wcRequest.getEnvironment(), is);
 
         ResponseBody responseBody = new ResponseBody();

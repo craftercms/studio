@@ -47,24 +47,24 @@ public interface ConfigurationService {
      *
      * @param siteId site id to use
      * @param module crafter CMS module
-     * @param location location of configuration file
+     * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return String content of configuration file
      */
-    String getConfigurationAsString(String siteId, String module, String location, String environment);
+    String getConfigurationAsString(String siteId, String module, String path, String environment);
 
     /**
      * Get configuration as DOM document for given parameters
      *
      * @param siteId site id to use
      * @param module crafter CMS module
-     * @param location location of configuration file
+     * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return DOM document representing configuration file
      * @throws DocumentException
      * @throws IOException
      */
-    Document getConfigurationAsDocument(String siteId, String module, String location, String environment)
+    Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
             throws DocumentException, IOException;
 
     /**
@@ -72,7 +72,7 @@ public interface ConfigurationService {
      *
      * @param siteId site id to use
      * @param module crafter CMS module
-     * @param path location where to store configuration file
+     * @param path path where to store configuration file
      * @param environment environment to use. if empty using default
      * @param content content of configuration file
      * @throws ServiceLayerException
