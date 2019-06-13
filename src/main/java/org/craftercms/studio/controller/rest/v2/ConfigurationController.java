@@ -42,9 +42,9 @@ public class ConfigurationController {
     @GetMapping("/api/2/configuration/get_configuration")
     public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
                                          @RequestParam(name = "module", required = true) String module,
-                                         @RequestParam(name = "path", required = true) String path,
+                                         @RequestParam(name = "location", required = true) String location,
                                          @RequestParam(name = "environment", required = false) String environment) {
-        String content = configurationService.getConfigurationAsString(siteId, module, path, environment);
+        String content = configurationService.getConfigurationAsString(siteId, module, location, environment);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<String>();

@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.5'
+  version: '3.1.1.6'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2063,7 +2063,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: path
+        - name: location
           in: query
           description: Configuration file path, relative to /config/<module>
           schema:
@@ -2117,7 +2117,7 @@ paths:
                 module:
                   type: string
                   description: Module name (e.g. studio, engine)
-                path:
+                location:
                   type: string
                   description: Configuration file path, relative to /config/<module>
                 environment:

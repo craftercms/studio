@@ -130,15 +130,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                    String path, String environment) {
-        return getEnvironmentConfiguration(siteId, module, path, environment);
+                                    String location, String environment) {
+        return getEnvironmentConfiguration(siteId, module, location, environment);
     }
 
     @Override
     public Document getConfigurationAsDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                               String path, String environment)
+                                               String location, String environment)
             throws DocumentException, IOException {
-        String content = getEnvironmentConfiguration(siteId, module, path, environment);
+        String content = getEnvironmentConfiguration(siteId, module, location, environment);
         Document retDocument = null;
         SAXReader saxReader = new SAXReader();
         try {
@@ -154,26 +154,26 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return retDocument;
     }
 
-    private String getDefaultConfiguration(String siteId, String module, String path) {
+    private String getDefaultConfiguration(String siteId, String module, String location) {
         String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                 .replaceAll(PATTERN_MODULE, module);
-        String configPath = Paths.get(configBasePath, path).toString();
+        String configPath = Paths.get(configBasePath, location).toString();
         return contentService.getContentAsString(siteId, configPath);
     }
 
-    private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
+    private String getEnvironmentConfiguration(String siteId, String module, String location, String environment) {
         if (!StringUtils.isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
                             .replaceAll(PATTERN_MODULE, module)
                             .replaceAll(PATTERN_ENVIRONMENT, environment);
             String configPath =
-                    Paths.get(configBasePath, path).toString();
+                    Paths.get(configBasePath, location).toString();
             if (contentService.contentExists(siteId, configPath)) {
                 return contentService.getContentAsString(siteId, configPath);
             }
         }
-        return getDefaultConfiguration(siteId, module, path);
+        return getDefaultConfiguration(siteId, module, location);
     }
 
     @Override
