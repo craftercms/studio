@@ -21,7 +21,7 @@ public class WriteConfigurationRequest {
 
     private String siteId;
     private String module;
-    private String location;
+    private String path;
     private String environment;
     private String content;
 
@@ -41,12 +41,12 @@ public class WriteConfigurationRequest {
         this.module = module;
     }
 
-    public String getLocation() {
-        return location;
+    public String getPath() {
+        return path;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getEnvironment() {

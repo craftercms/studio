@@ -179,20 +179,20 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "write_configuration")
     public void writeConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                   String location, String environment, InputStream content)
+                                   String path, String environment, InputStream content)
             throws ServiceLayerException {
-        writeEnvironmentConfiguration(siteId, module, location, environment, content);
+        writeEnvironmentConfiguration(siteId, module, path, environment, content);
     }
 
-    private void writeDefaultConfiguration(String siteId, String module, String location, InputStream content)
+    private void writeDefaultConfiguration(String siteId, String module, String path, InputStream content)
             throws ServiceLayerException {
         String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                 .replaceAll(PATTERN_MODULE, module);
-        String configPath = Paths.get(configBasePath, location).toString();
+        String configPath = Paths.get(configBasePath, path).toString();
         contentService.writeContent(siteId, configPath, content);
     }
 
-    private void writeEnvironmentConfiguration(String siteId, String module, String location, String environment,
+    private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
                                                InputStream content) throws ServiceLayerException {
         if (!StringUtils.isEmpty(environment)) {
             String configBasePath =
@@ -200,13 +200,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                             .replaceAll(PATTERN_MODULE, module)
                             .replaceAll(PATTERN_ENVIRONMENT, environment);
             if (contentService.contentExists(siteId, configBasePath)) {
-                String configPath = Paths.get(configBasePath, location).toString();
+                String configPath = Paths.get(configBasePath, path).toString();
                 contentService.writeContent(siteId, configPath, content);
             } else {
-                writeDefaultConfiguration(siteId, module, location, content);
+                writeDefaultConfiguration(siteId, module, path, content);
             }
         } else {
-            writeDefaultConfiguration(siteId, module, location, content);
+            writeDefaultConfiguration(siteId, module, path, content);
         }
     }
 
