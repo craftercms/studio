@@ -126,6 +126,7 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
                 } catch (GitAPIException e) {
                     logger.error("Error while fetching published repo for site " + siteId + " from remote " +
                             remoteNode.getGitRemoteName());
+                    logger.error(e.getMessage());
                 }
                 logger.debug("Update all environments for site " + siteId + " from cluster member " +
                         remoteNode.getLocalAddress());
@@ -135,6 +136,7 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
                     } catch (GitAPIException e) {
                         logger.error("Error while updating published repo for site " + siteId + " from remote " +
                                 remoteNode.getGitRemoteName() + " environment " + branch);
+                        logger.error(e.getMessage());
                     }
                 }
             }
