@@ -454,6 +454,8 @@ public class SiteServiceImpl implements SiteService {
 	 		try {
                 success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc);
 
+                addSiteUuidFile(siteId, siteUuid);
+
                 // insert database records
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
@@ -467,8 +469,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeedMapper.createSite(siteFeed);
 
                 upgradeManager.upgradeSite(siteId);
-
-                addSiteUuidFile(siteId, siteUuid);
 
                 insertCreateSiteAuditLog(siteId);
 
@@ -786,6 +786,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             try {
+                addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
@@ -801,8 +802,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeedMapper.createSite(siteFeed);
 
                 upgradeManager.upgradeSite(siteId);
-
-                addSiteUuidFile(siteId, siteUuid);
 
                 insertCreateSiteAuditLog(siteId);
 
@@ -886,6 +885,8 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Creating site " + siteId + " from blueprint " + blueprintId);
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description);
 
+                addSiteUuidFile(siteId, siteUuid);
+
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
@@ -936,8 +937,7 @@ public class SiteServiceImpl implements SiteService {
                     contentRepository.removeRemote(siteId, remoteName);
                 }
 
-                try {
-                    addSiteUuidFile(siteId, siteUuid);
+            try {
 
                     insertCreateSiteAuditLog(siteId);
 
