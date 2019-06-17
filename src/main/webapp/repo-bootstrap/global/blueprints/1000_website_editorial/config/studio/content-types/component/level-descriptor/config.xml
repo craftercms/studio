@@ -23,6 +23,8 @@
 	<file-extension>xml</file-extension>
 	<content-as-folder>false</content-as-folder>
 	<previewable>false</previewable>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>section-defaults.png</image-thumbnail>
 	<paths>

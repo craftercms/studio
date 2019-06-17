@@ -23,6 +23,8 @@
 	<file-extension>xml</file-extension>
 	<content-as-folder>true</content-as-folder>
 	<previewable>true</previewable>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>page-search-results.png</image-thumbnail>
 	<paths>
