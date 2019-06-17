@@ -931,64 +931,51 @@ public class SiteServiceImpl implements SiteService {
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
                         InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException |
                         InvalidRemoteUrlException | ServiceLayerException e) {
+                    logger.error("Error while pushing site: " + siteId + " ID: " + siteId + " to remote repository "
+                            + remoteName + " (" + remoteUrl + ")", e);
+                    contentRepository.removeRemote(siteId, remoteName);
+                }
+
+                try {
+                    addSiteUuidFile(siteId, siteUuid);
+
+                    insertCreateSiteAuditLog(siteId);
+
+                    insertAddRemoteAuditLog(siteId, remoteName);
+
+                    // Add default groups
+                    logger.debug("Adding default groups for site " + siteId);
+                    addDefaultGroupsForNewSite(siteId);
+
+                    logger.debug("Loading configuration for site " + siteId);
+                    reloadSiteConfiguration(siteId);
+
+                    syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
+
+                    // initial deployment
+                    logger.debug("Executing initial deployement for site " + siteId);
+                    List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
+                    if (publishingTargets != null && publishingTargets.size() > 0) {
+                        for (PublishingTargetTO target : publishingTargets) {
+                            if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                                contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
+                                        securityService.getCurrentUser(), "Create site.");
+                            }
+                        }
+                    }
+                    objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+
+
+                } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                             blueprintId + ". Rolling back.", e);
 
-                    contentRepository.removeRemote(siteId, remoteName);
+                    deleteSite(siteId);
 
-                    contentRepository.deleteSite(siteId);
-
-                    boolean deleted = previewDeployer.deleteTarget(siteId);
-                    if (!deleted) {
-                        logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                                " from blueprint: " + blueprintId + ". This means the site's preview deployer" +
-                                " target is still present, but the site is not successfully created.");
-                    }
-
-                    throw e;
+                    throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
+                            " from blueprint: " + blueprintId + ". Rolling back.");
                 }
-            }
-
-            try {
-                addSiteUuidFile(siteId, siteUuid);
-
-                insertCreateSiteAuditLog(siteId);
-
-                insertAddRemoteAuditLog(siteId, remoteName);
-
-                // Add default groups
-                logger.debug("Adding default groups for site " + siteId);
-                addDefaultGroupsForNewSite(siteId);
-
-                logger.debug("Loading configuration for site " + siteId);
-                reloadSiteConfiguration(siteId);
-
-                syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
-
-                // initial deployment
-                logger.debug("Executing initial deployement for site " + siteId);
-                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                if (publishingTargets != null && publishingTargets.size() > 0) {
-                    for (PublishingTargetTO target : publishingTargets) {
-                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityService.getCurrentUser(), "Create site.");
-                        }
-                    }
-                }
-                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
-
-
-            } catch(Exception e) {
-                success = false;
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                        blueprintId + ". Rolling back.", e);
-
-                deleteSite(siteId);
-
-                throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " from blueprint: " + blueprintId + ". Rolling back.");
             }
         }
 
