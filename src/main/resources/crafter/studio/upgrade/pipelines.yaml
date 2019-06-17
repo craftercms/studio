@@ -383,6 +383,14 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.0.30/system/global-permission-mappings-config.xslt
           commitDetails: Added s3 permissions
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.0.30
+      nextVersion: 3.1.0.31
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-contextual-nav.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.31/system/sample-contextual-nav.xslt
+          commitDetails: Add quick create menu item
+        - type: dbVersionUpgrader
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -713,4 +721,18 @@ configurations:
             commitDetails: Add previewEngineServerUrl and graphqlServerUrl properties to environment configuration
           - type: xsltFileUpgrader
             path: *environment-config
+            template: crafter/studio/upgrade/update-version.xslt
+
+  contextual-nav:
+    path: &contextual-nav '/config/studio/context-nav/contextual-nav.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *contextual-nav
+            template: crafter/studio/upgrade/3.1.x/3.1.0.31/site/contextual-nav.xslt
+            commitDetails: Add quick create menu item
+          - type: xsltFileUpgrader
+            path: *contextual-nav
             template: crafter/studio/upgrade/update-version.xslt
