@@ -403,7 +403,7 @@ pipelines:
           includedPaths:
             - config/studio/site-config.xml
           pattern: MONTHS?
-          replacement: m
+          replacement: M
         - type: findAndReplaceUpgrader
           includedPaths:
             - config/studio/site-config.xml
@@ -412,8 +412,11 @@ pipelines:
         - type: findAndReplaceUpgrader
           includedPaths:
             - config/studio/site-config.xml
-          pattern: \/(d|m|y)(\+|\-)([^\s\]]+)
+          pattern: \/(d|M|y)(\+|\-)([^\s\]]+)
           replacement: $2$3/$1
+        - type: deleteUpgrader
+          paths:
+            - /site/website/crafter-component.xml
         - type: versionFileUpgrader
 
     - currentVersion: 3.1.0
