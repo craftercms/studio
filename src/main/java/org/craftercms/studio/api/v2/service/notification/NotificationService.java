@@ -84,7 +84,8 @@ public interface NotificationService {
      * @param scheduleDate
      * @param locale Language of the notification ,if null defaults to English.
      */
-    void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted, final String approver, final ZonedDateTime scheduleDate, Locale locale);
+    void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted,
+                               final String approver, final ZonedDateTime scheduleDate, Locale locale);
 
     /**
      * Gets and process notification message
