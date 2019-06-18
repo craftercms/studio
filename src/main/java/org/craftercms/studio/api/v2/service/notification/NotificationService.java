@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
 /**
  * New Interface for Workflow Notification Service.
@@ -123,4 +125,15 @@ public interface NotificationService {
      */
     void notifyContentRejection(final String site,final String submittedBy,final List<String> rejectedItems,final
                                 String rejectionReason, final String userThatRejects,final Locale locale);
+
+    /**
+     * Send email to admin that repository has merge conflict
+     *
+     * @param site site with merge conflict
+     * @param filesUnableToMerge files unable to merge
+     * @param locale language of the message ,if null defaults to English.
+     */
+    @ValidateParams
+    void notifyRepositoryMergeConflict(@ValidateStringParam(name = "site") String site,
+                                       List<String> filesUnableToMerge, Locale locale);
 }

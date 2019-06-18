@@ -78,6 +78,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFICATION_KEY_CONTENT_APPROVED = "contentApproved";
     private static final String NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW = "submittedForReview";
     private static final String NOTIFICATION_KEY_CONTENT_REJECTED = "contentRejected";
+    private static final String NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT = "repositoryMergeConflict";
 
     protected Map<String, Map<String, NotificationConfigTO>> notificationConfiguration;
     protected ContentService contentService;
@@ -315,6 +316,8 @@ public class NotificationServiceImpl implements NotificationService {
                             configForLang.getDeploymentFailureNotifications());
                         loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
                             .getApproverEmails());
+                        loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
+                                configForLang.getRepositoryMergeConflictNotifications());
                     } else {
                         logger.error("A lang section does not have the 'name' attribute, ignoring");
                     }
@@ -458,6 +461,21 @@ public class NotificationServiceImpl implements NotificationService {
             files.add(contentService.getContentItem(site, path));
         }
         return files;
+    }
+
+    @Override
+    @ValidateParams
+    public void notifyRepositoryMergeConflict(@ValidateStringParam(name = "site") final String site,
+                                              final List<String> filesUnableToMerge, final Locale locale) {
+        try {
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
+            final Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("files", filesUnableToMerge);
+            notify(site, notificationConfig.getRepositoryMergeConflictNotifications(),
+                    NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT, locale, templateModel);
+        } catch (Throwable ex) {
+            logger.error("Unable to Notify Error", ex);
+        }
     }
 
     public String getConfigPath() {

@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.util.GitRepositoryHelper;
 import org.eclipse.jgit.api.FetchCommand;
@@ -48,6 +49,7 @@ import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -63,6 +65,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -82,6 +85,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     private RemoteRepositoryDAO remoteRepositoryDao;
     private StudioConfiguration studioConfiguration;
+    private NotificationService notificationService;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -318,8 +322,28 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             pullCommand = helper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
+            switch (mergeStrategy) {
+                case "theirs":
+                    pullCommand.setStrategy(MergeStrategy.THEIRS);
+                    break;
+                case "ours":
+                    pullCommand.setStrategy(MergeStrategy.OURS);
+                    break;
+                default:
+                    break;
+            }
             pullResult = pullCommand.call();
             Files.delete(tempKey);
+            if (!pullResult.isSuccessful() && StringUtils.equalsIgnoreCase(mergeStrategy, "email")) {
+                List<String> conflictFiles = new ArrayList<String>();
+                if (pullResult.getMergeResult() != null) {
+                    pullResult.getMergeResult().getFailingPaths().forEach((m, v) -> {
+                        logger.error(m + " - " + v.toString());
+                        conflictFiles.add(m + " - " + v.toString());
+                    });
+                }
+                notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles, Locale.ENGLISH);
+            }
             return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
@@ -419,5 +443,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 }

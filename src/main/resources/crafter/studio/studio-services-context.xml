@@ -407,6 +407,7 @@
           class="org.craftercms.studio.impl.v2.service.repository.internal.RepositoryManagementServiceInternalImpl">
         <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="notificationService" ref="cstudioNotificationService" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
