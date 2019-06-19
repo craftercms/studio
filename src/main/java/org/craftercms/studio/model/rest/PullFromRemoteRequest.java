@@ -17,12 +17,14 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class PullFromRemoteRequest {
 
     private String siteId;
     private String remoteName;
     private String remoteBranch;
-    private String mergeStrategy;
+    private String mergeStrategy = StringUtils.EMPTY;
 
     public String getSiteId() {
         return siteId;
@@ -49,7 +51,7 @@ public class PullFromRemoteRequest {
     }
 
     public String getMergeStrategy() {
-        return mergeStrategy;
+        return StringUtils.isEmpty(mergeStrategy) ? StringUtils.EMPTY : mergeStrategy;
     }
 
     public void setMergeStrategy(String mergeStrategy) {
