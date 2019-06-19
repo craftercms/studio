@@ -421,7 +421,8 @@
     <bean id="contnetTypeServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl" >
         <property name="contentTypeService" ref="cstudioContentTypeService" />
-    </bean>
+        <property name="securityService" ref="cstudioSecurityService" />
+     </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->

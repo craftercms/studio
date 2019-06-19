@@ -17,9 +17,6 @@
 
 package org.craftercms.studio.impl.v2.service.content;
 
-import org.craftercms.commons.security.permissions.DefaultPermission;
-import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -27,16 +24,13 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 
 import java.util.List;
 
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-
 public class ContentServiceImpl implements ContentService {
 
     private ContentServiceInternal contentServiceInternal;
     private ContentTypeServiceInternal contentTypeServiceInternal;
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "create content")
-    public List<QuickCreateItem> getQuickCreatableContentTypes(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
         return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
     }
 
