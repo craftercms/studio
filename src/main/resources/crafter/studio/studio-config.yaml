@@ -348,6 +348,8 @@ studio.authoring.templateName: authoring
 ############################################################
 ##                   Preview Search                       ##
 ############################################################
+# The default search engine to use when creating targets for preview and nothing is indicated in the blueprint
+studio.preview.search.engine: CrafterSearch
 studio.preview.search.createUrl: http://localhost:8080/crafter-search/api/2/admin/index/create
 studio.preview.search.deleteUrl: http://localhost:8080/crafter-search/api/2/admin/index/delete/{siteName}
 
@@ -534,9 +536,9 @@ studio.search.field.size: contentLength
 # Name of the field for mimeType
 studio.search.field.mimeType: contentType
 # List of fields to include in the search
-studio.search.fields.search: localId, internal-name, content, _text_
+studio.search.fields.search: localId, internal-name, title, content, *_html, *_t, *_txt
 # List of fields to include for highlighting
-studio.search.fields.highlight: localId, internal-name, content, *_html
+studio.search.fields.highlight: localId, internal-name, title, content, *_html, *_t, *_txt
 # The size of each highlight snippet
 studio.search.snippets.size: 50
 # The number of highlight snippets to generate

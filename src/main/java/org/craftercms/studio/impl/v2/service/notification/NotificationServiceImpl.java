@@ -66,6 +66,8 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_TIMEZONE;
 
@@ -284,7 +286,8 @@ public class NotificationServiceImpl implements NotificationService {
         Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<String, NotificationConfigTO>();
 
         try {
-            Document document = contentService.getContentAsDocument(site, getConfigPath());
+            Document document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, getConfigPath(),
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             if (document != null) {
                 Element root = document.getRootElement();
                 final List<Element> languages = root.selectNodes("//lang");

@@ -51,7 +51,6 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
-import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -455,6 +454,8 @@ public class SiteServiceImpl implements SiteService {
 	 		try {
                 success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc);
 
+                addSiteUuidFile(siteId, siteUuid);
+
                 // insert database records
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
@@ -468,8 +469,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeedMapper.createSite(siteFeed);
 
                 upgradeManager.upgradeSite(siteId);
-
-                addSiteUuidFile(siteId, siteUuid);
 
                 insertCreateSiteAuditLog(siteId);
 
@@ -751,16 +750,16 @@ public class SiteServiceImpl implements SiteService {
         }
 
         // try to get the search engine from the blueprint descriptor file
-        String searchEngine = SearchEngines.ELASTICSEARCH;
+        String searchEngine = studioConfiguration.getProperty(StudioConfiguration.PREVIEW_SEARCH_ENGINE);
 
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
-            logger.info("Using searchEngine {0} from plugin descriptor", searchEngine);
+            logger.info("Using search engine {0} from plugin descriptor", searchEngine);
         } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
             searchEngine = descriptor.getBlueprint().getSearchEngine();
-            logger.info("Using searchEngine {0} from blueprint descriptor", searchEngine);
+            logger.info("Using search engine {0} from blueprint descriptor", searchEngine);
         } else {
-            logger.info("Missing descriptor, using default searchEngine {0}", searchEngine);
+            logger.info("Missing descriptor, using default search engine {0}", searchEngine);
         }
 
         if (success) {
@@ -787,6 +786,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             try {
+                addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
@@ -802,8 +802,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeedMapper.createSite(siteFeed);
 
                 upgradeManager.upgradeSite(siteId);
-
-                addSiteUuidFile(siteId, siteUuid);
 
                 insertCreateSiteAuditLog(siteId);
 
@@ -887,6 +885,8 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Creating site " + siteId + " from blueprint " + blueprintId);
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description);
 
+                addSiteUuidFile(siteId, siteUuid);
+
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
@@ -932,64 +932,50 @@ public class SiteServiceImpl implements SiteService {
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
                         InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException |
                         InvalidRemoteUrlException | ServiceLayerException e) {
+                    logger.error("Error while pushing site: " + siteId + " ID: " + siteId + " to remote repository "
+                            + remoteName + " (" + remoteUrl + ")", e);
+                    contentRepository.removeRemote(siteId, remoteName);
+                }
+
+            try {
+
+                    insertCreateSiteAuditLog(siteId);
+
+                    insertAddRemoteAuditLog(siteId, remoteName);
+
+                    // Add default groups
+                    logger.debug("Adding default groups for site " + siteId);
+                    addDefaultGroupsForNewSite(siteId);
+
+                    logger.debug("Loading configuration for site " + siteId);
+                    reloadSiteConfiguration(siteId);
+
+                    syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
+
+                    // initial deployment
+                    logger.debug("Executing initial deployement for site " + siteId);
+                    List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
+                    if (publishingTargets != null && publishingTargets.size() > 0) {
+                        for (PublishingTargetTO target : publishingTargets) {
+                            if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                                contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
+                                        securityService.getCurrentUser(), "Create site.");
+                            }
+                        }
+                    }
+                    objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+
+
+                } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                             blueprintId + ". Rolling back.", e);
 
-                    contentRepository.removeRemote(siteId, remoteName);
+                    deleteSite(siteId);
 
-                    contentRepository.deleteSite(siteId);
-
-                    boolean deleted = previewDeployer.deleteTarget(siteId);
-                    if (!deleted) {
-                        logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                                " from blueprint: " + blueprintId + ". This means the site's preview deployer" +
-                                " target is still present, but the site is not successfully created.");
-                    }
-
-                    throw e;
+                    throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
+                            " from blueprint: " + blueprintId + ". Rolling back.");
                 }
-            }
-
-            try {
-                addSiteUuidFile(siteId, siteUuid);
-
-                insertCreateSiteAuditLog(siteId);
-
-                insertAddRemoteAuditLog(siteId, remoteName);
-
-                // Add default groups
-                logger.debug("Adding default groups for site " + siteId);
-                addDefaultGroupsForNewSite(siteId);
-
-                logger.debug("Loading configuration for site " + siteId);
-                reloadSiteConfiguration(siteId);
-
-                syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
-
-                // initial deployment
-                logger.debug("Executing initial deployement for site " + siteId);
-                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                if (publishingTargets != null && publishingTargets.size() > 0) {
-                    for (PublishingTargetTO target : publishingTargets) {
-                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityService.getCurrentUser(), "Create site.");
-                        }
-                    }
-                }
-                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
-
-
-            } catch(Exception e) {
-                success = false;
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                        blueprintId + ". Rolling back.", e);
-
-                deleteSite(siteId);
-
-                throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " from blueprint: " + blueprintId + ". Rolling back.");
             }
         }
 

@@ -21,6 +21,8 @@
 	<objectType>page</objectType>
 	<content-type>/page/category-landing</content-type>
 	<imageThumbnail>page-category-landing.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>

@@ -398,6 +398,8 @@
           class="org.craftercms.studio.impl.v2.service.repository.RepositoryManagementServiceImpl">
         <property name="repositoryManagementServiceInternal" ref="repositoryManagementServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="repositoryManagementServiceInternal"
@@ -419,7 +421,8 @@
     <bean id="contnetTypeServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl" >
         <property name="contentTypeService" ref="cstudioContentTypeService" />
-    </bean>
+        <property name="securityService" ref="cstudioSecurityService" />
+     </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->

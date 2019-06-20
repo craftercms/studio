@@ -58,7 +58,7 @@ public class ConfigurationController {
     public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent());
-        configurationService.writeConfiguration(wcRequest.getSiteId(), wcRequest.getModule(), wcRequest.getLocation(),
+        configurationService.writeConfiguration(wcRequest.getSiteId(), wcRequest.getModule(), wcRequest.getPath(),
                 wcRequest.getEnvironment(), is);
 
         ResponseBody responseBody = new ResponseBody();

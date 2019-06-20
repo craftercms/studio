@@ -116,21 +116,30 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
             for (ClusterMember remoteNode : clusterNodes) {
-                logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
-                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
-                fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
-                fetch.call();
-                Files.delete(tempKey);
-
+                try {
+                    logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
+                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                    FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
+                    fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
+                    fetch.call();
+                    Files.delete(tempKey);
+                } catch (GitAPIException e) {
+                    logger.error("Error while fetching published repo for site " + siteId + " from remote " +
+                            remoteNode.getGitRemoteName());
+                    logger.error(e.getMessage());
+                }
                 logger.debug("Update all environments for site " + siteId + " from cluster member " +
                         remoteNode.getLocalAddress());
                 for (String branch : environments) {
-                    updatePublishedBranch(git, remoteNode, branch);
+                    try {
+                        updatePublishedBranch(git, remoteNode, branch);
+                    } catch (GitAPIException e) {
+                        logger.error("Error while updating published repo for site " + siteId + " from remote " +
+                                remoteNode.getGitRemoteName() + " environment " + branch);
+                        logger.error(e.getMessage());
+                    }
                 }
             }
-        } catch (GitAPIException e) {
-            logger.error("Error while updating published repo for site " + siteId);
         }
 
     }

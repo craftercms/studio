@@ -108,7 +108,8 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                                     userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") &&
+                    if ((httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") ||
+                            httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/2")) &&
                             !getIgnoreRenewTokenUrls()
                                     .contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
                         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
