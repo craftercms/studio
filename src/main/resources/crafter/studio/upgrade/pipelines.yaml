@@ -391,8 +391,8 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.0.31/system/sample-contextual-nav.xslt
           commitDetails: Add quick create menu item
         - type: dbVersionUpgrader
-    - currentVersion: 3.1.0.31
-      nextVersion: 3.1.0.32
+    - currentVersion: 3.1.0.32
+      nextVersion: 3.1.0.33
       operations:
         - type: globalRepoUpgrader
           files:
@@ -410,7 +410,7 @@ pipelines:
       operations:
         - type: xsltFileUpgrader
           path: /configuration/samples/sample-notification-config.xml
-          template: crafter/studio/upgrade/3.1.x/3.1.0.32/system/sample-notification-config.xslt
+          template: crafter/studio/upgrade/3.1.x/3.1.0.33/system/sample-notification-config.xslt
           commitDetails: Add pull from remote conflict notification
         - type: dbVersionUpgrader
 
@@ -811,7 +811,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *notification-config
-            template: crafter/studio/upgrade/3.1.x/3.1.0.32/site/notification-config.xslt
+            template: crafter/studio/upgrade/3.1.x/3.1.0.33/site/notification-config.xslt
             commitDetails: Add pull from remote conflict notifiction
           - type: xsltFileUpgrader
             path: *notification-config
