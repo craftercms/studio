@@ -391,8 +391,8 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.0.31/system/sample-contextual-nav.xslt
           commitDetails: Add quick create menu item
         - type: dbVersionUpgrader
-    - currentVersion: 3.1.0.32
-      nextVersion: 3.1.0.33
+    - currentVersion: 3.1.0.31
+      nextVersion: 3.1.0.32
       operations:
         - type: globalRepoUpgrader
           files:
@@ -404,9 +404,8 @@ pipelines:
               dest: /configuration/samples/sample-webdav.xml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
-
-    - currentVersion: 3.1.0.31
-      nextVersion: 3.1.0.32
+    - currentVersion: 3.1.0.32
+      nextVersion: 3.1.0.33
       operations:
         - type: xsltFileUpgrader
           path: /configuration/samples/sample-notification-config.xml
