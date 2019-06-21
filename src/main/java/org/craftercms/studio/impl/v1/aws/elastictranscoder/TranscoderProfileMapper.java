@@ -65,6 +65,10 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public class TranscoderProfileMapper extends AbstractAwsProfileMapper<TranscoderProfile> {
 
+    public TranscoderProfileMapper() {
+        super("elasticTranscoder");
+    }
+
     @Override
     protected TranscoderProfile mapProfile(HierarchicalConfiguration<ImmutableNode> profileConfig)
             throws ConfigurationException {

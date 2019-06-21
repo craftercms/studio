@@ -48,14 +48,18 @@ import static org.craftercms.commons.config.ConfigUtils.*;
  *
  * @author joseross
  */
-@SuppressWarnings("unchecked")
 public class MediaConvertProfileMapper extends AbstractAwsProfileMapper<MediaConvertProfile> {
 
+    public static final String CONFIG_KEY_MEDIACONVERT = "mediaConvert";
     public static final String CONFIG_KEY_ENDPOINT = "endpoint";
     public static final String CONFIG_KEY_ROLE = "role";
     public static final String CONFIG_KEY_QUEUE = "queue";
     public static final String CONFIG_KEY_TEMPLATE = "template";
     public static final String CONFIG_KEY_INPUT_PATH = "inputPath";
+
+    public MediaConvertProfileMapper() {
+        super(CONFIG_KEY_MEDIACONVERT);
+    }
 
     @Override
     protected MediaConvertProfile mapProfile(HierarchicalConfiguration<ImmutableNode> profileConfig)

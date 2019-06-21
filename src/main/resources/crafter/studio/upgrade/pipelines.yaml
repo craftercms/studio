@@ -391,6 +391,20 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.0.31/system/sample-contextual-nav.xslt
           commitDetails: Add quick create menu item
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.0.31
+      nextVersion: 3.1.0.32
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.32/system/sample-aws.xml
+              dest: /configuration/samples/sample-aws.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.32/system/sample-box.xml
+              dest: /configuration/samples/sample-box.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.0.32/system/sample-webdav.xml
+              dest: /configuration/samples/sample-webdav.xml
+          commitDetails: Update sample files
+        - type: dbVersionUpgrader
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -735,4 +749,46 @@ configurations:
             commitDetails: Add quick create menu item
           - type: xsltFileUpgrader
             path: *contextual-nav
+            template: crafter/studio/upgrade/update-version.xslt
+
+  aws:
+    path: &aws '/config/studio/aws/aws.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *aws
+            template: crafter/studio/upgrade/3.1.x/3.1.0.32/site/aws.xslt
+            commitDetails: Add sections for services
+          - type: xsltFileUpgrader
+            path: *aws
+            template: crafter/studio/upgrade/update-version.xslt
+
+  box:
+    path: &box '/config/studio/box/box.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *box
+            template: crafter/studio/upgrade/3.1.x/3.1.0.32/site/box.xslt
+            commitDetails: Add sections for services
+          - type: xsltFileUpgrader
+            path: *box
+            template: crafter/studio/upgrade/update-version.xslt
+
+  webdav:
+    path: &webdav '/config/studio/webdav/webdav.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *webdav
+            template: crafter/studio/upgrade/3.1.x/3.1.0.32/site/webdav.xslt
+            commitDetails: Add sections for services
+          - type: xsltFileUpgrader
+            path: *webdav
             template: crafter/studio/upgrade/update-version.xslt
