@@ -33,6 +33,12 @@
             <email>admin2@example.com</email>
         </approverEmails>
 
+        <!-- list of email addresses to notify in case of repository merge conflict -->
+        <repositoryMergeConflictNotification>
+            <email>admin@example.com</email>
+            <email>admin2@example.com</email>
+        </repositoryMergeConflictNotification>
+
         <generalMessages> <!-- list of general messages -->
             <!-- example scheduling policy -->
             <content key="scheduling-policy"><![CDATA[The {siteName} processes all publishing requests each business day, between 4PM EST and 6PM EST, unless a specific date/time is requested.<br/><br/>All requests received after 4PM EST may not be processed until the next business day.<br/><br/>If you have any questions about this policy or need a publish request processed immediately, please email the administrator.]]>
@@ -221,6 +227,27 @@
                             </body>
                         </html>
                         ]]></body>
+            </emailTemplate>
+
+            <emailTemplate key="repositoryMergeConflict">
+                <subject>Repository merge conflict for site ${siteName}</subject>
+                <body><![CDATA[
+                        <html>
+                            <head>
+                                <meta charset="utf-8"/>
+                            </head>
+                            <body style=" font-size: 12pt;">
+                                <p>
+                                    The following content was unable to be merged:
+                                    <ul>
+                                        <#list files as file>
+                                                <li>${file}</li>
+                                        </#list>
+                                    </ul>
+                                </p>
+                            </body>
+                        </html>
+]]></body>
             </emailTemplate>
         </emailTemplates>
     </lang>

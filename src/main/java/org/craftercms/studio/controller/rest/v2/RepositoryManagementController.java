@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.model.rest.PullFromRemoteRequest;
 import org.craftercms.studio.model.rest.PushToRemoteRequest;
@@ -101,13 +102,13 @@ public class RepositoryManagementController {
                 pullFromRemoteRequest.getRemoteName(), pullFromRemoteRequest.getRemoteBranch(),
                 pullFromRemoteRequest.getMergeStrategy());
 
+        if (!res) {
+            throw new PullFromRemoteConflictException("Pull from remote result is merge conflict.");
+        }
+
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
-        if (res) {
-            result.setResponse(OK);
-        } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
-        }
+        result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
     }

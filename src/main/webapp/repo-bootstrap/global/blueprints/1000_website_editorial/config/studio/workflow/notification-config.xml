@@ -22,6 +22,7 @@
 
 -->
 <notificationConfig>
+    <version>2</version>
     <lang name="en"> <!-- language specific notifications -->
         <deploymentFailureNotification> <!-- list of email addresses to notify in case of publishing failure -->
             <email>admin@example.com</email>

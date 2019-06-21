@@ -51,6 +51,8 @@ public interface StudioConfiguration {
     String REPO_DELETE_CONTENT_COMMIT_MESSAGE = "studio.repo.deleteContent.commitMessage";
     String REPO_MOVE_CONTENT_COMMIT_MESSAGE = "studio.repo.moveContent.commitMessage";
     String REPO_COPY_CONTENT_COMMIT_MESSAGE = "studio.repo.copyContent.commitMessage";
+    String REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED =
+            "studio.repo.pullFromRemote.conflict.notificationEnabled";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";

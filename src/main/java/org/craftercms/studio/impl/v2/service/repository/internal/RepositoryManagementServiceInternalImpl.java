@@ -71,6 +71,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -82,6 +83,9 @@ import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_REMOTE_
 public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryManagementServiceInternalImpl.class);
+
+    private static final String THEIRS = "theirs";
+    private static final String OURS = "ours";
 
     private RemoteRepositoryDAO remoteRepositoryDao;
     private StudioConfiguration studioConfiguration;
@@ -323,10 +327,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
             switch (mergeStrategy) {
-                case "theirs":
+                case THEIRS:
                     pullCommand.setStrategy(MergeStrategy.THEIRS);
                     break;
-                case "ours":
+                case OURS:
                     pullCommand.setStrategy(MergeStrategy.OURS);
                     break;
                 default:
@@ -334,12 +338,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             pullResult = pullCommand.call();
             Files.delete(tempKey);
-            if (!pullResult.isSuccessful() && StringUtils.equalsIgnoreCase(mergeStrategy, "email")) {
+            if (!pullResult.isSuccessful() && conflictNotificationEnabled()) {
                 List<String> conflictFiles = new ArrayList<String>();
                 if (pullResult.getMergeResult() != null) {
-                    pullResult.getMergeResult().getFailingPaths().forEach((m, v) -> {
-                        logger.error(m + " - " + v.toString());
-                        conflictFiles.add(m + " - " + v.toString());
+                    pullResult.getMergeResult().getConflicts().forEach((m, v) -> {
+                        conflictFiles.add(m);
                     });
                 }
                 notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles, Locale.ENGLISH);
@@ -427,6 +430,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         remoteRepositoryDao.deleteRemoteRepository(params);
 
         return true;
+    }
+
+    private boolean conflictNotificationEnabled() {
+        return Boolean.parseBoolean(
+                studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
     }
 
     public RemoteRepositoryDAO getRemoteRepositoryDao() {

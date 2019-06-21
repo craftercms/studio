@@ -21,10 +21,16 @@ import org.apache.commons.lang3.StringUtils;
 
 public class PullFromRemoteRequest {
 
+    public enum MergeStrategy {
+        theirs,
+        ours,
+        none
+    }
+
     private String siteId;
     private String remoteName;
     private String remoteBranch;
-    private String mergeStrategy = StringUtils.EMPTY;
+    private MergeStrategy mergeStrategy = MergeStrategy.none;
 
     public String getSiteId() {
         return siteId;
@@ -51,10 +57,10 @@ public class PullFromRemoteRequest {
     }
 
     public String getMergeStrategy() {
-        return StringUtils.isEmpty(mergeStrategy) ? StringUtils.EMPTY : mergeStrategy;
+        return mergeStrategy.toString();
     }
 
     public void setMergeStrategy(String mergeStrategy) {
-        this.mergeStrategy = mergeStrategy;
+        this.mergeStrategy = StringUtils.isEmpty(mergeStrategy) ? MergeStrategy.none : MergeStrategy.valueOf(mergeStrategy);
     }
 }

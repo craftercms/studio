@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsExceptio
 import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
+import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -215,6 +216,12 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
+    @ExceptionHandler(PullFromRemoteConflictException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseBody handlePullFromRemoteConflictException(HttpServletRequest request, PullFromRemoteConflictException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
+        return handleExceptionInternal(request, e, response);
+    }
 
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
         logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) + " failed with response: " +

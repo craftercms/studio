@@ -60,6 +60,8 @@ studio.repo.moveContent.commitMessage: "Moving {fromPath} to {toPath}"
 studio.repo.copyContent.commitMessage: "Copying {fromPath} to {toPath}"
 # The cron expression used on scheduled cleanup of repositories
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
+# Enable/disable notification messages in case of pull from remote conflicts
+studio.repo.pullFromRemote.conflict.notificationEnabled: false
 
 ############################################################
 ##                   Site Configuration                   ##

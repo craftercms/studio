@@ -1858,7 +1858,7 @@ paths:
                   description: Remote repository branch to pull from
                 mergeStrategy:
                   type: string
-                  format: theirs, ours, resolve, recursive, simple two way in core
+                  format: theirs, ours, none
                   description: Merge strategy to use when pulling content from remote repository
       responses:
         '200':
