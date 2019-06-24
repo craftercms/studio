@@ -325,6 +325,7 @@
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userDao" ref="userDAO" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="organizationServiceInternal"

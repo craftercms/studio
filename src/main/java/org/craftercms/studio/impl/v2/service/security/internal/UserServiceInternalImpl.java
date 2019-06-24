@@ -24,9 +24,11 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
@@ -35,8 +37,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
@@ -59,6 +65,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     private UserDAO userDao;
     private GroupServiceInternal groupServiceInternal;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
@@ -157,26 +164,29 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         if (userExists(-1, user.getUsername())) {
             throw new UserAlreadyExistsException("User '" + user.getUsername() + "' already exists");
         }
+        if (verifyPasswordRequirements(user.getPassword())) {
+            Map<String, Object> params = new HashMap<>();
+            params.put(USERNAME, user.getUsername());
+            params.put(PASSWORD, CryptoUtils.hashPassword(user.getPassword()));
+            params.put(FIRST_NAME, user.getFirstName());
+            params.put(LAST_NAME, user.getLastName());
+            params.put(EMAIL, user.getEmail());
+            params.put(EXTERNALLY_MANAGED, user.getExternallyManagedAsInt());
+            params.put(TIMEZONE, StringUtils.EMPTY);
+            params.put(LOCALE, StringUtils.EMPTY);
+            params.put(ENABLED, user.getEnabledAsInt());
 
-        Map<String, Object> params = new HashMap<>();
-        params.put(USERNAME, user.getUsername());
-        params.put(PASSWORD, CryptoUtils.hashPassword(user.getPassword()));
-        params.put(FIRST_NAME, user.getFirstName());
-        params.put(LAST_NAME, user.getLastName());
-        params.put(EMAIL, user.getEmail());
-        params.put(EXTERNALLY_MANAGED, user.getExternallyManagedAsInt());
-        params.put(TIMEZONE, StringUtils.EMPTY);
-        params.put(LOCALE, StringUtils.EMPTY);
-        params.put(ENABLED, user.getEnabledAsInt());
+            try {
+                userDao.createUser(params);
 
-        try {
-            userDao.createUser(params);
+                user.setId((Long) params.get(ID));
 
-            user.setId((Long) params.get(ID));
-
-            return user;
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
+                return user;
+            } catch (Exception e) {
+                throw new ServiceLayerException("Unknown database error", e);
+            }
+        } else {
+            throw new PasswordRequirementsFailedException();
         }
     }
 
@@ -297,12 +307,16 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                 throw new UserExternallyManagedException();
             } else {
                 if (CryptoUtils.matchPassword(user.getPassword(), current)) {
-                    String hashedPassword = CryptoUtils.hashPassword(newPassword);
-                    params = new HashMap<>();
-                    params.put(USERNAME, username);
-                    params.put(PASSWORD, hashedPassword);
-                    userDao.setUserPassword(params);
-                    return true;
+                    if (verifyPasswordRequirements(newPassword)) {
+                        String hashedPassword = CryptoUtils.hashPassword(newPassword);
+                        params = new HashMap<>();
+                        params.put(USERNAME, username);
+                        params.put(PASSWORD, hashedPassword);
+                        userDao.setUserPassword(params);
+                        return true;
+                    } else {
+                        throw new PasswordRequirementsFailedException();
+                    }
                 } else {
                     throw new PasswordDoesNotMatchException();
                 }
@@ -318,25 +332,47 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         if (!userExists(-1, username)) {
             throw new UserNotFoundException();
         } else {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put(USER_ID, -1);
-            params.put(USERNAME, username);
-            try {
-                User user = userDao.getUserByIdOrUsername(params);
-                if (user.isExternallyManaged()) {
-                    throw new UserExternallyManagedException();
-                } else {
-                    String hashedPassword = CryptoUtils.hashPassword(newPassword);
-                    params = new HashMap<String, Object>();
-                    params.put(USERNAME, username);
-                    params.put(PASSWORD, hashedPassword);
-                    userDao.setUserPassword(params);
-                    return true;
+            if (verifyPasswordRequirements(newPassword)) {
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put(USER_ID, -1);
+                params.put(USERNAME, username);
+                try {
+                    User user = userDao.getUserByIdOrUsername(params);
+                    if (user.isExternallyManaged()) {
+                        throw new UserExternallyManagedException();
+                    } else {
+                        String hashedPassword = CryptoUtils.hashPassword(newPassword);
+                        params = new HashMap<String, Object>();
+                        params.put(USERNAME, username);
+                        params.put(PASSWORD, hashedPassword);
+                        userDao.setUserPassword(params);
+                        return true;
+                    }
+                } catch (Exception e) {
+                    throw new ServiceLayerException("Unknown database error", e);
                 }
-            } catch (Exception e) {
-                throw new ServiceLayerException("Unknown database error", e);
+            } else {
+                throw new PasswordRequirementsFailedException();
             }
         }
+    }
+
+    private boolean verifyPasswordRequirements(String password) {
+        if (isPasswordRequirementValidationEnabled()) {
+            Pattern pattern = Pattern.compile(getPasswordRequirementValidationRegex());
+            Matcher matcher = pattern.matcher(password);
+            return matcher.matches();
+        } else {
+            return true;
+        }
+    }
+
+    private boolean isPasswordRequirementValidationEnabled() {
+        return Boolean.parseBoolean(studioConfiguration.getProperty(SECURITY_PASSWORD_REQUIREMENTS_ENABLED));
+    }
+
+    private String getPasswordRequirementValidationRegex() {
+        return studioConfiguration.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX);
     }
 
     public UserDAO getUserDao() {
@@ -355,4 +391,11 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         this.groupServiceInternal = groupServiceInternal;
     }
 
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }
