@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsExceptio
 import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
+import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -203,6 +204,14 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleCmisPathNotFoundException(HttpServletRequest request, CmisPathNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PasswordRequirementsFailedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
+                                                                  PasswordRequirementsFailedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
         return handleExceptionInternal(request, e, response);
     }
 
