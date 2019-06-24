@@ -34,14 +34,15 @@
         <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
     </xsl:template>
 
-    <xsl:template match="config/tools/tool/controls">
+    <xsl:template match="config/tools/tool/datasources">
         <xsl:copy>
             <xsl:apply-templates/>
-            <xsl:if test="not(control/name = 'time')">
-                <xsl:element name="control">
-                    <xsl:element name="name"><xsl:text>time</xsl:text></xsl:element>
+            <xsl:if test="not(datasource/name = 'video-S3-transcoding')">
+                <xsl:element name="datasource">
+                    <xsl:element name="name"><xsl:text>video-S3-transcoding</xsl:text></xsl:element>
                     <xsl:element name="icon">
-                        <xsl:element name="class"><xsl:text>fa-clock-o</xsl:text></xsl:element>
+                        <xsl:element name="class"><xsl:text>fa-film</xsl:text></xsl:element>
+                        <xsl:element name="class"><xsl:text>fa-amazon</xsl:text></xsl:element>
                     </xsl:element>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>

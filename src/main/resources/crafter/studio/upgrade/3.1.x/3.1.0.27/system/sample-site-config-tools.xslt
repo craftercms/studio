@@ -38,7 +38,7 @@
         <xsl:copy>
             <xsl:apply-templates/>
             <xsl:if test="not(control/name = 'time')">
-                <xsl:element name="datasource">
+                <xsl:element name="control">
                     <xsl:element name="name"><xsl:text>time</xsl:text></xsl:element>
                     <xsl:element name="icon">
                         <xsl:element name="class"><xsl:text>fa-clock-o</xsl:text></xsl:element>
