@@ -308,6 +308,13 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>video-S3-transcoding</name>
+                    <icon>
+                        <class>fa-film</class>
+                        <stackedclass>fa-amazon</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>video-desktop-upload</name>
                     <icon>
                         <class>fa-video-camera</class>
