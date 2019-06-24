@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.6'
+  version: '3.1.1.7'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2204,6 +2204,7 @@ components:
           * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
+          * `CODE:` 6003, `MESSAGE:` User password does not fullfill requirements, `REMEDIAL ACTION:` Use password that will fullfill password requirements
           * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
           * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
           * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
