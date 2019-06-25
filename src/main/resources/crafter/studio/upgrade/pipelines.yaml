@@ -416,7 +416,7 @@ pipelines:
       nextVersion: 3.1.0.34
       operations:
         - type: xsltFileUpgrader
-          path: /configuration/samples/sample-contextual-nav.xml
+          path: /configuration/samples/sample-site-config-tools.xml
           template: crafter/studio/upgrade/3.1.x/3.1.0.34/system/sample-site-config-tools.xslt
           commitDetails: Add quick create menu item
         - type: dbVersionUpgrader
