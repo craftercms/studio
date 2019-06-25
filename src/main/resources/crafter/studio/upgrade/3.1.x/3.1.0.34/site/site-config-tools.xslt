@@ -47,8 +47,21 @@
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
-
         </xsl:copy>
     </xsl:template>
 
+    <xsl:template match="config/tools/tool/objectTypes/type/properties">
+        <xsl:copy>
+            <xsl:apply-templates/>
+            <xsl:if test="not(property/name = 'no-template-required')">
+                <xsl:element name="property">
+                    <xsl:element name="name"><xsl:text>no-template-required</xsl:text></xsl:element>
+                    <xsl:element name="label"><xsl:text>No Template Required</xsl:text></xsl:element>
+                    <xsl:element name="value"></xsl:element>
+                    <xsl:element name="type"><xsl:text>boolean</xsl:text></xsl:element>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
 </xsl:stylesheet>
