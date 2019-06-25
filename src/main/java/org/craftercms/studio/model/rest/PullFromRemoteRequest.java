@@ -17,12 +17,20 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class PullFromRemoteRequest {
+
+    public enum MergeStrategy {
+        theirs,
+        ours,
+        none
+    }
 
     private String siteId;
     private String remoteName;
     private String remoteBranch;
-    private String mergeStrategy;
+    private MergeStrategy mergeStrategy = MergeStrategy.none;
 
     public String getSiteId() {
         return siteId;
@@ -49,10 +57,10 @@ public class PullFromRemoteRequest {
     }
 
     public String getMergeStrategy() {
-        return mergeStrategy;
+        return mergeStrategy.toString();
     }
 
     public void setMergeStrategy(String mergeStrategy) {
-        this.mergeStrategy = mergeStrategy;
+        this.mergeStrategy = StringUtils.isEmpty(mergeStrategy) ? MergeStrategy.none : MergeStrategy.valueOf(mergeStrategy);
     }
 }
