@@ -1141,11 +1141,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // checkout environment branch
                     newBranch = true;
                     git.checkout()
-                            .setCreateBranch(true)
+                            .setOrphan(true)
                             .setForce(true)
                             .setStartPoint(sandboxBranchName)
                             .setUpstreamMode(TRACK)
                             .setName(environment)
+                            .call();
+                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    git.commit()
+                            .setMessage(studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE))
                             .call();
                 }
 
