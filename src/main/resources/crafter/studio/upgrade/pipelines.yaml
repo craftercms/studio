@@ -412,6 +412,14 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.0.33/system/sample-notification-config.xslt
           commitDetails: Add pull from remote conflict notification
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.0.33
+      nextVersion: 3.1.0.34
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-site-config-tools.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.34/system/sample-site-config-tools.xslt
+          commitDetails: Add video transcode datasource and no-template property
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -727,6 +735,16 @@ configurations:
             path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.27/site/site-config-tools-6.xslt
             commitDetails: Add time control
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 6
+        nextVersion: 7
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config-tools.xslt
+            commitDetails: Add video transcode datasource and no-template property
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
