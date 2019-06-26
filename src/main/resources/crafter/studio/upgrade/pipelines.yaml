@@ -418,7 +418,7 @@ pipelines:
         - type: xsltFileUpgrader
           path: /configuration/samples/sample-site-config-tools.xml
           template: crafter/studio/upgrade/3.1.x/3.1.0.34/system/sample-site-config-tools.xslt
-          commitDetails: Add quick create menu item
+          commitDetails: Add video transcode datasource and no-template property
         - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
@@ -744,7 +744,7 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config-tools.xslt
-            commitDetails: Add time control
+            commitDetails: Add video transcode datasource and no-template property
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
