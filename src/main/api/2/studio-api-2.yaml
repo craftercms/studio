@@ -817,7 +817,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/{id}/set_password:
+  /users/{id}/reset_password:
     post:
       tags:
         - users
@@ -832,9 +832,50 @@ paths:
             schema:
               type: object
               properties:
+                username:
+                  type: string
+                new:
+                  type: string
+                  description: new password
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'         
+
+  /users/{id}/set_password:
+    post:
+      tags:
+        - users
+      summary: Change password for user
+      description: 'Required Permission: "ANONYMOUS"'
+      operationId: settUserPassword
+      requestBody:
+        description: request body to change password
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
                 token:
                   type: string
-                newPassword:
+                new:
                   type: string
                   description: new password
       responses:
@@ -851,8 +892,14 @@ paths:
                     $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'          
+          $ref: '#/components/responses/InternalServerError' 
 
   /users/me:
     get:
@@ -1011,6 +1058,33 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
                     $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/forgot_password:
+    get:
+      tags:
+        - users
+      summary: Forgot password
+      description: 'Required Permission: "ANONYMOUS"'
+      operationId: forgotPassword
+      parameters:
+        username:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -2993,6 +3067,15 @@ components:
                     $ref: '#/components/schemas/ApiResponse'
     Unauthorized:
       description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+    Forbidden:
+      description: Forbidden
       content:
         application/json:
           schema:
