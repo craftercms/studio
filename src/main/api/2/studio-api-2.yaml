@@ -1043,7 +1043,7 @@ paths:
                 current:
                   type: string
                   description: current password
-                newPassword:
+                new:
                   type: string
                   description: new password
       responses:
