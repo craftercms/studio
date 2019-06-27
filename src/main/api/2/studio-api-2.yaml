@@ -823,7 +823,7 @@ paths:
         - users
       summary: Change password for user
       description: 'Required Permission: "UPDATE_USERS"'
-      operationId: settUserPassword
+      operationId: setUserPassword
       requestBody:
         description: request body to change password
         required: true
@@ -879,7 +879,7 @@ paths:
                   type: string
                   description: new password
       responses:
-        '201':
+        '200':
           description: OK
           content:
             application/json:
@@ -1047,7 +1047,7 @@ paths:
                   type: string
                   description: new password
       responses:
-        '201':
+        '200':
           description: OK
           content:
             application/json:
