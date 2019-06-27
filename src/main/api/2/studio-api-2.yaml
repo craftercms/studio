@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.7'
+  version: '3.1.1.8'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -817,6 +817,43 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /users/{id}/set_password:
+    post:
+      tags:
+        - users
+      summary: Change password for user
+      description: 'Required Permission: "UPDATE_USERS"'
+      operationId: settUserPassword
+      requestBody:
+        description: request body to change password
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  description: new password
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'          
+
   /users/me:
     get:
       tags:
@@ -936,6 +973,46 @@ paths:
                     type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/me/change_password:
+    post:
+      tags:
+        - users
+      summary: Change password for current user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: currentUserChangePassword
+      requestBody:
+        description: request body to change password
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                current:
+                  type: string
+                  description: current password
+                newPassword:
+                  type: string
+                  description: new password
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
