@@ -14,11 +14,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-def result = [:]
 
-result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/users/me/set_password"
-response.addHeader("Location", locationHeader)
-response.setStatus(301)
+package org.craftercms.studio.model.rest;
 
-return result
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class SetPasswordRequest {
+
+    private String token;
+    private String newPassword;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    @JsonProperty("new")
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    @JsonProperty("new")
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+}

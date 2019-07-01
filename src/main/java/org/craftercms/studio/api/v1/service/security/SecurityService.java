@@ -85,16 +85,6 @@ public interface SecurityService {
      */
     int getAllUsersTotal() throws ServiceLayerException;
 
-
-    /**
-     * Forgot password for given user
-     *
-     * @param username username
-     * @return forgot password
-     */
-    Map<String, Object> forgotPassword(String username)
-            throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException;
-
     /**
      * Forgot password token to validate
      *
