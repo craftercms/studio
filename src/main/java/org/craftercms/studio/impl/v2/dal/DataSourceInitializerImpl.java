@@ -61,7 +61,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
      */
     private final static String DB_QUERY_CHECK_CONFIG =
             "select @@GLOBAL.innodb_large_prefix, @@GLOBAL.innodb_file_format, @@GLOBAL.innodb_file_format_max, " +
-                    "@@GLOBAL.innodb_file_per_table";
+            "@@GLOBAL.innodb_file_per_table";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
     private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM crafter";
@@ -94,9 +94,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                         String fileFormat = rs.getString(2);
                         String fileFormatMax = rs.getString(3);
                         int filePerTable = rs.getInt(4);
-                        dbConfigured =
-                                (largePrefix == 1) && StringUtils.equalsIgnoreCase("BARRACUDA", fileFormat) &&
-                                        StringUtils.equalsIgnoreCase("BARRACUDA", fileFormatMax) && (filePerTable == 1);
+                        dbConfigured = (largePrefix == 1) &&
+                                       StringUtils.equalsIgnoreCase("BARRACUDA", fileFormat) &&
+                                       StringUtils.equalsIgnoreCase("BARRACUDA", fileFormatMax) &&
+                                       (filePerTable == 1);
                     }
                 }
 
@@ -143,12 +144,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     logger.error("Error while initializing database", e);
                 }
             } catch (SQLException e) {
-                if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                    logger.error("Error while connecting to initialize DB", e);
-                } else {
-                    logger.error("Error while connecting to initialize DB");
-                }
-
+                logger.error("Error while connecting to initialize DB", e);
             }
         }
     }
