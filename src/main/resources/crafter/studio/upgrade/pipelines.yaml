@@ -404,6 +404,22 @@ pipelines:
               dest: /configuration/samples/sample-webdav.xml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.0.32
+      nextVersion: 3.1.0.33
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-notification-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.33/system/sample-notification-config.xslt
+          commitDetails: Add pull from remote conflict notification
+        - type: dbVersionUpgrader
+    - currentVersion: 3.1.0.33
+      nextVersion: 3.1.0.34
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-site-config-tools.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.0.34/system/sample-site-config-tools.xslt
+          commitDetails: Add video transcode datasource and no-template property
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -722,6 +738,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 6
+        nextVersion: 7
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config-tools.xslt
+            commitDetails: Add video transcode datasource and no-template property
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
 
   environment-config:
     path: &environment-config '/config/studio/environment/environment-config.xml'
@@ -791,4 +817,19 @@ configurations:
             commitDetails: Add sections for services
           - type: xsltFileUpgrader
             path: *webdav
+            template: crafter/studio/upgrade/update-version.xslt
+
+
+  notification-config:
+    path: &notification-config '/config/studio/workflow/notification-config.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *notification-config
+            template: crafter/studio/upgrade/3.1.x/3.1.0.33/site/notification-config.xslt
+            commitDetails: Add pull from remote conflict notifiction
+          - type: xsltFileUpgrader
+            path: *notification-config
             template: crafter/studio/upgrade/update-version.xslt

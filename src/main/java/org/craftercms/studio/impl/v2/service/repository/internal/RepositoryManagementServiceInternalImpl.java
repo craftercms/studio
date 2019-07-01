@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.util.GitRepositoryHelper;
 import org.eclipse.jgit.api.FetchCommand;
@@ -48,6 +49,7 @@ import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -63,11 +65,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -80,8 +84,12 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryManagementServiceInternalImpl.class);
 
+    private static final String THEIRS = "theirs";
+    private static final String OURS = "ours";
+
     private RemoteRepositoryDAO remoteRepositoryDao;
     private StudioConfiguration studioConfiguration;
+    private NotificationService notificationService;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -318,8 +326,27 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             pullCommand = helper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
+            switch (mergeStrategy) {
+                case THEIRS:
+                    pullCommand.setStrategy(MergeStrategy.THEIRS);
+                    break;
+                case OURS:
+                    pullCommand.setStrategy(MergeStrategy.OURS);
+                    break;
+                default:
+                    break;
+            }
             pullResult = pullCommand.call();
             Files.delete(tempKey);
+            if (!pullResult.isSuccessful() && conflictNotificationEnabled()) {
+                List<String> conflictFiles = new ArrayList<String>();
+                if (pullResult.getMergeResult() != null) {
+                    pullResult.getMergeResult().getConflicts().forEach((m, v) -> {
+                        conflictFiles.add(m);
+                    });
+                }
+                notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles, Locale.ENGLISH);
+            }
             return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
@@ -405,6 +432,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         return true;
     }
 
+    private boolean conflictNotificationEnabled() {
+        return Boolean.parseBoolean(
+                studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
+    }
+
     public RemoteRepositoryDAO getRemoteRepositoryDao() {
         return remoteRepositoryDao;
     }
@@ -419,5 +451,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 }

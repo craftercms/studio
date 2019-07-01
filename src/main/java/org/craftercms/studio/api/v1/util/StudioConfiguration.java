@@ -51,6 +51,8 @@ public interface StudioConfiguration {
     String REPO_DELETE_CONTENT_COMMIT_MESSAGE = "studio.repo.deleteContent.commitMessage";
     String REPO_MOVE_CONTENT_COMMIT_MESSAGE = "studio.repo.moveContent.commitMessage";
     String REPO_COPY_CONTENT_COMMIT_MESSAGE = "studio.repo.copyContent.commitMessage";
+    String REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED =
+            "studio.repo.pullFromRemote.conflict.notificationEnabled";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -151,6 +153,8 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE = "studio.security.forgotPassword.email.template";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
+    String SECURITY_PASSWORD_REQUIREMENTS_ENABLED = "studio.security.passwordRequirements.enabled";
+    String SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX = "studio.security.passwordRequirements.validationRegex";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";

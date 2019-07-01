@@ -325,6 +325,7 @@
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userDao" ref="userDAO" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="organizationServiceInternal"
@@ -406,6 +407,7 @@
           class="org.craftercms.studio.impl.v2.service.repository.internal.RepositoryManagementServiceInternalImpl">
         <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="notificationService" ref="cstudioNotificationService" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">

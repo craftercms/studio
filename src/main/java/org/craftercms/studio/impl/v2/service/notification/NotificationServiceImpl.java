@@ -78,6 +78,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFICATION_KEY_CONTENT_APPROVED = "contentApproved";
     private static final String NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW = "submittedForReview";
     private static final String NOTIFICATION_KEY_CONTENT_REJECTED = "contentRejected";
+    private static final String NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT = "repositoryMergeConflict";
 
     protected Map<String, Map<String, NotificationConfigTO>> notificationConfiguration;
     protected ContentService contentService;
@@ -101,8 +102,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable, final List<String>
-        filesUnableToPublish, final Locale locale) {
+    public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable,
+                                      final List<String> filesUnableToPublish, final Locale locale) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final Map<String, Object> templateModel = new HashMap<>();
@@ -124,8 +125,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyContentApproval(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "submitter") final String submitter, final List<String> itemsSubmitted,
-                                      @ValidateStringParam(name = "approver") final String approver, final ZonedDateTime scheduleDate, final Locale locale) {
+    public void notifyContentApproval(@ValidateStringParam(name = "site") final String site,
+                                      @ValidateStringParam(name = "submitter") final String submitter,
+                                      final List<String> itemsSubmitted,
+                                      @ValidateStringParam(name = "approver") final String approver,
+                                      final ZonedDateTime scheduleDate, final Locale locale) {
         try {
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
             Map<String, Object> templateModel = new HashMap<>();
@@ -143,7 +147,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public String getNotificationMessage(@ValidateStringParam(name = "site") final String site, final NotificationMessageType type, @ValidateStringParam(name = "key") final String key,
+    public String getNotificationMessage(@ValidateStringParam(name = "site") final String site,
+                                         final NotificationMessageType type,
+                                         @ValidateStringParam(name = "key") final String key,
                                          final Locale locale, final Pair<String, Object>... params) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
@@ -194,9 +200,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyApprovesContentSubmission(@ValidateStringParam(name = "name") final String site, final List<String> usersToNotify, final
-            List<String> itemsSubmitted, @ValidateStringParam(name = "submitter") final String submitter, final ZonedDateTime scheduleDate, final boolean isADelete, final
-            @ValidateStringParam(name = "submissionComments") String submissionComments, final Locale locale) {
+    public void notifyApprovesContentSubmission(@ValidateStringParam(name = "name") final String site,
+                                                final List<String> usersToNotify, final List<String> itemsSubmitted,
+                                                @ValidateStringParam(name = "submitter") final String submitter,
+                                                final ZonedDateTime scheduleDate, final boolean isADelete,
+                                                final @ValidateStringParam(name = "submissionComments")
+                                                            String submissionComments, final Locale locale) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
@@ -220,8 +229,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public void notify(@ValidateStringParam(name = "site") final String site, final List<String> toUsers, @ValidateStringParam(name = "key") final String key, final Locale locale, final
-    Pair<String, Object>... params) {
+    public void notify(@ValidateStringParam(name = "site") final String site, final List<String> toUsers,
+                       @ValidateStringParam(name = "key") final String key, final Locale locale,
+                       final Pair<String, Object>... params) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final EmailMessageTemplateTO emailTemplate = notificationConfig.getEmailMessageTemplates().get(key);
@@ -246,8 +256,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @SuppressWarnings("unchecked")
-    protected void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
-    Map<String, Object> params) {
+    protected void notify(final String site, final List<String> toUsers, final String key, final Locale locale,
+                          final Map<String, Object> params) {
         try {
             List<Pair<String, Object>> namedParams = new ArrayList<>();
             for (String paramKey : params.keySet()) {
@@ -261,9 +271,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyContentRejection(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "submittedBy") final String submittedBy, final List<String> rejectedItems,
-                                       @ValidateStringParam(name = "rejectionReason") final String rejectionReason, @ValidateStringParam(name = "userThatRejects") final String userThatRejects, final Locale
-                                               locale) {
+    public void notifyContentRejection(@ValidateStringParam(name = "site") final String site,
+                                       @ValidateStringParam(name = "submittedBy") final String submittedBy,
+                                       final List<String> rejectedItems,
+                                       @ValidateStringParam(name = "rejectionReason") final String rejectionReason,
+                                       @ValidateStringParam(name = "userThatRejects") final String userThatRejects,
+                                       final Locale locale) {
         try {
             final Map<String, Object> submitterUser = securityService.getUserProfile(submittedBy);
             Map<String, Object> templateModel = new HashMap<>();
@@ -315,6 +328,8 @@ public class NotificationServiceImpl implements NotificationService {
                             configForLang.getDeploymentFailureNotifications());
                         loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
                             .getApproverEmails());
+                        loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
+                                configForLang.getRepositoryMergeConflictNotifications());
                     } else {
                         logger.error("A lang section does not have the 'name' attribute, ignoring");
                     }
@@ -458,6 +473,21 @@ public class NotificationServiceImpl implements NotificationService {
             files.add(contentService.getContentItem(site, path));
         }
         return files;
+    }
+
+    @Override
+    @ValidateParams
+    public void notifyRepositoryMergeConflict(@ValidateStringParam(name = "site") final String site,
+                                              final List<String> filesUnableToMerge, final Locale locale) {
+        try {
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
+            final Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("files", filesUnableToMerge);
+            notify(site, notificationConfig.getRepositoryMergeConflictNotifications(),
+                    NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT, locale, templateModel);
+        } catch (Throwable ex) {
+            logger.error("Unable to Notify Error", ex);
+        }
     }
 
     public String getConfigPath() {
