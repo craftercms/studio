@@ -1576,6 +1576,12 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
+    public boolean existsById(@ValidateStringParam(name = "site") String siteId) {
+        return siteFeedMapper.existsById(siteId) > 0;
+    }
+
+    @Override
+    @ValidateParams
     public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username)
 		throws UserNotFoundException, ServiceLayerException {
 	    if (securityService.userExists(username)) {
