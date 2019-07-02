@@ -18,8 +18,6 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -35,10 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.concurrent.TimeUnit;
-
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -83,7 +77,6 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
@@ -93,8 +86,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -121,12 +112,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_FROM_DE
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_SMTP_AUTH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_ALGORITHM;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_TYPE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGOUT;
@@ -718,51 +704,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username)
-            throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
-        logger.debug("Getting user profile for " + username);
-        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        boolean success = false;
-        String message = StringUtils.EMPTY;
-        if (user == null) {
-            logger.info("User profile not found for " + username);
-            throw new UserNotFoundException();
-        } else {
-            if (user.isExternallyManaged()) {
-                throw new UserExternallyManagedException();
-            } else {
-                if (user.getEmail() != null) {
-                    String email = user.getEmail();
-
-                    logger.debug("Creating security token for forgot password");
-                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
-                            Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
-                    String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
-
-                    String token = username + "|" + timestamp + "|" + salt;
-                    String hashedToken = encryptToken(token);
-                    logger.debug("Sending forgot password email to " + email);
-                    try {
-                        sendForgotPasswordEmail(email, hashedToken);
-                    } catch (MessagingException | IOException | TemplateException e) {
-                        throw new ServiceLayerException("Error while sending forgot password email", e);
-                    }
-                    success = true;
-                    message = "OK";
-                } else {
-                    logger.info("User " + username + " does not have assigned email with account");
-                    throw new ServiceLayerException("User " + username + " does not have assigned email with account");
-                }
-            }
-        }
-        Map<String, Object> toRet = new HashMap<String, Object>();
-        toRet.put("success", success);
-        toRet.put("message", message);
-        return toRet;
-    }
-
-    @Override
-    @ValidateParams
     public boolean validateToken(@ValidateStringParam(name = "token") String token) throws UserNotFoundException,
         UserExternallyManagedException, ServiceLayerException {
         boolean toRet = false;
@@ -792,22 +733,6 @@ public class SecurityServiceImpl implements SecurityService {
         return toRet;
     }
 
-    private String encryptToken(String token) {
-        try {
-            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
-            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
-            byte[] tokenBytes = token.getBytes(StandardCharsets.UTF_8);
-            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
-            byte[] encrypted = cipher.doFinal(tokenBytes);
-            return Base64.getEncoder().encodeToString(encrypted);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException |
-                IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
-            logger.error("Error while encrypting forgot password token", e);
-            return null;
-        }
-    }
-
     private String decryptToken(String token) {
         try {
             SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
@@ -821,45 +746,6 @@ public class SecurityServiceImpl implements SecurityService {
                 BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
             logger.error("Error while decrypting forgot password token", e);
             return null;
-        }
-    }
-
-    private void sendForgotPasswordEmail(String emailAddress, String token)
-            throws MessagingException, IOException, TemplateException {
-        try {
-            Template emailTemplate = freeMarkerConfig.getObject().getConfiguration().getTemplate(
-                    studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
-
-            Writer out = new StringWriter();
-            Map<String, Object> model = new HashMap<String, Object>();
-            RequestContext context = RequestContext.getCurrent();
-            HttpServletRequest request = context.getRequest();
-            String authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo(), "");
-            String serviceUrl = studioConfiguration.getProperty(SECURITY_RESET_PASSWORD_SERVICE_URL);
-            model.put("authoringUrl", authoringUrl);
-            model.put("serviceUrl", serviceUrl);
-            model.put("token", token);
-            if (emailTemplate != null) {
-                emailTemplate.process(model, out);
-            }
-
-            MimeMessage mimeMessage = emailService.createMimeMessage();
-            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-
-            messageHelper.setFrom(getDefaultFromAddress());
-            messageHelper.setTo(emailAddress);
-            messageHelper.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
-            messageHelper.setText(out.toString(), true);
-            logger.info("Sending password recovery message to " + emailAddress);
-            if (isAuthenticatedSMTP()) {
-                emailService.send(mimeMessage);
-            } else {
-                emailServiceNoAuth.send(mimeMessage);
-            }
-            logger.info("Password recovery message successfully sent to " + emailAddress);
-        } catch (MessagingException | IOException | TemplateException e) {
-            logger.error("Failed to send password recovery message to " + emailAddress, e);
-            throw e;
         }
     }
 

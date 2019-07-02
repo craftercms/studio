@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.8'
+  version: '3.1.1.9'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -858,7 +858,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'         
 
-  /users/{id}/set_password:
+  /users/set_password:
     post:
       tags:
         - users
@@ -1087,6 +1087,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 

@@ -19,7 +19,9 @@ package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticatedUser;
@@ -62,4 +64,45 @@ public interface UserService {
     List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException;
 
     String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException;
+
+    /**
+     * Forgot password feature for given username
+     *
+     * @param username user that forgot password
+     * @return true if success
+     */
+    boolean forgotPassword(String username)
+            throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException;
+
+    /**
+     * User changes password
+     *
+     * @param username username
+     * @param current current password
+     * @param newPassword new password
+     * @return user whose password is successfully changed
+     */
+    User changePassword(String username, String current, String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException,
+            AuthenticationException, UserNotFoundException;
+
+    /**
+     * Set user password - forgot password token
+     *
+     * @param token forgot password token
+     * @param newPassword new password
+     * @return uses whose password is successfully set
+     */
+    User setPassword(String token, String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException;
+
+    /**
+     * Admin resets the user password
+     *
+     * @param username username
+     * @param newPassword new password
+     * @return true if user's password is successfully reset
+     */
+    boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
+            UserExternallyManagedException, ServiceLayerException;
 }

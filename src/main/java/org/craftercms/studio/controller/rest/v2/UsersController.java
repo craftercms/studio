@@ -20,7 +20,9 @@ package org.craftercms.studio.controller.rest.v2;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -30,7 +32,10 @@ import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.rest.ResetPasswordRequest;
+import org.craftercms.studio.model.rest.SetPasswordRequest;
 import org.craftercms.studio.model.Site;
+import org.craftercms.studio.model.rest.ChangePasswordRequest;
 import org.craftercms.studio.model.rest.EnableUsers;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -399,6 +404,58 @@ public class UsersController {
         ResponseBody responseBody = new ResponseBody();
         responseBody.setResult(result);
 
+        return responseBody;
+    }
+
+    @GetMapping("/api/2/users/forgot_password")
+    public ResponseBody forgotPassword(@RequestParam(value = REQUEST_PARAM_USERNAME, required = true) String username)
+            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        userService.forgotPassword(username);
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/users/me/change_password")
+    public ResponseBody changePassword(@RequestBody ChangePasswordRequest changePasswordRequest)
+            throws PasswordDoesNotMatchException, ServiceLayerException, UserExternallyManagedException,
+            AuthenticationException, UserNotFoundException {
+        User result = userService.changePassword(changePasswordRequest.getUsername(),
+                changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword());
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<User> resultOne = new ResultOne<User>();
+        resultOne.setEntity(RESULT_KEY_USER, result);
+        resultOne.setResponse(OK);
+        responseBody.setResult(resultOne);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/users/set_password")
+    public ResponseBody setPassword(@RequestBody SetPasswordRequest setPasswordRequest)
+            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        User user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<User> result = new ResultOne<User>();
+        result.setEntity(RESULT_KEY_USER, user);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/users/{id}/reset_password")
+    public ResponseBody resetPassword(@PathVariable(REQUEST_PARAM_ID) String userId,
+                                      @RequestBody ResetPasswordRequest resetPasswordRequest)
+            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        userService.resetPassword(resetPasswordRequest.getUsername(), resetPasswordRequest.getNewPassword());
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
         return responseBody;
     }
 

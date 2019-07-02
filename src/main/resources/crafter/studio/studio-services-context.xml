@@ -319,6 +319,9 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory" />
+        <property name="emailService" ref="mailSender"/>
+        <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
     </bean>
 
     <bean id="userServiceInternal"
