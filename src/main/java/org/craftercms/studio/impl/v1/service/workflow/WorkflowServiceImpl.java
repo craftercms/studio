@@ -115,6 +115,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected String JSON_KEY_ITEMS = "items";
     protected String JSON_KEY_SCHEDULED_DATE = "scheduledDate";
+    protected String JSON_KEY_SCHEDULE = "schedule";
     protected String JSON_KEY_IS_NOW = "now";
     protected String JSON_KEY_PUBLISH_CHANNEL = "publishChannel";
     protected String JSON_KEY_STATUS_SET = "status";
@@ -177,8 +178,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                     objectStateService.setSystemProcessing(site, items.optString(index), true);
                 }
             }
-            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ?
-                    requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
+            boolean isNow = (requestObject.containsKey(JSON_KEY_SCHEDULE)) ?
+                    StringUtils.equalsIgnoreCase(requestObject.getString(JSON_KEY_SCHEDULE), JSON_KEY_IS_NOW) : false;
             ZonedDateTime scheduledDate = null;
             if (!isNow) {
                 scheduledDate = (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) ?
