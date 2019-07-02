@@ -67,6 +67,7 @@ public interface UserService {
 
     /**
      * Forgot password feature for given username
+     *
      * @param username user that forgot password
      * @return true if success
      */
@@ -96,7 +97,7 @@ public interface UserService {
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException;
 
     /**
-     * Reset user password
+     * Admin resets the user password
      *
      * @param username username
      * @param newPassword new password
