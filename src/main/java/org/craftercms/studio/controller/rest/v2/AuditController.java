@@ -78,8 +78,12 @@ public class AuditController {
             @RequestParam(value = REQUEST_PARAM_SORT, required = false) String sort,
             @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order) throws SiteNotFoundException {
 
-        if (StringUtils.isNotEmpty(siteId) && !siteService.exists(siteId)) {
+        if (StringUtils.isNotEmpty(siteId) && !siteService.existsById(siteId)) {
             throw new SiteNotFoundException("Site " + siteId + " not found.");
+        }
+
+        if (StringUtils.isNotEmpty(siteName) && !siteService.exists(siteName)) {
+            throw new SiteNotFoundException("Site " + siteName + " not found.");
         }
 
         int total = auditService.getAuditLogTotal(siteId, siteName, user, operations, includeParameters, dateFrom,
