@@ -434,7 +434,7 @@ public class UsersController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/users/me/set_password")
+    @PostMapping("/api/2/users/set_password")
     public ResponseBody setPassword(@RequestBody SetPasswordRequest setPasswordRequest)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         User user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
