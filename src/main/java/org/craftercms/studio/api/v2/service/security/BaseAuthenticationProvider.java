@@ -28,10 +28,20 @@ import javax.servlet.http.HttpSession;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 
+/**
+ * Base authentication provider implementation
+ */
 public abstract class BaseAuthenticationProvider implements AuthenticationProvider {
 
     private boolean enabled;
 
+    /**
+     * Create authentication token
+     *
+     * @param user user to create token for
+     * @param authenticationChain autientication chain
+     * @return authentication token
+     */
     protected String createToken(User user, AuthenticationChain authenticationChain) {
         StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
         int timeout = studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT, Integer.class);
@@ -39,6 +49,11 @@ public abstract class BaseAuthenticationProvider implements AuthenticationProvid
         return token;
     }
 
+    /**
+     * Persist authentication within active HTTP Session
+     *
+     * @param authentication authentication to persist
+     */
     protected void storeAuthentication(Authentication authentication) {
         RequestContext context = RequestContext.getCurrent();
         if(context != null) {
@@ -47,12 +62,22 @@ public abstract class BaseAuthenticationProvider implements AuthenticationProvid
         }
     }
 
+    /**
+     * Check if authentication provider is enabled
+     *
+     * @return true if authentication provider is enabled, otherwise false
+     */
     @Override
     public boolean isEnabled() {
         return enabled;
     }
 
-
+    /**
+     * Enable or disable authentication provider
+     *
+     * @param enabled true to enable, false to disable
+     */
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }

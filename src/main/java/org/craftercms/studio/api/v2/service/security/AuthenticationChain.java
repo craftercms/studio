@@ -27,19 +27,63 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Authentication Chain
+ */
 public interface AuthenticationChain {
 
-    boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, String username, String password) throws Exception;
+    /**
+     * Execute authentication for given user and password
+     *
+     * @param request HTTP Request
+     * @param response HTTP Response
+     * @param username Username to authenticate
+     * @param password password
+     * @return true if success, otherwise false
+     * @throws Exception Exception in case of error during authentication
+     */
+    boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, String username, String password)
+            throws Exception;
 
+    /**
+     * Expose User Service to authentication providers
+     *
+     * @return User Service Internal
+     */
     UserServiceInternal getUserServiceInternal();
 
+    /**
+     * Expose Studio Configuration to authentication providers
+     *
+     * @return Studio Configuration
+     */
     StudioConfiguration getStudioConfiguration();
 
+    /**
+     * Expose User DAO to authentication providers
+     *
+     * @return User DAO
+     */
     UserDAO getUserDao();
 
+    /**
+     * Expose Group DAO to authentication providers
+     *
+     * @return Group DAO
+     */
     GroupDAO getGroupDao();
 
+    /**
+     * Expose Audit Service Internal to authentication providers
+     *
+     * @return Audit Service Internal
+     */
     AuditServiceInternal getAuditServiceInternal();
 
+    /**
+     * Expose Site Service to authentication providers
+     *
+     * @return Site Service
+     */
     SiteService getSiteService();
 }

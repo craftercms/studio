@@ -25,6 +25,9 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+/**
+ * Audit Service
+ */
 public interface AuditService {
 
     /**
@@ -52,11 +55,45 @@ public interface AuditService {
      */
     int getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException;
 
+    /**
+     * Get audit log
+     *
+     * @param siteId filter logs by given site Id
+     * @param siteName filter logs by given site name
+     * @param offset offset of the first record
+     * @param limit number of records to return
+     * @param user filter logs by given user
+     * @param operations filter logs by given operations
+     * @param includeParameters include audit log parameters into result set
+     * @param dateFrom filter logs by date starting from given date
+     * @param dateTo filter logs by date until given date
+     * @param target filter logs by given operation target
+     * @param origin filter logs by origin
+     * @param clusterNodeId filter logs by given cluster node id
+     * @param sort sort logs by given sort type
+     * @param order order logs
+     * @return audit log result set
+     */
     List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
                                List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
                                ZonedDateTime dateTo, String target, String origin, String clusterNodeId, String sort,
                                String order);
 
+    /**
+     * Get total number of audit log entries for given filters
+     *
+     * @param siteId filter logs by given site Id
+     * @param siteName filter logs by given site name
+     * @param user filter logs by given user
+     * @param operations filter logs by given operations
+     * @param includeParameters include audit log parameters into result set
+     * @param dateFrom filter logs by date starting from given date
+     * @param dateTo filter logs by date until given date
+     * @param target filter logs by given operation target
+     * @param origin filter logs by origin
+     * @param clusterNodeId filter logs by given cluster node id
+     * @return number of audit log entries
+     */
     int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
                                     boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                     String target, String origin, String clusterNodeId);
