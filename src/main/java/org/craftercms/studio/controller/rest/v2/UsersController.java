@@ -456,6 +456,7 @@ public class UsersController {
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
+        responseBody.setResult(result);
         return responseBody;
     }
 
