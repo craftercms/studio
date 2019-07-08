@@ -1233,8 +1233,8 @@ public class SiteServiceImpl implements SiteService {
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId,
                                         boolean generateAuditLog) throws SiteNotFoundException {
 		boolean toReturn = true;
-        List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
-		    .getRepoLastCommitId(site));
+        String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
+        List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, repoLastCommitId);
         if (CollectionUtils.isEmpty(repoOperations)) {
             logger.debug("Database is up to date with repository for site: " + site);
             contentRepository.markGitLogVerifiedProcessed(site, fromCommitId);
@@ -1251,6 +1251,7 @@ public class SiteServiceImpl implements SiteService {
 	    boolean diverged = false;
 	    GitLog current = null;
 	    SiteFeed siteFeed = getSite(site);
+	    boolean isPreviewSyncNeeded = !StringUtils.equals(repoLastCommitId, siteFeed.getLastCommitId());
 
 	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
@@ -1515,11 +1516,13 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Update last commit id " + lastCommitId + " for site " + site);
         updateLastCommitId(site, lastCommitId);
         // Sync all preview deployers
-        try {
-            logger.debug("Sync preview for site " + site);
-            deploymentService.syncAllContentToPreview(site, false);
-        } catch (ServiceLayerException e) {
-            logger.error("Error synchronizing preview with repository for site: " + site, e);
+        if (isPreviewSyncNeeded || diverged) {
+            try {
+                logger.debug("Sync preview for site " + site);
+                deploymentService.syncAllContentToPreview(site, false);
+            } catch (ServiceLayerException e) {
+                logger.error("Error synchronizing preview with repository for site: " + site, e);
+            }
         }
 
 	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " +
@@ -1572,6 +1575,12 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean exists(@ValidateStringParam(name = "site") String site) {
         return siteFeedMapper.exists(site) > 0;
+    }
+
+    @Override
+    @ValidateParams
+    public boolean existsById(@ValidateStringParam(name = "site") String siteId) {
+        return siteFeedMapper.existsById(siteId) > 0;
     }
 
     @Override

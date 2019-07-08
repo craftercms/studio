@@ -15,34 +15,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.security;
+package org.craftercms.studio.model.rest;
 
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class UserPermissions {
+public class SetPasswordRequest {
 
-    public enum Scope {
-        SYSTEM,
-        ORGANIZATION,
-        SITE
+    private String token;
+    private String newPassword;
+
+    public String getToken() {
+        return token;
     }
 
-    private String role;
-    Set<String> allowedPermissions;
-
-    public String getRole() {
-        return role;
+    public void setToken(String token) {
+        this.token = token;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    @JsonProperty("new")
+    public String getNewPassword() {
+        return newPassword;
     }
 
-    public Set<String> getAllowedPermissions() {
-        return allowedPermissions;
-    }
-
-    public void setAllowedPermissions(Set<String> allowedPermissions) {
-        this.allowedPermissions = allowedPermissions;
+    @JsonProperty("new")
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
     }
 }

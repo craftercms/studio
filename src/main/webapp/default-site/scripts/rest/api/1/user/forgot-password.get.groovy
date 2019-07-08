@@ -14,54 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-import org.apache.commons.lang3.StringUtils
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
-import scripts.api.SecurityServices
-
 def result = [:]
 
-def username = params.username
+result.message = "API deprecated."
+def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/users/forgot_password"
+response.addHeader("Location", locationHeader)
+response.setStatus(301)
 
-/** Validate Parameters */
-def invalidParams = false;
-
-// username
-try {
-    if (StringUtils.isEmpty(username)) {
-        invalidParams = true
-    }
-} catch (Exception exc) {
-    invalidParams = true
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter: username"
-} else {
-    def context = SecurityServices.createContext(applicationContext, request)
-    try {
-        def res = SecurityServices.forgotPassword(context, username)
-        if (res.success) {
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
-            response.addHeader("Location", locationHeader)
-            result.message = res.message
-            response.setStatus(200)
-        } else {
-            response.setStatus(500)
-            result.message = "Internal server error"
-        }
-    } catch (UserExternallyManagedException e) {
-        response.setStatus(403)
-        result.message = "Externally managed user"
-    } catch (UserNotFoundException e) {
-        response.setStatus(404)
-        result.message = "User not found"
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
-    }
-}
 return result

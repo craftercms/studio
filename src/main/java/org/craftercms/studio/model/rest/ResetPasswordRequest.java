@@ -15,17 +15,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.system;
+package org.craftercms.studio.model.rest;
 
-/**
- * Instance Service
- */
-public interface InstanceService {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    /**
-     * Get Studio instance ID
-     *
-     * @return studio instance ID
-     */
-    String getInstanceId();
+public class ResetPasswordRequest {
+
+    private String username;
+    private String newPassword;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    @JsonProperty("new")
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    @JsonProperty("new")
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
 }

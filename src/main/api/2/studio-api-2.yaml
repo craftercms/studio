@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.8'
+  version: '3.1.1.10'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -824,6 +824,13 @@ paths:
       summary: Change password for user
       description: 'Required Permission: "UPDATE_USERS"'
       operationId: setUserPassword
+      parameters:
+        - name: id
+          in: path
+          description: The user ID. Username can also be used
+          required: true
+          schema:
+            type: string
       requestBody:
         description: request body to change password
         required: true
@@ -858,7 +865,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'         
 
-  /users/{id}/set_password:
+  /users/set_password:
     post:
       tags:
         - users
@@ -1073,8 +1080,12 @@ paths:
       description: 'Required Permission: "ANONYMOUS"'
       operationId: forgotPassword
       parameters:
-        username:
-          type: string
+        - name: username
+          in: query
+          description: The username of user that forgot password
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1087,6 +1098,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1428,7 +1441,7 @@ paths:
       parameters:
         - name: siteId
           in: query
-          description: Site ID - optional for super admin user, otherwise required
+          description: Site ID (id from database) - optional for super admin user, otherwise required
           required: false
           schema:
             type: string

@@ -17,12 +17,16 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.http.RequestContext;
+import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -30,7 +34,9 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -49,19 +55,53 @@ import org.craftercms.studio.api.v2.service.security.internal.GroupServiceIntern
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_FROM_DEFAULT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_SMTP_AUTH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_ALGORITHM;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_TYPE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DISABLE;
@@ -82,6 +122,9 @@ public class UserServiceImpl implements UserService {
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
+    private ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
+    private JavaMailSender emailService;
+    private JavaMailSender emailServiceNoAuth;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -380,6 +423,207 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
+        logger.debug("Getting user profile for " + username);
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        boolean success = false;
+        if (user == null) {
+            logger.info("User profile not found for " + username);
+            throw new UserNotFoundException();
+        } else {
+            if (user.isExternallyManaged()) {
+                throw new UserExternallyManagedException();
+            } else {
+                if (user.getEmail() != null) {
+                    String email = user.getEmail();
+
+                    logger.debug("Creating security token for forgot password");
+                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
+                            Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+                    String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+
+                    String token = username + "|" + timestamp + "|" + salt;
+                    String hashedToken = encryptToken(token);
+                    logger.debug("Sending forgot password email to " + email);
+                    try {
+                        sendForgotPasswordEmail(email, hashedToken);
+                    } catch (MessagingException | IOException | TemplateException e) {
+                        throw new ServiceLayerException("Error while sending forgot password email", e);
+                    }
+                    success = true;
+                } else {
+                    logger.info("User " + username + " does not have assigned email with account");
+                    throw new ServiceLayerException("User " + username + " does not have assigned email with account");
+                }
+            }
+        }
+        return success;
+    }
+
+    private String encryptToken(String token) {
+        try {
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
+            byte[] tokenBytes = token.getBytes(StandardCharsets.UTF_8);
+            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
+            byte[] encrypted = cipher.doFinal(tokenBytes);
+            return Base64.getEncoder().encodeToString(encrypted);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException |
+                IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            logger.error("Error while encrypting forgot password token", e);
+            return null;
+        }
+    }
+
+    private String decryptToken(String token) {
+        try {
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
+            byte[] tokenBytes = Base64.getDecoder().decode(token.getBytes(StandardCharsets.UTF_8));
+            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
+            byte[] decrypted = cipher.doFinal(tokenBytes);
+            return new String(decrypted, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
+                BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            logger.error("Error while decrypting forgot password token", e);
+            return null;
+        }
+    }
+
+    private void sendForgotPasswordEmail(String emailAddress, String token)
+            throws MessagingException, IOException, TemplateException {
+        try {
+            Template emailTemplate = freeMarkerConfig.getObject().getConfiguration().getTemplate(
+                    studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
+
+            Writer out = new StringWriter();
+            Map<String, Object> model = new HashMap<String, Object>();
+            RequestContext context = RequestContext.getCurrent();
+            HttpServletRequest request = context.getRequest();
+            String authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo(), "");
+            String serviceUrl = studioConfiguration.getProperty(SECURITY_RESET_PASSWORD_SERVICE_URL);
+            model.put("authoringUrl", authoringUrl);
+            model.put("serviceUrl", serviceUrl);
+            model.put("token", token);
+            if (emailTemplate != null) {
+                emailTemplate.process(model, out);
+            }
+
+            MimeMessage mimeMessage = emailService.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+
+            messageHelper.setFrom(studioConfiguration.getProperty(MAIL_FROM_DEFAULT));
+            messageHelper.setTo(emailAddress);
+            messageHelper.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
+            messageHelper.setText(out.toString(), true);
+            logger.info("Sending password recovery message to " + emailAddress);
+            if (isAuthenticatedSMTP()) {
+                emailService.send(mimeMessage);
+            } else {
+                emailServiceNoAuth.send(mimeMessage);
+            }
+            logger.info("Password recovery message successfully sent to " + emailAddress);
+        } catch (MessagingException | IOException | TemplateException e) {
+            logger.error("Failed to send password recovery message to " + emailAddress, e);
+            throw e;
+        }
+    }
+
+    @Override
+    public User changePassword(String username, String current, String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException,
+            AuthenticationException, UserNotFoundException {
+        AuthenticatedUser currentUser = getCurrentUser();
+        if (currentUser != null && StringUtils.equals(username, currentUser.getUsername())) {
+            boolean success = userServiceInternal.changePassword(username, current, newPassword);
+            if (success) {
+                return userServiceInternal.getUserByIdOrUsername(-1, username);
+            } else {
+                throw new ServiceLayerException("Failed to change password");
+            }
+        } else {
+            throw new PermissionException();
+        }
+    }
+
+    @Override
+    public User setPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        if (validateToken(token)) {
+            String username = getUsernameFromToken(token);
+            if (StringUtils.isNotEmpty(username)) {
+                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+                if (user != null ) {
+                    if (user.isEnabled()) {
+                        boolean success = userServiceInternal.setUserPassword(username, newPassword);
+                        if (success) {
+                            return user;
+                        }
+                    }
+                } else {
+                    throw new UserNotFoundException("User not found");
+                }
+            } else {
+                throw new UserNotFoundException("User not found");
+            }
+        }
+        return null;
+    }
+
+    private boolean validateToken(String token) throws UserNotFoundException,
+            UserExternallyManagedException, ServiceLayerException {
+        boolean toRet = false;
+        String decryptedToken = decryptToken(token);
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                String username = tokenElements.nextToken();
+                User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
+                if (userProfile == null) {
+                    logger.info("User profile not found for " + username);
+                    throw new UserNotFoundException();
+                } else {
+                    if (userProfile.isExternallyManaged()) {
+                        throw new UserExternallyManagedException();
+                    } else {
+                        long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+                        if (tokenTimestamp < System.currentTimeMillis()) {
+                            toRet = false;
+                        } else {
+                            toRet = true;
+                        }
+                    }
+                }
+            }
+        }
+        return toRet;
+    }
+
+    private String getUsernameFromToken(String token) {
+        String toRet = StringUtils.EMPTY;
+        String decryptedToken = decryptToken(token);
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                toRet = tokenElements.nextToken();
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_users")
+    public boolean resetPassword(String username, String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        return userServiceInternal.setUserPassword(username, newPassword);
+    }
+
+    private boolean isAuthenticatedSMTP() {
+        return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
+    }
+
     public UserServiceInternal getUserServiceInternal() {
         return userServiceInternal;
     }
@@ -446,5 +690,29 @@ public class UserServiceImpl implements UserService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() {
+        return freeMarkerConfig;
+    }
+
+    public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) {
+        this.freeMarkerConfig = freeMarkerConfig;
+    }
+
+    public JavaMailSender getEmailService() {
+        return emailService;
+    }
+
+    public void setEmailService(JavaMailSender emailService) {
+        this.emailService = emailService;
+    }
+
+    public JavaMailSender getEmailServiceNoAuth() {
+        return emailServiceNoAuth;
+    }
+
+    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
+        this.emailServiceNoAuth = emailServiceNoAuth;
     }
 }

@@ -24,15 +24,41 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Authentication Provider
+ */
 public interface AuthenticationProvider {
 
+    /**
+     * Execute authentication for given username and password
+     *
+     * @param request HTTP Request
+     * @param response HTTP Response
+     * @param authenticationChain Authentication chain
+     * @param username username to authenticate
+     * @param password password
+     * @return true if success, otherwise false
+     * @throws AuthenticationSystemException general authentication system error
+     * @throws BadCredentialsException given credentials are bad
+     * @throws UserNotFoundException username not found in the list of active users
+     */
     boolean doAuthenticate(HttpServletRequest request,
                            HttpServletResponse response,
                            AuthenticationChain authenticationChain,
                            String username,
                            String password) throws AuthenticationSystemException, BadCredentialsException, UserNotFoundException;
 
+    /**
+     * Check if authentication provider is enabled
+     *
+     * @return true if authentication provider is enabled, otherwise false
+     */
     boolean isEnabled();
 
+    /**
+     * Enable or disable authentication provider
+     *
+     * @param enabled true to enable, false to disable
+     */
     void setEnabled(boolean enabled);
 }

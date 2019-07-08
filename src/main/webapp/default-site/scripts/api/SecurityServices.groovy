@@ -199,29 +199,9 @@ class SecurityServices {
         return securityServicesImpl.removeUserFromGroup(siteId, groupName, username)
     }
 
-    static forgotPassword(context, username) {
-        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.forgotPassword(username)
-    }
-
-    static changePassword(context, username, current, newPassword) {
-        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.changePassword(username, current, newPassword)
-    }
-
-    static setUserPassword(context, token, newPassword) {
-        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.setUserPassword(token, newPassword)
-    }
-
     static validateToken(context, token) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.validateToken(token)
-    }
-
-    static resetPassword(context, username, newPassword) {
-        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.resetPassword(username, newPassword)
     }
 
     static validateSession(context, request) {

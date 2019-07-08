@@ -52,7 +52,7 @@ class ContentMonitoring {
 		def notificationService = context.get("cstudioNotificationService")
 		def siteService = context.get("cstudioSiteServiceSimple")
 
-		def config = siteService.getConfiguration(site, "/site-config.xml", "", false);
+		def config = siteService.getConfiguration(site, "site-config.xml", false);
 
 		if(config.contentMonitoring != null && config.contentMonitoring.monitor != null) {
 			if(config.contentMonitoring.monitor instanceof Map) {

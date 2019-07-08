@@ -38,6 +38,8 @@ public interface SiteFeedMapper {
 
     Integer exists(String siteId);
 
+    Integer existsById(String id);
+
     int getSitesPerUserQueryTotal(Map params);
 
     List<String> getSitesPerUserQuery(Map params);
