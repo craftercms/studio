@@ -73,6 +73,10 @@ public class ApiResponse {
             new ApiResponse(6003, "User password does not fullfill requirements",
                     "Use password that will fullfill password requirements", StringUtils.EMPTY);
 
+    public static final ApiResponse USER_PASSWORD_DOES_NOT_MATCH =
+            new ApiResponse(6004, "User current password does not match",
+                    "Use correct current password", StringUtils.EMPTY);
+
     public static final ApiResponse CONTENT_NOT_FOUND =
             new ApiResponse(7000, "Content not found", "Check if you sent in the right Content Id", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_ALREADY_EXISTS =

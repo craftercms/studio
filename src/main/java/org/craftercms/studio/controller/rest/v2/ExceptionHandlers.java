@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsExce
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -213,6 +214,14 @@ public class ExceptionHandlers {
     public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
                                                                   PasswordRequirementsFailedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PasswordDoesNotMatchException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseBody handlePasswordDoesNotMatchException(HttpServletRequest request,
+                                                            PasswordDoesNotMatchException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_DOES_NOT_MATCH);
         return handleExceptionInternal(request, e, response);
     }
 
