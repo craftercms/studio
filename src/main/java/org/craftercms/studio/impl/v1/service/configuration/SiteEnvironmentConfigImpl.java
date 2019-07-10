@@ -146,7 +146,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
             }
         }
         if (config != null) {
-            authoringServerUrl = config.getPreviewServerUrl();
+            authoringServerUrl = config.getAuthoringServerUrl();
             if (StringUtils.isNotEmpty(currentDomainAuthoringUrl)) {
                 authoringServerUrl = StringUtils.replaceFirst(authoringServerUrl,
                         studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL),
