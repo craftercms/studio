@@ -175,7 +175,9 @@ studio.security.sessionTimeout: 60
 # Urls to be treated as exception to the rules.
 studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-session.json,/api/1/services/api/1/publish/status.json
 # Public URLs
-studio.security.publicUrls: /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/2/monitoring/.+
+studio.security.publicUrls: >
+  /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
+  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -342,7 +344,7 @@ studio.contentTypes.filter.documents.includePattern: ^/document/.*
 # Default preview deployer URL (can be overridden per site)
 studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy/{siteEnv}/{siteName}
 # Default preview create target URL (can be overridden per site)
-studio.preview.createTargetUrl: http://localhost:9191/api/1/target/upsert
+studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create_if_not_exists
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete-if-exists/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress

@@ -42,28 +42,12 @@
                     <xsl:element name="name"><xsl:text>video-S3-transcoding</xsl:text></xsl:element>
                     <xsl:element name="icon">
                         <xsl:element name="class"><xsl:text>fa-film</xsl:text></xsl:element>
-                        <xsl:element name="class"><xsl:text>fa-amazon</xsl:text></xsl:element>
+                        <xsl:element name="stackedclass"><xsl:text>fa-amazon</xsl:text></xsl:element>
                     </xsl:element>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
 
-        </xsl:copy>
-    </xsl:template>
-
-    <xsl:template match="config/tools/tool/datasources">
-        <xsl:copy>
-            <xsl:apply-templates/>
-            <xsl:if test="not(datasource/name = 'video-S3-transcoding')">
-                <xsl:element name="datasource">
-                    <xsl:element name="name"><xsl:text>video-S3-transcoding</xsl:text></xsl:element>
-                    <xsl:element name="icon">
-                        <xsl:element name="class"><xsl:text>fa-film</xsl:text></xsl:element>
-                        <xsl:element name="class"><xsl:text>fa-amazon</xsl:text></xsl:element>
-                    </xsl:element>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
         </xsl:copy>
     </xsl:template>
 
