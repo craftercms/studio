@@ -35,7 +35,8 @@ class EnvironmentOverrides {
         result.environment = serverProperties["environment"]
 
         def contextPath = request.getContextPath()
-        result.authoringServer = (request.getHeader("x-forwarded-proto") ?: request.getRequestURL().toString().replace(request.getPathInfo().toString(), "").replace(contextPath, ""))
+        // This line only work if apache has been configured to override x-forwarded-protp
+        // result.authoringServer = (request.getHeader("x-forwarded-proto") ?: request.getRequestURL().toString().replace(request.getPathInfo().toString(), "").replace(contextPath, ""))
         if (contextPath.startsWith("/")) {
             contextPath = contextPath.substring(1)
         }
@@ -44,6 +45,8 @@ class EnvironmentOverrides {
         try {
             def siteServiceSB = context.applicationContext.get(SITE_SERVICES_BEAN)
             result.site = Cookies.getCookieValue("crafterSite", request)
+            // this should fix it. not tested.
+            result.authoringServer =  siteServiceSB.getAuthoringServerUrl(result.site)
             result.previewServerUrl = siteServiceSB.getPreviewServerUrl(result.site)
             result.previewEngineServerUrl = siteServiceSB.getPreviewEngineServerUrl(result.site)
             result.graphqlServerUrl = siteServiceSB.getGraphqlServerUrl(result.site)
