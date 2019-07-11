@@ -30,7 +30,7 @@
         </mime-type>
 
     The elements are:
-    - type: The mime type. This is the target mimetype that will be affected by the new icon/styles defined on the configuration
+    - type: The mime type for assets, or content type for components. This is the target type that will be affected by the new icon/styles defined on the configuration
     - class: The Font Awesome class for the icon that will be showed for the mime type.
     - styles: CSS styles for the icon selected, you can customize the icon with css like styles (e.g <color>#ffffff</color>)
 -->
