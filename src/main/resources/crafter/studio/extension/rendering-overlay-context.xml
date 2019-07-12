@@ -36,6 +36,10 @@
         <entry key="/*" value-ref="crafter.pageRenderController"/>
     </util:map>
 
+    <mvc:annotation-driven>
+        <mvc:path-matching registered-suffixes-only="true" />
+    </mvc:annotation-driven>
+
     <!-- ////////////////////////////////////// -->
     <!--      Controllers                       -->
     <!-- ////////////////////////////////////// -->
