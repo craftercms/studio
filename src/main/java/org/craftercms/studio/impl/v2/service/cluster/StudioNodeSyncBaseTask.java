@@ -51,7 +51,6 @@ import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -66,6 +65,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
@@ -96,7 +96,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     protected String siteUuid;
     protected String searchEngine;
     protected List<ClusterMember> clusterNodes;
-    protected PreviewDeployer previewDeployer;
+    protected Deployer deployer;
     protected StudioConfiguration studioConfiguration;
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
@@ -490,12 +490,12 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
         this.clusterNodes = clusterNodes;
     }
 
-    public PreviewDeployer getPreviewDeployer() {
-        return previewDeployer;
+    public Deployer getDeployer() {
+        return deployer;
     }
 
-    public void setPreviewDeployer(PreviewDeployer previewDeployer) {
-        this.previewDeployer = previewDeployer;
+    public void setDeployer(Deployer deployer) {
+        this.deployer = deployer;
     }
 
     public StudioConfiguration getStudioConfiguration() {

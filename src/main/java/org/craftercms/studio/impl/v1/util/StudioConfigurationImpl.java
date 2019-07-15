@@ -113,6 +113,11 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     }
 
     @Override
+    public <T> T getProperty(String key, Class<T> clazz, T defaultVal) {
+        return config.get(clazz, key, defaultVal);
+    }
+
+    @Override
     public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
         try {
             return config.configurationAt(key);

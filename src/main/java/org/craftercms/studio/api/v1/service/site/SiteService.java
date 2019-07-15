@@ -18,12 +18,7 @@
 package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
-import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteCreationException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -108,8 +103,8 @@ public interface SiteService {
      */
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
                                  String desc)
-            throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
-            BlueprintNotFoundException;
+            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
+                   BlueprintNotFoundException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)

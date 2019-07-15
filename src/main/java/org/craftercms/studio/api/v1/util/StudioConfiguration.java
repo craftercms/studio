@@ -213,6 +213,8 @@ public interface StudioConfiguration {
     String PREVIEW_REPO_URL = "studio.preview.repoUrl";
 
     /** Authoring Deployer **/
+    String AUTHORING_REPLACE = "studio.authoring.replace";
+    String AUTHORING_DISABLE_DEPLOY_CRON = "studio.authoring.disableDeployCron";
     String AUTHORING_TEMPLATE_NAME = "studio.authoring.templateName";
 
     /** Preview Search **/
@@ -294,11 +296,23 @@ public interface StudioConfiguration {
     String UPGRADE_PIPELINE_CONFIGURATIONS = "studio.upgrade.pipeline.configurations";
     String UPGRADE_SCRIPT_FOLDER = "studio.upgrade.scriptFolder";
 
+    /** Serverless Delivery Configuration **/
+    String SERVERLESS_DELIVERY_ENABLED = "studio.serverless.delivery.enabled";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_CREATE_URL = "studio.serverless.delivery.deployer.target.createUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_DELETE_URL = "studio.serverless.delivery.deployer.target.deleteUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE = "studio.serverless.delivery.deployer.target.template";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE = "studio.serverless.delivery.deployer.target.replace";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL = "studio.serverless.delivery.deployer.target.remoteRepoUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH = "studio.serverless.delivery.deployer.target.localRepoPath";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS = "studio.serverless.delivery.deployer.target.template.params";
+
     void loadConfig();
 
     String getProperty(String key);
 
     <T> T getProperty(String key, Class<T> clazz);
+
+    <T> T getProperty(String key, Class<T> clazz, T defaultVal);
 
     HierarchicalConfiguration<ImmutableNode> getSubConfig(String key);
 

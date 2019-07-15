@@ -14,23 +14,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.deployment;
 
-package org.craftercms.studio.api.v1.deployment;
+import org.springframework.web.client.RestClientException;
 
-import org.craftercms.studio.api.v1.service.deployment.ContentNotFoundForPublishingException;
-import org.craftercms.studio.api.v1.service.deployment.UploadFailedException;
-
-import java.util.List;
-
+/**
+ * Helper/client class for doing Crafter Deployer operations.
+ *
+ * @author avasquez
+ */
 public interface Deployer {
 
-    void deployFile(String site, String path);
+    /**
+     * Calls a Crafter Deployer to create any necessary targets for the site.
+     *
+     * @param site the site
+     * @param searchEngine the search engine used by the site
+     * @throws RestClientException if an error occurs
+     */
+    void createTargets(String site, String searchEngine) throws RestClientException;
 
-    void deployFiles(String site, List<String> paths);
+    /**
+     * Deletes the targets associated with the site.
+     *
+     * @param site the site
+     * @throws RestClientException if an error occurs
+     */
+    void deleteTargets(String site) throws RestClientException;
 
-    void deployFiles(String site, List<String> paths, List<String> deletedFiles) throws ContentNotFoundForPublishingException, UploadFailedException;
-
-    void deleteFile(String site, String path);
-
-    void deleteFiles(String site, List<String> paths);
 }

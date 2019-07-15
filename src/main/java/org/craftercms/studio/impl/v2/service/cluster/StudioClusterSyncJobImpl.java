@@ -29,7 +29,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -39,6 +38,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.springframework.core.task.TaskExecutor;
@@ -69,7 +69,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     private SiteService siteService;
     private TaskExecutor taskExecutor;
-    private PreviewDeployer previewDeployer;
+    private Deployer deployer;
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
     private ClusterDAO clusterDAO;
@@ -123,7 +123,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                             nodeSandobxSyncTask.setSiteId(site);
                                             nodeSandobxSyncTask.setSiteUuid(siteFeed.getSiteUuid());
                                             nodeSandobxSyncTask.setSearchEngine(siteFeed.getSearchEngine());
-                                            nodeSandobxSyncTask.setPreviewDeployer(previewDeployer);
+                                            nodeSandobxSyncTask.setDeployer(deployer);
                                             nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
                                             nodeSandobxSyncTask.setContentRepository(contentRepository);
                                             nodeSandobxSyncTask.setSiteService(siteService);
@@ -137,7 +137,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                             nodePublishedSyncTask.setSiteId(site);
                                             nodePublishedSyncTask.setSiteUuid(siteFeed.getSiteUuid());
                                             nodePublishedSyncTask.setSearchEngine(siteFeed.getSearchEngine());
-                                            nodePublishedSyncTask.setPreviewDeployer(previewDeployer);
+                                            nodePublishedSyncTask.setDeployer(deployer);
                                             nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
                                             nodePublishedSyncTask.setContentRepository(contentRepository);
                                             nodePublishedSyncTask.setSiteService(siteService);
@@ -167,8 +167,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
             String key = siteFeed.getSiteId() + ":" + siteFeed.getSiteUuid();
             if (!deletedSitesMap.containsKey(key)) {
                 if (contentRepository.contentExists(siteFeed.getName(), FILE_SEPARATOR) &&
-                        checkSiteUuid(siteFeed.getSiteId(), siteFeed.getSiteUuid())) {
-                    previewDeployer.deleteTarget(siteFeed.getName());
+                    checkSiteUuid(siteFeed.getSiteId(), siteFeed.getSiteUuid())) {
+                    deployer.deleteTargets(siteFeed.getName());
                     destroySitePreviewContext(siteFeed.getName());
                     contentRepository.deleteSite(siteFeed.getName());
                     StudioNodeSyncBaseTask.createdSites.remove(siteFeed.getSiteId());
@@ -245,12 +245,12 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         this.taskExecutor = taskExecutor;
     }
 
-    public PreviewDeployer getPreviewDeployer() {
-        return previewDeployer;
+    public Deployer getDeployer() {
+        return deployer;
     }
 
-    public void setPreviewDeployer(PreviewDeployer previewDeployer) {
-        this.previewDeployer = previewDeployer;
+    public void setDeployer(Deployer deployer) {
+        this.deployer = deployer;
     }
 
     public StudioConfiguration getStudioConfiguration() {
