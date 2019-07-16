@@ -112,7 +112,7 @@
         <property name="syncDatabaseWithRepository" ref="studioSyncDatabaseWithRepository" />
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="eventService" ref="studioEventService"/>
-        <property name="previewDeployer" ref="previewDeployer"/>
+        <property name="deployer" ref="allDeployers"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal"/>
@@ -524,7 +524,7 @@
           class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
         <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="previewDeployer" ref="previewDeployer" />
+        <property name="deployer" ref="allDeployers" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
@@ -537,7 +537,7 @@
           class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
         <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="previewDeployer" ref="previewDeployer" />
+        <property name="deployer" ref="allDeployers" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
@@ -893,12 +893,24 @@
     </bean>
 
     <!-- ////////////////////////////////////// -->
-    <!--          preview deployer              -->
+    <!--          Crafter Deployers             -->
     <!-- ////////////////////////////////////// -->
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl" init-method="subscribeToPreviewSyncEvents">
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer" init-method="subscribeToPreviewSyncEvents">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="eventService" ref="studioEventService"/>
-        <property name="beanName" value="previewDeployer"/>
+    </bean>
+
+    <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <bean id="allDeployers" class="org.craftercms.studio.impl.v2.deployment.CompositeDeployer">
+        <property name="deployers">
+            <list>
+                <ref bean="previewDeployer"/>
+                <ref bean="serverlessDeliveryDeployer"/>
+            </list>
+        </property>
     </bean>
 
     <!-- ////////////////////////////////////////// -->

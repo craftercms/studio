@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
@@ -92,8 +91,7 @@ import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED
 import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration
-        .JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -802,18 +800,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         PreviewEventContext context = new PreviewEventContext(waitTillDone);
         context.setSite(site);
         eventService.publish(EVENT_PREVIEW_SYNC, context);
-    }
-
-    protected void syncFolder(String site, String path, Deployer deployer) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
-
-        for (RepositoryItem item : children) {
-            if (item.isFolder) {
-                syncFolder(site, item.path + FILE_SEPARATOR + item.name, deployer);
-            } else {
-                deployer.deployFile(site, item.path + FILE_SEPARATOR + item.name);
-            }
-        }
     }
 
     @Override

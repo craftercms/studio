@@ -16,22 +16,21 @@
  */
 package org.craftercms.studio.api.v1.exception;
 
-public class PreviewDeployerUnreachableException extends ServiceLayerException {
-
+public class DeployerTargetException extends ServiceLayerException {
 
     private static final long serialVersionUID = 6422788562443045181L;
 
-    public PreviewDeployerUnreachableException() {}
+    public DeployerTargetException() {}
 
-	public PreviewDeployerUnreachableException(Exception e) {
+	public DeployerTargetException(Exception e) {
 		super(e);
 	}
 
-	public PreviewDeployerUnreachableException(String message) {
+	public DeployerTargetException(String message) {
 		super(message);
 	}
 
-	public PreviewDeployerUnreachableException(String message, Exception e) {
+	public DeployerTargetException(String message, Exception e) {
 		super(message, e);
 	}
 }

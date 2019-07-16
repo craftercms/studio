@@ -113,14 +113,12 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
     protected boolean createSiteInternal(String siteId, String siteUuid, String searchEngine) {
         boolean result = true;
 
-        logger.debug("Create preview deployer target site " + siteId);
+        logger.debug("Create Deployer targets site " + siteId);
         try {
-            result = previewDeployer.createTarget(siteId, searchEngine);
+            deployer.createTargets(siteId, searchEngine);
         } catch (Exception e) {
             result = false;
-            logger.error("Error while creating preview deployer target on cluster node for site : "
-                    + siteId + ". Is the Preview Deployer running and configured correctly in " +
-                    "Studio cluster node?", e);
+            logger.error("Error while creating Deployer targets on cluster node for site : " + siteId, e);
         }
 
 
@@ -144,11 +142,12 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                 createdSites.remove(siteId);
                 contentRepository.deleteSite(siteId);
 
-                boolean deleted = previewDeployer.deleteTarget(siteId);
-                if (!deleted) {
+                try {
+                    deployer.deleteTargets(siteId);
+                } catch (Exception e) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " on cluster node. This means the site's preview deployer target is still " +
-                            "present, but the site is not successfully created.");
+                                 " on cluster node. This means the site's Deployer targets are still " +
+                                 "present, but the site was not successfully created.");
                 }
             }
         }

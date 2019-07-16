@@ -14,7 +14,7 @@ studio.config.overrideConfig: crafter/studio/extension/studio-config-override.ya
 ##              Content Repository              ##
 ##################################################
 # Absolute path to repository base (all actual repositories will be under this)
-studio.repo.basePath: ${sys:crafter.data.dir}/repos
+studio.repo.basePath: ${env:CRAFTER_DATA_DIR}/repos
 # Global repository path (automatically goes under repo-base-path)
 studio.repo.globalRepoPath: global
 # Sites repositories base path (automatically goes under repo-base-path)
@@ -348,14 +348,18 @@ studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create_if_not
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete-if-exists/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
-studio.preview.repoUrl: ${sys:crafter.data.dir}/repos/sites/{siteName}/sandbox
+studio.preview.repoUrl: ${env:CRAFTER_DATA_DIR}/repos/sites/{siteName}/sandbox
 # Name of template to use with the deployer for preview
 studio.preview.templateName: local
 # Replace existing configuration if one exists?
-studio.preview.replace: true
+studio.preview.replace: false
 # Disable deploy cron job for preview target
 studio.preview.disableDeployCron: true
 
+# Replace existing configuration if one exists?
+studio.authoring.replace: false
+# Disable deploy cron job for preview target
+studio.authoring.disableDeployCron: true
 # Name of the template to use with the deployer for authoring
 studio.authoring.templateName: authoring
 
@@ -428,7 +432,7 @@ studio.db.validationInterval: 34000
 # Base folder for the embedded database
 studio.db.basePath: ${sys:crafter.bin.dir}/dbms
 # Data folder for the embedded database
-studio.db.dataPath: ${sys:crafter.data.dir}/db
+studio.db.dataPath: ${env:CRAFTER_DATA_DIR}/db
 # Port number for the embedded database (note this must match what's in the connection URLs in this config file)
 studio.db.port: 33306
 # Socket path for the embedded database
@@ -686,3 +690,31 @@ studio.aws.s3.url.pattern: /remote-assets/s3/%s/%s
 studio.aws.mediaconvert.extension.hls: m3u8
 studio.aws.mediaconvert.extension.dash: mpd
 studio.aws.mediaconvert.extension.smooth: ism
+
+##########################################################
+##                 Serverless Delivery                  ##
+##########################################################
+# Indicates if serverless delivery is enabled
+studio.serverless.delivery.enabled: false
+# The URL for the serverless delivery deployer create URL
+studio.serverless.delivery.deployer.target.createUrl: ${studio.preview.createTargetUrl}
+# The URL for the serverless delivery deployer delete URL
+studio.serverless.delivery.deployer.target.deleteUrl: ${studio.preview.deleteTargetUrl}
+# The template name for serverless deployer targets
+studio.serverless.delivery.deployer.target.template: aws-cloudformed-s3
+# Replace existing target configuration if one exists?
+studio.serverless.delivery.deployer.target.replace: false
+# The URL the deployer will use to clone/pull the site's published repo. When the deployer is in a separate node
+# (because of clustering), this URL should be an SSH/HTTP URL to the load balancer in front of the Studios
+studio.serverless.delivery.deployer.target.remoteRepoUrl: ${env:CRAFTER_DATA_DIR}/repos/sites/{siteName}/published
+# The deployer's local path where it will store the clone of the published site. This property is not needed if
+# the deployer is not the preview deployer, so you can leave an empty string ('') instead
+studio.serverless.delivery.deployer.target.localRepoPath: ${env:CRAFTER_DATA_DIR}/repos/aws/{siteName}
+# Parameters for the target template. Please check the deployer template documentation for the possible parameters.
+# The following parameters will be sent automatically, and you don't need to specify them: env, site_name, replace,
+# disable_deploy_cron, local_repo_path, repo_url, use_crafter_search
+studio.serverless.delivery.deployer.target.template.params:
+  aws:
+    cloudformation:
+      namespace: craftercms
+
