@@ -164,7 +164,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         if (userExists(-1, user.getUsername())) {
             throw new UserAlreadyExistsException("User '" + user.getUsername() + "' already exists");
         }
-        if (verifyPasswordRequirements(user.getPassword())) {
+        if (user.isExternallyManaged() || verifyPasswordRequirements(user.getPassword())) {
             Map<String, Object> params = new HashMap<>();
             params.put(USERNAME, user.getUsername());
             params.put(PASSWORD, CryptoUtils.hashPassword(user.getPassword()));
