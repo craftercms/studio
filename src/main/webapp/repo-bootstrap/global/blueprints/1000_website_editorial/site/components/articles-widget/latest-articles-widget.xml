@@ -26,9 +26,9 @@
 	<internal-name>Latest Articles Widget</internal-name>
 	<title>Latest Articles</title>
 	<max_articles>3</max_articles>
-	<scripts>	<item>	<key>/scripts/components/latest-articles.groovy</key>
+	<scripts_o>	<item>	<key>/scripts/components/latest-articles.groovy</key>
 	<value>latest-articles.groovy</value>
-	</item></scripts>
+	</item></scripts_o>
 	<createdDate>2017-3-28T22:27:45.000Z</createdDate>
 	<createdDate_dt>2017-3-28T22:27:45.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-28T22:27:45.000Z</lastModifiedDate>

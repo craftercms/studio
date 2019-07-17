@@ -122,7 +122,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>scripts</id>
+					<id>scripts_o</id>
 					<iceId></iceId>
 					<title>Controllers</title>
 					<description>The controller script(s) that will be executed before the component is rendered</description>
