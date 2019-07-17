@@ -37,6 +37,14 @@
     <xsl:template match="box">
         <box>
             <box>
+                <!-- Check if there are profiles defined in the new format and copy them -->
+                <xsl:for-each select="box/profile">
+                    <xsl:copy>
+                        <xsl:apply-templates select="node() | @*"/>
+                    </xsl:copy>
+                </xsl:for-each>
+
+                <!-- Check if there are profiles defined in the previous format and copy them -->
                 <xsl:for-each select="profile">
                     <xsl:copy>
                         <xsl:apply-templates select="node() | @*"/>
