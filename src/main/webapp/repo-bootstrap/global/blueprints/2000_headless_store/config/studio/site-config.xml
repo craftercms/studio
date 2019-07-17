@@ -32,6 +32,10 @@
         <live-environment>live</live-environment>
     </published-repository>
 
+    <form-engine>
+        <field-name-postfix>true</field-name-postfix>
+    </form-engine>
+
     <repository rootPrefix="/site">
 
         <!-- default inheritance file name -->
