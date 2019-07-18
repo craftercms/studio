@@ -377,7 +377,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>max_articles</id>
+					<id>max_articles_i</id>
 					<iceId>articles</iceId>
 					<title>Max Articles</title>
 					<description></description>
