@@ -24,7 +24,7 @@
 	<file-name>index.xml</file-name>
 	<folder-name>search-results</folder-name>
 	<internal-name>Search Results</internal-name>
-	<title>Search Results</title>
+	<title_t>Search Results</title_t>
 	<header/>
 	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
 	<value>Left Rail with Latest Articles</value>

@@ -29,7 +29,7 @@
 	<folder-name>coffee-is-good-for-your-health</folder-name>
 	<header/>
 	<internal-name>Coffee is Good for Your Health</internal-name>
-	<title>Coffee is Good for Your Health</title>
+	<title_t>Coffee is Good for Your Health</title_t>
 	<subject>Coffee is Good for Your Health</subject>
 	<author>John Doe</author>
 	<categories>	<item>	<key>health</key>

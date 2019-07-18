@@ -8,7 +8,7 @@
 -->
 <html>
 	<head>
-		<title>${contentModel.title}</title>
+		<title>${contentModel.title_t}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<!--[if lte IE 8]><script src="/static-assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -61,7 +61,7 @@
 			<script id="search-results-template" type="text/x-handlebars-template">
 				{{#each results}}
 				<div>
-					<h4><a href="{{url}}">{{title}}</a></h4>
+					<h4><a href="{{url}}">{{title_t}}</a></h4>
 					{{#if highlight}}
 					<p>{{{highlight}}}</p>
 					{{/if}}

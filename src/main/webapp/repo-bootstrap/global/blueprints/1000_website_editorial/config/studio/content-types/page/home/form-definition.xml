@@ -122,7 +122,7 @@
             </field>
             <field>
                 <type>input</type>
-                <id>title</id>
+                <id>title_t</id>
                 <iceId>core</iceId>
                 <title>Title</title>
                 <description></description>

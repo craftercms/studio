@@ -25,7 +25,7 @@
 	<file-name>index.xml</file-name>
 	<folder-name>style</folder-name>
 	<internal-name>Style</internal-name>
-	<title>Style</title>
+	<title_t>Style</title_t>
 	<placeInNav>true</placeInNav>
 	<orderDefault_f>8000</orderDefault_f>
 	<createdDate>2017-3-13T22:26:52.000Z</createdDate>

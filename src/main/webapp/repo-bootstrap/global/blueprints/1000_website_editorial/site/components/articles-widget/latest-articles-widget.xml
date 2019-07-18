@@ -24,7 +24,7 @@
 	<file-name>latest-articles-widget.xml</file-name>
 	<folder-name/>
 	<internal-name>Latest Articles Widget</internal-name>
-	<title>Latest Articles</title>
+	<title_t>Latest Articles</title_t>
 	<max_articles>3</max_articles>
 	<scripts_o>	<item>	<key>/scripts/components/latest-articles.groovy</key>
 	<value>latest-articles.groovy</value>

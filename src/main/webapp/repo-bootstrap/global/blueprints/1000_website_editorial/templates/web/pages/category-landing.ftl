@@ -8,7 +8,7 @@
 -->
 <html>
 	<head>
-		<title>${contentModel.title}</title>
+		<title>${contentModel.title_t}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<!--[if lte IE 8]><script src="/static-assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -44,7 +44,7 @@
 												</#if>
 												<img src="${articleImage}" alt="" />
 											</a>
-											<h3><a href="${article.url}">${article.title}</a></h3>
+											<h3><a href="${article.url}">${article.title_t}</a></h3>
 											<p>${article.summary}</p>
 											<ul class="actions">
 												<li><a href="${article.url}" class="button">More</a></li>

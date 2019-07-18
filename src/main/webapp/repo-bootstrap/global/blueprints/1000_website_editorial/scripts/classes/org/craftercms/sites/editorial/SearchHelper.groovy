@@ -118,7 +118,7 @@ class SearchHelper {
       hits.each {hit ->
         def doc = hit.getSourceAsMap()
         def article = [:]
-            article.title = doc.title
+            article.title = doc.title_t
             article.url = urlTransformationService.transform("storeUrlToRenderUrl", doc.localId)
 
         if (hit.highlightFields) {

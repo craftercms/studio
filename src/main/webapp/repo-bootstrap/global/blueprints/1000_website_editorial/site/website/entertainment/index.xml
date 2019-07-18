@@ -23,7 +23,7 @@
 	<objectId>167e20e8-11c2-0f26-1802-b842a068c162</objectId>
 	<header/>
 	<internal-name>Entertainment</internal-name>
-	<title>Entertainment</title>
+	<title_t>Entertainment</title_t>
 	<placeInNav>true</placeInNav>
 	<orderDefault_f>10000</orderDefault_f>
 	<file-name>index.xml</file-name>

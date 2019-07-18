@@ -2,7 +2,7 @@
 <article <@studio.componentAttr path=contentModel.storeUrl />>
   <span class="icon ${contentModel.icon}"></span>
   <div class="content">
-    <h3>${contentModel.title}</h3>
+    <h3>${contentModel.title_t}</h3>
     ${contentModel.body_html}
   </div>
 </article>

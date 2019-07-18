@@ -132,7 +132,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>title</id>
+					<id>title_t</id>
 					<iceId></iceId>
 					<title>Title</title>
 					<description></description>

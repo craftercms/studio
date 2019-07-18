@@ -170,7 +170,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>title</id>
+					<id>title_t</id>
 					<iceId>articles</iceId>
 					<title>Title</title>
 					<description></description>

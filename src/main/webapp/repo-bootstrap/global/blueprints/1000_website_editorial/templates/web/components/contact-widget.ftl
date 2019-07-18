@@ -1,6 +1,6 @@
 <section>
   <header class="major">
-    <h2>${contentModel.title}</h2>
+    <h2>${contentModel.title_t}</h2>
   </header>
   ${contentModel.text_html}
   <ul class="contact">
