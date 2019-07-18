@@ -28,9 +28,9 @@
 	<createdDate_dt>2017-3-17T19:53:17.000Z</createdDate_dt>
 	<lastModifiedDate>2017-5-18T15:50:16.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-5-18T15:50:16.000Z</lastModifiedDate_dt>
-	<widgets>	<item>	<key>/site/components/contacts/contact-widget.xml</key>
+	<widgets_o>	<item>	<key>/site/components/contacts/contact-widget.xml</key>
 	<value>Contact Widget</value>
 	<include>/site/components/contacts/contact-widget.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></widgets>
+	</item></widgets_o>
 </component>

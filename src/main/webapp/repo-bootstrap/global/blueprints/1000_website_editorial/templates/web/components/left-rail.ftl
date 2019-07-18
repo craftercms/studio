@@ -27,8 +27,8 @@
     <#else>
     	<#assign additionalModel = {} />
     </#if>
-    <#if contentModel.widgets.item?has_content>
-      <#list contentModel.widgets.item as widget>
+    <#if contentModel.widgets_o.item?has_content>
+      <#list contentModel.widgets_o.item as widget>
         <@renderComponent component = widget additionalModel = additionalModel />
       </#list>
     </#if>
