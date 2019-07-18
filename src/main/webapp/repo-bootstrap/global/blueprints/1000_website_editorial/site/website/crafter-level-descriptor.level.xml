@@ -24,11 +24,11 @@
 	<objectGroupId>0a68</objectGroupId>
 	<objectId>0a68e8ad-77d8-0a58-e7bf-09a71fb3077b</objectId>
 	<folder-name/>
-	<header>	<item>	<key>/site/components/headers/header.xml</key>
+	<header_o>	<item>	<key>/site/components/headers/header.xml</key>
 	<value>Header</value>
 	<include>/site/components/headers/header.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></header>
+	</item></header_o>
 	<createdDate>2017-3-13T20:26:50.000Z</createdDate>
 	<createdDate_dt>2017-3-13T20:26:50.000Z</createdDate_dt>
 	<lastModifiedDate>2017-5-18T15:38:58.000Z</lastModifiedDate>

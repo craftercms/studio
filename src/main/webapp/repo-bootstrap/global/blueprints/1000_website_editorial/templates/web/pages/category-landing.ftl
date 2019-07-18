@@ -26,7 +26,7 @@
 						<div class="inner">
 
 							<!-- Header -->
-							<@renderComponent component=contentModel.header.item />
+							<@renderComponent component=contentModel.header_o.item />
 
 							<!-- Section -->
 								<section <@studio.iceAttr iceGroup="articles"/>>

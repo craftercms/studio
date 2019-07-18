@@ -27,7 +27,7 @@
 						<div class="inner">
 
 							<!-- Header -->
-							<@renderComponent component = contentModel.header.item />
+							<@renderComponent component = contentModel.header_o.item />
 
 							<!-- Content -->
 								<section>

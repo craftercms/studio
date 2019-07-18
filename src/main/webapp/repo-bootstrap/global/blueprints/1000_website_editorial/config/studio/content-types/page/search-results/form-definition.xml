@@ -175,7 +175,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>header</id>
+					<id>header_o</id>
 					<iceId></iceId>
 					<title>Header</title>
 					<description></description>

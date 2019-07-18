@@ -165,7 +165,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>header</id>
+                <id>header_o</id>
                 <iceId>core</iceId>
                 <title>Header</title>
                 <description>Default header is inherited from Section Defaults. Specify a new header to overwrite it.</description>
