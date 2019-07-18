@@ -273,7 +273,7 @@
                 </field>
                 <field>
                     <type>input</type>
-                    <id>phone</id>
+                    <id>phone_s</id>
                     <iceId></iceId>
                     <title>Phone</title>
                     <description></description>
