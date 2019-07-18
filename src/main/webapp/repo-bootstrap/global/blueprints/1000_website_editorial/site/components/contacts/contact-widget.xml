@@ -25,7 +25,7 @@
 	<folder-name/>
 	<internal-name>Contact Widget</internal-name>
 	<title_t>Contact Us</title_t>
-	<email>info@example.com</email>
+	<email_s>info@example.com</email_s>
 	<phone>(999) 999-9999</phone>
 	<text_html>&lt;p&gt;&lt;span&gt;Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</text_html>
 	<address>&lt;p&gt;5321 Somewhere Road #789&lt;br /&gt; Reston, Virginia&lt;/p&gt;</address>

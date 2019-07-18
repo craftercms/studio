@@ -230,7 +230,7 @@
 				</field>
                 <field>
                     <type>input</type>
-                    <id>email</id>
+                    <id>email_s</id>
                     <iceId></iceId>
                     <title>Email</title>
                     <description></description>
