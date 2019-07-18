@@ -1,5 +1,5 @@
 <#macro renderNavItem navItem>
-  <li><a href="${navItem.url}">${navItem.label}</a></li>
+  <li><a href="${navItem.url_s}">${navItem.label}</a></li>
 </#macro>
 
 <#macro renderRootItem navItem>
@@ -8,7 +8,7 @@
 
 <#macro renderNavItemWithSubItems navItem>
   <li>
-    <span class="opener"><a href="${navItem.url}">${navItem.label}</a></span>
+    <span class="opener"><a href="${navItem.url_s}">${navItem.label}</a></span>
     <ul>
       <#nested>
     </ul>

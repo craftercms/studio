@@ -11,8 +11,8 @@
 		    <#assign articleImage = "/static-assets/images/placeholder.png"/>
 		  </#if>
 		  <article>
-		    <a href="${article.url}" class="image"><img src="${articleImage}" alt="" /></a>
-		    <h4><a href="${article.url}">${article.title_t}</a></h4>
+		    <a href="${article.url_s}" class="image"><img src="${articleImage}" alt="" /></a>
+		    <h4><a href="${article.url_s}">${article.title_t}</a></h4>
 		  </article>
 		</#list>
 	</div>

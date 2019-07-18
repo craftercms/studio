@@ -36,7 +36,7 @@
 									<div class="posts">
 										<#list articles as article>
 										<article>
-											<a href="${article.url}" class="image">
+											<a href="${article.url_s}" class="image">
 												<#if article.image??>
 													<#assign articleImage = article.image/>
 												<#else>
@@ -44,10 +44,10 @@
 												</#if>
 												<img src="${articleImage}" alt="" />
 											</a>
-											<h3><a href="${article.url}">${article.title_t}</a></h3>
+											<h3><a href="${article.url_s}">${article.title_t}</a></h3>
 											<p>${article.summary}</p>
 											<ul class="actions">
-												<li><a href="${article.url}" class="button">More</a></li>
+												<li><a href="${article.url_s}" class="button">More</a></li>
 											</ul>
 										</article>
 										</#list>

@@ -10,8 +10,8 @@
     </a>
 
     <ul class="icons">
-    <#list contentModel.social_media_links.item as item>
-        <li><a href="${item.url}" class="icon ${item.social_media}"></a></li>
+    <#list contentModel.social_media_links_o.item as item>
+        <li><a href="${item.url_s}" class="icon ${item.social_media_o}"></a></li>
     </#list>
     </ul>
 </header>

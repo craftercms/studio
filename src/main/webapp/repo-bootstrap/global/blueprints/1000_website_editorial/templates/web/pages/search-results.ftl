@@ -61,7 +61,7 @@
 			<script id="search-results-template" type="text/x-handlebars-template">
 				{{#each results}}
 				<div>
-					<h4><a href="{{url}}">{{title_t}}</a></h4>
+					<h4><a href="{{url_s}}">{{title_t}}</a></h4>
 					{{#if highlight}}
 					<p>{{{highlight}}}</p>
 					{{/if}}
