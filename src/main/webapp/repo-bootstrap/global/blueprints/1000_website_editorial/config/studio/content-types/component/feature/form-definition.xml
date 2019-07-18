@@ -129,7 +129,7 @@
             <fields>
                 <field>
                     <type>dropdown</type>
-                    <id>icon</id>
+                    <id>icon_s</id>
                     <iceId></iceId>
                     <title>Icon</title>
                     <description></description>

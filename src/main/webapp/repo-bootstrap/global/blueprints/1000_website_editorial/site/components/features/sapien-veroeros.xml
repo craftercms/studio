@@ -21,7 +21,7 @@
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>0496</objectGroupId>
 	<objectId>04967205-0cdf-991e-3bfd-8096b700a609</objectId>
-	<icon>fa-paper-plane</icon>
+	<icon_s>fa-paper-plane</icon_s>
 	<internal-name>Three</internal-name>
 	<title_t>Three</title_t>
 	<file-name>sapien-veroeros.xml</file-name>
