@@ -213,7 +213,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>left-rail</id>
+                <id>left-rail_o</id>
                 <iceId></iceId>
                 <title>Left Rail</title>
                 <description>Default left-rail is inherited from Section Defaults. Specify a new left-rail to overwrite it.</description>

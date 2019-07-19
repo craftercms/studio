@@ -26,11 +26,11 @@
 	<internal-name>Search Results</internal-name>
 	<title_t>Search Results</title_t>
 	<header/>
-	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
+	<left-rail_o>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
 	<value>Left Rail with Latest Articles</value>
 	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></left-rail>
+	</item></left-rail_o>
 	<createdDate>2017-3-23T23:47:15.000Z</createdDate>
 	<createdDate_dt>2017-3-23T23:47:15.000Z</createdDate_dt>
 	<lastModifiedDate>2017-5-18T19:52:59.000Z</lastModifiedDate>

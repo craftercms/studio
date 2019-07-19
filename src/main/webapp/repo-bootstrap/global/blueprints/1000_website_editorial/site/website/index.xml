@@ -45,10 +45,10 @@
 	</item></features>
 	<header/>
 	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
-	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
+	<left-rail_o>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
 	<value>Left Rail with Latest Articles</value>
 	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></left-rail>
+	</item></left-rail_o>
 	<features_title>Erat lacinia</features_title>
 </page>
