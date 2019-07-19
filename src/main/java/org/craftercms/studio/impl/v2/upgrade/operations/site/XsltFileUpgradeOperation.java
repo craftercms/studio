@@ -111,7 +111,7 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
                     writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()));
                 }
             } else {
-                logger.warn("Source file {0} doesn't exist in site {1}", path, site);
+                logger.warn("Source file {0} does not exist in site {1}", path, site);
             }
         } catch (Exception e) {
             throw new UpgradeException("Error processing file", e);
