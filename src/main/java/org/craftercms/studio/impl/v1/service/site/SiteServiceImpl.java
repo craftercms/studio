@@ -756,7 +756,9 @@ public class SiteServiceImpl implements SiteService {
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
                              " remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back...", e);
 
+                contentRepository.removeRemote(siteId, remoteName);
                 boolean deleted = contentRepository.deleteSite(siteId);
+
                 if (!deleted) {
                     logger.error("Error while rolling back site: " + siteId);
                 }
