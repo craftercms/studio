@@ -35,9 +35,9 @@
 	<title_t>5 Popular Diets for Women</title_t>
 	<subject>5 Popular Diets for Women</subject>
 	<author>Jane Doe</author>
-	<categories>	<item>	<key>health</key>
+	<categories_o>	<item>	<key>health</key>
 	<value_smv>Health</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<segments>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></segments>

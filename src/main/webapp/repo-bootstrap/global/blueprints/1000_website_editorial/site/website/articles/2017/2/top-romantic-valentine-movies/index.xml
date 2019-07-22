@@ -32,9 +32,9 @@
 	<author>Jane Doe</author>
 	<file-name>index.xml</file-name>
 	<folder-name>top-romantic-valentine-movies</folder-name>
-	<categories>	<item>	<key>entertainment</key>
+	<categories_o>	<item>	<key>entertainment</key>
 	<value_smv>Entertainment</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<segments>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></segments>

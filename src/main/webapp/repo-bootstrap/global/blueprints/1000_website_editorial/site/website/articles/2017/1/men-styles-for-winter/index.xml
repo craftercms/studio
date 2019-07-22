@@ -34,9 +34,9 @@
 	<title_t>Men Styles For Winter</title_t>
 	<subject>Men Styles For Winter</subject>
 	<author>John Doe</author>
-	<categories>	<item>	<key>style</key>
+	<categories_o>	<item>	<key>style</key>
 	<value_smv>Style</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<segments>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item></segments>

@@ -271,7 +271,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>categories</id>
+					<id>categories_o</id>
 					<iceId></iceId>
 					<title>Categories</title>
 					<description></description>

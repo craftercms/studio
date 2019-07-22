@@ -34,9 +34,9 @@
 	<header/>
 	<file-name>index.xml</file-name>
 	<folder-name>new-acme-phone-released-today</folder-name>
-	<categories>	<item>	<key>technology</key>
+	<categories_o>	<item>	<key>technology</key>
 	<value_smv>Technology</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<segments>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item>	<item>	<key>gal</key>

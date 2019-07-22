@@ -36,9 +36,9 @@
 	<lastModifiedDate>2017-5-18T19:52:59.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-5-18T19:52:59.000Z</lastModifiedDate_dt>
 	<disabled>false</disabled>
-	<categories>	<item>	<key>/site/taxonomy/categories.xml</key>
+	<categories_o>	<item>	<key>/site/taxonomy/categories.xml</key>
 	<value>Categories</value>
 	<include>/site/taxonomy/categories.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></categories>
+	</item></categories_o>
 </page>

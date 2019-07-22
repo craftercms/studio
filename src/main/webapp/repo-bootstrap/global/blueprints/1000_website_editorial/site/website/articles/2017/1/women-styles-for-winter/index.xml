@@ -34,9 +34,9 @@
 	<file-name>index.xml</file-name>
 	<folder-name>women-styles-for-winter</folder-name>
 	<header/>
-	<categories>	<item>	<key>style</key>
+	<categories_o>	<item>	<key>style</key>
 	<value_smv>Style</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<segments>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></segments>

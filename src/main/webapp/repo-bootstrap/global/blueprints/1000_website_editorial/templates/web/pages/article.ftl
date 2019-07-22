@@ -51,7 +51,7 @@
 						</div>
 					</div>
 
-					<#assign articleCategories = contentModel.queryValues("//categories/item/key")/>
+					<#assign articleCategories = contentModel.queryValues("//categories_o/item/key")/>
 					<#assign articlePath = contentModel.storeUrl />
 					<#assign additionalModel = {"articleCategories": articleCategories, "articlePath": articlePath }/>
 

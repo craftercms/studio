@@ -32,9 +32,9 @@
 	<title_t>Coffee is Good for Your Health</title_t>
 	<subject>Coffee is Good for Your Health</subject>
 	<author>John Doe</author>
-	<categories>	<item>	<key>health</key>
+	<categories_o>	<item>	<key>health</key>
 	<value_smv>Health</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<segments>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item>	<item>	<key>gal</key>
