@@ -150,7 +150,7 @@
             <fields>
                 <field>
                     <type>input</type>
-                    <id>title</id>
+                    <id>title_s</id>
                     <iceId>title</iceId>
                     <title>Title</title>
                     <description></description>
@@ -193,7 +193,7 @@
                 </field>
                 <field>
 					<type>rte-tinymce5</type>
-					<id>body</id>
+					<id>body_html</id>
 					<iceId>main</iceId>
 					<title>Help Text</title>
 					<description></description>
