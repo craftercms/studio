@@ -29,7 +29,7 @@
 	<internal-name>Top Romantic Valentine Movies</internal-name>
 	<title_t>Top Romantic Valentine Movies</title_t>
 	<subject_t>Top Romantic Valentine Movies</subject_t>
-	<author>Jane Doe</author>
+	<author_s>Jane Doe</author_s>
 	<file-name>index.xml</file-name>
 	<folder-name>top-romantic-valentine-movies</folder-name>
 	<categories_o>	<item>	<key>entertainment</key>

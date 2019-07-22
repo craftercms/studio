@@ -417,7 +417,7 @@
                 </field>
                 <field>
                     <type>input</type>
-                    <id>author</id>
+                    <id>author_s</id>
                     <iceId>subject</iceId>
                     <title>Author</title>
                     <description></description>

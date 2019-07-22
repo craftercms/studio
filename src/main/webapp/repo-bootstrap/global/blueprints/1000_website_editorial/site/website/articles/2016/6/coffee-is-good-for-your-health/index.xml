@@ -31,7 +31,7 @@
 	<internal-name>Coffee is Good for Your Health</internal-name>
 	<title_t>Coffee is Good for Your Health</title_t>
 	<subject_t>Coffee is Good for Your Health</subject_t>
-	<author>John Doe</author>
+	<author_s>John Doe</author_s>
 	<categories_o>	<item>	<key>health</key>
 	<value_smv>Health</value_smv>
 	</item></categories_o>

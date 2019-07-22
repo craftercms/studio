@@ -30,7 +30,7 @@
 	<internal-name>New ACME Phone Released Today</internal-name>
 	<title_t>New ACME Phone Released Today</title_t>
 	<subject_t>New ACME Phone Released Today</subject_t>
-	<author>John Doe</author>
+	<author_s>John Doe</author_s>
 	<header/>
 	<file-name>index.xml</file-name>
 	<folder-name>new-acme-phone-released-today</folder-name>

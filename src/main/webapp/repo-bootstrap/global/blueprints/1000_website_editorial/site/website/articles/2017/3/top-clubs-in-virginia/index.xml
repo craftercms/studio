@@ -30,7 +30,7 @@
 	<internal-name>Top Clubs In Virginia</internal-name>
 	<title_t>Top Clubs In Virginia</title_t>
 	<subject_t>Top Clubs In Virginia</subject_t>
-	<author>John Doe</author>
+	<author_s>John Doe</author_s>
 	<file-name>index.xml</file-name>
 	<folder-name>top-clubs-in-virginia</folder-name>
 	<categories_o>	<item>	<key>entertainment</key>

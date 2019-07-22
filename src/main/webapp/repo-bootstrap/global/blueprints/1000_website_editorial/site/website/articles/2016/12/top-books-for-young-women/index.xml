@@ -30,7 +30,7 @@
 	<internal-name>Top Books For Young Women</internal-name>
 	<title_t>Top Books For Young Women</title_t>
 	<subject_t>Top Books For Young Women</subject_t>
-	<author>Jane Doe</author>
+	<author_s>Jane Doe</author_s>
 	<file-name>index.xml</file-name>
 	<folder-name>top-books-for-young-women</folder-name>
 	<categories_o>	<item>	<key>entertainment</key>
