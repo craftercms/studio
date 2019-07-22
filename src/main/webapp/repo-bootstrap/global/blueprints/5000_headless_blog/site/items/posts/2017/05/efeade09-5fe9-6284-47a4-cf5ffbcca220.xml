@@ -25,15 +25,15 @@
 	<internal-name>Buying a camera</internal-name>
 	<title_s>How to choose the right camera?</title_s>
 	<disabled>false</disabled>
-	<authors>	<item>	<key>/site/items/authors/150a8781-76fc-4fca-b9a3-eefa4eefafb4.xml</key>
+	<authors_o>	<item>	<key>/site/items/authors/150a8781-76fc-4fca-b9a3-eefa4eefafb4.xml</key>
 	<value>Joe Bloggs (Guest)</value>
 	<include>/site/items/authors/150a8781-76fc-4fca-b9a3-eefa4eefafb4.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></authors>
+	</item></authors_o>
 	<featuredImage_s>/static-assets/images/featured/camera.jpg</featuredImage_s>
-	<categories>	<item>	<key>technology</key>
+	<categories_o>	<item>	<key>technology</key>
 	<value_smv>Technology</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<tags>	<item>	<key>gadgets</key>
 	<value_smv>Gadgets</value_smv>
 	</item></tags>

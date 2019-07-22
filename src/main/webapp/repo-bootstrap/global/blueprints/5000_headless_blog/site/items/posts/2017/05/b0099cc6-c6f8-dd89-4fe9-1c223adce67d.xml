@@ -25,7 +25,7 @@
 	<internal-name>Travel Plans</internal-name>
 	<title_s>We are planning a trip</title_s>
 	<disabled>false</disabled>
-	<authors>	<item>	<key>/site/items/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</key>
+	<authors_o>	<item>	<key>/site/items/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</key>
 	<value>John Doe (Owner)</value>
 	<include>/site/items/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</include>
 	<disableFlattening>false</disableFlattening>
@@ -33,13 +33,13 @@
 	<value>Jane Doe (Intern)</value>
 	<include>/site/items/authors/6da4e193-6109-0b9f-91b6-d439fc64c5dc.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></authors>
+	</item></authors_o>
 	<featuredImage_s>/static-assets/images/featured/travel.jpeg</featuredImage_s>
-	<categories>	<item>	<key>updates</key>
+	<categories_o>	<item>	<key>updates</key>
 	<value_smv>Updates</value_smv>
 	</item>	<item>	<key>events</key>
 	<value_smv>Events</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<tags>	<item>	<key>travel</key>
 	<value_smv>Travel</value_smv>
 	</item>	<item>	<key>news</key>
