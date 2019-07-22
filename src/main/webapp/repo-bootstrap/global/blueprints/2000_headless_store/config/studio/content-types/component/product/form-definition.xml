@@ -266,7 +266,7 @@
             </field>
             <field>
                 <type>checkbox-group</type>
-                <id>categories</id>
+                <id>categories_o</id>
                 <iceId></iceId>
                 <title>Categories</title>
                 <description></description>
@@ -452,7 +452,7 @@
         </datasource>
         <datasource>
             <type>site-component</type>
-            <id>categories</id>
+            <id>categories_o</id>
             <title>Categories</title>
             <interface>item</interface>
             <properties>

@@ -26,9 +26,9 @@
 	<name_s>Plane</name_s>
 	<price_d>5.5</price_d>
 	<image_s>/static-assets/images/products/toy-plane.jpeg</image_s>
-	<categories>	<item>	<key>cars</key>
+	<categories_o>	<item>	<key>cars</key>
 	<value_smv>Cars</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<tags/>
 	<company>	<item>	<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
 	<value>Company 1</value>

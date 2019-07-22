@@ -25,9 +25,9 @@
 	<internal-name>Dice</internal-name>
 	<name_s>Dice</name_s>
 	<price_d>2.5</price_d>
-	<categories>	<item>	<key>board</key>
+	<categories_o>	<item>	<key>board</key>
 	<value_smv>Board</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<tags/>
 	<image_s>/static-assets/images/products/dices.jpeg</image_s>
 	<company>	<item>	<key>/site/items/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</key>

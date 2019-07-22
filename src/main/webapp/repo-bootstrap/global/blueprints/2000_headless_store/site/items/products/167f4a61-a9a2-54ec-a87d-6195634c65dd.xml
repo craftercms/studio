@@ -25,9 +25,9 @@
 	<internal-name>Rubik's</internal-name>
 	<name_s>Rubik's</name_s>
 	<price_d>15</price_d>
-	<categories>	<item>	<key>board</key>
+	<categories_o>	<item>	<key>board</key>
 	<value_smv>Board</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<tags>	<item>	<key>learning</key>
 	<value_smv>Learning</value_smv>
 	</item></tags>

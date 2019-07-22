@@ -25,9 +25,9 @@
 	<internal-name>Chess</internal-name>
 	<name_s>Chess</name_s>
 	<price_d>50</price_d>
-	<categories>	<item>	<key>board</key>
+	<categories_o>	<item>	<key>board</key>
 	<value_smv>Board</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<tags>	<item>	<key>groups</key>
 	<value_smv>Groups</value_smv>
 	</item>	<item>	<key>learning</key>

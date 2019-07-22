@@ -62,7 +62,7 @@ const GRAPHQL_QUERIES = '\
         description_html_raw\
         price_d\
         image_s\
-        categories {\
+        categories_o {\
           item {\
             key(filter:{ matches: $category })\
           }\
@@ -115,7 +115,7 @@ var catalog = new Vue({
         return this.$http.post(GRAPHQL_URL, { query: GRAPHQL_QUERIES, operationName: 'getFilters' }).then(response => {
           return {
             companies: response.body.data.companies.items,
-            categories: response.body.data.categories.items[0].items.item,
+            categories_o: response.body.data.categories_o.items[0].items.item,
             tags: response.body.data.tags.items[0].items.item
           };
         });
