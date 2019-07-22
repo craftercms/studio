@@ -415,7 +415,7 @@
             </field>
             <field>
                 <type>checkbox-group</type>
-                <id>tags</id>
+                <id>tags_o</id>
                 <iceId></iceId>
                 <title>Tags</title>
                 <description></description>

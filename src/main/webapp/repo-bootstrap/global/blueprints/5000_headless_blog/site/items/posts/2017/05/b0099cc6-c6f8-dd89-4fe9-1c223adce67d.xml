@@ -40,11 +40,11 @@
 	</item>	<item>	<key>events</key>
 	<value_smv>Events</value_smv>
 	</item></categories_o>
-	<tags>	<item>	<key>travel</key>
+	<tags_o>	<item>	<key>travel</key>
 	<value_smv>Travel</value_smv>
 	</item>	<item>	<key>news</key>
 	<value_smv>News</value_smv>
-	</item></tags>
+	</item></tags_o>
 	<body_html>&lt;p&gt;Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Donec ullamcorper nulla non metus auctor fringilla. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec id elit non mi porta gravida at eget metus. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.&lt;/p&gt;</body_html>
 	<createdDate>2017-5-11T16:23:21.000Z</createdDate>
 	<createdDate_dt>2017-5-11T16:23:21.000Z</createdDate_dt>
