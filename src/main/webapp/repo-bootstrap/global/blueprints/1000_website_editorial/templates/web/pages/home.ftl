@@ -45,8 +45,8 @@
 										<h2>${contentModel.features_title_t}</h2>
 									</header>
 									<div class="features" <@studio.componentContainerAttr target="features" objectId=contentModel.objectId/>>
-										<#if contentModel.features?? && contentModel.features.item??>
-										  <#list contentModel.features.item as feature>
+										<#if contentModel.features_o?? && contentModel.features_o.item??>
+										  <#list contentModel.features_o.item as feature>
 										      <@renderComponent component=feature />
 										  </#list>
 										</#if>

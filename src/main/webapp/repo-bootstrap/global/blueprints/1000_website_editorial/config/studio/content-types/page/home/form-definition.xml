@@ -482,7 +482,7 @@
                 </field>
                 <field>
                     <type>node-selector</type>
-                    <id>features</id>
+                    <id>features_o</id>
                     <iceId>features</iceId>
                     <title>Features</title>
                     <description></description>
