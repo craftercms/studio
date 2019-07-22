@@ -42,7 +42,7 @@
 							<!-- Section -->
 								<section <@studio.iceAttr iceGroup="features"/>>
 									<header class="major">
-										<h2>${contentModel.features_title}</h2>
+										<h2>${contentModel.features_title_t}</h2>
 									</header>
 									<div class="features" <@studio.componentContainerAttr target="features" objectId=contentModel.objectId/>>
 										<#if contentModel.features?? && contentModel.features.item??>
