@@ -299,7 +299,7 @@
             </field>
             <field>
                 <type>checkbox-group</type>
-                <id>tags</id>
+                <id>tags_o</id>
                 <iceId></iceId>
                 <title>Tags</title>
                 <description></description>
@@ -375,7 +375,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>company</id>
+                <id>company_o</id>
                 <iceId></iceId>
                 <title>Company</title>
                 <description></description>

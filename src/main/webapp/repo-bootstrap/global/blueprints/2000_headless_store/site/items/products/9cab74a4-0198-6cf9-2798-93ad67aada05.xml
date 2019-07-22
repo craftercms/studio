@@ -30,11 +30,11 @@
 	<value_smv>Dolls</value_smv>
 	</item></categories_o>
 	<tags/>
-	<company>	<item>	<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
+	<company_o>	<item>	<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
 	<value>Company 1</value>
 	<include>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></company>
+	</item></company_o>
 	<description_html>&lt;p&gt;Small rubber duck.&lt;/p&gt;</description_html>
 	<createdDate>2017-5-12T16:26:10.000Z</createdDate>
 	<createdDate_dt>2017-5-12T16:26:10.000Z</createdDate_dt>
