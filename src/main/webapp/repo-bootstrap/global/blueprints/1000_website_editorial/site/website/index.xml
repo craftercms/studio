@@ -44,7 +44,7 @@
 	<disableFlattening>false</disableFlattening>
 	</item></features>
 	<header/>
-	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
+	<hero_image_s>/static-assets/images/strawberries.jpg</hero_image_s>
 	<left-rail_o>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
 	<value>Left Rail with Latest Articles</value>
 	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
