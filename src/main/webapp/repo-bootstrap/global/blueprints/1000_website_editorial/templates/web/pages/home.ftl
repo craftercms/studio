@@ -32,7 +32,7 @@
 								<section id="banner" <@studio.iceAttr iceGroup="hero"/>>
 									<div class="content">
 										<header>${contentModel.hero_title_html}</header>
-										${contentModel.hero_text}
+										${contentModel.hero_text_html}
 									</div>
 									<span class="image object">
 										<img src="${contentModel.hero_image !""}" alt="" />
