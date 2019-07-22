@@ -205,7 +205,7 @@
                 </field>
                 <field>
 					<type>rte-tinymce5</type>
-					<id>body</id>
+					<id>body_html</id>
 					<iceId>main</iceId>
 					<title>Body</title>
 					<description></description>

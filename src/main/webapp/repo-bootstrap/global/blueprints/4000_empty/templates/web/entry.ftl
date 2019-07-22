@@ -12,7 +12,7 @@
         </div>
       
     	<div <@studio.iceAttr iceGroup="main"/>>
-            ${model.body}
+            ${model.body_html}
         </div>
 
 		<@studio.toolSupport/>	
