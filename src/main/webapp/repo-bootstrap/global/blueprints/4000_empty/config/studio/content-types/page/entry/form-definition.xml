@@ -162,7 +162,7 @@
             <fields>
                 <field>
                     <type>input</type>
-                    <id>title</id>
+                    <id>title_t</id>
                     <iceId>title</iceId>
                     <title>Title</title>
                     <description></description>
