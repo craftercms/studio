@@ -21,10 +21,10 @@
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>07fc</objectGroupId>
 	<objectId>07fc5ac7-05ea-b038-6455-26f895ba8822</objectId>
-	<sections>	<item>	<section_html>&lt;p&gt;Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean rhoncus, nulla ut mattis tempor, lorem arcu malesuada purus, sit amet pretium diam ligula at ante. Suspendisse potenti. Aliquam erat volutpat. Donec finibus, lectus et scelerisque euismod, est orci fermentum risus, a ullamcorper nisi tellus pellentesque eros. Maecenas vitae dui fringilla, porttitor ipsum eget, blandit felis. Nunc a eleifend velit, posuere vulputate dolor. Nam semper porttitor laoreet. Nunc sodales eget nisl eget lobortis.&lt;/p&gt;
+	<sections_o>	<item>	<section_html>&lt;p&gt;Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean rhoncus, nulla ut mattis tempor, lorem arcu malesuada purus, sit amet pretium diam ligula at ante. Suspendisse potenti. Aliquam erat volutpat. Donec finibus, lectus et scelerisque euismod, est orci fermentum risus, a ullamcorper nisi tellus pellentesque eros. Maecenas vitae dui fringilla, porttitor ipsum eget, blandit felis. Nunc a eleifend velit, posuere vulputate dolor. Nam semper porttitor laoreet. Nunc sodales eget nisl eget lobortis.&lt;/p&gt;
 &lt;p&gt;Maecenas ligula mi, aliquet eu rhoncus ut, consectetur in nulla. Etiam sed venenatis sapien. Aenean ullamcorper, turpis vitae interdum malesuada, turpis leo interdum nisi, a placerat sem dui at justo. Aliquam a lobortis orci. Etiam eget vestibulum turpis, ac pulvinar nunc. Morbi id risus ante. Nulla rhoncus feugiat odio, ac accumsan ante scelerisque ut. Phasellus porttitor turpis vel enim dignissim auctor.&lt;/p&gt;
 &lt;p&gt;Donec ut rutrum nisl. Donec facilisis condimentum neque sit amet viverra. Donec nec tellus vitae dui bibendum tristique sed ac ante. Quisque ullamcorper nibh ipsum, vitae feugiat ex sagittis sed. Nullam pharetra massa lorem. Aliquam vitae ex vel massa lobortis elementum. In lorem elit, hendrerit eu scelerisque eu, dignissim eget est. Donec pharetra eget eros vitae fermentum. Suspendisse potenti.&lt;/p&gt;</section_html>
-	</item></sections>
+	</item></sections_o>
 	<file-name>index.xml</file-name>
 	<folder-name>coffee-is-good-for-your-health</folder-name>
 	<header/>

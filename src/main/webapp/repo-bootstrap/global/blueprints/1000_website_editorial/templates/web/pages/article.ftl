@@ -41,7 +41,7 @@
 										<#assign image = "/static-assets/images/placeholder.png"/>
 									</#if>
 									<span class="image main"><img src="${image}" alt="" /></span>
-									<#list contentModel.sections.item as item>
+									<#list contentModel.sections_o.item as item>
 										<div <@studio.iceAttr iceGroup="article"/>>
 											${item.section_html}
 										</div>

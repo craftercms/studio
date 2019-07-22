@@ -619,7 +619,7 @@
                 </field>
                 <field>
                     <type>repeat</type>
-                    <id>sections</id>
+                    <id>sections_o</id>
                     <iceId>article</iceId>
                     <title>Sections</title>
                     <description></description>
