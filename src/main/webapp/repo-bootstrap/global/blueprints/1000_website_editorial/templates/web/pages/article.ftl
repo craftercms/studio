@@ -32,7 +32,7 @@
 							<!-- Content -->
 								<section>
 									<header class="main" <@studio.iceAttr iceGroup="subject"/>>
-										<h1>${contentModel.subject!""}</h1>
+										<h1>${contentModel.subject_t!""}</h1>
 										<h2>by ${contentModel.author!""}</h2>
 									</header>
 									<#if contentModel.image??>

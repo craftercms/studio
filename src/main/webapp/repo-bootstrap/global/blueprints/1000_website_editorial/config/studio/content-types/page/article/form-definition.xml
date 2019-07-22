@@ -374,7 +374,7 @@
             <fields>
                 <field>
                     <type>input</type>
-                    <id>subject</id>
+                    <id>subject_t</id>
                     <iceId>subject</iceId>
                     <title>Subject</title>
                     <description></description>

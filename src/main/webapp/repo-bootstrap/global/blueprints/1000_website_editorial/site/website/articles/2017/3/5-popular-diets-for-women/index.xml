@@ -33,7 +33,7 @@
 	<featured_b>true</featured_b>
 	<internal-name>5 Popular Diets for Women</internal-name>
 	<title_t>5 Popular Diets for Women</title_t>
-	<subject>5 Popular Diets for Women</subject>
+	<subject_t>5 Popular Diets for Women</subject_t>
 	<author>Jane Doe</author>
 	<categories_o>	<item>	<key>health</key>
 	<value_smv>Health</value_smv>

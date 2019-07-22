@@ -29,7 +29,7 @@
 	</item></sections>
 	<internal-name>New ACME Phone Released Today</internal-name>
 	<title_t>New ACME Phone Released Today</title_t>
-	<subject>New ACME Phone Released Today</subject>
+	<subject_t>New ACME Phone Released Today</subject_t>
 	<author>John Doe</author>
 	<header/>
 	<file-name>index.xml</file-name>

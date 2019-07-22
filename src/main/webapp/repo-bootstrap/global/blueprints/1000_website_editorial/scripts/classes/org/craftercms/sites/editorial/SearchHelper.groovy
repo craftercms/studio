@@ -149,7 +149,7 @@ class SearchHelper {
     if (documents) {
       documents.each {doc ->
         def article = [:]
-            article.title = doc.subject
+            article.title = doc.subject_t
             article.summary = doc.summary
             article.url = urlTransformationService.transform("storeUrlToRenderUrl", doc.localId)
             article.image = doc.image
