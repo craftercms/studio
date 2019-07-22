@@ -62,8 +62,8 @@
 										<#list articles as article>
 										<article>
 											<a href="${article.url_s}" class="image">
-												<#if article.image??>
-													<#assign articleImage = article.image/>
+												<#if article.image_s??>
+													<#assign articleImage = article.image_s/>
 												<#else>
 													<#assign articleImage = "/static-assets/images/placeholder.png"/>
 												</#if>

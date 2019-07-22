@@ -152,7 +152,7 @@ class SearchHelper {
             article.title = doc.subject_t
             article.summary_t = doc.summary_t
             article.url = urlTransformationService.transform("storeUrlToRenderUrl", doc.localId)
-            article.image = doc.image
+            article.image_s = doc.image_s
 
         articles << article
       }

@@ -42,7 +42,7 @@
 	<value_smv>Gal</value_smv>
 	</item></segments_o>
 	<summary_t>Donec euismod et ligula quis porta. Vivamus lacinia tortor lectus, a dictum nisi efficitur consequat. Duis posuere aliquet massa, quis sollicitudin dolor fringilla nec.</summary_t>
-	<image>/static-assets/images/diets-women-pic.jpg</image>
+	<image_s>/static-assets/images/diets-women-pic.jpg</image_s>
 	<createdDate>2017-3-14T23:41:13.000Z</createdDate>
 	<createdDate_dt>2017-3-14T23:41:13.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-14T23:52:2.000Z</lastModifiedDate>

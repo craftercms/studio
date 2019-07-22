@@ -35,8 +35,8 @@
 										<h1>${contentModel.subject_t!""}</h1>
 										<h2>by ${contentModel.author_s!""}</h2>
 									</header>
-									<#if contentModel.image??>
-										<#assign image = contentModel.image/>
+									<#if contentModel.image_s??>
+										<#assign image = contentModel.image_s/>
 									<#else>
 										<#assign image = "/static-assets/images/placeholder.png"/>
 									</#if>

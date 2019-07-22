@@ -5,8 +5,8 @@
 	</header>
 	<div class="mini-posts">
 		<#list articles as article>
-			<#if article.image??>
-		  	<#assign articleImage = article.image/>
+			<#if article.image_s??>
+		  	<#assign articleImage = article.image_s/>
 		  <#else>
 		    <#assign articleImage = "/static-assets/images/placeholder.png"/>
 		  </#if>
