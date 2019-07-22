@@ -36,11 +36,11 @@
 	<categories_o>	<item>	<key>entertainment</key>
 	<value_smv>Entertainment</value_smv>
 	</item></categories_o>
-	<segments>	<item>	<key>guy</key>
+	<segments_o>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
-	</item></segments>
+	</item></segments_o>
 	<header/>
 	<featured_b>true</featured_b>
 	<summary>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Etiam a elit justo. Morbi sagittis pulvinar tristique. Aenean pharetra risus a libero faucibus, iaculis porta mi ornare.</summary>

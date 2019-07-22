@@ -35,11 +35,11 @@
 	<categories_o>	<item>	<key>health</key>
 	<value_smv>Health</value_smv>
 	</item></categories_o>
-	<segments>	<item>	<key>guy</key>
+	<segments_o>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
-	</item></segments>
+	</item></segments_o>
 	<date_dt>2016-06-14T04:00:00.000Z</date_dt>
 	<createdDate>2017-3-2T20:41:3.000Z</createdDate>
 	<createdDate_dt>2017-3-2T20:41:3.000Z</createdDate_dt>

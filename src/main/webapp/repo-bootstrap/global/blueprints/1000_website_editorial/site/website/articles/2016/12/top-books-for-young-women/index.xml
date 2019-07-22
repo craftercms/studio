@@ -36,9 +36,9 @@
 	<categories_o>	<item>	<key>entertainment</key>
 	<value_smv>Entertainment</value_smv>
 	</item></categories_o>
-	<segments>	<item>	<key>gal</key>
+	<segments_o>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
-	</item></segments>
+	</item></segments_o>
 	<header/>
 	<date_dt>2016-12-28T05:00:00.000Z</date_dt>
 	<createdDate>2017-3-2T20:48:57.000Z</createdDate>

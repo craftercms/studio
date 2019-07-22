@@ -37,9 +37,9 @@
 	<categories_o>	<item>	<key>style</key>
 	<value_smv>Style</value_smv>
 	</item></categories_o>
-	<segments>	<item>	<key>guy</key>
+	<segments_o>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
-	</item></segments>
+	</item></segments_o>
 	<date_dt>2017-01-05T05:00:00.000Z</date_dt>
 	<createdDate>2017-3-3T20:57:7.000Z</createdDate>
 	<createdDate_dt>2017-3-3T20:57:7.000Z</createdDate_dt>

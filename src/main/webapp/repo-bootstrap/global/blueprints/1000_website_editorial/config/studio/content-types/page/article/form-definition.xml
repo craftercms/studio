@@ -311,7 +311,7 @@
                 </field>
                 <field>
                     <type>checkbox-group</type>
-                    <id>segments</id>
+                    <id>segments_o</id>
                     <iceId></iceId>
                     <title>Segments</title>
                     <description></description>

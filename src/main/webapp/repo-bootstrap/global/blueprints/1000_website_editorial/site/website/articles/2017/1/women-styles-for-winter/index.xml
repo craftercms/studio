@@ -37,9 +37,9 @@
 	<categories_o>	<item>	<key>style</key>
 	<value_smv>Style</value_smv>
 	</item></categories_o>
-	<segments>	<item>	<key>gal</key>
+	<segments_o>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
-	</item></segments>
+	</item></segments_o>
 	<createdDate>2017-3-3T21:7:20.000Z</createdDate>
 	<createdDate_dt>2017-3-3T21:7:20.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-13T20:33:12.000Z</lastModifiedDate>
