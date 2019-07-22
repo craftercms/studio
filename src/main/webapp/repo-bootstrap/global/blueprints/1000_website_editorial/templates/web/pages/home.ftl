@@ -70,7 +70,7 @@
 												<img src="${articleImage}" alt="" />
 											</a>
 											<h3><a href="${article.url_s}">${article.title_t}</a></h3>
-											<p>${article.summary}</p>
+											<p>${article.summary_t}</p>
 											<ul class="actions">
 												<li><a href="${article.url_s}" class="button">More</a></li>
 											</ul>

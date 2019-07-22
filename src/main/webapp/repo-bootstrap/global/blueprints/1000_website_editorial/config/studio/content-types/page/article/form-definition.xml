@@ -528,7 +528,7 @@
                 </field>
                 <field>
                     <type>textarea</type>
-                    <id>summary</id>
+                    <id>summary_t</id>
                     <iceId></iceId>
                     <title>Summary</title>
                     <description></description>
