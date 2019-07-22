@@ -301,7 +301,7 @@
 			<fields>
 				<field>
 					<type>input</type>
-					<id>articles_title</id>
+					<id>articles_title_t</id>
 					<iceId>articles</iceId>
 					<title>Articles Title</title>
 					<description></description>

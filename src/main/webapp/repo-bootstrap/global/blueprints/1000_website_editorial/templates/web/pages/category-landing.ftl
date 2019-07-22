@@ -31,7 +31,7 @@
 							<!-- Section -->
 								<section <@studio.iceAttr iceGroup="articles"/>>
 									<header class="main">
-										<h1>${contentModel.articles_title}</h1>
+										<h1>${contentModel.articles_title_t}</h1>
 									</header>
 									<div class="posts">
 										<#list articles as article>
