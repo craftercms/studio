@@ -268,7 +268,7 @@
             <fields>
                 <field>
 					<type>rte-tinymce5</type>
-					<id>hero_title</id>
+					<id>hero_title_html</id>
 					<iceId>hero</iceId>
 					<title>Hero Title</title>
 					<description></description>

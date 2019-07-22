@@ -31,7 +31,7 @@
 							<!-- Banner -->
 								<section id="banner" <@studio.iceAttr iceGroup="hero"/>>
 									<div class="content">
-										<header>${contentModel.hero_title}</header>
+										<header>${contentModel.hero_title_html}</header>
 										${contentModel.hero_text}
 									</div>
 									<span class="image object">
