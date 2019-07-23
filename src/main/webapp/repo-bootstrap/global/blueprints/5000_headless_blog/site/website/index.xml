@@ -24,7 +24,7 @@
 	<file-name>index.xml</file-name>
 	<internal-name>Item Explorer</internal-name>
 	<orderDefault_f>-1</orderDefault_f>
-	<body>&lt;p&gt;This sample site allows you to manage a blog using multiple authors, categories and tags for the posts.&lt;/p&gt;
+	<body_html>&lt;p&gt;This sample site allows you to manage a blog using multiple authors, categories and tags for the posts.&lt;/p&gt;
 &lt;p&gt;All content is exposed by a flexible REST API:&lt;/p&gt;
 &lt;p&gt;get endpoint using an id:&lt;/p&gt;
 &lt;ul&gt;
@@ -40,7 +40,7 @@
 &lt;p&gt;list posts endpoint also supports &amp;#39;author&amp;#39;, &amp;#39;categories&amp;#39;, &amp;#39;tags&amp;#39; parameters. A special &amp;#39;q&amp;#39; parameter supports text search in the body of the posts:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;/api/1/post/list.json&lt;/li&gt;
-&lt;/ul&gt;</body>
+&lt;/ul&gt;</body_html>
 	<objectGroupId>8d7f</objectGroupId>
 	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
 	<folder-name/>
@@ -48,5 +48,5 @@
 	<createdDate_dt>2017-1-31T16:18:14.000Z</createdDate_dt>
 	<lastModifiedDate>2017-5-17T15:51:28.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-5-17T15:51:28.000Z</lastModifiedDate_dt>
-	<title>Item Explorer</title>
+	<title_s>Item Explorer</title_s>
 </page>

@@ -185,7 +185,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>authors</id>
+                <id>authors_o</id>
                 <iceId></iceId>
                 <title>Authors</title>
                 <description></description>
@@ -382,7 +382,7 @@
             </field>
             <field>
                 <type>checkbox-group</type>
-                <id>categories</id>
+                <id>categories_o</id>
                 <iceId></iceId>
                 <title>Categories</title>
                 <description></description>
@@ -415,7 +415,7 @@
             </field>
             <field>
                 <type>checkbox-group</type>
-                <id>tags</id>
+                <id>tags_o</id>
                 <iceId></iceId>
                 <title>Tags</title>
                 <description></description>

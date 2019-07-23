@@ -132,7 +132,7 @@
             </field>
             <field>
                 <type>input</type>
-                <id>title</id>
+                <id>title_t</id>
                 <iceId>core</iceId>
                 <title>Title</title>
                 <description></description>
@@ -175,7 +175,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>header</id>
+                <id>header_o</id>
                 <iceId>core</iceId>
                 <title>Header</title>
                 <description>Default header is inherited from Section Defaults. Specify a new header to overwrite it.</description>
@@ -223,7 +223,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>left-rail</id>
+                <id>left-rail_o</id>
                 <iceId></iceId>
                 <title>Left Rail</title>
                 <description>Default left-rail is inherited from Section Defaults. Specify a new left-rail to overwrite it.</description>
@@ -278,7 +278,7 @@
             <fields>
                 <field>
                     <type>checkbox-group</type>
-                    <id>categories</id>
+                    <id>categories_o</id>
                     <iceId></iceId>
                     <title>Categories</title>
                     <description></description>
@@ -311,7 +311,7 @@
                 </field>
                 <field>
                     <type>checkbox-group</type>
-                    <id>segments</id>
+                    <id>segments_o</id>
                     <iceId></iceId>
                     <title>Segments</title>
                     <description></description>
@@ -374,7 +374,7 @@
             <fields>
                 <field>
                     <type>input</type>
-                    <id>subject</id>
+                    <id>subject_t</id>
                     <iceId>subject</iceId>
                     <title>Subject</title>
                     <description></description>
@@ -417,7 +417,7 @@
                 </field>
                 <field>
                     <type>input</type>
-                    <id>author</id>
+                    <id>author_s</id>
                     <iceId>subject</iceId>
                     <title>Author</title>
                     <description></description>
@@ -528,7 +528,7 @@
                 </field>
                 <field>
                     <type>textarea</type>
-                    <id>summary</id>
+                    <id>summary_t</id>
                     <iceId></iceId>
                     <title>Summary</title>
                     <description></description>
@@ -571,7 +571,7 @@
                 </field>
                 <field>
                     <type>image-picker</type>
-                    <id>image</id>
+                    <id>image_s</id>
                     <iceId></iceId>
                     <title>Image</title>
                     <description></description>
@@ -619,7 +619,7 @@
                 </field>
                 <field>
                     <type>repeat</type>
-                    <id>sections</id>
+                    <id>sections_o</id>
                     <iceId>article</iceId>
                     <title>Sections</title>
                     <description></description>

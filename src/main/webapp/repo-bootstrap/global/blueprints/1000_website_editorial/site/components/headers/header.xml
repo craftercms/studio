@@ -25,15 +25,15 @@
 	<folder-name/>
 	<internal-name>Header</internal-name>
 	<logo_text/>
-	<business_name>Editorial</business_name>
+	<business_name_s>Editorial</business_name_s>
 	<logo/>
-	<social_media_links>	<item>	<url>http://twitter.com</url>
-	<social_media>fa-twitter</social_media>
-	</item>	<item>	<social_media>fa-facebook</social_media>
-	<url>http://facebook.com</url>
-	</item>	<item>	<social_media>fa-google-plus</social_media>
-	<url>http://plus.google.com</url>
-	</item></social_media_links>
+	<social_media_links_o>	<item>	<url_s>http://twitter.com</url_s>
+	<social_media_s>fa-twitter</social_media_s>
+	</item>	<item>	<social_media_s>fa-facebook</social_media_s>
+	<url_s>http://facebook.com</url_s>
+	</item>	<item>	<social_media_s>fa-google-plus</social_media_s>
+	<url_s>http://plus.google.com</url_s>
+	</item></social_media_links_o>
 	<createdDate>2017-2-3T23:27:50.000Z</createdDate>
 	<createdDate_dt>2017-2-3T23:27:50.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-13T20:37:41.000Z</lastModifiedDate>

@@ -4,7 +4,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>${model.title}</title>
+		<title>${model.title_s}</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 		<style>
 			[v-cloak] { display:none; }
@@ -77,7 +77,7 @@
 						<h4 class="modal-title">Help</h4>
 					</div>
 					<div class="modal-body">
-						${model.body}
+						${model.body_html}
 					</div>
 				</div>
 			</div>

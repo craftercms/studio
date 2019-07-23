@@ -26,14 +26,14 @@
 	<placeInNav>true</placeInNav>
 	<orderDefault_f>11000</orderDefault_f>
 	<internal-name>Technology</internal-name>
-	<title>Technology</title>
+	<title_t>Technology</title_t>
 	<header/>
 	<createdDate>2017-3-14T15:24:15.000Z</createdDate>
 	<createdDate_dt>2017-3-14T15:24:15.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-21T18:16:22.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-3-21T18:16:22.000Z</lastModifiedDate_dt>
 	<left-rail/>
-	<category>technology</category>
-	<max_articles>10</max_articles>
-	<articles_title>Technology</articles_title>
+	<category_s>technology</category_s>
+	<max_articles_i>10</max_articles_i>
+	<articles_title_t>Technology</articles_title_t>
 </page>

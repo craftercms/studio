@@ -24,11 +24,11 @@
 	<file-name>related-articles-widget.xml</file-name>
 	<folder-name/>
 	<internal-name>Related Articles Widget</internal-name>
-	<title>Related Articles</title>
-	<max_articles>3</max_articles>
-	<scripts>	<item>	<key>/scripts/components/related-articles.groovy</key>
+	<title_t>Related Articles</title_t>
+	<max_articles_i>3</max_articles_i>
+	<scripts_o>	<item>	<key>/scripts/components/related-articles.groovy</key>
 	<value>related-articles.groovy</value>
-	</item></scripts>
+	</item></scripts_o>
 	<createdDate>2017-3-28T22:28:21.000Z</createdDate>
 	<createdDate_dt>2017-3-28T22:28:21.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-28T22:28:21.000Z</lastModifiedDate>

@@ -122,7 +122,7 @@
             </field>
             <field>
                 <type>input</type>
-                <id>title</id>
+                <id>title_t</id>
                 <iceId>core</iceId>
                 <title>Title</title>
                 <description></description>
@@ -165,7 +165,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>header</id>
+                <id>header_o</id>
                 <iceId>core</iceId>
                 <title>Header</title>
                 <description>Default header is inherited from Section Defaults. Specify a new header to overwrite it.</description>
@@ -213,7 +213,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>left-rail</id>
+                <id>left-rail_o</id>
                 <iceId></iceId>
                 <title>Left Rail</title>
                 <description>Default left-rail is inherited from Section Defaults. Specify a new left-rail to overwrite it.</description>
@@ -268,7 +268,7 @@
             <fields>
                 <field>
 					<type>rte-tinymce5</type>
-					<id>hero_title</id>
+					<id>hero_title_html</id>
 					<iceId>hero</iceId>
 					<title>Hero Title</title>
 					<description></description>
@@ -326,7 +326,7 @@
 				</field>
 				<field>
 					<type>rte-tinymce5</type>
-					<id>hero_text</id>
+					<id>hero_text_html</id>
 					<iceId>hero</iceId>
 					<title>Hero Text</title>
 					<description></description>
@@ -384,7 +384,7 @@
 				</field>
                 <field>
                     <type>image-picker</type>
-                    <id>hero_image</id>
+                    <id>hero_image_s</id>
                     <iceId>hero</iceId>
                     <title>Hero Image</title>
                     <description></description>
@@ -439,7 +439,7 @@
             <fields>
                 <field>
                     <type>input</type>
-                    <id>features_title</id>
+                    <id>features_title_t</id>
                     <iceId>features</iceId>
                     <title>Features Title</title>
                     <description></description>
@@ -482,7 +482,7 @@
                 </field>
                 <field>
                     <type>node-selector</type>
-                    <id>features</id>
+                    <id>features_o</id>
                     <iceId>features</iceId>
                     <title>Features</title>
                     <description></description>

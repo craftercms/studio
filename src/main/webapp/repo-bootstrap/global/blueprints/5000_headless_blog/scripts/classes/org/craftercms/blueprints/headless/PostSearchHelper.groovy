@@ -29,11 +29,11 @@ class PostSearchHelper extends SearchHelper {
 	}
 	
 	def getAuthors(doc) {
-		if(doc.authors.item instanceof Map) {
-			return doc.authors.item.component.name_s
+		if(doc.authors_o.item instanceof Map) {
+			return doc.authors_o.item.component.name_s
 		} else {
 			def authors = []
-			doc.authors.item.each { author ->
+			doc.authors_o.item.each { author ->
 				authors << author.component.name_s
 			}
 			return authors
@@ -42,11 +42,11 @@ class PostSearchHelper extends SearchHelper {
 	
 	
 	def getCategories(doc) {
-		getTaxonomyValues(doc, "categories")
+		getTaxonomyValues(doc, "categories_o")
 	}
 	
 	def getTags(doc) {
-		getTaxonomyValues(doc, "tags")
+		getTaxonomyValues(doc, "tags_o")
 	}
 	
 	def processItem(doc) {

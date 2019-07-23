@@ -62,17 +62,17 @@ const GRAPHQL_QUERIES = '\
         description_html_raw\
         price_d\
         image_s\
-        categories {\
+        categories_o {\
           item {\
             key(filter:{ matches: $category })\
           }\
         }\
-        tags {\
+        tags_o {\
           item {\
             key(filter:{ matches: $tag })\
           }\
         }\
-        company {\
+        company_o {\
           item {\
             component {\
               objectId(filter:{ regex: $company })\

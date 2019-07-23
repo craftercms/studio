@@ -129,7 +129,7 @@
 			<fields>
 				<field>
 					<type>image-picker</type>
-					<id>logo</id>
+					<id>logo_s</id>
 					<iceId>header</iceId>
 					<title>Logo</title>
 					<description></description>
@@ -177,7 +177,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>logo_text</id>
+					<id>logo_text_t</id>
 					<iceId>hero</iceId>
 					<title>Logo Alt Text</title>
 					<description></description>
@@ -220,7 +220,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>business_name</id>
+					<id>business_name_s</id>
 					<iceId>header</iceId>
 					<title>Business Name</title>
 					<description></description>
@@ -270,7 +270,7 @@
 			<fields>
 				<field>
 					<type>repeat</type>
-					<id>social_media_links</id>
+					<id>social_media_links_o</id>
 					<iceId>hero</iceId>
 					<title>Social Media Link</title>
 					<description></description>
@@ -291,7 +291,7 @@
 					<fields>
 				<field>
 					<type>dropdown</type>
-					<id>social_media</id>
+					<id>social_media_s</id>
 					<iceId>hero</iceId>
 					<title>Social Media</title>
 					<description></description>
@@ -324,7 +324,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>url</id>
+					<id>url_s</id>
 					<iceId>hero</iceId>
 					<title>URL</title>
 					<description></description>

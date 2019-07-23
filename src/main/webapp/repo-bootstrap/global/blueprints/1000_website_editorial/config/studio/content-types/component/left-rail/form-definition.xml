@@ -129,7 +129,7 @@
 			<fields>
 				<field>
 					<type>node-selector</type>
-					<id>widgets</id>
+					<id>widgets_o</id>
 					<iceId>left-rail</iceId>
 					<title>Widgets</title>
 					<description></description>

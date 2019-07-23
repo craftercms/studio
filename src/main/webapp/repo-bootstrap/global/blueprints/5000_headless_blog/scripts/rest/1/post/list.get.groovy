@@ -30,13 +30,13 @@ if(q) {
 	helper.query("body_html: $q")
 }
 if(author) {
-	helper.filter("authors.item.key: \"$author\"")
+	helper.filter("authors_o.item.key: \"$author\"")
 }
 if(categories) {
-	helper.filter("categories.item.key: ( ${categories.join(' AND ')} )")
+	helper.filter("categories_o.item.key: ( ${categories.join(' AND ')} )")
 }
 if(tags) {
-	helper.filter("tags.item.key: ( ${tags.join(' AND ')} )")
+	helper.filter("tags_o.item.key: ( ${tags.join(' AND ')} )")
 }
 
 def posts = helper.from(start).to(rows).getItems()

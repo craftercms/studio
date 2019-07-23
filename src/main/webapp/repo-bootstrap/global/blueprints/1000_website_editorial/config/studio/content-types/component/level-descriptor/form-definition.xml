@@ -71,7 +71,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>header</id>
+					<id>header_o</id>
 					<iceId></iceId>
 					<title>Header</title>
 					<description></description>
@@ -119,7 +119,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>left-rail</id>
+					<id>left-rail_o</id>
 					<iceId></iceId>
 					<title>Left Rail</title>
 					<description></description>

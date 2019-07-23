@@ -21,7 +21,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>${model.title}</title>
+  <title>${model.title_t}</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <style>
     [v-cloak] { display:none; }
@@ -119,7 +119,7 @@
                         <img v-bind:src="product.image_s" class="img-responsive img-thumbnail center-block"
                              data-toggle="popover" data-trigger="hover" v-bind:data-content="product.description_html_raw"
                              data-html="true"/>
-                        <h4>{{ product.name_s }}<small> by {{ product.company.item[0].component.name_s }}<small></h4>
+                        <h4>{{ product.name_s }}<small> by {{ product.company_o.item[0].component.name_s }}<small></h4>
                         <span class="badge pull-right">&#36;{{ product.price_d }}</span>
                     </div>
                 </div>

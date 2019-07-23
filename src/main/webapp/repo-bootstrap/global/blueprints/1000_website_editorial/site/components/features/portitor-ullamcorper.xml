@@ -24,8 +24,8 @@
 	<file-name>portitor-ullamcorper.xml</file-name>
 	<folder-name/>
 	<internal-name>One</internal-name>
-	<title>One</title>
-	<icon>fa-diamond</icon>
+	<title_t>One</title_t>
+	<icon_s>fa-diamond</icon_s>
 	<body_html>&lt;p&gt;&lt;span&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</body_html>
 	<createdDate>2017-3-23T20:45:45.000Z</createdDate>
 	<createdDate_dt>2017-3-23T20:45:45.000Z</createdDate_dt>

@@ -26,15 +26,15 @@
 	<name_s>Car</name_s>
 	<price_d>10.0</price_d>
 	<image_s>/static-assets/images/products/toy-car.jpg</image_s>
-	<categories>	<item>	<key>cars</key>
+	<categories_o>	<item>	<key>cars</key>
 	<value_smv>Cars</value_smv>
-	</item></categories>
+	</item></categories_o>
 	<tags/>
-	<company>	<item>	<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
+	<company_o>	<item>	<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
 	<value>Company 1</value>
 	<include>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></company>
+	</item></company_o>
 	<description_html>&lt;p&gt;Small Car&lt;/p&gt;</description_html>
 	<createdDate>2017-5-11T17:43:45.000Z</createdDate>
 	<createdDate_dt>2017-5-11T17:43:45.000Z</createdDate_dt>

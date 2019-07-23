@@ -21,9 +21,9 @@
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>036c</objectGroupId>
 	<objectId>036cd26c-48e9-7b34-ae54-757183317d38</objectId>
-	<icon>fa-users</icon>
+	<icon_s>fa-users</icon_s>
 	<internal-name>Two</internal-name>
-	<title>Two</title>
+	<title_t>Two</title_t>
 	<file-name>quam-lorem-ipsum.xml</file-name>
 	<folder-name/>
 	<body_html>&lt;p&gt;&lt;span&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</body_html>

@@ -23,7 +23,7 @@
 	<objectId>167e20e8-11c2-0f26-1802-b842a068c162</objectId>
 	<header/>
 	<internal-name>Entertainment</internal-name>
-	<title>Entertainment</title>
+	<title_t>Entertainment</title_t>
 	<placeInNav>true</placeInNav>
 	<orderDefault_f>10000</orderDefault_f>
 	<file-name>index.xml</file-name>
@@ -33,7 +33,7 @@
 	<lastModifiedDate>2017-3-21T18:16:13.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-3-21T18:16:13.000Z</lastModifiedDate_dt>
 	<left-rail/>
-	<category>entertainment</category>
-	<max_articles>10</max_articles>
-	<articles_title>Entertainment</articles_title>
+	<category_s>entertainment</category_s>
+	<max_articles_i>10</max_articles_i>
+	<articles_title_t>Entertainment</articles_title_t>
 </page>

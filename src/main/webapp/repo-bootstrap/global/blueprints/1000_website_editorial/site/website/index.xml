@@ -30,11 +30,11 @@
 	<createdDate_dt>2017-1-31T16:18:14.000Z</createdDate_dt>
 	<lastModifiedDate>2017-5-18T15:52:21.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-5-18T15:52:21.000Z</lastModifiedDate_dt>
-	<title>Editorial</title>
-	<hero_text>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text>
-	<hero_title>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;
-&lt;h3&gt;&lt;span style="font-size: 1.5em;"&gt;by HTML5 UP&lt;/span&gt;&lt;/h3&gt;</hero_title>
-	<features>	<item>	<value>Quam lorem ipsum</value>
+	<title_t>Editorial</title_t>
+	<hero_text_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text_html>
+	<hero_title_html>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;
+&lt;h3&gt;&lt;span style="font-size: 1.5em;"&gt;by HTML5 UP&lt;/span&gt;&lt;/h3&gt;</hero_title_html>
+	<features_o>	<item>	<value>Quam lorem ipsum</value>
 	<key>/site/components/features/quam-lorem-ipsum.xml</key>
 	<include>/site/components/features/quam-lorem-ipsum.xml</include>
 	<disableFlattening>false</disableFlattening>
@@ -42,13 +42,13 @@
 	<value>Sapien Veroeros</value>
 	<include>/site/components/features/sapien-veroeros.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></features>
+	</item></features_o>
 	<header/>
-	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
-	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
+	<hero_image_s>/static-assets/images/strawberries.jpg</hero_image_s>
+	<left-rail_o>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
 	<value>Left Rail with Latest Articles</value>
 	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></left-rail>
-	<features_title>Erat lacinia</features_title>
+	</item></left-rail_o>
+	<features_title_t>Erat lacinia</features_title_t>
 </page>
