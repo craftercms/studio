@@ -1,28 +1,3 @@
-DROP PROCEDURE IF EXISTS dropIndexIfExists ;
-
-CREATE PROCEDURE dropIndexIfExists(
-    IN schemaName tinytext,
-    IN tableName tinytext,
-    IN indexName tinytext)
-BEGIN
-    IF EXISTS (
-            SELECT * FROM information_schema.STATISTICS
-            WHERE index_name = indexName
-              AND table_name = tableName
-              AND table_schema = schemaName
-        )
-    THEN
-        SET @dropIndex=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
-                               ' DROP INDEX ', indexName);
-        PREPARE statement FROM @dropIndex;
-        EXECUTE statement;
-    END IF;
-END ;
-
-call dropIndexIfExists('crafter', 'site', 'site_id_unique') ;
-
-call dropIndexIfExists('crafter', 'site', 'site_id_idx') ;
-
 DROP PROCEDURE IF EXISTS addColumnIfNotExists ;
 
 CREATE PROCEDURE addColumnIfNotExists(
@@ -45,9 +20,26 @@ CREATE PROCEDURE addColumnIfNotExists(
     END IF;
   END ;
 
-call addColumnIfNotExists('crafter', 'site', 'site_uuid', 'VARCHAR(50) NOT NULL') ;
+DROP PROCEDURE IF EXISTS dropColumnIfExists ;
 
-call addColumnIfNotExists('crafter', 'site', 'deleted', 'INT NOT NULL DEFAULT 0') ;
+CREATE PROCEDURE dropColumnIfExists(
+    IN schemaName tinytext,
+    IN tableName tinytext,
+    IN columnName tinytext)
+BEGIN
+    IF EXISTS (
+            SELECT * FROM information_schema.COLUMNS
+            WHERE column_name = columnName
+              AND table_name = tableName
+              AND table_schema = schemaName
+        )
+    THEN
+        SET @dropColumn=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
+                              ' DROP COLUMN ', columnName);
+        PREPARE statement FROM @dropColumn;
+        EXECUTE statement;
+    END IF;
+END ;
 
 DROP PROCEDURE IF EXISTS addUniqueIfNotExists ;
 
@@ -71,7 +63,26 @@ BEGIN
     END IF;
 END ;
 
-call addUniqueIfNotExists('crafter', 'site', 'site_id_site_uuid_unique', '(`site_id` ASC, `site_uuid` ASC)') ;
+DROP PROCEDURE IF EXISTS dropIndexIfExists ;
+
+CREATE PROCEDURE dropIndexIfExists(
+    IN schemaName tinytext,
+    IN tableName tinytext,
+    IN indexName tinytext)
+BEGIN
+    IF EXISTS (
+            SELECT * FROM information_schema.STATISTICS
+            WHERE index_name = indexName
+              AND table_name = tableName
+              AND table_schema = schemaName
+        )
+    THEN
+        SET @dropIndex=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
+                               ' DROP INDEX ', indexName);
+        PREPARE statement FROM @dropIndex;
+        EXECUTE statement;
+    END IF;
+END ;
 
 DROP PROCEDURE IF EXISTS addIndexIfNotExists ;
 
@@ -89,14 +100,10 @@ BEGIN
         )
     THEN
         SET @addIndex=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
-                              ' ADD INDEX ', indexName, ' ', indexDefinition);
+                             ' ADD INDEX ', indexName, ' ', indexDefinition);
         PREPARE statement FROM @addIndex;
         EXECUTE statement;
     END IF;
 END ;
 
-call addIndexIfNotExists('crafter', 'site', 'site_id_idx', '(`site_id` ASC)') ;
-
-UPDATE `site` SET site_uuid = UUID() WHERE site_uuid IS NULL OR site_uuid = '' ;
-
-UPDATE _meta SET version = '3.1.0.12' ;
+UPDATE _meta SET version = '3.1.0.35' ;

@@ -1,5 +1,103 @@
 USE crafter ;
 
+CREATE PROCEDURE addColumnIfNotExists(
+    IN schemaName tinytext,
+    IN tableName tinytext,
+    IN columnName tinytext,
+    IN columnDefinition text)
+  BEGIN
+    IF NOT EXISTS (
+            SELECT * FROM information_schema.COLUMNS
+            WHERE column_name = columnName
+              AND table_name = tableName
+              AND table_schema = schemaName
+        )
+    THEN
+        SET @addColumn=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
+                              ' ADD COLUMN ', columnName, ' ', columnDefinition);
+        PREPARE statement FROM @addColumn;
+        EXECUTE statement;
+    END IF;
+  END ;
+
+CREATE PROCEDURE dropColumnIfExists(
+    IN schemaName tinytext,
+    IN tableName tinytext,
+    IN columnName tinytext)
+BEGIN
+    IF EXISTS (
+            SELECT * FROM information_schema.COLUMNS
+            WHERE column_name = columnName
+              AND table_name = tableName
+              AND table_schema = schemaName
+        )
+    THEN
+        SET @dropColumn=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
+                              ' DROP COLUMN ', columnName);
+        PREPARE statement FROM @dropColumn;
+        EXECUTE statement;
+    END IF;
+END ;
+
+CREATE PROCEDURE addUniqueIfNotExists(
+    IN schemaName tinytext,
+    IN tableName tinytext,
+    IN uniqueName tinytext,
+    IN uniqueDefinition text)
+BEGIN
+    IF NOT EXISTS (
+            SELECT * FROM information_schema.STATISTICS
+            WHERE index_name = uniqueName
+              AND table_name = tableName
+              AND table_schema = schemaName
+        )
+    THEN
+        SET @addUnique=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
+                              ' ADD UNIQUE ', uniqueName, ' ', uniqueDefinition);
+        PREPARE statement FROM @addUnique;
+        EXECUTE statement;
+    END IF;
+END ;
+
+CREATE PROCEDURE dropIndexIfExists(
+    IN schemaName tinytext,
+    IN tableName tinytext,
+    IN indexName tinytext)
+BEGIN
+    IF EXISTS (
+            SELECT * FROM information_schema.STATISTICS
+            WHERE index_name = indexName
+              AND table_name = tableName
+              AND table_schema = schemaName
+        )
+    THEN
+        SET @dropIndex=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
+                               ' DROP INDEX ', indexName);
+        PREPARE statement FROM @dropIndex;
+        EXECUTE statement;
+    END IF;
+END ;
+
+CREATE PROCEDURE addIndexIfNotExists(
+    IN schemaName tinytext,
+    IN tableName tinytext,
+    IN indexName tinytext,
+    IN indexDefinition text)
+BEGIN
+    IF NOT EXISTS (
+            SELECT * FROM information_schema.STATISTICS
+            WHERE index_name = indexName
+              AND table_name = tableName
+              AND table_schema = schemaName
+        )
+    THEN
+        SET @addIndex=CONCAT('ALTER TABLE ', schemaName, '.', tableName,
+                             ' ADD INDEX ', indexName, ' ', indexDefinition);
+        PREPARE statement FROM @addIndex;
+        EXECUTE statement;
+    END IF;
+END ;
+
 CREATE TABLE _meta (
   `version` VARCHAR(10) NOT NULL,
   `integrity` BIGINT(10),
@@ -7,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.34', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.35', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,

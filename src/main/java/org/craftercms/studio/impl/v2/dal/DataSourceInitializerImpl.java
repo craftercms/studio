@@ -26,12 +26,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
@@ -41,9 +38,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
@@ -59,9 +54,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     /**
      * Database queries
      */
-    private final static String DB_QUERY_CHECK_CONFIG =
-            "select @@GLOBAL.innodb_large_prefix, @@GLOBAL.innodb_file_format, @@GLOBAL.innodb_file_format_max, " +
-            "@@GLOBAL.innodb_file_per_table";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
     private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM crafter";
@@ -75,8 +67,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     @Override
     public void initDataSource() {
         if (isEnabled()) {
-            String configureDbScriptPath = getConfigureDBScriptPath();
-
             try {
                 Class.forName(studioConfiguration.getProperty(DB_DRIVER));
             } catch (Exception e) {
@@ -84,39 +74,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             }
 
             try(Connection conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL))) {
-                // Configure DB
-                logger.debug("Check if database is already configured properly");
-                boolean dbConfigured = false;
-                try (Statement statement = conn.createStatement();
-                    ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_CONFIG)) {
-                    if (rs.next()) {
-                        int largePrefix = rs.getInt(1);
-                        String fileFormat = rs.getString(2);
-                        String fileFormatMax = rs.getString(3);
-                        int filePerTable = rs.getInt(4);
-                        dbConfigured = (largePrefix == 1) &&
-                                       StringUtils.equalsIgnoreCase("BARRACUDA", fileFormat) &&
-                                       StringUtils.equalsIgnoreCase("BARRACUDA", fileFormatMax) &&
-                                       (filePerTable == 1);
-                    }
-                }
-
-                ScriptRunner sr = new ScriptRunner(conn);
-                InputStream is = null;
-                Reader reader = null;
-                if (!dbConfigured) {
-                    logger.info("Configure database from script " + configureDbScriptPath);
-                    sr.setDelimiter(delimiter);
-                    sr.setStopOnError(true);
-                    sr.setLogWriter(null);
-                    is = getClass().getClassLoader().getResourceAsStream(configureDbScriptPath);
-                    reader = new InputStreamReader(is);
-                    try {
-                        sr.runScript(reader);
-                    } catch (RuntimeSqlException e) {
-                        logger.error("Error while running configure DB script", e);
-                    }
-                }
 
                 logger.debug("Check if database schema already exists");
                 try(Statement statement = conn.createStatement();
@@ -207,10 +164,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                 studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH));
         String passwordChars = studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS);
         return RandomStringUtils.random(passwordLength, passwordChars);
-    }
-
-    private String getConfigureDBScriptPath() {
-        return studioConfiguration.getProperty(DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION);
     }
 
     private String getCreateDBScriptPath() {
