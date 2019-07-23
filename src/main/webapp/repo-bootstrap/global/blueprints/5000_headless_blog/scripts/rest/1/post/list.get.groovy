@@ -32,11 +32,11 @@ if(q) {
 if(author) {
 	helper.filter("authors_o.item.key: \"$author\"")
 }
-if(categories_o) {
-	helper.filter("categories_o.item.key: ( ${categories_o.join(' AND ')} )")
+if(categories) {
+	helper.filter("categories_o.item.key: ( ${categories.join(' AND ')} )")
 }
-if(tags_o) {
-	helper.filter("tags_o.item.key: ( ${tags_o.join(' AND ')} )")
+if(tags) {
+	helper.filter("tags_o.item.key: ( ${tags.join(' AND ')} )")
 }
 
 def posts = helper.from(start).to(rows).getItems()

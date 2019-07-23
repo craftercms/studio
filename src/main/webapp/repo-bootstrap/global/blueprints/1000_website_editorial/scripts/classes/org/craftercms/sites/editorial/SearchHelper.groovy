@@ -28,7 +28,7 @@ import org.elasticsearch.search.sort.SortOrder
 class SearchHelper {
 
   static final String ARTICLE_CONTENT_TYPE_QUERY = "content-type:\"/page/article\""
-  static final String[] HIGHLIGHT_FIELDS = ["subject", "sections.item.section_html"]
+  static final String[] HIGHLIGHT_FIELDS = ["subject_t", "sections_o.item.section_html"]
   static final int DEFAULT_START = 0
   static final int DEFAULT_ROWS = 10
 
@@ -47,12 +47,12 @@ class SearchHelper {
       if(!userTerm.contains(" ")) {
         userTerm = "${userTerm}~1 OR *${userTerm}*"
       }
-      def userTermQuery = "(subject:(${userTerm}) OR sections.item.section_html:(${userTerm}))"
+      def userTermQuery = "(subject_t:(${userTerm}) OR sections_o.item.section_html:(${userTerm}))"
 
       q = "${q} AND ${userTermQuery}"
     }
     if (categories) {
-      def categoriesQuery = getFieldQueryWithMultipleValues("categories.item.key", categories)
+      def categoriesQuery = getFieldQueryWithMultipleValues("categories_o.item.key", categories)
 
       q = "${q} AND ${categoriesQuery}"
     }
@@ -82,12 +82,12 @@ class SearchHelper {
       q = "${q} AND featured_b:true"
     }
     if (categories) {
-      def categoriesQuery = getFieldQueryWithMultipleValues("categories.item.key", categories)
+      def categoriesQuery = getFieldQueryWithMultipleValues("categories_o.item.key", categories)
 
       q = "${q} AND ${categoriesQuery}"
     }
     if (segments) {
-      def segmentsQuery = getFieldQueryWithMultipleValues("segments.item.key", segments)
+      def segmentsQuery = getFieldQueryWithMultipleValues("segments_o.item.key", segments)
 
       q = "${q} AND ${segmentsQuery}"
     }
@@ -150,9 +150,9 @@ class SearchHelper {
       documents.each {doc ->
         def article = [:]
             article.title = doc.subject_t
-            article.summary_t = doc.summary_t
+            article.summary = doc.summary_t
             article.url = urlTransformationService.transform("storeUrlToRenderUrl", doc.localId)
-            article.image_s = doc.image_s
+            article.image = doc.image_s
 
         articles << article
       }

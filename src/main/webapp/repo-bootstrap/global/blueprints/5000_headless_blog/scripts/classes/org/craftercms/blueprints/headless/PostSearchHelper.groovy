@@ -42,11 +42,11 @@ class PostSearchHelper extends SearchHelper {
 	
 	
 	def getCategories(doc) {
-		getTaxonomyValues(doc, "categories")
+		getTaxonomyValues(doc, "categories_o")
 	}
 	
 	def getTags(doc) {
-		getTaxonomyValues(doc, "tags")
+		getTaxonomyValues(doc, "tags_o")
 	}
 	
 	def processItem(doc) {

@@ -5,14 +5,14 @@
 	</header>
 	<div class="mini-posts">
 		<#list articles as article>
-			<#if article.image_s??>
-		  	<#assign articleImage = article.image_s/>
+			<#if article.image??>
+		  	<#assign articleImage = article.image/>
 		  <#else>
 		    <#assign articleImage = "/static-assets/images/placeholder.png"/>
 		  </#if>
 		  <article>
-		    <a href="${article.url_s}" class="image"><img src="${articleImage}" alt="" /></a>
-		    <h4><a href="${article.url_s}">${article.title_t}</a></h4>
+		    <a href="${article.url}" class="image"><img src="${articleImage}" alt="" /></a>
+		    <h4><a href="${article.url}">${article.title}</a></h4>
 		  </article>
 		</#list>
 	</div>

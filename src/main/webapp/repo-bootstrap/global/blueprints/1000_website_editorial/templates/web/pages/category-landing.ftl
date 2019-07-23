@@ -36,18 +36,18 @@
 									<div class="posts">
 										<#list articles as article>
 										<article>
-											<a href="${article.url_s}" class="image">
-												<#if article.image_s??>
-													<#assign articleImage = article.image_s/>
+											<a href="${article.url}" class="image">
+												<#if article.image??>
+													<#assign articleImage = article.image/>
 												<#else>
 													<#assign articleImage = "/static-assets/images/placeholder.png"/>
 												</#if>
 												<img src="${articleImage}" alt="" />
 											</a>
-											<h3><a href="${article.url_s}">${article.title_t}</a></h3>
-											<p>${article.summary_t}</p>
+											<h3><a href="${article.url}">${article.title}</a></h3>
+											<p>${article.summary}</p>
 											<ul class="actions">
-												<li><a href="${article.url_s}" class="button">More</a></li>
+												<li><a href="${article.url}" class="button">More</a></li>
 											</ul>
 										</article>
 										</#list>
@@ -58,7 +58,7 @@
 					</div>
 
 					<!-- Left Rail -->
-					<@renderComponent component=contentModel.left\-rail.item />
+					<@renderComponent component=contentModel.left\-rail_o.item />
 
 			</div>
 

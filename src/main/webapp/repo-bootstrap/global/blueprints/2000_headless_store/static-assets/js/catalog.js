@@ -115,8 +115,8 @@ var catalog = new Vue({
         return this.$http.post(GRAPHQL_URL, { query: GRAPHQL_QUERIES, operationName: 'getFilters' }).then(response => {
           return {
             companies: response.body.data.companies.items,
-            categories_o: response.body.data.categories_o.items[0].items.item,
-            tags_o: response.body.data.tags_o.items[0].items.item
+            categories: response.body.data.categories.items[0].items.item,
+            tags: response.body.data.tags.items[0].items.item
           };
         });
       }
