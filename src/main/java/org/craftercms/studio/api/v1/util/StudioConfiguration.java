@@ -261,6 +261,9 @@ public interface StudioConfiguration {
     String PUBLISHING_THREAD_POOL_CORE_POOL_SIZE = "studio.publishing.threadPool.corePoolSize";
     String PUBLISHING_THREAD_POOL_MAX_POOL_SIZE = "studio.publishing.threadPool.maxPoolSize";
 
+    /** Clustering **/
+    String CLUSTERING_SYNC_URL_FORMAT = "studio.clustering.sync.urlFormat";
+
     /** Clustering Thread Pool **/
     String CLUSTERING_SANDBOX_SYNC_JOB_INTERVAL = "studio.clustering.sandboxSyncJob.interval";
     String CLUSTERING_PUBLISHED_SYNC_JOB_INTERVAL = "studio.clustering.publishedSyncJob.interval";

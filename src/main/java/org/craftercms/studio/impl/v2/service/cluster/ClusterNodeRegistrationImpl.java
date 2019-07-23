@@ -42,17 +42,12 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMB
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_PRIVATE_KEY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_TOKEN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_USERNAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 
 public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     private static final Logger logger = LoggerFactory.getLogger(ClusterNodeRegistrationImpl.class);
-    private static final String GIT_URL_PATTERN = "ssh://{username}@{localAddress}{absolutePath}";
 
     private ClusterDAO clusterDao;
     private MetaDAO metaDao;
@@ -68,30 +63,29 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                 clusterMember.setLocalAddress(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
                 if (!isRegistered(clusterMember.getLocalAddress())) {
                     Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                            studioConfiguration.getProperty(SITES_REPOS_PATH));
+                                          studioConfiguration.getProperty(SITES_REPOS_PATH));
                     String authenticationType = registrationData.getString(CLUSTER_MEMBER_AUTHENTICATION_TYPE);
                     String username = registrationData.getString(CLUSTER_MEMBER_USERNAME);
                     String password = registrationData.getString(CLUSTER_MEMBER_PASSWORD);
                     String token = registrationData.getString(CLUSTER_MEMBER_TOKEN);
                     String privateKey = registrationData.getString(CLUSTER_MEMBER_PRIVATE_KEY);
-                    String gitUrl = GIT_URL_PATTERN;
+                    String gitUrl = studioConfiguration.getProperty(CLUSTERING_SYNC_URL_FORMAT);
                     if (StringUtils.isEmpty(username)) {
                         gitUrl = gitUrl.replace("{username}@", "");
-
                     } else {
                         gitUrl = gitUrl.replace("{username}", username);
                     }
                     gitUrl = gitUrl.replace("{localAddress}", clusterMember.getLocalAddress())
-                            .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
-                            + "/{siteId}";
+                                   .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
+                             + "/{siteId}";
                     clusterMember.setGitUrl(gitUrl);
                     clusterMember.setState(ClusterMember.State.ACTIVE);
-                    clusterMember.setGitRemoteName(clusterMember.getLocalAddress());
+                    clusterMember.setGitRemoteName(getGitRemoteName(clusterMember));
                     clusterMember.setGitAuthType(authenticationType.toLowerCase());
                     clusterMember.setGitUsername(username);
                     TextEncryptor encryptor = null;
                     encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                            studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+                                                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                     if (StringUtils.isEmpty(password)) {
                         clusterMember.setGitPassword(password);
                     } else {
@@ -158,6 +152,11 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
         int result = clusterDao.removeMemberByLocalAddress(params);
         return result > 0;
+    }
+
+    private String getGitRemoteName(ClusterMember clusterMember) {
+        // When the port is specified, replaces the colon since it's an invalid remote name character
+        return clusterMember.getLocalAddress().replace(":", "_");
     }
 
     public ClusterDAO getClusterDao() {

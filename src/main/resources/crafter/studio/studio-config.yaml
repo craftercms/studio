@@ -490,6 +490,14 @@ studio.publishing.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.publishing.threadPool.maxPoolSize: 20
 
+##################################################
+##                 Clustering                   ##
+##################################################
+# Cluster Git URL format for synching members.
+# - Typical SSH URL format: ssh://{username}@{localAddress}{absolutePath}
+# - Typical HTTPS URL format: https://{localAddress}/repos/sites
+studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
+
 ################################################################
 ##                   Clustering Thread Pool                   ##
 ################################################################
