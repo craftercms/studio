@@ -11,7 +11,7 @@
 
     <ul class="icons">
     <#list contentModel.social_media_links_o.item as item>
-        <li><a href="${item.url_s}" class="icon ${item.social_media_o}"></a></li>
+        <li><a href="${item.url_s}" class="icon ${item.social_media_s}"></a></li>
     </#list>
     </ul>
 </header>

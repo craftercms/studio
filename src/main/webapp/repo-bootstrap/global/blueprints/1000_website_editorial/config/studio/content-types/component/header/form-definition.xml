@@ -291,7 +291,7 @@
 					<fields>
 				<field>
 					<type>dropdown</type>
-					<id>social_media_o</id>
+					<id>social_media_s</id>
 					<iceId>hero</iceId>
 					<title>Social Media</title>
 					<description></description>

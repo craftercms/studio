@@ -28,10 +28,10 @@
 	<business_name_s>Editorial</business_name_s>
 	<logo/>
 	<social_media_links_o>	<item>	<url_s>http://twitter.com</url_s>
-	<social_media_o>fa-twitter</social_media_o>
-	</item>	<item>	<social_media_o>fa-facebook</social_media_o>
+	<social_media_s>fa-twitter</social_media_s>
+	</item>	<item>	<social_media_s>fa-facebook</social_media_s>
 	<url_s>http://facebook.com</url_s>
-	</item>	<item>	<social_media_o>fa-google-plus</social_media_o>
+	</item>	<item>	<social_media_s>fa-google-plus</social_media_s>
 	<url_s>http://plus.google.com</url_s>
 	</item></social_media_links_o>
 	<createdDate>2017-2-3T23:27:50.000Z</createdDate>
