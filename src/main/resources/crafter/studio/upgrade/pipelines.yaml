@@ -335,6 +335,7 @@ pipelines:
               dest: configuration/dependency/resolver-config.xml
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.24-to-3.1.0.25.sql
+          updateIntegrity: true
     - currentVersion: 3.1.0.25
       nextVersion: 3.1.0.26
       operations:
@@ -348,6 +349,7 @@ pipelines:
           commitDetails: Add CMIS datasources
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.25-to-3.1.0.26.sql
+          updateIntegrity: true
     - currentVersion: 3.1.0.26
       nextVersion: 3.1.0.27
       operations:
@@ -357,6 +359,7 @@ pipelines:
           commitDetails: Add time control
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.26-to-3.1.0.27.sql
+          updateIntegrity: true
     - currentVersion: 3.1.0.27
       nextVersion: 3.1.0.28
       operations:
@@ -366,6 +369,7 @@ pipelines:
           commitDetails: Added repository management permissions
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.27-to-3.1.0.28.sql
+          updateIntegrity: true
     - currentVersion: 3.1.0.28
       nextVersion: 3.1.0.29
       operations:
@@ -375,6 +379,7 @@ pipelines:
           commitDetails: Added repository management permissions
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.28-to-3.1.0.29.sql
+          updateIntegrity: true
     - currentVersion: 3.1.0.29
       nextVersion: 3.1.0.30
       operations:
@@ -426,6 +431,7 @@ pipelines:
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.34-to-3.1.0.35.sql
+          updateIntegrity: true
 
   # Pipeline to upgrade site repositories
   site:
