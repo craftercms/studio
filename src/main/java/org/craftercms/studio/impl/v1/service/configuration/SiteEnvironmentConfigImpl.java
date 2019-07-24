@@ -142,7 +142,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         if (requestContext != null) {
             request = requestContext.getRequest();
             if (request != null) {
-                currentDomainAuthoringUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "");
+                currentDomainAuthoringUrl =
+                        request.getRequestURL().toString().replace(request.getRequestURI(), "")
+                                + request.getContextPath();
             }
         }
         if (config != null) {
