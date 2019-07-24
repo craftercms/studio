@@ -70,27 +70,21 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 
 public abstract class StudioNodeSyncBaseTask implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncBaseTask.class);
 
+    private static final String NON_SSH_GIT_URL_REGEX = "(file|https?|git)://.+";
+
     protected static final List<String> createdSites = new ArrayList<String>();
-    protected static final Map<String, Map<String, String>> remotesMap =
-            new HashMap<String, Map<String, String>>();
+    protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
     protected String siteId;
     protected String siteUuid;
@@ -105,11 +99,14 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
 	// Abstract methods to be implemented by Sandbox/Published classes
 	protected abstract boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId);
-	protected abstract void updateContentInternal(String siteId, String lastCommitId) throws IOException, CryptoException, ServiceLayerException;
+	protected abstract void updateContentInternal(String siteId, String lastCommitId)
+            throws IOException, CryptoException, ServiceLayerException;
 	protected abstract boolean createSiteInternal(String siteId, String siteUuid, String searchEngine);
 	protected abstract boolean lockSiteInternal(String siteId);
 	protected abstract void unlockSiteInternal(String siteId);
-	protected abstract boolean cloneSiteInternal(String siteId, GitRepositories repoType)throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
+	protected abstract boolean cloneSiteInternal(String siteId, GitRepositories repoType)
+            throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
+                   InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
     @Override
     public void run() {
@@ -253,7 +250,6 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                 return;
             }
 
-
             RemoteAddCommand remoteAddCommand = git.remoteAdd();
             remoteAddCommand.setName(DEFAULT_REMOTE_NAME);
             remoteAddCommand.setUri(new URIish(remoteUrl));
@@ -301,7 +297,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
         }
     }
 
-    protected void addRemoteRepository(ClusterMember member, String remoteUrl, GitRepositories repoType) throws IOException, InvalidRemoteUrlException, ServiceLayerException {
+    protected void addRemoteRepository(ClusterMember member, String remoteUrl, GitRepositories repoType)
+            throws IOException, InvalidRemoteUrlException, ServiceLayerException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
 
         Repository repo = builder
@@ -338,10 +335,10 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             logger.error("Remote URL is invalid " + remoteUrl, e);
             throw new InvalidRemoteUrlException();
         } catch (GitAPIException e) {
-            logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl + ") for site " +
-                    siteId, e);
-            throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +
-                    ") for site " + siteId, e);
+            logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +
+                         ") for site " + siteId, e);
+            throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() +
+                                            " (url: " + remoteUrl + ") for site " + siteId, e);
         }
     }
 
@@ -349,94 +346,94 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 		updateContentInternal(siteId, lastCommitId);
     }
 
-	protected <T extends TransportCommand> T setAuthenticationForCommand(ClusterMember remoteNode, T gitCommand,
-                                                                       Path tempKey) throws CryptoException,
-            ServiceLayerException {
+	protected <T extends TransportCommand> T configureAuthenticationForCommand(ClusterMember remoteNode, T gitCommand,
+                                                                               final Path tempKey)
+            throws CryptoException, IOException, ServiceLayerException {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+                                                          studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        boolean sshProtocol = !remoteNode.getGitUrl().matches(NON_SSH_GIT_URL_REGEX);
+
         switch (remoteNode.getGitAuthType()) {
             case RemoteRepository.AuthenticationType.NONE:
                 logger.debug("No authentication");
                 break;
             case RemoteRepository.AuthenticationType.BASIC:
-                logger.debug("Basic authentication");
-                String hashedPassword = remoteNode.getGitPassword();
-                String password = encryptor.decrypt(hashedPassword);
-                UsernamePasswordCredentialsProvider credentialsProviderUP =
-                        new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
-                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                            @Override
-                            protected void configure(OpenSshConfig.Host host, Session session) {
-                                Properties config = new Properties();
-                                config.put("StrictHostKeyChecking", "no");
-                                session.setConfig(config);
-                                session.setPassword(password);
-                            }
-                        });
-                    }
-                });
-                gitCommand.setCredentialsProvider(credentialsProviderUP);
+                logger.debug("Basic Authentication");
+                configureBasicAuthentication(remoteNode, gitCommand, encryptor, sshProtocol);
                 break;
             case RemoteRepository.AuthenticationType.TOKEN:
-                logger.debug("Token based authentication");
-                String hashedToken = remoteNode.getGitToken();
-                String token = encryptor.decrypt(hashedToken);
-                UsernamePasswordCredentialsProvider credentialsProvider =
-                        new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
-                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                            @Override
-                            protected void configure(OpenSshConfig.Host host, Session session) {
-                                Properties config = new Properties();
-                                config.put("StrictHostKeyChecking", "no");
-                                session.setConfig(config);
-                            }
-                        });
-                        sshTransport.setCredentialsProvider(credentialsProvider);
-                    }
-                });
+                logger.debug("Token based Authentication");
+                configureTokenAuthentication(remoteNode, gitCommand, encryptor, sshProtocol);
                 break;
             case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                logger.debug("Private key authentication");
+                if (!sshProtocol) {
+                    throw new ServiceLayerException("Can't do private key authentication with non-ssh URLs");
+                }
 
-                String hashedPrivateKey = remoteNode.getGitPrivateKey();
-                String privateKey = encryptor.decrypt(hashedPrivateKey);
-                tempKey.toFile().deleteOnExit();
-                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
-                    }
-                });
-
+                logger.debug("Private Key Authentication");
+                configurePrivateKeyAuthentication(remoteNode, gitCommand, encryptor, tempKey);
                 break;
             default:
-                throw new ServiceLayerException("Unsupported authentication type " +
-                        remoteNode.getGitAuthType());
+                throw new ServiceLayerException("Unsupported authentication type " + remoteNode.getGitAuthType());
         }
 
         return gitCommand;
     }
 
-    protected SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
-        try {
+    protected <T extends TransportCommand> void configureBasicAuthentication(
+            ClusterMember remoteNode, T gitCommand, TextEncryptor encryptor, boolean sshProtocol) throws CryptoException {
+        String password = encryptor.decrypt(remoteNode.getGitPassword());
+        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(
+                remoteNode.getGitUsername(), password);
 
-            Files.write(tempKey, remotePrivateKey.getBytes());
-            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-                @Override
-                protected void configure(OpenSshConfig.Host hc, Session session) {
-                    Properties config = new Properties();
-                    config.put("StrictHostKeyChecking", "no");
-                    session.setConfig(config);
-                }
+        if (sshProtocol) {
+            gitCommand.setTransportConfigCallback(transport -> {
+                SshTransport sshTransport = (SshTransport) transport;
+                sshTransport.setSshSessionFactory(new StrictHostCheckingOffSshSessionFactory() {
+
+                    @Override
+                    protected void configure(OpenSshConfig.Host host, Session session) {
+                        super.configure(host, session);
+                        session.setPassword(password);
+                    }
+
+                });
+            });
+        }
+
+        gitCommand.setCredentialsProvider(credentialsProvider);
+    }
+
+    protected <T extends TransportCommand> void configureTokenAuthentication(
+            ClusterMember remoteNode, T gitCommand, TextEncryptor encryptor, boolean sshProtocol) throws CryptoException {
+        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(
+                encryptor.decrypt(remoteNode.getGitToken()), StringUtils.EMPTY);
+
+        if (sshProtocol) {
+            gitCommand.setTransportConfigCallback(transport -> {
+                SshTransport sshTransport = (SshTransport) transport;
+                sshTransport.setSshSessionFactory(new StrictHostCheckingOffSshSessionFactory());
+            });
+        }
+
+        gitCommand.setCredentialsProvider(credentialsProvider);
+    }
+
+    protected <T extends TransportCommand> void configurePrivateKeyAuthentication(
+            ClusterMember remoteNode, T gitCommand, TextEncryptor encryptor, final Path tempKey)
+            throws CryptoException, IOException  {
+        String privateKey = encryptor.decrypt(remoteNode.getGitPrivateKey());
+        try {
+            Files.write(tempKey, privateKey.getBytes());
+        } catch (IOException e) {
+            throw new IOException("Failed to write private key for SSH connection to temp location", e);
+        }
+
+        tempKey.toFile().deleteOnExit();
+
+        gitCommand.setTransportConfigCallback(transport -> {
+            SshTransport sshTransport = (SshTransport)transport;
+            sshTransport.setSshSessionFactory(new StrictHostCheckingOffSshSessionFactory() {
 
                 @Override
                 protected JSch createDefaultJSch(FS fs) throws JSchException {
@@ -444,12 +441,9 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                     defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
                     return defaultJSch;
                 }
-            };
-            return sshSessionFactory;
-        } catch (IOException e) {
-            logger.error("Failed to create private key for SSH connection.", e);
-        }
-        return null;
+
+            });
+        });
     }
 
     protected boolean checkIfSiteRepoExists() {
@@ -464,6 +458,17 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             }
         }
         return toRet;
+    }
+
+    protected static class StrictHostCheckingOffSshSessionFactory extends JschConfigSessionFactory {
+
+        @Override
+        protected void configure(OpenSshConfig.Host hc, Session session) {
+            Properties config = new Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+        }
+
     }
 
     public String getSiteId() {

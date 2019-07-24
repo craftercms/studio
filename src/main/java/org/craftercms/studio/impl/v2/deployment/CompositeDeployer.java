@@ -47,22 +47,18 @@ public class CompositeDeployer implements Deployer {
     @Override
     public void createTargets(String site, String searchEngine) throws RestClientException {
         if (CollectionUtils.isNotEmpty(deployers)) {
-            int creates = 0;
             try {
                 for (Deployer deployer : deployers) {
                     deployer.createTargets(site, searchEngine);
-                    creates++;
                 }
             } catch (Exception e) {
-                // Rollback and delete any successfully created targets if one of them fails
-                for (Iterator<Deployer> iter = deployers.iterator(); iter.hasNext() && creates > 0;) {
+                // Rollback any created targets if one of them fails
+                for (Deployer deployer : deployers) {
                     try {
-                        iter.next().deleteTargets(site);
+                        deployer.deleteTargets(site);
                     } catch (Exception ex) {
                         logger.debug("Error while rolling back targets for site {0}: {1}", site, ex);
                     }
-
-                    creates--;
                 }
 
                 throw e;
