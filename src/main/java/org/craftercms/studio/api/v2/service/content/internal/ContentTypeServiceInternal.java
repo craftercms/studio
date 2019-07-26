@@ -27,7 +27,7 @@ public interface ContentTypeServiceInternal {
      * Get list of content types marked as quick creatable for given site
      *
      * @param siteId
-     * @return
+     * @return List of quick creatable content types
      */
     List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
 }
