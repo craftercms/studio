@@ -288,6 +288,10 @@
     <bean id="configurationService" class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
         <property name="contentService" ref="cstudioContentService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
