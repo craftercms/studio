@@ -45,7 +45,7 @@
         <studio.ui.node.version>v10.16.0</studio.ui.node.version>
         <studio.ui.yarn.version>v1.16.0</studio.ui.yarn.version>
         <spring.version>4.3.18.RELEASE</spring.version>
-        <spring.security.version>4.2.12.RELEASE</spring.security.version>
+        <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
         <box.sdk.version>2.25.1</box.sdk.version>
@@ -857,8 +857,10 @@
                         <application.logs>target/test-logs</application.logs>
                         <crafter.engine.extension.base>classpath*:crafter/studio/extension</crafter.engine.extension.base>
                         <crafter.bin.dir>target/test-resources/bin</crafter.bin.dir>
-                        <crafter.data.dir>target/test-resources/data</crafter.data.dir>
                     </systemPropertyVariables>
+                    <environmentVariables>
+                        <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
+                    </environmentVariables>
                 </configuration>
             </plugin>
 
