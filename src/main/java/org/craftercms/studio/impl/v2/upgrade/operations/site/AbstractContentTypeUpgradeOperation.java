@@ -52,7 +52,7 @@ import com.google.common.cache.CacheBuilder;
  *
  * <p>Supported YAML properties:
  * <ul>
- *     <li><strong>includedContentTypes</strong0>: (optional) list of content-types that can be handled by this
+ *     <li><strong>includedContentTypes</strong>: (optional) list of content-types that can be handled by this
  *     operation, if left unset all content-types will be included</li>
  *     <li><strong>formDefinitionXpath</strong>: (optional) XPath selector to evaluate if a content-type should be
  *     handled by this operation, if left unset all content-types will be included</li>

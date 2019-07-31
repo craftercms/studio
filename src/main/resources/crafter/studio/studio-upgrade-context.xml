@@ -182,4 +182,7 @@
     <bean id="dbVersionUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbVersionUpgradeOperation"/>
 
+    <bean id="batchXsltUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.BatchXsltFileUpgradeOperation"/>
+
 </beans>
