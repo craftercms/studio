@@ -549,6 +549,15 @@ pipelines:
           descriptorVersion: 2
         - type: versionFileUpgrader
 
+    - currentVersion: 3.1.0.8
+      nextVersion: 3.1.0.9
+      operations:
+        - type: batchXsltUpgrader
+          commitDetails: Add new property to all existing content-types
+          template: crafter/studio/upgrade/3.1.x/3.1.0.9/site/content-type.xslt
+          regex: config/studio/content-types/.+/form-definition\.xml
+        - type: versionFileUpgrader
+
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0

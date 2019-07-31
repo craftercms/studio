@@ -19,11 +19,6 @@ package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -32,50 +27,30 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
-import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_SITE;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VERSION;
 
 /**
- * Implementation if {@link UpgradeOperation} that updates a file using a XSLT template.
+ * Implementation of {@link UpgradeOperation} that updates a single file using a XSLT template.
  *
  * <p>Supported YAML properties:
  * <ul>
  *     <li><strong>path</strong>: (required) the relative path to update in the repository</li>
- *     <li><strong>template</strong>: (required) the path to the XSLT template to apply</li>
  * </ul>
  * </p>
  *
  * @author joseross
+ * @since 3.1.0
  */
-public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
-
-    private static final Logger logger = LoggerFactory.getLogger(XsltFileUpgradeOperation.class);
-
-    private static final String SAXON_CLASS = "net.sf.saxon.TransformerFactoryImpl";
+public class XsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperation {
 
     public static final String CONFIG_KEY_PATH = "path";
-    public static final String CONFIG_KEY_TEMPLATE = "template";
 
     /**
      * Path of the file to update.
      */
     protected String path;
 
-    /**
-     * Template file to be applied.
-     */
-    protected Resource template;
-
     public void setPath(final String path) {
         this.path = path;
-    }
-
-    public void setTemplate(final Resource template) {
-        this.template = template;
     }
 
     /**
@@ -83,11 +58,9 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+        super.doInit(config);
         if(StringUtils.isEmpty(path)) {
             path = config.getString(CONFIG_KEY_PATH);
-        }
-        if(template == null) {
-            template = new ClassPathResource(config.getString(CONFIG_KEY_TEMPLATE));
         }
     }
 
@@ -96,25 +69,10 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        try(InputStream templateIs = template.getInputStream()) {
-            // Saxon is used to support XSLT 2.0
-            Transformer transformer =
-                TransformerFactory.newInstance(SAXON_CLASS, null)
-                    .newTransformer(new StreamSource(templateIs));
-            logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
-            if(contentRepository.contentExists(site, path)) {
-                try(InputStream sourceIs = contentRepository.getContent(site, path)) {
-                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    transformer.setParameter(PARAM_KEY_SITE, site);
-                    transformer.setParameter(PARAM_KEY_VERSION, nextVersion);
-                    transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
-                    writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()));
-                }
-            } else {
-                logger.warn("Source file {0} does not exist in site {1}", path, site);
-            }
-        } catch (Exception e) {
-            throw new UpgradeException("Error processing file", e);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        executeTemplate(site, path, os);
+        if (os.size() > 0) {
+            writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()));
         }
     }
 
