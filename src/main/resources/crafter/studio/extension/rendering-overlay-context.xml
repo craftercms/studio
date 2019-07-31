@@ -30,6 +30,7 @@
     </bean>
 
      <util:map id="crafter.urlMappings">
+        <entry key="/api/2/asset/**" value-ref="contentRequestHandler"/>
         <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
         <entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
         <entry key="/proxy/{proxyName}/**" value-ref="crafter.httpProxyRequestHandler"/>
@@ -101,6 +102,10 @@
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
         <property name="contentService" ref="contentService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+    </bean>
+
+    <bean id="contentRequestHandler" class="org.craftercms.studio.controller.web.v2.ContentHttpRequestHandler">
+        <constructor-arg ref="cstudioContentService"/>
     </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">

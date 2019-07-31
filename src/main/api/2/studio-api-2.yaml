@@ -40,6 +40,8 @@ tags:
     description: Repository operations
   - name: content
     description: Content operations
+  - name: asset
+    description: Site asset operations
 
   - name: configuration
     description: Configuration operations
@@ -863,7 +865,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'         
+          $ref: '#/components/responses/InternalServerError'
 
   /users/set_password:
     post:
@@ -906,7 +908,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError' 
+          $ref: '#/components/responses/InternalServerError'
 
   /users/me:
     get:
@@ -2346,6 +2348,49 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /asset/{path}:
+    get:
+      tags:
+        - asset
+      summary: Get the the content of a site asset
+      operationId: getAsset
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: path
+          description: The relative path of the asset
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'OK'
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Type:
+              description: The MIME type of the asset
+              schema:
+                type: string
+            Content-Length:
+              description: The size in bytes of the asset
+              schema:
+                type: integer
+                format: int64
+
+        404:
+          description: 'Not Found'
+        500:
+          description: 'Internal Server Error'
 
 components:
   schemas:
