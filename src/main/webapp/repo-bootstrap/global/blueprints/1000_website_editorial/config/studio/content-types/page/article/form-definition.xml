@@ -30,6 +30,12 @@
         <type>template</type>
     </property>
         <property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
+		</property>    
+        <property>
             <name>merge-strategy</name>
             <label>Merge Strategy</label>
             <value>inherit-levels</value>
