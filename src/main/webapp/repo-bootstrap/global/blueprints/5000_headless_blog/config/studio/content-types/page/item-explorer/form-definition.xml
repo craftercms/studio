@@ -36,6 +36,12 @@
             <type>template</type>
         </property>
         <property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
+		</property>
+        <property>
             <name>descriptor-mapper</name>
             <label>Descriptor Mapper</label>
             <value>hierarchical-mapper</value>
