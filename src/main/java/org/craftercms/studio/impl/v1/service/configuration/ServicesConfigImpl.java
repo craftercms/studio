@@ -282,8 +282,17 @@ public class ServicesConfigImpl implements ServicesConfig {
 		}
 	}
 
+    @Override
+    @ValidateParams
+    public String getExtensionFolderPattern(@ValidateStringParam(name = "site") String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getExtensionFolderPattern();
+        }
+        return null;
+    }
 
-	/**
+    /**
 	 * load services configuration
 	 *
 	 */
@@ -335,6 +344,8 @@ public class ServicesConfigImpl implements ServicesConfig {
              siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
              loadFacetConfiguration(configNode, siteConfig);
+
+             siteConfig.setExtensionFolderPattern(configNode.valueOf("extension-folder-pattern"));
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
          }

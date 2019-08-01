@@ -91,6 +91,7 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
+import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
@@ -98,6 +99,7 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -250,6 +252,19 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return retDocument;
+    }
+
+    @Override
+    @ValidateParams
+    public Resource getContentAsResource(@ValidateStringParam(name = "site") String site,
+                                         @ValidateSecurePathParam(name = "path") String path)
+        throws ContentNotFoundException {
+        if (contentExists(site, path)) {
+            return new ContentResource(this, site, path);
+        } else {
+            throw new ContentNotFoundException(path, site,
+                String.format("File '%s' not found in site '%s'", path, site));
+        }
     }
 
     @Override

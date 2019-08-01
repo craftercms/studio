@@ -594,6 +594,20 @@ pipelines:
 # Managed Configuration Files
 configurations:
 
+  site-config:
+    path: &site-config '/config/studio/site-config.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config
+            template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config.xslt
+            commitDetails: Add extension folder pattern property
+          - type: xsltFileUpgrader
+            path: *site-config
+            template: crafter/studio/upgrade/update-version.xslt
+
   permission-mappings-config:
     path: &permission-mappings-config '/config/studio/permission-mappings-config.xml'
     pipeline:
@@ -707,6 +721,7 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
+
   site-config-tools:
     path: &site-config-tools '/config/studio/administration/site-config-tools.xml'
     pipeline:

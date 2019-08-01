@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.springframework.core.io.Resource;
 
 /**
  * Content Services that other services may use
@@ -76,6 +77,16 @@ public interface ContentService {
      * @throws DocumentException
      */
     Document getContentAsDocument(String site, String path) throws DocumentException;
+
+    /**
+     * Returns content wrapped as a {@link Resource} instance
+     * @param site the site id
+     * @param path the path of the content
+     * @return the resource object
+     * @throws ContentNotFoundException if there is no content at the given path
+     * @since 3.1.1
+     */
+    Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
 
     /**
      * write content

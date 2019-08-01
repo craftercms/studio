@@ -18,15 +18,18 @@ package org.craftercms.studio.impl.v2.service.configuration;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -42,6 +45,7 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -81,12 +85,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationServiceImpl.class);
 
+    public static final String PLACEHOLDER_MODULE = "module";
+    public static final String PLACEHOLDER_TYPE = "type";
+    public static final String PLACEHOLDER_NAME = "name";
+
     private ContentService contentService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
     private SiteService siteService;
     private SecurityService securityService;
     private ObjectMetadataManager objectMetadataManager;
+    private ServicesConfig servicesConfig;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -204,6 +213,32 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
     }
 
+    @Override
+    public Resource getExtensionFile(String siteId, String module,
+                                     String type, String name, String filename) throws ContentNotFoundException {
+
+        String basePath = servicesConfig.getExtensionFolderPattern(siteId);
+        if (StringUtils.isEmpty(basePath)) {
+            throw new IllegalStateException(
+                String.format("Site '%s' does not have an extension folder pattern", siteId));
+        } else if (!StringUtils.contains(basePath, PLACEHOLDER_MODULE) ||
+            !StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
+            !StringUtils.contains(basePath, PLACEHOLDER_NAME)) {
+            throw new IllegalStateException(
+                String.format("Extension folder pattern for site '%s' does not contain all required placeholders"));
+        }
+
+        Map<String, String> values = new HashMap<>();
+        values.put(PLACEHOLDER_MODULE, module);
+        values.put(PLACEHOLDER_TYPE, type);
+        values.put(PLACEHOLDER_NAME, name);
+        basePath = StrSubstitutor.replace(basePath, values);
+
+        String filePath = UrlUtils.concat(basePath, filename);
+
+        return contentService.getContentAsResource(siteId, filePath);
+    }
+
     private void writeDefaultConfiguration(String siteId, String module, String path, InputStream content)
             throws ServiceLayerException {
         String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
@@ -268,6 +303,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Required
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    @Required
+    public void setServicesConfig(final ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 
     public AuditServiceInternal getAuditServiceInternal() {
