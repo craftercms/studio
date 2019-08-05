@@ -382,7 +382,7 @@
 					</constraints>
 				</field>
 				<field>
-					<type>input</type>
+					<type>numeric-input</type>
 					<id>max_articles_i</id>
 					<iceId>articles</iceId>
 					<title>Max Articles</title>
