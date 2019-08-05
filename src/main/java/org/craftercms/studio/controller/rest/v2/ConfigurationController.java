@@ -17,26 +17,20 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import java.io.InputStream;
+
 import org.apache.commons.io.IOUtils;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.WriteConfigurationRequest;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.InputStream;
-
-import javax.activation.MimetypesFileTypeMap;
 
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -72,19 +66,6 @@ public class ConfigurationController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    @GetMapping("/api/2/configuration/extension/file")
-    public ResponseEntity<Resource> getExtensionFile(@RequestParam String siteId, @RequestParam String module,
-                                     @RequestParam String type, @RequestParam String extension,
-                                     @RequestParam String filename) throws ContentNotFoundException {
-
-        Resource resource = configurationService.getExtensionFile(siteId, module, type, extension, filename);
-
-        MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
-        String contentType = mimeMap.getContentType(filename);
-
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, contentType).body(resource);
     }
 
     public ConfigurationService getConfigurationService() {

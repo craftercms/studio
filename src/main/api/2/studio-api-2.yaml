@@ -40,9 +40,11 @@ tags:
     description: Repository operations
   - name: content
     description: Content operations
-
   - name: configuration
     description: Configuration operations
+  - name: plugin
+    description: Plugin operations
+
 paths:
 
   /groups:
@@ -2309,12 +2311,12 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /configuration/extension/file:
+  /plugin/file:
     get:
       tags:
-        - configuration
-      summary: Get a file for a given extension
-      operationId: getExtensionFile
+        - plugin
+      summary: Get a file for a given plugin
+      operationId: getPluginFile
       parameters:
         - name: siteId
           in: query
@@ -2322,21 +2324,15 @@ paths:
           required: true
           schema:
             type: string
-        - name: module
-          in: query
-          description: The module name (e.g. studio, engine)
-          required: true
-          schema:
-            type: string
         - name: type
           in: query
-          description: The extension type (e.g. control, data-source)
+          description: The plugin type (e.g. control, data-source)
           required: true
           schema:
             type: string
         - name: name
           in: query
-          description: The extension name (e.g. custom-input)
+          description: The plugin name (e.g. custom-input)
           required: true
           schema:
             type: string
@@ -2354,6 +2350,7 @@ paths:
               schema:
                 type: string
                 format: binary
+                description: The content of the file
           headers:
             Content-Type:
               description: The MIME type of the file

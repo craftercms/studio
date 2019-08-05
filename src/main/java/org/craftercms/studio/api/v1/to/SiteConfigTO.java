@@ -76,9 +76,9 @@ public class SiteConfigTO implements Serializable {
     protected Map<String, FacetTO> facets;
 
     /**
-     * Pattern for extensions the extensions folder
+     * Pattern for the plugins folder
      */
-    protected String extensionFolderPattern;
+    protected String pluginFolderPattern;
 
     /**
      * @return the WEM project
@@ -167,12 +167,12 @@ public class SiteConfigTO implements Serializable {
         this.facets = facets;
     }
 
-    public String getExtensionFolderPattern() {
-        return extensionFolderPattern;
+    public String getPluginFolderPattern() {
+        return pluginFolderPattern;
     }
 
-    public void setExtensionFolderPattern(final String extensionFolderPath) {
-        this.extensionFolderPattern = extensionFolderPath;
+    public void setPluginFolderPattern(final String pluginFolderPattern) {
+        this.pluginFolderPattern = pluginFolderPattern;
     }
 
 }

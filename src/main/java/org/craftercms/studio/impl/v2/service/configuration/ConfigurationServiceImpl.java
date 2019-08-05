@@ -85,7 +85,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationServiceImpl.class);
 
-    public static final String PLACEHOLDER_MODULE = "module";
     public static final String PLACEHOLDER_TYPE = "type";
     public static final String PLACEHOLDER_NAME = "name";
 
@@ -214,24 +213,22 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public Resource getExtensionFile(String siteId, String module,
-                                     String type, String name, String filename) throws ContentNotFoundException {
+    public Resource getPluginFile(String siteId, String type, String plugin, String filename)
+        throws ContentNotFoundException {
 
-        String basePath = servicesConfig.getExtensionFolderPattern(siteId);
+        String basePath = servicesConfig.getPluginFolderPattern(siteId);
         if (StringUtils.isEmpty(basePath)) {
             throw new IllegalStateException(
-                String.format("Site '%s' does not have an extension folder pattern", siteId));
-        } else if (!StringUtils.contains(basePath, PLACEHOLDER_MODULE) ||
-            !StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
+                String.format("Site '%s' does not have an plugin folder pattern configured", siteId));
+        } else if (!StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
             !StringUtils.contains(basePath, PLACEHOLDER_NAME)) {
-            throw new IllegalStateException(
-                String.format("Extension folder pattern for site '%s' does not contain all required placeholders"));
+            throw new IllegalStateException(String.format(
+                "Plugin folder pattern for site '%s' does not contain all required placeholders", basePath));
         }
 
         Map<String, String> values = new HashMap<>();
-        values.put(PLACEHOLDER_MODULE, module);
         values.put(PLACEHOLDER_TYPE, type);
-        values.put(PLACEHOLDER_NAME, name);
+        values.put(PLACEHOLDER_NAME, plugin);
         basePath = StrSubstitutor.replace(basePath, values);
 
         String filePath = UrlUtils.concat(basePath, filename);

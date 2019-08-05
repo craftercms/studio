@@ -284,10 +284,10 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     @Override
     @ValidateParams
-    public String getExtensionFolderPattern(@ValidateStringParam(name = "site") String site) {
+    public String getPluginFolderPattern(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null) {
-            return config.getExtensionFolderPattern();
+            return config.getPluginFolderPattern();
         }
         return null;
     }
@@ -345,7 +345,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 
              loadFacetConfiguration(configNode, siteConfig);
 
-             siteConfig.setExtensionFolderPattern(configNode.valueOf("extension-folder-pattern"));
+             siteConfig.setPluginFolderPattern(configNode.valueOf("plugin-folder-pattern"));
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
          }

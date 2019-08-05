@@ -164,9 +164,9 @@ public interface ServicesConfig {
     List<String> getPreviewableMimetypesPaterns(String site);
 
 	/**
-	 * Get the pattern for the extensions folder in the given site
+	 * Get the pattern for the plugin folder in the given site
 	 */
-	String getExtensionFolderPattern(String site);
+	String getPluginFolderPattern(String site);
 
     void reloadConfiguration(String site);
 

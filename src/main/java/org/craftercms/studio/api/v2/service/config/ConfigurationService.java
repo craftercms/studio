@@ -82,6 +82,15 @@ public interface ConfigurationService {
     void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
         throws ServiceLayerException;
 
-    Resource getExtensionFile(String siteId, String module, String type, String extension, String filename)
+    /**
+     * Get a a file from a plugin
+     * @param siteId the id of site
+     * @param type the type of plugin
+     * @param plugin the name of the plugin
+     * @param filename the path and name of the file
+     * @return the file as a resource
+     * @throws ContentNotFoundException if there is any issue reading the file from the repository
+     */
+    Resource getPluginFile(String siteId, String type, String plugin, String filename)
         throws ContentNotFoundException;
 }

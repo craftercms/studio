@@ -37,14 +37,14 @@
     <xsl:template match="site-config">
         <xsl:copy>
             <xsl:apply-templates/>
-            <xsl:if test="not(extension-folder-pattern)">
+            <xsl:if test="not(plugin-folder-pattern)">
                 <xsl:text>&#10;</xsl:text>
                 <xsl:comment>
-                    <xsl:text>&#10;&#9;Pattern that Studio will use to load extensions from the site </xsl:text>
-                    <xsl:text>repository&#10;&#9;Required placeholders: ${module}, ${type}, ${name}&#10;</xsl:text>
+                    <xsl:text>&#10;&#9;Pattern that Studio will use to load plugins from the site </xsl:text>
+                    <xsl:text>repository&#10;&#9;Required placeholders: ${type}, ${name}&#10;</xsl:text>
                 </xsl:comment>
-                <xsl:element name="extension-folder-pattern">
-                    <xsl:text>/config/${module}/extension/${type}/${name}</xsl:text>
+                <xsl:element name="plugin-folder-pattern">
+                    <xsl:text>/config/studio/plugins/${type}/${name}</xsl:text>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
