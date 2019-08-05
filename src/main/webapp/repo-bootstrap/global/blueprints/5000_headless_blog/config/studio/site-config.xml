@@ -22,6 +22,7 @@
 
 -->
 <site-config>
+    <version>2</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
@@ -35,6 +36,12 @@
     <form-engine>
         <field-name-postfix>true</field-name-postfix>
     </form-engine>
+
+    <!--
+        Pattern that Studio will use to load plugin from the site repository
+        Required placeholders: ${type}, ${name}
+     -->
+    <plugin-folder-pattern>/config/studio/plugins/${type}/${name}</plugin-folder-pattern>
 
     <repository rootPrefix="/site">
 

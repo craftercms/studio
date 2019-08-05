@@ -17,6 +17,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import java.io.InputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -29,8 +31,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.InputStream;
 
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 

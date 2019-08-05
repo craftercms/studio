@@ -56,6 +56,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
@@ -282,8 +283,17 @@ public class ServicesConfigImpl implements ServicesConfig {
 		}
 	}
 
+    @Override
+    @ValidateParams
+    public String getPluginFolderPattern(@ValidateStringParam(name = "site") String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getPluginFolderPattern();
+        }
+        return null;
+    }
 
-	/**
+    /**
 	 * load services configuration
 	 *
 	 */
@@ -335,6 +345,8 @@ public class ServicesConfigImpl implements ServicesConfig {
              siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
              loadFacetConfiguration(configNode, siteConfig);
+
+             siteConfig.setPluginFolderPattern(configNode.valueOf(SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN));
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
          }

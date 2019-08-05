@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
 import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
@@ -47,6 +48,7 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -228,6 +230,32 @@ public class ExceptionHandlers {
     @ExceptionHandler(PullFromRemoteConflictException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseBody handlePullFromRemoteConflictException(HttpServletRequest request, PullFromRemoteConflictException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ContentNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleContentNotFoundException(HttpServletRequest request, ContentNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        response.setRemedialAction(
+            String.format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleMissingServletRequestParameterException(HttpServletRequest request,
+                                                                      MissingServletRequestParameterException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        response.setRemedialAction(
+            String.format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseBody handleException(HttpServletRequest request, Exception e) {
         ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
         return handleExceptionInternal(request, e, response);
     }

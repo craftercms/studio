@@ -163,6 +163,11 @@ public interface ServicesConfig {
     
     List<String> getPreviewableMimetypesPaterns(String site);
 
+	/**
+	 * Get the pattern for the plugin folder in the given site
+	 */
+	String getPluginFolderPattern(String site);
+
     void reloadConfiguration(String site);
 
     /**

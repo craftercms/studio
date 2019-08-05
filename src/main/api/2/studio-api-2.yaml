@@ -40,9 +40,11 @@ tags:
     description: Repository operations
   - name: content
     description: Content operations
-
   - name: configuration
     description: Configuration operations
+  - name: plugin
+    description: Plugin operations
+
 paths:
 
   /groups:
@@ -863,7 +865,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'         
+          $ref: '#/components/responses/InternalServerError'
 
   /users/set_password:
     post:
@@ -906,7 +908,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError' 
+          $ref: '#/components/responses/InternalServerError'
 
   /users/me:
     get:
@@ -2309,6 +2311,64 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /plugin/file:
+    get:
+      tags:
+        - plugin
+      summary: Get a file for a given plugin
+      operationId: getPluginFile
+      parameters:
+        - name: siteId
+          in: query
+          description: The site ID
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: The plugin type (e.g. control, data-source)
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: The plugin name (e.g. custom-input)
+          required: true
+          schema:
+            type: string
+        - name: filename
+          in: query
+          description: The name of the file (e.g. input.js, style/main.css)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+                description: The content of the file
+          headers:
+            Content-Type:
+              description: The MIME type of the file
+              schema:
+                type: string
+            Content-Length:
+              description: The size in bytes of the file
+              schema:
+                type: integer
+                format: int64
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /content/list_quick_create_content:
     get:

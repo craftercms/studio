@@ -103,6 +103,10 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
+    <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
+        <constructor-arg ref="configurationService" />
+    </bean>
+
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
     </bean>
@@ -181,5 +185,13 @@
             </map>
         </property>
     </bean>
+
+    <bean id="crafter.resourceMsgConverter" class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
+
+    <util:list id="crafter.messageConverters">
+        <ref bean="crafter.resourceMsgConverter"/>
+        <ref bean="crafter.jsonMsgConverter"/>
+        <ref bean="crafter.xmlMsgConverter"/>
+    </util:list>
 
 </beans>
