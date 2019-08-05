@@ -63,6 +63,12 @@
                     </icon>
                 </control>
                 <control>
+                    <name>numeric-input</name>
+                    <icon>
+                        <class>fa-pencil-square</class>
+                    </icon>
+                </control>
+                <control>
                     <name>textarea</name>
                     <icon>
                         <class>fa-paragraph</class>
