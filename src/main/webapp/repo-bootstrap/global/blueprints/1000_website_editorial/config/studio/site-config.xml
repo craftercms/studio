@@ -22,6 +22,7 @@
 
 -->
 <site-config>
+    <version>2</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
