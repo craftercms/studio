@@ -22,6 +22,7 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -29,6 +30,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
+import org.craftercms.studio.impl.v2.service.security.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,7 +48,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS;
@@ -97,7 +99,6 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
             String userName = securityService.getCurrentUser();
             String authToken = securityService.getCurrentToken();
 
-
             if (userName != null) {
                 UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
@@ -114,11 +115,11 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                                     .contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
                         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
                         String newToken = SessionTokenUtils.createToken(userDetails.getUsername(), timeout);
-                        httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
+                        storeToken(newToken);
                     }
                 } else {
                     crafterLogger.debug("Session is not valid. Clearing HttpSession");
-                    httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+                    httpSession.removeAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
                     httpSession.invalidate();
                 }
             } else { if (isAuthenticationHeadersEnabled()) {
@@ -148,6 +149,18 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
             semaphore.unlock();
         }
         filterChain.doFilter(servletRequest, servletResponse);
+    }
+
+    private void storeToken(String token) {
+        RequestContext context = RequestContext.getCurrent();
+        if(context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            Authentication oldAuthentication =
+                    (Authentication)httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+            Authentication newAuthentication = new Authentication(oldAuthentication.getUsername(), token,
+                    oldAuthentication.getAuthenticationType(), oldAuthentication.getSsoLogoutUrl());
+            httpSession.setAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION, newAuthentication);
+        }
     }
 
     private HttpServletRequest getAsHttpRequest(ServletRequest request)
