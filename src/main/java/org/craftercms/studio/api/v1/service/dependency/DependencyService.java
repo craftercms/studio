@@ -210,4 +210,31 @@ public interface DependencyService {
      */
 	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException;
 
+    /**
+     * Get a soft dependencies of a item. A soft
+     * dependency is:
+     * * an edited, shared (not item specific) dependency
+     *
+     * @param site Site to operate on
+     * @param path Paths to item to retrieve deps for
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException Path doesn't exist
+     * @throws ServiceLayerException Internal error, see exception details
+     */
+    Set<String> getSoftDependencies(String site, String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
+
+    /**
+     * Get a soft dependencies of a list of items. A soft
+     * dependency is:
+     * * an edited, shared (not item specific) dependency
+     *
+     * @param site Site to operate on
+     * @param paths List of paths to items to retrieve deps for
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException One or more paths doesn't exist
+     * @throws ServiceLayerException Internal error, see exception details
+     */
+    Set<String> getSoftDependencies(String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 }
