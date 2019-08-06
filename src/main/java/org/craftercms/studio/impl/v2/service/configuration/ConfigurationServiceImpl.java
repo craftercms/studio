@@ -213,7 +213,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public Resource getPluginFile(String siteId, String type, String plugin, String filename)
+    public Resource getPluginFile(String siteId, String type, String name, String filename)
         throws ContentNotFoundException {
 
         String basePath = servicesConfig.getPluginFolderPattern(siteId);
@@ -228,7 +228,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         Map<String, String> values = new HashMap<>();
         values.put(PLACEHOLDER_TYPE, type);
-        values.put(PLACEHOLDER_NAME, plugin);
+        values.put(PLACEHOLDER_NAME, name);
         basePath = StrSubstitutor.replace(basePath, values);
 
         String filePath = UrlUtils.concat(basePath, filename);

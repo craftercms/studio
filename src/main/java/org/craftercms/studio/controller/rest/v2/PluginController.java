@@ -52,10 +52,10 @@ public class PluginController {
      */
     @GetMapping("/file")
     public ResponseEntity<Resource> getPluginFile(@RequestParam String siteId, @RequestParam String type,
-                                                  @RequestParam String extension, @RequestParam String filename)
+                                                  @RequestParam String name, @RequestParam String filename)
         throws ContentNotFoundException {
 
-        Resource resource = configurationService.getPluginFile(siteId, type, extension, filename);
+        Resource resource = configurationService.getPluginFile(siteId, type, name, filename);
 
         MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
         String contentType = mimeMap.getContentType(filename);
