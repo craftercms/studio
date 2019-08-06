@@ -86,11 +86,11 @@ public interface ConfigurationService {
      * Get a a file from a plugin
      * @param siteId the id of site
      * @param type the type of plugin
-     * @param plugin the name of the plugin
+     * @param name the name of the plugin
      * @param filename the path and name of the file
      * @return the file as a resource
      * @throws ContentNotFoundException if there is any issue reading the file from the repository
      */
-    Resource getPluginFile(String siteId, String type, String plugin, String filename)
+    Resource getPluginFile(String siteId, String type, String name, String filename)
         throws ContentNotFoundException;
 }
