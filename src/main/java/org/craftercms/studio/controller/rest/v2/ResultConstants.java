@@ -58,4 +58,7 @@ public interface ResultConstants {
 
     /* Repository management controller */
     String RESULT_KEY_REMOTES = "remotes";
+
+    /* Dependency controller */
+    String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";
 }

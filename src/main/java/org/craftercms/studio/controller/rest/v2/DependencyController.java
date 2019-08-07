@@ -17,17 +17,47 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.ResultList;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATHS;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SOFT_DEPENDENCIES;
 
 @RestController
 @RequestMapping("/api/2/dependency")
 public class DependencyController {
 
-    @GetMapping("/soft_dependencies")
-    public ResponseBody getSoftDependencies() {
+    private DependencyService dependencyService;
 
+    @GetMapping("/soft_dependencies")
+    public ResponseBody getSoftDependencies(
+            @RequestParam(value = REQUEST_PARAM_SITE_ID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths) throws ServiceLayerException {
+        List<String> softDeps = dependencyService.getSoftDependencies(siteId, paths);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<String> result = new ResultList<String>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(RESULT_KEY_SOFT_DEPENDENCIES, softDeps);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    public DependencyService getDependencyService() {
+        return dependencyService;
+    }
+
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
     }
 }
