@@ -17,12 +17,10 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
