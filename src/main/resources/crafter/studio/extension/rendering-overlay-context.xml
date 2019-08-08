@@ -107,6 +107,10 @@
         <constructor-arg ref="configurationService" />
     </bean>
 
+    <bean id="dependencyController" class="org.craftercms.studio.controller.rest.v2.DependencyController" >
+        <property name="dependencyService" ref="dependencyService" />
+    </bean>
+
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
     </bean>

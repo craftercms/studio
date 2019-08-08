@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.12'
+  version: '3.1.1.13'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -44,6 +44,8 @@ tags:
     description: Configuration operations
   - name: plugin
     description: Plugin operations
+  - name: dependency
+    description: Dependencies operations
 
 paths:
 
@@ -846,6 +848,9 @@ paths:
                 new:
                   type: string
                   description: new password
+              required:
+                - username
+                - new
       responses:
         '200':
           description: OK
@@ -887,6 +892,9 @@ paths:
                 new:
                   type: string
                   description: new password
+              required:
+                - token
+                - new
       responses:
         '200':
           description: OK
@@ -1055,6 +1063,10 @@ paths:
                 new:
                   type: string
                   description: new password
+              required:
+                - username
+                - current
+                - new
       responses:
         '200':
           description: OK
@@ -1875,6 +1887,11 @@ paths:
                 studioPath:
                   type: string
                   description: path to save the asset in Studio (destination)
+              required:
+                - siteId
+                - cmisRepoId
+                - cmisPath
+                - studioPath
       responses:
         '200':
           description: OK
@@ -1925,6 +1942,11 @@ paths:
                 file:
                   type: string
                   format: binary
+              required:
+                - siteId
+                - cmisRepoId
+                - cmisPathId
+                - file
       responses:
         '200':
           description: OK
@@ -2026,6 +2048,10 @@ paths:
                   type: string
                   format: theirs, ours, none
                   description: Merge strategy to use when pulling content from remote repository
+              required:
+                - siteId
+                - remoteName
+                - remoteBranch
       responses:
         '200':
           description: OK
@@ -2074,6 +2100,10 @@ paths:
                 force:
                   type: boolean
                   description: Indicates whether to force push to remote or not
+              required:
+                - siteId
+                - remoteName
+                - remoteBranch
       responses:
         '200':
           description: OK
@@ -2113,6 +2143,8 @@ paths:
                 siteId:
                   type: string
                   description: Site ID
+              required:
+                - siteId
       responses:
         '200':
           description: OK
@@ -2153,6 +2185,9 @@ paths:
                 remoteName:
                   type: string
                   description: Remote repository name of remote to be removed
+              required:
+                - siteId
+                - remoteName
       responses:
         '200':
           description: OK
@@ -2292,6 +2327,11 @@ paths:
                 content:
                   type: string
                   description: configuration file content
+              required:
+                - siteId
+                - module
+                - path
+                - content
       responses:
         '200':
           description: OK
@@ -2407,6 +2447,55 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /dependency/dependencies:
+    get:
+      tags:
+        - dependency
+      summary: Get list of dependencies for given content paths
+      description: 'Required permission "site member"'
+      operationId: getDependencies
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to get dependencies for
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  hardDependencies:
+                    type: array
+                    items:
+                      type: string
+                  softDependencies:
+                    type: array
+                    items:
+                      type: string                      
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -2485,6 +2574,16 @@ components:
         externallyManaged:
           type: boolean
           description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)
+      required:
+        - id
+        - username
+        - password
+        - firstName
+        - lastName
+        - email
+        - enabled
+        - externallyManaged
+
     AuthenticatedUser:
       type: object
       properties:
@@ -2514,6 +2613,17 @@ components:
           type: string
           description: |-
             The authentication type used to log in the user. Possible values are: DB, LDAP, AUTH_HEADERS
+      required:
+        - id
+        - username
+        - password
+        - firstName
+        - lastName
+        - email
+        - enabled
+        - externallyManaged
+        - authenticationType
+
     Group:
       type: object
       properties:
@@ -2527,6 +2637,10 @@ components:
         desc:
           type: string
           description: Group description
+      required:
+        - id
+        - name
+
     Site:
       type: object
       properties:
@@ -2536,6 +2650,9 @@ components:
         desc:
           type: string
           description: Site description
+      required:
+        - siteId
+
     MenuItem:
       type: object
       properties:
@@ -2548,6 +2665,11 @@ components:
         icon:
           type: string
           description: 'Menu item icon as a Font Awesome id, example: fa-smile'
+      required:
+        - id
+        - label
+        - icon
+
     S3Item:
       type: object
       properties:
@@ -2560,6 +2682,11 @@ components:
         folder:
           type: boolean
           description: 'Indicates if the item is a folder'
+      required:
+        - name
+        - url
+        - folder
+
     MediaConvertResult:
       type: object
       properties:
@@ -2574,6 +2701,11 @@ components:
           description: 'The list of files that will be generated by the triggered job'
           items:
             type: string
+      required:
+        - jobId
+        - jobArn
+        - urls
+
     ClusterMember:
       type: object
       properties:
@@ -2612,6 +2744,15 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
+      required:
+        - id
+        - localAddress
+        - state
+        - heartbeat
+        - gitUrl 
+        - gitRemoteName
+        - gitAuthType
+
     Version:
       type: object
       properties:
@@ -2627,6 +2768,10 @@ components:
           type: integer
           format: int32
           description: The patch version
+      required:
+        - major
+        - minor
+
     Link:
       type: object
       properties:
@@ -2636,6 +2781,10 @@ components:
         url:
           type: string
           description: The URL of the link
+      required:
+        - name
+        - url
+
     Asset:
       type: object
       properties:
@@ -2648,6 +2797,10 @@ components:
         url:
           type: string
           description: The URL of the asset
+      required:
+        - title
+        - url
+
     Plugin:
       type: object
       properties:
@@ -2723,6 +2876,7 @@ components:
               description: The supported Crafter CMS editions of the plugin
               items:
                 type: string
+
     SearchParams:
       type: object
       properties:
@@ -2753,6 +2907,10 @@ components:
             Type":"text/css" or nested objects for range facets like "Width": { "min": 0, "max": 150 }. Both keys and
              values can be taken from the facets object of a previous search.
           additionalProperties: true
+      required:
+        - query
+        - keywords
+
     SearchResult:
       type: object
       properties:
@@ -2770,6 +2928,7 @@ components:
           description: List of facets based on the results found
           items:
             $ref: '#/components/schemas/SearchFacet'
+
     SearchResultItem:
       type: object
       properties:
@@ -2804,6 +2963,7 @@ components:
           description: Snippets relevant to the search query
           items:
             type: string
+
     SearchFacet:
       type: object
       properties:
@@ -2830,6 +2990,7 @@ components:
                   type: integer
             facet2:
               $ref: '#/components/schemas/SearchFacetRange'
+
     SearchFacetRange:
       type: object
       properties:
@@ -2843,6 +3004,7 @@ components:
         to:
           type: object
           description: The ending limit of the range
+
     AuditLog:
       type: object
       properties:
@@ -2910,6 +3072,22 @@ components:
               targetValue:
                 type: string
                 description: Value of the target (e.g. content's path)
+            required:
+              - targetId
+              - targetType
+              - targetValue
+      required:
+        - id
+        - organizationId
+        - siteId
+        - siteName
+        - operation
+        - operationTimestamp
+        - origin
+        - primaryTargetId
+        - primaryTargetType
+        - promaryTargetValue
+        - actorId
 
     VersionItem:
       type: object
@@ -2945,6 +3123,7 @@ components:
         javaVm:
           type: string
           description: The name of the JVM
+
     StatusItem:
       type: object
       properties:
@@ -2956,6 +3135,7 @@ components:
           type: string
           format: date-time
           description: The date and time when the JVM started
+
     MemoryItem:
       type: object
       properties:
@@ -2987,6 +3167,7 @@ components:
           type: integer
           format: int64
           description: The remaining memory in bytes for swap space
+
     LogEvent:
       type: object
       properties:
@@ -3070,6 +3251,11 @@ components:
         remotePrivateKey:
           type: string
           description: private key to access
+      required:
+        - siteId
+        - remoteName
+        - remoteUrl
+        - autheticationType
 
     RemoteRepositoryInfo:
       type: object

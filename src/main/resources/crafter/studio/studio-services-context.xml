@@ -433,6 +433,16 @@
         <property name="contentTypeService" ref="cstudioContentTypeService" />
         <property name="securityService" ref="cstudioSecurityService" />
      </bean>
+    
+    <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
+    </bean>
+    
+    <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="dependencyDao" ref="dependencyDao" />
+    </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
