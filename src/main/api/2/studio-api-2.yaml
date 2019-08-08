@@ -2447,13 +2447,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dependency/soft_dependencies:
+  /dependency/dependencies:
     get:
       tags:
         - dependency
-      summary: Get list of soft dependencies for given conten paths
+      summary: Get list of dependencies for given content paths
       description: 'Required permission "site member"'
-      operationId: getSoftDependencies
+      operationId: getDependencies
       parameters:
         - name: siteId
           in: query
@@ -2463,7 +2463,7 @@ paths:
             type: string
         - name: paths
           in: query
-          description: Content paths to get soft dependencies for
+          description: Content paths to get dependencies for
           required: true
           schema:
             type: array
@@ -2479,10 +2479,14 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  softDependencies:
+                  hardDependencies:
                     type: array
                     items:
                       type: string
+                  softDependencies:
+                    type: array
+                    items:
+                      type: string                      
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
