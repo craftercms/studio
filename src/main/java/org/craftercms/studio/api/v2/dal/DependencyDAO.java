@@ -45,5 +45,14 @@ public interface DependencyDAO {
      *
      * @return List of soft dependencies
      */
-    List<String> getSoftDependenciesForList(Map params);
+    List<Map<String, String>> getSoftDependenciesForList(Map params);
+
+    /**
+     * Get hard dependencies from DB for list of content paths
+     *
+     * @param params SQL query parameters
+     *
+     * @return List of hard dependencies
+     */
+    List<Map<String, String>> getHardDependenciesForList(Map params);
 }

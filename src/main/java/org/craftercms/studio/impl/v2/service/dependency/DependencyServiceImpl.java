@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.service.dependency;
 
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 
@@ -33,14 +32,24 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path)
-            throws SiteNotFoundException, ServiceLayerException {
+            throws ServiceLayerException {
         return dependencyServiceInternal.getSoftDependencies(siteId, path);
     }
 
     @Override
     public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> paths)
-            throws SiteNotFoundException, ServiceLayerException {
+            throws ServiceLayerException {
         return dependencyServiceInternal.getSoftDependencies(siteId, paths);
+    }
+
+    @Override
+    public List<String> getHardDependencies(String site, String path) throws ServiceLayerException {
+        return dependencyServiceInternal.getHardDependencies(site, path);
+    }
+
+    @Override
+    public List<String> getHardDependencies(String site, List<String> paths) throws ServiceLayerException {
+        return dependencyServiceInternal.getHardDependencies(site, paths);
     }
 
     public DependencyServiceInternal getDependencyServiceInternal() {
