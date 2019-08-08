@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATHS;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SOFT_DEPENDENCIES;
 
 @RestController
@@ -41,7 +41,7 @@ public class DependencyController {
 
     @GetMapping("/soft_dependencies")
     public ResponseBody getSoftDependencies(
-            @RequestParam(value = REQUEST_PARAM_SITE_ID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
             @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths) throws ServiceLayerException {
         List<String> softDeps = dependencyService.getSoftDependencies(siteId, paths);
 
