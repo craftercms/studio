@@ -18,7 +18,6 @@
 package org.craftercms.studio.impl.v2.service.dependency.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;

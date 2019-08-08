@@ -24,7 +24,13 @@ import java.io.Serializable;
  */
 public class Dependency implements Serializable {
 
-    private static final long serialVersionUID = -4214391267311804660L;
+    private static final long serialVersionUID = -1098917107076676589L;
+    
+    private long id;
+    private String site;
+    private String sourcePath;
+    private String targetPath;
+    private String type;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -40,10 +46,4 @@ public class Dependency implements Serializable {
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-
-    private long id;
-    private String site;
-    private String sourcePath;
-    private String targetPath;
-    private String type;
 }
