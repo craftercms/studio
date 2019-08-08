@@ -97,10 +97,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!softDeps.keySet().contains(targetPath)) {
-                    if (!StringUtils.equals(targetPath, softDeps.get(srcPath))) {
-                        softDeps.put(targetPath, softDeps.get(srcPath));
-                    }
+                if (!softDeps.keySet().contains(targetPath) && !StringUtils.equals(targetPath, softDeps.get(srcPath))) {
+                    softDeps.put(targetPath, softDeps.get(srcPath));
                 }
                 targetPaths.add(targetPath);
             }
@@ -179,10 +177,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!ancestors.keySet().contains(targetPath)) {
-                    if (!StringUtils.equals(targetPath, ancestors.get(srcPath))) {
-                        ancestors.put(targetPath, ancestors.get(srcPath));
-                    }
+                if (!ancestors.keySet().contains(targetPath) &&
+                        !StringUtils.equals(targetPath, ancestors.get(srcPath))) {
+                    ancestors.put(targetPath, ancestors.get(srcPath));
                 }
                 targetPaths.add(targetPath);
             }
