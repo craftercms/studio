@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.13'
+  version: '3.1.1.14'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2479,14 +2479,17 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  hardDependencies:
-                    type: array
-                    items:
-                      type: string
-                  softDependencies:
-                    type: array
-                    items:
-                      type: string                      
+                  items:
+                    type: object
+                    properties:
+                      hardDependencies:
+                        type: array
+                        items:
+                          type: string
+                      softDependencies:
+                        type: array
+                        items:
+                          type: string                      
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

@@ -442,6 +442,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDao" ref="dependencyDao" />
+        <property name="itemStateMapper" ref="itemStateMapper" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

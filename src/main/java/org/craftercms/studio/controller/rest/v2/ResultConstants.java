@@ -61,4 +61,5 @@ public interface ResultConstants {
 
     /* Dependency controller */
     String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";
+    String RESULT_KEY_HARD_DEPENDENCIES = "hardDependencies";
 }
