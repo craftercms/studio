@@ -2359,7 +2359,18 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   diff:
-                    type: string
+                    type: object
+                    properties:
+                      diff:
+                        type: string
+                        description: difference between ours and theirs
+                      localVersion:
+                        type: string
+                        description: studio's version of the file content
+                      remoteVersion:
+                        type: string
+                        description: remote repository version of the file content
+
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3521,6 +3532,9 @@ components:
           description: list of added files
           items:
             type: string
+        clean:
+          type: boolean
+          description: true if there are no conflicts or uncommited changes
 
   responses:
     NotFound:
