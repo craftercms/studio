@@ -2268,10 +2268,8 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  remotes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/repository_status'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2319,10 +2317,8 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  remotes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/repository_status'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2407,10 +2403,8 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  remotes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/repository_status'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2450,10 +2444,8 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  remotes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/repository_status'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3515,6 +3507,20 @@ components:
         path:
           type: string
           description: path expression to generate path for quick create
+    
+    RepositoryStatus:
+      type: object
+      properties:
+        conflicting:
+          type: array
+          description: list of conficting files
+          items:
+            type: string
+        uncommittedChanges:
+          type: array
+          description: list of added files
+          items:
+            type: string
 
   responses:
     NotFound:
