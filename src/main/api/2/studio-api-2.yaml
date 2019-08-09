@@ -2364,7 +2364,7 @@ paths:
                       diff:
                         type: string
                         description: difference between ours and theirs
-                      localVersion:
+                      studioVersion:
                         type: string
                         description: studio's version of the file content
                       remoteVersion:
