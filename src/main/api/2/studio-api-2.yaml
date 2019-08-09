@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.14'
+  version: '3.1.1.15'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2235,6 +2235,225 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/RemoteRepositoryInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/status:
+    get:
+      tags:
+        - repository
+      summary: Get status of repository for a site
+      description: 'Required permission "site_status"'
+      operationId: repositoryStatus
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  remotes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/repository_status'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/resolve_conflict:
+    post:
+      tags:
+        - repository
+      summary: Resolve a conflict for a file by accepting ours or theirs
+      description: 'Required permission "resolve_conflict"'
+      operationId: resolveConflict
+      requestBody:
+        description: resolve conflict request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                path:
+                  type: string
+                  description: Conflicted file path
+                resolution:
+                  type: string
+                  description: resolution mechanism to use (ours, theirs)
+              required:
+                - siteId
+                - path
+                - resolution
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  remotes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/repository_status'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/diff_conflicted_file:
+    get:
+      tags:
+        - repository
+      summary: Get the difference between ours and theirs for a conflicted file for a site
+      description: 'Required permission "site_diff_conflicted_file"'
+      operationId: diffConflictedFile
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Path of conflicted file
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  diff:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/commit_resolution:
+    post:
+      tags:
+        - repository
+      summary: Commit a resolved set of conflicts for a site
+      description: 'Required permission "commit_resolution"'
+      operationId: commitResolution
+      requestBody:
+        description: Commit resolution request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                commit_message:
+                  type: string
+                  description: Commit message
+              required:
+                - siteId
+                - commit_message
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  remotes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/repository_status'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/cancel_failed_pull:
+    post:
+      tags:
+        - repository
+      summary: Cancel a failed/conflicted pull for a site
+      description: 'Required permission "cancel_failed_pull"'
+      operationId: cancelFailedPull
+      requestBody:
+        description: cancel failed pull request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+              required:
+                - siteId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  remotes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/repository_status'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
