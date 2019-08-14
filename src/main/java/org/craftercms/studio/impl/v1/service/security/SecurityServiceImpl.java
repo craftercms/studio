@@ -865,7 +865,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public boolean validateSession(HttpServletRequest request) throws ServiceLayerException {
         HttpSession httpSession = request.getSession();
-        String authToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+        String authToken = getCurrentToken();
         String userName = getCurrentUser();
 
         if (userName != null) {
@@ -878,7 +878,7 @@ public class SecurityServiceImpl implements SecurityService {
 
         }
 
-        httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+        httpSession.removeAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
         httpSession.invalidate();
         return false;
     }
