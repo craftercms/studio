@@ -168,4 +168,67 @@ class SiteServices {
         def siteServiceImpl = ServiceFactory.getSiteServices(context)
         return siteServiceImpl.listRemote(siteId)
     }
+
+    /**
+     * Cancel failed pull from remote repository for given site
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @return
+     */
+    static cancelFailedPull(context, siteId) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.cancelFailedPull(siteId)
+    }
+
+    /**
+     * Commit a resolved set of conflicts for a site
+     *
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param commitMessage commit message
+     * @return
+     */
+    static commitResolution(context, siteId, commitMessage) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.commitResolution(siteId, commitMessage)
+    }
+
+    /**
+     * Get the difference between ours and theirs for a conflicted file for a site
+     *
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param path path of the conflicted file
+     * @return
+     */
+    static diffConflictedFile(context, siteId, path) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.diffConflictedFile(siteId, path)
+    }
+
+    /**
+     * Resolve a conflict for a file by accepting ours or theirs
+     *
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param path path of the conflicted file
+     * @param resolution resolution strategy
+     * @return
+     */
+    static resolveConflict(context, siteId, path, resolution) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.resolveConflict(siteId, path, resolution)
+    }
+
+    /**
+     * Get repository status for conflicts
+     *
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @return
+     */
+    static repositoryStatus(context, siteId) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.repositoryStatus(siteId)
+    }
 }
