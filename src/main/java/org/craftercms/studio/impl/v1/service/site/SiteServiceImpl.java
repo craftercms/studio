@@ -99,11 +99,13 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.DiffConflictedFileTO;
 import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
+import org.craftercms.studio.api.v1.to.RepositoryStatusTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -1840,6 +1842,50 @@ public class SiteServiceImpl implements SiteService {
         }
         SiteFeed siteFeed = getSite(siteId);
         return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
+    }
+
+    @Override
+    public RepositoryStatusTO repositoryStatus(String siteId) throws ServiceException {
+	    if (!exists(siteId)) {
+	        throw new SiteNotFoundException(siteId);
+        }
+        return contentRepository.repositoryStatus(siteId);
+    }
+
+    @Override
+    public RepositoryStatusTO resolveConflict(String siteId, String path, String resolution) throws ServiceException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        contentRepository.resolveConflict(siteId, path, resolution);
+        return contentRepository.repositoryStatus(siteId);
+    }
+
+    @Override
+    public RepositoryStatusTO cancelFailedPull(String siteId) throws ServiceException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        contentRepository.cancelFailedPull(siteId);
+        return contentRepository.repositoryStatus(siteId);
+    }
+
+    @Override
+    public RepositoryStatusTO commitResolution(String siteId, String commitMessage) throws ServiceException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        contentRepository.commitResolution(siteId, commitMessage);
+        return contentRepository.repositoryStatus(siteId);
+    }
+
+    @Override
+    public DiffConflictedFileTO diffConflictedFile(String siteId, String path)
+            throws ServiceException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        return contentRepository.diffConflictedFile(siteId, path);
     }
 
     public String getGlobalConfigRoot() {

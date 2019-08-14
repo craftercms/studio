@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import com.jcraft.jsch.Session;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -85,13 +87,16 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.DiffConflictedFileTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
+import org.craftercms.studio.api.v1.to.RepositoryStatusTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -2451,6 +2456,136 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             cleanup(siteId, SANDBOX);
             cleanup(siteId, PUBLISHED);
         }
+    }
+
+    @Override
+    public RepositoryStatusTO repositoryStatus(String siteId) throws ServiceException {
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        RepositoryStatusTO repositoryStatus = new RepositoryStatusTO();
+        logger.debug("Execute git status and return conflicting paths and uncommitted changes");
+        try (Git git = new Git(repo)) {
+            Status status = git.status().call();
+            repositoryStatus.setClean(status.isClean());
+            repositoryStatus.setConflicting(status.getConflicting());
+            repositoryStatus.setUncommittedChanges(status.getUncommittedChanges());
+        } catch (GitAPIException e) {
+            logger.error("Error while getting repository status for site " + siteId, e);
+            throw new ServiceException("Error getting repository status for site " + siteId, e);
+        }
+        return repositoryStatus;
+    }
+
+    @Override
+    public boolean resolveConflict(String siteId, String path, String resolution) throws ServiceException {
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            switch (resolution.toLowerCase()) {
+                case "ours" :
+                    logger.debug("Resolve conflict using OURS strategy for site " + siteId + " and path " + path);
+                    logger.debug("Reset merge conflict in git index");
+                    git.reset().addPath(helper.getGitPath(path)).call();
+                    logger.debug("Checkout content from HEAD of studio repository");
+                    git.checkout().addPath(helper.getGitPath(path)).setStartPoint(Constants.HEAD).call();
+                    break;
+                case "theirs" :
+                    logger.debug("Resolve conflict using THEIRS strategy for site " + siteId + " and path " + path);
+                    logger.debug("Reset merge conflict in git index");
+                    git.reset().addPath(helper.getGitPath(path)).call();
+                    logger.debug("Checkout content from merge HEAD of remote repository");
+                    List<ObjectId> mergeHeads = repo.readMergeHeads();
+                    ObjectId mergeCommitId = mergeHeads.get(0);
+                    git.checkout().addPath(helper.getGitPath(path)).setStartPoint(mergeCommitId.getName()).call();
+                    break;
+                default:
+                    throw new ServiceException("Unsupported resolution strategy for repository conflicts");
+            }
+        } catch (GitAPIException | IOException e) {
+            logger.error("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
+                    "strategy", e);
+            throw new ServiceException("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
+                    "strategy", e);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean cancelFailedPull(String siteId) throws ServiceException {
+        logger.debug("To cancel failed pull, reset hard needs to be executed");
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            git.reset().setMode(ResetCommand.ResetType.HARD).call();
+        } catch (GitAPIException e) {
+            logger.error("Error while canceling failed pull for site " + siteId, e);
+            throw new ServiceException("Reset hard failed for site " + siteId, e);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean commitResolution(String siteId, String commitMessage) throws ServiceException {
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        logger.debug("Commit resolution for merge conflict for site " + siteId);
+        try (Git git = new Git(repo)) {
+            Status status = git.status().call();
+
+            logger.debug("Add all uncommitted changes/files");
+            AddCommand addCommand = git.add();
+            for (String uncommited : status.getUncommittedChanges()) {
+                addCommand.addFilepattern(uncommited);
+            }
+            addCommand.call();
+            logger.debug("Commit changes");
+            CommitCommand commitCommand = git.commit();
+            PersonIdent user = helper.getCurrentUserIdent();
+            commitCommand.setCommitter(user).setAuthor(user).setMessage(commitMessage).call();
+            return true;
+        } catch (GitAPIException e) {
+            logger.error("Error while committing conflict resolution for site " + siteId, e);
+            throw new ServiceException("Error while committing conflict resolution for site " + siteId, e);
+        }
+    }
+
+    @Override
+    public DiffConflictedFileTO diffConflictedFile(String siteId, String path) throws ServiceException {
+        DiffConflictedFileTO diffResult = new DiffConflictedFileTO();
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            List<ObjectId> mergeHeads = repo.readMergeHeads();
+            ObjectId mergeCommitId = mergeHeads.get(0);
+            logger.debug("Get content for studio version of conflicted file " + path + " for site " + siteId);
+            InputStream studioVersionIs = getContentVersion(siteId, path, Constants.HEAD);
+            diffResult.setStudioVersion(IOUtils.toString(studioVersionIs));
+            logger.debug("Get content for remote version of conflicted file " + path + " for site " + siteId);
+            InputStream remoteVersionIs = getContentVersion(siteId, path, mergeCommitId.getName());
+            diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            logger.debug("Get diff between studio and remote version of conflicted file " + path + " for site "
+                    + siteId);
+            RevTree headTree = helper.getTreeForCommit(repo, Constants.HEAD);
+            RevTree remoteTree = helper.getTreeForCommit(repo, mergeCommitId.getName());
+
+            try (ObjectReader reader = repo.newObjectReader()) {
+                CanonicalTreeParser headCommitTreeParser = new CanonicalTreeParser();
+                CanonicalTreeParser remoteCommitTreeParser = new CanonicalTreeParser();
+                headCommitTreeParser.reset(reader, headTree.getId());
+                remoteCommitTreeParser.reset(reader, remoteTree.getId());
+
+                // Diff the two commit Ids
+                List<DiffEntry> diffEntries = git.diff()
+                        .setOldTree(headCommitTreeParser)
+                        .setNewTree(remoteCommitTreeParser)
+                        .setOutputStream(baos)
+                        .call();
+                diffResult.setDiff(baos.toString());
+            }
+
+
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while getting diff for conflicting file " + path + " site " + siteId);
+            throw new ServiceException("Error while getting diff for conflicting file " + path + " site " + siteId);
+        }
+        return diffResult;
     }
 
     public void setServletContext(ServletContext ctx) {

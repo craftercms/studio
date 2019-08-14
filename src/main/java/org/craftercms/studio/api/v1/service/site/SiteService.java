@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
 import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -31,9 +32,11 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.to.DiffConflictedFileTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v1.to.RepositoryStatusTO;
 import org.dom4j.Document;
 
 import java.util.List;
@@ -281,4 +284,49 @@ public interface SiteService {
      * @throws SiteNotFoundException
      */
     List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException;
+
+    /**
+     * Get status of repository for a site
+     *
+     * @param siteId site identifier
+     * @return repositoryStatus
+     */
+    RepositoryStatusTO repositoryStatus(String siteId) throws ServiceException;
+
+    /**
+     * Resolve a conflict for a file by accepting ours or theirs
+     *
+     * @param siteId site identifier
+     * @param path path of conflicted file
+     * @param resolution resolution strategy
+     * @return
+     */
+    RepositoryStatusTO resolveConflict(String siteId, String path, String resolution) throws ServiceException;
+
+    /**
+     * Cancel a failed/conflicted pull for a site
+     *
+     * @param siteId site identifier
+     * @return repository status
+     */
+    RepositoryStatusTO cancelFailedPull(String siteId) throws ServiceException;
+
+    /**
+     * Commit a resolved set of conflicts for a site
+     *
+     * @param siteId site identifier
+     * @param commitMessage commit message
+     * @return
+     */
+    RepositoryStatusTO commitResolution(String siteId, String commitMessage) throws ServiceException;
+
+    /**
+     * Get the difference between ours and theirs for a conflicted file for a site
+     *
+     * @param siteId site identifier
+     * @param path path of conflicted file
+     * @return diff for conflicted file
+     */
+    DiffConflictedFileTO diffConflictedFile(String siteId, String path)
+            throws ServiceException;
 }

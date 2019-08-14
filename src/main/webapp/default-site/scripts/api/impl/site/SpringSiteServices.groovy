@@ -143,4 +143,64 @@ class SpringSiteServices {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.listRemote(siteId)
     }
+
+    /**
+     * Cancel failed pull from remote repository for given site
+     *
+     * @param siteId site identifier
+     * @return
+     */
+    def cancelFailedPull(siteId) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.cancelFailedPull(siteId)
+    }
+
+    /**
+     * Commit a resolved set of conflicts for a site
+     *
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param commitMessage commit message
+     * @return repository status
+     */
+    def commitResolution(siteId, commitMessage) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.commitResolution(siteId, commitMessage)
+    }
+
+    /**
+     * Get the difference between ours and theirs for a conflicted file for a site
+     *
+     * @param siteId site identifier
+     * @param path path of the conflicted file
+     * @return
+     */
+    def diffConflictedFile(siteId, path) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.diffConflictedFile(siteId, path)
+    }
+
+    /**
+     * Resolve a conflict for a file by accepting ours or theirs
+     *
+     * @param siteId site identifier
+     * @param path path of the conflicted file
+     * @param resolution resolution strategy
+     * @return
+     */
+    def resolveConflict(siteId, path, resolution) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.resolveConflict(siteId, path, resolution)
+    }
+
+    /**
+     * Get repository status for conflicts
+     *
+     * @param siteId site identifier
+     * @return
+     */
+    def repositoryStatus(siteId) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.repositoryStatus(siteId)
+    }
 }
