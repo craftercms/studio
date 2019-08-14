@@ -50,7 +50,7 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
 
         try {
-            result.repostoryStatus = SiteServices.cancelFailedPull(context, siteId)
+            result.repositoryStatus = SiteServices.cancelFailedPull(context, siteId)
             response.setStatus(200)
             result.message = "OK"
         } catch (SiteNotFoundException e) {
