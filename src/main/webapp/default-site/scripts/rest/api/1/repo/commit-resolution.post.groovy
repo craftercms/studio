@@ -64,7 +64,7 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
 
         try {
-            result.repostoryStatus = SiteServices.commitResolution(context, siteId, commitMessage)
+            result.repositoryStatus = SiteServices.commitResolution(context, siteId, commitMessage)
             response.setStatus(200)
             result.message = "OK"
         } catch (SiteNotFoundException e) {

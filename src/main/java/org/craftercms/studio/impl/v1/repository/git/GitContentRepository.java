@@ -2573,6 +2573,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // Diff the two commit Ids
                 List<DiffEntry> diffEntries = git.diff()
+                        .setPathFilter(PathFilter.create(helper.getGitPath(path)))
                         .setOldTree(headCommitTreeParser)
                         .setNewTree(remoteCommitTreeParser)
                         .setOutputStream(baos)
