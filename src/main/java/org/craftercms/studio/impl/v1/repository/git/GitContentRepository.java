@@ -2362,7 +2362,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (pullResult != null && !pullResult.isSuccessful()) {
                 if (repo.getRepositoryState() == RepositoryState.MERGING) {
                     logger.info("Pulling from remote " + remoteName + " for site " + siteId
-                            + " resulted with conflicts");
+                            + " resulted in conflicts");
                 } else {
                     logger.info("Pulling from remote " + remoteName + " for site " + siteId
                             + " was not successful (" + repo.getRepositoryState().getDescription() + ")");
