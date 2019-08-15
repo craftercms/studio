@@ -2359,6 +2359,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     throw new ServiceException("Unsupported authentication type " +
                             remoteRepository.getAuthenticationType());
             }
+            if (pullResult != null && !pullResult.isSuccessful()) {
+                if (repo.getRepositoryState() == RepositoryState.MERGING) {
+                    logger.info("Pulling from remote " + remoteName + " for site " + siteId
+                            + " resulted with conflicts");
+                } else {
+                    logger.info("Pulling from remote " + remoteName + " for site " + siteId
+                            + " was not successful (" + repo.getRepositoryState().getDescription() + ")");
+                }
+            }
             return pullResult != null ? pullResult.isSuccessful() : false;
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
