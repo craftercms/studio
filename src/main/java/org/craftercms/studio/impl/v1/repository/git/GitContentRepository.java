@@ -125,6 +125,7 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
@@ -2498,6 +2499,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     break;
                 default:
                     throw new ServiceException("Unsupported resolution strategy for repository conflicts");
+            }
+
+            if (repo.getRepositoryState() == RepositoryState.MERGING_RESOLVED) {
+                logger.debug("Merge resolved. Check if there are no uncommitted changes (repo is clean)");
+                Status status = git.status().call();
+                if (!status.hasUncommittedChanges()) {
+                    logger.debug("Repository is clean. Committing to complete merge");
+                    PersonIdent user = helper.getCurrentUserIdent();
+                    git.commit()
+                            .setAllowEmpty(true)
+                            .setMessage("Merge resolved. Repo is clean (no changes)")
+                            .setAuthor(user)
+                            .call();
+                }
             }
         } catch (GitAPIException | IOException e) {
             logger.error("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
