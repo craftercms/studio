@@ -45,8 +45,17 @@
         <name>name</name>
         <label>Name</label>
         <description>User's first and last name.</description>
-        <type>input</type> <!-- valid types: dropdown, checkboxes, input -->
+        <type>input</type> <!-- valid types: dropdown, checkboxes, input, datetime -->
         <default_value>Joe Bloggs</default_value>
         <hint>Enter user's first and last name.</hint>
     </property>
+
+    <property>
+        <name>preview-time</name>
+        <label>Preview Time</label>
+        <description>Preview the page at a certain moment in time.</description>
+        <type>datetime</type> <!-- valid types: dropdown, checkboxes, input, datetime -->
+        <default_value>2019-08-16T22:08:00.000Z</default_value> <!-- format: YYYY/MM/DDTHH:mm:ss.000Z -->
+        <hint>Enter date/time</hint>
+   </property>
 </targeting>
