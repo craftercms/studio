@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.15'
+  version: '3.1.1.16'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -46,6 +46,8 @@ tags:
     description: Plugin operations
   - name: dependency
     description: Dependencies operations
+  - name: marketplace
+    description: Marketplace operations
 
 paths:
 
@@ -1408,7 +1410,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Plugin'
+                      $ref: '#/components/schemas/PluginDescriptor'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -2711,7 +2713,7 @@ paths:
                       softDependencies:
                         type: array
                         items:
-                          type: string                      
+                          type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2720,6 +2722,47 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /marketplace/search:
+    get:
+      tags:
+        - marketplace
+      summary: Search for compatible plugins in the marketplace
+      operationId: searchPlugins
+      parameters:
+        - name: type
+          in: query
+          description: Plugin type to search
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset for pagination
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      anyOf:
+                        - $ref: '#/components/schemas/MarketplacePlugin'
+                        - $ref: '#/components/schemas/GitMarketplacePlugin'
 
 components:
   schemas:
@@ -2974,7 +3017,7 @@ components:
         - localAddress
         - state
         - heartbeat
-        - gitUrl 
+        - gitUrl
         - gitRemoteName
         - gitAuthType
 
@@ -3026,81 +3069,108 @@ components:
         - title
         - url
 
-    Plugin:
+    PluginDescriptor:
       type: object
       properties:
         descriptorVersion:
           type: integer
           description: The version of the plugin descriptor
         plugin:
+          $ref: '#/components/schemas/Plugin'
+
+    Plugin:
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of plugin
+        id:
+          type: string
+          format: package name
+          description: The plugin id
+        name:
+          type: string
+          description: The plugin name
+        tags:
+          type: array
+          description: The plugin tags
+          items:
+            type: string
+        version:
+          $ref: '#/components/schemas/Version'
+        description:
+          type: string
+          description: The plugin description
+        website:
+          $ref: '#/components/schemas/Link'
+        media:
           type: object
           properties:
-            type:
-              type: string
-              description: The type of plugin
+            screenshots:
+              type: array
+              description: The screenshots of the plugin
+              items:
+                $ref: '#/components/schemas/Asset'
+            videos:
+              type: array
+              description: The videos of the plugin
+              items:
+                $ref: '#/components/schemas/Asset'
+        developer:
+          type: object
+          properties:
+            people:
+              type: array
+              description: The people that worked on the plugin
+              items:
+                $ref: '#/components/schemas/Link'
+            company:
+              $ref: '#/components/schemas/Link'
+        build:
+          type: object
+          properties:
             id:
               type: string
-              format: package name
-              description: The plugin id
-            name:
+              description: Build id of the plugin
+            date:
               type: string
-              description: The plugin name
-            tags:
-              type: array
-              description: The plugin tags
-              items:
-                type: string
-            version:
-              $ref: '#/components/schemas/Version'
-            description:
+              description: Build date of the plugin
+        license:
+          $ref: '#/components/schemas/Link'
+        crafterCmsVersions:
+          type: array
+          description: The supported Crafter CMS versions of the plugin
+          items:
+            $ref: '#/components/schemas/Version'
+        crafterCmsEditions:
+          type: array
+          description: The supported Crafter CMS editions of the plugin
+          items:
+            type: string
+
+    MarketplacePlugin:
+      allOf:
+        - $ref: '#/components/schemas/Plugin'
+        - type: object
+          properties:
+            source:
               type: string
-              description: The plugin description
-            website:
-              $ref: '#/components/schemas/Link'
-            media:
-              type: object
-              properties:
-                screenshots:
-                  type: array
-                  description: The screenshots of the plugin
-                  items:
-                    $ref: '#/components/schemas/Asset'
-                videos:
-                  type: array
-                  description: The videos of the plugin
-                  items:
-                    $ref: '#/components/schemas/Asset'
-            developer:
-              type: object
-              properties:
-                people:
-                  type: array
-                  description: The people that worked on the plugin
-                  items:
-                    $ref: '#/components/schemas/Link'
-                company:
-                  $ref: '#/components/schemas/Link'
-            build:
-              type: object
-              properties:
-                id:
-                  type: string
-                  description: Build id of the plugin
-                date:
-                  type: string
-                  description: Build date of the plugin
-            license:
-              $ref: '#/components/schemas/Link'
-            crafterCmsVersions:
-              type: array
-              description: The supported Crafter CMS versions of the plugin
-              items:
-                $ref: '#/components/schemas/Version'
-            crafterCmsEditions:
-              type: array
-              description: The supported Crafter CMS editions of the plugin
-              items:
-                type: string
+
+    MarketplaceRemotePlugin:
+      allOf:
+        - $ref: '#/components/schemas/MarketplacePlugin'
+        - type: object
+          properties:
+            url:
+              type: string
+
+    GitMarketplacePlugin:
+      allOf:
+        - $ref: '#/components/schemas/MarketplaceRemotePlugin'
+        - type: object
+          properties:
+            ref:
+              type: string
 
     SearchParams:
       type: object
@@ -3518,7 +3588,7 @@ components:
         path:
           type: string
           description: path expression to generate path for quick create
-    
+
     RepositoryStatus:
       type: object
       properties:

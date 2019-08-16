@@ -111,6 +111,10 @@
         <property name="dependencyService" ref="dependencyService" />
     </bean>
 
+    <bean id="marketplaceController" class="org.craftercms.studio.controller.rest.v2.MarketplaceController">
+        <constructor-arg ref="marketplaceService"/>
+    </bean>
+
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
     </bean>
