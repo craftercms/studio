@@ -92,6 +92,10 @@
         SELECT count(1) FROM site WHERE id = #{id} AND deleted = 0
     </select>
 
+    <select id="existsByName" parameterType="java.lang.String" resultType="int">
+        SELECT count(1) FROM site WHERE name = #{name} AND deleted = 0
+    </select>
+
     <select id="getSitesPerUserQuery" resultType="java.lang.String" parameterType="java.util.Map">
         SELECT DISTINCT cs.site_id as siteid
         FROM site cs
