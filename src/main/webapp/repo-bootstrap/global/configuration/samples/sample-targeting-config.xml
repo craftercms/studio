@@ -53,7 +53,7 @@
     <property>
         <name>preview-time</name>
         <label>Preview Time</label>
-        <description>Preview the page at a certain moment in time.</description>
+        <description>Date and time of page visit.</description>
         <type>datetime</type> <!-- valid types: dropdown, checkboxes, input, datetime -->
         <default_value>2019-08-16T22:08:00.000Z</default_value> <!-- format: YYYY/MM/DDTHH:mm:ss.000Z -->
         <hint>Enter date/time</hint>
