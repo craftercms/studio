@@ -866,6 +866,3 @@ configurations:
             path: *notification-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.33/site/notification-config.xslt
             commitDetails: Add pull from remote conflict notifiction
-          - type: xsltFileUpgrader
-            path: *notification-config
-            template: crafter/studio/upgrade/update-version.xslt
