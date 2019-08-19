@@ -19,7 +19,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
 <!-- to keep the right formatting -->
-<xsl:output method="xml" indent="yes"   />
+<xsl:output method="xml" indent="yes" cdata-section-elements="body content subject"  />
 <xsl:strip-space elements="*"/>
 
 <!-- copy all elements -->
@@ -87,5 +87,36 @@
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
         </xsl:copy>
+    </xsl:template>
+
+    <!-- define parameter -->
+    <xsl:param name="version" />
+
+    <!-- update the version if it already exist -->
+    <xsl:template match="version">
+        <xsl:copy>
+            <xsl:value-of select="$version"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- add the version if it doesn't exist -->
+    <xsl:template match="/*[1]">
+        <xsl:choose>
+            <xsl:when test="not(version)">
+                <xsl:copy>
+                    <xsl:text>&#10;</xsl:text>
+                    <xsl:text>&#x9;</xsl:text>
+                    <xsl:element name="version">
+                        <xsl:value-of select="$version"/>
+                    </xsl:element>
+                    <xsl:apply-templates select="node() | @*"/>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="node() | @*"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 </xsl:stylesheet>
