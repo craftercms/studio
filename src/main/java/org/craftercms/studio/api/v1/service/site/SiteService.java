@@ -215,6 +215,14 @@ public interface SiteService {
     boolean existsById(String id);
 
     /**
+     * Check if site already exists
+     *
+     * @param name site name in DB
+     * @return true if site exists, false otherwise
+     */
+    boolean existsByName(String name);
+
+    /**
      * Get total number of sites that user is allowed access to for given username
      *
      * @param username username

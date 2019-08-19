@@ -1565,8 +1565,14 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public boolean existsById(@ValidateStringParam(name = "site") String siteId) {
+    public boolean existsById(@ValidateStringParam(name = "siteId") String siteId) {
         return siteFeedMapper.existsById(siteId) > 0;
+    }
+
+    @Override
+    @ValidateParams
+    public boolean existsByName(@ValidateStringParam(name = "siteName") String siteName) {
+        return siteFeedMapper.existsByName(siteName) > 0;
     }
 
     @Override
