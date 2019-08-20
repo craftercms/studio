@@ -25,6 +25,7 @@
 <!-- copy all elements -->
 <xsl:template match="node() | @*">
     <xsl:copy>
+        <xsl:copy-of select="@*"/>
         <xsl:apply-templates select="node() | @*"/>
     </xsl:copy>
 </xsl:template>
@@ -36,6 +37,7 @@
 
     <xsl:template match="notificationConfig/lang">
         <xsl:copy>
+            <xsl:copy-of select="@*"/>
             <xsl:apply-templates/>
             <xsl:if test="not(repositoryMergeConflictNotification)">
                 <xsl:comment>list of email addresses to notify in case of repository merge conflict</xsl:comment>
@@ -55,6 +57,7 @@
 
     <xsl:template match="notificationConfig/lang/emailTemplates">
         <xsl:copy >
+            <xsl:copy-of select="@*"/>
             <xsl:apply-templates/>
             <xsl:if test="not(emailTemplate[@key='repositoryMergeConflict'])">
                 <xsl:element name="emailTemplate">
@@ -95,6 +98,7 @@
     <!-- update the version if it already exist -->
     <xsl:template match="version">
         <xsl:copy>
+            <xsl:copy-of select="@*"/>
             <xsl:value-of select="$version"/>
         </xsl:copy>
     </xsl:template>
@@ -104,6 +108,7 @@
         <xsl:choose>
             <xsl:when test="not(version)">
                 <xsl:copy>
+                    <xsl:copy-of select="@*"/>
                     <xsl:text>&#10;</xsl:text>
                     <xsl:text>&#x9;</xsl:text>
                     <xsl:element name="version">
@@ -114,6 +119,7 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy>
+                    <xsl:copy-of select="@*"/>
                     <xsl:apply-templates select="node() | @*"/>
                 </xsl:copy>
             </xsl:otherwise>
