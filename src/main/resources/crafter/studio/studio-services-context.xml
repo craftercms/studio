@@ -416,6 +416,9 @@
         <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">

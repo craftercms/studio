@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.15'
+  version: '3.1.1.16'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2403,7 +2403,7 @@ paths:
                   description: Commit message
               required:
                 - siteId
-                - commit_message
+                - commitMessage
       responses:
         '200':
           description: OK

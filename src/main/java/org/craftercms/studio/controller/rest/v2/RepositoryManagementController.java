@@ -22,40 +22,52 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
+import org.craftercms.studio.model.rest.CancelFailedPullRequest;
+import org.craftercms.studio.model.rest.CommitResolutionRequest;
 import org.craftercms.studio.model.rest.PullFromRemoteRequest;
 import org.craftercms.studio.model.rest.PushToRemoteRequest;
 import org.craftercms.studio.model.rest.RebuildDatabaseRequest;
 import org.craftercms.studio.model.rest.RemoveRemoteRequest;
+import org.craftercms.studio.model.rest.ResolveConflictRequest;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REPOSITORY_STATUS;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.INTERNAL_SYSTEM_FAILURE;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @RestController
+@RequestMapping("/api/2/repository")
 public class RepositoryManagementController {
 
     private RepositoryManagementService repositoryManagementService;
     private SiteService siteService;
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/api/2/repository/add_remote")
+    @PostMapping("/add_remote")
     public ResponseBody addRemote(@RequestBody RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
 
@@ -76,7 +88,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @GetMapping("/api/2/repository/list_remotes")
+    @GetMapping("/list_remotes")
     public ResponseBody listRemotes(@RequestParam(name = "siteId", required = true) String siteId)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
@@ -92,7 +104,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/repository/pull_from_remote")
+    @PostMapping("/pull_from_remote")
     public ResponseBody pullFromRemote(@RequestBody PullFromRemoteRequest pullFromRemoteRequest)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         if (!siteService.exists(pullFromRemoteRequest.getSiteId())) {
@@ -113,7 +125,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/repository/push_to_remote")
+    @PostMapping("/push_to_remote")
     public ResponseBody pushToRemote(@RequestBody PushToRemoteRequest pushToRemoteRequest)
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
         if (!siteService.exists(pushToRemoteRequest.getSiteId())) {
@@ -134,7 +146,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/repository/rebuild_database")
+    @PostMapping("/rebuild_database")
     public ResponseBody rebuildDatabase(@RequestBody RebuildDatabaseRequest rebuildDatabaseRequest)
             throws SiteNotFoundException {
         if (!siteService.exists(rebuildDatabaseRequest.getSiteId())) {
@@ -149,7 +161,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/repository/remove_remote")
+    @PostMapping("/remove_remote")
     public ResponseBody removeRemote(@RequestBody RemoveRemoteRequest removeRemoteRequest)
             throws CryptoException, SiteNotFoundException {
         if (!siteService.exists(removeRemoteRequest.getSiteId())) {
@@ -165,6 +177,84 @@ public class RepositoryManagementController {
         } else {
             result.setResponse(INTERNAL_SYSTEM_FAILURE);
         }
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping("/status")
+    public ResponseBody getRepositoryStatus(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId)
+            throws ServiceLayerException, CryptoException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        RepositoryStatus status = repositoryManagementService.getRepositoryStatus(siteId);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/resolve_conflict")
+    public ResponseBody resolveConflict(@RequestBody ResolveConflictRequest resolveConflictRequest)
+            throws ServiceLayerException, CryptoException {
+        if (!siteService.exists(resolveConflictRequest.getSiteId())) {
+            throw new SiteNotFoundException(resolveConflictRequest.getSiteId());
+        }
+        RepositoryStatus status = repositoryManagementService.resolveConflict(resolveConflictRequest.getSiteId(),
+                resolveConflictRequest.getPath(), resolveConflictRequest.getResolution());
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping("/diff_conflicted_file")
+    public ResponseBody getDiffForConflictedFile(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                                 @RequestParam(value = REQUEST_PARAM_PATH) String path)
+            throws ServiceLayerException, CryptoException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        DiffConflictedFile diff = repositoryManagementService.getDiffForConflictedFile(siteId, path);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<DiffConflictedFile> result = new ResultOne<DiffConflictedFile>();
+        result.setEntity(RESULT_KEY_DIFF, diff);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return  responseBody;
+    }
+
+    @PostMapping("/commit_resolution")
+    public ResponseBody commitConflictResolution(@RequestBody CommitResolutionRequest commitResolutionRequest)
+            throws ServiceLayerException, CryptoException {
+        if (!siteService.exists(commitResolutionRequest.getSiteId())) {
+            throw new SiteNotFoundException(commitResolutionRequest.getSiteId());
+        }
+        RepositoryStatus status = repositoryManagementService.commitResolution(commitResolutionRequest.getSiteId(),
+                commitResolutionRequest.getCommitMessage());
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping("/cancel_failed_pull")
+    public ResponseBody cancelFailedPull(@RequestBody CancelFailedPullRequest cancelFailedPullRequest)
+            throws ServiceLayerException, CryptoException {
+        if (!siteService.exists(cancelFailedPullRequest.getSiteId())) {
+            throw new SiteNotFoundException(cancelFailedPullRequest.getSiteId());
+        }
+        RepositoryStatus status = repositoryManagementService.cancelFailedPull(cancelFailedPullRequest.getSiteId());
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
+        result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
     }
