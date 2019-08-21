@@ -20,22 +20,30 @@ package org.craftercms.studio.api.v2.util;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.User;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
@@ -54,6 +62,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -320,5 +329,46 @@ public class GitRepositoryHelper {
         }
 
         return gitCommand;
+    }
+
+    public String getGitPath(String path) {
+        Path gitPath = Paths.get(path);
+        gitPath = gitPath.normalize();
+        try {
+            gitPath = Paths.get(FILE_SEPARATOR).relativize(gitPath);
+        } catch (IllegalArgumentException e) {
+            logger.debug("Path: " + path + " is already relative path.");
+        }
+        if (StringUtils.isEmpty(gitPath.toString())) {
+            return ".";
+        }
+        String toRet = gitPath.toString();
+        toRet = FilenameUtils.separatorsToUnix(toRet);
+        return toRet;
+    }
+
+    /**
+     * Return the author identity as a jgit PersonIdent
+     *
+     * @param author author
+     * @return author user as a PersonIdent
+     */
+    public PersonIdent getAuthorIdent(User user) throws ServiceLayerException, UserNotFoundException {
+        PersonIdent currentUserIdent =
+                new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
+
+        return currentUserIdent;
+    }
+
+    public RevTree getTreeForCommit(Repository repository, String commitId) throws IOException {
+        ObjectId commitObjectId = repository.resolve(commitId);
+
+        try (RevWalk revWalk = new RevWalk(repository)) {
+            RevCommit commit = revWalk.parseCommit(commitObjectId);
+
+            // and using commit's tree find the path
+            RevTree tree = commit.getTree();
+            return tree;
+        }
     }
 }

@@ -15,26 +15,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest;
+package org.craftercms.studio.api.v2.dal;
 
-public class CommitResolutionRequest {
+public class DiffConflictedFile {
 
-    private String siteId;
-    private String commitMessage;
+    private String diff;
+    private String studioVersion;
+    private String remoteVersion;
 
-    public String getSiteId() {
-        return siteId;
+    public String getDiff() {
+        return diff;
     }
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
+    public void setDiff(String diff) {
+        this.diff = diff;
     }
 
-    public String getCommitMessage() {
-        return commitMessage;
+    public String getStudioVersion() {
+        return studioVersion;
     }
 
-    public void setCommitMessage(String commitMessage) {
-        this.commitMessage = commitMessage;
+    public void setStudioVersion(String studioVersion) {
+        this.studioVersion = studioVersion;
+    }
+
+    public String getRemoteVersion() {
+        return remoteVersion;
+    }
+
+    public void setRemoteVersion(String remoteVersion) {
+        this.remoteVersion = remoteVersion;
     }
 }

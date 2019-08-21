@@ -18,8 +18,9 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- define parameter -->
-    <xsl:param name="version" />
+    <!-- to keep the right formatting -->
+    <xsl:output method="xml" indent="yes" />
+    <xsl:strip-space elements="*"/>
 
     <!-- copy all elements -->
     <xsl:template match="node() | @*">
@@ -34,35 +35,27 @@
         <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
     </xsl:template>
 
-    <!-- update the version if it already exist -->
-    <xsl:template match="version">
+
+    <xsl:template match="permissions/role[@name='admin']/rule[@regex='/.*' or @regex='~DASHBOARD~']/allowed-permissions">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
-            <xsl:value-of select="$version"/>
+            <xsl:apply-templates/>
+            <xsl:if test="not(permission = 'site_status')">
+                <xsl:element name="permission"><xsl:text>site_status</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'resolve_conflict')">
+                <xsl:element name="permission"><xsl:text>resolve_conflict</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'site_diff_conflicted_file')">
+                <xsl:element name="permission"><xsl:text>site_diff_conflicted_file</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'commit_resolution')">
+                <xsl:element name="permission"><xsl:text>commit_resolution</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'cancel_failed_pull')">
+                <xsl:element name="permission"><xsl:text>cancel_failed_pull</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+            </xsl:if>
         </xsl:copy>
-    </xsl:template>
-
-    <!-- add the version if it doesn't exist -->
-    <xsl:template match="/*[1]">
-        <xsl:choose>
-            <xsl:when test="not(version)">
-                <xsl:copy>
-                    <xsl:copy-of select="@*"/>
-                    <xsl:text>&#10;</xsl:text>
-                    <xsl:text>&#x9;</xsl:text>
-                    <xsl:element name="version">
-                        <xsl:value-of select="$version"/>
-                    </xsl:element>
-                    <xsl:apply-templates select="node() | @*"/>
-                </xsl:copy>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy>
-                    <xsl:copy-of select="@*"/>
-                    <xsl:apply-templates select="node() | @*"/>
-                </xsl:copy>
-            </xsl:otherwise>
-        </xsl:choose>
     </xsl:template>
 
 </xsl:stylesheet>

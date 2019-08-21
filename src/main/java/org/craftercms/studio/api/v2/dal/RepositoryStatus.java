@@ -15,26 +15,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest;
+package org.craftercms.studio.api.v2.dal;
 
-public class CommitResolutionRequest {
+import java.util.Set;
 
-    private String siteId;
-    private String commitMessage;
+public class RepositoryStatus {
 
-    public String getSiteId() {
-        return siteId;
+    private Set<String> conflicting;
+    private Set<String> uncommittedChanges;
+    private boolean clean;
+
+    public Set<String> getConflicting() {
+        return conflicting;
     }
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
+    public void setConflicting(Set<String> conflicting) {
+        this.conflicting = conflicting;
     }
 
-    public String getCommitMessage() {
-        return commitMessage;
+    public Set<String> getUncommittedChanges() {
+        return uncommittedChanges;
     }
 
-    public void setCommitMessage(String commitMessage) {
-        this.commitMessage = commitMessage;
+    public void setUncommittedChanges(Set<String> uncommittedChanges) {
+        this.uncommittedChanges = uncommittedChanges;
+    }
+
+    public boolean isClean() {
+        return clean;
+    }
+
+    public void setClean(boolean clean) {
+        this.clean = clean;
     }
 }

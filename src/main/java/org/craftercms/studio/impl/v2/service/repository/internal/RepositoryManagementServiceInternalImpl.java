@@ -18,22 +18,33 @@
 package org.craftercms.studio.impl.v2.service.repository.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.RepositoryStatus;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.util.GitRepositoryHelper;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -42,21 +53,33 @@ import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,6 +113,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private RemoteRepositoryDAO remoteRepositoryDao;
     private StudioConfiguration studioConfiguration;
     private NotificationService notificationService;
+    private SecurityService securityService;
+    private UserServiceInternal userServiceInternal;
+    private ContentRepository contentRepository;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -432,6 +458,162 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         return true;
     }
 
+    @Override
+    public RepositoryStatus getRepositoryStatus(String siteId) throws CryptoException, ServiceLayerException {
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        RepositoryStatus repositoryStatus = new RepositoryStatus();
+        logger.debug("Execute git status and return conflicting paths and uncommitted changes");
+        try (Git git = new Git(repo)) {
+            Status status = git.status().call();
+            repositoryStatus.setClean(status.isClean());
+            repositoryStatus.setConflicting(status.getConflicting());
+            repositoryStatus.setUncommittedChanges(status.getUncommittedChanges());
+        } catch (GitAPIException e) {
+            logger.error("Error while getting repository status for site " + siteId, e);
+            throw new ServiceLayerException("Error getting repository status for site " + siteId, e);
+        }
+        return repositoryStatus;
+    }
+
+    @Override
+    public boolean resolveConflict(String siteId, String path, String resolution)
+            throws CryptoException, ServiceLayerException {
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            switch (resolution.toLowerCase()) {
+                case "ours" :
+                    logger.debug("Resolve conflict using OURS strategy for site " + siteId + " and path " + path);
+                    logger.debug("Reset merge conflict in git index");
+                    git.reset().addPath(helper.getGitPath(path)).call();
+                    logger.debug("Checkout content from HEAD of studio repository");
+                    git.checkout().addPath(helper.getGitPath(path)).setStartPoint(Constants.HEAD).call();
+                    break;
+                case "theirs" :
+                    logger.debug("Resolve conflict using THEIRS strategy for site " + siteId + " and path " + path);
+                    logger.debug("Reset merge conflict in git index");
+                    git.reset().addPath(helper.getGitPath(path)).call();
+                    logger.debug("Checkout content from merge HEAD of remote repository");
+                    List<ObjectId> mergeHeads = repo.readMergeHeads();
+                    ObjectId mergeCommitId = mergeHeads.get(0);
+                    git.checkout().addPath(helper.getGitPath(path)).setStartPoint(mergeCommitId.getName()).call();
+                    break;
+                default:
+                    throw new ServiceLayerException("Unsupported resolution strategy for repository conflicts");
+            }
+
+            if (repo.getRepositoryState() == RepositoryState.MERGING_RESOLVED) {
+                logger.debug("Merge resolved. Check if there are no uncommitted changes (repo is clean)");
+                Status status = git.status().call();
+                if (!status.hasUncommittedChanges()) {
+                    logger.debug("Repository is clean. Committing to complete merge");
+                    String userName = securityService.getCurrentUser();
+                    User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
+                    PersonIdent personIdent = helper.getAuthorIdent(user);
+                    git.commit()
+                            .setAllowEmpty(true)
+                            .setMessage("Merge resolved. Repo is clean (no changes)")
+                            .setAuthor(personIdent)
+                            .call();
+                }
+            }
+        } catch (GitAPIException | IOException | UserNotFoundException | ServiceLayerException e) {
+            logger.error("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
+                    "strategy", e);
+            throw new ServiceLayerException("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
+                    "strategy", e);
+        }
+        return true;
+    }
+
+    @Override
+    public DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
+            throws ServiceLayerException, CryptoException {
+        DiffConflictedFile diffResult = new DiffConflictedFile();
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            List<ObjectId> mergeHeads = repo.readMergeHeads();
+            ObjectId mergeCommitId = mergeHeads.get(0);
+            logger.debug("Get content for studio version of conflicted file " + path + " for site " + siteId);
+            InputStream studioVersionIs = contentRepository.getContentVersion(siteId, path, Constants.HEAD);
+            diffResult.setStudioVersion(IOUtils.toString(studioVersionIs));
+            logger.debug("Get content for remote version of conflicted file " + path + " for site " + siteId);
+            InputStream remoteVersionIs = contentRepository.getContentVersion(siteId, path, mergeCommitId.getName());
+            diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            logger.debug("Get diff between studio and remote version of conflicted file " + path + " for site "
+                    + siteId);
+            RevTree headTree = helper.getTreeForCommit(repo, Constants.HEAD);
+            RevTree remoteTree = helper.getTreeForCommit(repo, mergeCommitId.getName());
+
+            try (ObjectReader reader = repo.newObjectReader()) {
+                CanonicalTreeParser headCommitTreeParser = new CanonicalTreeParser();
+                CanonicalTreeParser remoteCommitTreeParser = new CanonicalTreeParser();
+                headCommitTreeParser.reset(reader, headTree.getId());
+                remoteCommitTreeParser.reset(reader, remoteTree.getId());
+
+                // Diff the two commit Ids
+                List<DiffEntry> diffEntries = git.diff()
+                        .setPathFilter(PathFilter.create(helper.getGitPath(path)))
+                        .setOldTree(headCommitTreeParser)
+                        .setNewTree(remoteCommitTreeParser)
+                        .setOutputStream(baos)
+                        .call();
+                diffResult.setDiff(baos.toString());
+            }
+
+
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while getting diff for conflicting file " + path + " site " + siteId);
+            throw new ServiceLayerException("Error while getting diff for conflicting file " + path + " site " + siteId);
+        }
+        return diffResult;
+    }
+
+    @Override
+    public boolean commitResolution(String siteId, String commitMessage) throws CryptoException, ServiceLayerException {
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        logger.debug("Commit resolution for merge conflict for site " + siteId);
+        try (Git git = new Git(repo)) {
+            Status status = git.status().call();
+
+            logger.debug("Add all uncommitted changes/files");
+            AddCommand addCommand = git.add();
+            for (String uncommited : status.getUncommittedChanges()) {
+                addCommand.addFilepattern(uncommited);
+            }
+            addCommand.call();
+            logger.debug("Commit changes");
+            CommitCommand commitCommand = git.commit();
+            String userName = securityService.getCurrentUser();
+            User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
+            PersonIdent personIdent = helper.getAuthorIdent(user);
+            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(commitMessage).call();
+            return true;
+        } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
+            logger.error("Error while committing conflict resolution for site " + siteId, e);
+            throw new ServiceLayerException("Error while committing conflict resolution for site " + siteId, e);
+        }
+    }
+
+    @Override
+    public boolean cancelFailedPull(String siteId) throws ServiceLayerException, CryptoException {
+        logger.debug("To cancel failed pull, reset hard needs to be executed");
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            git.reset().setMode(ResetCommand.ResetType.HARD).call();
+        } catch (GitAPIException e) {
+            logger.error("Error while canceling failed pull for site " + siteId, e);
+            throw new ServiceLayerException("Reset hard failed for site " + siteId, e);
+        }
+        return true;
+    }
+
     private boolean conflictNotificationEnabled() {
         return Boolean.parseBoolean(
                 studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
@@ -459,5 +641,29 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setNotificationService(NotificationService notificationService) {
         this.notificationService = notificationService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 }

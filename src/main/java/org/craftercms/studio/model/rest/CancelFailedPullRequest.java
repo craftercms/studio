@@ -17,10 +17,9 @@
 
 package org.craftercms.studio.model.rest;
 
-public class CommitResolutionRequest {
+public class CancelFailedPullRequest {
 
     private String siteId;
-    private String commitMessage;
 
     public String getSiteId() {
         return siteId;
@@ -28,13 +27,5 @@ public class CommitResolutionRequest {
 
     public void setSiteId(String siteId) {
         this.siteId = siteId;
-    }
-
-    public String getCommitMessage() {
-        return commitMessage;
-    }
-
-    public void setCommitMessage(String commitMessage) {
-        this.commitMessage = commitMessage;
     }
 }
