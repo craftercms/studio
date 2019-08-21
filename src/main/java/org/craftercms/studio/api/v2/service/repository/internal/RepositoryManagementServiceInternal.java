@@ -18,7 +18,6 @@
 package org.craftercms.studio.api.v2.service.repository.internal;
 
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;

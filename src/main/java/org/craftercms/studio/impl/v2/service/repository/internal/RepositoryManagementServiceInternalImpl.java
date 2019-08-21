@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
@@ -556,7 +555,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 remoteCommitTreeParser.reset(reader, remoteTree.getId());
 
                 // Diff the two commit Ids
-                List<DiffEntry> diffEntries = git.diff()
+                git.diff()
                         .setPathFilter(PathFilter.create(helper.getGitPath(path)))
                         .setOldTree(headCommitTreeParser)
                         .setNewTree(remoteCommitTreeParser)
