@@ -48,10 +48,12 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -178,7 +180,8 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(CmisRepositoryNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleCmisRepositoryNotFoundException(HttpServletRequest request, CmisRepositoryNotFoundException e) {
+    public ResponseBody handleCmisRepositoryNotFoundException(HttpServletRequest request,
+                                                              CmisRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CMIS_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
@@ -229,7 +232,8 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(PullFromRemoteConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handlePullFromRemoteConflictException(HttpServletRequest request, PullFromRemoteConflictException e) {
+    public ResponseBody handlePullFromRemoteConflictException(HttpServletRequest request,
+                                                              PullFromRemoteConflictException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PULL_FROM_REMOTE_REPOSITORY_CONFLICT);
         return handleExceptionInternal(request, e, response);
     }
@@ -253,6 +257,22 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleHttpMessageNotReadableException(HttpServletRequest request,
+                                                              HttpMessageNotReadableException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleMethodArgumentTypeMismatchException(HttpServletRequest request,
+                                                                  MethodArgumentTypeMismatchException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseBody handleException(HttpServletRequest request, Exception e) {
@@ -261,8 +281,8 @@ public class ExceptionHandlers {
     }
 
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
-        logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) + " failed with response: " +
-                     response, e);
+        logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                " failed with response: " + response, e);
 
         Result result = new Result();
         result.setResponse(response);
