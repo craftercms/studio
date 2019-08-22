@@ -829,6 +829,22 @@ public class SiteServiceImpl implements SiteService {
                         " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.");
             }
         }
+
+        if (success) {
+            // Now that everything is created, we can sync the preview deployer with the new content
+            try {
+                deploymentService.syncAllContentToPreview(siteId, true);
+            } catch (ServiceLayerException e) {
+                logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
+                    + "successfully created otherwise. Ignoring.", e);
+
+                throw new SiteCreationException("Error while syncing site: " + siteId + " ID: " + siteId +
+                    " to preview. Site was successfully created, but it won't be preview-able until the " +
+                    "Preview Deployer is reachable.");
+            }
+        } else {
+            throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
+        }
     }
 
     private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintId,
