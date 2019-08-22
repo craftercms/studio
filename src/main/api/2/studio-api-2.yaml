@@ -2735,7 +2735,7 @@ components:
           * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
           * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
           * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
-          * `CODE:` 3000, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
+          * `CODE:` 3001, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
           * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
           * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
           * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
@@ -2751,7 +2751,9 @@ components:
           * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
           * `CODE:` 11000, `MESSAGE:` Cluster member not found, `REMEDIAL ACTION:` Check if you sent in the right Cluster Member Id
           * `CODE:` 11001, `MESSAGE:` Cluster member already exists, `REMEDIAL ACTION:` Get the list of cluster members to validate
+          * `CODE:` 12000, `MESSAGE:` Remote repository not found, `REMEDIAL ACTION:` Check if you sent in the right remote repository name
           * `CODE:` 12001, `MESSAGE:` Remote repository already exists, `REMEDIAL ACTION:` Get the list of remote repositories to validate
+          * `CODE:` 12002, `MESSAGE:` Pull from remote repository resulted in conflict, `REMEDIAL ACTION:` Resolve conflicts before continue working with repositroy          
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found

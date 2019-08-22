@@ -228,9 +228,9 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(PullFromRemoteConflictException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handlePullFromRemoteConflictException(HttpServletRequest request, PullFromRemoteConflictException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
+        ApiResponse response = new ApiResponse(ApiResponse.PULL_FROM_REMOTE_REPOSITORY_CONFLICT);
         return handleExceptionInternal(request, e, response);
     }
 
