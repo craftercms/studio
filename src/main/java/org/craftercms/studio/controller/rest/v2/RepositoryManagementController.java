@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
@@ -202,8 +203,12 @@ public class RepositoryManagementController {
         if (!siteService.exists(resolveConflictRequest.getSiteId())) {
             throw new SiteNotFoundException(resolveConflictRequest.getSiteId());
         }
+        String path = resolveConflictRequest.getPath();
+        if (!path.startsWith(FILE_SEPARATOR)) {
+            path = FILE_SEPARATOR + path;
+        }
         RepositoryStatus status = repositoryManagementService.resolveConflict(resolveConflictRequest.getSiteId(),
-                resolveConflictRequest.getPath(), resolveConflictRequest.getResolution());
+                path, resolveConflictRequest.getResolution());
         ResponseBody responseBody = new ResponseBody();
         ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
         result.setResponse(OK);
@@ -219,7 +224,11 @@ public class RepositoryManagementController {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        DiffConflictedFile diff = repositoryManagementService.getDiffForConflictedFile(siteId, path);
+        String diffPath = path;
+        if (!diffPath.startsWith(FILE_SEPARATOR)) {
+            diffPath = FILE_SEPARATOR + diffPath;
+        }
+        DiffConflictedFile diff = repositoryManagementService.getDiffForConflictedFile(siteId, diffPath);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DiffConflictedFile> result = new ResultOne<DiffConflictedFile>();
         result.setEntity(RESULT_KEY_DIFF, diff);
