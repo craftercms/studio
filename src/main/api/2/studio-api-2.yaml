@@ -2753,7 +2753,7 @@ components:
           * `CODE:` 11001, `MESSAGE:` Cluster member already exists, `REMEDIAL ACTION:` Get the list of cluster members to validate
           * `CODE:` 12000, `MESSAGE:` Remote repository not found, `REMEDIAL ACTION:` Check if you sent in the right remote repository name
           * `CODE:` 12001, `MESSAGE:` Remote repository already exists, `REMEDIAL ACTION:` Get the list of remote repositories to validate
-          * `CODE:` 12002, `MESSAGE:` Pull from remote repository resulted in conflict, `REMEDIAL ACTION:` Resolve conflicts before continue working with repositroy          
+          * `CODE:` 12002, `MESSAGE:` Pull from remote repository resulted in conflict, `REMEDIAL ACTION:` Resolve conflicts before continuing work with repository
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found
