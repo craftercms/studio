@@ -68,4 +68,7 @@ public interface ResultConstants {
     /* Marketplace controller */
     String RESULT_KEY_PLUGINS = "plugins";
 
+
+    /* Configuration controller */
+    String RESULT_KEY_HISTORY = "history";
 }

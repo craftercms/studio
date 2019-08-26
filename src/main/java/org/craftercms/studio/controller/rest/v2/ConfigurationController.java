@@ -22,6 +22,7 @@ import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -29,17 +30,20 @@ import org.craftercms.studio.model.rest.WriteConfigurationRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @RestController
+@RequestMapping("/api/2/configuration")
 public class ConfigurationController {
 
     private ConfigurationService configurationService;
 
-    @GetMapping("/api/2/configuration/get_configuration")
+    @GetMapping("/get_configuration")
     public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
                                          @RequestParam(name = "module", required = true) String module,
                                          @RequestParam(name = "path", required = true) String path,
@@ -54,7 +58,7 @@ public class ConfigurationController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/configuration/write_configuration")
+    @PostMapping("/write_configuration")
     public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent());
@@ -63,6 +67,21 @@ public class ConfigurationController {
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping("/get_configuration_history")
+    public ResponseBody getConfigurationHistory(@RequestParam(name = "siteId", required = true) String siteId,
+                                                @RequestParam(name = "module", required = true) String module,
+                                                @RequestParam(name = "path", required = true) String path,
+                                                @RequestParam(name = "environment", required = false) String environment) {
+        ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<ConfigurationHistory> result = new ResultOne<ConfigurationHistory>();
+        result.setEntity(RESULT_KEY_HISTORY, history);
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;

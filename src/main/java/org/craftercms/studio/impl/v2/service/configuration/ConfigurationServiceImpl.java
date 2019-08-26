@@ -34,11 +34,14 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -290,6 +293,37 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         auditLog.setPrimaryTargetValue(path);
         auditLog.setPrimaryTargetSubtype(CONTENT_TYPE_CONFIGURATION);
         auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    @Override
+    public ConfigurationHistory getConfigurationHistory(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                        String module, String path, String environment) {
+        String configPath = StringUtils.EMPTY;
+        if (!StringUtils.isEmpty(environment)) {
+            String configBasePath =
+                    studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
+                            .replaceAll(PATTERN_MODULE, module)
+                            .replaceAll(PATTERN_ENVIRONMENT, environment);
+            configPath = Paths.get(configBasePath, path).toString();
+        } else {
+            String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                    .replaceAll(PATTERN_MODULE, module);
+            configPath = Paths.get(configBasePath, path).toString();
+        }
+        ConfigurationHistory configurationHistory = new ConfigurationHistory();
+        configurationHistory.setItem(contentService.getContentItem(siteId, configPath));
+        List<ContentItemVersion> versions = new ArrayList<ContentItemVersion>();
+        VersionTO[] versionTOS = contentService.getContentItemVersionHistory(siteId, configPath);
+        for (VersionTO v : versionTOS) {
+            ContentItemVersion civ = new ContentItemVersion();
+            civ.setVersionNumber(civ.getVersionNumber());
+            civ.setComment(civ.getComment());
+            civ.setLastModifiedDate(v.getLastModifiedDate());
+            civ.setLastModifier(v.getLastModifier());
+            versions.add(civ);
+        }
+        configurationHistory.setVersions(versions);
+        return configurationHistory;
     }
 
     @Required
