@@ -802,6 +802,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 7
+        nextVersion: 8
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/3.1.0.35/site/site-config-tools.xslt
+            commitDetails: Add numeric input control
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
 
   environment-config:
     path: &environment-config '/config/studio/environment/environment-config.xml'
