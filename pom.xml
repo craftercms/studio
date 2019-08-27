@@ -52,7 +52,7 @@
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.4.2.3</mariadb4j.version>
         <jackson.version>2.9.9</jackson.version>
-        <jackson.databind.version>2.9.9.2</jackson.databind.version>
+        <jackson.databind.version>2.9.9.3</jackson.databind.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.8</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
