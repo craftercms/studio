@@ -316,8 +316,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         VersionTO[] versionTOS = contentService.getContentItemVersionHistory(siteId, configPath);
         for (VersionTO v : versionTOS) {
             ContentItemVersion civ = new ContentItemVersion();
-            civ.setVersionNumber(civ.getVersionNumber());
-            civ.setComment(civ.getComment());
+            civ.setVersionNumber(v.getVersionNumber());
+            civ.setComment(v.getComment());
             civ.setLastModifiedDate(v.getLastModifiedDate());
             civ.setLastModifier(v.getLastModifier());
             versions.add(civ);
