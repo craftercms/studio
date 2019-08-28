@@ -89,7 +89,7 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
         items.setType(EntitlementType.ITEM);
         items.setValue(objectMetadataManager.countAllItems());
 
-        return Arrays.asList(sites, users, items, items);
+        return Arrays.asList(sites, users, items);
     }
 
 }
