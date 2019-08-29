@@ -21,6 +21,12 @@
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
 
+    <!--
+        Pattern that Studio will use to load extensions from the site repository
+        Required placeholders: ${module}, ${type}, ${name}
+     -->
+    <extension-folder-pattern>/config/${module}/extension/${type}/${name}</extension-folder-pattern>
+
     <repository rootPrefix="/site">
 
         <level-descriptor>crafter-level-descriptor.level.xml</level-descriptor>

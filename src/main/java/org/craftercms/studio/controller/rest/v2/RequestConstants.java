@@ -56,4 +56,12 @@ public interface RequestConstants {
     String REQUEST_PARAM_CLUSTER_NODE_ID = "clusterNodeId";
 
     String REQUEST_PARAM_ORDER = "order";
+
+    String REQUEST_PARAM_CMIS_REPO_ID = "cmisRepoId";
+
+    String REQUEST_PARAM_CMIS_PATH = "cmisPath";
+
+    String REQUEST_PARAM_PATHS = "paths";
+
+    String REQUEST_PARAM_PATH = "path";
 }

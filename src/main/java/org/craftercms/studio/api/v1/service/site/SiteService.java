@@ -18,12 +18,7 @@
 package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
-import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteCreationException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -87,12 +82,11 @@ public interface SiteService {
 	 *
 	 * @param site
 	 * @param path
-     * @param environment
 	 * @param applyEnv
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
 	 */
-	Map<String, Object> getConfiguration(String site, String path, String environment, boolean applyEnv);
+	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
 
     List<PublishingTargetTO> getPublishingTargetsForSite(String site);
 
@@ -109,8 +103,8 @@ public interface SiteService {
      */
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
                                  String desc)
-            throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
-            BlueprintNotFoundException;
+            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
+                   BlueprintNotFoundException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
@@ -211,6 +205,22 @@ public interface SiteService {
      * @return true if site exists, false otherwise
      */
     boolean exists(String site);
+
+    /**
+     * Check if site already exists
+     *
+     * @param id site ID in DB
+     * @return true if site exists, false otherwise
+     */
+    boolean existsById(String id);
+
+    /**
+     * Check if site already exists
+     *
+     * @param name site name in DB
+     * @return true if site exists, false otherwise
+     */
+    boolean existsByName(String name);
 
     /**
      * Get total number of sites that user is allowed access to for given username

@@ -56,4 +56,12 @@ public interface ResultConstants {
     String RESULT_KEY_MEMORY = "memory";
     String RESULT_KEY_EVENTS = "events";
 
+    /* Repository management controller */
+    String RESULT_KEY_REMOTES = "remotes";
+    String RESULT_KEY_REPOSITORY_STATUS = "repositoryStatus";
+    String RESULT_KEY_DIFF = "diff";
+
+    /* Dependency controller */
+    String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";
+    String RESULT_KEY_HARD_DEPENDENCIES = "hardDependencies";
 }

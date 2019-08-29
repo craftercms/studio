@@ -21,6 +21,8 @@
 	<objectType>page</objectType>
 	<content-type>/page/catalog</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>placeInNav</name>
 			<label>Show In Nav</label>
@@ -32,6 +34,12 @@
 			<label>Display Template</label>
 			<value>/templates/web/catalog.ftl</value>
 			<type>template</type>
+		</property>
+		<property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
 		</property>
 		<property>
 			<name>descriptor-mapper</name>
@@ -148,7 +156,7 @@
 			<fields>
 				<field>
 					<type>input</type>
-					<id>title</id>
+					<id>title_t</id>
 					<iceId>title</iceId>
 					<title>Title</title>
 					<description></description>

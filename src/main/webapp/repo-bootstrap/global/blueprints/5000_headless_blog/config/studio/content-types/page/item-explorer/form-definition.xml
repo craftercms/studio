@@ -21,6 +21,8 @@
     <objectType>page</objectType>
     <content-type>/page/item-explorer</content-type>
     <imageThumbnail>undefined</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
     <properties>		<property>
         <name>placeInNav</name>
         <label>Show In Nav</label>
@@ -33,6 +35,12 @@
             <value>/templates/web/item-explorer.ftl</value>
             <type>template</type>
         </property>
+        <property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
+		</property>
         <property>
             <name>descriptor-mapper</name>
             <label>Descriptor Mapper</label>
@@ -148,7 +156,7 @@
             <fields>
                 <field>
                     <type>input</type>
-                    <id>title</id>
+                    <id>title_s</id>
                     <iceId>title</iceId>
                     <title>Title</title>
                     <description></description>
@@ -191,7 +199,7 @@
                 </field>
                 <field>
 					<type>rte-tinymce5</type>
-					<id>body</id>
+					<id>body_html</id>
 					<iceId>main</iceId>
 					<title>Help Text</title>
 					<description></description>

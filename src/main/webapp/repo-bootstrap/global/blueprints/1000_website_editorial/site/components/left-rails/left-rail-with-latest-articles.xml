@@ -28,7 +28,7 @@
 	<createdDate_dt>2017-3-17T18:23:14.000Z</createdDate_dt>
 	<lastModifiedDate>2017-5-18T15:53:42.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-5-18T15:53:42.000Z</lastModifiedDate_dt>
-	<widgets>	<item>	<key>/site/components/articles-widget/latest-articles-widget.xml</key>
+	<widgets_o>	<item>	<key>/site/components/articles-widget/latest-articles-widget.xml</key>
 	<value>Latest Articles Widget</value>
 	<include>/site/components/articles-widget/latest-articles-widget.xml</include>
 	<disableFlattening>false</disableFlattening>
@@ -36,5 +36,5 @@
 	<value>Contact Widget</value>
 	<include>/site/components/contacts/contact-widget.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></widgets>
+	</item></widgets_o>
 </component>

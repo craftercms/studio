@@ -1,3 +1,6 @@
+![build status](https://travis-ci.org/craftercms/studio.svg?branch=develop)
+[![code quality](https://api.codacy.com/project/badge/Grade/9d1b33bcaf4a48e4a14cccee2dee4b74)](https://www.codacy.com/app/CrafterCMS/studio?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=craftercms/studio&amp;utm_campaign=Badge_Grade)
+
 Crafter Studio
 ==============
 

@@ -26,7 +26,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.0</version><!-- craftercms version flag -->
+    <version>3.1.1</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -41,15 +41,18 @@
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
         <testng.version>6.9.10</testng.version>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>master</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.version>v3.1.1</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.node.version>v10.16.0</studio.ui.node.version>
+        <studio.ui.yarn.version>v1.16.0</studio.ui.yarn.version>
         <spring.version>4.3.18.RELEASE</spring.version>
-        <spring.security.version>4.2.7.RELEASE</spring.security.version>
+        <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
-        <mariadb4j.version>2.2.7</mariadb4j.version>
-        <jackson.version>2.9.8</jackson.version>
+        <mariadb4j.version>2.4.2.3</mariadb4j.version>
+        <jackson.version>2.9.9</jackson.version>
+        <jackson.databind.version>2.9.9.3</jackson.databind.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.8</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
@@ -58,11 +61,7 @@
         <xerces.version>2.12.0</xerces.version>
 
         <studio.vcbp.path>target/vcbp</studio.vcbp.path>
-        <studio.vcbp.version>master</studio.vcbp.version>
-
-        <!-- Alpha UI -->
-        <node.version>v8.12.0</node.version>
-        <yarn.version>v1.12.3</yarn.version>
+        <studio.vcbp.version>develop</studio.vcbp.version>
     </properties>
 
     <licenses>
@@ -161,6 +160,12 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-commons-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.craftercms</groupId>
+            <artifactId>crafter-commons-plugin</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -292,7 +297,13 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.11.0.201803080745-r</version>
+            <version>5.4.0.201906121030-r</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- testing -->
@@ -446,6 +457,12 @@
             <version>${jackson.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.databind.version}</version>
+        </dependency>
+
         <!-- AWS SDK -->
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -569,7 +586,7 @@
                                 <argument>-b</argument>
                                 <argument>${studio.ui.version}</argument>
                                 <argument>https://github.com/craftercms/studio-ui.git</argument>
-                                <argument>target/ui/</argument>
+                                <argument>${studio.ui.path}</argument>
                             </arguments>
                         </configuration>
                         <goals>
@@ -594,6 +611,67 @@
                         <goals>
                             <goal>exec</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.7.6</version>
+                <configuration>
+                    <nodeVersion>${studio.ui.node.version}</nodeVersion>
+                    <yarnVersion>${studio.ui.yarn.version}</yarnVersion>
+                    <installDirectory>target</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and yarn</id>
+                        <goals>
+                            <goal>install-node-and-yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                    </execution>
+                    <execution>
+                        <id>yarn install sass</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>yarn build sass</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>yarn install react</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>yarn build react</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
+                            <arguments>run build</arguments>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -792,8 +870,10 @@
                         <application.logs>target/test-logs</application.logs>
                         <crafter.engine.extension.base>classpath*:crafter/studio/extension</crafter.engine.extension.base>
                         <crafter.bin.dir>target/test-resources/bin</crafter.bin.dir>
-                        <crafter.data.dir>target/test-resources/data</crafter.data.dir>
                     </systemPropertyVariables>
+                    <environmentVariables>
+                        <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
+                    </environmentVariables>
                 </configuration>
             </plugin>
 

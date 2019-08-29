@@ -58,6 +58,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 
 	protected boolean isNewNotificationSystemEnable;
 
+    protected List<String> repositoryMergeConflictNotifications = null;
 
 	public NotificationConfigTO(final String _site) {
 		this();
@@ -72,6 +73,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 		deploymentFailureNotifications=new ArrayList<>();
 		isNewNotificationSystemEnable=false;//for now!
 		approverEmails=new ArrayList<>();
+		repositoryMergeConflictNotifications = new ArrayList<>();
 	}
 
 	/**
@@ -220,4 +222,12 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	public void setApproverEmails(final List<String> approverEmails) {
 		this.approverEmails = approverEmails;
 	}
+
+    public List<String> getRepositoryMergeConflictNotifications() {
+        return repositoryMergeConflictNotifications;
+    }
+
+    public void setRepositoryMergeConflictNotifications(List<String> repositoryMergeConflictNotifications) {
+        this.repositoryMergeConflictNotifications = repositoryMergeConflictNotifications;
+    }
 }

@@ -51,9 +51,9 @@ class SiteServices {
         return siteServicesImpl.writeConfiguration(path, content)  
     }
 
-    static getConfiguration(context, site, path, environment, applyEnvironment) {
+    static getConfiguration(context, site, path, applyEnvironment) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.getConfiguration(site, path, environment, applyEnvironment)
+        return siteServicesImpl.getConfiguration(site, path, applyEnvironment)
     }
 
     static getAllAvailableSites(context) {

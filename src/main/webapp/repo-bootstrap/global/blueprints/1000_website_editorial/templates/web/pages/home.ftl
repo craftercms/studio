@@ -8,7 +8,7 @@
 -->
 <html>
 	<head>
-		<title>${contentModel.title}</title>
+		<title>${contentModel.title_t}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<!--[if lte IE 8]><script src="/static-assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -26,27 +26,27 @@
 						<div class="inner">
 
 							<!-- Header -->
-							<@renderComponent component=contentModel.header.item />
+							<@renderComponent component=contentModel.header_o.item />
 
 							<!-- Banner -->
 								<section id="banner" <@studio.iceAttr iceGroup="hero"/>>
 									<div class="content">
-										<header>${contentModel.hero_title}</header>
-										${contentModel.hero_text}
+										<header>${contentModel.hero_title_html}</header>
+										${contentModel.hero_text_html}
 									</div>
 									<span class="image object">
-										<img src="${contentModel.hero_image !""}" alt="" />
+										<img src="${contentModel.hero_image_s !""}" alt="" />
 									</span>
 								</section>
 
 							<!-- Section -->
 								<section <@studio.iceAttr iceGroup="features"/>>
 									<header class="major">
-										<h2>${contentModel.features_title}</h2>
+										<h2>${contentModel.features_title_t}</h2>
 									</header>
-									<div class="features" <@studio.componentContainerAttr target="features" objectId=contentModel.objectId/>>
-										<#if contentModel.features?? && contentModel.features.item??>
-										  <#list contentModel.features.item as feature>
+									<div class="features" <@studio.componentContainerAttr target="features_o" objectId=contentModel.objectId/>>
+										<#if contentModel.features_o?? && contentModel.features_o.item??>
+										  <#list contentModel.features_o.item as feature>
 										      <@renderComponent component=feature />
 										  </#list>
 										</#if>
@@ -83,7 +83,7 @@
 					</div>
 
 				<!-- Left Rail -->
-				<@renderComponent component=contentModel.left\-rail.item />
+				<@renderComponent component=contentModel.left\-rail_o.item />
 
 			</div>
 

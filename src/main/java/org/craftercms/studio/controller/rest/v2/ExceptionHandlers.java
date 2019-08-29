@@ -20,11 +20,20 @@ package org.craftercms.studio.controller.rest.v2;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
+import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
+import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -33,13 +42,18 @@ import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsExceptio
 import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
+import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
+import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -150,9 +164,125 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
+    @ExceptionHandler(RemoteAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleRemoteAlreadyExistsException(HttpServletRequest request, RemoteAlreadyExistsException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(InvalidRemoteUrlException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleInvalidRemoteUrlException(HttpServletRequest request, InvalidRemoteUrlException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisRepositoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleCmisRepositoryNotFoundException(HttpServletRequest request,
+                                                              CmisRepositoryNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CMIS_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisTimeoutException.class)
+    @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
+    public ResponseBody handleCmisTimeoutException(HttpServletRequest request, CmisTimeoutException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CMIS_TIMEOUT);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ResponseBody handleCmisUnavailableException(HttpServletRequest request, CmisUnavailableException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CMIS_UNREACHABLE);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(StudioPathNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleStudioPathNotFoundException(HttpServletRequest request, StudioPathNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(CmisPathNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleCmisPathNotFoundException(HttpServletRequest request, CmisPathNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PasswordRequirementsFailedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
+                                                                  PasswordRequirementsFailedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PasswordDoesNotMatchException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseBody handlePasswordDoesNotMatchException(HttpServletRequest request,
+                                                            PasswordDoesNotMatchException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_DOES_NOT_MATCH);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PullFromRemoteConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handlePullFromRemoteConflictException(HttpServletRequest request,
+                                                              PullFromRemoteConflictException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PULL_FROM_REMOTE_REPOSITORY_CONFLICT);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ContentNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleContentNotFoundException(HttpServletRequest request, ContentNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        response.setRemedialAction(
+            String.format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleMissingServletRequestParameterException(HttpServletRequest request,
+                                                                      MissingServletRequestParameterException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        response.setRemedialAction(
+            String.format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleHttpMessageNotReadableException(HttpServletRequest request,
+                                                              HttpMessageNotReadableException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleMethodArgumentTypeMismatchException(HttpServletRequest request,
+                                                                  MethodArgumentTypeMismatchException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseBody handleException(HttpServletRequest request, Exception e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
+        return handleExceptionInternal(request, e, response);
+    }
+
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
-        logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) + " failed with response: " +
-                     response, e);
+        logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                " failed with response: " + response, e);
 
         Result result = new Result();
         result.setResponse(response);

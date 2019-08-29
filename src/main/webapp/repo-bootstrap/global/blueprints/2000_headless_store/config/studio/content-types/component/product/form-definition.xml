@@ -21,12 +21,20 @@
     <objectType>component</objectType>
     <content-type>/component/product</content-type>
     <imageThumbnail>undefined</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
     <properties>		<property>
         <name>display-template</name>
         <label>Display Template</label>
         <value></value>
         <type>template</type>
     </property>
+        <property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
+		</property>
         <property>
             <name>merge-strategy</name>
             <label>Merge Strategy</label>
@@ -264,7 +272,7 @@
             </field>
             <field>
                 <type>checkbox-group</type>
-                <id>categories</id>
+                <id>categories_o</id>
                 <iceId></iceId>
                 <title>Categories</title>
                 <description></description>
@@ -297,7 +305,7 @@
             </field>
             <field>
                 <type>checkbox-group</type>
-                <id>tags</id>
+                <id>tags_o</id>
                 <iceId></iceId>
                 <title>Tags</title>
                 <description></description>
@@ -373,7 +381,7 @@
             </field>
             <field>
                 <type>node-selector</type>
-                <id>company</id>
+                <id>company_o</id>
                 <iceId></iceId>
                 <title>Company</title>
                 <description></description>
@@ -450,7 +458,7 @@
         </datasource>
         <datasource>
             <type>site-component</type>
-            <id>categories</id>
+            <id>categories_o</id>
             <title>Categories</title>
             <interface>item</interface>
             <properties>

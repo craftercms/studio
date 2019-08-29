@@ -51,6 +51,8 @@ public interface StudioConfiguration {
     String REPO_DELETE_CONTENT_COMMIT_MESSAGE = "studio.repo.deleteContent.commitMessage";
     String REPO_MOVE_CONTENT_COMMIT_MESSAGE = "studio.repo.moveContent.commitMessage";
     String REPO_COPY_CONTENT_COMMIT_MESSAGE = "studio.repo.copyContent.commitMessage";
+    String REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED =
+            "studio.repo.pullFromRemote.conflict.notificationEnabled";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -62,7 +64,6 @@ public interface StudioConfiguration {
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
     String DB_INITIALIZER_URL = "studio.db.initializer.url";
-    String DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION = "studio.db.initializer.configureDbscriptLocation";
     String DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION = "studio.db.initializer.createDbscriptLocation";
     String DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION = "studio.db.initializer.createSchemaScriptLocation";
     String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED = "studio.db.initializer.randomAdminPassword.enabled";
@@ -85,9 +86,11 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_UI_RESOURCE_OVERRIDE_PATH = "studio.configuration.global.ui.resource.override.path";
     String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
-    String CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.multiEnvironment" +
-            ".configBasePath";
-    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
+    String CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN = "studio.configuration.site.configBasePathPattern";
+    String CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH =
+            "studio.configuration.site.multiEnvironment.configBasePath";
+    String CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN =
+            "studio.configuration.site.multiEnvironment.configBasePathPattern";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH = "studio.configuration.site.contentTypes.configBasePath";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH = "studio.configuration.site.contentTypes.configPath";
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
@@ -98,8 +101,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
     String CONFIGURATION_DEFAULT_GROUPS = "studio.configuration.defaultGroups";
     String CONFIGURATION_DEFAULT_ADMIN_GROUP = "studio.configuration.defaultAdminGroup";
-    String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH = "studio.configuration.site.dataSources.configBasePath";
-    String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME = "studio.configuration.site.dataSources.configFileName";
+    String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_LOCATION = "studio.configuration.site.dataSources.configLocation";
     String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.context.url";
     String CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME =
             "studio.configuration.default.dependencyResolver.configFileName";
@@ -107,14 +109,12 @@ public interface StudioConfiguration {
             "studio.configuration.default.dependencyResolver.configBasePath";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME =
             "studio.configuration.site.dependencyResolver.configFileName";
-    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH =
-            "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_SITE_AWS_CONFIGURATION_PATH = "studio.configuration.site.aws.configurationPath";
     String CONFIGURATION_SITE_BOX_CONFIGURATION_PATH = "studio.configuration.site.box.configurationPath";
     String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH = "studio.configuration.site.webdav.configurationPath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
-    String CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH = "studio.configuration.site.asset.processing" +
-            ".configurationPath";
+    String CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH =
+            "studio.configuration.site.asset.processing.configurationPath";
 
     String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
     String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";
@@ -152,10 +152,11 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE = "studio.security.forgotPassword.email.template";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
+    String SECURITY_PASSWORD_REQUIREMENTS_ENABLED = "studio.security.passwordRequirements.enabled";
+    String SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX = "studio.security.passwordRequirements.validationRegex";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
-    String AUTHENTICATION_HEADERS_LOGOUT_URL = "studio.authentication.headers.logout.url";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
@@ -211,11 +212,14 @@ public interface StudioConfiguration {
     String PREVIEW_REPO_URL = "studio.preview.repoUrl";
 
     /** Authoring Deployer **/
+    String AUTHORING_REPLACE = "studio.authoring.replace";
+    String AUTHORING_DISABLE_DEPLOY_CRON = "studio.authoring.disableDeployCron";
     String AUTHORING_TEMPLATE_NAME = "studio.authoring.templateName";
 
     /** Preview Search **/
     String PREVIEW_SEARCH_CREATE_URL = "studio.preview.search.createUrl";
     String PREVIEW_SEARCH_DELETE_URL = "studio.preview.search.deleteUrl";
+    String PREVIEW_SEARCH_ENGINE = "studio.preview.search.engine";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
@@ -249,11 +253,16 @@ public interface StudioConfiguration {
     String AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER = "lastNameHeader";
     String AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER = "emailHeader";
     String AUTHENTICATION_CHAIN_PROVIDER_GROUPS_HEADER = "groupsHeader";
+    String AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_ENABLED = "logoutEnabled";
+    String AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_URL = "logoutUrl";
 
     /** Publishing Thread Pool **/
     String PUBLISHING_THREAD_POOL_NAME_PREFIX = "studio.publishing.threadPool.namePrefix";
     String PUBLISHING_THREAD_POOL_CORE_POOL_SIZE = "studio.publishing.threadPool.corePoolSize";
     String PUBLISHING_THREAD_POOL_MAX_POOL_SIZE = "studio.publishing.threadPool.maxPoolSize";
+
+    /** Clustering **/
+    String CLUSTERING_SYNC_URL_FORMAT = "studio.clustering.sync.urlFormat";
 
     /** Clustering Thread Pool **/
     String CLUSTERING_SANDBOX_SYNC_JOB_INTERVAL = "studio.clustering.sandboxSyncJob.interval";
@@ -289,11 +298,23 @@ public interface StudioConfiguration {
     String UPGRADE_PIPELINE_CONFIGURATIONS = "studio.upgrade.pipeline.configurations";
     String UPGRADE_SCRIPT_FOLDER = "studio.upgrade.scriptFolder";
 
+    /** Serverless Delivery Configuration **/
+    String SERVERLESS_DELIVERY_ENABLED = "studio.serverless.delivery.enabled";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_CREATE_URL = "studio.serverless.delivery.deployer.target.createUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_DELETE_URL = "studio.serverless.delivery.deployer.target.deleteUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE = "studio.serverless.delivery.deployer.target.template";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE = "studio.serverless.delivery.deployer.target.replace";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL = "studio.serverless.delivery.deployer.target.remoteRepoUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH = "studio.serverless.delivery.deployer.target.localRepoPath";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS = "studio.serverless.delivery.deployer.target.template.params";
+
     void loadConfig();
 
     String getProperty(String key);
 
     <T> T getProperty(String key, Class<T> clazz);
+
+    <T> T getProperty(String key, Class<T> clazz, T defaultVal);
 
     HierarchicalConfiguration<ImmutableNode> getSubConfig(String key);
 

@@ -40,12 +40,21 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
     protected String name;
 
     /**
+     * Indicates if the pipeline should continue executing after an operation fails
+     */
+    protected boolean continueOnError = false;
+
+    /**
      * List of all upgrade operations to be executed.
      */
     protected List<UpgradeOperation> operations;
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    public void setContinueOnError(final boolean continueOnError) {
+        this.continueOnError = continueOnError;
     }
 
     public void setOperations(final List<UpgradeOperation> operations) {
@@ -64,11 +73,21 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
         logger.info("============================================================");
         logger.info("Starting execution of upgrade pipeline: {0}", name);
         for(UpgradeOperation operation : operations) {
-            logger.info("------- Starting execution of operation {0} -------", operation.getClass().getSimpleName());
-            watch.start(operation.getClass().getSimpleName());
-            operation.execute(site);
-            watch.stop();
-            logger.info("------- Execution of operation completed -------");
+            String operationName = operation.getClass().getSimpleName();
+            logger.info("------- Starting execution of operation {0} -------", operationName);
+            watch.start(operationName);
+            try {
+                operation.execute(site);
+            } catch (UpgradeException e) {
+                if (continueOnError) {
+                    logger.error("Execution of operation {0} failed", e, operationName);
+                } else {
+                    throw e;
+                }
+            } finally {
+                watch.stop();
+                logger.info("------- Execution of operation {0} completed -------", operationName);
+            }
         }
         logger.info("Execution of pipeline {0} completed", name);
         logger.info("============================================================");
@@ -80,7 +99,6 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
 
     /**
      * {@inheritDoc}
-     * @return
      */
     @Override
     public boolean isEmpty() {

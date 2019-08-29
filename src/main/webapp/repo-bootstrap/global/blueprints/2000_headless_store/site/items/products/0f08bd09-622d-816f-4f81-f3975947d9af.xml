@@ -25,18 +25,18 @@
 	<internal-name>Cards</internal-name>
 	<name_s>Cards</name_s>
 	<price_d>10.5</price_d>
-	<categories>	<item>	<key>board</key>
+	<categories_o>	<item>	<key>board</key>
 	<value_smv>Board</value_smv>
-	</item></categories>
-	<tags>	<item>	<key>groups</key>
+	</item></categories_o>
+	<tags_o>	<item>	<key>groups</key>
 	<value_smv>Groups</value_smv>
-	</item></tags>
+	</item></tags_o>
 	<image_s>/static-assets/images/products/cards.jpeg</image_s>
-	<company>	<item>	<key>/site/items/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</key>
+	<company_o>	<item>	<key>/site/items/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</key>
 	<value>Company 2</value>
 	<include>/site/items/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></company>
+	</item></company_o>
 	<description_html>&lt;p&gt;Classic Cards&lt;/p&gt;</description_html>
 	<createdDate>2017-5-12T16:47:33.000Z</createdDate>
 	<createdDate_dt>2017-5-12T16:47:33.000Z</createdDate_dt>

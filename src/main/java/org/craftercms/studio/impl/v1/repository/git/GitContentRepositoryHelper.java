@@ -27,7 +27,7 @@ import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
 import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;

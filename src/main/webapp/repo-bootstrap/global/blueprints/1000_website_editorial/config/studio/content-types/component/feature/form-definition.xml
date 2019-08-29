@@ -21,12 +21,20 @@
     <objectType>component</objectType>
     <content-type>/component/feature</content-type>
     <imageThumbnail>component-feature.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
     <properties>		<property>
         <name>display-template</name>
         <label>Display Template</label>
         <value>/templates/web/components/feature.ftl</value>
         <type>template</type>
     </property>
+        <property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
+		</property>
         <property>
             <name>merge-strategy</name>
             <label>Merge Strategy</label>
@@ -127,7 +135,7 @@
             <fields>
                 <field>
                     <type>dropdown</type>
-                    <id>icon</id>
+                    <id>icon_s</id>
                     <iceId></iceId>
                     <title>Icon</title>
                     <description></description>
@@ -160,7 +168,7 @@
                 </field>
                 <field>
                     <type>input</type>
-                    <id>title</id>
+                    <id>title_t</id>
                     <iceId></iceId>
                     <title>Title</title>
                     <description></description>

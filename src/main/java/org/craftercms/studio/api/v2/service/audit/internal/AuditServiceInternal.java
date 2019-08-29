@@ -68,7 +68,7 @@ public interface AuditServiceInternal {
      * Get audit log entry by id
      *
      * @param auditLogId id of audit log entry to get
-     * @return
+     * @return Audit log entry
      */
     AuditLog getAuditLogEntry(long auditLogId);
 

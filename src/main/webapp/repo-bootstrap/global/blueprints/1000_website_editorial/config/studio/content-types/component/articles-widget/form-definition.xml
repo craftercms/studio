@@ -21,11 +21,19 @@
 	<objectType>component</objectType>
 	<content-type>/component/articles-widget</content-type>
 	<imageThumbnail>component-articles-widget.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/components/articles-widget.ftl</value>
 			<type>template</type>
+		</property>
+		<property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
 		</property>
 		<property>
 			<name>merge-strategy</name>
@@ -120,7 +128,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>scripts</id>
+					<id>scripts_o</id>
 					<iceId></iceId>
 					<title>Controllers</title>
 					<description>The controller script(s) that will be executed before the component is rendered</description>
@@ -168,7 +176,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>title</id>
+					<id>title_t</id>
 					<iceId>articles</iceId>
 					<title>Title</title>
 					<description></description>
@@ -210,8 +218,8 @@
 					</constraints>
 				</field>
 				<field>
-					<type>input</type>
-					<id>max_articles</id>
+					<type>numeric-input</type>
+					<id>max_articles_i</id>
 					<iceId>articles</iceId>
 					<title>Max Articles</title>
 					<description></description>

@@ -17,7 +17,15 @@
 
 package org.craftercms.studio.api.v2.service.system;
 
+/**
+ * Instance Service
+ */
 public interface InstanceService {
 
+    /**
+     * Get Studio instance ID
+     *
+     * @return studio instance ID
+     */
     String getInstanceId();
 }

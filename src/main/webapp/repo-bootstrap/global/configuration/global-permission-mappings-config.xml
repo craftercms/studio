@@ -64,6 +64,18 @@
                 <permission>delete_cluster</permission>
                 <permission>audit_log</permission>
                 <permission>read_logs</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
     </role>

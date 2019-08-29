@@ -25,20 +25,20 @@
 	<internal-name>We are moving (Not ready yet)</internal-name>
 	<title_s>Great news!</title_s>
 	<disabled>true</disabled>
-	<authors>	<item>	<key>/site/items/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</key>
+	<authors_o>	<item>	<key>/site/items/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</key>
 	<value>John Doe (Owner)</value>
 	<include>/site/items/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></authors>
+	</item></authors_o>
 	<featuredImage_s/>
-	<categories>	<item>	<key>updates</key>
+	<categories_o>	<item>	<key>updates</key>
 	<value_smv>Updates</value_smv>
-	</item></categories>
-	<tags>	<item>	<key>travel</key>
+	</item></categories_o>
+	<tags_o>	<item>	<key>travel</key>
 	<value_smv>Travel</value_smv>
 	</item>	<item>	<key>news</key>
 	<value_smv>News</value_smv>
-	</item></tags>
+	</item></tags_o>
 	<body_html>&lt;p&gt;Curabitur blandit tempus porttitor.&lt;/p&gt;</body_html>
 	<createdDate>2017-5-11T17:1:29.000Z</createdDate>
 	<createdDate_dt>2017-5-11T17:1:29.000Z</createdDate_dt>

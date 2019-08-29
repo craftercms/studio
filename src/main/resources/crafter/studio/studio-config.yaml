@@ -14,7 +14,7 @@ studio.config.overrideConfig: crafter/studio/extension/studio-config-override.ya
 ##              Content Repository              ##
 ##################################################
 # Absolute path to repository base (all actual repositories will be under this)
-studio.repo.basePath: ${sys:crafter.data.dir}/repos
+studio.repo.basePath: ${env:CRAFTER_DATA_DIR}/repos
 # Global repository path (automatically goes under repo-base-path)
 studio.repo.globalRepoPath: global
 # Sites repositories base path (automatically goes under repo-base-path)
@@ -60,6 +60,8 @@ studio.repo.moveContent.commitMessage: "Moving {fromPath} to {toPath}"
 studio.repo.copyContent.commitMessage: "Copying {fromPath} to {toPath}"
 # The cron expression used on scheduled cleanup of repositories
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
+# Enable/disable notification messages in case of pull from remote conflicts
+studio.repo.pullFromRemote.conflict.notificationEnabled: false
 
 ############################################################
 ##                   Site Configuration                   ##
@@ -78,10 +80,12 @@ studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 studio.configuration.global.systemSite: studio_root
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
-# Root location where configuration for all sites is stored inside repository.
+# Root location pattern where configuration for all sites is stored inside repository.
+studio.configuration.site.configBasePathPattern: /config/{module}
+# Root location where configuration for all sites is stored inside repository for specified environment.
 studio.configuration.site.multiEnvironment.configBasePath: /config/studio/env/{environment}
-# Location pattern where environment specific configuration for a site is stored
-studio.configuration.site.environment.configBasePath: /config/studio/environment
+# Root location pattern where configuration for all sites is stored inside repository for specified environment.
+studio.configuration.site.multiEnvironment.configBasePathPattern: /config/{module}/env/{environment}
 # Location where content types are stored for a site.
 studio.configuration.site.contentTypes.configBasePath: /config/studio/content-types
 # Location where content types configuration files are stored for a site.
@@ -95,7 +99,7 @@ studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 # Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
 studio.configuration.site.environment: local
 # File name where environment specific configuration is stored
-studio.configuration.site.environment.configFileName: environment-config.xml
+studio.configuration.site.environment.configFileName: environment/environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
@@ -103,19 +107,15 @@ studio.configuration.defaultGroups: site_author,site_publisher,site_developer,si
 # Default admin group when site is created to add creator as admin
 studio.configuration.defaultAdminGroup: site_admin
 # Location where data sources configuration is stored for a site.
-studio.configuration.site.dataSources.configBasePath: /config/studio/data-sources
-# File name where data sources configuration is stored.
-studio.configuration.site.dataSources.configFileName: cmis-config.xml
+studio.configuration.site.dataSources.configLocation: /config/studio/data-sources/cmis-config.xml
 # Destroy site context url for preview engine
 studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api/1/site/context/destroy.json?crafterSite={siteName}
 # Location pattern where default dependency resolver specific configuration for is stored
 studio.configuration.default.dependencyResolver.configBasePath: /configuration/dependency
 # File name where default dependency specific configuration is stored
 studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
-# Location pattern where dependency resolver specific configuration for a site is stored
-studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
-studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
+studio.configuration.site.dependencyResolver.configFileName: dependency/resolver-config.xml
 # Repo path to read the AWS configuration
 studio.configuration.site.aws.configurationPath: /config/studio/aws/aws.xml
 # Repo path to read the Box configuration
@@ -145,7 +145,7 @@ studio.import.assetChainName: assetContent
 ##                   Notification Service                   ##
 ##############################################################
 # Path where the notification configuration is located
-studio.notification.configurationFile: /config/studio/workflow/notification-config.xml
+studio.notification.configurationFile: workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
 studio.notification.timezone: UTC
 
@@ -175,7 +175,9 @@ studio.security.sessionTimeout: 60
 # Urls to be treated as exception to the rules.
 studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-session.json,/api/1/services/api/1/publish/status.json
 # Public URLs
-studio.security.publicUrls: /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/2/monitoring/.+
+studio.security.publicUrls: >
+  /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
+  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -196,12 +198,16 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
 studio.security.resetPassword.serviceUrl: "#/reset-password"
-# Enable/disable logout for headers authenticated users (SSO)
-studio.authentication.headers.logout.enabled: false
-# If logout is enabled for headers authenticated users (SSO), set the endpoint of the SP or IdP logout, which should
-# be called after local logout. The {baseUrl} macro is provided so that the browser is redirected back to Studio
-# after logout (https://STUDIO_SERVER:STUDIO_PORT/studio)
-studio.authentication.headers.logout.url: /mellon/logout?ReturnTo={baseUrl}
+# Enable password requirements validation
+studio.security.passwordRequirements.enabled: false
+# Password requirements validation regular expression
+#   (?=.*[0-9])       a digit must occur at least once
+#   (?=.*[a-z])       a lower case letter must occur at least once
+#   (?=.*[A-Z])       an upper case letter must occur at least once
+#   (?=.*[@#$%^&+=])  a special character must occur at least once
+#   (?=\S+$)          no whitespace allowed in the entire string
+#   .{8,}             anything, at least eight places though
+studio.security.passwordRequirements.validationRegex: ^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$
 # Studio authentication chain configuration
 studio.authentication.chain:
   # Authentication provider type
@@ -225,6 +231,12 @@ studio.authentication.chain:
     #   Example:
     #   site_author,site_xyz_developer
     groupsHeader: groups
+    # Enable/disable logout for headers authenticated users (SSO)
+    logoutEnabled: false
+    # If logout is enabled for headers authenticated users (SSO), set the endpoint of the SP or IdP logout, which should
+    # be called after local logout. The {baseUrl} macro is provided so that the browser is redirected back to Studio
+    # after logout (https://STUDIO_SERVER:STUDIO_PORT/studio)
+    logoutUrl: /mellon/logout?ReturnTo={baseUrl}
   # Authentication provider type
   - provider: LDAP
     # Authentication via LDAP enabled
@@ -332,24 +344,30 @@ studio.contentTypes.filter.documents.includePattern: ^/document/.*
 # Default preview deployer URL (can be overridden per site)
 studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy/{siteEnv}/{siteName}
 # Default preview create target URL (can be overridden per site)
-studio.preview.createTargetUrl: http://localhost:9191/api/1/target/upsert
+studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create_if_not_exists
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete-if-exists/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
-studio.preview.repoUrl: ${sys:crafter.data.dir}/repos/sites/{siteName}/sandbox
+studio.preview.repoUrl: ${env:CRAFTER_DATA_DIR}/repos/sites/{siteName}/sandbox
 # Name of template to use with the deployer for preview
 studio.preview.templateName: local
 # Replace existing configuration if one exists?
-studio.preview.replace: true
+studio.preview.replace: false
 # Disable deploy cron job for preview target
 studio.preview.disableDeployCron: true
 
+# Replace existing configuration if one exists?
+studio.authoring.replace: false
+# Disable deploy cron job for preview target
+studio.authoring.disableDeployCron: true
 # Name of the template to use with the deployer for authoring
 studio.authoring.templateName: authoring
 
 ############################################################
 ##                   Preview Search                       ##
 ############################################################
+# The default search engine to use when creating targets for preview and nothing is indicated in the blueprint
+studio.preview.search.engine: CrafterSearch
 studio.preview.search.createUrl: http://localhost:8080/crafter-search/api/2/admin/index/create
 studio.preview.search.deleteUrl: http://localhost:8080/crafter-search/api/2/admin/index/delete/{siteName}
 
@@ -391,8 +409,6 @@ studio.db.pool.maxWaitTime: 10000
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
 studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
-# Configure database SQL script location
-studio.db.initializer.configureDbscriptLocation: crafter/studio/database/configureDB.sql
 # Create schema SQL script location
 studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
 # Create database SQL script location
@@ -414,7 +430,7 @@ studio.db.validationInterval: 34000
 # Base folder for the embedded database
 studio.db.basePath: ${sys:crafter.bin.dir}/dbms
 # Data folder for the embedded database
-studio.db.dataPath: ${sys:crafter.data.dir}/db
+studio.db.dataPath: ${env:CRAFTER_DATA_DIR}/db
 # Port number for the embedded database (note this must match what's in the connection URLs in this config file)
 studio.db.port: 33306
 # Socket path for the embedded database
@@ -473,6 +489,14 @@ studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
 studio.publishing.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.publishing.threadPool.maxPoolSize: 20
+
+##################################################
+##                 Clustering                   ##
+##################################################
+# Cluster Git URL format for synching members.
+# - Typical SSH URL format: ssh://{username}@{localAddress}{absolutePath}
+# - Typical HTTPS URL format: https://{localAddress}/repos/sites
+studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
 
 ################################################################
 ##                   Clustering Thread Pool                   ##
@@ -536,9 +560,9 @@ studio.search.field.size: contentLength
 # Name of the field for mimeType
 studio.search.field.mimeType: contentType
 # List of fields to include in the search
-studio.search.fields.search: localId, internal-name, content, _text_
+studio.search.fields.search: localId, internal-name, title, content, *_html, *_t, *_txt
 # List of fields to include for highlighting
-studio.search.fields.highlight: localId, internal-name, content, *_html
+studio.search.fields.highlight: localId, internal-name, title, content, *_html, *_t, *_txt
 # The size of each highlight snippet
 studio.search.snippets.size: 50
 # The number of highlight snippets to generate
@@ -595,8 +619,10 @@ studio.search.facets:
   - name: content-type
     # The field that will be used
     field: content-type
+    multiple: true
   - name: mime-type
     field: contentType
+    multiple: true
   - name: size
     field: contentLength
     # The list of ranges to search
@@ -643,3 +669,58 @@ studio.search.facets:
       - from: 800
         to: 1200
       - from: 1200
+  - name: last-edit-date
+    field: lastEditedOn
+    date: true
+    ranges:
+      - label: today
+        from: now-1d
+        to: now+1d
+      - label: in-last-week
+        from: now/d-7d
+        to: now/d-1d
+      - label: over-a-month-ago
+        to: now/d-30d
+      - label: over-six-months-ago
+        to: now/d-180d
+      - label: over-a-week-ago
+        to: now/d-8d
+      - label: over-a-year-ago
+        to: now/d-365d
+
+################################################################
+##                           AWS                              ##
+################################################################
+studio.aws.s3.delimiter: /
+studio.aws.s3.url.pattern: /remote-assets/s3/%s/%s
+studio.aws.mediaconvert.extension.hls: m3u8
+studio.aws.mediaconvert.extension.dash: mpd
+studio.aws.mediaconvert.extension.smooth: ism
+
+##########################################################
+##                 Serverless Delivery                  ##
+##########################################################
+# Indicates if serverless delivery is enabled
+studio.serverless.delivery.enabled: false
+# The URL for the serverless delivery deployer create URL
+studio.serverless.delivery.deployer.target.createUrl: ${studio.preview.createTargetUrl}
+# The URL for the serverless delivery deployer delete URL
+studio.serverless.delivery.deployer.target.deleteUrl: ${studio.preview.deleteTargetUrl}
+# The template name for serverless deployer targets
+studio.serverless.delivery.deployer.target.template: aws-cloudformed-s3
+# Replace existing target configuration if one exists?
+studio.serverless.delivery.deployer.target.replace: false
+# The URL the deployer will use to clone/pull the site's published repo. When the deployer is in a separate node
+# (because of clustering), this URL should be an SSH/HTTP URL to the load balancer in front of the Studios
+studio.serverless.delivery.deployer.target.remoteRepoUrl: ${env:CRAFTER_DATA_DIR}/repos/sites/{siteName}/published
+# The deployer's local path where it will store the clone of the published site. This property is not needed if
+# the deployer is not the preview deployer, so you can leave an empty string ('') instead
+studio.serverless.delivery.deployer.target.localRepoPath: ${env:CRAFTER_DATA_DIR}/repos/aws/{siteName}
+# Parameters for the target template. Please check the deployer template documentation for the possible parameters.
+# The following parameters will be sent automatically, and you don't need to specify them: env, site_name, replace,
+# disable_deploy_cron, local_repo_path, repo_url, use_crafter_search
+studio.serverless.delivery.deployer.target.template.params:
+  aws:
+    cloudformation:
+      namespace: craftercms
+

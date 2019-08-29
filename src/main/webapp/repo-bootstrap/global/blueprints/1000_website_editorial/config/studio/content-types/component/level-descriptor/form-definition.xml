@@ -21,11 +21,19 @@
 	<objectType>component</objectType>
 	<content-type>/component/level-descriptor</content-type>
 	<imageThumbnail>section-defaults.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value></value>
 			<type>template</type>
+		</property>
+		<property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
 		</property>
 		<property>
 			<name>merge-strategy</name>
@@ -69,7 +77,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>header</id>
+					<id>header_o</id>
 					<iceId></iceId>
 					<title>Header</title>
 					<description></description>
@@ -117,7 +125,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>left-rail</id>
+					<id>left-rail_o</id>
 					<iceId></iceId>
 					<title>Left Rail</title>
 					<description></description>

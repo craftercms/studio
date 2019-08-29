@@ -21,12 +21,20 @@
     <objectType>component</objectType>
     <content-type>/component/contact-widget</content-type>
     <imageThumbnail>component-contact-widget.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
     <properties>		<property>
         <name>display-template</name>
         <label>Display Template</label>
         <value>/templates/web/components/contact-widget.ftl</value>
         <type>template</type>
     </property>
+        <property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
+		</property>
         <property>
             <name>merge-strategy</name>
             <label>Merge Strategy</label>
@@ -127,7 +135,7 @@
             <fields>
                 <field>
                     <type>input</type>
-                    <id>title</id>
+                    <id>title_t</id>
                     <iceId></iceId>
                     <title>Title</title>
                     <description></description>
@@ -228,7 +236,7 @@
 				</field>
                 <field>
                     <type>input</type>
-                    <id>email</id>
+                    <id>email_s</id>
                     <iceId></iceId>
                     <title>Email</title>
                     <description></description>
@@ -271,7 +279,7 @@
                 </field>
                 <field>
                     <type>input</type>
-                    <id>phone</id>
+                    <id>phone_s</id>
                     <iceId></iceId>
                     <title>Phone</title>
                     <description></description>

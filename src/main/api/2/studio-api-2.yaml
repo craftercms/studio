@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '2.0.24'
+  version: '3.1.1.16'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -14,7 +14,7 @@ info:
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
   description: Crafter CMS - Studio
-  url: 'https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html'
+  url: 'https://docs.craftercms.org/en/3.1/developers/projects/studio/index.html'
 tags:
   - name: groups
     description: Group management operations
@@ -30,8 +30,23 @@ tags:
     description: Site management operations
   - name: search
     description: Search operations
+  - name: audit
+    description: Audit log operations
   - name: monitoring
     description: Monitoring operations
+  - name: cmis
+    description: CMIS operations
+  - name: repository
+    description: Repository operations
+  - name: content
+    description: Content operations
+  - name: configuration
+    description: Configuration operations
+  - name: plugin
+    description: Plugin operations
+  - name: dependency
+    description: Dependencies operations
+
 paths:
 
   /groups:
@@ -806,6 +821,103 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /users/{id}/reset_password:
+    post:
+      tags:
+        - users
+      summary: Change password for user
+      description: 'Required Permission: "UPDATE_USERS"'
+      operationId: setUserPassword
+      parameters:
+        - name: id
+          in: path
+          description: The user ID. Username can also be used
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: request body to change password
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                new:
+                  type: string
+                  description: new password
+              required:
+                - username
+                - new
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/set_password:
+    post:
+      tags:
+        - users
+      summary: Change password for user
+      description: 'Required Permission: "ANONYMOUS"'
+      operationId: settUserPassword
+      requestBody:
+        description: request body to change password
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                new:
+                  type: string
+                  description: new password
+              required:
+                - token
+                - new
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /users/me:
     get:
       tags:
@@ -928,6 +1040,83 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /users/me/change_password:
+    post:
+      tags:
+        - users
+      summary: Change password for current user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: currentUserChangePassword
+      requestBody:
+        description: request body to change password
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                current:
+                  type: string
+                  description: current password
+                new:
+                  type: string
+                  description: new password
+              required:
+                - username
+                - current
+                - new
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/forgot_password:
+    get:
+      tags:
+        - users
+      summary: Forgot password
+      description: 'Required Permission: "ANONYMOUS"'
+      operationId: forgotPassword
+      parameters:
+        - name: username
+          in: query
+          description: The username of user that forgot password
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /ui/views/global_menu:
     get:
       tags:
@@ -984,7 +1173,7 @@ paths:
         - aws
       summary: Get a list of items from an S3 bucket
       operationId: listItems
-      description: 'Required Permission: "LOGGED_IN"'
+      description: 'Required Permission: "S3 Read"'
       parameters:
         - name: siteId
           in: query
@@ -1037,7 +1226,7 @@ paths:
         - aws
       summary: Upload a file to an S3 bucket
       operationId: uploadItem
-      description: 'Required Permission: "LOGGED_IN"'
+      description: 'Required Permission: "S3 Write"'
       requestBody:
         required: true
         content:
@@ -1078,6 +1267,57 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   item:
                     $ref: '#/components/schemas/S3Item'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /aws/mediaconvert/upload:
+    post:
+      tags:
+        - aws
+      summary: Upload a file to an S3 bucket and trigger a MediaConvert job
+      operationId: uploadVideo
+      description: 'Required Permission: "S3 Write"'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The site ID
+                inputProfileId:
+                  type: string
+                  description: The MediaConvert profile ID
+                outputProfileId:
+                  type: string
+                  description: The S3 profile ID for the generated URLs
+                file:
+                  type: string
+                  format: binary
+                  description: The content of the file to upload
+              required:
+                - siteId
+                - inputProfileId
+                - outputProfileId
+                - file
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/MediaConvertResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1168,7 +1408,7 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Blueprint'
+                      $ref: '#/components/schemas/Plugin'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1215,7 +1455,7 @@ paths:
       parameters:
         - name: siteId
           in: query
-          description: Site ID - optional for super admin user, otherwise required
+          description: Site ID (id from database) - optional for super admin user, otherwise required
           required: false
           schema:
             type: string
@@ -1255,19 +1495,19 @@ paths:
               type: string
         - name: includeParameters
           in: query
-          description: Include parameters into result set if `true`. Default `false` 
+          description: Include parameters into result set if `true`. Default `false`
           required: false
           schema:
             type: boolean
         - name: dateFrom
           in: query
-          description: Lower boundary in date range query 
+          description: Lower boundary in date range query
           required: false
           schema:
             type: string
         - name: dateTo
           in: query
-          description: Upper boundary in date range query 
+          description: Upper boundary in date range query
           required: false
           schema:
             type: string
@@ -1456,6 +1696,1031 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /cmis/list:
+    get:
+      tags:
+        - cmis
+      summary: List files and folders in a CMIS repository with an optional range for pagination
+      operationId: cmisList
+      description: 'Required permissions: "list_cmis"'
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: cmisRepoId
+          in: query
+          description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path to look under. Note this will be under the `base path` specified in cmis-config.xml
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: start offset
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: number of records to retrieve
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of the first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CmisItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /cmis/search:
+    get:
+      tags:
+        - cmis
+      summary: Search files and folders in a CMIS repository with an optional range for pagination
+      operationId: cmisSearch
+      description: 'Required permissions: "search_cmis"'
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: cmisRepoId
+          in: query
+          description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+          required: true
+          schema:
+            type: string
+        - name: searchTerm
+          in: query
+          description: CMIS search term to use
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path to look under. Note this will be under the `base path` secified in cmis-config.xml
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: start offset
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: number of records to retrieve
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of the first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CmisItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /cmis/clone:
+    post:
+      tags:
+        - cmis
+      summary: Clone a file from a CMIS repository to Studio provided paths
+      operationId: cmisClone
+      description: 'Required permissions: "clone_content_cmis"'
+      requestBody:
+        description: cmis clone request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                cmisRepoId:
+                  type: string
+                  description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+                cmisPath:
+                  type: string
+                  description: path to read the asset from CMIS repo (source)
+                studioPath:
+                  type: string
+                  description: path to save the asset in Studio (destination)
+              required:
+                - siteId
+                - cmisRepoId
+                - cmisPath
+                - studioPath
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /cmis/upload:
+    post:
+      tags:
+        - cmis
+      summary:  Upload an asset file to CMIS repository
+      operationId: cmisUpload
+      description: 'Required permissions: "upload_content_cmis"'
+      requestBody:
+        description: cmis upload request body
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                cmisRepoId:
+                  type: string
+                  description: CMIS repository ID as specified in Site Config CMIS Config (cmis-config.xml)
+                cmisPath:
+                  type: string
+                  description: path to upload the asset to CMIS repo (destination)
+                file:
+                  type: string
+                  format: binary
+              required:
+                - siteId
+                - cmisRepoId
+                - cmisPathId
+                - file
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: filename of the uploaded content
+                      url:
+                        type: string
+                        description: url of uploaded content
+                      folder:
+                        type: boolean
+                        description: true if content is folder
+                      fileExtension:
+                        type: string
+                        description: file extension of uploaded content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '408':
+          $ref: '#/components/responses/RequestTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /repository/add_remote:
+    post:
+      tags:
+        - repository
+      summary: Add remote repository to the site content repository
+      description: 'Required permission "add_remote"'
+      operationId: addRemoteRepository
+      requestBody:
+        description: Remote repository entity
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteRepository'
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/pull_from_remote:
+    post:
+      tags:
+        - repository
+      summary: Pull content from remote repository to site content repository
+      description: 'Required permission "pull_from_remote"'
+      operationId: pullFromRemoteRepository
+      requestBody:
+        description: pull from remote repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+                remoteName:
+                  type: string
+                  description: Remote repository name to pull from
+                remoteBranch:
+                  type: string
+                  description: Remote repository branch to pull from
+                mergeStrategy:
+                  type: string
+                  format: theirs, ours, none
+                  description: Merge strategy to use when pulling content from remote repository
+              required:
+                - siteId
+                - remoteName
+                - remoteBranch
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/push_to_remote:
+    post:
+      tags:
+        - repository
+      summary: Push content to remote repository from site content repository
+      description: 'Required permission "push_to_remote"'
+      operationId: pushToRemoteRepository
+      requestBody:
+        description: push to remote repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+                remoteName:
+                  type: string
+                  description: Remote repository name to push to
+                remoteBranch:
+                  type: string
+                  description: Remote repository branch to push to
+                force:
+                  type: boolean
+                  description: Indicates whether to force push to remote or not
+              required:
+                - siteId
+                - remoteName
+                - remoteBranch
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/rebuild_database:
+    post:
+      tags:
+        - repository
+      summary: Rebuild Crafter Studio’s database and object state with the underlying repository
+      description: 'Required permission "rebuild_database"'
+      operationId: rebuildDatabase
+      requestBody:
+        description: rebuild database request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+              required:
+                - siteId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/remove_remote:
+    post:
+      tags:
+        - repository
+      summary: Remove remote repository from site content repository
+      description: 'Required permission "remove_remote"'
+      operationId: removeRemoteRepository
+      requestBody:
+        description: remove remote repository request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: Site ID
+                remoteName:
+                  type: string
+                  description: Remote repository name of remote to be removed
+              required:
+                - siteId
+                - remoteName
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/list_remotes:
+    get:
+      tags:
+        - repository
+      summary: List remote repositories for a site
+      description: 'Required permission "list_remote"'
+      operationId: listRemoteRepositories
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  remotes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RemoteRepositoryInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/status:
+    get:
+      tags:
+        - repository
+      summary: Get status of repository for a site
+      description: 'Required permission "site_status"'
+      operationId: repositoryStatus
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/resolve_conflict:
+    post:
+      tags:
+        - repository
+      summary: Resolve a conflict for a file by accepting ours or theirs
+      description: 'Required permission "resolve_conflict"'
+      operationId: resolveConflict
+      requestBody:
+        description: resolve conflict request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                path:
+                  type: string
+                  description: Conflicted file path
+                resolution:
+                  type: string
+                  description: resolution mechanism to use (ours, theirs)
+              required:
+                - siteId
+                - path
+                - resolution
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/diff_conflicted_file:
+    get:
+      tags:
+        - repository
+      summary: Get the difference between ours and theirs for a conflicted file for a site
+      description: 'Required permission "site_diff_conflicted_file"'
+      operationId: diffConflictedFile
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Path of conflicted file
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  diff:
+                    type: object
+                    properties:
+                      diff:
+                        type: string
+                        description: difference between ours and theirs
+                      studioVersion:
+                        type: string
+                        description: studio's version of the file content
+                      remoteVersion:
+                        type: string
+                        description: remote repository version of the file content
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/commit_resolution:
+    post:
+      tags:
+        - repository
+      summary: Commit a resolved set of conflicts for a site
+      description: 'Required permission "commit_resolution"'
+      operationId: commitResolution
+      requestBody:
+        description: Commit resolution request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                commit_message:
+                  type: string
+                  description: Commit message
+              required:
+                - siteId
+                - commitMessage
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/cancel_failed_pull:
+    post:
+      tags:
+        - repository
+      summary: Cancel a failed/conflicted pull for a site
+      description: 'Required permission "cancel_failed_pull"'
+      operationId: cancelFailedPull
+      requestBody:
+        description: cancel failed pull request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+              required:
+                - siteId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/get_configuration:
+    get:
+      tags:
+        - configuration
+      summary: Get configuration content for site and configuration location
+      description: 'Required permission "read_configuration"'
+      operationId: getConfiguration
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: module
+          in: query
+          description: Module name (e.g. studio, engine)
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Configuration file path, relative to /config/<module>
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: environment to use
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: configuration file content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/write_configuration:
+    post:
+      tags:
+        - configuration
+      summary: Write configuration content for site
+      description: 'Required permission "write_configuration"'
+      operationId: writeConfiguration
+      requestBody:
+        description: write configuration request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                module:
+                  type: string
+                  description: Module name (e.g. studio, engine)
+                path:
+                  type: string
+                  description: Configuration file path, relative to /config/<module>
+                environment:
+                  type: string
+                  description: environment to use
+                content:
+                  type: string
+                  description: configuration file content
+              required:
+                - siteId
+                - module
+                - path
+                - content
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plugin/file:
+    get:
+      tags:
+        - plugin
+      summary: Get a file for a given plugin
+      operationId: getPluginFile
+      parameters:
+        - name: siteId
+          in: query
+          description: The site ID
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: The plugin type (e.g. control, data-source)
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: The plugin name (e.g. custom-input)
+          required: true
+          schema:
+            type: string
+        - name: filename
+          in: query
+          description: The name of the file (e.g. input.js, style/main.css)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+                description: The content of the file
+          headers:
+            Content-Type:
+              description: The MIME type of the file
+              schema:
+                type: string
+            Content-Length:
+              description: The size in bytes of the file
+              schema:
+                type: integer
+                format: int64
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/list_quick_create_content:
+    get:
+      tags:
+        - content
+      summary: Get list of content types available for Quick Create functionality
+      description: 'Required permission "create content"'
+      operationId: quickCreateContent
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuickCreateItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dependency/dependencies:
+    get:
+      tags:
+        - dependency
+      summary: Get list of dependencies for given content paths
+      description: 'Required permission "site member"'
+      operationId: getDependencies
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to get dependencies for
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: object
+                    properties:
+                      hardDependencies:
+                        type: array
+                        items:
+                          type: string
+                      softDependencies:
+                        type: array
+                        items:
+                          type: string                      
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -1470,13 +2735,15 @@ components:
           * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
           * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
           * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
-          * `CODE:` 3000, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
+          * `CODE:` 3001, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
           * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
           * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
           * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
           * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
+          * `CODE:` 6003, `MESSAGE:` User password does not fullfill requirements, `REMEDIAL ACTION:` Use password that will fullfill password requirements
+          * `CODE:` 6004, `MESSAGE:` User current password does not match, `REMEDIAL ACTION:` Use correct current password
           * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
           * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
           * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
@@ -1484,7 +2751,12 @@ components:
           * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
           * `CODE:` 11000, `MESSAGE:` Cluster member not found, `REMEDIAL ACTION:` Check if you sent in the right Cluster Member Id
           * `CODE:` 11001, `MESSAGE:` Cluster member already exists, `REMEDIAL ACTION:` Get the list of cluster members to validate
+          * `CODE:` 12000, `MESSAGE:` Remote repository not found, `REMEDIAL ACTION:` Check if you sent in the right remote repository name
+          * `CODE:` 12001, `MESSAGE:` Remote repository already exists, `REMEDIAL ACTION:` Get the list of remote repositories to validate
+          * `CODE:` 12002, `MESSAGE:` Pull from remote repository resulted in conflict, `REMEDIAL ACTION:` Resolve conflicts before continuing work with repository
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
+          * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
+          * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found
           * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
           * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
       properties:
@@ -1529,6 +2801,16 @@ components:
         externallyManaged:
           type: boolean
           description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)
+      required:
+        - id
+        - username
+        - password
+        - firstName
+        - lastName
+        - email
+        - enabled
+        - externallyManaged
+
     AuthenticatedUser:
       type: object
       properties:
@@ -1558,6 +2840,17 @@ components:
           type: string
           description: |-
             The authentication type used to log in the user. Possible values are: DB, LDAP, AUTH_HEADERS
+      required:
+        - id
+        - username
+        - password
+        - firstName
+        - lastName
+        - email
+        - enabled
+        - externallyManaged
+        - authenticationType
+
     Group:
       type: object
       properties:
@@ -1571,6 +2864,10 @@ components:
         desc:
           type: string
           description: Group description
+      required:
+        - id
+        - name
+
     Site:
       type: object
       properties:
@@ -1580,6 +2877,9 @@ components:
         desc:
           type: string
           description: Site description
+      required:
+        - siteId
+
     MenuItem:
       type: object
       properties:
@@ -1592,6 +2892,11 @@ components:
         icon:
           type: string
           description: 'Menu item icon as a Font Awesome id, example: fa-smile'
+      required:
+        - id
+        - label
+        - icon
+
     S3Item:
       type: object
       properties:
@@ -1604,6 +2909,30 @@ components:
         folder:
           type: boolean
           description: 'Indicates if the item is a folder'
+      required:
+        - name
+        - url
+        - folder
+
+    MediaConvertResult:
+      type: object
+      properties:
+        jobId:
+          type: string
+          description: 'The id of the triggered job'
+        jobArn:
+          type: string
+          description: 'The full ARN of the triggered job'
+        urls:
+          type: array
+          description: 'The list of files that will be generated by the triggered job'
+          items:
+            type: string
+      required:
+        - jobId
+        - jobArn
+        - urls
+
     ClusterMember:
       type: object
       properties:
@@ -1642,144 +2971,139 @@ components:
         gitPrivateKey:
           type: string
           description: 'Git Private Key (not returned to caller)'
-    Blueprint:
+      required:
+        - id
+        - localAddress
+        - state
+        - heartbeat
+        - gitUrl 
+        - gitRemoteName
+        - gitAuthType
+
+    Version:
+      type: object
+      properties:
+        major:
+          type: integer
+          format: int32
+          description: The major version
+        minor:
+          type: integer
+          format: int32
+          description: The minor version
+        patch:
+          type: integer
+          format: int32
+          description: The patch version
+      required:
+        - major
+        - minor
+
+    Link:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the link
+        url:
+          type: string
+          description: The URL of the link
+      required:
+        - name
+        - url
+
+    Asset:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title of the asset
+        description:
+          type: string
+          description: The description of the asset
+        url:
+          type: string
+          description: The URL of the asset
+      required:
+        - title
+        - url
+
+    Plugin:
       type: object
       properties:
         descriptorVersion:
           type: integer
-          description: 'Blueprint descriptor version number'
-        blueprint:
+          description: The version of the plugin descriptor
+        plugin:
           type: object
           properties:
+            type:
+              type: string
+              description: The type of plugin
             id:
               type: string
               format: package name
-              description: 'Blueprint id'
+              description: The plugin id
             name:
               type: string
-              description: 'Blueprint name'
+              description: The plugin name
             tags:
-              type: string
-              description: 'Tags applied for blueprint'
+              type: array
+              description: The plugin tags
+              items:
+                type: string
             version:
-              type: object
-              properties:
-                major:
-                  type: integer
-                  description: 'Major version number'
-                minor:
-                  type: integer
-                  description: 'Minor version number'
-                patch:
-                  type: integer
-                  description: 'Patch version number'
+              $ref: '#/components/schemas/Version'
             description:
               type: string
-              description: 'Blueprint description'
+              description: The plugin description
             website:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: 'Blueprint website'
-                url:
-                  type: string
-                  description: 'Blueprint website URL'
+              $ref: '#/components/schemas/Link'
             media:
               type: object
               properties:
                 screenshots:
                   type: array
+                  description: The screenshots of the plugin
                   items:
-                    type: object
-                    properties:
-                      screenshot:
-                        type: object
-                        properties:
-                          title:
-                            type: string
-                            description: 'Screenshot title'
-                          description:
-                            type: string
-                            description: 'Screenshot description'
-                          url:
-                            type: string
-                            description: 'Screenshot URL'
+                    $ref: '#/components/schemas/Asset'
                 videos:
                   type: array
+                  description: The videos of the plugin
                   items:
-                    type: object
-                    properties:
-                      video:
-                        type: object
-                        properties:
-                          title:
-                            type: string
-                            description: 'Video title'
-                          description:
-                            type: string
-                            description: 'Video description'
-                          url:
-                            type: string
-                            description: 'Video URL'
-                developer:
-                  type: object
-                  properties:
-                    people:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          person:
-                            type: object
-                            properties:
-                              name:
-                                type: string
-                                description: 'Developer name'
-                              email:
-                                type: string
-                                description: "Developer's email address"
-                              url:
-                                type: string
-                                description: "Developer's website"
-                    company:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: 'Company name'
-                        email:
-                          type: string
-                          description: "Company's email address"
-                        url:
-                          type: string
-                          description: "Company's website"
+                    $ref: '#/components/schemas/Asset'
+            developer:
+              type: object
+              properties:
+                people:
+                  type: array
+                  description: The people that worked on the plugin
+                  items:
+                    $ref: '#/components/schemas/Link'
+                company:
+                  $ref: '#/components/schemas/Link'
             build:
               type: object
               properties:
                 id:
                   type: string
-                  description: 'Blueprint build ID'
+                  description: Build id of the plugin
                 date:
                   type: string
-                  description: 'Bluperint build date'
+                  description: Build date of the plugin
             license:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: 'License name'
-                url:
-                  type: string
-                  description: 'License website URL'
-            craftercmsVersionsSupported:
+              $ref: '#/components/schemas/Link'
+            crafterCmsVersions:
               type: array
+              description: The supported Crafter CMS versions of the plugin
               items:
-                type: object
-                properties:
-                  version:
-                    type: string
-                    description: 'Blueprint supported in Crafter CMS version'
+                $ref: '#/components/schemas/Version'
+            crafterCmsEditions:
+              type: array
+              description: The supported Crafter CMS editions of the plugin
+              items:
+                type: string
+
     SearchParams:
       type: object
       properties:
@@ -1810,6 +3134,10 @@ components:
             Type":"text/css" or nested objects for range facets like "Width": { "min": 0, "max": 150 }. Both keys and
              values can be taken from the facets object of a previous search.
           additionalProperties: true
+      required:
+        - query
+        - keywords
+
     SearchResult:
       type: object
       properties:
@@ -1827,6 +3155,7 @@ components:
           description: List of facets based on the results found
           items:
             $ref: '#/components/schemas/SearchFacet'
+
     SearchResultItem:
       type: object
       properties:
@@ -1861,6 +3190,7 @@ components:
           description: Snippets relevant to the search query
           items:
             type: string
+
     SearchFacet:
       type: object
       properties:
@@ -1870,6 +3200,9 @@ components:
         range:
           type: boolean
           description: Indicates if the values of the facet are ranges
+        date:
+          type: boolean
+          description: Indicates if the values of the facet are dates
         values:
           type: object
           description: >-
@@ -1884,6 +3217,7 @@ components:
                   type: integer
             facet2:
               $ref: '#/components/schemas/SearchFacetRange'
+
     SearchFacetRange:
       type: object
       properties:
@@ -1892,11 +3226,12 @@ components:
           format: int64
           description: The number of files that match the range
         from:
-          type: number
+          type: object
           description: The starting limit of the range
         to:
-          type: number
+          type: object
           description: The ending limit of the range
+
     AuditLog:
       type: object
       properties:
@@ -1908,7 +3243,7 @@ components:
           type: integer
           format: int64
           description: Organization ID
-        siteId: 
+        siteId:
           type: integer
           format: int64
           description: Site ID
@@ -1942,7 +3277,7 @@ components:
           description: Actor ID which invoked operation
         actorDetails:
           type: string
-          description: Details of the actor which invoked 
+          description: Details of the actor which invoked
         clusterNodeId:
           type: string
           description: Cluster node Id
@@ -1964,6 +3299,22 @@ components:
               targetValue:
                 type: string
                 description: Value of the target (e.g. content's path)
+            required:
+              - targetId
+              - targetType
+              - targetValue
+      required:
+        - id
+        - organizationId
+        - siteId
+        - siteName
+        - operation
+        - operationTimestamp
+        - origin
+        - primaryTargetId
+        - primaryTargetType
+        - promaryTargetValue
+        - actorId
 
     VersionItem:
       type: object
@@ -1999,6 +3350,7 @@ components:
         javaVm:
           type: string
           description: The name of the JVM
+
     StatusItem:
       type: object
       properties:
@@ -2010,6 +3362,7 @@ components:
           type: string
           format: date-time
           description: The date and time when the JVM started
+
     MemoryItem:
       type: object
       properties:
@@ -2041,6 +3394,7 @@ components:
           type: integer
           format: int64
           description: The remaining memory in bytes for swap space
+
     LogEvent:
       type: object
       properties:
@@ -2067,6 +3421,123 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds of the log event
+
+    CmisItem:
+      type: object
+      properties:
+        itemId:
+          type: string
+          description: Item id inside CMIS repository
+        itemName:
+          type: string
+          description: Item name
+        mimeType:
+          type: string
+          description: Item mime type
+        size:
+          type: integer
+          format: int32
+          description: Item size
+
+    RemoteRepository:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site identifier
+        remoteName:
+          type: string
+          description: remote repository name
+        remoteUrl:
+          type: string
+          format: URL
+          description: URL to access remote repository
+        authenticationType:
+          type: string
+          description: >-
+            Authentication type to use to access remote repository
+
+            Posible values:
+
+              - none: no authentication
+
+              - basic: username and password authentication
+
+              - token: token authentication
+
+              - key: key-based authentication
+        remoteUsername:
+          type: string
+          description: username to use to access remote repository
+        remotePassword:
+          type: string
+          description: password to use to access remote repository
+        remoteToken:
+          type: string
+          description: token to use to access remote repository
+        remotePrivateKey:
+          type: string
+          description: private key to access
+      required:
+        - siteId
+        - remoteName
+        - remoteUrl
+        - autheticationType
+
+    RemoteRepositoryInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: remote repository name
+        url:
+          type: string
+          description: remote repository url
+        fetch:
+          type: string
+          description: remote repository fetch references
+        push_url:
+          type: string
+          description: remote repository push url
+        branches:
+          type: array
+          items:
+            type: string
+            description: remote repository branch name
+
+    QuickCreateItem:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site id
+        label:
+          type: string
+          description: user friendly label for content type name
+        contentTypeId:
+          type: string
+          description: content type id
+        path:
+          type: string
+          description: path expression to generate path for quick create
+    
+    RepositoryStatus:
+      type: object
+      properties:
+        conflicting:
+          type: array
+          description: list of conficting files
+          items:
+            type: string
+        uncommittedChanges:
+          type: array
+          description: list of added files
+          items:
+            type: string
+        clean:
+          type: boolean
+          description: true if there are no conflicts or uncommited changes
+
   responses:
     NotFound:
       description: Resource not found
@@ -2107,8 +3578,35 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+    RequestTimeout:
+      description: Request Timeout (408)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
     InternalServerError:
       description: Internal system failure
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+    ServiceUnavailable:
+      description: Service unavailable (503)
       content:
         application/json:
           schema:

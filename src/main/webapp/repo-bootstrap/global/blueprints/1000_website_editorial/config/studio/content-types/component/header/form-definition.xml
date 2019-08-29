@@ -21,11 +21,19 @@
 	<objectType>component</objectType>
 	<content-type>/component/header</content-type>
 	<imageThumbnail>component-header.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/components/header.ftl</value>
 			<type>template</type>
+		</property>
+		<property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
 		</property>
 		<property>
 			<name>merge-strategy</name>
@@ -127,7 +135,7 @@
 			<fields>
 				<field>
 					<type>image-picker</type>
-					<id>logo</id>
+					<id>logo_s</id>
 					<iceId>header</iceId>
 					<title>Logo</title>
 					<description></description>
@@ -175,7 +183,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>logo_text</id>
+					<id>logo_text_t</id>
 					<iceId>hero</iceId>
 					<title>Logo Alt Text</title>
 					<description></description>
@@ -218,7 +226,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>business_name</id>
+					<id>business_name_s</id>
 					<iceId>header</iceId>
 					<title>Business Name</title>
 					<description></description>
@@ -268,7 +276,7 @@
 			<fields>
 				<field>
 					<type>repeat</type>
-					<id>social_media_links</id>
+					<id>social_media_links_o</id>
 					<iceId>hero</iceId>
 					<title>Social Media Link</title>
 					<description></description>
@@ -289,7 +297,7 @@
 					<fields>
 				<field>
 					<type>dropdown</type>
-					<id>social_media</id>
+					<id>social_media_s</id>
 					<iceId>hero</iceId>
 					<title>Social Media</title>
 					<description></description>
@@ -322,7 +330,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>url</id>
+					<id>url_s</id>
 					<iceId>hero</iceId>
 					<title>URL</title>
 					<description></description>

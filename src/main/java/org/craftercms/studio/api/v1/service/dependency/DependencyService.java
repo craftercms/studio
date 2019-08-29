@@ -209,5 +209,4 @@ public interface DependencyService {
      * @return dependencies paths
      */
 	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException;
-
 }

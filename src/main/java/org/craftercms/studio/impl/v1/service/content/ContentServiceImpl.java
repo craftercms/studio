@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
-import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -92,6 +91,7 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
+import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
@@ -99,6 +99,7 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -255,6 +256,19 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @ValidateParams
+    public Resource getContentAsResource(@ValidateStringParam(name = "site") String site,
+                                         @ValidateSecurePathParam(name = "path") String path)
+        throws ContentNotFoundException {
+        if (contentExists(site, path)) {
+            return new ContentResource(this, site, path);
+        } else {
+            throw new ContentNotFoundException(path, site,
+                String.format("File '%s' not found in site '%s'", path, site));
+        }
+    }
+
+    @Override
+    @ValidateParams
     public void writeContent(@ValidateStringParam(name = "site") String site,
                              @ValidateSecurePathParam(name = "path") String path,
                              @ValidateStringParam(name = "fileName") String fileName,
@@ -265,16 +279,7 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: refactor for 2.7.x
 
         try {
-            long start = 0;
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                start = System.currentTimeMillis();
-                logger.debug("Starting entitlement validation");
-            }
-            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ITEM,
-                objectMetadataManager.countAllItems(), 1);
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-            }
+            entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
         } catch (EntitlementException e) {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
@@ -457,16 +462,7 @@ public class ContentServiceImpl implements ContentService {
                                                  String unlock, String systemAsset) throws ServiceLayerException {
 
         try {
-            long start = 0;
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                start = System.currentTimeMillis();
-                logger.debug("Starting entitlement validation");
-            }
-            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ITEM,
-                objectMetadataManager.countAllItems(), 1);
-            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
-            }
+            entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
         } catch (EntitlementException e) {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
@@ -845,6 +841,7 @@ public class ContentServiceImpl implements ContentService {
         return retNewFileName;
     }
 
+    @SuppressWarnings("unchecked")
     protected Document replaceCopyDependency(Document document, String depPath, String copyDepPath) {
         Element root = document.getRootElement();
         List<Node> includes = root.selectNodes(COPY_DEP_XPATH.replace(COPY_DEP, depPath));

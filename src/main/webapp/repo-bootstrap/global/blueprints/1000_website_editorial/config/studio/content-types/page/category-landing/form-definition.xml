@@ -21,11 +21,19 @@
 	<objectType>page</objectType>
 	<content-type>/page/category-landing</content-type>
 	<imageThumbnail>page-category-landing.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/pages/category-landing.ftl</value>
 			<type>template</type>
+		</property>
+		<property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
 		</property>
 		<property>
 			<name>merge-strategy</name>
@@ -153,7 +161,7 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>title</id>
+					<id>title_t</id>
 					<iceId></iceId>
 					<title>Title</title>
 					<description></description>
@@ -196,7 +204,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>header</id>
+					<id>header_o</id>
 					<iceId></iceId>
 					<title>Header</title>
 					<description>Default header is inherited from Section Defaults. Specify a new header to overwrite it.</description>
@@ -244,7 +252,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>left-rail</id>
+					<id>left-rail_o</id>
 					<iceId></iceId>
 					<title>Left Rail</title>
 					<description>Default left-rail is inherited from Section Defaults. Specify a new left-rail to overwrite it.</description>
@@ -299,7 +307,7 @@
 			<fields>
 				<field>
 					<type>input</type>
-					<id>articles_title</id>
+					<id>articles_title_t</id>
 					<iceId>articles</iceId>
 					<title>Articles Title</title>
 					<description></description>
@@ -342,7 +350,7 @@
 				</field>
 				<field>
 					<type>dropdown</type>
-					<id>category</id>
+					<id>category_s</id>
 					<iceId>articles</iceId>
 					<title>Category</title>
 					<description></description>
@@ -374,8 +382,8 @@
 					</constraints>
 				</field>
 				<field>
-					<type>input</type>
-					<id>max_articles</id>
+					<type>numeric-input</type>
+					<id>max_articles_i</id>
 					<iceId>articles</iceId>
 					<title>Max Articles</title>
 					<description></description>

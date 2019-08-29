@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParamter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 
@@ -264,7 +265,7 @@ public class PublisherTask implements Runnable {
                 for (String packageId : packageIds) {
                     sbPackIds.append(packageId).append(";");
                 }
-                generateWorkflowActivity(site, sbPackIds.toString(), author, OPERATION_PUBLISHED);
+                generateWorkflowActivity(site, environment, packageIds,  author, OPERATION_PUBLISHED);
                 publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
                 logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                 logger.info("Finished publishing environment " + environment + " for site " + site);
@@ -392,15 +393,25 @@ public class PublisherTask implements Runnable {
 
     }
 
-    protected void generateWorkflowActivity(String site, String path, String username, String operation) throws SiteNotFoundException {
+    protected void generateWorkflowActivity(String site, String environment, Set<String> packageIds, String username,
+                                            String operation) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
         auditLog.setActorId(username);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setPrimaryTargetId(site + ":" + path);
+        auditLog.setPrimaryTargetId(site + ":" + environment);
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-        auditLog.setPrimaryTargetValue(path);
+        auditLog.setPrimaryTargetValue(environment);
+        List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
+        for (String packageId : packageIds) {
+            AuditLogParamter auditLogParamter = new AuditLogParamter();
+            auditLogParamter.setTargetId(site + ":" + environment);
+            auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLogParamter.setTargetValue(packageId);
+            auditLogParamters.add(auditLogParamter);
+        }
+        auditLog.setParameters(auditLogParamters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 

@@ -21,11 +21,19 @@
 	<objectType>component</objectType>
 	<content-type>/component/left-rail</content-type>
 	<imageThumbnail>component-left-rail.png</imageThumbnail>
+    <quickCreate>false</quickCreate>
+    <quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/components/left-rail.ftl</value>
 			<type>template</type>
+		</property>
+		<property>
+			<name>no-template-required</name>
+			<label>No Template Required</label>
+			<value></value>
+			<type>boolean</type>
 		</property>
 		<property>
 			<name>merge-strategy</name>
@@ -127,7 +135,7 @@
 			<fields>
 				<field>
 					<type>node-selector</type>
-					<id>widgets</id>
+					<id>widgets_o</id>
 					<iceId>left-rail</iceId>
 					<title>Widgets</title>
 					<description></description>

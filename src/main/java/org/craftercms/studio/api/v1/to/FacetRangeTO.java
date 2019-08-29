@@ -24,28 +24,41 @@ package org.craftercms.studio.api.v1.to;
 public class FacetRangeTO {
 
     /**
+     * The label of the range
+     */
+    protected String label;
+
+    /**
      * The starting limit of the range
      */
-    protected Double from;
+    protected String from;
 
     /**
      * The ending limit of the range
      */
-    protected Double to;
+    protected String to;
 
-    public Double getFrom() {
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(final String label) {
+        this.label = label;
+    }
+
+    public String getFrom() {
         return from;
     }
 
-    public void setFrom(final Double from) {
+    public void setFrom(final String from) {
         this.from = from;
     }
 
-    public Double getTo() {
+    public String getTo() {
         return to;
     }
 
-    public void setTo(final Double to) {
+    public void setTo(final String to) {
         this.to = to;
     }
 

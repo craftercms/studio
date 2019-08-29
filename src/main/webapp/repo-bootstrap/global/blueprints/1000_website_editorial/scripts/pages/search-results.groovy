@@ -15,5 +15,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-def categoriesItem = siteItemService.getSiteItem(contentModel.categories.item.key.text)
+def categoriesItem = siteItemService.getSiteItem(contentModel.categories_o.item.key.text)
 templateModel.categories = categoriesItem.items.item

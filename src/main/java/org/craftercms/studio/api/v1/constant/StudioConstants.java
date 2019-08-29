@@ -50,6 +50,7 @@ package org.craftercms.studio.api.v1.constant;
 	/** variable names in configuration properties **/
    String PATTERN_CONTENT_TYPE = "\\{content\\-type\\}";
    String PATTERN_ENVIRONMENT = "\\{environment\\}";
+   String PATTERN_MODULE = "\\{module\\}";
    String PATTERN_ID = "\\$\\{id\\}";
    String PATTERN_KEY = "\\{key\\}";
    String PATTERN_SANDBOX = "\\$\\{sandbox\\}";
@@ -161,6 +162,7 @@ package org.craftercms.studio.api.v1.constant;
     String SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT = "staging-environment";
     String SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT = "live-environment";
     String SITE_CONFIG_ELEMENT_SANDBOX_BRANCH = "sandbox-branch";
+    String SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN = "plugin-folder-pattern";
 
     /**
      * Repository commit messages variables
@@ -187,12 +189,10 @@ package org.craftercms.studio.api.v1.constant;
     String CLUSTER_MEMBER_TOKEN = "token";
     String CLUSTER_MEMBER_PRIVATE_KEY = "privateKey";
 
-    /**
-     * Search Engines
-     */
-    String SEARCH_ENGINE_ELASTIC_SEARCH = "Elasticsearch";
-    String SEARCH_ENGINE_CRAFTER_SEARCH = "CrafterSearch";
-
     /* Map keys */
     String KEY_CONTENT_TYPE = "contentType";
+
+    /* Modules */
+    String MODULE_STUDIO = "studio";
+    String MODULE_ENGINE = "engine";
 }

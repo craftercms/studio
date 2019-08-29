@@ -40,7 +40,7 @@ public interface DependencyResolver {
     String XML_CONFIGURATION_REPLACE = "replace";
 
     /**
-     * Resolves dependent files for given content of given mimetype
+     * Resolves dependent files for given content of given path
      *
      * @param site
      * @param path

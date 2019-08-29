@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.DependencyDAO">
+
+    <resultMap id="DependencyMap" type="org.craftercms.studio.api.v2.dal.Dependency">
+        <id property="id" column="id"/>
+        <result property="site" column="site"/>
+        <result property="sourcePath" column="source_path"/>
+        <result property="targetPath" column="target_path"/>
+        <result property="type" column="type"/>
+    </resultMap>
+
+    <select id="getSoftDependenciesForList" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT source_path, target_path
+        FROM (dependency cd INNER JOIN item_state co ON cd.target_path = co.path AND cd.site = co.site)
+        WHERE cd.site = #{site}
+        AND cd.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co.state IN
+        <foreach item="state" index="index" collection="editedStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        AND
+        <foreach item="pattern" index="index" collection="regex"
+                 open="(" separator=" OR " close=")">
+            cd.target_path NOT RLIKE #{pattern}
+        </foreach>
+    </select>
+
+    <select id="getHardDependenciesForList" parameterType="java.util.Map"
+            resultType="java.util.Map">
+        SELECT cd1.source_path, cd1.target_path
+        FROM (dependency cd1 INNER JOIN item_state co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
+        WHERE cd1.site = #{site}
+        AND cd1.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co1.state IN
+        <foreach item="state" index="index" collection="newStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        UNION
+        SELECT cd2.source_path, cd2.target_path
+        FROM (dependency cd2 INNER JOIN item_state co2 ON cd2.target_path = co2.path AND cd2.site = co2.site)
+        WHERE cd2.site = #{site}
+        AND cd2.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co2.state IN
+        <foreach item="state" index="index" collection="editedStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        AND
+        <foreach item="pattern" index="index" collection="regex"
+                 open="(" separator=" OR " close=")">
+            cd2.target_path RLIKE #{pattern}
+        </foreach>
+    </select>
+</mapper>

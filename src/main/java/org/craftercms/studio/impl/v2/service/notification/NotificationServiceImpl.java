@@ -47,7 +47,6 @@ import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -59,6 +58,7 @@ import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.dom4j.Document;
@@ -66,7 +66,10 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_TIMEZONE;
 
 public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
@@ -75,6 +78,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFICATION_KEY_CONTENT_APPROVED = "contentApproved";
     private static final String NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW = "submittedForReview";
     private static final String NOTIFICATION_KEY_CONTENT_REJECTED = "contentRejected";
+    private static final String NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT = "repositoryMergeConflict";
 
     protected Map<String, Map<String, NotificationConfigTO>> notificationConfiguration;
     protected ContentService contentService;
@@ -84,6 +88,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected SecurityService securityService;
     private Configuration configuration;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
 
     public NotificationServiceImpl() {
         notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
@@ -97,8 +102,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable, final List<String>
-        filesUnableToPublish, final Locale locale) {
+    public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable,
+                                      final List<String> filesUnableToPublish, final Locale locale) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final Map<String, Object> templateModel = new HashMap<>();
@@ -120,15 +125,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyContentApproval(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "submitter") final String submitter, final List<String> itemsSubmitted,
-                                      @ValidateStringParam(name = "approver") final String approver, final ZonedDateTime scheduleDate, final Locale locale) {
+    public void notifyContentApproval(@ValidateStringParam(name = "site") final String site,
+                                      @ValidateStringParam(name = "submitter") final String submitter,
+                                      final List<String> itemsSubmitted,
+                                      @ValidateStringParam(name = "approver") final String approver,
+                                      final ZonedDateTime scheduleDate, final Locale locale) {
         try {
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
             templateModel.put("submitterUser", submitter);
             templateModel.put("approver", securityService.getUserProfile(approver));
-            templateModel.put("scheduleDate", Date.from(scheduleDate.toInstant()));
+            templateModel.put("scheduleDate", (scheduleDate == null) ? null : Date.from(scheduleDate.toInstant()));
             notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                 locale, templateModel);
         } catch (Throwable ex) {
@@ -139,7 +147,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public String getNotificationMessage(@ValidateStringParam(name = "site") final String site, final NotificationMessageType type, @ValidateStringParam(name = "key") final String key,
+    public String getNotificationMessage(@ValidateStringParam(name = "site") final String site,
+                                         final NotificationMessageType type,
+                                         @ValidateStringParam(name = "key") final String key,
                                          final Locale locale, final Pair<String, Object>... params) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
@@ -190,16 +200,19 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyApprovesContentSubmission(@ValidateStringParam(name = "name") final String site, final List<String> usersToNotify, final
-            List<String> itemsSubmitted, @ValidateStringParam(name = "submitter") final String submitter, final ZonedDateTime scheduleDate, final boolean isADelete, final
-            @ValidateStringParam(name = "submissionComments") String submissionComments, final Locale locale) {
+    public void notifyApprovesContentSubmission(@ValidateStringParam(name = "name") final String site,
+                                                final List<String> usersToNotify, final List<String> itemsSubmitted,
+                                                @ValidateStringParam(name = "submitter") final String submitter,
+                                                final ZonedDateTime scheduleDate, final boolean isADelete,
+                                                final @ValidateStringParam(name = "submissionComments")
+                                                            String submissionComments, final Locale locale) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
             templateModel.put("submitter", submitterUser);
-            templateModel.put("scheduleDate", Date.from(scheduleDate.toInstant()));
+            templateModel.put("scheduleDate", (scheduleDate == null) ? null : Date.from(scheduleDate.toInstant()));
             templateModel.put("isDeleted", isADelete);
             templateModel.put("submissionComments", submissionComments);
             if (usersToNotify == null) {
@@ -216,8 +229,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public void notify(@ValidateStringParam(name = "site") final String site, final List<String> toUsers, @ValidateStringParam(name = "key") final String key, final Locale locale, final
-    Pair<String, Object>... params) {
+    public void notify(@ValidateStringParam(name = "site") final String site, final List<String> toUsers,
+                       @ValidateStringParam(name = "key") final String key, final Locale locale,
+                       final Pair<String, Object>... params) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final EmailMessageTemplateTO emailTemplate = notificationConfig.getEmailMessageTemplates().get(key);
@@ -242,8 +256,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @SuppressWarnings("unchecked")
-    protected void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
-    Map<String, Object> params) {
+    protected void notify(final String site, final List<String> toUsers, final String key, final Locale locale,
+                          final Map<String, Object> params) {
         try {
             List<Pair<String, Object>> namedParams = new ArrayList<>();
             for (String paramKey : params.keySet()) {
@@ -257,9 +271,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @ValidateParams
-    public void notifyContentRejection(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "submittedBy") final String submittedBy, final List<String> rejectedItems,
-                                       @ValidateStringParam(name = "rejectionReason") final String rejectionReason, @ValidateStringParam(name = "userThatRejects") final String userThatRejects, final Locale
-                                               locale) {
+    public void notifyContentRejection(@ValidateStringParam(name = "site") final String site,
+                                       @ValidateStringParam(name = "submittedBy") final String submittedBy,
+                                       final List<String> rejectedItems,
+                                       @ValidateStringParam(name = "rejectionReason") final String rejectionReason,
+                                       @ValidateStringParam(name = "userThatRejects") final String userThatRejects,
+                                       final Locale locale) {
         try {
             final Map<String, Object> submitterUser = securityService.getUserProfile(submittedBy);
             Map<String, Object> templateModel = new HashMap<>();
@@ -280,9 +297,10 @@ public class NotificationServiceImpl implements NotificationService {
             notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
         }
         Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<String, NotificationConfigTO>();
-        String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+
         try {
-            Document document = contentService.getContentAsDocument(site, configFullPath);
+            Document document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, getConfigPath(),
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             if (document != null) {
                 Element root = document.getRootElement();
                 final List<Element> languages = root.selectNodes("//lang");
@@ -310,13 +328,15 @@ public class NotificationServiceImpl implements NotificationService {
                             configForLang.getDeploymentFailureNotifications());
                         loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
                             .getApproverEmails());
+                        loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
+                                configForLang.getRepositoryMergeConflictNotifications());
                     } else {
                         logger.error("A lang section does not have the 'name' attribute, ignoring");
                     }
                 }
             }
         } catch (Exception ex) {
-            logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " + site, ex);
+            logger.error("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, ex);
         }
         notificationConfiguration.put(site, siteNotificationConfig);
     }
@@ -455,6 +475,21 @@ public class NotificationServiceImpl implements NotificationService {
         return files;
     }
 
+    @Override
+    @ValidateParams
+    public void notifyRepositoryMergeConflict(@ValidateStringParam(name = "site") final String site,
+                                              final List<String> filesUnableToMerge, final Locale locale) {
+        try {
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
+            final Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("files", filesUnableToMerge);
+            notify(site, notificationConfig.getRepositoryMergeConflictNotifications(),
+                    NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT, locale, templateModel);
+        } catch (Throwable ex) {
+            logger.error("Unable to Notify Error", ex);
+        }
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(NOTIFICATION_CONFIGURATION_FILE);
     }
@@ -483,14 +518,6 @@ public class NotificationServiceImpl implements NotificationService {
         this.securityService = securityService;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -499,6 +526,12 @@ public class NotificationServiceImpl implements NotificationService {
         this.studioConfiguration = studioConfiguration;
     }
 
-    protected GeneralLockService generalLockService;
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 }
 

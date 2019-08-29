@@ -19,18 +19,19 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.to.DependencyResolverConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,10 +43,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
-        CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
+        CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 
@@ -55,6 +59,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
 
     @Override
     public Map<String, Set<String>> resolve(String site, String path) {
@@ -74,18 +79,18 @@ public class RegexDependencyResolver implements DependencyResolver {
                         toRet = getDependencies(site, path, content, dependencyTypes);
                     } else {
                         logger.error("Failed to extract dependencies. " +
-                                "Content was empty/null found for site: " + site + ", path: " + path);
+                                "No content or empty content found for site: " + site + ", path: " + path);
                     }
                 } else {
                     logger.debug("No dependency extraction required for site: " + site + ", path: " + path);
                 }
             } else {
-                String configLocation = getConfigLocation(site);
+                String configLocation = getConfigFileName();
                 logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists" +
                         " and it is valid XML file: " + configLocation);
             }
         } catch (Exception exc) {
-            logger.error("Unexcpected error resolving dependencies for site: " + site + " path: " + path);
+            logger.error("Unexpected error resolving dependencies for site: " + site + " path: " + path);
         }
         return toRet;
     }
@@ -94,13 +99,14 @@ public class RegexDependencyResolver implements DependencyResolver {
     private DependencyResolverConfigTO getConfiguration(String site) {
         DependencyResolverConfigTO config = null;
         logger.debug("Get configuration location for site " + site);
-        String configLocation = getConfigLocation(site);
+        String configLocation = getConfigFileName();
         String defaultConfigLocation = getDefaultConfigLocation();
         Document document = null;
         try {
             logger.debug("Load configuration as xml document from " + configLocation);
-            document = contentService.getContentAsDocument(site, configLocation);
-        } catch (DocumentException e) {
+            document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configLocation,
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+        } catch (DocumentException | IOException e) {
             logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);
         }
         if (document == null) {
@@ -256,19 +262,10 @@ public class RegexDependencyResolver implements DependencyResolver {
         return toRet;
     }
 
-    private String getConfigLocation(String site) {
-        String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        configLocation = configLocation + FILE_SEPARATOR + getConfigFileName();
-        return configLocation;
-    }
-
     private String getDefaultConfigLocation() {
         return getDefaultConfigPath() + FILE_SEPARATOR + getDefaultConfigFileName();
     }
 
-    public String getConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH);
-    }
 
     public String getConfigFileName() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME);
@@ -296,5 +293,13 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

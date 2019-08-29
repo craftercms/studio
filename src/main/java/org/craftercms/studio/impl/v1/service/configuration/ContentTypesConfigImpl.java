@@ -52,6 +52,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentTypesConfigImpl.class);
 
+    private static final String QUICK_CREATE = "quickCreate";
+    private static final String QUICK_CREATE_PATH = "quickCreatePath";
+
     @Override
     @ValidateParams
     public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "contentType") final String contentType) {
@@ -108,6 +111,10 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
             loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
             contentTypeConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
             contentTypeConfig.setType(getContentTypeTypeByName(name));
+            boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
+            contentTypeConfig.setQuickCreate(quickCreate);
+            contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
+
             return contentTypeConfig;
         } else {
             logger.debug("No content type configuration document found at " + configFileFullPath);

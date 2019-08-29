@@ -8,7 +8,7 @@
 -->
 <html>
 	<head>
-		<title>${contentModel.title}</title>
+		<title>${contentModel.title_t}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<!--[if lte IE 8]><script src="/static-assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -26,12 +26,12 @@
 						<div class="inner">
 
 							<!-- Header -->
-							<@renderComponent component=contentModel.header.item />
+							<@renderComponent component=contentModel.header_o.item />
 
 							<!-- Section -->
 								<section <@studio.iceAttr iceGroup="articles"/>>
 									<header class="main">
-										<h1>${contentModel.articles_title}</h1>
+										<h1>${contentModel.articles_title_t}</h1>
 									</header>
 									<div class="posts">
 										<#list articles as article>
@@ -58,7 +58,7 @@
 					</div>
 
 					<!-- Left Rail -->
-					<@renderComponent component=contentModel.left\-rail.item />
+					<@renderComponent component=contentModel.left\-rail_o.item />
 
 			</div>
 

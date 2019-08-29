@@ -3,13 +3,13 @@ CREATE DATABASE IF NOT EXISTS crafter
 
 FLUSH PRIVILEGES ;
 
-CREATE USER IF NOT EXISTS 'crafter'@'localhost'
+CREATE USER 'crafter'@'localhost'
   IDENTIFIED BY 'crafter' ;
 
 GRANT ALL PRIVILEGES ON crafter.* TO 'crafter'@'localhost'
 WITH GRANT OPTION ;
 
-CREATE USER IF NOT EXISTS 'crafter'@'%'
+CREATE USER 'crafter'@'%'
   IDENTIFIED BY 'crafter' ;
 
 GRANT ALL PRIVILEGES ON crafter.* TO 'crafter'@'%'

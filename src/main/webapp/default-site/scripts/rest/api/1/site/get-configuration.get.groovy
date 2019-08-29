@@ -23,7 +23,6 @@ def result = [:]
 def status = [:]
 def site = params.site_id
 def path = params.path
-def environment = params.environment
 def applyEnv = params.applyEnv
 
 /** Validate Parameters */
@@ -44,6 +43,6 @@ if (invalidParams) {
         applyEnvironment = true
     }
     def context = SiteServices.createContext(applicationContext, request)
-    result = SiteServices.getConfiguration(context, site, path, environment, applyEnvironment)
+    result = SiteServices.getConfiguration(context, site, path, applyEnvironment)
 }
 return result

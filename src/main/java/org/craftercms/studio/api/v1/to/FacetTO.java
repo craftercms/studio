@@ -42,6 +42,16 @@ public class FacetTO {
      */
     protected List<FacetRangeTO> ranges;
 
+    /**
+     * Indicates if the range is a date
+     */
+    protected boolean date;
+
+    /**
+     * Indicates if the facet supports multiple values, defaults to {@code false}
+     */
+    protected boolean multiple = false;
+
     public String getName() {
         return name;
     }
@@ -68,6 +78,22 @@ public class FacetTO {
 
     public boolean isRange() {
         return CollectionUtils.isNotEmpty(ranges);
+    }
+
+    public boolean isDate() {
+        return date;
+    }
+
+    public void setDate(final boolean date) {
+        this.date = date;
+    }
+
+    public boolean isMultiple() {
+        return multiple;
+    }
+
+    public void setMultiple(final boolean multiple) {
+        this.multiple = multiple;
     }
 
 }

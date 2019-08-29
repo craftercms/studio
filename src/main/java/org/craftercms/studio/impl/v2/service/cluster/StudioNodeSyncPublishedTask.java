@@ -19,8 +19,6 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 import java.io.IOException;
@@ -36,13 +34,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
@@ -94,15 +87,13 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
     }
 
     // Published never clones, instead, it lets the sanbox process handle that. Return true.
-    protected boolean cloneSiteInternal(String siteId, GitRepositories repoType)
-            throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+    protected boolean cloneSiteInternal(String siteId, GitRepositories repoType) {
         return true;
     }
 
-    protected void updateContentInternal(String siteId, String lastCommitId) throws IOException, CryptoException, ServiceLayerException {
+    protected void updateContentInternal(String siteId, String lastCommitId) throws IOException, CryptoException,
+                                                                                    ServiceLayerException {
         logger.debug("Update published repo for site " + siteId);
-        boolean toRet = true;
         Path siteSandboxPath = buildRepoPath(PUBLISHED).resolve(GIT_ROOT);
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repo = builder
@@ -112,25 +103,33 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
                 .build();
 
         try (Git git = new Git(repo)) {
-
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
             for (ClusterMember remoteNode : clusterNodes) {
-                logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
-                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
-                fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
-                fetch.call();
-                Files.delete(tempKey);
-
+                try {
+                    logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
+                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                    FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
+                    fetch = configureAuthenticationForCommand(remoteNode, fetch, tempKey);
+                    fetch.call();
+                    Files.delete(tempKey);
+                } catch (GitAPIException e) {
+                    logger.error("Error while fetching published repo for site " + siteId + " from remote " +
+                            remoteNode.getGitRemoteName());
+                    logger.error(e.getMessage());
+                }
                 logger.debug("Update all environments for site " + siteId + " from cluster member " +
                         remoteNode.getLocalAddress());
                 for (String branch : environments) {
-                    updatePublishedBranch(git, remoteNode, branch);
+                    try {
+                        updatePublishedBranch(git, remoteNode, branch);
+                    } catch (GitAPIException e) {
+                        logger.error("Error while updating published repo for site " + siteId + " from remote " +
+                                remoteNode.getGitRemoteName() + " environment " + branch);
+                        logger.error(e.getMessage());
+                    }
                 }
             }
-        } catch (GitAPIException e) {
-            logger.error("Error while updating published repo for site " + siteId);
         }
 
     }
@@ -140,9 +139,6 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
         logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalAddress() +
                 " for site " + siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
 
         Repository repo = git.getRepository();
         Ref ref = repo.exactRef(Constants.R_HEADS + branch);
@@ -158,11 +154,11 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
         checkoutCommand.call();
 
         FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
-        fetchCommand = setAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
+        fetchCommand = configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
         FetchResult fetchResult = fetchCommand.call();
 
-        ObjectId commitToMerge = null;
-        Ref r = null;
+        ObjectId commitToMerge;
+        Ref r;
         if (fetchResult != null) {
             r = fetchResult.getAdvertisedRef(branch);
             if (r == null) {
