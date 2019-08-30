@@ -505,6 +505,8 @@ studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
 studio.clustering.sandboxSyncJob.interval: 5000
 # Published Sync Job interval in milliseconds which is how often to sync the published repos
 studio.clustering.publishedSyncJob.interval: 60000
+# Global Repo Sync Job interval in milliseconds which is how often to sync the global repo
+studio.clustering.globalRepoSyncJob.interval: 45000
 # Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
 studio.clustering.heartbeatJob.interval: 10000
 # Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
