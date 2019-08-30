@@ -61,7 +61,7 @@
         <xerces.version>2.12.0</xerces.version>
 
         <studio.vcbp.path>target/vcbp</studio.vcbp.path>
-        <studio.vcbp.version>develop</studio.vcbp.version>
+        <studio.vcbp.version>master</studio.vcbp.version><!-- craftercms vcbp version flag -->
     </properties>
 
     <licenses>
