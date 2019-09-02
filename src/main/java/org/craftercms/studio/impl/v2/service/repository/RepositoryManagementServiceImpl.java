@@ -28,8 +28,10 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
@@ -41,6 +43,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class RepositoryManagementServiceImpl implements RepositoryManagementService {
@@ -120,6 +123,58 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
         boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
         insertAddRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
         return toRet;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "site_status")
+    public RepositoryStatus getRepositoryStatus(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId)
+            throws CryptoException, ServiceLayerException {
+        return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "resolve_conflict")
+    public RepositoryStatus resolveConflict(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path, String resolution)
+            throws CryptoException, ServiceLayerException {
+        boolean success = repositoryManagementServiceInternal.resolveConflict(siteId, path, resolution);
+        if (success) {
+            return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
+        } else {
+            throw new ServiceLayerException("Failed to resolve conflict for site " + siteId + " path " + path);
+        }
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "site_diff_conflicted_file")
+    public DiffConflictedFile getDiffForConflictedFile(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+            throws ServiceLayerException, CryptoException {
+        return repositoryManagementServiceInternal.getDiffForConflictedFile(siteId, path);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "commit_resolution")
+    public RepositoryStatus commitResolution(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                             String commitMessage) throws CryptoException, ServiceLayerException {
+        boolean success = repositoryManagementServiceInternal.commitResolution(siteId, commitMessage);
+        if (success) {
+            return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
+        } else {
+            throw new ServiceLayerException("Failed to commit conflict resolution for site " + siteId);
+        }
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "cancel_failed_pull")
+    public RepositoryStatus cancelFailedPull(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId)
+            throws ServiceLayerException, CryptoException {
+        boolean success = repositoryManagementServiceInternal.cancelFailedPull(siteId);
+        if (success) {
+            return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
+        } else {
+            throw new ServiceLayerException("Failed to cancel failed pull from remote for site " + siteId);
+        }
     }
 
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {

@@ -220,6 +220,11 @@
                 <permission>rebuild_database</permission>
                 <permission>remove_remote</permission>
                 <permission>write_configuration</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -238,6 +243,11 @@
                 <permission>rebuild_database</permission>
                 <permission>remove_remote</permission>
                 <permission>write_configuration</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">

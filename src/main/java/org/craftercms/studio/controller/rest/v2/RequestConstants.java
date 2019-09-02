@@ -62,4 +62,6 @@ public interface RequestConstants {
     String REQUEST_PARAM_CMIS_PATH = "cmisPath";
 
     String REQUEST_PARAM_PATHS = "paths";
+
+    String REQUEST_PARAM_PATH = "path";
 }

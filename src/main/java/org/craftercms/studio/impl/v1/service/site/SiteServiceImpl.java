@@ -65,7 +65,13 @@ import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.DeployerTargetException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteCreationException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -393,7 +399,7 @@ public class SiteServiceImpl implements SiteService {
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
                                            @ValidateNoTagsParam(name = "desc") String desc)
             throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-                   BlueprintNotFoundException {
+            BlueprintNotFoundException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
         }
@@ -455,7 +461,7 @@ public class SiteServiceImpl implements SiteService {
 
                 upgradeManager.upgradeSite(siteId);
 
-                insertCreateSiteAuditLog(siteId);
+                insertCreateSiteAuditLog(siteId, siteName);
 
                 // Add default groups
                 addDefaultGroupsForNewSite(siteId);
@@ -504,7 +510,7 @@ public class SiteServiceImpl implements SiteService {
 	    }
     }
 
-    private void insertCreateSiteAuditLog(String siteId) throws SiteNotFoundException {
+    private void insertCreateSiteAuditLog(String siteId, String siteName) throws SiteNotFoundException {
 	    SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
 	    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -513,7 +519,7 @@ public class SiteServiceImpl implements SiteService {
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteId);
+        auditLog.setPrimaryTargetValue(siteName);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -789,7 +795,7 @@ public class SiteServiceImpl implements SiteService {
 
                 upgradeManager.upgradeSite(siteId);
 
-                insertCreateSiteAuditLog(siteId);
+                insertCreateSiteAuditLog(siteId, siteId);
 
                 // Add default groups
                 logger.debug("Adding default groups for site " + siteId);
@@ -822,6 +828,22 @@ public class SiteServiceImpl implements SiteService {
                 throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
                         " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.");
             }
+        }
+
+        if (success) {
+            // Now that everything is created, we can sync the preview deployer with the new content
+            try {
+                deploymentService.syncAllContentToPreview(siteId, true);
+            } catch (ServiceLayerException e) {
+                logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
+                    + "successfully created otherwise. Ignoring.", e);
+
+                throw new SiteCreationException("Error while syncing site: " + siteId + " ID: " + siteId +
+                    " to preview. Site was successfully created, but it won't be preview-able until the " +
+                    "Preview Deployer is reachable.");
+            }
+        } else {
+            throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
     }
 
@@ -925,7 +947,7 @@ public class SiteServiceImpl implements SiteService {
 
             try {
 
-                    insertCreateSiteAuditLog(siteId);
+                    insertCreateSiteAuditLog(siteId, siteId);
 
                     insertAddRemoteAuditLog(siteId, remoteName);
 
@@ -1020,6 +1042,7 @@ public class SiteServiceImpl implements SiteService {
 	    try {
 		    // delete database records
 		    logger.debug("Deleting database records");
+		    SiteFeed siteFeed = getSite(siteId);
 			siteFeedMapper.deleteSite(siteId);
 			dependencyService.deleteSiteDependencies(siteId);
 	        deploymentService.deleteDeploymentDataForSite(siteId);
@@ -1028,7 +1051,7 @@ public class SiteServiceImpl implements SiteService {
 	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 	        contentRepository.deleteGitLogForSite(siteId);
 	        contentRepository.removeRemoteRepositoriesForSite(siteId);
-	        insertDeleteSiteAuditLog(siteId);
+	        insertDeleteSiteAuditLog(siteId, siteFeed.getName());
 	    } catch(Exception e) {
 		    success = false;
 		    logger.error("Failed to delete the database for site:" + siteId, e);
@@ -1037,7 +1060,7 @@ public class SiteServiceImpl implements SiteService {
 	 	return success;
     }
 
-    private void insertDeleteSiteAuditLog(String siteId) throws SiteNotFoundException {
+    private void insertDeleteSiteAuditLog(String siteId, String siteName) throws SiteNotFoundException {
 	    SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -1046,7 +1069,7 @@ public class SiteServiceImpl implements SiteService {
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(user);
+        auditLog.setPrimaryTargetValue(siteName);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -1565,8 +1588,14 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public boolean existsById(@ValidateStringParam(name = "site") String siteId) {
+    public boolean existsById(@ValidateStringParam(name = "siteId") String siteId) {
         return siteFeedMapper.existsById(siteId) > 0;
+    }
+
+    @Override
+    @ValidateParams
+    public boolean existsByName(@ValidateStringParam(name = "siteName") String siteName) {
+        return siteFeedMapper.existsByName(siteName) > 0;
     }
 
     @Override

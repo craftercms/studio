@@ -33,13 +33,17 @@ public class DependencyServiceImpl implements DependencyService {
     @Override
     public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path)
             throws ServiceLayerException {
+        List<String> toRet = dependencyServiceInternal.getSoftDependencies(siteId, path);
+        toRet.remove(path);
         return dependencyServiceInternal.getSoftDependencies(siteId, path);
     }
 
     @Override
     public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> paths)
             throws ServiceLayerException {
-        return dependencyServiceInternal.getSoftDependencies(siteId, paths);
+        List<String> toRet = dependencyServiceInternal.getSoftDependencies(siteId, paths);
+        toRet.removeAll(paths);
+        return toRet;
     }
 
     @Override

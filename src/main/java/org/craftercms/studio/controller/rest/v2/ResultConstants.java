@@ -58,6 +58,8 @@ public interface ResultConstants {
 
     /* Repository management controller */
     String RESULT_KEY_REMOTES = "remotes";
+    String RESULT_KEY_REPOSITORY_STATUS = "repositoryStatus";
+    String RESULT_KEY_DIFF = "diff";
 
     /* Dependency controller */
     String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";

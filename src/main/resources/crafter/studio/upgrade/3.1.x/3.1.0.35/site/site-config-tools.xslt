@@ -18,13 +18,13 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- define parameter -->
-    <xsl:param name="version" />
+    <!-- to keep the right formatting -->
+    <xsl:output method="xml" indent="yes" />
+    <xsl:strip-space elements="*"/>
 
     <!-- copy all elements -->
     <xsl:template match="node() | @*">
         <xsl:copy>
-            <xsl:copy-of select="@*"/>
             <xsl:apply-templates select="node() | @*"/>
         </xsl:copy>
     </xsl:template>
@@ -34,35 +34,20 @@
         <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
     </xsl:template>
 
-    <!-- update the version if it already exist -->
-    <xsl:template match="version">
+    <xsl:template match="config/tools/tool/controls">
         <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:value-of select="$version"/>
-        </xsl:copy>
-    </xsl:template>
-
-    <!-- add the version if it doesn't exist -->
-    <xsl:template match="/*[1]">
-        <xsl:choose>
-            <xsl:when test="not(version)">
-                <xsl:copy>
-                    <xsl:copy-of select="@*"/>
-                    <xsl:text>&#10;</xsl:text>
-                    <xsl:text>&#x9;</xsl:text>
-                    <xsl:element name="version">
-                        <xsl:value-of select="$version"/>
+            <xsl:apply-templates/>
+            <xsl:if test="not(control/name = 'numeric-input')">
+                <xsl:element name="control">
+                    <xsl:element name="name"><xsl:text>numeric-input</xsl:text></xsl:element>
+                    <xsl:element name="icon">
+                        <xsl:element name="class"><xsl:text>fa-pencil-square</xsl:text></xsl:element>
                     </xsl:element>
-                    <xsl:apply-templates select="node() | @*"/>
-                </xsl:copy>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy>
-                    <xsl:copy-of select="@*"/>
-                    <xsl:apply-templates select="node() | @*"/>
-                </xsl:copy>
-            </xsl:otherwise>
-        </xsl:choose>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+
+        </xsl:copy>
     </xsl:template>
 
 </xsl:stylesheet>

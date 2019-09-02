@@ -101,9 +101,17 @@ public class ApiResponse {
             new ApiResponse(11001, "Cluster member already exists", "Get the list of cluster members to validate",
                     StringUtils.EMPTY);
 
+    public static final ApiResponse REMOTE_REPOSITORY_NOT_FOUND =
+            new ApiResponse(12000, "Remote repository not found",
+                    "Check if you sent in the right remote repository name", StringUtils.EMPTY);
+
     public static final ApiResponse REMOTE_REPOSITORY_ALREADY_EXISTS =
             new ApiResponse(12001, "Remote repository already exists",
                     "Get the list of remote repositories to validate", StringUtils.EMPTY);
+
+    public static final ApiResponse PULL_FROM_REMOTE_REPOSITORY_CONFLICT =
+            new ApiResponse(12002, "Pull from remote repository resulted in conflict",
+                    "Resolve conflicts before continuing work with repository", StringUtils.EMPTY);
 
     public static final ApiResponse CMIS_UNREACHABLE =
             new ApiResponse(50000, "CMIS server is unreachable", "Advise the user that the CMIS server is not " +
