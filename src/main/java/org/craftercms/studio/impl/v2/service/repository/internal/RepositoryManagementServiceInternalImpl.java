@@ -92,6 +92,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTFIX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_PREFIX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
@@ -590,7 +592,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             String userName = securityService.getCurrentUser();
             User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
             PersonIdent personIdent = helper.getAuthorIdent(user);
-            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(commitMessage).call();
+            String prefix = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PREFIX);
+            String postfix = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTFIX);
+
+            StringBuilder sbMessage = new StringBuilder();
+            if (StringUtils.isNotEmpty(prefix)) {
+                sbMessage.append(prefix).append("\n\n");
+            }
+            sbMessage.append(commitMessage);
+            if (StringUtils.isNotEmpty(postfix)) {
+                sbMessage.append("\n\n").append(postfix);
+            }
+            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(sbMessage.toString()).call();
             return true;
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
             logger.error("Error while committing conflict resolution for site " + siteId, e);
