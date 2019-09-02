@@ -32,6 +32,8 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -95,6 +97,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private SecurityService securityService;
     private ObjectMetadataManager objectMetadataManager;
     private ServicesConfig servicesConfig;
+    private ObjectStateService objectStateService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -243,6 +246,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         String configPath = Paths.get(configBasePath, path).toString();
         contentService.writeContent(siteId, configPath, content);
         String currentUser = securityService.getCurrentUser();
+        objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
         updateMetadata(siteId, configPath, currentUser);
         generateAuditLog(siteId, configPath, currentUser);
     }
@@ -258,6 +262,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 String configPath = Paths.get(configBasePath, path).toString();
                 contentService.writeContent(siteId, configPath, content);
                 String currentUser = securityService.getCurrentUser();
+                objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
                 updateMetadata(siteId, configPath, currentUser);
                 generateAuditLog(siteId, configPath, currentUser);
             } else {
@@ -337,5 +342,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
         this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
+
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
     }
 }
