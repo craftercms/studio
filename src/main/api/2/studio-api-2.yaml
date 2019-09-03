@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.17'
+  version: '3.1.2.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2491,6 +2491,7 @@ paths:
         - name: path
           in: query
           description: Configuration file path, relative to /config/<module>
+          required: true
           schema:
             type: string
         - name: environment
@@ -2566,6 +2567,59 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/get_configuration_history:
+    get:
+      tags:
+        - configuration
+      summary: Get configuration history for site and configuration location
+      description: 'Required permission "read_configuration"'
+      operationId: getConfigurationHistory
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: module
+          in: query
+          description: Module name (e.g. studio, engine)
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Configuration file path, relative to /config/<module>
+          required: true
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: environment to use
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  history:
+                    $ref: '#/components/schemas/History'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3607,6 +3661,38 @@ components:
         clean:
           type: boolean
           description: true if there are no conflicts or uncommited changes
+
+    History:
+      type: object
+      properties:
+        item:
+          $ref: '#/components/schemas/ContentItem'
+        versions:
+          type: array
+          description: list of versions
+          items:
+            $ref: '#components/schemas/ContentItemVersion'
+
+    ContentItemVersion:
+      type: object
+      properties:
+        versionNumber:
+          type: string
+          description: version label
+        lastModifiedDate:
+          type: string
+          format: datetime
+          description: last modified date and time of version
+        lastModifier:
+          type: string
+          description: user that modified item
+        comment:
+          type: string
+          description: commit message
+
+    ContentItem:
+      type: object
+      description: API v1 object
 
   responses:
     NotFound:
