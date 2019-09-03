@@ -724,3 +724,8 @@ studio.serverless.delivery.deployer.target.template.params:
     cloudformation:
       namespace: craftercms
 
+##################################################
+##                 Marketplace                  ##
+##################################################
+# The full URL for the Marketplace
+studio.marketplace.url: https://marketplace.craftercms.org
