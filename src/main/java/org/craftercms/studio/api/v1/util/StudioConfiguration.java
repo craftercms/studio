@@ -37,8 +37,8 @@ public interface StudioConfiguration {
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String REPO_BLUEPRINTS_DESCRIPTOR_FILENAME = "studio.repo.blueprints.descriptor.filename";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
-    String REPO_COMMIT_MESSAGE_PREFIX = "studio.repo.commitMessagePrefix";
-    String REPO_COMMIT_MESSAGE_POSTFIX = "studio.repo.commitMessagePostfix";
+    String REPO_COMMIT_MESSAGE_PROLOGUE = "studio.repo.commitMessagePrologue";
+    String REPO_COMMIT_MESSAGE_POSTSCRIPT = "studio.repo.commitMessagePostscript";
     String REPO_SANDBOX_WRITE_COMMIT_MESSAGE = "studio.repo.sandbox.write.commitMessage";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
     String REPO_PUBLISHED_LIVE = "studio.repo.published.live";
