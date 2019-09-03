@@ -36,10 +36,10 @@ studio.repo.blueprintsPath: blueprints
 studio.repo.blueprints.descriptor.filename: craftercms-plugin.yaml
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
 studio.repo.bootstrapRepo: true
-# Repository commit prefix message
-studio.repo.commitMessagePrefix:
-# Repository commit postfix message
-studio.repo.commitMessagePostfix:
+# Repository commit prologue message
+studio.repo.commitMessagePrologue:
+# Repository commit postscript message
+studio.repo.commitMessagePostscript:
 # Sandbox repository write commit message
 studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
 # Published repository commit message
