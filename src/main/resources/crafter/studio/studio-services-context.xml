@@ -1139,6 +1139,11 @@
         <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
+    <bean id="studioConfiguration2" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
+          init-method="init"  depends-on="cstudioLogProvider">
+        <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--         Asset Processing               -->
     <!-- ////////////////////////////////////// -->

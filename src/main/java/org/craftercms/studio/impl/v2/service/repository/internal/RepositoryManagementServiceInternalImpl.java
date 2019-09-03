@@ -41,7 +41,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.util.GitRepositoryHelper;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.FetchCommand;
