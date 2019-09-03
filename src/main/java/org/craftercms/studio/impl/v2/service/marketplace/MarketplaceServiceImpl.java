@@ -80,10 +80,11 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
     @Override
     public void afterPropertiesSet() throws Exception {
         VersionInfo versionInfo = VersionInfo.getVersion(MarketplaceServiceImpl.class);
+        String versionStr = versionInfo.getPackageVersion();
 
         // init version
-        version = Version.getVersion(versionInfo.getPackageVersion());
-        edition = Version.getEdition(versionInfo.getPackageBuild());
+        version = Version.getVersion(versionStr);
+        edition = Version.getEdition(versionStr);
 
         // init headers
         httpHeaders = new HttpHeaders();
@@ -91,7 +92,7 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
 
         httpHeaders.set(HEADER_STUDIO_BUILD, versionInfo.getPackageBuild());
         httpHeaders.set(HEADER_STUDIO_VERSION, versionInfo.getPackageVersion());
-        httpHeaders.set(HEADER_JAVA_VERSION, versionInfo.getJavaVersion());
+        httpHeaders.set(HEADER_JAVA_VERSION, versionStr);
 
         httpHeaders.set(HEADER_OS_NAME, versionInfo.getOsName());
         httpHeaders.set(HEADER_OS_VERSION, versionInfo.getOsVersion());
