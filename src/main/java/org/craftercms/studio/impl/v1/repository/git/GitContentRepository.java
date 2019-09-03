@@ -164,8 +164,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTFIX;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_PREFIX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COPY_CONTENT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_CREATE_FOLDER_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_DELETE_CONTENT_COMMIT_MESSAGE;
@@ -1246,15 +1246,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
                     commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
                     logger.debug("Git commit all published items started.");
-                    String prefix = helper.studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PREFIX);
-                    String postfix = helper.studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTFIX);
+                    String prologue = helper.studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
+                    String postscript = helper.studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
                     StringBuilder sbCommitMessage = new StringBuilder();
-                    if (StringUtils.isNotEmpty(prefix)) {
-                        sbCommitMessage.append(prefix).append("\n\n");
+                    if (StringUtils.isNotEmpty(prologue)) {
+                        sbCommitMessage.append(prologue).append("\n\n");
                     }
                     sbCommitMessage.append(commitMessage);
-                    if (StringUtils.isNotEmpty(postfix)) {
-                        sbCommitMessage.append("\n\n").append(postfix);
+                    if (StringUtils.isNotEmpty(postscript)) {
+                        sbCommitMessage.append("\n\n").append(postscript);
                     }
                     RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent).call();
                     logger.debug("Git commit all published items completed.");
