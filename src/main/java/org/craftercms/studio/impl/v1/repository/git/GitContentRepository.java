@@ -164,6 +164,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COPY_CONTENT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_CREATE_FOLDER_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_DELETE_CONTENT_COMMIT_MESSAGE;
@@ -304,7 +306,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     if (helper.writeFile(repo, site, path, content)) {
                         PersonIdent user = helper.getCurrentUserIdent();
                         String username = securityService.getCurrentUser();
-                        String comment = studioConfiguration.getProperty(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
+                        String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
                             .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
                             .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
                         commitId = helper.commitFile(repo, site, path, comment, user);
@@ -368,7 +370,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (result) {
                 try {
                     commitId = helper.commitFile(repo, site, emptyFilePath.toString(),
-                            studioConfiguration.getProperty(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
+                            helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
                                     .replaceAll(PATTERN_SITE, site)
                                     .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
                             helper.getCurrentUserIdent());
@@ -402,7 +404,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // TODO: SJ: we need to define messages in a string table of sorts
                 commitId = helper.commitFile(repo, site, pathToCommit,
-                        studioConfiguration.getProperty(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
+                        helper.getCommitMessage(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
                                 .replaceAll(PATTERN_PATH, path),
                         StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
@@ -511,7 +513,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .setOnly(pathRemoved)
                             .setAuthor(helper.getCurrentUserIdent())
                             .setCommitter(helper.getCurrentUserIdent())
-                            .setMessage(studioConfiguration.getProperty(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
+                            .setMessage(helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
                                     .replaceAll(PATTERN_FROM_PATH, fromPath)
                                     .replaceAll(PATTERN_TO_PATH, toPath + (StringUtils.isNotEmpty(newName) ? newName : EMPTY)))
                             .call();
@@ -553,7 +555,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .setOnly(gitToPath)
                         .setAuthor(helper.getCurrentUserIdent())
                         .setCommitter(helper.getCurrentUserIdent())
-                        .setMessage(studioConfiguration.getProperty(REPO_COPY_CONTENT_COMMIT_MESSAGE)
+                        .setMessage(helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
                                 .replaceAll(PATTERN_FROM_PATH, fromPath).replaceAll(PATTERN_TO_PATH, toPath))
                         .call();
                 commitId = commit.getName();
@@ -936,7 +938,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // Commit everything
                     // TODO: Consider what to do with the commitId in the future
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    git.commit().setMessage(studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE)).call();
+                    git.commit().setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE)).call();
                 }
 
                 git.close();
@@ -970,8 +972,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         if (toReturn) {
             // commit everything so it is visible
-            toReturn = helper.performInitialCommit(site,
-                    studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
+            toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
+                    sandboxBranch);
         }
 
         return toReturn;
@@ -1149,7 +1151,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .call();
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                     git.commit()
-                            .setMessage(studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE))
+                            .setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE))
                             .call();
                 }
 
@@ -1244,7 +1246,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
                     commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
                     logger.debug("Git commit all published items started.");
-                    RevCommit revCommit = git.commit().setMessage(commitMessage).setAuthor(authorIdent).call();
+                    String prologue = helper.studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
+                    String postscript = helper.studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
+                    StringBuilder sbCommitMessage = new StringBuilder();
+                    if (StringUtils.isNotEmpty(prologue)) {
+                        sbCommitMessage.append(prologue).append("\n\n");
+                    }
+                    sbCommitMessage.append(commitMessage);
+                    if (StringUtils.isNotEmpty(postscript)) {
+                        sbCommitMessage.append("\n\n").append(postscript);
+                    }
+                    RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent).call();
                     logger.debug("Git commit all published items completed.");
                     int commitTime = revCommit.getCommitTime();
 
@@ -1789,7 +1801,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // commit everything so it is visible
                 logger.debug("Perform initial commit for site " + siteId);
                 toReturn = helper.performInitialCommit(siteId,
-                        studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
+                        helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
             }
         } else {
             logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +

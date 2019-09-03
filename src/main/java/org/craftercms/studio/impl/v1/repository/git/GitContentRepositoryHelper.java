@@ -99,6 +99,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
@@ -239,7 +241,7 @@ public class GitContentRepositoryHelper {
             try (Git git = new Git(toReturn)) {
                 git.commit()
                         .setAllowEmpty(true)
-                        .setMessage(studioConfiguration.getProperty(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE))
+                        .setMessage(getCommitMessage(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE))
                         .call();
             } catch (GitAPIException e) {
                 logger.error("Error while creating repository for site with path" + path.toString(), e);
@@ -342,7 +344,8 @@ public class GitContentRepositoryHelper {
                 if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
                     git.commit()
                             .setAllowEmpty(true)
-                            .setMessage(studioConfiguration.getProperty(REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE).replaceAll(PATTERN_SANDBOX, sandboxBranchName))
+                            .setMessage(getCommitMessage(REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE)
+                                    .replaceAll(PATTERN_SANDBOX, sandboxBranchName))
                             .call();
                 }
                 git.checkout()
@@ -771,6 +774,22 @@ public class GitContentRepositoryHelper {
         }
 
         return commitId;
+    }
+
+    public String getCommitMessage(String commitMessageKey) {
+        String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
+        String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
+        String message = studioConfiguration.getProperty(commitMessageKey);
+
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(prologue)) {
+            sb.append(prologue).append("\n\n");
+        }
+        sb.append(message);
+        if (StringUtils.isNotEmpty(postscript)) {
+            sb.append("\n\n").append(postscript);
+        }
+        return sb.toString();
     }
 
     /**

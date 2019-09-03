@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FilenameUtils;
@@ -48,9 +47,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.context.support.ServletContextResource;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
