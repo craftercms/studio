@@ -565,6 +565,19 @@
         <property name="deploymentService" ref="cstudioDeploymentService" />
     </bean>
 
+    <bean id="studioClusterGlobalRepoSyncJob"
+          class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
+        <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="deployer" ref="allDeployers" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="clusterDAO" ref="clusterDao" />
+        <property name="repositoryType" value="GLOBAL" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+    </bean>
+
     <bean id="studioClusterNodeHeartbeatJob"
           class="org.craftercms.studio.impl.v2.service.cluster.StudioNodeHeartbeatJob">
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -623,6 +636,20 @@
         <property name="startDelay" value="0" />
     </bean>
 
+    <bean id="cstudioClusterGlobalRepoSyncJobsScheduled"
+          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
+                <property name="targetObject" ref="studioClusterGlobalRepoSyncJob"/>
+                <property name="targetMethod" value="run"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_GLOBAL_REPO_SYNC_JOB_INTERVAL)}" />
+        <property name="startDelay" value="0" />
+    </bean>
+
     <bean id="cstudioClusterNodeHeartbeatJobsScheduled"
           class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
@@ -668,6 +695,7 @@
         <ref bean="studioRepositoryCleanupJobTrigger"/>
         <ref bean="cstudioClusterSandboxSyncJobsScheduled" />
         <ref bean="cstudioClusterPublishedSyncJobsScheduled" />
+        <ref bean="cstudioClusterGlobalRepoSyncJobsScheduled" />
         <ref bean="cstudioClusterNodeHeartbeatJobsScheduled" />
         <ref bean="cstudioClusterNodeInactivityCheckJobsScheduled" />
     </util:list>

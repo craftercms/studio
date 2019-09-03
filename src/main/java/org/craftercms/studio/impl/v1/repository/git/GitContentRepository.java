@@ -1474,7 +1474,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
         if (repository != null) {
             synchronized (repository) {
-                Repository repo = helper.getRepository(site, SANDBOX);
+                Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
                 if (repo != null) {
                     try (RevWalk rw = new RevWalk(repo)) {
                         ObjectId head = repo.resolve(HEAD);
