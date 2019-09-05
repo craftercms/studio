@@ -2729,7 +2729,7 @@ paths:
     get:
       tags: 
         - content
-      summary: Get list of delete dependencies for given content paths
+      summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
       description: 'Required permission "delete_content"'
       operationId: getDeletePackage
       parameters:
@@ -2741,7 +2741,7 @@ paths:
             type: string
         - name: paths
           in: query
-          description: Content paths to get delete dependencies for
+          description: Content paths to get a delete package for
           required: true
           schema:
             type: array
