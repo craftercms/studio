@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.2.1'
+  version: '3.1.2.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2725,6 +2725,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/get_delete_package:
+    get:
+      tags: 
+        - content
+      summary: Get list of delete dependencies for given content paths
+      description: 'Required permission "delete_content"'
+
   /dependency/dependencies:
     get:
       tags:
@@ -2775,7 +2782,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          $ref: '#/components/responses/InternalServerError'        
 
   /marketplace/search:
     get:
