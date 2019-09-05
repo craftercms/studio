@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.2.1'
+  version: '3.1.2.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2725,6 +2725,99 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/get_delete_package:
+    get:
+      tags: 
+        - content
+      summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
+      description: 'Required permission "delete_content"'
+      operationId: getDeletePackage
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to get a delete package for
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: object
+                    properties:
+                      childItems:
+                        type: array
+                        items:
+                          type: string
+                      dependentItems:
+                        type: array
+                        items:
+                          type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'             
+
+  /content/delete:
+    delete:
+      tags:
+        - content
+      summary: Delete content
+      description: 'Required Permission: "delete_content"'
+      operationId: deleteContent
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to be deleted
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dependency/dependencies:
     get:
       tags:
@@ -2775,7 +2868,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          $ref: '#/components/responses/InternalServerError'        
 
   /marketplace/search:
     get:
@@ -3671,7 +3764,7 @@ components:
           type: array
           description: list of versions
           items:
-            $ref: '#components/schemas/ContentItemVersion'
+            $ref: '#/components/schemas/ContentItemVersion'
 
     ContentItemVersion:
       type: object
