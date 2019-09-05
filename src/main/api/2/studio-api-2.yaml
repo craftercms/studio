@@ -2731,6 +2731,92 @@ paths:
         - content
       summary: Get list of delete dependencies for given content paths
       description: 'Required permission "delete_content"'
+      operationId: getDeletePackage
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to get delete dependencies for
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: object
+                    properties:
+                      childItems:
+                        type: array
+                        items:
+                          type: string
+                      dependentItems:
+                        type: array
+                        items:
+                          type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'             
+
+  /content/delete:
+    delete:
+      tags:
+        - content
+      summary: Delete content
+      description: 'Required Permission: "delete_content"'
+      operationId: deleteContent
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to be deleted
+          required: required
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /dependency/dependencies:
     get:
