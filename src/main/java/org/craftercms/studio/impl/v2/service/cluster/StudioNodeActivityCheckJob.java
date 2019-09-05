@@ -22,9 +22,9 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,14 +32,14 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_HEARTBEAT_STALE_TIME_LIMIT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_INACTIVITY_TIME_LIMIT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.dal.ClusterMember.State.INACTIVE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_HEARTBEAT_STALE_LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVE_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVITY_LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_MEMBER_IDS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_HEARTBEAT_STALE_TIME_LIMIT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_INACTIVITY_TIME_LIMIT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 
 public class StudioNodeActivityCheckJob implements Runnable{
 

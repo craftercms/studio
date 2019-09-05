@@ -23,12 +23,12 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException
-import org.craftercms.studio.api.v1.util.StudioConfiguration
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH
 
 def studioConfiguration = applicationContext.get("studioConfiguration")
 def result = [:]
@@ -95,7 +95,7 @@ try {
 
     // sandbox_branch
     if (StringUtils.isEmpty(sandboxBranch)) {
-        sandboxBranch = studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH);
+        sandboxBranch = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
     }
 
     if (useRemote) {

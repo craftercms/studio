@@ -10,7 +10,7 @@
 # Load override configuration files (to override what's defined here)
 studio.config.overrideConfig: crafter/studio/extension/studio-config-override.yaml
 # Load override configuration files (to override what's defined here)
-studio.config.globalRepoOverrideConfig: crafter/studio/extension/studio-config-override.yaml
+studio.config.globalRepoOverrideConfig: configuration/studio-config-override.yaml
 
 ##################################################
 ##              Content Repository              ##

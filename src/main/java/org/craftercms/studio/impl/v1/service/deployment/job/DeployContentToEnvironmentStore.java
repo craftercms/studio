@@ -27,14 +27,13 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 import org.springframework.core.task.TaskExecutor;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
-
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
 

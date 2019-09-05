@@ -19,6 +19,11 @@ package org.craftercms.studio.impl.v2.utils;
 
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.builder.ConfigurationBuilderEvent;
+import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.event.Event;
+import org.apache.commons.configuration2.event.EventListener;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.tree.DefaultExpressionEngine;
 import org.apache.commons.configuration2.tree.DefaultExpressionEngineSymbols;
@@ -55,6 +60,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         YamlConfiguration baseConfig = new YamlConfiguration();
         YamlConfiguration overrideConfig = new YamlConfiguration();
         YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
+
 
         Resource resource = new ClassPathResource(configLocation);
         try (InputStream in = resource.getInputStream()) {
@@ -96,11 +102,29 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         }
 
         if (config.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
+
+
             Path globalRepoOverrideConfigLocation = Paths.get(config.getString(REPO_BASE_PATH),
                     config.getString(GLOBAL_REPO_PATH), config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
 
             FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
 
+            Parameters parameters = new Parameters();
+            ReloadingFileBasedConfigurationBuilder<YamlConfiguration> builder =
+                    new ReloadingFileBasedConfigurationBuilder<YamlConfiguration>(YamlConfiguration.class)
+                            .configure(parameters.fileBased().setFile(globalRepoOverrideConfigLocation.toFile()));
+
+            // Register an event listener for triggering reloading checks
+            builder.addEventListener(ConfigurationBuilderEvent.CONFIGURATION_REQUEST,
+                    new EventListener()
+                    {
+                        @Override
+                        public void onEvent(Event event)
+                        {
+                            builder.getReloadingController().checkForReloading(null);
+                        }
+                    });
+/*
             try (InputStream in = fsr.getInputStream()) {
                 globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
                 globalRepoOverrideConfig.read(in);
@@ -110,6 +134,12 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                             globalRepoOverrideConfigLocation.toAbsolutePath(), globalRepoOverrideConfig);
                 }
             } catch (IOException | ConfigurationException e) {
+                logger.error("Failed to load studio configuration from: " +
+                        globalRepoOverrideConfigLocation.toAbsolutePath(), e);
+            }*/
+            try {
+                globalRepoOverrideConfig = builder.getConfiguration();
+            } catch (ConfigurationException e) {
                 logger.error("Failed to load studio configuration from: " +
                         globalRepoOverrideConfigLocation.toAbsolutePath(), e);
             }

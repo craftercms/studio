@@ -36,7 +36,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
@@ -50,21 +50,49 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_ASSET_CHAIN_NAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_ASSIGNEE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_XML_CHAIN_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSET_CHAIN_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSIGNEE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_XML_CHAIN_NAME;
 
 public class ImportServiceImpl implements ImportService {
 
     private final static Logger logger = LoggerFactory.getLogger(ImportServiceImpl.class);
 
+    protected SiteService siteService;
+    protected SecurityService securityService;
+    protected ContentRepository contentRepository;
+    protected ContentService contentService;
+    protected ObjectStateService objectStateService;
+    protected DmPublishService dmPublishService;
+    protected StudioConfiguration studioConfiguration;
+
+    /**
+     * is import in progress?
+     */
+    private boolean inProgress = false;
+
+    /** going to pause import process? **/
+    private boolean pauseEanbeld = false;
+    /** next pause time **/
+    private long nextStop;
+    /** import delay interval **/
+    private long currentDelayInterval;
+    /** import delay time **/
+    private long currentDelayLength;
+
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public void importSite(@ValidateSecurePathParam(name = "configLocation") String configLocation) throws SiteNotFoundException {
+    public void importSite(@ValidateSecurePathParam(name = "configLocation") String configLocation)
+            throws SiteNotFoundException {
         Document document = loadConfiguration(configLocation);
         if (document != null) {
             Element root = document.getRootElement();
@@ -88,7 +116,8 @@ public class ImportServiceImpl implements ImportService {
                     int delayLength = (!StringUtils.isEmpty(delayLengthStr) && StringUtils.isNumeric(delayLengthStr))
                             ? Integer.valueOf(delayLengthStr) : -1;
 
-                    importFromConfigNode(name, publishingChannelGroup, foldersNode, sourceLocation, FILE_SEPARATOR, publish, chunkSize, delayInterval, delayLength);
+                    importFromConfigNode(name, publishingChannelGroup, foldersNode, sourceLocation, FILE_SEPARATOR,
+                            publish, chunkSize, delayInterval, delayLength);
                 }
             }
         }
@@ -117,7 +146,8 @@ public class ImportServiceImpl implements ImportService {
     @SuppressWarnings("unchecked")
     private void importFromConfigNode(final String site, String publishChannelGroup, final Node node,
                                       final String fileRoot, final String targetRoot,
-                                      boolean publish, int chunkSize, int delayInterval, int delayLength) throws SiteNotFoundException {
+                                      boolean publish, int chunkSize, int delayInterval, int delayLength)
+            throws SiteNotFoundException {
         if (!inProgress) {
             inProgress = true;
             if (delayInterval > 0) pauseEanbeld = true;
@@ -139,7 +169,8 @@ public class ImportServiceImpl implements ImportService {
                 this.nextStop = System.currentTimeMillis() + this.currentDelayInterval;
                 createFolders(site, importedPaths, importedFullPaths, folderNodes, fileRoot, targetRoot, "",
                         overWrite, user);
-                logger.info("Starting Publish of Imported Files (Total " + importedFullPaths.size() + " On chunkSize of " + chunkSize + " )");
+                logger.info("Starting Publish of Imported Files (Total " + importedFullPaths.size()
+                        + " On chunkSize of " + chunkSize + " )");
                 publish(site, publishChannelGroup, targetRoot, importedFullPaths, chunkSize);
             } else {
                 this.nextStop = System.currentTimeMillis() + this.currentDelayInterval;
@@ -231,7 +262,8 @@ public class ImportServiceImpl implements ImportService {
      * @param user
      */
     protected void importRootFileList(String site, Set<String> importedPaths, List<String> importedFullPaths,
-                                      String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) throws SiteNotFoundException {
+                                      String fileRoot, String targetRoot, String parentPath, boolean overWrite,
+                                      String user) throws SiteNotFoundException {
         URL resourceUrl = getResourceUrl(fileRoot);
         if (resourceUrl != null) {
             String resourcePath = resourceUrl.getFile();
@@ -295,7 +327,8 @@ public class ImportServiceImpl implements ImportService {
      * @param user
      */
     protected void importFileList(String site, Set<String> importedPaths, List<String> importedFullPaths,
-                                  String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) throws SiteNotFoundException {
+                                  String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user)
+            throws SiteNotFoundException {
         logger.info("[IMPORT] importFileList: fileRoot [" + fileRoot + "] name [" + targetRoot + "] overwrite["
                 + overWrite + "]");
         URL resourceUrl = getResourceUrl(fileRoot);
@@ -313,8 +346,9 @@ public class ImportServiceImpl implements ImportService {
                             if (!folderExists) {
                                 contentService.createFolder(site, parentPath, childName);
                             }
-                            importFileList(site, importedPaths, importedFullPaths, fileRoot + FILE_SEPARATOR + childName,
-                                    targetRoot, parentPath + FILE_SEPARATOR + childName, overWrite, user);
+                            importFileList(site, importedPaths, importedFullPaths, fileRoot + FILE_SEPARATOR
+                                            + childName, targetRoot, parentPath + FILE_SEPARATOR + childName,
+                                    overWrite, user);
                         } else {
                             writeContentInTransaction(site, importedPaths, importedFullPaths, fileRoot,
                                     targetRoot, parentPath, childName, overWrite, user);
@@ -341,7 +375,8 @@ public class ImportServiceImpl implements ImportService {
      */
     protected void writeContentInTransaction(final String site, final Set<String> importedPaths,
                                              final List<String> importedFullPaths, final String fileRoot,
-                                             final String targetRoot, final String parentPath, final String name, final boolean overWrite, final String user) {
+                                             final String targetRoot, final String parentPath, final String name,
+                                             final boolean overWrite, final String user) {
         long startTimeWrite = System.currentTimeMillis();
         logger.debug("[IMPORT] writing file in transaction: " + parentPath + FILE_SEPARATOR + name);
         writeContent(site, importedPaths, importedFullPaths, fileRoot, targetRoot, parentPath, name,
@@ -436,7 +471,8 @@ public class ImportServiceImpl implements ImportService {
      * @param name
      * @return
      */
-    private Map<String, String> createParams(String site, boolean isXml, String targetRoot, String parentPath, String name) {
+    private Map<String, String> createParams(String site, boolean isXml, String targetRoot, String parentPath,
+                                             String name) {
         Map<String, String> params = new HashMap<String, String>();
         String filePath = parentPath + FILE_SEPARATOR + name;
         String path = (isXml) ? filePath : parentPath;
@@ -513,7 +549,8 @@ public class ImportServiceImpl implements ImportService {
      * @param fullPaths
      * @param chunkSize
      */
-    protected void publish(String site, String publishChannelGroup, String targetRoot, List<String> fullPaths, int chunkSize) {
+    protected void publish(String site, String publishChannelGroup, String targetRoot, List<String> fullPaths,
+                           int chunkSize) {
         if (chunkSize < 1) {
             logger.info("[IMPORT] publising chunk size not defined. publishing all together.");
             submitToGoLive(site, publishChannelGroup, fullPaths);
@@ -565,26 +602,60 @@ public class ImportServiceImpl implements ImportService {
         logger.info("All files have been submitted to be publish");
     }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public SiteService getSiteService() {
+        return siteService;
+    }
 
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 
-    public ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
 
-    public DmPublishService getDmPublishService() { return dmPublishService; }
-    public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
+
+    public DmPublishService getDmPublishService() {
+        return dmPublishService;
+    }
+
+    public void setDmPublishService(DmPublishService dmPublishService) {
+        this.dmPublishService = dmPublishService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
     public String getAssignee() {
         return studioConfiguration.getProperty(IMPORT_ASSIGNEE);
@@ -597,28 +668,6 @@ public class ImportServiceImpl implements ImportService {
     public String getAssetChainName() {
         return studioConfiguration.getProperty(IMPORT_ASSET_CHAIN_NAME);
     }
-
-    protected SiteService siteService;
-    protected SecurityService securityService;
-    protected ContentRepository contentRepository;
-    protected ContentService contentService;
-    protected ObjectStateService objectStateService;
-    protected DmPublishService dmPublishService;
-    protected StudioConfiguration studioConfiguration;
-
-    /**
-     * is import in progress?
-     */
-    private boolean inProgress = false;
-
-    /** going to pause import process? **/
-    private boolean pauseEanbeld = false;
-    /** next pause time **/
-    private long nextStop;
-    /** import delay interval **/
-    private long currentDelayInterval;
-    /** import delay time **/
-    private long currentDelayLength;
 
     /**
      * publishing channel

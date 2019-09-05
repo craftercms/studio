@@ -37,7 +37,16 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_DISABLE_DEPLOY_CRON;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_REPLACE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_DELETE_TARGET_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DISABLE_DEPLOY_CRON;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_REPLACE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_REPO_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_TEMPLATE_NAME;
 
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.deployment.Deployer} that interacts with Authoring's

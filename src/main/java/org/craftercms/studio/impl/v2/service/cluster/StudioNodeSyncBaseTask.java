@@ -19,10 +19,10 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHED_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SANDBOX_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -63,9 +63,9 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.deployment.Deployer;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
@@ -219,7 +219,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             case PUBLISHED:
                 path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                         studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                        studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH));
+                        studioConfiguration.getProperty(PUBLISHED_PATH));
                 break;
             default:
                 path = null;

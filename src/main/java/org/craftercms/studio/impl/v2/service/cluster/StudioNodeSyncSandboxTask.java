@@ -19,10 +19,12 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 import java.io.File;
@@ -46,7 +48,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
@@ -204,10 +205,10 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                 String cloneUrl = remoteNode.getGitUrl().replace("{siteId}", siteId);
                 switch (repoType) {
                     case SANDBOX:
-                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
+                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(SANDBOX_PATH);
                         break;
                     case PUBLISHED:
-                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH);
+                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(PUBLISHED_PATH);
                         break;
                     default:
                 }
@@ -284,8 +285,8 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
     }
 
     private void addSiteUuidFile(String site, String siteUuid) throws IOException {
-        Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
+        Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                studioConfiguration.getProperty(SITES_REPOS_PATH), site,
                 StudioConstants.SITE_UUID_FILENAME);
         String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
         Files.write(path, toWrite.getBytes());
