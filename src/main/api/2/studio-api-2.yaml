@@ -2794,7 +2794,7 @@ paths:
         - name: paths
           in: query
           description: Content paths to be deleted
-          required: required
+          required: true
           schema:
             type: array
             items:
@@ -3764,7 +3764,7 @@ components:
           type: array
           description: list of versions
           items:
-            $ref: '#components/schemas/ContentItemVersion'
+            $ref: '#/components/schemas/ContentItemVersion'
 
     ContentItemVersion:
       type: object
