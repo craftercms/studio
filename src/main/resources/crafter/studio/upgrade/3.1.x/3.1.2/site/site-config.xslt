@@ -40,8 +40,9 @@
             <xsl:if test="not(ignore-postfix-fields)">
                 <xsl:text>&#10;</xsl:text>
                 <xsl:comment>
-                    <xsl:text>&#10;&#9;List of field names that should not have a postfix</xsl:text>
+                    <xsl:text> List of field names that should not have a postfix </xsl:text>
                 </xsl:comment>
+                <xsl:text>&#10;</xsl:text>
                 <xsl:element name="ignore-postfix-fields">
                     <xsl:element name="field">
                         <xsl:text>file-name</xsl:text>
@@ -89,7 +90,76 @@
                         <xsl:text>disabled</xsl:text>
                     </xsl:element>
                 </xsl:element>
-                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="site-config">
+        <xsl:copy>
+            <xsl:apply-templates/>
+            <xsl:if test="not(form-engine)">
+                <xsl:element name="form-engine">
+                    <xsl:text>&#10;</xsl:text>
+                    <xsl:comment>
+                        <xsl:text> Indicates if postfixes should be required for all fields </xsl:text>
+                    </xsl:comment>
+                    <xsl:text>&#10;</xsl:text>
+                    <xls:element name="field-name-postfix">
+                        <xls:text>false</xls:text>
+                    </xls:element>
+                    <xsl:text>&#10;</xsl:text>
+                    <xsl:comment>
+                        <xsl:text> List of field names that should not have a postfix </xsl:text>
+                    </xsl:comment>
+                    <xsl:text>&#10;</xsl:text>
+                    <xsl:element name="ignore-postfix-fields">
+                        <xsl:element name="field">
+                            <xsl:text>file-name</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>internal-name</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>placeInNav</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>scripts</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>mime-type</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>force-https</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>navLabel</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>expired</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>key</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>value</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>items</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>redirect-url</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>authorizedRoles</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>role</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="field">
+                            <xsl:text>disabled</xsl:text>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
             </xsl:if>
         </xsl:copy>
     </xsl:template>
