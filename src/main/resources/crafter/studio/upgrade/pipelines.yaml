@@ -440,7 +440,16 @@ pipelines:
               dest: /configuration/samples/sample-permission-mappings-config.xml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
-          
+    - currentVersion: 3.1.0.36
+      nextVersion: 3.1.0.37
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: crafter/studio/upgrade/3.1.x/3.1.2/system/sample-site-config.xml
+              dest: /configuration/samples/sample-site-config.xml
+          commitDetails: Update sample files
+        - type: dbVersionUpgrader
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -612,6 +621,16 @@ configurations:
             path: *site-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config.xslt
             commitDetails: Add extension folder pattern property
+          - type: xsltFileUpgrader
+            path: *site-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config
+            template: crafter/studio/upgrade/3.1.x/3.1.2/site/site-config.xslt
+            commitDetails: Add postfix ignore field list
           - type: xsltFileUpgrader
             path: *site-config
             template: crafter/studio/upgrade/update-version.xslt
