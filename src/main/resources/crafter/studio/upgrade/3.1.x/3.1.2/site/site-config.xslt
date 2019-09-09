@@ -104,9 +104,9 @@
                         <xsl:text> Indicates if postfixes should be required for all fields </xsl:text>
                     </xsl:comment>
                     <xsl:text>&#10;</xsl:text>
-                    <xls:element name="field-name-postfix">
-                        <xls:text>false</xls:text>
-                    </xls:element>
+                    <xsl:element name="field-name-postfix">
+                        <xsl:text>false</xsl:text>
+                    </xsl:element>
                     <xsl:text>&#10;</xsl:text>
                     <xsl:comment>
                         <xsl:text> List of field names that should not have a postfix </xsl:text>
