@@ -19,8 +19,9 @@
 <code-editor-config>
   <snippets>
     <!-- <snippet>
+      <key>freemarker-example</key>
       <label>Freemarker Example</label>
-      <category>freemarker</category>
+      <type>freemarker</type>
       <content>
         <![CDATA[
         <#assign imageSrc = contentModel.image!"" />
