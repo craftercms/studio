@@ -128,6 +128,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
 
             if (!result) {
                 createdSites.remove(siteId);
+                remotesMap.remove(siteId);
                 contentRepository.deleteSite(siteId);
 
                 try {
