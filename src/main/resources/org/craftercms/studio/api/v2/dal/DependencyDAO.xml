@@ -85,4 +85,32 @@
             cd2.target_path RLIKE #{pattern}
         </foreach>
     </select>
+
+    <select id="getDependentItems" resultType="String" parameterType="java.util.Map">
+        SELECT source_path
+        FROM dependency
+        WHERE site = #{siteId}
+        AND target_path in
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </select>
+
+    <select id="getItemSpecificDependencies" parameterType="java.util.Map"
+            resultType="String">
+        SELECT target_path
+        FROM dependency
+        WHERE site = #{site}
+        AND source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND
+        <foreach item="pattern" index="index" collection="regex"
+                 open="(" separator=" OR " close=")">
+            target_path RLIKE #{pattern}
+        </foreach>
+    </select>
 </mapper>

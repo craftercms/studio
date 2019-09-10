@@ -17,6 +17,9 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 
 import java.util.List;
@@ -30,4 +33,46 @@ public interface ContentService {
      * @return list of content types
      */
     List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
+
+    /**
+     * Get child items for given path. Child item is
+     *  - belongs to item subtree
+     *  - is item specific dependency
+     *
+     * @param siteId site identifier
+     * @param path path to get child items for
+     * @return list of paths of child items
+     */
+    List<String> getChildItems(String siteId, String path);
+
+    /**
+     * Get child items for given paths. Child item is
+     *  - belongs to item subtree
+     *  - is item specific dependency
+     *
+     * @param siteId site identifier
+     * @param paths list of paths to get child items for
+     * @return list of paths of child items
+     */
+    List<String> getChildItems(String siteId, List<String> paths);
+
+    /**
+     * Delete content for given path. Following content will be deleted:
+     *  - given path
+     *  - child items for given path
+     * @param siteId site identifier
+     * @param path content to be deleted
+     * @return true if success, otherwise false
+     */
+    boolean deleteContent(String siteId, String path) throws ServiceLayerException, AuthenticationException, DeploymentException;
+
+    /**
+     * Delete content for given paths. Following content will be deleted:
+     *  - given paths
+     *  - child items for given paths
+     * @param siteId site identifier
+     * @param paths content to be deleted
+     * @return true if success, otherwise false
+     */
+    boolean deleteContent(String siteId, List<String> paths) throws ServiceLayerException, AuthenticationException, DeploymentException;
 }

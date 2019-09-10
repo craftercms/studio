@@ -425,11 +425,17 @@
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
         <property name="contentServiceInternal" ref="contentServiceInternal"/>
         <property name="contentTypeServiceInternal" ref="contnetTypeServiceInternal"/>
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="userService" ref="userService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-
+        <property name="contentRepository" ref="contentRepositoryV2" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"
@@ -731,6 +737,10 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+    </bean>
+
+    <bean id="contentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- /////// -->

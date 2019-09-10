@@ -45,6 +45,7 @@ import static org.craftercms.studio.api.v2.dal.DependencyDAO.EDITED_STATES_PARAM
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.NEW_STATES_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.PATHS_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.REGEX_PARAM;
+import static org.craftercms.studio.api.v2.dal.DependencyDAO.SITE_ID_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SITE_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
@@ -232,6 +233,40 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         params.put(EDITED_STATES_PARAM, onlyEditStates);
         params.put(NEW_STATES_PARAM, State.NEW_STATES);
         return dependencyDao.getHardDependenciesForList(params);
+    }
+
+    @Override
+    public List<String> getDependentItems(String siteId, String path) {
+        List<String> paths = new ArrayList<String>(1);
+        paths.add(path);
+        return getDependentItems(siteId, paths);
+    }
+
+    @Override
+    public List<String> getDependentItems(String siteId, List<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(SITE_ID_PARAM, siteId);
+        params.put(PATHS_PARAM, paths);
+        return dependencyDao.getDependentItems(params);
+    }
+
+    @Override
+    public List<String> getItemSpecificDependencies(String siteId, String path) {
+        List<String> paths = new ArrayList<>(1);
+        paths.add(path);
+        return getItemSpecificDependencies(siteId, paths);
+    }
+
+    @Override
+    public List<String> getItemSpecificDependencies(String siteId, List<String> paths) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(SITE_PARAM, siteId);
+        params.put(PATHS_PARAM, paths);
+        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
+        return dependencyDao.getItemSpecificDependencies(params);
     }
 
     public SiteService getSiteService() {

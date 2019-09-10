@@ -17,6 +17,8 @@
 
 package org.craftercms.studio.impl.v2.service.dependency;
 
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -54,6 +56,18 @@ public class DependencyServiceImpl implements DependencyService {
     @Override
     public List<String> getHardDependencies(String site, List<String> paths) throws ServiceLayerException {
         return dependencyServiceInternal.getHardDependencies(site, paths);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "delete_content")
+    public List<String> getDependentItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path) {
+        return dependencyServiceInternal.getDependentItems(siteId, path);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "delete_content")
+    public List<String> getDependentItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> paths) {
+        return dependencyServiceInternal.getDependentItems(siteId, paths);
     }
 
     public DependencyServiceInternal getDependencyServiceInternal() {
