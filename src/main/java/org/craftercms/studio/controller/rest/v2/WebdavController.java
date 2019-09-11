@@ -29,9 +29,9 @@ import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.WebDavException;
-import org.craftercms.studio.api.v1.service.webdav.WebDavService;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.service.webdav.WebDavService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -52,7 +52,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
  * Rest controller for WebDAV service
  *
  * @author joseross
- * @since 3.1.2
+ * @since 3.1.4
  */
 @RestController
 @RequestMapping("/api/2/webdav")
@@ -135,8 +135,8 @@ public class WebdavController {
                             if (StringUtils.isNotEmpty(filename)) {
                                 filename = FilenameUtils.getName(filename);
                             }
-                            result.setEntity(RESULT_KEY_ITEM, new WebDavItem(filename,
-                                    webDavService.upload(siteId, profileId, path, filename, stream), false));
+                            result.setEntity(RESULT_KEY_ITEM,
+                                webDavService.upload(siteId, profileId, path, filename, stream));
                             result.setResponse(ApiResponse.OK);
                         }
                     }

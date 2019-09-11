@@ -54,7 +54,7 @@
         <jackson.version>2.9.9</jackson.version>
         <jackson.databind.version>2.9.9.3</jackson.databind.version>
         <bouncycastle.version>1.60</bouncycastle.version>
-        <sardine.version>5.8</sardine.version>
+        <sardine.version>5.9</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
         <apache.cxf.version>3.1.18</apache.cxf.version>
         <nekohtml.version>1.9.22</nekohtml.version>

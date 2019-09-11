@@ -703,6 +703,11 @@ studio.aws.mediaconvert.extension.hls: m3u8
 studio.aws.mediaconvert.extension.dash: mpd
 studio.aws.mediaconvert.extension.smooth: ism
 
+################################################################
+##                         WebDav                             ##
+################################################################
+studio.webdav.url.pattern: /remote-assets/webdav/%s/%s/%s
+
 ##########################################################
 ##                 Serverless Delivery                  ##
 ##########################################################
