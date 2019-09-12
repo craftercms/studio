@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.utils;
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.builder.ConfigurationBuilderEvent;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.event.Event;
@@ -42,13 +43,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
+
+import static java.time.ZoneOffset.UTC;
 
 public class StudioConfigurationImpl implements StudioConfiguration {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioConfigurationImpl.class);
 
     protected HierarchicalConfiguration<ImmutableNode> config;
+    protected HierarchicalConfiguration<ImmutableNode> systemConfig;
+    protected HierarchicalConfiguration<ImmutableNode> globalRepoConfig;
+    protected ZonedDateTime lastModifiedGlobalRepoConfig = null;
 
     public void init() {
         loadConfig();
@@ -59,8 +67,6 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     public void loadConfig() {
         YamlConfiguration baseConfig = new YamlConfiguration();
         YamlConfiguration overrideConfig = new YamlConfiguration();
-        YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
-
 
         Resource resource = new ClassPathResource(configLocation);
         try (InputStream in = resource.getInputStream()) {
@@ -101,59 +107,49 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             config = baseConfig;
         }
 
+        systemConfig = config;
+        config = loadGlobalRepoConfig();
+    }
+
+    private HierarchicalConfiguration<ImmutableNode> loadGlobalRepoConfig() {
         if (config.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
-
-
             Path globalRepoOverrideConfigLocation = Paths.get(config.getString(REPO_BASE_PATH),
                     config.getString(GLOBAL_REPO_PATH), config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
-
             FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
+            ZonedDateTime lastModified = null;
+            try {
+                lastModified = Instant.ofEpochMilli(fsr.lastModified()).atZone(UTC);
+                if (lastModified.isAfter(lastModifiedGlobalRepoConfig)) {
+                    YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
+                    try (InputStream in = fsr.getInputStream()) {
+                        globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
+                        globalRepoOverrideConfig.read(in);
 
-            Parameters parameters = new Parameters();
-            ReloadingFileBasedConfigurationBuilder<YamlConfiguration> builder =
-                    new ReloadingFileBasedConfigurationBuilder<YamlConfiguration>(YamlConfiguration.class)
-                            .configure(parameters.fileBased().setFile(globalRepoOverrideConfigLocation.toFile()));
-
-            // Register an event listener for triggering reloading checks
-            builder.addEventListener(ConfigurationBuilderEvent.CONFIGURATION_REQUEST,
-                    new EventListener()
-                    {
-                        @Override
-                        public void onEvent(Event event)
-                        {
-                            builder.getReloadingController().checkForReloading(null);
+                        if (!globalRepoOverrideConfig.isEmpty()) {
+                            logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                                    fsr.getPath(), globalRepoOverrideConfig);
                         }
-                    });
-/*
-            try (InputStream in = fsr.getInputStream()) {
-                globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
-                globalRepoOverrideConfig.read(in);
+                        globalRepoConfig = globalRepoOverrideConfig;
 
-                if (!globalRepoOverrideConfig.isEmpty()) {
-                    logger.debug("Loaded additional configuration from location: {0} \n {1}",
-                            globalRepoOverrideConfigLocation.toAbsolutePath(), globalRepoOverrideConfig);
+                    }
+
+                    if (!globalRepoConfig.isEmpty()) {
+                        CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
+                        combinedConfig.setExpressionEngine(getExpressionEngine());
+                        combinedConfig.addConfiguration(globalRepoConfig);
+                        combinedConfig.addConfiguration(systemConfig);
+
+                        config = combinedConfig;
+                        logger.error("Config", config.toString());
+                    }
+                    lastModifiedGlobalRepoConfig = lastModified;
                 }
             } catch (IOException | ConfigurationException e) {
-                logger.error("Failed to load studio configuration from: " +
-                        globalRepoOverrideConfigLocation.toAbsolutePath(), e);
-            }*/
-            try {
-                globalRepoOverrideConfig = builder.getConfiguration();
-            } catch (ConfigurationException e) {
-                logger.error("Failed to load studio configuration from: " +
-                        globalRepoOverrideConfigLocation.toAbsolutePath(), e);
+                logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
             }
-        }
 
-        if(!globalRepoOverrideConfig.isEmpty()) {
-            CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
-            combinedConfig.setExpressionEngine(getExpressionEngine());
-            combinedConfig.addConfiguration(globalRepoOverrideConfig);
-            combinedConfig.addConfiguration(config);
-
-            config = combinedConfig;
-            logger.error("Config", config.toString());
         }
+        return config;
     }
 
     protected ExpressionEngine getExpressionEngine() {
@@ -166,25 +162,29 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         return new DefaultExpressionEngine(symbols);
     }
 
+    protected HierarchicalConfiguration<ImmutableNode> getConfig() {
+        return loadGlobalRepoConfig();
+    }
+
     @Override
     public String getProperty(String key) {
-        return config.getString(key);
+        return getConfig().getString(key);
     }
 
     @Override
     public <T> T getProperty(String key, Class<T> clazz) {
-        return config.get(clazz, key);
+        return getConfig().get(clazz, key);
     }
 
     @Override
     public <T> T getProperty(String key, Class<T> clazz, T defaultVal) {
-        return config.get(clazz, key, defaultVal);
+        return getConfig().get(clazz, key, defaultVal);
     }
 
     @Override
     public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
         try {
-            return config.configurationAt(key);
+            return getConfig().configurationAt(key);
         } catch (Exception e) {
             logger.debug("Failed to load configuration value for key " + key + ". Returning null.");
         }
