@@ -1332,6 +1332,7 @@ paths:
       tags:
         - webdav
       summary: Get a list of items from a WebDAV server
+      description: 'Required Permission: "webdav_read"'
       operationId: listItems
       parameters:
         - name: siteId
@@ -1384,6 +1385,7 @@ paths:
       tags:
         - webdav
       summary: Upload a file to a WebDAV server
+      description: 'Required Permission: "webdav_write"'
       operationId: uploadItem
       requestBody:
         required: true
