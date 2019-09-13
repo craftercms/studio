@@ -449,6 +449,18 @@ pipelines:
               dest: /configuration/samples/sample-site-config.xml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.0.37
+      nextVersion: 3.1.4.1
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.4.1/system/global-permission-mappings-config.xslt
+          commitDetails: Add new permissions for WebDAV
+        - type: xsltFileUpgrader
+          path: /configuration/samples/sample-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.4.1/site/permission-mappings-config.xslt
+          commitDetails: Add new permissions for WebDAV
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -688,6 +700,17 @@ configurations:
           - type: xsltFileUpgrader
             path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 6
+        nextVersion: 7
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.4.1/site/permission-mappings-config.xslt
+            commitDetails: Add new permissions for WebDAV
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
+
 
   role-mappings-config:
     path: &role-mappings-config '/config/studio/role-mappings-config.xml'

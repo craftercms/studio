@@ -28,6 +28,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
@@ -85,7 +88,9 @@ public class WebDavServiceImpl implements WebDavService {
      */
     @Override
     @ValidateParams
-    public List<WebDavItem> list(@ValidateStringParam(name = "siteId") final String siteId,
+    @HasPermission(type = DefaultPermission.class, action = "webdav_read")
+    public List<WebDavItem> list(@ValidateStringParam(name = "siteId")
+                                 @ProtectedResourceId("siteId") final String siteId,
                                  @ValidateStringParam(name = "profileId") final String profileId,
                                  @ValidateStringParam(name = "path") final String path,
                                  @ValidateStringParam(name = "type") final String type) throws WebDavException {
@@ -160,7 +165,8 @@ public class WebDavServiceImpl implements WebDavService {
      */
     @Override
     @ValidateParams
-    public WebDavItem upload(@ValidateStringParam(name = "siteId") final String siteId,
+    @HasPermission(type = DefaultPermission.class, action = "webdav_write")
+    public WebDavItem upload(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") final String siteId,
                              @ValidateStringParam(name = "profileId") final String profileId,
                              @ValidateStringParam(name = "path") final String path,
                              @ValidateStringParam(name = "filename") final String filename,

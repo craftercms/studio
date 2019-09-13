@@ -23,6 +23,8 @@ import java.util.List;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.YamlConfiguration;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
@@ -38,6 +40,7 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_O
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_CURRENT_VERSION;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_NEXT_VERSION;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_TYPE;
+import static org.craftercms.studio.api.v2.upgrade.VersionProvider.SKIP;
 
 /**
  * Default implementation of {@link UpgradePipelineFactory}.
@@ -125,6 +128,10 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
     @SuppressWarnings("unchecked")
     public UpgradePipeline getPipeline(VersionProvider versionProvider) throws UpgradeException {
         String currentVersion = versionProvider.getCurrentVersion();
+        if (SKIP.equals(currentVersion)) {
+            // Return an empty pipeline to avoid errors & warnings in the log
+            return new DefaultUpgradePipelineImpl();
+        }
         List<UpgradeOperation> operations = new LinkedList<>();
         HierarchicalConfiguration config = loadUpgradeConfiguration();
         List<HierarchicalConfiguration> pipeline = config.configurationsAt(pipelinePrefix + "." + pipelineName);
