@@ -23,8 +23,6 @@ import java.util.List;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.YamlConfiguration;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
