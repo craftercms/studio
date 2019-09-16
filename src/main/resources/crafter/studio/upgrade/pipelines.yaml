@@ -449,6 +449,19 @@ pipelines:
               dest: /configuration/samples/sample-site-config.xml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.0.37
+      nextVersion: 3.1.4
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.4/system/global-permission-mappings-config.xslt
+          commitDetails: Added delete_content permission
+        - type: globalRepoUpgrader
+          files:
+            - src: crafter/studio/upgrade/3.1.x/3.1.4/system/sample-permission-mappings-config.xml
+              dest: /configuration/samples/sample-permission-mappings-config.xml
+          commitDetails: Update sample files
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -685,6 +698,16 @@ configurations:
             path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.35/site/permission-mappings-config.xslt
             commitDetails: Add resolve conflict APIs permissions
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 6
+        nextVersion: 7
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.4/site/permission-mappings-config.xslt
+            commitDetails: Add delete_content permission
           - type: xsltFileUpgrader
             path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
