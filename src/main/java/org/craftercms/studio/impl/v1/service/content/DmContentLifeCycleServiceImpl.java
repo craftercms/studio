@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
@@ -44,11 +44,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 
 public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService implements DmContentLifeCycleService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmContentLifeCycleServiceImpl.class);
+
+    protected ContentService contentService;
+    protected SecurityService securityService;
+    protected ScriptExecutor scriptExecutor;
+    protected StudioConfiguration studioConfiguration;
 
     public String getScriptLocation() {
         return studioConfiguration.getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION);
@@ -72,13 +77,19 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
 
     @Override
     @ValidateParams
-    public void process(@ValidateStringParam(name = "site") String site, @ValidateStringParam String user, @ValidateSecurePathParam String path, @ValidateStringParam(name = "contenType") String contentType, ContentLifeCycleOperation operation, Map<String, String> params) {
+    public void process(@ValidateStringParam(name = "site") String site,
+                        @ValidateStringParam String user,
+                        @ValidateSecurePathParam String path,
+                        @ValidateStringParam(name = "contentType") String contentType,
+                        ContentLifeCycleOperation operation,
+                        Map<String, String> params) {
         if (operation == null) {
             logger.warn("No lifecycle operation provided for " + site + ":" + path);
             return;
         }
         if (StringUtils.isEmpty(contentType) || StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
-            logger.warn("Skipping content lifecycle script execution. no content type provided for " + site + ":" + path);
+            logger.warn("Skipping content lifecycle script execution. no content type provided for "
+                    + site + ":" + path);
             return;
         }
 
@@ -125,7 +136,8 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
      * @param params
      * @return script model
      */
-    protected Map<String, Object> buildModel(String site, String user, String path, String contentType, String operation, Map<String, String> params) {
+    protected Map<String, Object> buildModel(String site, String user, String path, String contentType,
+                                             String operation, Map<String, String> params) {
         Map<String, Object> model = new HashMap<String,Object>();
         for (String scriptObjectName : _scriptObjects.keySet()) {
             model.put(scriptObjectName, _scriptObjects.get(scriptObjectName));
@@ -204,20 +216,37 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
     }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public ScriptExecutor getScriptExecutor() { return scriptExecutor; }
-    public void setScriptExecutor(ScriptExecutor scriptExecutor) { this.scriptExecutor = scriptExecutor; }
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 
-    protected ContentService contentService;
-    protected SecurityService securityService;
-    protected ScriptExecutor scriptExecutor;
-    protected StudioConfiguration studioConfiguration;
+    public ScriptExecutor getScriptExecutor() {
+        return scriptExecutor;
+    }
+
+    public void setScriptExecutor(ScriptExecutor scriptExecutor) {
+        this.scriptExecutor = scriptExecutor;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+
 }

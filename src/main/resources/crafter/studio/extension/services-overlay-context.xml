@@ -25,7 +25,8 @@
     <bean name="studio.crafter.properties" class="java.util.HashMap">
         <constructor-arg>
             <map key-type="java.lang.String" value-type="java.lang.String">
-                <entry key="environment" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
+                <entry key="environment"
+                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
                 <entry key="previewUrl" value="${previewUrl}"/>
 
             </map>

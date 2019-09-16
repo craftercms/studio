@@ -51,19 +51,18 @@ import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.
-        PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 public class PublishingManagerImpl implements PublishingManager {
 

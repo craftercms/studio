@@ -60,11 +60,11 @@ import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -91,10 +91,10 @@ import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED
 import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
@@ -326,7 +326,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
-                                                   String approver, ZonedDateTime scheduledDate) throws SiteNotFoundException {
+                                                   String approver, ZonedDateTime scheduledDate)
+            throws SiteNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         String packageId = UUID.randomUUID().toString();
         for (String path : paths) {

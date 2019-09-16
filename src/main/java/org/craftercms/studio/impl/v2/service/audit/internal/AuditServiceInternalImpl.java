@@ -23,11 +23,11 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.objectstate.State;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -38,7 +38,6 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_NAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -60,6 +59,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TARGET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 
 public class AuditServiceInternalImpl implements AuditServiceInternal {
 

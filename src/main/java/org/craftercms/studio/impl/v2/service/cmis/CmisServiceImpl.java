@@ -46,10 +46,10 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.CmisContentItemTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.dal.DataSourceRepository;
 import org.craftercms.studio.api.v2.service.cmis.CmisService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.CmisUploadItem;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -86,7 +86,7 @@ import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_DOCUME
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_FOLDER;
 import static org.apache.chemistry.opencmis.commons.enums.BindingType.ATOMPUB;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_LOCATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_LOCATION;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 

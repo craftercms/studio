@@ -34,7 +34,7 @@ import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
@@ -45,14 +45,14 @@ import java.nio.file.Paths;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_DELETE_TARGET_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DISABLE_DEPLOY_CRON;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_REPLACE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_REPO_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_TEMPLATE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_DELETE_TARGET_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DISABLE_DEPLOY_CRON;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_REPLACE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_REPO_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_TEMPLATE_NAME;
 
 public class PreviewDeployerImpl implements PreviewDeployer {
 
@@ -76,7 +76,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     public void subscribeToPreviewSyncEvents() {
         try {
-            Method subscribeMethod = PreviewDeployerImpl.class.getMethod(METHOD_PREVIEW_SYNC_LISTENER, PreviewEventContext.class);
+            Method subscribeMethod = PreviewDeployerImpl.class.getMethod(METHOD_PREVIEW_SYNC_LISTENER,
+                    PreviewEventContext.class);
             this.eventService.subscribe(EVENT_PREVIEW_SYNC, beanName, subscribeMethod);
         } catch (NoSuchMethodException e) {
             logger.error("Could not subscribe to preview sync events", e);
@@ -221,14 +222,29 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return url;
     }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
 
-    public EventService getEventService() { return eventService; }
-    public void setEventService(EventService eventService) { this.eventService = eventService; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
-    public String getBeanName() { return beanName; }
-    public void setBeanName(String beanName) { this.beanName = beanName; }
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
+    public String getBeanName() {
+        return beanName;
+    }
+
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
 
     protected class CreateTargetRequestBody {
 

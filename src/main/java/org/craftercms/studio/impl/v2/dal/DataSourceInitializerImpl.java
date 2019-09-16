@@ -35,17 +35,17 @@ import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_DRIVER;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_URL;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 

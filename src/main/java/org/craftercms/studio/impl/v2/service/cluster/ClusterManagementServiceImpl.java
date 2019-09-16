@@ -24,20 +24,20 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParamter;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.cluster.ClusterManagementService;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_CLUSTER_NODE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CLUSTER_NODE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 public class ClusterManagementServiceImpl implements ClusterManagementService {
 

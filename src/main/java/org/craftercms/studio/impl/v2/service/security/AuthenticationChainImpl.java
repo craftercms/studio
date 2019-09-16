@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemExcep
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -33,6 +32,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.AuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,17 +40,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 public class AuthenticationChainImpl implements AuthenticationChain {
 
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationChainImpl.class);
 
-    private List<AuthenticationProvider> authentitcationChain;
+    private List<AuthenticationProvider> authenticationChain;
 
     private UserServiceInternal userServiceInternal;
     private StudioConfiguration studioConfiguration;
@@ -62,11 +62,11 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     public void init() {
         List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
             studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
-        authentitcationChain = new ArrayList<AuthenticationProvider>();
+        authenticationChain = new ArrayList<AuthenticationProvider>();
         chainConfig.forEach(providerConfig -> {
             AuthenticationProvider provider = AuthenticationProviderFactory.getAuthenticationProvider(providerConfig);
             if (provider != null && provider.isEnabled()) {
-                authentitcationChain.add(provider);
+                authenticationChain.add(provider);
             }
         });
     }
@@ -75,7 +75,7 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, String username,
                                   String password) throws Exception {
         boolean authenticated = false;
-        Iterator<AuthenticationProvider> iterator = authentitcationChain.iterator();
+        Iterator<AuthenticationProvider> iterator = authenticationChain.iterator();
         Exception lastError = null;
         while (iterator.hasNext()) {
             AuthenticationProvider authProvider = iterator.next();

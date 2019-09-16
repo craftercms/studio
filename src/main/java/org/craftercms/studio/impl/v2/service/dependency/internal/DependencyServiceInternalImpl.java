@@ -26,9 +26,9 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +41,6 @@ import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.EDITED_STATES_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.NEW_STATES_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.PATHS_PARAM;
@@ -49,6 +48,7 @@ import static org.craftercms.studio.api.v2.dal.DependencyDAO.REGEX_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SITE_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
 

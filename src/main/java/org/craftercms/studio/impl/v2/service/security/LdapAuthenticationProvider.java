@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.Group;
@@ -38,6 +37,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.BaseAuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticationType;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
@@ -64,7 +64,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_MEMBERS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
@@ -76,6 +75,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
@@ -245,8 +245,8 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         }
     }
 
-    private void extractGroupsFromAttribute(User user, String groupNameAttribName, Attribute groupNameAttrib) throws
-                                                                                                              NamingException {
+    private void extractGroupsFromAttribute(User user, String groupNameAttribName, Attribute groupNameAttrib)
+            throws NamingException {
         if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
             NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
             while (groupAttribValues.hasMore()) {
