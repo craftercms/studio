@@ -116,38 +116,38 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             Path globalRepoOverrideConfigLocation = Paths.get(config.getString(REPO_BASE_PATH),
                     config.getString(GLOBAL_REPO_PATH), config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
             FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
-            ZonedDateTime lastModified = null;
-            try {
-                lastModified = Instant.ofEpochMilli(fsr.lastModified()).atZone(UTC);
-                if (lastModified.isAfter(lastModifiedGlobalRepoConfig)) {
-                    YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
-                    try (InputStream in = fsr.getInputStream()) {
-                        globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
-                        globalRepoOverrideConfig.read(in);
+            if (fsr.exists()) {
+                ZonedDateTime lastModified = null;
+                try {
+                    lastModified = Instant.ofEpochMilli(fsr.lastModified()).atZone(UTC);
+                    if ((lastModifiedGlobalRepoConfig == null) || lastModified.isAfter(lastModifiedGlobalRepoConfig)) {
+                        YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
+                        try (InputStream in = fsr.getInputStream()) {
+                            globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
+                            globalRepoOverrideConfig.read(in);
 
-                        if (!globalRepoOverrideConfig.isEmpty()) {
-                            logger.debug("Loaded additional configuration from location: {0} \n {1}",
-                                    fsr.getPath(), globalRepoOverrideConfig);
+                            if (!globalRepoOverrideConfig.isEmpty()) {
+                                logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                                        fsr.getPath(), globalRepoOverrideConfig);
+                            }
+                            globalRepoConfig = globalRepoOverrideConfig;
+
                         }
-                        globalRepoConfig = globalRepoOverrideConfig;
 
+                        if (!globalRepoConfig.isEmpty()) {
+                            CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
+                            combinedConfig.setExpressionEngine(getExpressionEngine());
+                            combinedConfig.addConfiguration(globalRepoConfig);
+                            combinedConfig.addConfiguration(systemConfig);
+
+                            config = combinedConfig;
+                        }
+                        lastModifiedGlobalRepoConfig = lastModified;
                     }
-
-                    if (!globalRepoConfig.isEmpty()) {
-                        CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
-                        combinedConfig.setExpressionEngine(getExpressionEngine());
-                        combinedConfig.addConfiguration(globalRepoConfig);
-                        combinedConfig.addConfiguration(systemConfig);
-
-                        config = combinedConfig;
-                        logger.error("Config", config.toString());
-                    }
-                    lastModifiedGlobalRepoConfig = lastModified;
+                } catch (IOException | ConfigurationException e) {
+                    logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
                 }
-            } catch (IOException | ConfigurationException e) {
-                logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
             }
-
         }
         return config;
     }
