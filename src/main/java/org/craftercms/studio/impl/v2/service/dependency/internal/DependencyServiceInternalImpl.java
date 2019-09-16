@@ -112,13 +112,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private List<Map<String, String>> getSoftDependenciesForListFromDB(String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_PARAM, site);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
         Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(EDITED_STATES_PARAM, onlyEditStates);
-        return dependencyDao.getSoftDependenciesForList(params);
+        return dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+                onlyEditStates);
     }
 
     protected List<String> getItemSpecificDependenciesPatterns() {
@@ -225,14 +221,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private List<Map<String, String>> calculateHardDependenciesForListFromDB(String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_PARAM, site);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
         Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(EDITED_STATES_PARAM, onlyEditStates);
-        params.put(NEW_STATES_PARAM, State.NEW_STATES);
-        return dependencyDao.getHardDependenciesForList(params);
+        return dependencyDao.getHardDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+                onlyEditStates, State.NEW_STATES);
     }
 
     @Override
@@ -247,10 +238,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         if (CollectionUtils.isEmpty(paths)) {
             return new ArrayList<String>();
         }
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_ID_PARAM, siteId);
-        params.put(PATHS_PARAM, paths);
-        return dependencyDao.getDependentItems(params);
+        return dependencyDao.getDependentItems(siteId, paths);
     }
 
     @Override
@@ -262,11 +250,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     @Override
     public List<String> getItemSpecificDependencies(String siteId, List<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_PARAM, siteId);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
-        return dependencyDao.getItemSpecificDependencies(params);
+        return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
     }
 
     public SiteService getSiteService() {

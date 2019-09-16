@@ -86,7 +86,7 @@
         </foreach>
     </select>
 
-    <select id="getDependentItems" resultType="String" parameterType="java.util.Map">
+    <select id="getDependentItems" resultType="String">
         SELECT source_path
         FROM dependency
         WHERE site = #{siteId}
@@ -101,7 +101,7 @@
             resultType="String">
         SELECT target_path
         FROM dependency
-        WHERE site = #{site}
+        WHERE site = #{siteId}
         AND source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
