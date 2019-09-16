@@ -222,13 +222,13 @@ public class PublishingManagerImpl implements PublishingManager {
                 } else {
                     objectStateService.transition(site, contentItem, TransitionEvent.SAVE);
                 }
-                Map<String, Object> props = new HashMap<String, Object>();
-                props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
-                props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
-                props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
-                props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
-                props.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, StringUtils.EMPTY);
-                objectMetadataManager.setObjectMetadata(site, path, props);
+                itemMetadata.setSubmittedBy(StringUtils.EMPTY);
+                itemMetadata.setSendEmail(0);
+                itemMetadata.setSubmittedForDeletion(0);
+                itemMetadata.setSubmissionComment(StringUtils.EMPTY);
+                itemMetadata.setSubmittedToEnvironment(StringUtils.EMPTY);
+                itemMetadata.setLaunchDate(null);
+                objectMetadataManager.updateObjectMetadata(itemMetadata);
             }
         }
         return deploymentItem;
