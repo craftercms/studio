@@ -18,8 +18,10 @@
 package org.craftercms.studio.api.v2.service.site.internal;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SitesServiceInternal {
 
@@ -49,5 +51,14 @@ public interface SitesServiceInternal {
      * @return the blueprint object or null if not found
      */
     PluginDescriptor getSiteBlueprintDescriptor(String id);
+
+    /**
+     * Validates that all required parameters are provided and have a value
+     * @param descriptor the plugin descriptor to validate
+     * @param params the parameters to validate
+     * @throws MissingPluginParameterException if any of the required parameters is not valid
+     */
+    void validateBlueprintParameters(PluginDescriptor descriptor, Map<String, String> params)
+        throws MissingPluginParameterException;
 
 }

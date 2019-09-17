@@ -63,6 +63,7 @@ try {
     def remoteToken = parsedReq.remote_token
     def remotePrivateKey = parsedReq.remote_private_key
     def createOption = parsedReq.create_option
+    def siteParams = parsedReq.site_params ?: [:]
 
 /** Validate Parameters */
     def invalidParams = false;
@@ -203,7 +204,8 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
         try {
             if (!useRemote) {
-                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description)
+                SiteServices.
+                  createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description, siteParams)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId
@@ -212,7 +214,7 @@ try {
             } else {
                 SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName,
                         remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                        remoteToken, remotePrivateKey, createOption)
+                        remoteToken, remotePrivateKey, createOption, siteParams)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId

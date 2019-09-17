@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.repository.git;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -486,6 +487,24 @@ public class GitContentRepositoryHelper {
             toReturn = false;
         }
         return toReturn;
+    }
+
+    public boolean replaceParameters(String siteId, Map<String, String> parameters) {
+        if (MapUtils.isEmpty(parameters)) {
+            logger.debug("Skipping parameter replacement for site {0}", siteId);
+            return true;
+        }
+        String configRootPath = FilenameUtils.getPath(
+            studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH));
+        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
+        Path configFolder = siteSandboxPath.resolve(configRootPath);
+        try {
+            Files.walkFileTree(configFolder, new StrSubstitutorVisitor(parameters));
+            return true;
+        } catch (IOException e) {
+            logger.error("Error looking for configuration files for site {0}", e, siteId);
+            return false;
+        }
     }
 
     public boolean bulkImport(String site /* , Map<String, String> filesCommitIds */) {
