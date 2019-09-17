@@ -22,7 +22,14 @@ import org.springframework.web.client.RestClientException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_CREATE_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_DELETE_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
 
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.deployment.Deployer} that interacts with the Serverless

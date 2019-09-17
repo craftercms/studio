@@ -57,19 +57,19 @@ import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_TIMEZONE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.NOTIFICATION_TIMEZONE;
 
 public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);

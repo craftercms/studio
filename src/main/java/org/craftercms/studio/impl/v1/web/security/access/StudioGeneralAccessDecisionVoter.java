@@ -20,15 +20,17 @@ package org.craftercms.studio.impl.v1.web.security.access;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.StringTokenizer;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_PUBLIC_URLS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PUBLIC_URLS;
 
 public class StudioGeneralAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 

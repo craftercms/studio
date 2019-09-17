@@ -18,7 +18,7 @@
 package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 import java.io.IOException;

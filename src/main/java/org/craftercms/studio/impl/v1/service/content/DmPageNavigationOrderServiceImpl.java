@@ -31,7 +31,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -40,8 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
-
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 
 public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         implements DmPageNavigationOrderService {

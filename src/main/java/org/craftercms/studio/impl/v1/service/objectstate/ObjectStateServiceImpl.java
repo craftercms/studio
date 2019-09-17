@@ -32,7 +32,7 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
 
 public class ObjectStateServiceImpl extends AbstractRegistrableService implements ObjectStateService {
 

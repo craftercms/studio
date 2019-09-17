@@ -20,7 +20,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import javax.mail.Message;
@@ -32,8 +32,8 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 
 import java.util.List;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_FROM_DEFAULT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_SMTP_AUTH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
 
 public class EmailMessageSender implements Runnable {
 
@@ -89,7 +89,8 @@ public class EmailMessageSender implements Runnable {
         }
     }
 
-    protected boolean sendEmail(final String subject, final String content, final String userEmailAddress, final String replyTo, final String personalFromName) {
+    protected boolean sendEmail(final String subject, final String content, final String userEmailAddress,
+                                final String replyTo, final String personalFromName) {
         boolean success = true;
         MimeMessagePreparator preparator = new MimeMessagePreparator() {
 

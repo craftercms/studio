@@ -20,7 +20,7 @@ package scripts.libs
 import scripts.api.SiteServices;
 import scripts.api.SecurityServices;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_TYPE;
 
 class EnvironmentOverrides {
     static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"

@@ -18,10 +18,10 @@
 package org.craftercms.studio.impl.v2.service.cluster.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.HashMap;
 import java.util.List;

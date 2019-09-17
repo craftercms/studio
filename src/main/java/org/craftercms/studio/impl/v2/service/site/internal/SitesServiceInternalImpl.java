@@ -25,8 +25,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.io.FileReader;
@@ -38,8 +38,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
 
 public class SitesServiceInternalImpl implements SitesServiceInternal {
 

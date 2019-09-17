@@ -35,11 +35,11 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.springframework.core.task.TaskExecutor;
 
@@ -56,12 +56,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 

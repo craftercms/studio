@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 
@@ -35,6 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
 public class AddSiteUuidOperation extends AbstractUpgradeOperation {
 
@@ -60,8 +61,8 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
 
     private void addSiteUuidFile(String site, String siteUuid) throws IOException {
         if (StringUtils.isNotEmpty(siteUuid)) {
-            Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                    studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
+            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                    studioConfiguration.getProperty(SITES_REPOS_PATH), site,
                     StudioConstants.SITE_UUID_FILENAME);
             String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
             logger.debug("Write UUID " + siteUuid + " to the file " + path.toString() + " for site " + site);

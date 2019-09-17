@@ -15,17 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.util;
-
-import java.util.List;
+package org.craftercms.studio.api.v2.utils;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+
+import java.util.List;
 
 public interface StudioConfiguration {
 
     /** Override Configuration */
     String STUDIO_CONFIG_OVERRIDE_CONFIG = "studio.config.overrideConfig";
+    String STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG = "studio.config.globalRepoOverrideConfig";
 
     /** Content Repository */
     String REPO_BASE_PATH = "studio.repo.basePath";

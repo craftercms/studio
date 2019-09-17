@@ -28,8 +28,8 @@ import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -43,11 +43,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_AUTHORING_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_PREVIEW_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_AUTHORING_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_PREVIEW_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
 
 public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
