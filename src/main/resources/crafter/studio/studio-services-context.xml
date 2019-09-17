@@ -1096,7 +1096,6 @@
     <!-- ////////////////////////////////////// -->
     <!--                 WEBDAV                 -->
     <!-- ////////////////////////////////////// -->
-    <!-- ////////////////////////////////////// -->
     <bean id="studioWebDavProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH)}"/>
@@ -1108,6 +1107,12 @@
 
     <bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl">
         <property name="profileLoader" ref="studioWebDavProfileLoader"/>
+    </bean>
+
+    <!--  v2 Service -->
+    <bean id="webDavService" class="org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.webdav.url.pattern')}"/>
+        <constructor-arg ref="studioWebDavProfileLoader"/>
     </bean>
 
     <!-- Utilities -->

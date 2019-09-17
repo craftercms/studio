@@ -77,6 +77,8 @@
                 <permission>S3 Read</permission>
                 <permission>S3 Write</permission>
                 <permission>delete_content</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
             </allowed-permissions>
         </rule>
     </role>

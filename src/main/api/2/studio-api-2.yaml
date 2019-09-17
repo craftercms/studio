@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.2.2'
+  version: '3.1.4.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -48,6 +48,8 @@ tags:
     description: Dependencies operations
   - name: marketplace
     description: Marketplace operations
+  - name: webdav
+    description: WebDAV operations
 
 paths:
 
@@ -1320,6 +1322,107 @@ paths:
                     $ref: '#/components/schemas/MediaConvertResult'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /webdav/list:
+    get:
+      tags:
+        - webdav
+      summary: Get a list of items from a WebDAV server
+      description: 'Required Permission: "webdav_read"'
+      operationId: listItems
+      parameters:
+        - name: siteId
+          in: query
+          description: The site ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: profileId
+          in: query
+          description: The profile ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: path
+          in: query
+          description: The path of the directory to list (defaults to the root)
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: The type of items to list, defaults to all (possible values are 'image' and 'video')
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebDavItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /webdav/upload:
+    post:
+      tags:
+        - webdav
+      summary: Upload a file to a WebDAV server
+      description: 'Required Permission: "webdav_write"'
+      operationId: uploadItem
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The site ID
+                profileId:
+                  type: string
+                  description: The profile ID
+                path:
+                  type: string
+                  description: The path where the file will be uploaded
+                file:
+                  type: string
+                  format: binary
+                  description: The content of the file to upload
+              required:
+                - siteId
+                - profileId
+                - file
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/WebDavItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -3122,6 +3225,23 @@ components:
         - jobId
         - jobArn
         - urls
+
+    WebDavItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Name of the item'
+        url:
+          type: string
+          description: 'URL of the item'
+        folder:
+          type: boolean
+          description: 'Indicates if the item is a folder'
+      required:
+        - name
+        - url
+        - folder
 
     ClusterMember:
       type: object

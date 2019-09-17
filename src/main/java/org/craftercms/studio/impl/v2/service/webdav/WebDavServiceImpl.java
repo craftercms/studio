@@ -15,55 +15,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v1.service.webdav;
+package org.craftercms.studio.impl.v2.service.webdav;
 
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.xml.namespace.QName;
-
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.webdav.WebDavService;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
+import org.craftercms.studio.api.v2.service.webdav.WebDavService;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.MimeType;
 import org.springframework.web.util.UriUtils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
-import com.github.sardine.SardineFactory;
 
-import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_URI;
+import static org.craftercms.commons.file.stores.WebDavUtils.createClient;
 import static org.springframework.util.MimeTypeUtils.ALL_VALUE;
 
 /**
  * Default implementation of {@link WebDavService}.
  * @author joseross
- * @deprecated This service has been replaced by {@link org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl}
+ * @since 3.1.4
  */
-@Deprecated
 public class WebDavServiceImpl implements WebDavService {
 
     private static final Logger logger = LoggerFactory.getLogger(WebDavServiceImpl.class);
 
-    public static final String PROPERTY_DISPLAY_NAME = "displayname";
-    public static final String PROPERTY_CONTENT_TYPE = "getcontenttype";
-    public static final String PROPERTY_RESOURCE_TYPE = "resourcetype";
-
     public static final String FILTER_ALL_ITEMS = "item";
+
+    protected String urlPattern;
 
     /**
      * Instance of {@link SiteAwareConfigProfileLoader} used to load the configuration file.
@@ -73,23 +68,10 @@ public class WebDavServiceImpl implements WebDavService {
     /**
      * Charset used to encode paths in URLs.
      */
-    protected Charset charset;
+    protected Charset charset = Charset.defaultCharset();
 
-    /**
-     * Properties to request to the server when listing resources.
-     */
-    protected Set<QName> properties;
-
-    public WebDavServiceImpl() {
-        charset = Charset.defaultCharset();
-        properties = new HashSet<>();
-        properties.add(new QName(DEFAULT_NAMESPACE_URI, PROPERTY_DISPLAY_NAME, DEFAULT_NAMESPACE_PREFIX));
-        properties.add(new QName(DEFAULT_NAMESPACE_URI, PROPERTY_CONTENT_TYPE, DEFAULT_NAMESPACE_PREFIX));
-        properties.add(new QName(DEFAULT_NAMESPACE_URI, PROPERTY_RESOURCE_TYPE, DEFAULT_NAMESPACE_PREFIX));
-    }
-
-    @Required
-    public void setProfileLoader(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
+    public WebDavServiceImpl(final String urlPattern, final SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
+        this.urlPattern = urlPattern;
         this.profileLoader = profileLoader;
     }
 
@@ -105,14 +87,17 @@ public class WebDavServiceImpl implements WebDavService {
      * {@inheritDoc}
      */
     @Override
-    public List<WebDavItem> list(@ValidateStringParam(name = "site_id") final String site,
-                                 @ValidateStringParam(name = "profile") final String profileId,
+    @ValidateParams
+    @HasPermission(type = DefaultPermission.class, action = "webdav_read")
+    public List<WebDavItem> list(@ValidateStringParam(name = "siteId")
+                                 @ProtectedResourceId("siteId") final String siteId,
+                                 @ValidateStringParam(name = "profileId") final String profileId,
                                  @ValidateStringParam(name = "path") final String path,
                                  @ValidateStringParam(name = "type") final String type) throws WebDavException {
-        WebDavProfile profile = getProfile(site, profileId);
+        WebDavProfile profile = getProfile(siteId, profileId);
         String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
         MimeType filterType;
-        Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
+        Sardine sardine = createClient(profile);
         try {
             if(StringUtils.isEmpty(type) || type.equals(FILTER_ALL_ITEMS)) {
                 filterType = MimeType.valueOf(ALL_VALUE);
@@ -133,31 +118,34 @@ public class WebDavServiceImpl implements WebDavService {
                 logger.debug("Folder {0} doesn't exist", listPath);
                 return Collections.emptyList();
             }
-            String basePath = new URL(profile.getBaseUrl()).getPath();
-            String baseDomain = profile.getBaseUrl();
-            String deliveryUrl = profile.getDeliveryBaseUrl();
             logger.debug("Listing resources at {0}", listPath);
-            List<DavResource> resources = sardine.propfind(listPath, 1, properties);
+            List<DavResource> resources = sardine.list(listPath, 1, true);
             logger.debug("Found {0} resources at {0}", resources.size(), listPath);
             return resources.stream()
                 .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
-                .map(r ->
-                    new WebDavItem(getName(r), getUrl(r, baseDomain, deliveryUrl, basePath), r.isDirectory()))
+                .map(r -> new WebDavItem(getName(r), getUrl(r, profileId, profile), r.isDirectory()))
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new WebDavException("Error listing resources", e);
         }
     }
 
-    
-    protected String getUrl(DavResource resource, String baseUrl, String deliveryUrl, String basePath) {
-        String relativePath = StringUtils.removeFirst(resource.getPath(), basePath);
+    protected String getUrl(DavResource resource, String profileId, WebDavProfile profile) {
+        String relativePath = StringUtils.removeFirst(resource.getPath(), URI.create(profile.getBaseUrl()).getPath());
         if(resource.isDirectory()) {
-            return baseUrl + relativePath;
+            return relativePath;
         } else {
-            return (StringUtils.isNotEmpty(deliveryUrl)? deliveryUrl : baseUrl) + relativePath;
+            return getRemoteAssetUrl(profileId, relativePath);
         }
+    }
+
+    protected String getRemoteAssetUrl(String profileId, String fullPath) {
+        return getRemoteAssetUrl(profileId, FilenameUtils.getPath(fullPath), FilenameUtils.getName(fullPath));
+    }
+
+    protected String getRemoteAssetUrl(String profileId, String path, String filename) {
+        return String.format(urlPattern, profileId, StringUtils.removeEnd(path, "/"), filename);
     }
 
     protected String getName(DavResource resource) {
@@ -176,16 +164,18 @@ public class WebDavServiceImpl implements WebDavService {
      * {@inheritDoc}
      */
     @Override
-    public String upload(@ValidateStringParam(name = "site_id") final String site,
-                         @ValidateStringParam(name = "profile") final String profileId,
-                         @ValidateStringParam(name = "path") final String path,
-                         @ValidateStringParam(name = "filename") final String filename,
-                         final InputStream content)
+    @ValidateParams
+    @HasPermission(type = DefaultPermission.class, action = "webdav_write")
+    public WebDavItem upload(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") final String siteId,
+                             @ValidateStringParam(name = "profileId") final String profileId,
+                             @ValidateStringParam(name = "path") final String path,
+                             @ValidateStringParam(name = "filename") final String filename,
+                             final InputStream content)
         throws WebDavException {
-        WebDavProfile profile = getProfile(site, profileId);
+        WebDavProfile profile = getProfile(siteId, profileId);
         String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {
-            Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
+            Sardine sardine = createClient(profile);
 
             if(StringUtils.isNotEmpty(path)) {
                 String[] folders = StringUtils.split(path, "/");
@@ -212,10 +202,8 @@ public class WebDavServiceImpl implements WebDavService {
 
             sardine.put(fileUrl, content);
             logger.debug("Upload complete for file {0}", fileUrl);
-            if(StringUtils.isNotEmpty(profile.getDeliveryBaseUrl())) {
-                fileUrl = StringUtils.replaceFirst(fileUrl, profile.getBaseUrl(), profile.getDeliveryBaseUrl());
-            }
-            return fileUrl;
+
+            return new WebDavItem(filename, String.format(urlPattern, profileId, path, filename), false);
         } catch (Exception e ) {
             throw new WebDavException("Error uploading file", e);
         }

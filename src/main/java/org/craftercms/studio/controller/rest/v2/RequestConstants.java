@@ -64,4 +64,9 @@ public interface RequestConstants {
     String REQUEST_PARAM_PATHS = "paths";
 
     String REQUEST_PARAM_PATH = "path";
+
+    String REQUEST_PARAM_PROFILE_ID = "profileId";
+
+    String REQUEST_PARAM_TYPE = "type";
+
 }

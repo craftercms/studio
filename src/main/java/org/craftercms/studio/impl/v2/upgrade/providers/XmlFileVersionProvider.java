@@ -105,7 +105,8 @@ public class XmlFileVersionProvider implements VersionProvider {
                 throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
             }
         } else if(!contentRepository.contentExists(site, path)) {
-            logger.warn("No version found for {0} @ {1} using default {2}", path, site, defaultVersion);
+            logger.debug("Missing file {0} in site {1}", path, site);
+            return SKIP;
         } else {
             try(InputStream is = contentRepository.getContent(site, path)) {
                 DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
