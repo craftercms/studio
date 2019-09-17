@@ -17,7 +17,35 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ContentServiceInternalImpl implements ContentServiceInternal {
+
+    private ContentRepository contentRepository;
+
+    @Override
+    public List<String> getSubtreeItems(String siteId, String path) {
+        return contentRepository.getSubtreeItems(siteId, path);
+    }
+
+    @Override
+    public List<String> getSubtreeItems(String siteId, List<String> paths) {
+        List<String> subtreeItems = new ArrayList<String>();
+        for (String path : paths) {
+            subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
+        }
+        return subtreeItems;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 }

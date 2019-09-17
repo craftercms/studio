@@ -65,6 +65,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class GitRepositoryHelper {
 
@@ -364,6 +365,19 @@ public class GitRepositoryHelper {
 
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(commitObjectId);
+
+            // and using commit's tree find the path
+            RevTree tree = commit.getTree();
+            return tree;
+        }
+    }
+
+    public RevTree getTreeForLastCommit(Repository repository) throws IOException {
+        ObjectId lastCommitId = repository.resolve(HEAD);
+
+        // a RevWalk allows to walk over commits based on some filtering
+        try (RevWalk revWalk = new RevWalk(repository)) {
+            RevCommit commit = revWalk.parseCommit(lastCommitId);
 
             // and using commit's tree find the path
             RevTree tree = commit.getTree();

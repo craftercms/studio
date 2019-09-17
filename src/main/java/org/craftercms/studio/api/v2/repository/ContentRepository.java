@@ -15,27 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.content.internal;
+package org.craftercms.studio.api.v2.repository;
 
 import java.util.List;
 
-public interface ContentServiceInternal {
+public interface ContentRepository {
 
     /**
-     * Get subtree items for given path.
+     * List subtree items for give site and path
      *
-     * @param siteId site identifier
-     * @param path path to get subtree items for
-     * @return list of paths of subtree items
+     * @param site site identifier
+     * @param path path for subtree root
+     * @return list of item paths contained in the subtree
      */
-    List<String> getSubtreeItems(String siteId, String path);
-
-    /**
-     * Get subtree items for given paths.
-     *
-     * @param siteId site identifier
-     * @param path list of paths to get subtree items for
-     * @return list of paths of subtree items
-     */
-    List<String> getSubtreeItems(String siteId, List<String> path);
+    List<String> getSubtreeItems(String site, String path);
 }

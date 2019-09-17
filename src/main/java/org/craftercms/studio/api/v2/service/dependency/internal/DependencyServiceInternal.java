@@ -77,4 +77,40 @@ public interface DependencyServiceInternal {
      */
     List<String> getHardDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ServiceLayerException;
+
+    /**
+     * Get list of paths of content items that are dependant on given path
+     *
+     * @param site site identifier
+     * @param path path to get dependent items for
+     * @return list of paths dependent on given
+     */
+    List<String> getDependentItems(String siteId, String path);
+
+    /**
+     * Get list of paths of content items that are dependant on given paths
+     *
+     * @param site site identifier
+     * @param paths list of paths to get dependent items for
+     * @return list of paths dependent on given paths
+     */
+    List<String> getDependentItems(String siteId, List<String> paths);
+
+    /**
+     * Get item specific dependencies for given path
+     *
+     * @param siteId site identifier
+     * @param path path to get item specific dependencies for
+     * @return list of item specific dependencies
+     */
+    List<String> getItemSpecificDependencies(String siteId, String path);
+
+    /**
+     * Get item specific dependencies for given path
+     *
+     * @param siteId site identifier
+     * @param paths path to get item specific dependencies for
+     * @return list of item specific dependencies
+     */
+    List<String> getItemSpecificDependencies(String siteId, List<String> paths);
 }
