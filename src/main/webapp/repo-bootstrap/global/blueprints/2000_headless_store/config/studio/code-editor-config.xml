@@ -19,7 +19,8 @@
 <code-editor-config>
   <theme>light</theme>       <!-- default theme: ligth | dark -->
   <snippets>
-    <!-- <snippet>
+    <!--
+    <snippet>
       <key>freemarker-example</key>
       <label>Freemarker Example</label>
       <type>freemarker</type>
@@ -28,6 +29,7 @@
         <#assign imageSrc = contentModel.image!"" />
         ]]>
       </content>
-    </snippet> -->
+    </snippet> 
+    -->
   </snippets>
 </code-editor-config>
