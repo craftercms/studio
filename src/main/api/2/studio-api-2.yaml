@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.1'
+  version: '3.1.4.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -50,6 +50,8 @@ tags:
     description: Marketplace operations
   - name: webdav
     description: WebDAV operations
+  - name: publishing
+    description: Publishing operations
 
 paths:
 
@@ -3014,6 +3016,163 @@ paths:
                         - $ref: '#/components/schemas/MarketplacePlugin'
                         - $ref: '#/components/schemas/GitMarketplacePlugin'
 
+  /publish/packages:
+    get:
+      tags:
+        - publishing
+      summary: Get the list of packages in the publishing queue
+      description: 'Required permission "get_publishing_queue"'
+      operationId: PublishingPackages
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: filter by publishing environment
+          required: false
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: regular expression to filter by path
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: filter by package state
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  packages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishingPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/package_details:
+    get:
+      tags:
+        - publishing
+      summary: Get package details
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getPublishingPackageDetails
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: query
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  packages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishingPackageDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/cancel:
+    post:
+      tags:
+        - publishing
+      summary: Cancel publishing packages
+      description: 'Required permission "cancel_publish"'
+      operationId: cancelPublishingPackages
+      requestBody:
+        description: cancel publishing packages request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                packageIds:
+                  type: array
+                  description: packageIds
+                  items:
+                    type: string
+              required:
+                - siteId
+                - packageIds
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -3906,6 +4065,76 @@ components:
     ContentItem:
       type: object
       description: API v1 object
+
+    PublishingPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: package ID
+        schedule:
+          type: string
+          format: datetime
+          description: scheduled date and time
+        approver:
+          type: string
+          description: user that approved publishing package
+        state:
+          type: string
+          description: package state
+        environment:
+          type: string
+          description: environment where package will be published
+        comment:
+          type: string
+          description: submission comment
+      required:
+        - id
+        - schedule
+        - approver
+        - state
+        - environment
+
+    PublishingPackageDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          description: package ID
+        schedule:
+          type: string
+          format: datetime
+          description: scheduled date and time
+        approver:
+          type: string
+          description: user that approved publishing package
+        state:
+          type: string
+          description: package state
+        environment:
+          type: string
+          description: environment where package will be published
+        comment:
+          type: string
+          description: submission comment
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                description: content item path
+              contentTypeClass:
+                type: string
+                description: content type class or mime-type
+      required:
+        - id
+        - schedule
+        - approver
+        - state
+        - environment
+        - items
 
   responses:
     NotFound:
