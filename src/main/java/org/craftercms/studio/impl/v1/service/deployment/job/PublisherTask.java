@@ -59,14 +59,7 @@ import java.util.stream.Collectors;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class PublisherTask implements Runnable {
 
@@ -273,7 +266,7 @@ public class PublisherTask implements Runnable {
 
                 if (publishingManager.isPublishingQueueEmpty(site)) {
                     statusMessage = studioConfiguration.getProperty
-                            (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
+                            (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY);
                     statusMessage = statusMessage.replace("{package_id}", currentPackageId)
                             .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
                                     .format(DateTimeFormatter.ofPattern(sdf.toPattern())))
