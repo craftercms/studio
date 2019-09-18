@@ -60,9 +60,9 @@ class DeploymentServices {
         return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path)
     }
 
-    static bulkGoLive(context, site, environment, path) {
+    static bulkGoLive(context, site, environment, path, comment) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.bulkGoLive(site, environment, path)
+        return deploymentServicesImpl.bulkGoLive(site, environment, path, comment)
     }
 
     static getStatus(context, siteId) {

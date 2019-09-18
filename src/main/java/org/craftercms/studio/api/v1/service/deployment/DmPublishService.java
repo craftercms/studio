@@ -35,5 +35,15 @@ public interface DmPublishService {
 
     boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
 
-    void bulkGoLive(String site, String environment, String path) throws ServiceLayerException;
+    /**
+     * Start executing bulk publish for given site, path on given environment
+     *
+     * @param site site identifier
+     * @param environment environment to publish to
+     * @param path base path for bulk publish
+     * @param comment submission comment
+     *
+     * @throws ServiceLayerException exception is case of en error
+     */
+    void bulkGoLive(String site, String environment, String path, String comment) throws ServiceLayerException;
 }

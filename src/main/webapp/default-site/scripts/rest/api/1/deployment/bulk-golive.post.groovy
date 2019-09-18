@@ -21,6 +21,7 @@ import scripts.api.DeploymentServices
 def site = request.getParameter("site_id")
 def path = request.getParameter("path")
 def environment = request.getParameter("environment")
+def comment = request.getParameter("comment")
 def result =[:]
 
 /** Validate Parameters */
@@ -46,7 +47,7 @@ if (invalidParams) {
     result.message = "Invalid parameter(s): " + paramsList
 } else {
     def context = DeploymentServices.createContext(applicationContext, request)
-    DeploymentServices.bulkGoLive(context, site, environment, path)
+    DeploymentServices.bulkGoLive(context, site, environment, path, comment)
     result = ["success": true]
 }
 return result
