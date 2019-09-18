@@ -78,7 +78,17 @@ public interface DeploymentService {
 
     void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceLayerException;
 
-    void bulkGoLive(String site, String environment, String path) throws ServiceLayerException;
+    /**
+     * Start executing bulk publish for given site, path on given environment
+     *
+     * @param site site identifier
+     * @param environment environment to publish to
+     * @param path base path for bulk publish
+     * @param comment submission comment
+     *
+     * @throws ServiceLayerException exception is case of en error
+     */
+    void bulkGoLive(String site, String environment, String path, String comment) throws ServiceLayerException;
 
     /**
      * Get last deployment date time for given site and path

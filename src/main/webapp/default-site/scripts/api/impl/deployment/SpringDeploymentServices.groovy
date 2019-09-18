@@ -63,9 +63,9 @@ class SpringDeploymentServices {
         return springBackedService.syncAllContentToPreview(site, false)
     }
 
-    def bulkGoLive(site, environment, path) {
+    def bulkGoLive(site, environment, path, comment) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.bulkGoLive(site, environment, path)
+        return springBackedService.bulkGoLive(site, environment, path, comment)
     }
 
     def getPublishStatus(siteId) {
