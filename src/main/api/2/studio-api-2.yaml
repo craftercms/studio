@@ -4127,7 +4127,10 @@ components:
                 description: content item path
               contentTypeClass:
                 type: string
-                description: content type class or mime-type
+                description: content type class
+              mimeType:
+                type: string
+                description: mime-type
       required:
         - id
         - schedule
