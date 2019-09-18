@@ -77,7 +77,7 @@
 
 -->
 <permissions>
-    <version>8</version>
+    <version>9</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -186,6 +186,7 @@
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
+                <permission>write_configuration</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -197,6 +198,7 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>write_configuration</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
