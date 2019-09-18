@@ -93,7 +93,7 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
 
     @Override
     public void run() {
-        logger.error("Starting Cluster Node Sync Global repo task");
+        logger.debug("Starting Cluster Node Sync Global repo task");
 
         // Lock site and begin sync
         if (singleWorkerLock.tryLock()) {
