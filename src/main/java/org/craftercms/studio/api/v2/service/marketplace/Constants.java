@@ -28,6 +28,7 @@ public interface Constants {
     String PARAM_TYPE = "type";
     String PARAM_VERSION = "version";
     String PARAM_EDITION = "edition";
+    String PARAM_KEYWORDS = "keywords";
     String PARAM_OFFSET = "offset";
     String PARAM_LIMIT = "limit";
 

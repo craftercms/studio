@@ -2985,6 +2985,11 @@ paths:
           description: Plugin type to search (e.g. blueprint, control, datasource)
           schema:
             type: string
+        - name: keywords
+          in: query
+          description: The keywords to filter plugins
+          schema:
+            type: string
         - name: offset
           in: query
           description: Offset for pagination
