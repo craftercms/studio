@@ -17,7 +17,7 @@
   -->
 
 <code-editor-config>
-  <theme>light</theme>       <!-- default theme: ligth | dark -->
+  <!-- <theme>light</theme> -->      <!-- default theme: light | dark -->
   <snippets>
     <!--
     <snippet>
