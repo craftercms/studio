@@ -474,6 +474,19 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.4.2/site/permission-mappings-config.xslt
           commitDetails: Add new permissions for WebDAV
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.2
+      nextVersion: 3.1.4.3
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.4.3/system/global-permission-mappings-config.xslt
+          commitDetails: Added delete_content permission
+        - type: globalRepoUpgrader
+          files:
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.3/system/sample-permission-mappings-config.xml
+              dest: /configuration/samples/sample-permission-mappings-config.xml
+          commitDetails: Update sample files
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -730,6 +743,16 @@ configurations:
             path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.4.2/site/permission-mappings-config.xslt
             commitDetails: Add new permissions for WebDAV
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 8
+        nextVersion: 9
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.4.3/site/permission-mappings-config.xslt
+            commitDetails: Add write_configuration permission for developer
           - type: xsltFileUpgrader
             path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
