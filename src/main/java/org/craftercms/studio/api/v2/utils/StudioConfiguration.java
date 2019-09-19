@@ -184,8 +184,8 @@ public interface StudioConfiguration {
             "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT =
             "studio.job.deployContentToEnvironment.status.message.default";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE =
-            "studio.job.deployContentToEnvironment.status.message.idle";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY =
+            "studio.job.deployContentToEnvironment.status.message.ready";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY =
             "studio.job.deployContentToEnvironment.status.message.busy";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING =
