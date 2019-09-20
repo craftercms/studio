@@ -44,6 +44,8 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
+import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
+import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -105,6 +107,26 @@ public class ExceptionHandlers {
     public ResponseBody handleInvalidParametersException(HttpServletRequest request, InvalidParametersException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         response.setMessage(response.getMessage() + " : " + e.getMessage());
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MarketplaceNotInitializedException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseBody handleMarketplaceNotInitializedException(HttpServletRequest request,
+                                                                 MarketplaceNotInitializedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_NOT_INITIALIZED);
+        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MarketplaceUnreachableException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseBody handleMarketplaceUnreachableException(HttpServletRequest request,
+                                                              MarketplaceUnreachableException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_UNREACHABLE);
+        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+
         return handleExceptionInternal(request, e, response);
     }
 

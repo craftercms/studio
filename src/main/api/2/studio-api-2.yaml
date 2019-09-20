@@ -3211,6 +3211,8 @@ components:
           * `CODE:` 12000, `MESSAGE:` Remote repository not found, `REMEDIAL ACTION:` Check if you sent in the right remote repository name
           * `CODE:` 12001, `MESSAGE:` Remote repository already exists, `REMEDIAL ACTION:` Get the list of remote repositories to validate
           * `CODE:` 12002, `MESSAGE:` Pull from remote repository resulted in conflict, `REMEDIAL ACTION:` Resolve conflicts before continuing work with repository
+          * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator
+          * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found
