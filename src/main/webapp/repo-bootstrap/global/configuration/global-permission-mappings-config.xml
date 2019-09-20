@@ -79,6 +79,7 @@
                 <permission>delete_content</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>write_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>

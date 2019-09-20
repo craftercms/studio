@@ -807,8 +807,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     @ValidateParams
     public void bulkGoLive(@ValidateStringParam(name = "site") String site,
                            @ValidateStringParam(name = "environment") String environment,
-                           @ValidateSecurePathParam(name = "path") String path) throws ServiceLayerException {
-        dmPublishService.bulkGoLive(site, environment, path);
+                           @ValidateSecurePathParam(name = "path") String path,
+                           String comment) throws ServiceLayerException {
+        dmPublishService.bulkGoLive(site, environment, path, comment);
     }
 
     @Override
