@@ -115,7 +115,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
@@ -192,7 +192,7 @@ public class SiteServiceImpl implements SiteService {
     protected UserServiceInternal userServiceInternal;
     protected UpgradeManager upgradeManager;
     protected StudioConfiguration studioConfiguration;
-    protected SitesService sitesService;
+    protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
 
@@ -414,13 +414,13 @@ public class SiteServiceImpl implements SiteService {
 	        throw new SiteAlreadyExistsException();
         }
 
-        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
-        sitesService.validateBlueprintParameters(descriptor, params);
-        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+        String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
         String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         try {
@@ -738,8 +738,8 @@ public class SiteServiceImpl implements SiteService {
                 remotePrivateKey, params);
 
             if (success) {
-                descriptor = sitesService.getSiteBlueprintDescriptor(siteId);
-                sitesService.validateBlueprintParameters(descriptor, params);
+                descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
+                sitesServiceInternal.validateBlueprintParameters(descriptor, params);
             }
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
@@ -870,13 +870,13 @@ public class SiteServiceImpl implements SiteService {
             throw new SiteAlreadyExistsException();
         }
 
-        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
-        sitesService.validateBlueprintParameters(descriptor, params);
-        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+        String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
         String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         boolean success = true;
@@ -1989,12 +1989,12 @@ public class SiteServiceImpl implements SiteService {
 		this.upgradeManager = upgradeManager;
 	}
 
-    public SitesService getSitesService() {
-        return sitesService;
+    public SitesServiceInternal getSitesServiceInternal() {
+        return sitesServiceInternal;
     }
 
-    public void setSitesService(SitesService sitesService) {
-        this.sitesService = sitesService;
+    public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
+        this.sitesServiceInternal = sitesServiceInternal;
     }
 
     public AuditServiceInternal getAuditServiceInternal() {

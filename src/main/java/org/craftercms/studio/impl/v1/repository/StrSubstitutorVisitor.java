@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v1.repository.git;
+package org.craftercms.studio.impl.v1.repository;
 
 import java.io.IOException;
 import java.io.InputStream;
