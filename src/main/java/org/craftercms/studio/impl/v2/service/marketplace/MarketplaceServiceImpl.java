@@ -111,8 +111,10 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
     }
 
     @Override
-    public Map<String, Object> searchPlugins(final String type, final long offset, final long limit)
+    public Map<String, Object> searchPlugins(final String type, final String keywords, final long offset,
+                                             final long limit)
         throws MarketplaceException {
+
         validate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
             .path(Paths.PLUGIN_SEARCH)
@@ -123,6 +125,10 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
 
         if (StringUtils.isNotEmpty(type)) {
             builder.queryParam(Constants.PARAM_TYPE, type);
+        }
+
+        if (StringUtils.isNotEmpty(keywords)) {
+            builder.queryParam(Constants.PARAM_KEYWORDS, keywords);
         }
 
         HttpEntity<Void> request = new HttpEntity<>(null, httpHeaders);

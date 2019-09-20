@@ -109,12 +109,13 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.deployment.Deployer;
+import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
@@ -191,7 +192,7 @@ public class SiteServiceImpl implements SiteService {
     protected UserServiceInternal userServiceInternal;
     protected UpgradeManager upgradeManager;
     protected StudioConfiguration studioConfiguration;
-    protected SitesService sitesService;
+    protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
 
@@ -406,19 +407,20 @@ public class SiteServiceImpl implements SiteService {
                                            @ValidateNoTagsParam(name = "siteName") String siteName,
                                            @ValidateStringParam(name = "siteId") String siteId,
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-                                           @ValidateNoTagsParam(name = "desc") String desc)
-            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-            BlueprintNotFoundException {
+                                           @ValidateNoTagsParam(name = "desc") String desc,
+                                           Map<String, String> params)
+        throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException, BlueprintNotFoundException, MissingPluginParameterException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
         }
 
-        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
-        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+        String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
         String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         try {
@@ -452,7 +454,7 @@ public class SiteServiceImpl implements SiteService {
 
 	    if (success) {
 	 		try {
-                success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc, params);
 
                 addSiteUuidFile(siteId, siteUuid);
 
@@ -533,12 +535,13 @@ public class SiteServiceImpl implements SiteService {
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteName, String siteId,
-                                                 String sandboxBranch, String desc)
+                                                 String sandboxBranch, String desc, Map<String, String> params)
             throws Exception {
         boolean success = true;
 
         // create site with git repo
-        contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch);
+        contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
+
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
@@ -671,7 +674,8 @@ public class SiteServiceImpl implements SiteService {
                                            String remoteBranch, boolean singleBranch, String authenticationType,
                                            String remoteUsername, String remotePassword, String remoteToken,
                                            String remotePrivateKey,
-                                           @ValidateStringParam(name = "createOption") String createOption)
+                                           @ValidateStringParam(name = "createOption") String createOption,
+                                           Map<String, String> params)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -689,14 +693,14 @@ public class SiteServiceImpl implements SiteService {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
-                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, params);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.debug("Push to remote repository create option selected");
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey);
+                        remotePrivateKey, params);
                 break;
 
             default:
@@ -711,7 +715,7 @@ public class SiteServiceImpl implements SiteService {
     private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
-                                       String remoteToken, String remotePrivateKey)
+                                       String remoteToken, String remotePrivateKey, Map<String, String> params)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -731,10 +735,11 @@ public class SiteServiceImpl implements SiteService {
                 " (" + remoteUrl + ")");
             success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                 remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey);
+                remotePrivateKey, params);
 
             if (success) {
-                descriptor = sitesService.getSiteBlueprintDescriptor(siteId);
+                descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
+                sitesServiceInternal.validateBlueprintParameters(descriptor, params);
             }
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
@@ -859,19 +864,19 @@ public class SiteServiceImpl implements SiteService {
     private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintId,
                                         String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
-                                        String remoteToken, String remotePrivateKey)
-            throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
-            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
+                                        String remoteToken, String remotePrivateKey, Map<String, String> params)
+            throws ServiceLayerException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
 
-        PluginDescriptor descriptor = sitesService.getBlueprintDescriptor(blueprintId);
+        PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
-        String blueprintLocation = sitesService.getBlueprintLocation(blueprintId);
+        sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+        String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
         String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         boolean success = true;
@@ -900,7 +905,8 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             try {
                 logger.debug("Creating site " + siteId + " from blueprint " + blueprintId);
-                success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description);
+                success =
+                    createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description, params);
 
                 addSiteUuidFile(siteId, siteUuid);
 
@@ -1983,12 +1989,12 @@ public class SiteServiceImpl implements SiteService {
 		this.upgradeManager = upgradeManager;
 	}
 
-    public SitesService getSitesService() {
-        return sitesService;
+    public SitesServiceInternal getSitesServiceInternal() {
+        return sitesServiceInternal;
     }
 
-    public void setSitesService(SitesService sitesService) {
-        this.sitesService = sitesService;
+    public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
+        this.sitesServiceInternal = sitesServiceInternal;
     }
 
     public AuditServiceInternal getAuditServiceInternal() {

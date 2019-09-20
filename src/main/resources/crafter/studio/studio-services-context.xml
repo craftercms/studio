@@ -117,7 +117,7 @@
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="upgradeManager" ref="upgradeManager"/>
-        <property name="sitesService" ref="sitesService" />
+        <property name="sitesServiceInternal" ref="sitesServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
     </bean>

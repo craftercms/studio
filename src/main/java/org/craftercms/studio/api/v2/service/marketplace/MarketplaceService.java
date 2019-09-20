@@ -41,11 +41,13 @@ public interface MarketplaceService {
     /**
      * Performs a search for all available plugins that match the given filters
      * @param type the type of plugins to search
+     * @param keywords the keywords to filter plugins
      * @param offset the offset for pagination
      * @param limit the limit for pagination
      * @return the result from the Marketplace
      * @throws MarketplaceException if there is any error performing the search
      */
-    Map<String, Object> searchPlugins(String type, long offset, long limit) throws MarketplaceException;
+    Map<String, Object> searchPlugins(String type, String keywords, long offset, long limit)
+        throws MarketplaceException;
 
 }

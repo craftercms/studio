@@ -954,7 +954,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch) {
+    public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
+                                           Map<String, String> params) {
         boolean toReturn;
 
         // create git repository for site content
@@ -968,6 +969,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (toReturn) {
             // update site name variable inside config files
             toReturn = helper.updateSitenameConfigVar(site);
+        }
+
+        if (toReturn) {
+            toReturn = helper.replaceParameters(site, params);
         }
 
         if (toReturn) {
@@ -1774,9 +1779,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey)
+                                         String remotePrivateKey, Map<String, String> params)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException {
+            RemoteRepositoryNotFoundException, ServiceLayerException {
         boolean toReturn;
 
         // clone remote git repository for site content
@@ -1796,6 +1801,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.debug("Update site name configuration variables for site " + siteId);
             toReturn = helper.updateSitenameConfigVar(siteId);
 
+            if (toReturn) {
+                toReturn = helper.replaceParameters(siteId, params);
+            }
 
             if (toReturn) {
                 // commit everything so it is visible
