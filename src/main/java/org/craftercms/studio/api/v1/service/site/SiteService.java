@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
 import java.util.List;
@@ -100,11 +101,11 @@ public interface SiteService {
      * @param siteName site name
      * @param siteId site identifier
      * @param desc description
+     * @param params site parameters
      */
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
-                                 String desc)
-            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-                   BlueprintNotFoundException;
+                                 String desc, Map<String, String> params)
+        throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException, BlueprintNotFoundException, MissingPluginParameterException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
@@ -123,11 +124,13 @@ public interface SiteService {
      * @param remoteToken remote repository username to use for authentication
      * @param remotePrivateKey remote repository username to use for authentication
      * @param createOption remote repository username to use for authentication
+     * @param params site parameters
      */
     void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
                                     String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                     String authenticationType, String remoteUsername, String remotePassword,
-                                    String remoteToken, String remotePrivateKey, String createOption)
+                                    String remoteToken, String remotePrivateKey, String createOption,
+                                    Map<String, String> params)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 

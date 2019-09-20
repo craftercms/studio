@@ -17,14 +17,18 @@
 
 package org.craftercms.studio.impl.v2.service.site.internal;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
+import org.craftercms.commons.plugin.model.Parameter;
+import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Required;
@@ -37,6 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
@@ -105,6 +110,24 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
             }
         }
         return null;
+    }
+
+    @Override
+    public void validateBlueprintParameters(final PluginDescriptor descriptor, final Map<String, String> params)
+        throws MissingPluginParameterException {
+        Plugin plugin = descriptor.getPlugin();
+        if (CollectionUtils.isEmpty(plugin.getParameters())) {
+            logger.debug("There are no parameters defined for blueprint: {0}", plugin.getId());
+            return;
+        }
+        for(Parameter param : plugin.getParameters()) {
+            logger.debug("Checking parameter {0} for blueprint {1}", param.getName(), plugin.getId());
+            if (param.isRequired() && !params.containsKey(param.getName())
+                || StringUtils.isEmpty(params.get(param.getName()))) {
+                throw new MissingPluginParameterException(descriptor, param);
+            }
+        }
+        logger.debug("All required parameters are present for blueprint: {0}", plugin.getId());
     }
 
     protected RepositoryItem[] getBlueprintsFolders() {

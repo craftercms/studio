@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.2'
+  version: '3.1.4.3'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1335,7 +1335,7 @@ paths:
         - webdav
       summary: Get a list of items from a WebDAV server
       description: 'Required Permission: "webdav_read"'
-      operationId: listItems
+      operationId: listItemsWebdav
       parameters:
         - name: siteId
           in: query
@@ -1388,7 +1388,7 @@ paths:
         - webdav
       summary: Upload a file to a WebDAV server
       description: 'Required Permission: "webdav_write"'
-      operationId: uploadItem
+      operationId: uploadItemWebdav
       requestBody:
         required: true
         content:
@@ -2832,7 +2832,7 @@ paths:
 
   /content/get_delete_package:
     get:
-      tags: 
+      tags:
         - content
       summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
       description: 'Required permission "delete_content"'
@@ -2880,7 +2880,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'             
+          $ref: '#/components/responses/InternalServerError'
 
   /content/delete:
     delete:
@@ -2973,7 +2973,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'        
+          $ref: '#/components/responses/InternalServerError'
 
   /marketplace/search:
     get:
@@ -2985,6 +2985,11 @@ paths:
         - name: type
           in: query
           description: Plugin type to search (e.g. blueprint, control, datasource)
+          schema:
+            type: string
+        - name: keywords
+          in: query
+          description: The keywords to filter plugins
           schema:
             type: string
         - name: offset
@@ -3497,6 +3502,22 @@ components:
         - title
         - url
 
+    Parameter:
+      type: object
+      properties:
+        label:
+          type: string
+          description: The label to use for the parameter
+        name:
+          type: string
+          description: The name of the parameter (must be camelCase)
+        type:
+          type: string
+          description: The type of the parameter. Currently supported values are STRING, PASSWORD
+        required:
+          type: boolean
+          description: Indicates if the parameter is required
+
     PluginDescriptor:
       type: object
       properties:
@@ -3575,6 +3596,11 @@ components:
           description: The supported Crafter CMS editions of the plugin
           items:
             type: string
+        parameters:
+          type: array
+          description: The parameters supported by the plugin
+          items:
+            $ref: '#/components/schemas/Parameter'
 
     MarketplacePlugin:
       allOf:

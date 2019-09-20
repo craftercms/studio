@@ -234,9 +234,11 @@ public interface ContentRepository {
      * @param blueprintLocation blueprint location
      * @param siteId site identifier
      * @param sandboxBranch sandbox branch name
+     * @param params site parameters
      * @return true if successful, false otherwise
      */
-    boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch);
+    boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+                                    Map<String, String> params);
 
     /**
      * Deletes an existing site.
@@ -364,12 +366,13 @@ public interface ContentRepository {
      * @param remoteUrl      remote repository url
      * @param remoteUsername remote username
      * @param remotePassword remote password
+     * @param params site parameters
      * @return true if success
      */
     boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                   String remoteBranch, boolean singleBranch, String authenticationType,
                                   String remoteUsername, String remotePassword, String remoteToken,
-                                  String remotePrivateKey)
+                                  String remotePrivateKey, Map<String, String> params)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException;
 
