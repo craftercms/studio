@@ -487,6 +487,14 @@ pipelines:
               dest: /configuration/samples/sample-permission-mappings-config.xml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.3
+      nextVersion: 3.1.4.4
+      operations:
+        - type: addFileUpgrader
+          path: /configuration/samples/sample-code-editor-config.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.4.4/system/sample-code-editor-config.xml
+          commitDetails: Added new sample file
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -611,6 +619,15 @@ pipelines:
           commitDetails: Add new property to all existing content-types
           template: crafter/studio/upgrade/3.1.x/3.1.0.9/site/content-type.xslt
           regex: config/studio/content-types/.+/form-definition\.xml
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.0.9
+      nextVersion: 3.1.4.1
+      operations:
+        - type: addFileUpgrader
+          path: /config/studio/code-editor-config.xml
+          file: crafter/studio/upgrade/3.1.x/3.1.4.4/site/code-editor-config.xml
+          commitDetails: Add new configuration file
         - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
@@ -823,6 +840,16 @@ configurations:
             path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.0.29/site/config-list.xslt
             commitDetails: Move sample configuration files to global configuration
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 6
+        nextVersion: 7
+        operations:
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.x/3.1.4.4/site/config-list.xslt
+            commitDetails: Add new configuration file
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
