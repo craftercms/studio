@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v2.service.marketplace;
 import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 
 /**
  * Provides access to all available Marketplace operations
@@ -43,8 +44,8 @@ public interface MarketplaceService {
      * @param offset the offset for pagination
      * @param limit the limit for pagination
      * @return the result from the Marketplace
-     * @throws ServiceLayerException if there is any error performing the search
+     * @throws MarketplaceException if there is any error performing the search
      */
-    Map<String, Object> searchPlugins(String type, long offset, long limit) throws ServiceLayerException;
+    Map<String, Object> searchPlugins(String type, long offset, long limit) throws MarketplaceException;
 
 }

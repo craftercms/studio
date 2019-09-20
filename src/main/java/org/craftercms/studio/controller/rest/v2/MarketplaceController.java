@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -54,7 +55,7 @@ public class MarketplaceController {
     public ResponseBody searchPlugins(@RequestParam(required = false) String type,
                                       @RequestParam(required = false, defaultValue = "0") long offset,
                                       @RequestParam(required = false, defaultValue = "10") long limit)
-        throws ServiceLayerException {
+        throws MarketplaceException {
         Map<String, Object> page = marketplaceService.searchPlugins(type, offset, limit);
 
         ResponseBody response = new ResponseBody();

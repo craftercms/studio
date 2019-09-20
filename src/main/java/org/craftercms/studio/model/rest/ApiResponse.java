@@ -113,6 +113,13 @@ public class ApiResponse {
             new ApiResponse(12002, "Pull from remote repository resulted in conflict",
                     "Resolve conflicts before continuing work with repository", StringUtils.EMPTY);
 
+    public static final ApiResponse MARKETPLACE_NOT_INITIALIZED = new ApiResponse(40000,
+        "Marketplace service is not initialized", "Contact your system administrator", StringUtils.EMPTY);
+
+    public static final ApiResponse MARKETPLACE_UNREACHABLE = new ApiResponse(40001,
+        "Marketplace server is unreachable", "Check the configuration to make sure the Marketplace URL is correct",
+        StringUtils.EMPTY);
+
     public static final ApiResponse CMIS_UNREACHABLE =
             new ApiResponse(50000, "CMIS server is unreachable", "Advise the user that the CMIS server is not " +
                                                                  "reachable", StringUtils.EMPTY);

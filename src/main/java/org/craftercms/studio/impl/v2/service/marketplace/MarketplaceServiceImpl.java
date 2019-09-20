@@ -17,13 +17,18 @@
 
 package org.craftercms.studio.impl.v2.service.marketplace;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
+import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
+import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.Paths;
@@ -44,6 +49,8 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @since 3.1.2
  */
 public class MarketplaceServiceImpl implements MarketplaceService, InitializingBean {
+
+    private static final Logger logger = LoggerFactory.getLogger(MarketplaceServiceImpl.class);
 
     public MarketplaceServiceImpl(final InstanceService instanceService) {
         this.instanceService = instanceService;
@@ -78,8 +85,12 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() throws IOException {
         VersionInfo versionInfo = VersionInfo.getVersion(MarketplaceServiceImpl.class);
+        if (versionInfo == null) {
+            logger.warn("Marketplace service could not be initialized");
+            return;
+        }
         String versionStr = versionInfo.getPackageVersion();
 
         // init version
@@ -101,7 +112,8 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
 
     @Override
     public Map<String, Object> searchPlugins(final String type, final long offset, final long limit)
-        throws ServiceLayerException {
+        throws MarketplaceException {
+        validate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
             .path(Paths.PLUGIN_SEARCH)
             .queryParam(Constants.PARAM_VERSION, version)
@@ -121,7 +133,13 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
                     new ParameterizedTypeReference<Map<String, Object>>() {});
             return response.getBody();
         } catch (ResourceAccessException e) {
-            throw new ServiceLayerException("Marketplace is not available at " + url, e);
+            throw new MarketplaceUnreachableException(url, e);
+        }
+    }
+
+    protected void validate() throws MarketplaceException {
+        if (StringUtils.isEmpty(version)) {
+            throw new MarketplaceNotInitializedException();
         }
     }
 
