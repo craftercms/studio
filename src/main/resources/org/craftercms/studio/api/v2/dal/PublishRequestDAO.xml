@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.PublishRequestDAO">
+
+    <resultMap id="PublishRequestMap" type="org.craftercms.studio.api.v1.dal.PublishRequest">
+        <id property="id" column="id"/>
+        <result property="site" column="site"/>
+        <result property="environment" column="environment"/>
+        <result property="path" column="path"/>
+        <result property="oldPath" column="oldpath"/>
+        <result property="user" column="username"/>
+        <result property="scheduledDate" column="scheduleddate"/>
+        <result property="state" column="state"/>
+        <result property="action" column="action"/>
+        <result property="contentTypeClass" column="contenttypeclass"/>
+        <result property="submissionComment" column="submissioncomment"/>
+        <result property="commitId" column="commit_id"/>
+        <result property="packageId" column="package_id"/>
+    </resultMap>
+
+    <resultMap id="PublishingPackageMap" type="org.craftercms.studio.api.v2.dal.PublishingPackage">
+        <result property="packageId" column="package_id" />
+        <result property="siteId" column="site" />
+        <result property="environment" column="environment" />
+        <result property="state" column="state" />
+        <result property="scheduledDate" column="scheduleddate" />
+        <result property="user" column="username" />
+    </resultMap>
+
+    <select id="getPublishingPackagesTotal" resultType="int">
+        SELECT COUNT(1) FROM publish_request
+        WHERE site = #{siteId}
+        <if test="environment != null">
+            AND environment = #{environment}
+        </if>
+        <if test="state != null">
+            AND state = #{state}
+        </if>
+        <if test="path != null">
+            AND path RLIKE #{path}
+        </if>
+        GROUP BY packageId
+    </select>
+
+    <select id="getPublishingPackages" resultMap="PublishingPackageMap">
+        SELECT package_id, site, environment, state, username, scheduleddate, submissioncomment
+        FROM publish_request
+        WHERE site = #{siteId}
+        <if test="environment != null">
+            AND environment = #{environment}
+        </if>
+        <if test="state != null">
+            AND state = #{state}
+        </if>
+        <if test="path != null">
+            and path RLIKE #{path}
+        </if>
+        GROUP BY packageId
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="getPublishingPackageDetails"
+            resultMap="org.craftercms.studio.api.v2.dal.PublishRequestDAO.PublishRequestMap">
+        SELECT * FROM publish_request
+        WHERE site = #{siteId}
+        AND package_id = #{packageId}
+    </select>
+
+    <update id="cancelPackages">
+        UPDATE publish_request
+        SET state = #{cancelledState}
+        WHERE siteId = #{siteId}
+        AND packageId IN
+        <foreach item="packageId" index="index" collection="packageIds" open="(" separator="," close=")">
+            #{packageIds}
+        </foreach>
+    </update>
+</mapper>
