@@ -63,6 +63,11 @@ public class XmlFileVersionProvider implements VersionProvider {
      */
     protected String defaultVersion;
 
+    /**
+     * Indicates if the skip flag should be returned
+     */
+    protected boolean skipIfMissing = true;
+
     protected ContentRepository contentRepository;
 
     public XmlFileVersionProvider(final String site, final String path) {
@@ -93,6 +98,10 @@ public class XmlFileVersionProvider implements VersionProvider {
         this.defaultVersion = defaultVersion;
     }
 
+    public void setSkipIfMissing(final boolean skipIfMissing) {
+        this.skipIfMissing = skipIfMissing;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -106,7 +115,11 @@ public class XmlFileVersionProvider implements VersionProvider {
             }
         } else if(!contentRepository.contentExists(site, path)) {
             logger.debug("Missing file {0} in site {1}", path, site);
-            return SKIP;
+            if (skipIfMissing) {
+                return SKIP;
+            } else {
+                return defaultVersion;
+            }
         } else {
             try(InputStream is = contentRepository.getContent(site, path)) {
                 DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();

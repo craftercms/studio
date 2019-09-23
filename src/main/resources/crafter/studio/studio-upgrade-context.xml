@@ -92,6 +92,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_FILE)}"/>
         <property name="defaultVersion"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_SITE)}"/>
+        <property name="skipIfMissing" value="false"/>
     </bean>
 
     <bean id="fileVersionProvider" scope="prototype" parent="xmlVersionProvider"
