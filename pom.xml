@@ -26,7 +26,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.0.26-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.0.26</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -46,7 +46,7 @@
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>support/3.0.x</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.version>v3.0.26</studio.ui.version><!-- craftercms ui version flag -->
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
