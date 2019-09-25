@@ -495,6 +495,39 @@ pipelines:
           file: crafter/studio/upgrade/3.1.x/3.1.4.4/system/sample-code-editor-config.xml
           commitDetails: Added new sample file
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.4
+      nextVersion: 3.1.4.5
+      operations:
+        - type: globalRepoUpgrader
+          files:            
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-cmis-config.xml
+              dest: /configuration/samples/sample-cmis-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-config-list.xml
+              dest: /configuration/samples/sample-config-list.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-environment-config.xml
+              dest: /configuration/samples/sample-environment-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-form-control-rte-setup-tinymce5.xml
+              dest: /configuration/samples/sample-form-control-rte-setup-tinymce5.xml        
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-form-control-rte-setup.xml
+              dest: /configuration/samples/sample-form-control-rte-setup.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-notification-config.xml
+              dest: /configuration/samples/sample-notification-config.xml                    
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-permission-mappings-config.xml
+              dest: /configuration/samples/sample-permission-mappings-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-preview-components-config.xml
+              dest: /configuration/samples/sample-preview-components-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-role-mappings-config.xml
+              dest: /configuration/samples/sample-role-mappings-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-sidebar.xml
+              dest: /configuration/samples/sample-sidebar.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-site-config-tools.xml
+              dest: /configuration/samples/sample-role-site-config-tools.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-site-config.xml
+              dest: /configuration/samples/sample-site-config.xml
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-targeting-config.xml
+              dest: /configuration/samples/sample-targeting-config.xml                                                                                      
+          commitDetails: Update sample files
+        - type: dbVersionUpgrader    
 
   # Pipeline to upgrade site repositories
   site:
