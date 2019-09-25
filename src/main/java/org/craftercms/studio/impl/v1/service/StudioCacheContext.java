@@ -48,6 +48,21 @@ public class StudioCacheContext implements Context {
     }
 
     @Override
+    public long getCacheVersion() {
+        return 1;
+    }
+
+    @Override
+    public void setCacheVersion(long cacheVersion) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getCacheScope() {
+        return getId();
+    }
+
+    @Override
     public ContentStoreAdapter getStoreAdapter() {
         return null;
     }
@@ -70,6 +85,16 @@ public class StudioCacheContext implements Context {
     @Override
     public boolean ignoreHiddenFiles() {
         return DEFAULT_IGNORE_HIDDEN_FILES;
+    }
+
+    @Override
+    public Context clone() {
+        try {
+            return (Context) super.clone();
+        } catch (CloneNotSupportedException e) {
+            // Shouldn't happen
+            throw new RuntimeException(e);
+        }
     }
 
     protected boolean isConfig;
