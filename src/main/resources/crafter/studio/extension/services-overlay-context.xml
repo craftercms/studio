@@ -49,7 +49,6 @@
         <property name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
         <property name="contextFactory" ref="crafter.siteContextFactory"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
-        <property name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
     </bean>
 
     <!-- ////////////////////////////////// -->
