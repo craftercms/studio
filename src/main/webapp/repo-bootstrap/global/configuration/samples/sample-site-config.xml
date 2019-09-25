@@ -21,6 +21,16 @@
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
 
+    <publishing>
+        <comments>
+            <!-- Global setting would apply to all -->
+            <required>false</required>
+            <!-- Additional (also optional) specific overrides -->
+            <!-- <delete-required/> -->
+            <!-- <bulk-publish-required/> -->
+        </comments>
+    </publishing>
+
     <form-engine>
         <!-- Indicates if postfixes should be required for all fields -->
         <field-name-postfix>true</field-name-postfix>
