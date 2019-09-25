@@ -33,6 +33,16 @@
         <live-environment>live</live-environment>
     </published-repository>
 
+    <publishing>
+        <comments>
+            <!-- Global setting would apply to all -->
+            <required>false</required>
+            <!-- Additional (also optional) specific overrides -->
+            <!-- <delete-required/> -->
+            <!-- <bulk-publish-required/> -->
+        </comments>
+    </publishing>
+
     <form-engine>
         <field-name-postfix>true</field-name-postfix>
         <ignore-postfix-fields>
