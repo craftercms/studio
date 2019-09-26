@@ -739,7 +739,9 @@ public class SiteServiceImpl implements SiteService {
 
             if (success) {
                 descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
-                sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+                if (descriptor != null) {
+                    sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+                }
             }
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
