@@ -122,8 +122,8 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         }
         for(Parameter param : plugin.getParameters()) {
             logger.debug("Checking parameter {0} for blueprint {1}", param.getName(), plugin.getId());
-            if (param.isRequired() && !params.containsKey(param.getName())
-                || StringUtils.isEmpty(params.get(param.getName()))) {
+            if (param.isRequired() && (!params.containsKey(param.getName())
+                || StringUtils.isEmpty(params.get(param.getName())))) {
                 throw new MissingPluginParameterException(descriptor, param);
             }
         }
