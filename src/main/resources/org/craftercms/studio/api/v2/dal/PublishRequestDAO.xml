@@ -21,7 +21,7 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.PublishRequestDAO">
 
-    <resultMap id="PublishRequestMap" type="org.craftercms.studio.api.v1.dal.PublishRequest">
+    <resultMap id="PublishRequestMap" type="org.craftercms.studio.api.v2.dal.PublishRequest">
         <id property="id" column="id"/>
         <result property="site" column="site"/>
         <result property="environment" column="environment"/>
@@ -47,7 +47,7 @@
     </resultMap>
 
     <select id="getPublishingPackagesTotal" resultType="int">
-        SELECT COUNT(1) FROM publish_request
+        SELECT COUNT(distinct package_id) FROM publish_request
         WHERE site = #{siteId}
         <if test="environment != null">
             AND environment = #{environment}
@@ -58,7 +58,6 @@
         <if test="path != null">
             AND path RLIKE #{path}
         </if>
-        GROUP BY packageId
     </select>
 
     <select id="getPublishingPackages" resultMap="PublishingPackageMap">
@@ -74,7 +73,7 @@
         <if test="path != null">
             and path RLIKE #{path}
         </if>
-        GROUP BY packageId
+        GROUP BY package_id
         LIMIT #{offset}, #{limit}
     </select>
 
@@ -88,10 +87,10 @@
     <update id="cancelPackages">
         UPDATE publish_request
         SET state = #{cancelledState}
-        WHERE siteId = #{siteId}
-        AND packageId IN
+        WHERE site = #{siteId}
+        AND package_id IN
         <foreach item="packageId" index="index" collection="packageIds" open="(" separator="," close=")">
-            #{packageIds}
+            #{packageId}
         </foreach>
     </update>
 </mapper>
