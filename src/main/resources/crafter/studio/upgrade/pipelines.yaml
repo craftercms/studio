@@ -663,6 +663,15 @@ pipelines:
           commitDetails: Add new configuration file
         - type: versionFileUpgrader
 
+    - currentVersion: 3.1.4.1
+      nextVersion: 3.1.4.2
+      operations:
+        - type: addFileUpgrader
+          path: .gitignore
+          file: crafter/studio/upgrade/3.1.x/3.1.4.2/site/gitignore
+          commitDetails: Add default gitignore file
+        - type: versionFileUpgrader
+
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
