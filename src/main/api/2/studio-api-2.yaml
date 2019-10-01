@@ -3090,7 +3090,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/package_details:
+  /publish/package:
     get:
       tags:
         - publishing

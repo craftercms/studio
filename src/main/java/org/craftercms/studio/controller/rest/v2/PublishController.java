@@ -64,7 +64,7 @@ public class PublishController {
         return responseBody;
     }
 
-    @GetMapping("/package_details")
+    @GetMapping("/package")
     public ResponseBody getPublishingPackageDetails(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                     @RequestParam(name = REQUEST_PARAM_PACKAGE_ID) String packageId)
             throws SiteNotFoundException {
