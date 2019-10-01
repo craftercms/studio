@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.3'
+  version: '3.1.4.4'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3090,7 +3090,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/package_details:
+  /publish/package:
     get:
       tags:
         - publishing
@@ -3120,10 +3120,8 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  packages:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PublishingPackageDetails'
+                  package:
+                    $ref: '#/components/schemas/PublishingPackageDetails'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4100,6 +4098,9 @@ components:
         id:
           type: string
           description: package ID
+        siteId:
+          type: string
+          description: site ID
         schedule:
           type: string
           format: datetime
@@ -4118,6 +4119,7 @@ components:
           description: submission comment
       required:
         - id
+        - siteId
         - schedule
         - approver
         - state
@@ -4129,6 +4131,9 @@ components:
         id:
           type: string
           description: package ID
+        siteId:
+          type: string
+          description: site ID
         schedule:
           type: string
           format: datetime

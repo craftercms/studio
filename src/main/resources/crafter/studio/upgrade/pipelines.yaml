@@ -528,7 +528,19 @@ pipelines:
               dest: /configuration/samples/sample-targeting-config.xml                                                                                      
           commitDetails: Update sample files
         - type: dbVersionUpgrader    
-
+    - currentVersion: 3.1.4.5
+      nextVersion: 3.1.4.6
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.4.6/system/global-permission-mappings-config.xslt
+          commitDetails: Added publishing queue dialog permissions
+        - type: globalRepoUpgrader
+          files:
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.6/system/sample-permission-mappings-config.xml
+              dest: /configuration/samples/sample-permission-mappings-config.xml
+          commitDetails: Update sample files
+        - type: dbVersionUpgrader
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -803,6 +815,16 @@ configurations:
             path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.4.3/site/permission-mappings-config.xslt
             commitDetails: Add write_configuration permission for developer
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 9
+        nextVersion: 10
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.4.6/site/permission-mappings-config.xslt
+            commitDetails: Add publishing queue dialog permissions for developer
           - type: xsltFileUpgrader
             path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt

@@ -455,6 +455,16 @@
         <property name="itemStateMapper" ref="itemStateMapper" />
     </bean>
 
+    <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">
+        <property name="publishServiceInternal" ref="publishServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+    </bean>
+
+    <bean id="publishServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
+        <property name="publishRequestDao" ref="publishRequestDao" />
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->

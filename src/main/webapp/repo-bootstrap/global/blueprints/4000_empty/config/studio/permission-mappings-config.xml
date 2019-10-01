@@ -77,7 +77,7 @@
 
 -->
 <permissions>
-    <version>9</version>
+    <version>10</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -132,6 +132,8 @@
                 <permission>Create Content</permission>
                 <permission>Create Folder</permission>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
@@ -152,6 +154,8 @@
                 <permission>Create Content</permission>
                 <permission>Create Folder</permission>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
@@ -162,6 +166,8 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -198,6 +204,8 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
                 <permission>write_configuration</permission>
             </allowed-permissions>
         </rule>
@@ -216,6 +224,8 @@
                 <permission>Read</permission>
                 <permission>Write</permission>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
                 <permission>Create Folder</permission>
                 <permission>Create Content</permission>
                 <permission>Change Content Type</permission>
@@ -246,6 +256,8 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
                 <permission>add_remote</permission>
                 <permission>list_remotes</permission>
                 <permission>pull_from_remote</permission>
@@ -274,11 +286,15 @@
             <allowed-permissions>
                 <permission>Read</permission>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
