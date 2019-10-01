@@ -737,6 +737,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="sitesServiceInternal" ref="sitesServiceInternal" />
     </bean>
 
     <bean id="contentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">

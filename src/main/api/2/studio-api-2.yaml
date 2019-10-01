@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.3'
+  version: '3.1.4.4'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3513,6 +3513,12 @@ components:
         name:
           type: string
           description: The name of the parameter (must be camelCase)
+        description:
+          type: string
+          description: The description of the parameter
+        defaultValue:
+          type: string
+          description: The default value of the parameter
         type:
           type: string
           description: The type of the parameter. Currently supported values are STRING, PASSWORD
