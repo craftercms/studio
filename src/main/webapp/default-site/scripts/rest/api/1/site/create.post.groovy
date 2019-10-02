@@ -28,7 +28,7 @@ import groovy.json.JsonSlurper
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_REMOTE_NAME
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_REMOTE_NAME
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH
 
 def studioConfiguration = applicationContext.get("studioConfiguration")
@@ -102,7 +102,7 @@ try {
 
     // remote_name
     if (StringUtils.isEmpty(remoteName)) {
-        remoteName = studioConfiguration.getProperty(REPO_REMOTE_NAME)
+        remoteName = studioConfiguration.getProperty(REPO_DEFAULT_REMOTE_NAME)
     }
 
     if (useRemote) {

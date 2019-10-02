@@ -26,7 +26,7 @@ studio.repo.siteSandboxPath: sandbox
 # Sandbox git repository branch for every site
 studio.repo.siteSandboxBranch: master
 # Name used for the git remote for remote sites
-studio.repo.siteRemoteName: origin
+studio.repo.defaultRemoteName: origin
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
 # If not using environment-config.xml, environments are configured here
