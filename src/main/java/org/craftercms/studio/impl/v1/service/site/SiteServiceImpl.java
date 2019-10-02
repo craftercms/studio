@@ -727,8 +727,6 @@ public class SiteServiceImpl implements SiteService {
         // 1) git repo, 2) deployer target, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
-        PluginDescriptor descriptor = null;
-
         try {
             // create site by cloning remote git repo
             logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName +
@@ -736,13 +734,6 @@ public class SiteServiceImpl implements SiteService {
             success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                 remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                 remotePrivateKey, params);
-
-            if (success) {
-                descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
-                if (descriptor != null) {
-                    sitesServiceInternal.validateBlueprintParameters(descriptor, params);
-                }
-            }
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
             RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
@@ -758,6 +749,7 @@ public class SiteServiceImpl implements SiteService {
         // try to get the search engine from the blueprint descriptor file
         String searchEngine = studioConfiguration.getProperty(StudioConfiguration.PREVIEW_SEARCH_ENGINE);
 
+        PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
             logger.info("Using search engine {0} from plugin descriptor", searchEngine);
