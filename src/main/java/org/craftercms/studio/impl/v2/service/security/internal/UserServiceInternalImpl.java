@@ -94,7 +94,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                                                                               UserNotFoundException {
         List<User> users = new LinkedList<>();
         for(long userId : userIds) {
-            users.add(getUserByIdOrUsername(userId, Long.toString(userId)));
+            users.add(getUserByIdOrUsername(userId, StringUtils.EMPTY));
         }
         for(String username : usernames) {
             Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
