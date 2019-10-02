@@ -34,6 +34,7 @@ public interface StudioConfiguration {
     String SITES_REPOS_PATH = "studio.repo.sitesRepoBasePath";
     String SANDBOX_PATH = "studio.repo.siteSandboxPath";
     String REPO_SANDBOX_BRANCH = "studio.repo.siteSandboxBranch";
+    String REPO_REMOTE_NAME = "studio.repo.siteRemoteName";
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String REPO_BLUEPRINTS_DESCRIPTOR_FILENAME = "studio.repo.blueprints.descriptor.filename";
