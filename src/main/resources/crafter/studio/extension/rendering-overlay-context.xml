@@ -25,14 +25,9 @@
 
     <!-- STUDIO CHANGES -->
 
-    <bean id="crafter.httpProxyRequestHandler" class="org.craftercms.engine.controller.HttpProxyRequestHandler">
-        <property name="proxyRegistry" ref="crafter.httpProxyRegistry" />
-    </bean>
-
      <util:map id="crafter.urlMappings">
         <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
         <entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
-        <entry key="/proxy/{proxyName}/**" value-ref="crafter.httpProxyRequestHandler"/>
         <entry key="/*" value-ref="crafter.pageRenderController"/>
     </util:map>
 
