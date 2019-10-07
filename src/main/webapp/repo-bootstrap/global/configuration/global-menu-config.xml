@@ -79,5 +79,11 @@
             <icon>fa-align-left</icon>
             <permission>read_logs</permission>
         </item>
+        <item>
+            <id>home.globalMenu.admin-configuration</id>
+            <label>Configuration</label>
+            <icon>fa configuration</icon>
+            <permission>write_global_configuration</permission>
+        </item>
     </items>
 </globalMenu>

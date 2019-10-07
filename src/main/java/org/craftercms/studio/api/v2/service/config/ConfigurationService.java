@@ -105,4 +105,6 @@ public interface ConfigurationService {
      * @return configuration history
      */
     ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment);
+
+    void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
 }
