@@ -409,20 +409,24 @@ public class SiteServiceImpl implements SiteService {
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
                                            @ValidateNoTagsParam(name = "desc") String desc,
                                            Map<String, String> params)
-        throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException, BlueprintNotFoundException, MissingPluginParameterException {
+            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
+            BlueprintNotFoundException, MissingPluginParameterException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
         }
 
+	    logger.debug("Get blueprint descriptor for: " + blueprintId);
         PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
+        logger.debug("Validating blueprint parameters");
         sitesServiceInternal.validateBlueprintParameters(descriptor, params);
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
         String searchEngine = descriptor.getPlugin().getSearchEngine();
 
+        logger.debug("Validate site entitlements");
         try {
 			entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
 		} catch (EntitlementException e) {
@@ -430,6 +434,7 @@ public class SiteServiceImpl implements SiteService {
                                             "your system administrator.", e);
 		}
 
+        logger.info("Starting site creation process for site " + siteName + " from " + blueprintId + " blueprint.");
         boolean success = true;
 
 	    // We must fail site creation if any of the site creations steps fail and rollback
@@ -440,6 +445,7 @@ public class SiteServiceImpl implements SiteService {
         String siteUuid = UUID.randomUUID().toString();
 
 	    // Create the site in the preview deployer
+        logger.info("Creating deployer targets.");
         try {
             deployer.createTargets(siteId, searchEngine);
         } catch (Exception e) {
@@ -454,10 +460,13 @@ public class SiteServiceImpl implements SiteService {
 
 	    if (success) {
 	 		try {
+	 		    logger.info("Copying site content from blueprint.");
                 success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc, params);
 
+                logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
 
+                logger.info("Adding site record to database for site " + siteId);
                 // insert database records
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
@@ -470,18 +479,24 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
+                logger.info("Upgrading site.");
                 upgradeManager.upgradeSite(siteId);
 
+                logger.debug("Adding audit log");
                 insertCreateSiteAuditLog(siteId, siteName);
 
                 // Add default groups
+                logger.info("Adding default groups");
                 addDefaultGroupsForNewSite(siteId);
 
+                logger.info("Reload site configuration");
                 reloadSiteConfiguration(siteId);
 
+                logger.info("Syncing database with repository.");
                 syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
                 // initial deployment
+                logger.info("Performing initial deployment");
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
@@ -505,6 +520,7 @@ public class SiteServiceImpl implements SiteService {
 	    }
 
 	    if (success) {
+	        logger.info("Syncing all content to preview.");
 		    // Now that everything is created, we can sync the preview deployer with the new content
 		    try {
 			    deploymentService.syncAllContentToPreview(siteId, true);
@@ -519,6 +535,7 @@ public class SiteServiceImpl implements SiteService {
 	    } else {
 		    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
 	    }
+	    logger.info("Finished creating site " + siteId);
     }
 
     private void insertCreateSiteAuditLog(String siteId, String siteName) throws SiteNotFoundException {
@@ -682,6 +699,7 @@ public class SiteServiceImpl implements SiteService {
             throw new SiteAlreadyExistsException();
         }
 
+        logger.debug("Validate site entitlements");
 		try {
 			entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
 		} catch (EntitlementException e) {
@@ -691,13 +709,13 @@ public class SiteServiceImpl implements SiteService {
 
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
-                logger.debug("Clone from remote repository create option selected");
+                logger.info("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
                         authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, params);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
-                logger.debug("Push to remote repository create option selected");
+                logger.info("Push to remote repository create option selected");
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey, params);
@@ -727,22 +745,13 @@ public class SiteServiceImpl implements SiteService {
         // 1) git repo, 2) deployer target, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
-        PluginDescriptor descriptor = null;
-
         try {
             // create site by cloning remote git repo
-            logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName +
+            logger.info("Creating site " + siteId + " by cloning remote repository " + remoteName +
                 " (" + remoteUrl + ")");
             success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                 remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                 remotePrivateKey, params);
-
-            if (success) {
-                descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
-                if (descriptor != null) {
-                    sitesServiceInternal.validateBlueprintParameters(descriptor, params);
-                }
-            }
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
             RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
@@ -758,6 +767,7 @@ public class SiteServiceImpl implements SiteService {
         // try to get the search engine from the blueprint descriptor file
         String searchEngine = studioConfiguration.getProperty(StudioConfiguration.PREVIEW_SEARCH_ENGINE);
 
+        PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
             logger.info("Using search engine {0} from plugin descriptor", searchEngine);
@@ -771,8 +781,7 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             // Create the site in the preview deployer
             try {
-                logger.debug("Creating Deployer targets for site " + siteId);
-
+                logger.info("Creating Deployer targets for site " + siteId);
                 deployer.createTargets(siteId, searchEngine);
             } catch (Exception e) {
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
@@ -794,10 +803,11 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             try {
+                logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
-                logger.debug("Adding site record to database for site " + siteId);
+                logger.info("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
                 siteFeed.setSiteId(siteId);
@@ -814,16 +824,17 @@ public class SiteServiceImpl implements SiteService {
                 insertCreateSiteAuditLog(siteId, siteId);
 
                 // Add default groups
-                logger.debug("Adding default groups for site " + siteId);
+                logger.info("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
-                logger.debug("Loading configuration for site " + siteId);
+                logger.info("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
 
+                logger.info("Sync database with repository for site " + siteId);
                 syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
                 // initial deployment
-                logger.debug("Executing initial deployement for site " + siteId);
+                logger.info("Executing initial deployement for site " + siteId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
@@ -848,6 +859,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             // Now that everything is created, we can sync the preview deployer with the new content
+            logger.info("Sync all site content to preview for " + siteId);
             try {
                 deploymentService.syncAllContentToPreview(siteId, true);
             } catch (ServiceLayerException e) {
@@ -861,6 +873,7 @@ public class SiteServiceImpl implements SiteService {
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
+        logger.info("Finished creating site " + siteId);
     }
 
     private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintId,
@@ -872,11 +885,13 @@ public class SiteServiceImpl implements SiteService {
             throw new SiteAlreadyExistsException();
         }
 
+        logger.debug("Get blueprint descriptor for " + blueprintId);
         PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException();
         }
 
+        logger.debug("Validate blueprint parameters");
         sitesServiceInternal.validateBlueprintParameters(descriptor, params);
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
         String searchEngine = descriptor.getPlugin().getSearchEngine();
@@ -890,10 +905,10 @@ public class SiteServiceImpl implements SiteService {
         // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
+        logger.info("Starting site creation process for site " + siteId + " from " + blueprintId + " blueprint.");
         // Create the site in the preview deployer
         try {
-            logger.debug("Creating Deployer targets for site " + siteId);
-
+            logger.info("Creating Deployer targets for site " + siteId);
             deployer.createTargets(siteId, searchEngine);
         } catch (RestServiceException e) {
             String msg = "Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -906,14 +921,14 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             try {
-                logger.debug("Creating site " + siteId + " from blueprint " + blueprintId);
+                logger.info("Creating site " + siteId + " from blueprint " + blueprintId);
                 success =
                     createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description, params);
 
                 addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
-                logger.debug("Adding site record to database for site " + siteId);
+                logger.info("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
                 siteFeed.setSiteId(siteId);
@@ -925,6 +940,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
+                logger.info("Upgrading site");
                 upgradeManager.upgradeSite(siteId);
             } catch (Exception e) {
                 success = false;
@@ -948,7 +964,7 @@ public class SiteServiceImpl implements SiteService {
             if (success) {
                 try {
 
-                    logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
+                    logger.info("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
                             remoteUrl + ")");
                     contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                             remotePassword, remoteToken, remotePrivateKey);
@@ -964,21 +980,22 @@ public class SiteServiceImpl implements SiteService {
 
             try {
 
+                    logger.debug("Adding audit logs.");
                     insertCreateSiteAuditLog(siteId, siteId);
-
                     insertAddRemoteAuditLog(siteId, remoteName);
 
                     // Add default groups
-                    logger.debug("Adding default groups for site " + siteId);
+                    logger.info("Adding default groups for site " + siteId);
                     addDefaultGroupsForNewSite(siteId);
 
-                    logger.debug("Loading configuration for site " + siteId);
+                    logger.info("Loading configuration for site " + siteId);
                     reloadSiteConfiguration(siteId);
 
+                    logger.info("Sync database with repository for site " + siteId);
                     syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
                     // initial deployment
-                    logger.debug("Executing initial deployement for site " + siteId);
+                    logger.info("Executing initial deployement for site " + siteId);
                     List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                     if (publishingTargets != null && publishingTargets.size() > 0) {
                         for (PublishingTargetTO target : publishingTargets) {
@@ -1005,6 +1022,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             // Now that everything is created, we can sync the preview deployer with the new content
+            logger.info("Sync all content to preview for site " + siteId);
             try {
                 deploymentService.syncAllContentToPreview(siteId, true);
             } catch (ServiceLayerException e) {
@@ -1018,6 +1036,7 @@ public class SiteServiceImpl implements SiteService {
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
+        logger.info("Finished creating site " + siteId);
     }
 
     @Override
