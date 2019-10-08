@@ -43,12 +43,11 @@
         <property name="scope" value="SERVLET_CONTEXT"/>
     </bean>
 
-    <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry"/>
-
     <bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager" depends-on="sqlSessionFactory">
         <property name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
         <property name="contextFactory" ref="crafter.siteContextFactory"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
+        <property name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
         <property name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
     </bean>
 
