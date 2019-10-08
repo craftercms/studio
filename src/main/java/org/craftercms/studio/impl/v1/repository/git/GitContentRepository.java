@@ -1796,7 +1796,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (toReturn) {
             PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
             if (descriptor != null) {
-                sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+                if (descriptor.getPlugin() != null) {
+                    sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+                } else {
+                    logger.debug("There are no parameters defined for blueprint");
+                }
             }
 
             try {
