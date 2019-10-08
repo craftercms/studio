@@ -560,6 +560,19 @@ pipelines:
               dest: /configuration/samples/sample-permission-mappings-config.xml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.8
+      nextVersion: 3.1.4.9
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.4.9/system/global-permission-mappings-config.xslt
+          commitDetails: Added write global configuration permission to system admin
+        - type: globalRepoUpgrader
+          files:
+            - src: crafter/studio/upgrade/3.1.x/3.1.4.9/system/sample-studio-config-override.yaml
+              dest: /configuration/samples/sample-studio-config-override.yaml
+          commitDetails: Update sample files
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
