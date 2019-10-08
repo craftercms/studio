@@ -752,4 +752,4 @@ studio.serverless.delivery.deployer.target.template.params:
 ##                 Marketplace                  ##
 ##################################################
 # The full URL for the Marketplace
-studio.marketplace.url: https://marketplace.craftercms.org
+studio.marketplace.url: https://mp.craftercms.org
