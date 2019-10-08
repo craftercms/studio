@@ -190,15 +190,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return retDocument;
     }
 
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    public String getGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path) {
+        return contentService.getContentAsString(StringUtils.EMPTY, path);
+    }
+
     private String getDefaultConfiguration(String siteId, String module, String path) {
-        if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-            return contentService.getContentAsString(StringUtils.EMPTY, path);
-        } else {
-            String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
-                    .replaceAll(PATTERN_MODULE, module);
-            String configPath = Paths.get(configBasePath, path).toString();
-            return contentService.getContentAsString(siteId, configPath);
-        }
+        String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                .replaceAll(PATTERN_MODULE, module);
+        String configPath = Paths.get(configBasePath, path).toString();
+        return contentService.getContentAsString(siteId, configPath);
     }
 
     private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
@@ -343,7 +345,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             throws ServiceLayerException {
         contentService.writeContent(StringUtils.EMPTY, path, content);
         String currentUser = securityService.getCurrentUser();
-        generateAuditLog(CONFIGURATION_GLOBAL_SYSTEM_SITE, path, currentUser);
+        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
     }
 
     @Required

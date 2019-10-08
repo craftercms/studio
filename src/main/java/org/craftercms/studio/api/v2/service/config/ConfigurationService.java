@@ -16,6 +16,8 @@
  */
 package org.craftercms.studio.api.v2.service.config;
 
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
@@ -69,6 +71,9 @@ public interface ConfigurationService {
      */
     Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
             throws DocumentException, IOException;
+
+    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    String getGlobalConfiguration(String path);
 
     /**
      * Write configuration file for given parameters
