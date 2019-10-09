@@ -91,6 +91,7 @@
 
     <bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
         <property name="configurationService" ref="configurationService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">

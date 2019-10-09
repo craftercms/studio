@@ -130,6 +130,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
  * Content Services that other services may use
@@ -184,7 +185,11 @@ public class ContentServiceImpl implements ContentService {
                                   @ValidateSecurePathParam(name = "path") String path)
             throws ContentNotFoundException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
-        return this._contentRepository.getContent(site, path);
+        if (StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+            return this._contentRepository.getContent(StringUtils.EMPTY, path);
+        } else {
+            return this._contentRepository.getContent(site, path);
+        }
     }
 
     @Override

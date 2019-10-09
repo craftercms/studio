@@ -17,16 +17,20 @@
 package org.craftercms.studio.permissions;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
  * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
@@ -40,10 +44,20 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
     public static final String PATH_RESOURCE_ID = "path";
 
     private SecurityService securityService;
+    private StudioConfiguration studioConfiguration;
 
     @Required
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    @Required
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 
     @Override
@@ -59,6 +73,9 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
         if (MapUtils.isNotEmpty(resourceIds)) {
             if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
                 siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
+                if (StringUtils.equals(siteName, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+                    siteName = StringUtils.EMPTY;
+                }
             }
             if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
                 path = (String) resourceIds.get(PATH_RESOURCE_ID);

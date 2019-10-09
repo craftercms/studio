@@ -78,11 +78,13 @@ import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 
@@ -186,6 +188,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             retDocument = saxReader.read(is);
         }
         return retDocument;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    public String getGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path) {
+        return contentService.getContentAsString(StringUtils.EMPTY, path);
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {
@@ -329,6 +337,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
         configurationHistory.setVersions(versions);
         return configurationHistory;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
+            throws ServiceLayerException {
+        contentService.writeContent(StringUtils.EMPTY, path, content);
+        String currentUser = securityService.getCurrentUser();
+        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
     }
 
     @Required

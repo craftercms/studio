@@ -71,6 +71,14 @@ public interface ConfigurationService {
             throws DocumentException, IOException;
 
     /**
+     * Get configuration from global repository as String
+     *
+     * @param path path of configuration file
+     * @return
+     */
+    String getGlobalConfiguration(String path);
+
+    /**
      * Write configuration file for given parameters
      *
      * @param siteId site id to use
@@ -105,4 +113,13 @@ public interface ConfigurationService {
      * @return configuration history
      */
     ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment);
+
+    /**
+     * Write configuration file within global repo
+     *
+     * @param path path of configuration file
+     * @param content content of configuration file
+     * @throws ServiceLayerException
+     */
+    void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
 }
