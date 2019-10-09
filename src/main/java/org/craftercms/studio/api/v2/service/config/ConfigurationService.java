@@ -72,7 +72,12 @@ public interface ConfigurationService {
     Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
             throws DocumentException, IOException;
 
-    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    /**
+     * Get configuration from global repository as String
+     *
+     * @param path path of configuration file
+     * @return
+     */
     String getGlobalConfiguration(String path);
 
     /**
@@ -111,5 +116,12 @@ public interface ConfigurationService {
      */
     ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment);
 
+    /**
+     * Write configuration file within global repo
+     *
+     * @param path path of configuration file
+     * @param content content of configuration file
+     * @throws ServiceLayerException
+     */
     void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
 }
