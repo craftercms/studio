@@ -46,6 +46,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
@@ -54,9 +55,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     /**
      * Database queries
      */
+    private final static String SCHEMA = "{schema}";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
-            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
-    private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM crafter";
+            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{schema}'";
+    private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM '{schema}'";
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
             "UPDATE user SET password = '{password}' WHERE username = 'admin'";
 
@@ -77,11 +79,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
                 logger.debug("Check if database schema already exists");
                 try(Statement statement = conn.createStatement();
-                    ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS)) {
+                    ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS.replace(SCHEMA,
+                                    studioConfiguration.getProperty(DB_SCHEMA)))) {
 
                     if (rs.next()) {
                         logger.debug("Database schema exists. Check if it is empty.");
-                        try (ResultSet rs2 = statement.executeQuery(DB_QUERY_CHECK_TABLES)) {
+                        try (ResultSet rs2 = statement.executeQuery(DB_QUERY_CHECK_TABLES.replace(SCHEMA,
+                                studioConfiguration.getProperty(DB_SCHEMA)))) {
                             List<String> tableNames = new ArrayList<String>();
                             while (rs2.next()) {
                                 tableNames.add(rs2.getString(1));
