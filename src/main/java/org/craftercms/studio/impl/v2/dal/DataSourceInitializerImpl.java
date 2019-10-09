@@ -17,9 +17,11 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -28,6 +30,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
@@ -56,6 +59,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
      * Database queries
      */
     private final static String SCHEMA = "{schema}";
+    private final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{schema}'";
     private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM '{schema}'";
@@ -101,7 +105,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                         createSchema(conn);
                         createDatabaseTables(conn, statement);
                     }
-                } catch (SQLException e) {
+                } catch (SQLException | IOException e) {
                     logger.error("Error while initializing database", e);
                 }
             } catch (SQLException e) {
@@ -140,7 +144,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void createSchema(Connection conn)  {
+    private void createSchema(Connection conn) throws IOException {
         String createSchemaScriptPath = getCreateSchemaScriptPath();
         // Database does not exist
         logger.info("Database schema does not exists.");
@@ -151,7 +155,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setStopOnError(true);
         sr.setLogWriter(null);
         InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
-        Reader reader = new InputStreamReader(is);
+        String scriptContent = IOUtils.toString(is);
+        ;
+        Reader reader = new StringReader(
+                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
         try {
             sr.runScript(reader);
         } catch (RuntimeSqlException e) {
