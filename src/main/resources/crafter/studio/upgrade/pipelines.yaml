@@ -567,6 +567,10 @@ pipelines:
           path: /configuration/global-permission-mappings-config.xml
           template: crafter/studio/upgrade/3.1.x/3.1.4.9/system/global-permission-mappings-config.xslt
           commitDetails: Added write global configuration permission to system admin
+        - type: xsltFileUpgrader
+          path: /configuration/global-menu-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.4.9/system/global-menu-config.xslt
+          commitDetails: Added global configuration menu item
         - type: globalRepoUpgrader
           files:
             - src: crafter/studio/upgrade/3.1.x/3.1.4.9/system/sample-studio-config-override.yaml
