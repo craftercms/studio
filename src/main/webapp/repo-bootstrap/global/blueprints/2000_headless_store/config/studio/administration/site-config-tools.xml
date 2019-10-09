@@ -173,6 +173,18 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>shared-content</name>
+                    <icon>
+                        <class>fa-share-alt</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>embedded-content</name>
+                    <icon>
+                        <class>fa-dot-circle-o</class>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>img-desktop-upload</name>
                     <icon>
                         <class>fa-picture-o</class>
