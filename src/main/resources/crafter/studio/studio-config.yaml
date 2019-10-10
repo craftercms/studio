@@ -70,6 +70,8 @@ studio.repo.copyContent.commitMessage: "Copying {fromPath} to {toPath}"
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
 # Enable/disable notification messages in case of pull from remote conflicts
 studio.repo.pullFromRemote.conflict.notificationEnabled: false
+# The location in the classpath of the default gitignore file to add to all repos
+studio.repo.defaultIgnoreFile: crafter/studio/utils/default-gitignore
 
 ############################################################
 ##                   Site Configuration                   ##

@@ -23,6 +23,7 @@ import com.jcraft.jsch.Session;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
 import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
@@ -72,11 +73,13 @@ import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.util.FS;
+import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -86,6 +89,7 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -105,6 +109,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
@@ -506,6 +511,26 @@ public class GitContentRepositoryHelper {
             logger.error("Error looking for configuration files for site {0}", e, siteId);
             return false;
         }
+    }
+
+    public boolean addGitIgnoreFile(String siteId) {
+        String defaultFileLocation = studioConfiguration.getProperty(REPO_DEFAULT_IGNORE_FILE);
+        ClassPathResource defaultFile = new ClassPathResource(defaultFileLocation);
+        if (defaultFile.exists()) {
+            logger.debug("Adding ignore file for site {0}", siteId);
+            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
+            Path ignoreFile = siteSandboxPath.resolve(GitContentRepositoryConstants.IGNORE_FILE);
+            try (OutputStream out = Files.newOutputStream(ignoreFile, StandardOpenOption.CREATE_NEW);
+                 InputStream in = defaultFile.getInputStream()) {
+                IOUtils.copy(in, out);
+            } catch (IOException e) {
+                logger.error("Error writing ignore file for site {0}", e, siteId);
+                return false;
+            }
+        } else {
+            logger.warn("Could not find the default ignore file at {0}", defaultFileLocation);
+        }
+        return true;
     }
 
     public boolean bulkImport(String site /* , Map<String, String> filesCommitIds */) {

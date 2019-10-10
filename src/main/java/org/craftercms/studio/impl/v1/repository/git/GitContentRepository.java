@@ -979,6 +979,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         if (toReturn) {
+            toReturn = helper.addGitIgnoreFile(site);
+        }
+
+        if (toReturn) {
             // commit everything so it is visible
             toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
                     sandboxBranch);
