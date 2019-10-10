@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.5'
+  version: '3.1.4.6'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3020,6 +3020,10 @@ paths:
                       anyOf:
                         - $ref: '#/components/schemas/MarketplacePlugin'
                         - $ref: '#/components/schemas/GitMarketplacePlugin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /publish/packages:
     get:
