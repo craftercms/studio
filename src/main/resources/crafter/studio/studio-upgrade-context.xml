@@ -78,6 +78,7 @@
 
     <bean id="dbVersionProvider" class="org.craftercms.studio.impl.v2.upgrade.providers.DbVersionProvider">
         <property name="dataSource" ref="dataSource"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="xmlVersionProvider" abstract="true">

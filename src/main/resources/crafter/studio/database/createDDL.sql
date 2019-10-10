@@ -1,4 +1,4 @@
-USE crafter ;
+USE @crafter_schema_name ;
 
 CREATE PROCEDURE addColumnIfNotExists(
     IN schemaName tinytext,
