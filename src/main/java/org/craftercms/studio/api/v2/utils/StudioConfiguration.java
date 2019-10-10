@@ -125,6 +125,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";
     String CONFIGURATION_SITE_DEFAULT_PREVIEW_URL = "studio.configuration.site.defaultPreviewUrl";
     String CONFIGURATION_SITE_DEFAULT_AUTHORING_URL = "studio.configuration.site.defaultAuthoringUrl";
+    String CONFIGURATION_SITE_DEFAULT_GRAPHQL_SERVER_URL = "studio.configuration.site.defaultGraphqlServerUrl";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

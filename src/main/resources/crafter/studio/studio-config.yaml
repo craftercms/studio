@@ -138,6 +138,8 @@ studio.configuration.site.asset.processing.configurationPath: /config/studio/ass
 studio.configuration.site.defaultPreviewUrl: ^https?://localhost:8080/?
 # Default authoring URL
 studio.configuration.site.defaultAuthoringUrl: ^https?://localhost:8080/studio/?
+# Default GraphQL server URL
+studio.configuration.site.defaultGraphqlServerUrl: ^https?://localhost:8080/?
 
 ########################################################
 ##                   Import Service                   ##
