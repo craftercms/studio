@@ -20,8 +20,10 @@ package org.craftercms.studio.controller.rest.v2;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -34,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -42,14 +45,19 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 public class ConfigurationController {
 
     private ConfigurationService configurationService;
+    private StudioConfiguration studioConfiguration;
 
     @GetMapping("/get_configuration")
     public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
                                          @RequestParam(name = "module", required = true) String module,
                                          @RequestParam(name = "path", required = true) String path,
                                          @RequestParam(name = "environment", required = false) String environment) {
-        String content = configurationService.getConfigurationAsString(siteId, module, path, environment);
-
+        String content = StringUtils.EMPTY;
+        if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+            content = configurationService.getGlobalConfiguration(path);
+        } else {
+            content = configurationService.getConfigurationAsString(siteId, module, path, environment);
+        }
         ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<String>();
         result.setEntity("content", content);
@@ -62,9 +70,13 @@ public class ConfigurationController {
     public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent());
-        configurationService.writeConfiguration(wcRequest.getSiteId(), wcRequest.getModule(), wcRequest.getPath(),
-                wcRequest.getEnvironment(), is);
-
+        String siteId = wcRequest.getSiteId();
+        if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+            configurationService.writeGlobalConfiguration(wcRequest.getPath(), is);
+        } else {
+            configurationService.writeConfiguration(siteId, wcRequest.getModule(), wcRequest.getPath(),
+                    wcRequest.getEnvironment(), is);
+        }
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
@@ -93,5 +105,13 @@ public class ConfigurationController {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

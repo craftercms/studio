@@ -1,39 +1,6 @@
 ##################################################
-##################################################
-##       Studio Core Configuration File         ##
-##################################################
-##################################################
-
-##################################################
-##     Location of Override Config File         ##
-##################################################
-# Load override configuration files (to override what's defined here)
-studio.config.overrideConfig: crafter/studio/extension/studio-config-override.yaml
-# Load override configuration files (to override what's defined here)
-studio.config.globalRepoOverrideConfig: configuration/studio-config-override.yaml
-
-##################################################
 ##              Content Repository              ##
 ##################################################
-# Absolute path to repository base (all actual repositories will be under this)
-studio.repo.basePath: ${env:CRAFTER_DATA_DIR}/repos
-# Global repository path (automatically goes under repo-base-path)
-studio.repo.globalRepoPath: global
-# Sites repositories base path (automatically goes under repo-base-path)
-studio.repo.sitesRepoBasePath: sites
-# Sandbox git repository name under every site
-studio.repo.siteSandboxPath: sandbox
-# Sandbox git repository branch for every site
-studio.repo.siteSandboxBranch: master
-# Name used for the git remote for remote sites
-studio.repo.defaultRemoteName: origin
-# Published git repository name under every site
-studio.repo.sitePublishedPath: published
-# If not using environment-config.xml, environments are configured here
-# Git repository branch for the `live` environment, default "live"
-studio.repo.published.live: live
-# Git repository branch for the `staging` environment, default "staging"
-studio.repo.published.staging: staging
 # Blueprints folder name under global
 studio.repo.blueprintsPath: blueprints
 # Blueprints descriptor filename under global
@@ -48,8 +15,6 @@ studio.repo.commitMessagePostscript:
 studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
 # Published repository commit message
 studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}\n\nPackage ID: {package_id}"
-# Commit message to mark commit not to process when syncing database
-studio.repo.syncDB.commitMessage.noProcessing: "STUDIO: NO PROCESSING"
 # Create new repository commit message
 studio.repo.createRepository.commitMessage: "Create new repository."
 # Create sandbox branch commit message
@@ -280,7 +245,7 @@ studio.authentication.chain:
     groupNameLdapAttributeRegex: .*
     # LDAP groups attribute match index
     groupNameLdapAttributeMatchIndex: 0
-# Authentication provider type
+  # Authentication provider type
   - provider: DB
     # Authentication via DB enabled
     enabled: true
@@ -590,7 +555,7 @@ studio.search.snippets.number: 1
 studio.search.default.type: Other
 # The type mapping to use during search
 studio.search.types:
-    # The label that will be returned
+  # The label that will be returned
   - name: Image
     # The field that will be compared
     field: contentType
@@ -634,7 +599,7 @@ studio.search.types:
     matches: ^/taxonomy$
 # The list of field facets to return
 studio.search.facets:
-    # The label that will be returned
+  # The label that will be returned
   - name: content-type
     # The field that will be used
     field: content-type
@@ -753,3 +718,6 @@ studio.serverless.delivery.deployer.target.template.params:
 ##################################################
 # The full URL for the Marketplace
 studio.marketplace.url: https://mp.craftercms.org
+
+# The active environment for multi environment configuration, e.g. qa, prod, dev
+studio.configuration.environment.active: ENV
