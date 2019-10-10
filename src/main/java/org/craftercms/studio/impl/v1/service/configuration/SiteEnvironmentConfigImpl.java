@@ -43,11 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_AUTHORING_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_PREVIEW_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
@@ -70,25 +66,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     @ValidateParams
 	public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
-        RequestContext requestContext = RequestContext.getCurrent();
-        HttpServletRequest request = null;
-        String previewServerUrl = "";
-        String currentDomainPreviewUrl = "";
-        if (requestContext != null) {
-            request = requestContext.getRequest();
-            if (request != null) {
-                currentDomainPreviewUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "");
-            }
-        }
-        if (config != null) {
-            previewServerUrl = config.getPreviewServerUrl();
-            if (StringUtils.isNotEmpty(currentDomainPreviewUrl)) {
-                previewServerUrl = StringUtils.replaceFirst(previewServerUrl,
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_PREVIEW_URL),
-                        currentDomainPreviewUrl);
-            }
-        }
-        return previewServerUrl;
+        String defaultPreviewUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_PREVIEW_URL);
+
+        return useCurrentDomain(config != null ? config.getPreviewServerUrl() : "", defaultPreviewUrl);
 	}
 
     @Override
@@ -105,10 +85,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     @ValidateParams
     public String getGraphqlServerUrl(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
-        if (config != null) {
-            return config.getGraphqlServerUrl();
-        }
-        return "";
+        String defaultGraphQLServerUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_GRAPHQL_SERVER_URL);
+
+        return useCurrentDomain(config != null ? config.getGraphqlServerUrl() : "", defaultGraphQLServerUrl);
     }
 
 	@Override
@@ -135,26 +114,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     @ValidateParams
 	public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
-        RequestContext requestContext = RequestContext.getCurrent();
-        HttpServletRequest request = null;
-        String authoringServerUrl = "";
-        String currentDomainAuthoringUrl = "";
-        if (requestContext != null) {
-            request = requestContext.getRequest();
-            if (request != null) {
-                currentDomainAuthoringUrl =
-                        request.getRequestURL().toString().replace(request.getPathInfo(), "");
-            }
-        }
-        if (config != null) {
-            authoringServerUrl = config.getAuthoringServerUrl();
-            if (StringUtils.isNotEmpty(currentDomainAuthoringUrl)) {
-                authoringServerUrl = StringUtils.replaceFirst(authoringServerUrl,
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL),
-                        currentDomainAuthoringUrl);
-            }
-        }
-        return authoringServerUrl;
+        String defaultAuthoringUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL);
+
+        return useCurrentDomain(config != null ? config.getAuthoringServerUrl() : "", defaultAuthoringUrl);
 	}
 
     @SuppressWarnings("unchecked")
@@ -275,6 +237,33 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME);
     }
 
+    private String useCurrentDomain(String siteEnvUrl, String defaultUrlRegex) {
+        String finalUrl = "";
+        String currentDomainUrl = "";
+        RequestContext requestContext = RequestContext.getCurrent();
+
+        if (requestContext != null) {
+            HttpServletRequest request = requestContext.getRequest();
+            if (request != null) {
+                currentDomainUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "");
+
+                String forwardedProtocol = request.getHeader("x-forwarded-proto");
+                if (StringUtils.isNotEmpty(forwardedProtocol)) {
+                    currentDomainUrl = StringUtils.replace(currentDomainUrl, "https?", forwardedProtocol);
+                }
+            }
+        }
+
+        if (StringUtils.isNotEmpty(siteEnvUrl)) {
+            finalUrl = siteEnvUrl;
+
+            if (StringUtils.isNotEmpty(currentDomainUrl)) {
+                finalUrl = StringUtils.replaceFirst(finalUrl, defaultUrlRegex, currentDomainUrl);
+            }
+        }
+
+        return finalUrl;
+    }
 
     public GeneralLockService getGeneralLockService() {
 	    return generalLockService;
