@@ -249,7 +249,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
                 String forwardedProtocol = request.getHeader("x-forwarded-proto");
                 if (StringUtils.isNotEmpty(forwardedProtocol)) {
-                    currentDomainUrl = StringUtils.replace(currentDomainUrl, "https?", forwardedProtocol);
+                    currentDomainUrl = StringUtils.replaceFirst(currentDomainUrl, "https?", forwardedProtocol);
                 }
             }
         }
