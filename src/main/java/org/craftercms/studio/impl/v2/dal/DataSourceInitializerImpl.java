@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.dal;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Connection;
@@ -62,7 +61,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     private final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{schema}'";
-    private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM '{schema}'";
+    private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM {schema}";
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
             "UPDATE user SET password = '{password}' WHERE username = 'admin'";
 
@@ -114,7 +113,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void createDatabaseTables(Connection conn, Statement statement) throws SQLException {
+    private void createDatabaseTables(Connection conn, Statement statement) throws SQLException, IOException {
         String createDbScriptPath = getCreateDBScriptPath();
         // Database does not exist
         logger.info("Database tables do not exist.");
@@ -125,7 +124,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setStopOnError(true);
         sr.setLogWriter(null);
         InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-        Reader reader = new InputStreamReader(is);
+        String scriptContent = IOUtils.toString(is);
+        Reader reader = new StringReader(
+                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
         try {
             sr.runScript(reader);
 
@@ -156,7 +157,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setLogWriter(null);
         InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
         String scriptContent = IOUtils.toString(is);
-        ;
         Reader reader = new StringReader(
                 scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
         try {
