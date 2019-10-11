@@ -264,7 +264,7 @@
 		</section>
 	</sections>
 	<datasources>				<datasource>
-					<type>child-content</type>
+					<type>shared-content</type>
 					<id>scripts</id>
 					<title>Scripts</title>
 					<interface>item</interface>
