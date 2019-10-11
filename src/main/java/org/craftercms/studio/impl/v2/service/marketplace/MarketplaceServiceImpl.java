@@ -117,7 +117,7 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
 
         try {
             ResponseEntity<Map<String, Object>> response =
-                restTemplate.exchange(builder.toUriString(), HttpMethod.GET, request,
+                restTemplate.exchange(builder.build().toString(), HttpMethod.GET, request,
                     new ParameterizedTypeReference<Map<String, Object>>() {});
             return response.getBody();
         } catch (ResourceAccessException e) {
