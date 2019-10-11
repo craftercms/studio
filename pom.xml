@@ -59,9 +59,6 @@
         <apache.cxf.version>3.1.18</apache.cxf.version>
         <nekohtml.version>1.9.22</nekohtml.version>
         <xerces.version>2.12.0</xerces.version>
-
-        <studio.vcbp.path>target/vcbp</studio.vcbp.path>
-        <studio.vcbp.version>develop</studio.vcbp.version><!-- craftercms vcbp version flag -->
     </properties>
 
     <licenses>
@@ -593,25 +590,6 @@
                             <goal>exec</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>git get vcbp</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <executable>git</executable>
-                            <arguments>
-                                <argument>clone</argument>
-                                <argument>--depth</argument>
-                                <argument>1</argument>
-                                <argument>-b</argument>
-                                <argument>${studio.vcbp.version}</argument>
-                                <argument>https://github.com/craftercms/video-center-blueprint.git</argument>
-                                <argument>${studio.vcbp.path}</argument>
-                            </arguments>
-                        </configuration>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -794,17 +772,6 @@
                             <targetPath>default-site/scripts/rest</targetPath>
                         </resource>
 
-                        <!-- video center blueprint -->
-                        <resource>
-                            <directory>${studio.vcbp.path}</directory>
-                            <filtering>false</filtering>
-                            <targetPath>repo-bootstrap/global/blueprints/3000_video-center</targetPath>
-                        </resource>
-                        <resource>
-                            <directory>${studio.vcbp.path}/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/video-center</targetPath>
-                        </resource>
                         <!-- empty blueprint -->
                         <resource>
                             <directory>src/main/webapp/repo-bootstrap/global/blueprints/4000_empty/static-assets/images/screenshots</directory>
