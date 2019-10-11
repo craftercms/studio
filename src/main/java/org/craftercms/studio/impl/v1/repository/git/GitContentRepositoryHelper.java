@@ -520,12 +520,16 @@ public class GitContentRepositoryHelper {
             logger.debug("Adding ignore file for site {0}", siteId);
             Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
             Path ignoreFile = siteSandboxPath.resolve(GitContentRepositoryConstants.IGNORE_FILE);
-            try (OutputStream out = Files.newOutputStream(ignoreFile, StandardOpenOption.CREATE_NEW);
-                 InputStream in = defaultFile.getInputStream()) {
-                IOUtils.copy(in, out);
-            } catch (IOException e) {
-                logger.error("Error writing ignore file for site {0}", e, siteId);
-                return false;
+            if (!Files.exists(ignoreFile)) {
+                try (OutputStream out = Files.newOutputStream(ignoreFile, StandardOpenOption.CREATE);
+                     InputStream in = defaultFile.getInputStream()) {
+                    IOUtils.copy(in, out);
+                } catch (IOException e) {
+                    logger.error("Error writing ignore file for site {0}", e, siteId);
+                    return false;
+                }
+            } else {
+                logger.debug("Repository already contains an ignore file for site {0}", siteId);
             }
         } else {
             logger.warn("Could not find the default ignore file at {0}", defaultFileLocation);
