@@ -717,7 +717,7 @@ pipelines:
       operations:
         - type: addFileUpgrader
           path: .gitignore
-          file: crafter/studio/upgrade/3.1.x/3.1.4.2/site/gitignore
+          file: crafter/studio/utils/default-gitignore
           commitDetails: Add default gitignore file
         - type: versionFileUpgrader
 

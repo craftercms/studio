@@ -57,6 +57,7 @@ public interface StudioConfiguration {
     String REPO_COPY_CONTENT_COMMIT_MESSAGE = "studio.repo.copyContent.commitMessage";
     String REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED =
             "studio.repo.pullFromRemote.conflict.notificationEnabled";
+    String REPO_DEFAULT_IGNORE_FILE = "studio.repo.defaultIgnoreFile";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
