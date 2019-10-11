@@ -327,7 +327,7 @@
 		</section>
 	</sections>
 	<datasources>				<datasource>
-					<type>child-content</type>
+					<type>shared-content</type>
 					<id>components-header</id>
 					<title>Components Header</title>
 					<interface>item</interface>
@@ -350,7 +350,7 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>child-content</type>
+					<type>shared-content</type>
 					<id>components-left-rail</id>
 					<title>Components Left Rail</title>
 					<interface>item</interface>
@@ -373,7 +373,7 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>child-content</type>
+					<type>shared-content</type>
 					<id>categories</id>
 					<title>Categories</title>
 					<interface>item</interface>

@@ -47,7 +47,7 @@
 									<div class="features" <@studio.componentContainerAttr target="features_o" objectId=contentModel.objectId/>>
 										<#if contentModel.features_o?? && contentModel.features_o.item??>
 										  <#list contentModel.features_o.item as feature>
-										      <@renderComponent component=feature />
+										      <@renderComponent parent=contentModel component=feature />
 										  </#list>
 										</#if>
 									</div>
