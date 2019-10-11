@@ -68,7 +68,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         String defaultPreviewUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_PREVIEW_URL);
 
-        return useCurrentDomain(config != null ? config.getPreviewServerUrl() : "", defaultPreviewUrl);
+        return useCurrentDomain(config != null ? config.getPreviewServerUrl() : "", defaultPreviewUrl, false);
 	}
 
     @Override
@@ -87,7 +87,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         String defaultGraphQLServerUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_GRAPHQL_SERVER_URL);
 
-        return useCurrentDomain(config != null ? config.getGraphqlServerUrl() : "", defaultGraphQLServerUrl);
+        return useCurrentDomain(config != null ? config.getGraphqlServerUrl() : "", defaultGraphQLServerUrl, false);
     }
 
 	@Override
@@ -116,7 +116,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         String defaultAuthoringUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL);
 
-        return useCurrentDomain(config != null ? config.getAuthoringServerUrl() : "", defaultAuthoringUrl);
+        return useCurrentDomain(config != null ? config.getAuthoringServerUrl() : "", defaultAuthoringUrl, true);
 	}
 
     @SuppressWarnings("unchecked")
@@ -237,7 +237,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME);
     }
 
-    private String useCurrentDomain(String siteEnvUrl, String defaultUrlRegex) {
+    private String useCurrentDomain(String siteEnvUrl, String defaultUrlRegex, boolean keepContext) {
         String finalUrl = "";
         String currentDomainUrl = "";
         RequestContext requestContext = RequestContext.getCurrent();
@@ -245,7 +245,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         if (requestContext != null) {
             HttpServletRequest request = requestContext.getRequest();
             if (request != null) {
-                currentDomainUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "");
+                currentDomainUrl = request.getRequestURL().toString()
+                                          .replace(keepContext ? request.getPathInfo() : request.getRequestURI(), "");
 
                 String forwardedProtocol = request.getHeader("x-forwarded-proto");
                 if (StringUtils.isNotEmpty(forwardedProtocol)) {
