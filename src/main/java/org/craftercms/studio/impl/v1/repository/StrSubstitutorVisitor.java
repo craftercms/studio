@@ -25,9 +25,11 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrMatcher;
@@ -50,7 +52,9 @@ public class StrSubstitutorVisitor implements FileVisitor<Path> {
     protected StrSubstitutor strSubstitutor;
 
     public StrSubstitutorVisitor(Map<String, String> variables) {
-        strSubstitutor = new StrSubstitutor(StrLookup.mapLookup(variables), PREFIX, StrSubstitutor.DEFAULT_SUFFIX,
+        Map<String, String> escapedVars = new HashMap<>(variables.size());
+        variables.forEach((key, value) -> escapedVars.put(key, StringEscapeUtils.escapeXml10(value)));
+        strSubstitutor = new StrSubstitutor(StrLookup.mapLookup(escapedVars), PREFIX, StrSubstitutor.DEFAULT_SUFFIX,
             StrSubstitutor.DEFAULT_ESCAPE);
     }
 
