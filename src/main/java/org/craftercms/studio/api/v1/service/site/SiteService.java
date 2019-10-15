@@ -102,10 +102,12 @@ public interface SiteService {
      * @param siteId site identifier
      * @param desc description
      * @param params site parameters
+     * @param createAsOrphan create the site from a remote repository as orphan (no git history)
      */
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
-                                 String desc, Map<String, String> params)
-        throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException, BlueprintNotFoundException, MissingPluginParameterException;
+                                 String desc, Map<String, String> params, boolean createAsOrphan)
+            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
+            BlueprintNotFoundException, MissingPluginParameterException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
@@ -125,12 +127,13 @@ public interface SiteService {
      * @param remotePrivateKey remote repository username to use for authentication
      * @param createOption remote repository username to use for authentication
      * @param params site parameters
+     * @param createAsOrphan create the site from a remote repository as orphan (no git history)
      */
     void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
                                     String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                     String authenticationType, String remoteUsername, String remotePassword,
                                     String remoteToken, String remotePrivateKey, String createOption,
-                                    Map<String, String> params)
+                                    Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 
@@ -158,7 +161,8 @@ public interface SiteService {
      * @param generateAuditLog if true add operations to audit log
      * @return true if successful, false otherwise
      */
-    boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog) throws SiteNotFoundException;
+    boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog)
+            throws SiteNotFoundException;
 
    	/**
    	 * get a list of available blueprints

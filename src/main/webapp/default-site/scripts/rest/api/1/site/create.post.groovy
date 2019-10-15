@@ -65,6 +65,7 @@ try {
     def remotePrivateKey = parsedReq.remote_private_key
     def createOption = parsedReq.create_option
     def siteParams = parsedReq.site_params ?: [:]
+    def createAsOrphan = parsedReq.create_as_orphan ? parsedReq.create_as_orphan.toBoolean() : false
 
 /** Validate Parameters */
     def invalidParams = false;
@@ -199,17 +200,17 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
         try {
             if (!useRemote) {
-                SiteServices.
-                  createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description, siteParams)
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description,
+                        siteParams, createAsOrphan)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             } else {
-                SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName,
-                        remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                        remoteToken, remotePrivateKey, createOption, siteParams)
+                SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint,
+                        remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername,
+                        remotePassword, remoteToken, remotePrivateKey, createOption, siteParams, createAsOrphan)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId

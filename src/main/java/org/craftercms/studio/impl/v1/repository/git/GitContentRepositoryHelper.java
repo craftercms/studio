@@ -107,6 +107,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
@@ -912,8 +913,8 @@ public class GitContentRepositoryHelper {
 
     public boolean createSiteCloneRemoteGitRepo(String siteId, String sandboxBranch, String remoteName,
                                                 String remoteUrl, String remoteBranch, boolean singleBranch,
-                                                String authenticationType, String remoteUsername,
-                                                String remotePassword, String remoteToken, String remotePrivateKey)
+                                                String authenticationType, String remoteUsername, String remotePassword,
+                                                String remoteToken, String remotePrivateKey, boolean createAsOrphan)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
 
@@ -962,6 +963,7 @@ public class GitContentRepositoryHelper {
             if (StringUtils.isNotEmpty(remoteBranch)) {
                 cloneCommand.setBranch(remoteBranch);
             }
+
             cloneResult = cloneCommand
                     .setURI(remoteUrl)
                     .setDirectory(localPath)
@@ -972,6 +974,11 @@ public class GitContentRepositoryHelper {
             Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
 
             sandboxRepo = optimizeRepository(sandboxRepo);
+
+            // Make repository orphan if needed
+            if (createAsOrphan) {
+                makeRepoOrphan(sandboxRepo, siteId);
+            }
 
             sandboxes.put(siteId, sandboxRepo);
         } catch (InvalidRemoteException e) {
@@ -989,7 +996,7 @@ public class GitContentRepositoryHelper {
                 throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
                         remoteUrl + ")");
             }
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException | IOException | UserNotFoundException e) {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             toRet = false;
         } finally {
@@ -998,6 +1005,43 @@ public class GitContentRepositoryHelper {
             }
         }
         return toRet;
+    }
+
+    private void makeRepoOrphan(Repository repository, String site) throws IOException, GitAPIException,
+            ServiceLayerException, UserNotFoundException {
+        logger.debug("Make repository orphan fir site " + site);
+        String sandboxBranchName = repository.getBranch();
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
+        String sandboxBranchOrphanName = sandboxBranchName + "_orphan";
+
+        logger.debug("Shallow clone is not implemented in JGit. Instead we are creating new orphan branch after " +
+                "cloning and renaming it to sandbox branch to replace fully cloned branch");
+        try (Git git = new Git(repository)) {
+            logger.debug("Create temporary orphan branch " + sandboxBranchOrphanName);
+            git.checkout()
+                    .setName(sandboxBranchOrphanName)
+                    .setStartPoint(sandboxBranchName)
+                    .setOrphan(true)
+                    .call();
+
+            logger.debug("Commit changes because we need clean repo to delete old and rename new branch");
+            git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+            CommitCommand commitCommand = git.commit()
+                    .setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
+            String username = securityService.getCurrentUser();
+            if (StringUtils.isNotEmpty(username)) {
+                commitCommand = commitCommand.setAuthor(getAuthorIdent(username));
+            }
+            commitCommand.call();
+
+            logger.debug("Delete cloned branch " + sandboxBranchName);
+            git.branchDelete().setBranchNames(sandboxBranchName).call();
+
+            logger.debug("Rename temporary orphan branch to sandbox branch");
+            git.branchRename().setNewName(sandboxBranchName).setOldName(sandboxBranchOrphanName).call();
+        }
     }
 
     private SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
