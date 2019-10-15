@@ -366,13 +366,14 @@ public interface ContentRepository {
      * @param remoteUrl      remote repository url
      * @param remoteUsername remote username
      * @param remotePassword remote password
-     * @param params site parameters
+     * @param params         site parameters
+     * @param createAsOrphan create as orphan
      * @return true if success
      */
     boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                   String remoteBranch, boolean singleBranch, String authenticationType,
                                   String remoteUsername, String remotePassword, String remoteToken,
-                                  String remotePrivateKey, Map<String, String> params)
+                                  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException;
 
@@ -384,13 +385,14 @@ public interface ContentRepository {
      * @param remoteUrl      remote repository url
      * @param remoteUsername remote username
      * @param remotePassword remote password
+     * @param createAsOrphan create as orphan
      * @return true if success
      */
     boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
                                    String remoteUsername, String remotePassword, String remoteToken,
-                                   String remotePrivateKey) throws InvalidRemoteRepositoryException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
-            RemoteRepositoryNotBareException, ServiceLayerException;
+                                   String remotePrivateKey, boolean createAsOrphan)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, ServiceLayerException;
 
     /**
      * Add remote repository for site content repository

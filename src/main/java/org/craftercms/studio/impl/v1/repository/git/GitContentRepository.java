@@ -518,7 +518,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .setCommitter(helper.getCurrentUserIdent())
                             .setMessage(helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
                                     .replaceAll(PATTERN_FROM_PATH, fromPath)
-                                    .replaceAll(PATTERN_TO_PATH, toPath + (StringUtils.isNotEmpty(newName) ? newName : EMPTY)))
+                                    .replaceAll(PATTERN_TO_PATH, toPath +
+                                            (StringUtils.isNotEmpty(newName) ? newName : EMPTY)))
                             .call();
                     commitId = commit.getName();
                     toRet.put(pathToCommit, commitId);
@@ -1268,7 +1269,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     if (StringUtils.isNotEmpty(postscript)) {
                         sbCommitMessage.append("\n\n").append(postscript);
                     }
-                    RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent).call();
+                    RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent)
+                            .call();
                     logger.debug("Git commit all published items completed.");
                     int commitTime = revCommit.getCommitTime();
 
@@ -1404,8 +1406,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 if (StringUtils.contains(commit.getFullMessage(),
                                         studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING))) {
                                     prevCommitId = commit.getId();
-                                    logger.debug("Skipping commitId: " + prevCommitId.getName() + " for site " + site +
-                                            " because it is marked not to be processed.");
+                                    logger.debug("Skipping commitId: " + prevCommitId.getName() + " for site "
+                                            + site + " because it is marked not to be processed.");
                                     GitLog gitLog = getGitLog(site, prevCommitId.getName());
                                     if (gitLog != null) {
                                         markGitLogVerifiedProcessed(site, prevCommitId.getName());
@@ -1786,7 +1788,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params)
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
         boolean toReturn;
@@ -1794,8 +1796,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // clone remote git repository for site content
         logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
                 " (" + remoteUrl + ").");
-        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch, singleBranch,
-                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+                singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+                createAsOrphan);
 
         if (toReturn) {
             PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
@@ -1838,9 +1841,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
                                           String remoteUsername, String remotePassword, String remoteToken,
-                                          String remotePrivateKey) throws InvalidRemoteRepositoryException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
-            RemoteRepositoryNotBareException, ServiceLayerException {
+                                          String remotePrivateKey, boolean createAsOrphan)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, ServiceLayerException {
         boolean toRet = true;
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
@@ -2134,7 +2137,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                                 @Override
                                                 public void configure(Transport transport) {
                                                     SshTransport sshTransport = (SshTransport) transport;
-                                                    sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                                                    sshTransport.setSshSessionFactory(
+                                                            getSshSessionFactory(privateKey, tempKey));
                                                 }
                                             }).call();
                                     Files.delete(tempKey);
