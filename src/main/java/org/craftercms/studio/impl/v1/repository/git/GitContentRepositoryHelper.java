@@ -716,7 +716,9 @@ public class GitContentRepositoryHelper {
     // TODO: SJ: Fix the exception handling in this method
     public RevTree getTreeForLastCommit(Repository repository) throws IOException {
         ObjectId lastCommitId = repository.resolve(Constants.HEAD);
-
+        if (lastCommitId == null) {
+            return null;
+        }
         // a RevWalk allows to walk over commits based on some filtering
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(lastCommitId);
@@ -730,6 +732,9 @@ public class GitContentRepositoryHelper {
     // TODO: SJ: Fix the exception handling in this method
     public RevTree getTreeForCommit(Repository repository, String commitId) throws IOException {
         ObjectId commitObjectId = repository.resolve(commitId);
+        if (commitObjectId == null) {
+            return null;
+        }
 
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(commitObjectId);
@@ -879,26 +884,28 @@ public class GitContentRepositoryHelper {
                 RevTree parentTree = getTreeForCommit(repository, parentCommitId.getName());
                 RevTree commitTree = getTreeForCommit(repository, commitId.getName());
 
-                try (ObjectReader reader = repository.newObjectReader()) {
-                    CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-                    CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-                    prevCommitTreeParser.reset(reader, parentTree.getId());
-                    nextCommitTreeParser.reset(reader, commitTree.getId());
+                if (parentTree != null && commitTree != null) {
+                    try (ObjectReader reader = repository.newObjectReader()) {
+                        CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                        CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                        prevCommitTreeParser.reset(reader, parentTree.getId());
+                        nextCommitTreeParser.reset(reader, commitTree.getId());
 
-                    // Diff the two commit Ids
-                    List<DiffEntry> diffEntries = git.diff()
-                            .setOldTree(prevCommitTreeParser)
-                            .setNewTree(nextCommitTreeParser)
-                            .call();
-                    for (DiffEntry diffEntry : diffEntries) {
-                        if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
-                            files.add(FILE_SEPARATOR + diffEntry.getOldPath());
-                        } else {
-                            files.add(FILE_SEPARATOR + diffEntry.getNewPath());
+                        // Diff the two commit Ids
+                        List<DiffEntry> diffEntries = git.diff()
+                                .setOldTree(prevCommitTreeParser)
+                                .setNewTree(nextCommitTreeParser)
+                                .call();
+                        for (DiffEntry diffEntry : diffEntries) {
+                            if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
+                                files.add(FILE_SEPARATOR + diffEntry.getOldPath());
+                            } else {
+                                files.add(FILE_SEPARATOR + diffEntry.getNewPath());
+                            }
                         }
+                    } catch (IOException | GitAPIException e) {
+                        logger.error("Error while getting list of files in commit " + commit.getId().getName());
                     }
-                } catch (IOException | GitAPIException e) {
-                    logger.error("Error while getting list of files in commit " + commit.getId().getName());
                 }
             }
 

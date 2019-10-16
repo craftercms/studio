@@ -254,6 +254,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
         InputStream toReturn = null;
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        if (repo == null) {
+            throw new ContentNotFoundException("Repository not found for site " + site);
+        }
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -764,16 +767,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         try {
             RevTree tree = helper.getTreeForCommit(repo, version);
-            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
-                if (tw != null) {
-                    ObjectId id = tw.getObjectId(0);
-                    ObjectLoader objectLoader = repo.open(id);
-                    toReturn = objectLoader.openStream();
-                    tw.close();
+            if (tree != null) {
+                try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                    if (tw != null) {
+                        ObjectId id = tw.getObjectId(0);
+                        ObjectLoader objectLoader = repo.open(id);
+                        toReturn = objectLoader.openStream();
+                        tw.close();
+                    }
+                } catch (IOException e) {
+                    logger.error("Error while getting content for file at site: " + site + " path: " + path +
+                            " version: " + version, e);
                 }
-            } catch (IOException e) {
-                logger.error("Error while getting content for file at site: " + site + " path: " + path +
-                        " version: " + version, e);
             }
         } catch (IOException e) {
             logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
@@ -1350,7 +1355,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         if (fromEmptyRepo) {
                             try (RevWalk walk = new RevWalk(repo)) {
                                 RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                                RevTree firstCommitTree = helper.getTreeForCommit(repo, firstCommit.getName());
                                 try (ObjectReader reader = repo.newObjectReader()) {
                                     CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
                                     firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
@@ -1424,27 +1428,28 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                                     RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
                                     RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
+                                    if (prevTree != null && nextTree != null) {
+                                        try (ObjectReader reader = repo.newObjectReader()) {
+                                            CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                                            CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                                            prevCommitTreeParser.reset(reader, prevTree.getId());
+                                            nextCommitTreeParser.reset(reader, nextTree.getId());
 
-                                    try (ObjectReader reader = repo.newObjectReader()) {
-                                        CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-                                        CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-                                        prevCommitTreeParser.reset(reader, prevTree.getId());
-                                        nextCommitTreeParser.reset(reader, nextTree.getId());
-
-                                        // Diff the two commit Ids
-                                        List<DiffEntry> diffEntries = git.diff()
-                                                .setOldTree(prevCommitTreeParser)
-                                                .setNewTree(nextCommitTreeParser)
-                                                .call();
+                                            // Diff the two commit Ids
+                                            List<DiffEntry> diffEntries = git.diff()
+                                                    .setOldTree(prevCommitTreeParser)
+                                                    .setNewTree(nextCommitTreeParser)
+                                                    .call();
 
 
-                                        // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                        // and add them to the list of RepoOperations to return to the caller
-                                        // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                        // convert to java date before sending over
-                                        operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
-                                                Instant.ofEpochSecond(commit.getCommitTime()).atZone(UTC)));
-                                        prevCommitId = nextCommitId;
+                                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                            // and add them to the list of RepoOperations to return to the caller
+                                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                            // convert to java date before sending over
+                                            operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
+                                                    Instant.ofEpochSecond(commit.getCommitTime()).atZone(UTC)));
+                                            prevCommitId = nextCommitId;
+                                        }
                                     }
                                 }
                             }
