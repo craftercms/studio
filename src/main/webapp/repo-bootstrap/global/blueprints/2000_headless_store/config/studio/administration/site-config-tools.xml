@@ -41,7 +41,7 @@
     </config>
 -->
 <config>
-    <version>8</version>
+    <version>9</version>
     <tools>
         <tool>
             <name>content-types</name>

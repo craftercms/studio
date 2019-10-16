@@ -1051,6 +1051,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 8
+        nextVersion: 9
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/3.1.4.9/site/site-config-tools.xslt
+            commitDetails: Add shared & embedded datasources
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
 
   environment-config:
     path: &environment-config '/config/studio/environment/environment-config.xml'
