@@ -359,10 +359,19 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                 break;
             case RemoteRepository.AuthenticationType.BASIC:
                 logger.debug("Basic Authentication");
+                if (StringUtils.isEmpty(remoteNode.getGitUsername()) ||
+                        StringUtils.isEmpty(remoteNode.getGitPassword())) {
+                    throw new ServiceLayerException("Username or password empty for basic authentication for cluster " +
+                            "node " + remoteNode.getLocalAddress());
+                }
                 configureBasicAuthentication(remoteNode, gitCommand, encryptor, sshProtocol);
                 break;
             case RemoteRepository.AuthenticationType.TOKEN:
                 logger.debug("Token based Authentication");
+                if (StringUtils.isEmpty(remoteNode.getGitToken())) {
+                    throw new ServiceLayerException("Token is empty for token based authentication for cluster " +
+                            "node " + remoteNode.getLocalAddress());
+                }
                 configureTokenAuthentication(remoteNode, gitCommand, encryptor, sshProtocol);
                 break;
             case RemoteRepository.AuthenticationType.PRIVATE_KEY:
@@ -371,6 +380,10 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                 }
 
                 logger.debug("Private Key Authentication");
+                if (StringUtils.isEmpty(remoteNode.getGitPrivateKey())) {
+                    throw new ServiceLayerException("Private key is empty for key based authentication for cluster " +
+                            "node " + remoteNode.getLocalAddress());
+                }
                 configurePrivateKeyAuthentication(remoteNode, gitCommand, encryptor, tempKey);
                 break;
             default:
