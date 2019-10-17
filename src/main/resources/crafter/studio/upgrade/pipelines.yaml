@@ -735,6 +735,15 @@ pipelines:
           commitDetails: Remove system templates that should not be included in sites
         - type: versionFileUpgrader
 
+    - currentVersion: 3.1.4.3
+      nextVersion: 3.1.4.4
+      operations:
+        - type: batchXsltUpgrader
+          commitDetails: Fix property for child-content datasources
+          template: crafter/studio/upgrade/3.1.x/3.1.4.4/site/child-content-data-sources.xslt
+          regex: config/studio/content-types/.+/form-definition\.xml
+        - type: versionFileUpgrader
+
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
