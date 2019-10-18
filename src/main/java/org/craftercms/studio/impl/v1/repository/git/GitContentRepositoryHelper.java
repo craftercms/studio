@@ -1033,8 +1033,11 @@ public class GitContentRepositoryHelper {
                     .setOrphan(true)
                     .call();
 
-            logger.debug("Commit changes because we need clean repo to delete old and rename new branch");
-            git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+            // Reset everything to simulate first commit as created empty repo
+            logger.debug("Soft reset to commit empty repo");
+            git.reset().call();
+
+            logger.debug("Commit empty repo, because we need to have HEAD to delete old and rename new branch");
             CommitCommand commitCommand = git.commit()
                     .setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
             String username = securityService.getCurrentUser();
