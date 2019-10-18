@@ -454,7 +454,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("site", site);
         params.put("path", path);
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
-        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
+        params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         publishRequestMapper.cancelWorkflow(params);
     }
@@ -466,7 +466,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("site", site);
         params.put("paths", paths);
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
-        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
+        params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         publishRequestMapper.cancelWorkflowBulk(params);
     }

@@ -18,8 +18,8 @@ public interface PublishRequestDAO extends BaseDAO {
      */
     int getPublishingPackagesTotal(@Param(PARAM_NAME_SITE_ID) String siteId,
                                    @Param(PARAM_NAME_ENVIRONMENT) String environment,
-                                   @Param(PARAM_NAME_STATE) String state,
-                                   @Param(PARAM_NAME_PATH) String path);
+                                   @Param(PARAM_NAME_PATH) String path,
+                                   @Param(PARAM_NAME_STATE) String state);
 
     /**
      * Get publishing packages for given search filters
@@ -33,8 +33,8 @@ public interface PublishRequestDAO extends BaseDAO {
      */
     List<PublishingPackage> getPublishingPackages(@Param(PARAM_NAME_SITE_ID) String siteId,
                                                   @Param(PARAM_NAME_ENVIRONMENT) String environment,
-                                                  @Param(PARAM_NAME_STATE) String state,
                                                   @Param(PARAM_NAME_PATH) String path,
+                                                  @Param(PARAM_NAME_STATE) String state,
                                                   @Param(PARAM_NAME_OFFSET) int offset,
                                                   @Param(PARAM_NAME_LIMIT) int limit);
 
