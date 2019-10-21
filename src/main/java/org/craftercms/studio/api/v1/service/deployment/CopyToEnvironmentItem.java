@@ -27,7 +27,7 @@ public class CopyToEnvironmentItem implements Serializable {
         READY_FOR_LIVE,
         PROCESSING,
         COMPLETED,
-        CANCELED,
+        CANCELLED,
         BLOCKED
     }
 

@@ -408,7 +408,7 @@ public class SiteServiceImpl implements SiteService {
                                            @ValidateStringParam(name = "siteId") String siteId,
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
                                            @ValidateNoTagsParam(name = "desc") String desc,
-                                           Map<String, String> params)
+                                           Map<String, String> params, boolean createAsOrphan)
             throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
             BlueprintNotFoundException, MissingPluginParameterException {
 	    if (exists(siteId)) {
@@ -692,7 +692,7 @@ public class SiteServiceImpl implements SiteService {
                                            String remoteUsername, String remotePassword, String remoteToken,
                                            String remotePrivateKey,
                                            @ValidateStringParam(name = "createOption") String createOption,
-                                           Map<String, String> params)
+                                           Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -710,15 +710,16 @@ public class SiteServiceImpl implements SiteService {
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.info("Clone from remote repository create option selected");
-                createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
-                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, params);
+                createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
+                        singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+                        params, createAsOrphan);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.info("Push to remote repository create option selected");
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey, params);
+                        remotePrivateKey, params, createAsOrphan);
                 break;
 
             default:
@@ -733,7 +734,8 @@ public class SiteServiceImpl implements SiteService {
     private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
-                                       String remoteToken, String remotePrivateKey, Map<String, String> params)
+                                       String remoteToken, String remotePrivateKey, Map<String, String> params,
+                                       boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -751,7 +753,7 @@ public class SiteServiceImpl implements SiteService {
                 " (" + remoteUrl + ")");
             success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                 remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, params);
+                remotePrivateKey, params, createAsOrphan);
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
             RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
@@ -879,7 +881,8 @@ public class SiteServiceImpl implements SiteService {
     private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintId,
                                         String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
-                                        String remoteToken, String remotePrivateKey, Map<String, String> params)
+                                        String remoteToken, String remotePrivateKey, Map<String, String> params,
+                                        boolean createAsOrphan)
             throws ServiceLayerException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
@@ -922,8 +925,8 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             try {
                 logger.info("Creating site " + siteId + " from blueprint " + blueprintId);
-                success =
-                    createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description, params);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description,
+                        params);
 
                 addSiteUuidFile(siteId, siteUuid);
 
@@ -969,7 +972,7 @@ public class SiteServiceImpl implements SiteService {
                     contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                             remotePassword, remoteToken, remotePrivateKey);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
-                            remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                            remoteUsername, remotePassword, remoteToken, remotePrivateKey, createAsOrphan);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
                         InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException |
                         InvalidRemoteUrlException | ServiceLayerException e) {
@@ -1268,7 +1271,8 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
-                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId) throws SiteNotFoundException {
+                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId)
+            throws SiteNotFoundException {
         return syncDatabaseWithRepo(site, fromCommitId, true);
     }
 
@@ -1311,7 +1315,8 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Git Log does not exist in database for commit id " + repoOperation.getCommitId());
                 logger.debug("Inserting Git Log for commit id " + repoOperation.getCommitId() + " and site " + site);
                 contentRepository.insertGitLog(site, repoOperation.getCommitId(), 0);
-                logger.debug("Repository diverged from database. All repository operations onwards need to be processed");
+                logger.debug("Repository diverged from database. " +
+                        "All repository operations onwards need to be processed");
                 diverged = true;
                 gitLogProcessed = false;
                 gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());

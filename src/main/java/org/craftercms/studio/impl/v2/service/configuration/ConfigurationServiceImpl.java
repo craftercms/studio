@@ -114,20 +114,22 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         try {
             document = contentService.getContentAsDocument(siteId, roleMappingsConfigPath);
-            Element root = document.getRootElement();
-            if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                for (Node node : groupNodes) {
-                    String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
-                    if (StringUtils.isNotEmpty(name)) {
-                        List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                        List<String> roles = new ArrayList<>();
+            if (document != null) {
+                Element root = document.getRootElement();
+                if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
+                    List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
+                    for (Node node : groupNodes) {
+                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
+                        if (StringUtils.isNotEmpty(name)) {
+                            List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
+                            List<String> roles = new ArrayList<>();
 
-                        for (Node roleNode : roleNodes) {
-                            roles.add(roleNode.getText());
+                            for (Node roleNode : roleNodes) {
+                                roles.add(roleNode.getText());
+                            }
+
+                            roleMappings.put(name, roles);
                         }
-
-                        roleMappings.put(name, roles);
                     }
                 }
             }
@@ -176,16 +178,18 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             throws DocumentException, IOException {
         String content = getEnvironmentConfiguration(siteId, module, path, environment);
         Document retDocument = null;
-        SAXReader saxReader = new SAXReader();
-        try {
-            saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        }catch (SAXException ex){
-            logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
-        }
-        try (InputStream is = IOUtils.toInputStream(content)) {
-            retDocument = saxReader.read(is);
+        if (StringUtils.isNotEmpty(content)) {
+            SAXReader saxReader = new SAXReader();
+            try {
+                saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            } catch (SAXException ex) {
+                logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
+            }
+            try (InputStream is = IOUtils.toInputStream(content)) {
+                retDocument = saxReader.read(is);
+            }
         }
         return retDocument;
     }

@@ -254,6 +254,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
         InputStream toReturn = null;
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        if (repo == null) {
+            throw new ContentNotFoundException("Repository not found for site " + site);
+        }
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -518,7 +521,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .setCommitter(helper.getCurrentUserIdent())
                             .setMessage(helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
                                     .replaceAll(PATTERN_FROM_PATH, fromPath)
-                                    .replaceAll(PATTERN_TO_PATH, toPath + (StringUtils.isNotEmpty(newName) ? newName : EMPTY)))
+                                    .replaceAll(PATTERN_TO_PATH, toPath +
+                                            (StringUtils.isNotEmpty(newName) ? newName : EMPTY)))
                             .call();
                     commitId = commit.getName();
                     toRet.put(pathToCommit, commitId);
@@ -764,16 +768,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         try {
             RevTree tree = helper.getTreeForCommit(repo, version);
-            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
-                if (tw != null) {
-                    ObjectId id = tw.getObjectId(0);
-                    ObjectLoader objectLoader = repo.open(id);
-                    toReturn = objectLoader.openStream();
-                    tw.close();
+            if (tree != null) {
+                try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                    if (tw != null) {
+                        ObjectId id = tw.getObjectId(0);
+                        ObjectLoader objectLoader = repo.open(id);
+                        toReturn = objectLoader.openStream();
+                        tw.close();
+                    }
+                } catch (IOException e) {
+                    logger.error("Error while getting content for file at site: " + site + " path: " + path +
+                            " version: " + version, e);
                 }
-            } catch (IOException e) {
-                logger.error("Error while getting content for file at site: " + site + " path: " + path +
-                        " version: " + version, e);
             }
         } catch (IOException e) {
             logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
@@ -1268,7 +1274,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     if (StringUtils.isNotEmpty(postscript)) {
                         sbCommitMessage.append("\n\n").append(postscript);
                     }
-                    RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent).call();
+                    RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent)
+                            .call();
                     logger.debug("Git commit all published items completed.");
                     int commitTime = revCommit.getCommitTime();
 
@@ -1350,7 +1357,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         if (fromEmptyRepo) {
                             try (RevWalk walk = new RevWalk(repo)) {
                                 RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                                RevTree firstCommitTree = helper.getTreeForCommit(repo, firstCommit.getName());
                                 try (ObjectReader reader = repo.newObjectReader()) {
                                     CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
                                     firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
@@ -1404,8 +1410,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 if (StringUtils.contains(commit.getFullMessage(),
                                         studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING))) {
                                     prevCommitId = commit.getId();
-                                    logger.debug("Skipping commitId: " + prevCommitId.getName() + " for site " + site +
-                                            " because it is marked not to be processed.");
+                                    logger.debug("Skipping commitId: " + prevCommitId.getName() + " for site "
+                                            + site + " because it is marked not to be processed.");
                                     GitLog gitLog = getGitLog(site, prevCommitId.getName());
                                     if (gitLog != null) {
                                         markGitLogVerifiedProcessed(site, prevCommitId.getName());
@@ -1424,27 +1430,28 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                                     RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
                                     RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
+                                    if (prevTree != null && nextTree != null) {
+                                        try (ObjectReader reader = repo.newObjectReader()) {
+                                            CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                                            CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                                            prevCommitTreeParser.reset(reader, prevTree.getId());
+                                            nextCommitTreeParser.reset(reader, nextTree.getId());
 
-                                    try (ObjectReader reader = repo.newObjectReader()) {
-                                        CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-                                        CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-                                        prevCommitTreeParser.reset(reader, prevTree.getId());
-                                        nextCommitTreeParser.reset(reader, nextTree.getId());
-
-                                        // Diff the two commit Ids
-                                        List<DiffEntry> diffEntries = git.diff()
-                                                .setOldTree(prevCommitTreeParser)
-                                                .setNewTree(nextCommitTreeParser)
-                                                .call();
+                                            // Diff the two commit Ids
+                                            List<DiffEntry> diffEntries = git.diff()
+                                                    .setOldTree(prevCommitTreeParser)
+                                                    .setNewTree(nextCommitTreeParser)
+                                                    .call();
 
 
-                                        // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                        // and add them to the list of RepoOperations to return to the caller
-                                        // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                        // convert to java date before sending over
-                                        operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
-                                                Instant.ofEpochSecond(commit.getCommitTime()).atZone(UTC)));
-                                        prevCommitId = nextCommitId;
+                                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                            // and add them to the list of RepoOperations to return to the caller
+                                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                            // convert to java date before sending over
+                                            operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
+                                                    Instant.ofEpochSecond(commit.getCommitTime()).atZone(UTC)));
+                                            prevCommitId = nextCommitId;
+                                        }
                                     }
                                 }
                             }
@@ -1786,7 +1793,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params)
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
         boolean toReturn;
@@ -1794,8 +1801,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // clone remote git repository for site content
         logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
                 " (" + remoteUrl + ").");
-        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch, singleBranch,
-                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+                singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+                createAsOrphan);
 
         if (toReturn) {
             PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
@@ -1838,9 +1846,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
                                           String remoteUsername, String remotePassword, String remoteToken,
-                                          String remotePrivateKey) throws InvalidRemoteRepositoryException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
-            RemoteRepositoryNotBareException, ServiceLayerException {
+                                          String remotePrivateKey, boolean createAsOrphan)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, ServiceLayerException {
         boolean toRet = true;
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
@@ -2134,7 +2142,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                                 @Override
                                                 public void configure(Transport transport) {
                                                     SshTransport sshTransport = (SshTransport) transport;
-                                                    sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                                                    sshTransport.setSshSessionFactory(
+                                                            getSshSessionFactory(privateKey, tempKey));
                                                 }
                                             }).call();
                                     Files.delete(tempKey);

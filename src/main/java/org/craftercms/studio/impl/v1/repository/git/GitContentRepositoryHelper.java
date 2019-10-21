@@ -107,6 +107,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
@@ -716,7 +717,9 @@ public class GitContentRepositoryHelper {
     // TODO: SJ: Fix the exception handling in this method
     public RevTree getTreeForLastCommit(Repository repository) throws IOException {
         ObjectId lastCommitId = repository.resolve(Constants.HEAD);
-
+        if (lastCommitId == null) {
+            return null;
+        }
         // a RevWalk allows to walk over commits based on some filtering
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(lastCommitId);
@@ -730,6 +733,9 @@ public class GitContentRepositoryHelper {
     // TODO: SJ: Fix the exception handling in this method
     public RevTree getTreeForCommit(Repository repository, String commitId) throws IOException {
         ObjectId commitObjectId = repository.resolve(commitId);
+        if (commitObjectId == null) {
+            return null;
+        }
 
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(commitObjectId);
@@ -879,26 +885,28 @@ public class GitContentRepositoryHelper {
                 RevTree parentTree = getTreeForCommit(repository, parentCommitId.getName());
                 RevTree commitTree = getTreeForCommit(repository, commitId.getName());
 
-                try (ObjectReader reader = repository.newObjectReader()) {
-                    CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-                    CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-                    prevCommitTreeParser.reset(reader, parentTree.getId());
-                    nextCommitTreeParser.reset(reader, commitTree.getId());
+                if (parentTree != null && commitTree != null) {
+                    try (ObjectReader reader = repository.newObjectReader()) {
+                        CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                        CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                        prevCommitTreeParser.reset(reader, parentTree.getId());
+                        nextCommitTreeParser.reset(reader, commitTree.getId());
 
-                    // Diff the two commit Ids
-                    List<DiffEntry> diffEntries = git.diff()
-                            .setOldTree(prevCommitTreeParser)
-                            .setNewTree(nextCommitTreeParser)
-                            .call();
-                    for (DiffEntry diffEntry : diffEntries) {
-                        if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
-                            files.add(FILE_SEPARATOR + diffEntry.getOldPath());
-                        } else {
-                            files.add(FILE_SEPARATOR + diffEntry.getNewPath());
+                        // Diff the two commit Ids
+                        List<DiffEntry> diffEntries = git.diff()
+                                .setOldTree(prevCommitTreeParser)
+                                .setNewTree(nextCommitTreeParser)
+                                .call();
+                        for (DiffEntry diffEntry : diffEntries) {
+                            if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
+                                files.add(FILE_SEPARATOR + diffEntry.getOldPath());
+                            } else {
+                                files.add(FILE_SEPARATOR + diffEntry.getNewPath());
+                            }
                         }
+                    } catch (IOException | GitAPIException e) {
+                        logger.error("Error while getting list of files in commit " + commit.getId().getName());
                     }
-                } catch (IOException | GitAPIException e) {
-                    logger.error("Error while getting list of files in commit " + commit.getId().getName());
                 }
             }
 
@@ -912,8 +920,8 @@ public class GitContentRepositoryHelper {
 
     public boolean createSiteCloneRemoteGitRepo(String siteId, String sandboxBranch, String remoteName,
                                                 String remoteUrl, String remoteBranch, boolean singleBranch,
-                                                String authenticationType, String remoteUsername,
-                                                String remotePassword, String remoteToken, String remotePrivateKey)
+                                                String authenticationType, String remoteUsername, String remotePassword,
+                                                String remoteToken, String remotePrivateKey, boolean createAsOrphan)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
 
@@ -962,6 +970,7 @@ public class GitContentRepositoryHelper {
             if (StringUtils.isNotEmpty(remoteBranch)) {
                 cloneCommand.setBranch(remoteBranch);
             }
+
             cloneResult = cloneCommand
                     .setURI(remoteUrl)
                     .setDirectory(localPath)
@@ -972,6 +981,11 @@ public class GitContentRepositoryHelper {
             Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
 
             sandboxRepo = optimizeRepository(sandboxRepo);
+
+            // Make repository orphan if needed
+            if (createAsOrphan) {
+                makeRepoOrphan(sandboxRepo, siteId);
+            }
 
             sandboxes.put(siteId, sandboxRepo);
         } catch (InvalidRemoteException e) {
@@ -989,7 +1003,7 @@ public class GitContentRepositoryHelper {
                 throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
                         remoteUrl + ")");
             }
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException | IOException | UserNotFoundException e) {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             toRet = false;
         } finally {
@@ -998,6 +1012,46 @@ public class GitContentRepositoryHelper {
             }
         }
         return toRet;
+    }
+
+    private void makeRepoOrphan(Repository repository, String site) throws IOException, GitAPIException,
+            ServiceLayerException, UserNotFoundException {
+        logger.debug("Make repository orphan fir site " + site);
+        String sandboxBranchName = repository.getBranch();
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
+        String sandboxBranchOrphanName = sandboxBranchName + "_orphan";
+
+        logger.debug("Shallow clone is not implemented in JGit. Instead we are creating new orphan branch after " +
+                "cloning and renaming it to sandbox branch to replace fully cloned branch");
+        try (Git git = new Git(repository)) {
+            logger.debug("Create temporary orphan branch " + sandboxBranchOrphanName);
+            git.checkout()
+                    .setName(sandboxBranchOrphanName)
+                    .setStartPoint(sandboxBranchName)
+                    .setOrphan(true)
+                    .call();
+
+            // Reset everything to simulate first commit as created empty repo
+            logger.debug("Soft reset to commit empty repo");
+            git.reset().call();
+
+            logger.debug("Commit empty repo, because we need to have HEAD to delete old and rename new branch");
+            CommitCommand commitCommand = git.commit()
+                    .setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
+            String username = securityService.getCurrentUser();
+            if (StringUtils.isNotEmpty(username)) {
+                commitCommand = commitCommand.setAuthor(getAuthorIdent(username));
+            }
+            commitCommand.call();
+
+            logger.debug("Delete cloned branch " + sandboxBranchName);
+            git.branchDelete().setBranchNames(sandboxBranchName).call();
+
+            logger.debug("Rename temporary orphan branch to sandbox branch");
+            git.branchRename().setNewName(sandboxBranchName).setOldName(sandboxBranchOrphanName).call();
+        }
     }
 
     private SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
