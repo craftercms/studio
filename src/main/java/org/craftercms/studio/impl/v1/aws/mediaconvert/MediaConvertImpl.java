@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.aws.mediaconvert;
 import java.io.InputStream;
 
 import org.apache.commons.io.FilenameUtils;
+import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvert;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertJob;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
@@ -37,7 +38,6 @@ import com.amazonaws.services.mediaconvert.model.JobTemplate;
 import com.amazonaws.services.mediaconvert.model.OutputGroup;
 import com.amazonaws.services.mediaconvert.model.OutputGroupType;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 /**
  * Default implementation of {@link MediaConvert}.
@@ -58,10 +58,7 @@ public class MediaConvertImpl implements MediaConvert {
      * @return an S3 client
      */
     protected AmazonS3 getS3Client(MediaConvertProfile profile) {
-        return AmazonS3ClientBuilder.standard()
-                .withCredentials(profile.getCredentialsProvider())
-                .withRegion(profile.getRegion())
-                .build();
+        return S3Utils.createClient(profile);
     }
 
     /**

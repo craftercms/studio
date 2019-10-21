@@ -20,13 +20,13 @@ package org.craftercms.studio.impl.v1.service.aws;
 import java.io.InputStream;
 
 import org.craftercms.commons.config.profiles.aws.S3Profile;
+import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.s3.S3Output;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.S3Service;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 /**
  * Default implementation of {@link S3Service}.
@@ -48,10 +48,7 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
     }
 
     protected AmazonS3 getS3Client(S3Profile profile) {
-        return AmazonS3ClientBuilder.standard()
-            .withCredentials(profile.getCredentialsProvider())
-            .withRegion(profile.getRegion())
-            .build();
+        return S3Utils.createClient(profile);
     }
 
     @Override
