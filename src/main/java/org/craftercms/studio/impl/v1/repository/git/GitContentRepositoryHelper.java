@@ -1037,6 +1037,9 @@ public class GitContentRepositoryHelper {
             logger.debug("Soft reset to commit empty repo");
             git.reset().call();
 
+            // Include all files in the first commit
+            git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+
             logger.debug("Commit empty repo, because we need to have HEAD to delete old and rename new branch");
             CommitCommand commitCommand = git.commit()
                     .setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
