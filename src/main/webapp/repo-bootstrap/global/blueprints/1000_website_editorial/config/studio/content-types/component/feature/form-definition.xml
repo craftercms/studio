@@ -48,7 +48,7 @@
         <defaultOpen>true</defaultOpen>
         <fields>
             <field>
-                <type>file-name</type>
+                <type>auto-filename</type>
                 <id>file-name</id>
                 <iceId></iceId>
                 <title>Component ID</title>
@@ -56,21 +56,6 @@
                 <defaultValue></defaultValue>
                 <help></help>
                 <properties>
-                    <property>
-                        <name>size</name>
-                        <value>50</value>
-                        <type>int</type>
-                    </property>
-                    <property>
-                        <name>maxlength</name>
-                        <value>50</value>
-                        <type>int</type>
-                    </property>
-                    <property>
-                        <name>readonly</name>
-                        <value></value>
-                        <type>boolean</type>
-                    </property>
                 </properties>
                 <constraints>
                 </constraints>
