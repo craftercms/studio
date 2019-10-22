@@ -1222,12 +1222,18 @@
     <!-- ////////////////////////////////////// -->
     <!--              Marketplace               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="marketplaceService" class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
+    <bean id="marketplaceServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl">
         <constructor-arg ref="instanceService"/>
         <constructor-arg ref="cstudioSiteServiceSimple"/>
         <constructor-arg ref="sitesServiceInternal"/>
         <constructor-arg ref="studioConfiguration"/>
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
+    </bean>
+
+    <bean id="marketplaceService"
+          class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
+        <constructor-arg ref="marketplaceServiceInternal"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

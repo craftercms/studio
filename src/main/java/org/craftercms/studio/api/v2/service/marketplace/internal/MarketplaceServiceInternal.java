@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.marketplace;
+package org.craftercms.studio.api.v2.service.marketplace.internal;
 
 import java.util.Map;
 
@@ -34,7 +34,15 @@ import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
  * @author joseross
  * @since 3.1.2
  */
-public interface MarketplaceService {
+public interface MarketplaceServiceInternal {
+
+    String HEADER_STUDIO_ID = "x-studio-id";
+    String HEADER_STUDIO_BUILD = "x-studio-build";
+    String HEADER_STUDIO_VERSION = "x-studio-version";
+    String HEADER_JAVA_VERSION = "x-java-version";
+    String HEADER_OS_NAME = "x-os-name";
+    String HEADER_OS_VERSION = "x-os-version";
+    String HEADER_OS_ARCH = "x-os-arch";
 
     /**
      * Performs a search for all available plugins that match the given filters
