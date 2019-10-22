@@ -747,7 +747,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
-        <property name="sitesServiceInternal" ref="sitesServiceInternal" />
     </bean>
 
     <bean id="contentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -1225,6 +1224,9 @@
     <!-- ////////////////////////////////////// -->
     <bean id="marketplaceService" class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
         <constructor-arg ref="instanceService"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="sitesServiceInternal"/>
+        <constructor-arg ref="studioConfiguration"/>
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
     </bean>
 

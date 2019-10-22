@@ -51,6 +51,7 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -276,6 +277,14 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         response.setRemedialAction(
             String.format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleMissingServletRequestParameterException(HttpServletRequest request,
+                                                                      MethodArgumentNotValidException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 

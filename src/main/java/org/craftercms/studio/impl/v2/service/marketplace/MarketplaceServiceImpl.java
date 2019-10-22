@@ -22,17 +22,32 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.monitoring.VersionInfo;
+import org.craftercms.commons.plugin.model.Plugin;
+import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.Paths;
+import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -41,6 +56,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.craftercms.studio.api.v2.service.marketplace.Constants.PLUGIN_REF;
+import static org.craftercms.studio.api.v2.service.marketplace.Constants.PLUGIN_URL;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -52,13 +71,26 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
 
     private static final Logger logger = LoggerFactory.getLogger(MarketplaceServiceImpl.class);
 
-    public MarketplaceServiceImpl(final InstanceService instanceService) {
+    public MarketplaceServiceImpl(final InstanceService instanceService, final SiteService siteService,
+                                  final SitesServiceInternal sitesServiceInternal,
+                                  final StudioConfiguration studioConfiguration) {
         this.instanceService = instanceService;
+        this.siteService = siteService;
+        this.sitesServiceInternal = sitesServiceInternal;
+        this.studioConfiguration = studioConfiguration;
     }
 
     protected InstanceService instanceService;
 
+    protected SiteService siteService;
+
+    protected SitesServiceInternal sitesServiceInternal;
+
+    protected StudioConfiguration studioConfiguration;
+
     protected RestTemplate restTemplate = new RestTemplate();
+
+    protected ObjectMapper mapper = new ObjectMapper();
 
     /**
      * The custom HTTP headers to sent with all requests
@@ -149,4 +181,52 @@ public class MarketplaceServiceImpl implements MarketplaceService, InitializingB
         }
     }
 
+    public Map<String, Object> getDescriptor(String id, Version version) throws MarketplaceException,
+        BlueprintNotFoundException {
+
+        validate();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+            .path(Paths.GET_PLUGIN)
+            .pathSegment(id, String.format("%s.%s.%s", version.getMajor(), version.getMinor(), version.getPatch()));
+
+        HttpEntity<Void> request = new HttpEntity<>(null, httpHeaders);
+
+        try {
+            ResponseEntity<Map<String, Object>> response =
+                restTemplate.exchange(builder.build().toString(), HttpMethod.GET, request,
+                    new ParameterizedTypeReference<Map<String, Object>>() {});
+            return response.getBody();
+        } catch (ResourceAccessException e) {
+            throw new MarketplaceUnreachableException(url, e);
+        } catch (IllegalArgumentException e) {
+            throw new BlueprintNotFoundException(String.format("Blueprint not found in the Marketplace: %s %s.%s.%s",
+             id, version.getMajor(), version.getMinor(), version.getPatch()));
+        }
+    }
+
+    @Override
+    public void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
+        InvalidRemoteRepositoryException, RemoteRepositoryNotBareException, InvalidRemoteUrlException,
+        ServiceLayerException, InvalidRemoteRepositoryCredentialsException {
+
+        if (StringUtils.isEmpty(request.getSandboxBranch())) {
+            request.setSandboxBranch(studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH));
+        }
+
+        if (StringUtils.isEmpty(request.getRemoteName())) {
+            request.setRemoteName(studioConfiguration.getProperty(StudioConfiguration.REPO_DEFAULT_REMOTE_NAME));
+        }
+
+        Map<String, Object> result = getDescriptor(request.getBlueprintId(), request.getBlueprintVersion());
+        Plugin plugin = mapper.convertValue(result, Plugin.class);
+
+        sitesServiceInternal.validateBlueprintParameters(PluginDescriptor.of(plugin), request.getParameters());
+
+        siteService.createSiteWithRemoteOption(request.getSiteId(), request.getSandboxBranch(),
+            request.getDescription(), request.getBlueprintId(), request.getRemoteName(),
+            result.get(PLUGIN_URL).toString(), result.get(PLUGIN_REF).toString(), false,
+            RemoteRepository.AuthenticationType.NONE, null, null, null,
+            null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getParameters(),
+            true);
+    }
 }
