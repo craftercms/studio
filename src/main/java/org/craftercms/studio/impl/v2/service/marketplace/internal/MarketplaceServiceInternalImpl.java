@@ -27,7 +27,6 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.commons.security.permissions.DefaultPermission;
-import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -207,7 +206,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "create-site")
     public void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
         InvalidRemoteRepositoryException, RemoteRepositoryNotBareException, InvalidRemoteUrlException,
         ServiceLayerException, InvalidRemoteRepositoryCredentialsException {
