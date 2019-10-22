@@ -294,6 +294,7 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="eventService" ref="studioEventService" />
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">

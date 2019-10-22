@@ -24,6 +24,7 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -32,6 +33,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -75,6 +77,7 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_LOCK_OWNER;
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIED;
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
@@ -103,6 +106,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ObjectMetadataManager objectMetadataManager;
     private ServicesConfig servicesConfig;
     private ObjectStateService objectStateService;
+    private EventService eventService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -264,6 +268,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
         updateMetadata(siteId, configPath, currentUser);
         generateAuditLog(siteId, configPath, currentUser);
+
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(siteId);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
@@ -406,4 +414,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void setObjectStateService(ObjectStateService objectStateService) {
         this.objectStateService = objectStateService;
     }
+
+    public void setEventService(final EventService eventService) {
+        this.eventService = eventService;
+    }
+
 }
