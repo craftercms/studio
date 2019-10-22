@@ -90,10 +90,10 @@
         SELECT source_path
         FROM dependency
         WHERE site = #{siteId}
-        AND target_path in
+        AND
         <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
+                 open="(" separator=" OR " close=")">
+            target_path LIKE CONCAT(#{path}, '%')
         </foreach>
     </select>
 
