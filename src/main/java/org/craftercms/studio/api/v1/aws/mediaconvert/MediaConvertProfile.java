@@ -27,10 +27,6 @@ import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 public class MediaConvertProfile extends AbstractAwsProfile {
 
     /**
-     * AWS MediaConvert account specific endpoint. Can be found in the AWS Console.
-     */
-    protected String endpoint;
-    /**
      * ARN of the AWS Role used to create the transcoding jobs.
      */
     protected String role;
@@ -47,14 +43,6 @@ public class MediaConvertProfile extends AbstractAwsProfile {
      * S3 URL to upload the files.
      */
     protected String inputPath;
-
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(final String endpoint) {
-        this.endpoint = endpoint;
-    }
 
     public String getRole() {
         return role;
