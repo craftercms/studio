@@ -35,6 +35,7 @@ public interface Constants {
     String RESULT_TOTAL = "total";
     String RESULT_ITEMS = "items";
 
-    String PATH_PLUGIN_SEARCH = "/api/1/plugin/search";
+    String PLUGIN_URL = "url";
+    String PLUGIN_REF = "ref";
 
 }

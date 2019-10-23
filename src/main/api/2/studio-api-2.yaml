@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.6'
+  version: '3.1.4.7'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1516,6 +1516,35 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/PluginDescriptor'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sites/create_site_from_marketplace:
+    post:
+      tags:
+        - sites
+      summary: Create a site from a Marketplace blueprint
+      operationId: createSite
+      requestBody:
+        description: The site information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSiteFromMarketplace'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -3635,6 +3664,36 @@ components:
           properties:
             ref:
               type: string
+
+    CreateSiteFromMarketplace:
+      type: object
+      properties:
+        site_id:
+          type: string
+          description: Site ID to use
+        description:
+          type: string
+          description: Site description
+        sandbox_branch:
+          type: string
+          description: Name for sandbox branch (default master)
+        remote_name:
+          type: string
+          description: Remote repository name (default origin)
+        blueprint_id:
+          type: string
+          description: The ID of the blueprint to use
+        blueprint_version:
+          $ref: '#/components/schemas/Version'
+        site_params:
+          type: object
+          description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+          additionalProperties:
+            type: string
+      required:
+        - site_id
+        - blueprint_id
+        - blueprint_version
 
     SearchParams:
       type: object

@@ -20,7 +20,6 @@ package org.craftercms.studio.controller.rest.v2;
 import java.util.List;
 import java.util.Map;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;

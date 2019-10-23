@@ -27,4 +27,6 @@ public interface Paths {
 
     String PLUGIN_SEARCH = "/api/1/plugin/search";
 
+    String GET_PLUGIN = "/api/1/plugin";
+
 }
