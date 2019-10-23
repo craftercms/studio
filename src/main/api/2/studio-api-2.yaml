@@ -1519,7 +1519,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /sites/create_site:
+  /sites/create_site_from_marketplace:
     post:
       tags:
         - sites
