@@ -1519,6 +1519,35 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /marketplace/create_site:
+    post:
+      tags:
+        - sites
+      summary: Create a site from a Marketplace blueprint
+      operationId: createSite
+      requestBody:
+        description: The site information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSiteFromMarketplace'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -3020,35 +3049,6 @@ paths:
                       anyOf:
                         - $ref: '#/components/schemas/MarketplacePlugin'
                         - $ref: '#/components/schemas/GitMarketplacePlugin'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /marketplace/create_site:
-    post:
-      tags:
-        - marketplace
-      summary: Create a site from a Marketplace blueprint
-      operationId: createSite
-      requestBody:
-        description: The site information
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateSiteFromMarketplace'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
