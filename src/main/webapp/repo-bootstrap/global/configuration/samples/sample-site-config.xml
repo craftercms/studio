@@ -28,6 +28,7 @@
             <!-- Additional (also optional) specific overrides -->
             <!-- <delete-required/> -->
             <!-- <bulk-publish-required/> -->
+            <!-- <publish-by-commit-required/> -->
         </comments>
     </publishing>
 
