@@ -1152,3 +1152,20 @@ configurations:
             path: *notification-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.33/site/notification-config.xslt
             commitDetails: Add pull from remote conflict notifiction
+          - type: xsltFileUpgrader
+            path: *notification-config
+            template: crafter/studio/upgrade/update-version.xslt
+
+  code-editor-config:
+    path: &code-editor-config '/config/studio/code-editor-config.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *code-editor-config
+            template: crafter/studio/upgrade/3.1.x/config/code-editor-config/code-editor-config-v2.xslt
+            commitDetails: Add new properties
+          - type: xsltFileUpgrader
+            path: *code-editor-config
+            template: crafter/studio/upgrade/update-version.xslt

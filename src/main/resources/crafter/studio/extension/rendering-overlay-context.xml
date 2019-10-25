@@ -66,6 +66,7 @@
 
     <bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
         <property name="sitesService" ref="sitesService" />
+        <property name="marketplaceService" ref="marketplaceService"/>
     </bean>
 
     <bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">

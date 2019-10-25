@@ -57,7 +57,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
-import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.GitLog;
@@ -88,7 +87,6 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -219,7 +217,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected UserServiceInternal userServiceInternal;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
-    protected SitesServiceInternal sitesServiceInternal;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -1806,15 +1803,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 createAsOrphan);
 
         if (toReturn) {
-            PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
-            if (descriptor != null) {
-                if (descriptor.getPlugin() != null) {
-                    sitesServiceInternal.validateBlueprintParameters(descriptor, params);
-                } else {
-                    logger.debug("There are no parameters defined for blueprint");
-                }
-            }
-
             try {
                 insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
                         remoteToken, remotePrivateKey);
@@ -2534,10 +2522,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
-    }
-
-    public void setSitesServiceInternal(final SitesServiceInternal sitesServiceInternal) {
-        this.sitesServiceInternal = sitesServiceInternal;
     }
 
 }
