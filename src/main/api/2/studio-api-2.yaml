@@ -3668,32 +3668,32 @@ components:
     CreateSiteFromMarketplace:
       type: object
       properties:
-        site_id:
+        siteId:
           type: string
           description: Site ID to use
         description:
           type: string
           description: Site description
-        sandbox_branch:
+        sandboxBranch:
           type: string
           description: Name for sandbox branch (default master)
-        remote_name:
+        remoteName:
           type: string
           description: Remote repository name (default origin)
-        blueprint_id:
+        blueprintId:
           type: string
           description: The ID of the blueprint to use
-        blueprint_version:
+        blueprintVersion:
           $ref: '#/components/schemas/Version'
-        site_params:
+        siteParams:
           type: object
           description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
           additionalProperties:
             type: string
       required:
-        - site_id
-        - blueprint_id
-        - blueprint_version
+        - siteId
+        - blueprintId
+        - blueprintVersion
 
     SearchParams:
       type: object
