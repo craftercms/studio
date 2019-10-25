@@ -3021,6 +3021,12 @@ paths:
           description: The keywords to filter plugins
           schema:
             type: string
+        - name: showPending
+          description: Include plugins pending of approval (default to false)
+          in: query
+          required: false
+          schema:
+            type: boolean
         - name: offset
           in: query
           description: Offset for pagination
@@ -3646,6 +3652,9 @@ components:
         - $ref: '#/components/schemas/Plugin'
         - type: object
           properties:
+            status:
+              description: The status of this version of the plugin (possible values are 'PENDING' approval and 'APPROVED')
+              type: string
             source:
               type: string
 
