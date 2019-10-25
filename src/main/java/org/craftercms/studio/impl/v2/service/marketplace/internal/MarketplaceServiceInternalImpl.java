@@ -113,8 +113,17 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
      */
     protected String url;
 
+    /**
+     * Indicates if the search should include plugins pending of approval
+     */
+    protected boolean showPending = false;
+
     public void setUrl(final String url) {
         this.url = url;
+    }
+
+    public void setShowPending(final boolean showPending) {
+        this.showPending = showPending;
     }
 
     @Override
@@ -153,6 +162,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             .path(Paths.PLUGIN_SEARCH)
             .queryParam(Constants.PARAM_VERSION, version)
             .queryParam(Constants.PARAM_EDITION, edition)
+            .queryParam(Constants.PARAM_SHOW_PENDING, showPending)
             .queryParam(Constants.PARAM_OFFSET, offset)
             .queryParam(Constants.PARAM_LIMIT, limit);
 
