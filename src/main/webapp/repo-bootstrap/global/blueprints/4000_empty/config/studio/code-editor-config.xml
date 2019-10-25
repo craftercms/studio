@@ -17,6 +17,7 @@
   -->
 
 <code-editor-config>
+  <version>2</version>
   <!-- <theme>light</theme> -->      <!-- default theme: light | dark -->
   <enable-basic-autocompletion>true</enable-basic-autocompletion>
   <enable-live-autocompletion>true</enable-live-autocompletion>
