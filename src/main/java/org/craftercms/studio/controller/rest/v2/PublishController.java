@@ -2,6 +2,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -36,6 +37,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 public class PublishController {
 
     private PublishService publishService;
+    private SiteService siteService;
 
     @GetMapping("/packages")
     public ResponseBody getPublishingPackages(@RequestParam(name = REQUEST_PARAM_SITEID, required = true) String siteId,
@@ -47,6 +49,9 @@ public class PublishController {
                                                       defaultValue = "0") int offset,
                                               @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
                                                       defaultValue = "10") int limit) throws SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
         int total = publishService.getPublishingPackagesTotal(siteId, environment, path, state);
         List<PublishingPackage> packages = new ArrayList<PublishingPackage>();
         if (total > 0) {
@@ -68,6 +73,9 @@ public class PublishController {
     public ResponseBody getPublishingPackageDetails(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                     @RequestParam(name = REQUEST_PARAM_PACKAGE_ID) String packageId)
             throws SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
         PublishingPackageDetails publishingPackageDetails =
                 publishService.getPublishingPackageDetails(siteId, packageId);
         ResponseBody responseBody = new ResponseBody();
@@ -81,8 +89,11 @@ public class PublishController {
     @PostMapping("/cancel")
     public ResponseBody cancelPublishingPackages(
             @RequestBody CancelPublishingPackagesRequest cancelPublishingPackagesRequest) throws SiteNotFoundException {
-        publishService.cancelPublishingPackages(cancelPublishingPackagesRequest.getSiteId(),
-                cancelPublishingPackagesRequest.getPackageIds());
+        String siteId = cancelPublishingPackagesRequest.getSiteId();
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        publishService.cancelPublishingPackages(siteId, cancelPublishingPackagesRequest.getPackageIds());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
@@ -96,5 +107,13 @@ public class PublishController {
 
     public void setPublishService(PublishService publishService) {
         this.publishService = publishService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }
