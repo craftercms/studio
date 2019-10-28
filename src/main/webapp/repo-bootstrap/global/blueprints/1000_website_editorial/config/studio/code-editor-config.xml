@@ -17,11 +17,13 @@
   -->
 
 <code-editor-config>
-  <!-- <theme>light</theme> -->      <!-- default theme: light | dark -->
+  <!--
+  <theme>light</theme>
   <enable-basic-autocompletion>true</enable-basic-autocompletion>
   <enable-live-autocompletion>true</enable-live-autocompletion>
   <font-size>11pt</font-size>
   <tab-size>4</tab-size>
+  -->
   <snippets>
     <!--
     <snippet>
