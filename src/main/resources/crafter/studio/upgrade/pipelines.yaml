@@ -577,7 +577,12 @@ pipelines:
               dest: /configuration/samples/sample-studio-config-override.yaml
           commitDetails: Update sample files
         - type: dbVersionUpgrader
-
+    - currentVersion: 3.1.4.9
+      nextVersion: 3.1.4.10
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.4.9-to-3.1.4.10.sql
+          updateIntegrity: true
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
