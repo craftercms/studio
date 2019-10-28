@@ -29,12 +29,14 @@ public interface Constants {
     String PARAM_VERSION = "version";
     String PARAM_EDITION = "edition";
     String PARAM_KEYWORDS = "keywords";
+    String PARAM_SHOW_PENDING = "showPending";
     String PARAM_OFFSET = "offset";
     String PARAM_LIMIT = "limit";
 
     String RESULT_TOTAL = "total";
     String RESULT_ITEMS = "items";
 
-    String PATH_PLUGIN_SEARCH = "/api/1/plugin/search";
+    String PLUGIN_URL = "url";
+    String PLUGIN_REF = "ref";
 
 }

@@ -17,6 +17,7 @@
   -->
 
 <code-editor-config>
+  <version>2</version>
   <!--
   <theme>light</theme>
   <enable-basic-autocompletion>true</enable-basic-autocompletion>

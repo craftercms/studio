@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.6'
+  version: '3.1.4.7'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1519,6 +1519,35 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/create_site_from_marketplace:
+    post:
+      tags:
+        - sites
+      summary: Create a site from a Marketplace blueprint
+      operationId: createSite
+      requestBody:
+        description: The site information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSiteFromMarketplace'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -2992,6 +3021,12 @@ paths:
           description: The keywords to filter plugins
           schema:
             type: string
+        - name: showPending
+          description: Include plugins pending of approval (default to false)
+          in: query
+          required: false
+          schema:
+            type: boolean
         - name: offset
           in: query
           description: Offset for pagination
@@ -3617,6 +3652,9 @@ components:
         - $ref: '#/components/schemas/Plugin'
         - type: object
           properties:
+            status:
+              description: The status of this version of the plugin (possible values are 'PENDING' approval and 'APPROVED')
+              type: string
             source:
               type: string
 
@@ -3635,6 +3673,36 @@ components:
           properties:
             ref:
               type: string
+
+    CreateSiteFromMarketplace:
+      type: object
+      properties:
+        site_id:
+          type: string
+          description: Site ID to use
+        description:
+          type: string
+          description: Site description
+        sandbox_branch:
+          type: string
+          description: Name for sandbox branch (default master)
+        remote_name:
+          type: string
+          description: Remote repository name (default origin)
+        blueprint_id:
+          type: string
+          description: The ID of the blueprint to use
+        blueprint_version:
+          $ref: '#/components/schemas/Version'
+        site_params:
+          type: object
+          description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+          additionalProperties:
+            type: string
+      required:
+        - site_id
+        - blueprint_id
+        - blueprint_version
 
     SearchParams:
       type: object
