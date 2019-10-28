@@ -761,3 +761,5 @@ studio.serverless.delivery.deployer.target.template.params:
 ##################################################
 # The full URL for the Marketplace
 studio.marketplace.url: https://mp.craftercms.org
+# Indicates if the search should include plugins pending of approval
+studio.marketplace.search.pending: false

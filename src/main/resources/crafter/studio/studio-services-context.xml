@@ -1230,6 +1230,7 @@
         <constructor-arg ref="sitesServiceInternal"/>
         <constructor-arg ref="studioConfiguration"/>
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
+        <property name="showPending" value="#{studioConfiguration.getProperty('studio.marketplace.search.pending')}"/>
     </bean>
 
     <bean id="marketplaceService"
