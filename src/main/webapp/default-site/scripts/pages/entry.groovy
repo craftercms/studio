@@ -34,6 +34,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHENTICAT
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE_HEADERS
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX
 
 def logger = LoggerFactory.getLogger(this.class)
 
@@ -46,9 +47,10 @@ def firstname = ""
 def lastname = ""
 def authenticationType = ""
 def profile = null
+def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+def passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
 
 if (StringUtils.isEmpty(currentUser)) {
-    def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
     def chainConfig =
             studioConfigurationSB.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG)
     def authenticationHeadersEnabled = false
@@ -82,3 +84,4 @@ model.userFirstName = profile.first_name
 model.userLastName =  profile.last_name
 model.authenticationType =  profile.authentication_type
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
+model.passwordRequirementsRegex = passwordRequirementsRegex;
