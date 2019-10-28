@@ -105,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.4.9', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.4.10', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -274,7 +274,7 @@ CREATE TABLE IF NOT EXISTS `user`
 (
   `id`                    BIGINT(20)   NOT NULL AUTO_INCREMENT,
   `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `username`              VARCHAR(32)  NOT NULL,
+  `username`              VARCHAR(255)  NOT NULL,
   `password`              VARCHAR(128)  NOT NULL,
   `first_name`             VARCHAR(32)  NOT NULL,
   `last_name`              VARCHAR(32)  NOT NULL,

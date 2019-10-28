@@ -38,7 +38,7 @@ ALTER TABLE `user`
 ALTER TABLE `user`
   ADD COLUMN `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   ADD COLUMN `record_last_updated` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CHANGE COLUMN `username` `username` VARCHAR(32),
+  CHANGE COLUMN `username` `username` VARCHAR(255),
   CHANGE COLUMN `password` `password` VARCHAR(128),
   CHANGE COLUMN `firstname` `first_name` VARCHAR(32),
   CHANGE COLUMN `lastname` `last_name` VARCHAR(32),
