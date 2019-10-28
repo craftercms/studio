@@ -44,6 +44,7 @@
         <result property="state" column="state" />
         <result property="scheduledDate" column="scheduleddate" />
         <result property="user" column="username" />
+        <result property="comment" column="submissioncomment"/>
     </resultMap>
 
     <select id="getPublishingPackagesTotal" resultType="int">
