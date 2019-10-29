@@ -47,6 +47,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -70,7 +73,8 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  *
  * @author joseross
  */
-public abstract class AbstractUpgradeOperation implements UpgradeOperation, ServletContextAware {
+public abstract class AbstractUpgradeOperation implements UpgradeOperation, ServletContextAware,
+    ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
 
@@ -111,6 +115,11 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
      */
     protected ServletContext servletContext;
 
+    /**
+     * The application context
+     */
+    protected ApplicationContext applicationContext;
+
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
@@ -137,6 +146,11 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
 
     public void setServletContext(final ServletContext servletContext) {
         this.servletContext = servletContext;
+    }
+
+    @Override
+    public void setApplicationContext(final ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -289,6 +303,10 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
                 GIT_ROOT
             );
         }
+    }
+
+    protected Resource loadResource(String path) {
+        return applicationContext.getResource(path);
     }
 
 }
