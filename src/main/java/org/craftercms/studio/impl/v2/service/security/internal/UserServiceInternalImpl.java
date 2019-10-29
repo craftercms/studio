@@ -352,7 +352,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                     throw new ServiceLayerException("Unknown database error", e);
                 }
             } else {
-                throw new PasswordRequirementsFailedException();
+                throw new PasswordRequirementsFailedException("User password does not fulfill requirements");
             }
         }
     }

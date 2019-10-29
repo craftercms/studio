@@ -60,6 +60,12 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.craftercms.studio.api.v1.log.Logger.LEVEL_DEBUG;
+import static org.craftercms.studio.api.v1.log.Logger.LEVEL_ERROR;
+import static org.craftercms.studio.api.v1.log.Logger.LEVEL_INFO;
+import static org.craftercms.studio.api.v1.log.Logger.LEVEL_OFF;
+import static org.craftercms.studio.api.v1.log.Logger.LEVEL_WARN;
+
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
  *
@@ -242,7 +248,7 @@ public class ExceptionHandlers {
     public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
                                                                   PasswordRequirementsFailedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
-        return handleExceptionInternal(request, e, response);
+        return handleExceptionInternal(request, e, response, LEVEL_DEBUG);
     }
 
     @ExceptionHandler(PasswordDoesNotMatchException.class)
@@ -312,8 +318,33 @@ public class ExceptionHandlers {
     }
 
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
-        logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
-                " failed with response: " + response, e);
+        return handleExceptionInternal(request, e, response, LEVEL_ERROR);
+    }
+
+    protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response,
+                                                   String logLevel) {
+        switch (logLevel) {
+            case LEVEL_OFF:
+                break;
+            case LEVEL_DEBUG:
+                logger.debug("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                        " failed with response: " + response);
+                break;
+            case LEVEL_WARN:
+                logger.warn("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                        " failed with response: " + response);
+                break;
+            case LEVEL_INFO:
+                logger.info("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                        " failed with response: " + response);
+                break;
+            case LEVEL_ERROR:
+                logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                        " failed with response: " + response, e);
+                break;
+            default:
+                break;
+        }
 
         Result result = new Result();
         result.setResponse(response);
@@ -323,5 +354,4 @@ public class ExceptionHandlers {
 
         return responseBody;
     }
-
 }
