@@ -31,6 +31,10 @@
         <xsl:copy>
             <xsl:apply-templates select="node() | @*"/>
         </xsl:copy>
+        <!-- insert line breaks after comments -->
+        <xsl:if test="self::comment()">
+            <xsl:text>&#10;</xsl:text>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="site-config">
