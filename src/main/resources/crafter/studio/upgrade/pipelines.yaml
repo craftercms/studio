@@ -805,28 +805,38 @@ pipelines:
 # Managed Configuration Files
 configurations:
 
-  site-config:
-    path: &site-config '/config/studio/site-config.xml'
+  studio-site-config:
+    path: &studio-site-config '/config/studio/site-config.xml'
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *site-config
+            path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config.xslt
             commitDetails: Add extension folder pattern property
           - type: xsltFileUpgrader
-            path: *site-config
+            path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 2
         nextVersion: 3
         operations:
           - type: xsltFileUpgrader
-            path: *site-config
+            path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/3.1.2/site/site-config.xslt
             commitDetails: Add postfix ignore field list
           - type: xsltFileUpgrader
-            path: *site-config
+            path: *studio-site-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 3
+        nextVersion: 4
+        operations:
+          - type: xsltFileUpgrader
+            path: *studio-site-config
+            template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v4.xslt
+            commitDetails: Add new publishing configuration
+          - type: xsltFileUpgrader
+            path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt
 
   permission-mappings-config:
