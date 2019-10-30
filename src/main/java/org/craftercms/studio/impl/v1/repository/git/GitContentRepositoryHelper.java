@@ -1047,7 +1047,7 @@ public class GitContentRepositoryHelper {
             commitCommand.call();
 
             logger.debug("Delete cloned branch " + sandboxBranchName);
-            git.branchDelete().setBranchNames(sandboxBranchName).call();
+            git.branchDelete().setBranchNames(sandboxBranchName).setForce(true).call();
 
             logger.debug("Rename temporary orphan branch to sandbox branch");
             git.branchRename().setNewName(sandboxBranchName).setOldName(sandboxBranchOrphanName).call();
