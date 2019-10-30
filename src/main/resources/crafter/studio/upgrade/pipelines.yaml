@@ -602,6 +602,12 @@ pipelines:
               dest: configuration/samples/sample-studio-config-override.yaml
           commitDetails: Update global config override sample
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.12
+      nextVersion: 3.1.4.13
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.4.12-to-3.1.4.13.sql
+          updateIntegrity: true
 
   # Pipeline to upgrade site repositories
   site:

@@ -105,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.4.12', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.4.13', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -118,8 +118,8 @@ CREATE TABLE IF NOT EXISTS `audit` (
   `primary_target_type`       VARCHAR(32)   NOT NULL,
   `primary_target_subtype`    VARCHAR(32)   NULL,
   `primary_target_value`      VARCHAR(512)  NOT NULL,
-  `actor_id`                  VARCHAR(32)   NOT NULL,
-  `actor_details`             VARCHAR(64)   NULL,
+  `actor_id`                  VARCHAR(255)  NOT NULL,
+  `actor_details`             VARCHAR(255)  NULL,
   `cluster_node_id`           VARCHAR(255)  NULL,
   PRIMARY KEY (`id`),
   KEY `audit_actor_idx` (`actor_id`),
