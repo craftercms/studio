@@ -197,7 +197,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         validate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
             .path(Paths.GET_PLUGIN)
-            .pathSegment(id, String.format("%s.%s.%s", version.getMajor(), version.getMinor(), version.getPatch()));
+            .pathSegment(id, String.format("%s.%s.%s", version.getMajor(), version.getMinor(), version.getPatch()))
+            .queryParam(Constants.PARAM_SHOW_PENDING, showPending);
 
         HttpEntity<Void> request = new HttpEntity<>(null, httpHeaders);
 
