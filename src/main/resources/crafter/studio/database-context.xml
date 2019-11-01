@@ -166,22 +166,6 @@
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"  />
             <property name="defaultSocket"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}" />
-            <property name="args">
-                <list>
-                    <value>--wsrep-new-cluster</value>
-                    <value>--wsrep_provider=/home/dejan/CrafterSoftware/craftercms/crafter-authoring/bin/dbms/libs/galera/libgalera_smm.so</value>
-                    <value>--wsrep_cluster_address=gcomm://192.168.56.1</value>
-                    <value>--binlog_format=ROW</value>
-                    <value>--default_storage_engine=InnoDB</value>
-                    <value>--innodb_autoinc_lock_mode=2</value>
-                    <value>--innodb_doublewrite=1</value>
-                    <value>--query_cache_size=0</value>
-                    <value>--wsrep_on=ON</value>
-                    <value>--wsrep_cluster_name=studio_galera_cluster</value>
-                    <value>--wsrep_node_address=192.168.56.1</value>
-                    <value>--wsrep_node_name=node1</value>
-                </list>
-            </property>
         </bean>
     </beans>
 
@@ -205,6 +189,22 @@
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"  />
             <property name="defaultSocket"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}" />
+            <property name="args">
+                <list>
+                    <value>--wsrep-new-cluster</value>
+                    <value>--wsrep_provider=/home/dejan/CrafterSoftware/craftercms/crafter-authoring/bin/dbms/libs/galera/libgalera_smm.so</value>
+                    <value>--wsrep_cluster_address=gcomm://192.168.56.1</value>
+                    <value>--binlog_format=ROW</value>
+                    <value>--default_storage_engine=InnoDB</value>
+                    <value>--innodb_autoinc_lock_mode=2</value>
+                    <value>--innodb_doublewrite=1</value>
+                    <value>--query_cache_size=0</value>
+                    <value>--wsrep_on=ON</value>
+                    <value>--wsrep_cluster_name=studio_galera_cluster</value>
+                    <value>--wsrep_node_address=192.168.56.1</value>
+                    <value>--wsrep_node_name=node1</value>
+                </list>
+            </property>
         </bean>
     </beans>
 
@@ -222,17 +222,17 @@
             <property name="args">
                 <list>
                     <value>--wsrep-new-cluster</value>
-                    <value>--wsrep_provider=/home/dejan/CrafterSoftware/craftercms/crafter-authoring/bin/dbms/libs/galera/libgalera_smm.so</value>
-                    <value>--wsrep_cluster_address=gcomm://192.168.56.1</value>
+                    <value>--wsrep_provider=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_LIB_LOCATION)}</value>
+                    <value>--wsrep_cluster_address=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_ADDRESS)}</value>
                     <value>--binlog_format=ROW</value>
                     <value>--default_storage_engine=InnoDB</value>
                     <value>--innodb_autoinc_lock_mode=2</value>
                     <value>--innodb_doublewrite=1</value>
                     <value>--query_cache_size=0</value>
                     <value>--wsrep_on=ON</value>
-                    <value>--wsrep_cluster_name=studio_galera_cluster</value>
-                    <value>--wsrep_node_address=192.168.56.1</value>
-                    <value>--wsrep_node_name=node1</value>
+                    <value>--wsrep_cluster_name=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_NAME)}r</value>
+                    <value>--wsrep_node_address=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_NODE_ADDRESS)}</value>
+                    <value>--wsrep_node_name=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_NODE_NAME)}</value>
                 </list>
             </property>
         </bean>
