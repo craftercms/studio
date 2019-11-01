@@ -50,6 +50,7 @@
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
         <property name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
+        <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
     </bean>
 
     <!-- ////////////////////////////////// -->
