@@ -40,7 +40,7 @@
     <xsl:copy>
         <xsl:copy-of select="@*"/>
         <xsl:apply-templates/>
-        <xsl:if test="(permission = 'Publish')">
+        <xsl:if test="(permission = 'Publish') and not(permission = 'get_publishing_queue')">
             <xsl:element name="permission"><xsl:text>get_publishing_queue</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
             <xsl:element name="permission"><xsl:text>cancel_publish</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
         </xsl:if>
