@@ -471,7 +471,7 @@ studio.db.galera.clusterAddress: gcomm://${env:MARIADB_GALERA_CLUSTER_ADDRESS}
 # Galera cluster name
 studio.db.galera.clusterName: ${env:MARIADB_GALERA_CLUSTER_NAME}
 # Galera cluster node address
-studio.db.galera.clusterNodeAddres: ${env:MARIADB_GALERA_CLUSTER_NODE_ADDRESS}
+studio.db.galera.clusterNodeAddress: ${env:MARIADB_GALERA_CLUSTER_NODE_ADDRESS}
 # Galera cluster node name
 studio.db.galera.clusterNodeName: ${env:MARIADB_GALERA_CLUSTER_NODE_NAME}
 

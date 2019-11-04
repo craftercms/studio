@@ -88,7 +88,7 @@ public interface StudioConfiguration {
     String DB_GALERA_LIB_LOCATION = "studio.db.galera.lib.location";
     String DB_GALERA_CLUSTER_ADDRESS = "studio.db.galera.clusterAddress";
     String DB_GALERA_CLUSTER_NAME = "studio.db.galera.clusterName";
-    String DB_GALERA_CLUSTER_NODE_ADDRESS = "studio.db.galera.clusterNodeAddres";
+    String DB_GALERA_CLUSTER_NODE_ADDRESS = "studio.db.galera.clusterNodeAddress";
     String DB_GALERA_CLUSTER_NODE_NAME = "studio.db.galera.clusterNodeName";
 
     /** Configuration */
