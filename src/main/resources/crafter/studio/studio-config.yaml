@@ -467,13 +467,13 @@ studio.db.socket: /tmp/MariaDB4j.33306.sock
 # Galera library location
 studio.db.galera.lib.location: ${env:CRAFTER_BIN_DIR}/dbms/libs/galera/libgalera_smm.so
 # Galera cluster address
-studio.db.galera.clusterAddress: gcomm://${env:MARIADB_GALERA_CLUSTER_NAME}
+studio.db.galera.clusterAddress: gcomm://${env:MARIADB_GALERA_CLUSTER_ADDRESS}
 # Galera cluster name
-studio.db.galera.clusterName: ${env:CLUSTER_NAME}
+studio.db.galera.clusterName: ${env:MARIADB_GALERA_CLUSTER_NAME}
 # Galera cluster node address
-studio.db.galera.clusterNodeAddres: ${env:CLUSTER_NODE_ADDRESS}
+studio.db.galera.clusterNodeAddres: ${env:MARIADB_GALERA_CLUSTER_NODE_ADDRESS}
 # Galera cluster node name
-studio.db.galera.clusterNodeName: ${env:CLUSTER_NODE_NAME}
+studio.db.galera.clusterNodeName: ${env:MARIADB_GALERA_CLUSTER_NODE_NAME}
 
 ##########################################################
 ##                   Asset Processing                   ##
