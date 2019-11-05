@@ -1804,8 +1804,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         if (toReturn) {
             try {
-                insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
-                        remoteToken, remotePrivateKey);
+                if (createAsOrphan) {
+                    removeRemote(siteId, remoteName);
+                } else {
+                    insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                            remoteToken, remotePrivateKey);
+                }
             } catch (CryptoException e) {
                 throw new ServiceLayerException(e);
             }

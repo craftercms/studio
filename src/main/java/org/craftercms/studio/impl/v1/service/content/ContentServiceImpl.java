@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.content;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -112,6 +113,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
@@ -2061,7 +2063,12 @@ public class ContentServiceImpl implements ContentService {
             return CONTENT_TYPE_RENDERING_TEMPLATE;
         } else if (StringUtils.startsWith(uri, contentTypeService.getConfigPath())) {
             return CONTENT_TYPE_CONTENT_TYPE;
+        } else if (matchesPatterns(uri, Arrays.asList(CONTENT_TYPE_TAXONOMY_REGEX))) {
+            return CONTENT_TYPE_TAXONOMY;
+        } else if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
+            return CONTENT_TYPE_SCRIPT;
         }
+
         return CONTENT_TYPE_UNKNOWN;
     }
 

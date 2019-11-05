@@ -26,7 +26,6 @@ import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
-import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -198,7 +197,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         validate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
             .path(Paths.GET_PLUGIN)
-            .pathSegment(id, String.format("%s.%s.%s", version.getMajor(), version.getMinor(), version.getPatch()));
+            .pathSegment(id, String.format("%s.%s.%s", version.getMajor(), version.getMinor(), version.getPatch()))
+            .queryParam(Constants.PARAM_SHOW_PENDING, showPending);
 
         HttpEntity<Void> request = new HttpEntity<>(null, httpHeaders);
 
@@ -231,13 +231,13 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         Map<String, Object> result = getDescriptor(request.getBlueprintId(), request.getBlueprintVersion());
         Plugin plugin = mapper.convertValue(result, Plugin.class);
 
-        sitesServiceInternal.validateBlueprintParameters(PluginDescriptor.of(plugin), request.getParameters());
+        sitesServiceInternal.validateBlueprintParameters(PluginDescriptor.of(plugin), request.getSiteParams());
 
         siteService.createSiteWithRemoteOption(request.getSiteId(), request.getSandboxBranch(),
             request.getDescription(), request.getBlueprintId(), request.getRemoteName(),
             result.get(PLUGIN_URL).toString(), result.get(PLUGIN_REF).toString(), false,
             RemoteRepository.AuthenticationType.NONE, null, null, null,
-            null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getParameters(),
+            null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
             true);
     }
 }

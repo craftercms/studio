@@ -70,8 +70,8 @@ public class ApiResponse {
             new ApiResponse(6002, "User is externally managed", "Update the user in the main identity system " +
                                                                 "(e.g. LDAP)", StringUtils.EMPTY);
     public static final ApiResponse USER_PASSWORD_REQUIREMENTS_FAILED =
-            new ApiResponse(6003, "User password does not fullfill requirements",
-                    "Use password that will fullfill password requirements", StringUtils.EMPTY);
+            new ApiResponse(6003, "User password does not fulfill requirements",
+                    "Use password that will fulfill password requirements", StringUtils.EMPTY);
 
     public static final ApiResponse USER_PASSWORD_DOES_NOT_MATCH =
             new ApiResponse(6004, "User current password does not match",

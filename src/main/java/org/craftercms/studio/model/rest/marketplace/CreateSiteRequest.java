@@ -26,7 +26,6 @@ import javax.validation.constraints.NotNull;
 import org.craftercms.commons.plugin.model.Version;
 import org.hibernate.validator.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Holds the information needed to create a site from a Marketplace Blueprint
@@ -38,26 +37,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class CreateSiteRequest {
 
     @NotBlank
-    @JsonProperty("blueprint_id")
     private String blueprintId;
 
     @NotNull
-    @JsonProperty("blueprint_version")
     private Version blueprintVersion;
 
     @NotBlank
-    @JsonProperty("site_id")
     private String siteId;
 
     private String description;
 
-    @JsonProperty("site_params")
-    private Map<String, String> parameters = new HashMap<>();
+    private Map<String, String> siteParams = new HashMap<>();
 
-    @JsonProperty("sandbox_branch")
     private String sandboxBranch;
 
-    @JsonProperty("remote_name")
     private String remoteName;
 
     public String getBlueprintId() {
@@ -92,12 +85,12 @@ public class CreateSiteRequest {
         this.description = description;
     }
 
-    public Map<String, String> getParameters() {
-        return parameters;
+    public Map<String, String> getSiteParams() {
+        return siteParams;
     }
 
-    public void setParameters(final Map<String, String> parameters) {
-        this.parameters = parameters;
+    public void setSiteParams(final Map<String, String> siteParams) {
+        this.siteParams = siteParams;
     }
 
     public String getSandboxBranch() {

@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
@@ -41,8 +40,11 @@ import org.springframework.core.io.Resource;
  * <ul>
  *     <li>
  *         <strong>files</strong>: (required) list of paths to copy to the global repository. The format of each
- *         entry of this list is {CLASSPATH_SRC_PATH}:{GLOBAL_REPO_DEST_PATH}. The first component is the classpath
+ *         entry of this list is {SRC_PATH}:{GLOBAL_REPO_DEST_PATH}. The first component is the path
  *         of the source file to copy, and the second component is the destination path in the global repo.
+ *     </li>
+ *     <li>
+ *         <strong>overwrite</strong>: (optional, defaults to true) Indicates if existing files should be overwritten.
  *     </li>
  * </ul>
  * </p>
@@ -56,11 +58,17 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
     public static final String CONFIG_KEY_FILES = "files";
     public static final String CONFIG_KEY_SRC = "src";
     public static final String CONFIG_KEY_DEST = "dest";
+    public static final String CONFIG_KEY_OVERWRITE = "overwrite";
 
     /**
      * List of paths to update.
      */
     protected Map<Resource, String> files;
+
+    /**
+     * Indicates if existing files should be overwritten
+     */
+    protected boolean overwrite;
 
     public GlobalRepoUpgradeOperation() {
         files = new HashMap<>();
@@ -71,6 +79,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+        overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, true);
         List<HierarchicalConfiguration<ImmutableNode>> fileMappings = config.configurationsAt(CONFIG_KEY_FILES);
         for (HierarchicalConfiguration<ImmutableNode> fileMapping : fileMappings) {
             String src = fileMapping.getString(CONFIG_KEY_SRC);
@@ -83,7 +92,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
                 throw new IllegalStateException("'" + CONFIG_KEY_DEST + "' config key not specified");
             }
 
-            files.put(new ClassPathResource(src), dest);
+            files.put(loadResource(src), dest);
         }
     }
 
@@ -92,15 +101,18 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        logger.info("Upgrading global repo files");
+        logger.debug("Upgrading global repo files");
 
         for(Map.Entry<Resource, String> entry : files.entrySet()) {
-            logger.debug("Upgrading global repo file: {0}", entry.getValue());
-
-            try (InputStream is = entry.getKey().getInputStream()) {
-                writeToRepo(site, entry.getValue(), is);
-            } catch (IOException e) {
-                throw new UpgradeException("Error while upgrading global repo file " + entry.getValue(), e);
+            if (overwrite || !contentRepository.contentExists(site, entry.getValue())) {
+                logger.debug("Upgrading global repo file: {0}", entry.getValue());
+                try (InputStream is = entry.getKey().getInputStream()) {
+                    writeToRepo(site, entry.getValue(), is);
+                } catch (IOException e) {
+                    throw new UpgradeException("Error while upgrading global repo file " + entry.getValue(), e);
+                }
+            } else {
+                logger.debug("File {0} already exists in global repo, it will not be changed", entry.getValue());
             }
         }
 
