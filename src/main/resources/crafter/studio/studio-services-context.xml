@@ -459,6 +459,8 @@
     <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">
         <property name="publishServiceInternal" ref="publishServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
     </bean>
 
     <bean id="publishServiceInternal"
