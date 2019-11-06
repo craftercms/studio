@@ -200,7 +200,7 @@
                     <value>--innodb_doublewrite=1</value>
                     <value>--query_cache_size=0</value>
                     <value>--wsrep_on=ON</value>
-                    <value>--wsrep_cluster_name=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_NAME)}r</value>
+                    <value>--wsrep_cluster_name=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_NAME)}</value>
                     <value>--wsrep_node_address=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_NODE_ADDRESS)}</value>
                     <value>--wsrep_node_name=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_GALERA_CLUSTER_NODE_NAME)}</value>
                 </list>
