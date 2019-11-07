@@ -3645,6 +3645,7 @@
 			}
 
 		#left-rail .toggle {
+			white-space: nowrap;
 			text-decoration: none;
 			-moz-transition: left 0.5s ease;
 			-webkit-transition: left 0.5s ease;
