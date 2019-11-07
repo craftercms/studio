@@ -162,7 +162,6 @@ public interface StudioConfiguration {
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
     String SECURITY_PASSWORD_REQUIREMENTS_ENABLED = "studio.security.passwordRequirements.enabled";
     String SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX = "studio.security.passwordRequirements.validationRegex";
-    String SECURITY_PASSWORD_REQUIREMENTS_DESCRIPTION = "studio.security.passwordRequirements.description";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
