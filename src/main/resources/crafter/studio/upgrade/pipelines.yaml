@@ -608,6 +608,21 @@ pipelines:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.4.12-to-3.1.4.13.sql
           updateIntegrity: true
+    - currentVersion: 3.1.4.13
+      nextVersion: 3.1.4.14
+      operations:
+        - type: globalRepoUpgrader
+          overwrite: false
+          files:
+            - src: repo-bootstrap/global/configuration/studio-config-override.yaml
+              dest: configuration/studio-config-override.yaml
+          commitDetails: Add global config override file
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/studio-config-override.yaml
+              dest: configuration/samples/sample-studio-config-override.yaml
+          commitDetails: Update global config override sample
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
