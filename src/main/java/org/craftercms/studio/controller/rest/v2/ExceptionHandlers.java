@@ -232,7 +232,7 @@ public class ExceptionHandlers {
     @ExceptionHandler(StudioPathNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleStudioPathNotFoundException(HttpServletRequest request, StudioPathNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        ApiResponse response = new ApiResponse(ApiResponse.CMIS_STUDIO_PATH_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
