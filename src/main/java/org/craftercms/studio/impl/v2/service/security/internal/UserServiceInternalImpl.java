@@ -58,7 +58,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
 
 public class UserServiceInternalImpl implements UserServiceInternal {
@@ -358,17 +357,9 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     private boolean verifyPasswordRequirements(String password) {
-        if (isPasswordRequirementValidationEnabled()) {
-            Pattern pattern = Pattern.compile(getPasswordRequirementValidationRegex());
-            Matcher matcher = pattern.matcher(password);
-            return matcher.matches();
-        } else {
-            return true;
-        }
-    }
-
-    private boolean isPasswordRequirementValidationEnabled() {
-        return Boolean.parseBoolean(studioConfiguration.getProperty(SECURITY_PASSWORD_REQUIREMENTS_ENABLED));
+        Pattern pattern = Pattern.compile(getPasswordRequirementValidationRegex());
+        Matcher matcher = pattern.matcher(password);
+        return matcher.matches();
     }
 
     private String getPasswordRequirementValidationRegex() {

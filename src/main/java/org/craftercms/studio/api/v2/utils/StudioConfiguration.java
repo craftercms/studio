@@ -160,7 +160,6 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE = "studio.security.forgotPassword.email.template";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
-    String SECURITY_PASSWORD_REQUIREMENTS_ENABLED = "studio.security.passwordRequirements.enabled";
     String SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX = "studio.security.passwordRequirements.validationRegex";
 
     /** Authentication headers **/

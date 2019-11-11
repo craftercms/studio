@@ -638,6 +638,21 @@ pipelines:
               dest: configuration/samples/sample-studio-config-override.yaml
           commitDetails: Update global config override sample
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.15
+      nextVersion: 3.1.4.16
+      operations:
+        - type: globalRepoUpgrader
+          overwrite: false
+          files:
+            - src: repo-bootstrap/global/configuration/studio-config-override.yaml
+              dest: configuration/studio-config-override.yaml
+          commitDetails: Add global config override file
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/studio-config-override.yaml
+              dest: configuration/samples/sample-studio-config-override.yaml
+          commitDetails: Update global config override sample
+        - type: dbVersionUpgrader
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
