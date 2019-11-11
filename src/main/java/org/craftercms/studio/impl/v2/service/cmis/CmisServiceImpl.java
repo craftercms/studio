@@ -323,7 +323,8 @@ public class CmisServiceImpl implements CmisService {
                              @ProtectedResourceId(PATH_RESOURCE_ID) String studioPath)
             throws StudioPathNotFoundException, CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException {
         if (!contentService.contentExists(siteId, studioPath))
-            throw new StudioPathNotFoundException();
+            throw new StudioPathNotFoundException("Studio repository path does not exist for site " + siteId +
+                    " (path: " + studioPath + ")");
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
         if (repositoryConfig != null) {

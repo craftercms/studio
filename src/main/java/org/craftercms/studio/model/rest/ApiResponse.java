@@ -132,6 +132,10 @@ public class ApiResponse {
             new ApiResponse(50002, "CMIS server was not found", "Advise the user that the CMIS server was not " +
                     "found", StringUtils.EMPTY);
 
+    public static final ApiResponse CMIS_STUDIO_PATH_NOT_FOUND =
+            new ApiResponse(50003, "Target path does not exist in site repository",
+                    "Check if you sent in the right Studio Path", StringUtils.EMPTY);
+
     public static final ApiResponse BOX_UNREACHABLE =
             new ApiResponse(51000, "Box is unreachable", "Advise the user that Box is not reachable", StringUtils.EMPTY);
 
