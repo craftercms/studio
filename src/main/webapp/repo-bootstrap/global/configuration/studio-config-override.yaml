@@ -47,8 +47,6 @@
 # - headers (use when authenticating via headers)
 # studio.security.type: ldap
 #
-# Enable password requirements validation
-# studio.security.passwordRequirements.enabled: false
 # Password requirements validation regular expression
 # The supported capture group keys are:
 #   hasNumbers
