@@ -152,13 +152,13 @@
     </update>
 
     <select id="userExists" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT (1)
+            SELECT COUNT(1)
             FROM `user`
             WHERE id = #{userId} OR username = #{username}
     </select>
 
     <select id="isUserMemberOfGroup" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT (1)
+            SELECT COUNT(1)
             FROM ((`user` cu INNER JOIN `group_user` gu ON gu.user_id = cu.id)
               INNER JOIN `group` g ON gu.group_id = g.id)
             WHERE cu.username = #{username}
