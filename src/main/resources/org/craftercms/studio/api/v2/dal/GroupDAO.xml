@@ -177,7 +177,7 @@
     </delete>
 
     <select id="groupExists" resultType="Integer" parameterType="java.util.Map">
-        SELECT COUNT (1) FROM `group` WHERE id = #{groupId} OR group_name = #{groupName}
+        SELECT COUNT(1) FROM `group` WHERE id = #{groupId} OR group_name = #{groupName}
     </select>
 
     <select id="getGroupByName" parameterType="java.util.Map" resultMap="GroupMap">

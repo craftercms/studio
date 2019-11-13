@@ -313,7 +313,7 @@
     </update>
 
     <select id="userExistsInGroup" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT (1)
+            SELECT COUNT(1)
             FROM `group` cg
             INNER JOIN group_user cug ON cg.id = cug.group_id
             INNER JOIN `user` cu ON cug.user_id = cu.id
@@ -322,13 +322,13 @@
     </select>
 
     <select id="userExists" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT (1)
+            SELECT COUNT(1)
             FROM `user` cu
             WHERE cu.username = #{username}
     </select>
 
     <select id="groupExists" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT (1)
+            SELECT COUNT(1)
             FROM `group` cg
             WHERE  cg.group_name = #{groupName}
     </select>
