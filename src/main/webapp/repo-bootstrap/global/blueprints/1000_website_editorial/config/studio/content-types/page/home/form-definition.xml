@@ -507,7 +507,7 @@
                         </property>
                         <property>
                             <name>itemManager</name>
-                            <value>features</value>
+                            <value>features,sharedFeatures</value>
                             <type>datasource:item</type>
                         </property>
                         <property>
@@ -613,6 +613,44 @@
                 <property>
                     <name>browsePath</name>
                     <value></value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>type</name>
+                    <value></value>
+                    <type>undefined</type>
+                </property>
+            </properties>
+        </datasource>
+        <datasource>
+            <type>shared-content</type>
+            <id>sharedFeatures</id>
+            <title>Shared Features</title>
+            <interface>item</interface>
+            <properties>
+                <property>
+                    <name>enableCreateNew</name>
+                    <value>true</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>enableBrowseExisting</name>
+                    <value>true</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>enableSearchExisting</name>
+                    <value>false</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>repoPath</name>
+                    <value>/site/components/features</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>browsePath</name>
+                    <value>/site/components/features</value>
                     <type>undefined</type>
                 </property>
                 <property>
