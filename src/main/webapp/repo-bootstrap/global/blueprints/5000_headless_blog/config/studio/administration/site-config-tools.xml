@@ -164,12 +164,6 @@
                         <stackedclass>fa-magic</stackedclass>
                     </icon>
                 </control>
-                <control>
-                    <name>internal-name</name>
-                    <icon>
-                        <class>fa-font</class>
-                    </icon>
-                </control>
             </controls>
             <datasources>
                 <datasource>
