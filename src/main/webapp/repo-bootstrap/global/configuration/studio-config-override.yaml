@@ -47,8 +47,6 @@
 # - headers (use when authenticating via headers)
 # studio.security.type: ldap
 #
-# Enable password requirements validation
-# studio.security.passwordRequirements.enabled: false
 # Password requirements validation regular expression
 # The supported capture group keys are:
 #   hasNumbers
@@ -59,9 +57,7 @@
 #   minLength
 #   maxLength
 #   minMaxLength
-#   validPassword
-#   invalidPassword
-# studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[@#$%^&+=]))(?=(?<noSpaces>\S+$))(?<minLength>.{8,})$
+# studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[~|!`,;\/@#$%^&+=]))(?<minLength>.{8,})$
 # Studio authentication chain configuration
 # studio.authentication.chain:
   # Authentication provider type

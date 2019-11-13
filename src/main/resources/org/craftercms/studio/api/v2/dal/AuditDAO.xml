@@ -151,7 +151,7 @@
     </select>
 
     <select id="getAuditLogTotal" parameterType="java.util.Map" resultType="int">
-        SELECT count (1)
+        SELECT count(1)
         FROM audit a INNER JOIN site s on a.site_id = s.id
         WHERE 1 = 1
         <if test="siteId != null and siteId !=  '' ">

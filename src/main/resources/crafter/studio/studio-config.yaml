@@ -212,8 +212,6 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
 studio.security.resetPassword.serviceUrl: "#/reset-password"
-# Enable password requirements validation
-studio.security.passwordRequirements.enabled: false
 # Password requirements validation regular expression
 # The supported capture group keys are:
 #   hasNumbers
@@ -224,9 +222,7 @@ studio.security.passwordRequirements.enabled: false
 #   minLength
 #   maxLength
 #   minMaxLength
-#   validPassword
-#   invalidPassword
-studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[@#$%^&+=]))(?=(?<noSpaces>\S+$))(?<minLength>.{8,})$
+studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[~|!`,;\/@#$%^&+=]))(?<minLength>.{8,})$
 # Studio authentication chain configuration
 studio.authentication.chain:
   # Authentication provider type
