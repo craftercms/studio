@@ -43,7 +43,6 @@
         <component>
             <label>Feature</label>
             <type>/component/feature</type>
-            <path>/site/components/features</path>
         </component>
     </category>
     <browse>
