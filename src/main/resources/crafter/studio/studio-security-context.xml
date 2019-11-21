@@ -72,6 +72,8 @@
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioUserAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioGroupAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioCmisDSAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioWorkflowAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioContentAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioGeneralAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
             </list>
         </constructor-arg>
