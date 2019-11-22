@@ -86,7 +86,6 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                         }
                         is.reset();
                     } catch (IOException | JSONException e) {
-                        // TODO: ??
                         logger.debug("Failed to extract username from POST request");
                     }
                 }
@@ -97,7 +96,7 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                     // anonymous user
                     if (!authentication.getPrincipal().toString().equals("anonymousUser")) {
                         logger.info("Error getting current user", e);
-                        return ACCESS_ABSTAIN;
+                        return ACCESS_DENIED;
                     }
                 }
                 switch (requestUri) {

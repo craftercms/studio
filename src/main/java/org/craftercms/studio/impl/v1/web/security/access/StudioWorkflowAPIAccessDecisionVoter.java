@@ -107,7 +107,6 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
                         }
                         is.reset();
                     } catch (IOException | JSONException e) {
-                        // TODO: ??
                         logger.debug("Failed to extract username from POST request");
                     }
                 }
