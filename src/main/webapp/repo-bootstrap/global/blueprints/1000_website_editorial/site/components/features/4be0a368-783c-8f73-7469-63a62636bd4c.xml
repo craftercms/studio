@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+    <content-type>/component/feature</content-type>
+    <display-template>/templates/web/components/feature.ftl</display-template>
+    <no-template-required/>
+    <merge-strategy>inherit-levels</merge-strategy>
+    <objectGroupId>4be0</objectGroupId>
+    <objectId>4be0a368-783c-8f73-7469-63a62636bd4c</objectId>
+    <file-name>4be0a368-783c-8f73-7469-63a62636bd4c.xml</file-name>
+    <internal-name>Five</internal-name>
+    <title_t>Five</title_t>
+    <disabled>false</disabled>
+    <icon_s>fa-signal</icon_s>
+    <body_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/p&gt;</body_html>
+    <createdDate>2019-11-13T19:22:23.450Z</createdDate>
+    <createdDate_dt>2019-11-13T19:22:23.450Z</createdDate_dt>
+    <lastModifiedDate>2019-11-13T19:22:23.450Z</lastModifiedDate>
+    <lastModifiedDate_dt>2019-11-13T19:22:23.450Z</lastModifiedDate_dt>
+</component>

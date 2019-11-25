@@ -1,7 +1,7 @@
 <#import "/templates/system/common/cstudio-support.ftl" as studio />
 <#import "/templates/web/navigation2/navigation.ftl" as nav/>
 
-<div id="left-rail" <@studio.componentAttr path=contentModel.storeUrl ice=true iceGroup="left-rail"/>>
+<div id="left-rail" <@studio.componentAttr component=contentModel ice=true iceGroup="left-rail"/>>
   <div class="inner">
 
     <!-- Search -->
