@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_SITE;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 
 /**
@@ -84,7 +84,7 @@ public class AwsMediaConvertController {
                     try (InputStream stream = item.openStream()) {
                         if (item.isFormField()) {
                             switch (name) {
-                                case PARAM_SITE:
+                                case REQUEST_PARAM_SITEID:
                                     siteId = Streams.asString(stream);
                                     break;
                                 case INPUT_PROFILE_PARAM:

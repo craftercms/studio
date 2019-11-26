@@ -27,7 +27,6 @@ import com.amazonaws.services.elastictranscoder.model.Pipeline;
 import com.amazonaws.services.elastictranscoder.model.ReadPipelineRequest;
 import com.amazonaws.services.elastictranscoder.model.ReadPipelineResult;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.ElasticTranscoder;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderJob;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderOutput;
@@ -116,10 +116,7 @@ public class ElasticTranscoderImpl implements ElasticTranscoder {
     }
 
     protected AmazonS3 getS3Client(TranscoderProfile profile) {
-        return AmazonS3ClientBuilder.standard()
-            .withCredentials(profile.getCredentialsProvider())
-            .withRegion(profile.getRegion())
-            .build();
+        return S3Utils.createClient(profile);
     }
 
     protected AmazonElasticTranscoder getTranscoderClient(TranscoderProfile profile) {

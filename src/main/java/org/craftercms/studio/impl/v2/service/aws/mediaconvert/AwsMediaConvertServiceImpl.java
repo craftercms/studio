@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -50,7 +51,6 @@ import com.amazonaws.services.mediaconvert.model.JobTemplate;
 import com.amazonaws.services.mediaconvert.model.MsSmoothGroupSettings;
 import com.amazonaws.services.mediaconvert.model.OutputGroupType;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 
 /**
@@ -129,10 +129,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      * @return an S3 client
      */
     protected AmazonS3 getS3Client(MediaConvertProfile profile) {
-        return AmazonS3ClientBuilder.standard()
-            .withCredentials(profile.getCredentialsProvider())
-            .withRegion(profile.getRegion())
-            .build();
+        return S3Utils.createClient(profile, false);
     }
 
     /**
@@ -144,7 +141,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         return AWSMediaConvertClientBuilder.standard()
             .withCredentials(profile.getCredentialsProvider())
             .withEndpointConfiguration(
-                new AmazonS3ClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()))
+                new AWSMediaConvertClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()))
             .build();
     }
 

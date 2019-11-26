@@ -102,6 +102,7 @@
 
     <bean id="crafter.studioPermissionResolver" class="org.craftercms.studio.permissions.PermissionResolverImpl">
         <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="crafter.studioPermissionEvaluator" class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">

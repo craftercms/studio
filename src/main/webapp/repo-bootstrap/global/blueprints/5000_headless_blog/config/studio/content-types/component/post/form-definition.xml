@@ -474,7 +474,7 @@
         </properties>
     </datasource>
         <datasource>
-            <type>child-content</type>
+            <type>shared-content</type>
             <id>author_components</id>
             <title>Author Components</title>
             <interface>item</interface>

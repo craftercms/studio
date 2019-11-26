@@ -34,6 +34,11 @@
         <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
     </xsl:template>
 
+    <!--  Fix format used in older versions, remove the site element  -->
+    <xsl:template match="permissions/site">
+        <xsl:apply-templates select="node()"/>
+    </xsl:template>
+
     <xsl:template match="*/role[@name='author']|*/role[@name='publisher']|*/role[@name='developer']|*/role[@name='admin']">
         <role>
             <!-- copy all existing rules -->

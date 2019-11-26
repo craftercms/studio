@@ -18,9 +18,10 @@
 package scripts.libs
 
 import scripts.api.SiteServices;
-import scripts.api.SecurityServices;
+import scripts.api.SecurityServices
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_TYPE;
 
 class EnvironmentOverrides {
     static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
@@ -53,6 +54,8 @@ class EnvironmentOverrides {
             def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
             def authenticationType = studioConfigurationSB.getProperty(SECURITY_TYPE)
             result.authenticationType = authenticationType
+
+            result.passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
 
             def language = Cookies.getCookieValue("crafterStudioLanguage", request)
             if(language == null || language == "" || language == "UNSET") {

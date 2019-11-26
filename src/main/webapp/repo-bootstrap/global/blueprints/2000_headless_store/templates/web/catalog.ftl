@@ -42,22 +42,24 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Company<span class="caret"></span></a>
             <ul class="dropdown-menu">
               <li v-for="company in filters.companies" v-bind:class="{ active: selection.company == company }">
-                <a href="#" v-on:click="selection.company = company">
-                  {{ company.name_s }}
-                </a>
+                <a href="#" v-on:click="selection.company = company; currentPage = 1">{{ company.name_s }}</a>
               </li>
             </ul>
           </li>
           <li class="dropdown" v-if="filters && filters.categories">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Category<span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li v-for="category in filters.categories"><a href="#" v-on:click="selection.category = category">{{ category.value }}</a></li>
+              <li v-for="category in filters.categories">
+                  <a href="#" v-on:click="selection.category = category; currentPage = 1">{{ category.value }}</a>
+              </li>
             </ul>
           </li>
           <li class="dropdown" v-if="filters && filters.tags">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Tag<span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li v-for="tag in filters.tags"><a href="#" v-on:click="selection.tag = tag">{{ tag.value }}</a></li>
+              <li v-for="tag in filters.tags">
+                  <a href="#" v-on:click="selection.tag = tag; currentPage = 1">{{ tag.value }}</a>
+              </li>
             </ul>
           </li>
           <li class="dropdown">

@@ -507,7 +507,7 @@
                         </property>
                         <property>
                             <name>itemManager</name>
-                            <value>features</value>
+                            <value>features,sharedFeatures</value>
                             <type>datasource:item</type>
                         </property>
                         <property>
@@ -564,7 +564,7 @@
             </properties>
         </datasource>
         <datasource>
-            <type>child-content</type>
+            <type>shared-content</type>
             <id>components-header</id>
             <title>Components Header</title>
             <interface>item</interface>
@@ -587,30 +587,20 @@
             </properties>
         </datasource>
         <datasource>
-            <type>child-content</type>
+            <type>embedded-content</type>
             <id>features</id>
             <title>Features</title>
             <interface>item</interface>
             <properties>
                 <property>
-                    <name>repoPath</name>
-                    <value>/site/components/features/</value>
-                    <type>undefined</type>
-                </property>
-                <property>
-                    <name>browsePath</name>
-                    <value></value>
-                    <type>undefined</type>
-                </property>
-                <property>
-                    <name>type</name>
+                    <name>contentType</name>
                     <value>/component/feature</value>
                     <type>undefined</type>
                 </property>
             </properties>
         </datasource>
         <datasource>
-            <type>child-content</type>
+            <type>shared-content</type>
             <id>components-left-rail</id>
             <title>Components Left Rail</title>
             <interface>item</interface>
@@ -623,6 +613,44 @@
                 <property>
                     <name>browsePath</name>
                     <value></value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>type</name>
+                    <value></value>
+                    <type>undefined</type>
+                </property>
+            </properties>
+        </datasource>
+        <datasource>
+            <type>shared-content</type>
+            <id>sharedFeatures</id>
+            <title>Shared Features</title>
+            <interface>item</interface>
+            <properties>
+                <property>
+                    <name>enableCreateNew</name>
+                    <value>true</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>enableBrowseExisting</name>
+                    <value>true</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>enableSearchExisting</name>
+                    <value>false</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>repoPath</name>
+                    <value>/site/components/features</value>
+                    <type>undefined</type>
+                </property>
+                <property>
+                    <name>browsePath</name>
+                    <value>/site/components/features</value>
                     <type>undefined</type>
                 </property>
                 <property>

@@ -22,10 +22,10 @@
     <xsl:param name="version" />
 
     <!-- copy all elements -->
-    <xsl:template match="node() | @*">
+    <xsl:template match="node()">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
-            <xsl:apply-templates select="node() | @*"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
 
@@ -53,13 +53,13 @@
                     <xsl:element name="version">
                         <xsl:value-of select="$version"/>
                     </xsl:element>
-                    <xsl:apply-templates select="node() | @*"/>
+                    <xsl:apply-templates select="node()"/>
                 </xsl:copy>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy>
                     <xsl:copy-of select="@*"/>
-                    <xsl:apply-templates select="node() | @*"/>
+                    <xsl:apply-templates select="node()"/>
                 </xsl:copy>
             </xsl:otherwise>
         </xsl:choose>

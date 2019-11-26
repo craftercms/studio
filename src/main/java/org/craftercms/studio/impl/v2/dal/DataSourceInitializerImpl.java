@@ -17,9 +17,10 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -28,6 +29,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
@@ -35,17 +37,18 @@ import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_DRIVER;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
@@ -54,9 +57,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     /**
      * Database queries
      */
+    private final static String SCHEMA = "{schema}";
+    private final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
-            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
-    private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM crafter";
+            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{schema}'";
+    private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM {schema}";
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
             "UPDATE user SET password = '{password}' WHERE username = 'admin'";
 
@@ -77,11 +82,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
                 logger.debug("Check if database schema already exists");
                 try(Statement statement = conn.createStatement();
-                    ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS)) {
+                    ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS.replace(SCHEMA,
+                                    studioConfiguration.getProperty(DB_SCHEMA)))) {
 
                     if (rs.next()) {
                         logger.debug("Database schema exists. Check if it is empty.");
-                        try (ResultSet rs2 = statement.executeQuery(DB_QUERY_CHECK_TABLES)) {
+                        try (ResultSet rs2 = statement.executeQuery(DB_QUERY_CHECK_TABLES.replace(SCHEMA,
+                                studioConfiguration.getProperty(DB_SCHEMA)))) {
                             List<String> tableNames = new ArrayList<String>();
                             while (rs2.next()) {
                                 tableNames.add(rs2.getString(1));
@@ -97,7 +104,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                         createSchema(conn);
                         createDatabaseTables(conn, statement);
                     }
-                } catch (SQLException e) {
+                } catch (SQLException | IOException e) {
                     logger.error("Error while initializing database", e);
                 }
             } catch (SQLException e) {
@@ -106,7 +113,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void createDatabaseTables(Connection conn, Statement statement) throws SQLException {
+    private void createDatabaseTables(Connection conn, Statement statement) throws SQLException, IOException {
         String createDbScriptPath = getCreateDBScriptPath();
         // Database does not exist
         logger.info("Database tables do not exist.");
@@ -117,7 +124,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setStopOnError(true);
         sr.setLogWriter(null);
         InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-        Reader reader = new InputStreamReader(is);
+        String scriptContent = IOUtils.toString(is);
+        Reader reader = new StringReader(
+                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
         try {
             sr.runScript(reader);
 
@@ -136,7 +145,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void createSchema(Connection conn)  {
+    private void createSchema(Connection conn) throws IOException {
         String createSchemaScriptPath = getCreateSchemaScriptPath();
         // Database does not exist
         logger.info("Database schema does not exists.");
@@ -147,7 +156,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setStopOnError(true);
         sr.setLogWriter(null);
         InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
-        Reader reader = new InputStreamReader(is);
+        String scriptContent = IOUtils.toString(is);
+        Reader reader = new StringReader(
+                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
         try {
             sr.runScript(reader);
         } catch (RuntimeSqlException e) {

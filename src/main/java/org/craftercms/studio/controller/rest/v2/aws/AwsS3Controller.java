@@ -42,11 +42,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PATH;
-import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PROFILE;
-import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_SITE;
-import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_TYPE;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PROFILE_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_TYPE;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 
 /**
  * Rest controller for AWS S3 service.
@@ -70,10 +71,10 @@ public class AwsS3Controller {
      */
     @GetMapping("/list")
     public ResultList<S3Item> listItems(
-        @RequestParam(PARAM_SITE) String siteId,
-        @RequestParam(PARAM_PROFILE) String profileId,
-        @RequestParam(value = PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
-        @RequestParam(value = PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type)
+        @RequestParam(REQUEST_PARAM_SITEID) String siteId,
+        @RequestParam(REQUEST_PARAM_PROFILE_ID) String profileId,
+        @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
+        @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type)
         throws AwsException {
 
         ResultList<S3Item> result = new ResultList<>();
@@ -108,13 +109,13 @@ public class AwsS3Controller {
                     try(InputStream stream = item.openStream()) {
                         if (item.isFormField()) {
                             switch (name) {
-                                case PARAM_SITE:
+                                case REQUEST_PARAM_SITEID:
                                     siteId = Streams.asString(stream);
                                     break;
-                                case PARAM_PROFILE:
+                                case REQUEST_PARAM_PROFILE_ID:
                                     profileId = Streams.asString(stream);
                                     break;
-                                case PARAM_PATH:
+                                case REQUEST_PARAM_PATH:
                                     path = Streams.asString(stream);
                                 default:
                                     // Unknown parameter, just skip it...

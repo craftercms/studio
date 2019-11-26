@@ -26,6 +26,11 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 public interface VersionProvider {
 
     /**
+     * Value used when a file is missing from the repository
+     */
+    String SKIP = "SKIP";
+
+    /**
      * Returns the current version.
      * @return version number
      * @throws UpgradeException if there is any error getting the current version

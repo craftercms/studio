@@ -26,7 +26,9 @@ import org.craftercms.studio.api.v1.webdav.WebDavItem;
 /**
  * Defines the operations available for a WebDAV server.
  * @author joseross
+ * @deprecated This service has been replaced by {@link org.craftercms.studio.api.v2.service.webdav.WebDavService}
  */
+@Deprecated
 public interface WebDavService {
 
     /**

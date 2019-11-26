@@ -24,7 +24,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.User;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
@@ -35,6 +34,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
@@ -105,9 +106,8 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                 case REMOVE_USER:
                 case UPDATE:
                     if (currentUser != null &&
-                            (isSiteAdmin(studioConfiguration.getProperty(StudioConfiguration
-                                    .CONFIGURATION_GLOBAL_SYSTEM_SITE), currentUser) || isSiteAdmin(siteParam,
-                                    currentUser))) {
+                            (isSiteAdmin(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                                    currentUser) || isSiteAdmin(siteParam, currentUser))) {
                         toRet = ACCESS_GRANTED;
                     } else {
                         toRet = ACCESS_DENIED;

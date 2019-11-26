@@ -117,7 +117,7 @@
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="upgradeManager" ref="upgradeManager"/>
-        <property name="sitesService" ref="sitesService" />
+        <property name="sitesServiceInternal" ref="sitesServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
     </bean>
@@ -293,6 +293,8 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="eventService" ref="studioEventService" />
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -424,11 +426,17 @@
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
         <property name="contentServiceInternal" ref="contentServiceInternal"/>
         <property name="contentTypeServiceInternal" ref="contnetTypeServiceInternal"/>
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="userService" ref="userService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-
+        <property name="contentRepository" ref="contentRepositoryV2" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"
@@ -446,6 +454,18 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDao" ref="dependencyDao" />
         <property name="itemStateMapper" ref="itemStateMapper" />
+    </bean>
+
+    <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">
+        <property name="publishServiceInternal" ref="publishServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+    </bean>
+
+    <bean id="publishServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
+        <property name="publishRequestDao" ref="publishRequestDao" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -476,29 +496,35 @@
     </bean>
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-      <property name="host" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_HOST)}" />
-      <property name="port" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_PORT)}" />
-      <property name="username" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_USERNAME)}" />
-      <property name="password" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_PASSWORD)}" />
+      <property name="host"
+                value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_HOST)}" />
+      <property name="port"
+                value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_PORT)}" />
+      <property name="username"
+                value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_USERNAME)}" />
+      <property name="password"
+                value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_PASSWORD)}" />
       <property name="javaMailProperties">
         <props>
-          <prop key="mail.smtp.auth">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_AUTH)}</prop>
-          <prop key="mail.smtp.starttls.enable">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_START_TLS_ENABLE)}</prop>
-            <prop key="mail.smtp.ehlo">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_EHLO)}</prop>
-            <prop key="mail.debug">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_DEBUG)}</prop>
+          <prop key="mail.smtp.auth">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_SMTP_AUTH)}</prop>
+          <prop key="mail.smtp.starttls.enable">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_SMTP_START_TLS_ENABLE)}</prop>
+            <prop key="mail.smtp.ehlo">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_SMTP_EHLO)}</prop>
+            <prop key="mail.debug">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_DEBUG)}</prop>
         </props>
       </property>
     </bean>
 
     <bean id="mailSenderNoAuth" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-        <property name="host" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_HOST)}" />
-        <property name="port" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_PORT)}" />
+        <property name="host"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_HOST)}" />
+        <property name="port"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_PORT)}" />
         <property name="javaMailProperties">
             <props>
-                <prop key="mail.smtp.auth">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_AUTH)}</prop>
-                <prop key="mail.smtp.starttls.enable">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_START_TLS_ENABLE)}</prop>
-                <prop key="mail.smtp.ehlo">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_EHLO)}</prop>
-                <prop key="mail.debug">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_DEBUG)}</prop>
+                <prop key="mail.smtp.auth">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_SMTP_AUTH)}</prop>
+                <prop key="mail.smtp.starttls.enable">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_SMTP_START_TLS_ENABLE)}</prop>
+                <prop key="mail.smtp.ehlo">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_SMTP_EHLO)}</prop>
+                <prop key="mail.debug">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).MAIL_DEBUG)}</prop>
             </props>
         </property>
     </bean>
@@ -510,10 +536,11 @@
     <bean id="studioPublisherTaskExecutor"
           class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
         <property name="corePoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).PUBLISHING_THREAD_POOL_CORE_POOL_SIZE)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).PUBLISHING_THREAD_POOL_CORE_POOL_SIZE)}" />
         <property name="maxPoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).PUBLISHING_THREAD_POOL_MAX_POOL_SIZE)}" />
-        <property name="threadNamePrefix" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).PUBLISHING_THREAD_POOL_NAME_PREFIX)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).PUBLISHING_THREAD_POOL_MAX_POOL_SIZE)}" />
+        <property name="threadNamePrefix"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).PUBLISHING_THREAD_POOL_NAME_PREFIX)}" />
     </bean>
 
     <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore">
@@ -532,11 +559,11 @@
     <bean id="studioNodeSyncTaskExecutor"
           class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
         <property name="corePoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_THREAD_POOL_CORE_POOL_SIZE)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_THREAD_POOL_CORE_POOL_SIZE)}" />
         <property name="maxPoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_THREAD_POOL_MAX_POOL_SIZE)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_THREAD_POOL_MAX_POOL_SIZE)}" />
         <property name="threadNamePrefix"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_THREAD_POOL_NAME_PREFIX)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_THREAD_POOL_NAME_PREFIX)}" />
     </bean>
 
     <bean id="studioClusterSandboxSyncJob"
@@ -562,6 +589,19 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="clusterDAO" ref="clusterDao" />
         <property name="repositoryType" value="PUBLISHED" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+    </bean>
+
+    <bean id="studioClusterGlobalRepoSyncJob"
+          class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
+        <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="deployer" ref="allDeployers" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="clusterDAO" ref="clusterDao" />
+        <property name="repositoryType" value="GLOBAL" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
     </bean>
 
@@ -605,7 +645,7 @@
             </bean>
         </property>
         <property name="repeatInterval"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_SANDBOX_SYNC_JOB_INTERVAL)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_SANDBOX_SYNC_JOB_INTERVAL)}" />
         <property name="startDelay" value="0" />
     </bean>
 
@@ -619,7 +659,21 @@
             </bean>
         </property>
         <property name="repeatInterval"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_PUBLISHED_SYNC_JOB_INTERVAL)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_PUBLISHED_SYNC_JOB_INTERVAL)}" />
+        <property name="startDelay" value="0" />
+    </bean>
+
+    <bean id="cstudioClusterGlobalRepoSyncJobsScheduled"
+          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
+                <property name="targetObject" ref="studioClusterGlobalRepoSyncJob"/>
+                <property name="targetMethod" value="run"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_GLOBAL_REPO_SYNC_JOB_INTERVAL)}" />
         <property name="startDelay" value="0" />
     </bean>
 
@@ -633,7 +687,7 @@
             </bean>
         </property>
         <property name="repeatInterval"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_HEARTBEAT_JOB_INTERVAL)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_HEARTBEAT_JOB_INTERVAL)}" />
         <property name="startDelay" value="0" />
     </bean>
 
@@ -647,7 +701,7 @@
             </bean>
         </property>
         <property name="repeatInterval"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_INACTIVITY_CHECK_JOB_INTERVAL)}" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_INACTIVITY_CHECK_JOB_INTERVAL)}" />
         <property name="startDelay" value="0" />
     </bean>
 
@@ -660,7 +714,7 @@
             </bean>
         </property>
         <property name="cronExpression"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).REPO_CLEANUP_CRON)}"/>
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_CLEANUP_CRON)}"/>
     </bean>
 
     <util:list id="crafter.jobTriggers">
@@ -668,6 +722,7 @@
         <ref bean="studioRepositoryCleanupJobTrigger"/>
         <ref bean="cstudioClusterSandboxSyncJobsScheduled" />
         <ref bean="cstudioClusterPublishedSyncJobsScheduled" />
+        <ref bean="cstudioClusterGlobalRepoSyncJobsScheduled" />
         <ref bean="cstudioClusterNodeHeartbeatJobsScheduled" />
         <ref bean="cstudioClusterNodeInactivityCheckJobsScheduled" />
     </util:list>
@@ -695,6 +750,10 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+    </bean>
+
+    <bean id="contentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- /////// -->
@@ -977,7 +1036,7 @@
     <!-- ////////////////////////////////////// -->
     <bean id="studioTranscoderProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
         <property name="profilesPath"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper"/>
         </property>
@@ -985,7 +1044,8 @@
     </bean>
 
     <bean id="studioMediaConvertProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-        <property name="profilesPath" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
+        <property name="profilesPath"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertProfileMapper"/>
         </property>
@@ -993,7 +1053,8 @@
     </bean>
 
     <bean id="studioS3ProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-        <property name="profilesPath" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
+        <property name="profilesPath"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper"/>
         </property>
@@ -1044,7 +1105,7 @@
     <!-- ////////////////////////////////////// -->
     <bean id="studioBoxProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
         <property name="profilesPath"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_PATH)}"/>
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper"/>
         </property>
@@ -1058,10 +1119,9 @@
     <!-- ////////////////////////////////////// -->
     <!--                 WEBDAV                 -->
     <!-- ////////////////////////////////////// -->
-    <!-- ////////////////////////////////////// -->
     <bean id="studioWebDavProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
         <property name="profilesPath"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH)}"/>
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMappper"/>
         </property>
@@ -1070,6 +1130,12 @@
 
     <bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl">
         <property name="profileLoader" ref="studioWebDavProfileLoader"/>
+    </bean>
+
+    <!--  v2 Service -->
+    <bean id="webDavService" class="org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.webdav.url.pattern')}"/>
+        <constructor-arg ref="studioWebDavProfileLoader"/>
     </bean>
 
     <!-- Utilities -->
@@ -1105,7 +1171,7 @@
         <property name="scriptsClassPath" value="#{'${crafter-studio}/default-site'.split(',')}"/>
     </bean>
 
-    <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl"
+    <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
           init-method="init"  depends-on="cstudioLogProvider">
         <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
@@ -1124,7 +1190,7 @@
         <constructor-arg>
             <bean class="org.craftercms.studio.impl.v1.image.transformation.TinifyTransformer">
                 <property name="apiKey"
-                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_ASSET_PROCESSING_TINIFY_API_KEY)}"/>
+                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ASSET_PROCESSING_TINIFY_API_KEY)}"/>
             </bean>
         </constructor-arg>
     </bean>
@@ -1141,7 +1207,7 @@
 
     <bean id="studioAssetProcessingService" class="org.craftercms.studio.impl.v1.service.asset.processing.AssetProcessingServiceImpl">
         <property name="configPath"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH)}"/>
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH)}"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="configReader" ref="studioAssetProcessingConfigReader"/>
         <property name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
@@ -1154,6 +1220,24 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="userServiceInternal" ref="userServiceInternal" />
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--              Marketplace               -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="marketplaceServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl">
+        <constructor-arg ref="instanceService"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="sitesServiceInternal"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
+        <property name="showPending" value="#{studioConfiguration.getProperty('studio.marketplace.search.pending')}"/>
+    </bean>
+
+    <bean id="marketplaceService"
+          class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
+        <constructor-arg ref="marketplaceServiceInternal"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

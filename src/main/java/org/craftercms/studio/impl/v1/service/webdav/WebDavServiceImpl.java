@@ -52,7 +52,9 @@ import static org.springframework.util.MimeTypeUtils.ALL_VALUE;
 /**
  * Default implementation of {@link WebDavService}.
  * @author joseross
+ * @deprecated This service has been replaced by {@link org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl}
  */
+@Deprecated
 public class WebDavServiceImpl implements WebDavService {
 
     private static final Logger logger = LoggerFactory.getLogger(WebDavServiceImpl.class);

@@ -26,9 +26,9 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,14 +41,15 @@ import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.EDITED_STATES_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.NEW_STATES_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.PATHS_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.REGEX_PARAM;
+import static org.craftercms.studio.api.v2.dal.DependencyDAO.SITE_ID_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SITE_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
 
@@ -111,13 +112,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private List<Map<String, String>> getSoftDependenciesForListFromDB(String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_PARAM, site);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
         Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(EDITED_STATES_PARAM, onlyEditStates);
-        return dependencyDao.getSoftDependenciesForList(params);
+        return dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+                onlyEditStates);
     }
 
     protected List<String> getItemSpecificDependenciesPatterns() {
@@ -224,14 +221,36 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private List<Map<String, String>> calculateHardDependenciesForListFromDB(String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_PARAM, site);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
         Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(EDITED_STATES_PARAM, onlyEditStates);
-        params.put(NEW_STATES_PARAM, State.NEW_STATES);
-        return dependencyDao.getHardDependenciesForList(params);
+        return dependencyDao.getHardDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
+                onlyEditStates, State.NEW_STATES);
+    }
+
+    @Override
+    public List<String> getDependentItems(String siteId, String path) {
+        List<String> paths = new ArrayList<String>(1);
+        paths.add(path);
+        return getDependentItems(siteId, paths);
+    }
+
+    @Override
+    public List<String> getDependentItems(String siteId, List<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
+        return dependencyDao.getDependentItems(siteId, paths);
+    }
+
+    @Override
+    public List<String> getItemSpecificDependencies(String siteId, String path) {
+        List<String> paths = new ArrayList<>(1);
+        paths.add(path);
+        return getItemSpecificDependencies(siteId, paths);
+    }
+
+    @Override
+    public List<String> getItemSpecificDependencies(String siteId, List<String> paths) {
+        return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
     }
 
     public SiteService getSiteService() {

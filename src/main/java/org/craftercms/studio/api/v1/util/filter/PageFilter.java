@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v1.util.filter;
 
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN;
 
 public class PageFilter extends AbstractFilter {
 

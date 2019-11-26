@@ -24,13 +24,13 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -41,8 +41,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
@@ -60,6 +58,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
 
 public class UserServiceInternalImpl implements UserServiceInternal {
 
@@ -94,7 +93,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                                                                               UserNotFoundException {
         List<User> users = new LinkedList<>();
         for(long userId : userIds) {
-            users.add(getUserByIdOrUsername(userId, Long.toString(userId)));
+            users.add(getUserByIdOrUsername(userId, StringUtils.EMPTY));
         }
         for(String username : usernames) {
             Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
@@ -352,23 +351,15 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                     throw new ServiceLayerException("Unknown database error", e);
                 }
             } else {
-                throw new PasswordRequirementsFailedException();
+                throw new PasswordRequirementsFailedException("User password does not fulfill requirements");
             }
         }
     }
 
     private boolean verifyPasswordRequirements(String password) {
-        if (isPasswordRequirementValidationEnabled()) {
-            Pattern pattern = Pattern.compile(getPasswordRequirementValidationRegex());
-            Matcher matcher = pattern.matcher(password);
-            return matcher.matches();
-        } else {
-            return true;
-        }
-    }
-
-    private boolean isPasswordRequirementValidationEnabled() {
-        return Boolean.parseBoolean(studioConfiguration.getProperty(SECURITY_PASSWORD_REQUIREMENTS_ENABLED));
+        Pattern pattern = Pattern.compile(getPasswordRequirementValidationRegex());
+        Matcher matcher = pattern.matcher(password);
+        return matcher.matches();
     }
 
     private String getPasswordRequirementValidationRegex() {

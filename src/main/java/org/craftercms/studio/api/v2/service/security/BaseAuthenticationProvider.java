@@ -18,15 +18,15 @@
 package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
 
 import javax.servlet.http.HttpSession;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 
 /**
  * Base authentication provider implementation
@@ -39,7 +39,7 @@ public abstract class BaseAuthenticationProvider implements AuthenticationProvid
      * Create authentication token
      *
      * @param user user to create token for
-     * @param authenticationChain autientication chain
+     * @param authenticationChain authentication chain
      * @return authentication token
      */
     protected String createToken(User user, AuthenticationChain authenticationChain) {

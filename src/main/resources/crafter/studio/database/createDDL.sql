@@ -1,4 +1,4 @@
-USE crafter ;
+USE @crafter_schema_name ;
 
 CREATE PROCEDURE addColumnIfNotExists(
     IN schemaName tinytext,
@@ -105,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.35', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.4.18', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -118,8 +118,8 @@ CREATE TABLE IF NOT EXISTS `audit` (
   `primary_target_type`       VARCHAR(32)   NOT NULL,
   `primary_target_subtype`    VARCHAR(32)   NULL,
   `primary_target_value`      VARCHAR(512)  NOT NULL,
-  `actor_id`                  VARCHAR(32)   NOT NULL,
-  `actor_details`             VARCHAR(64)   NULL,
+  `actor_id`                  VARCHAR(255)  NOT NULL,
+  `actor_details`             VARCHAR(255)  NULL,
   `cluster_node_id`           VARCHAR(255)  NULL,
   PRIMARY KEY (`id`),
   KEY `audit_actor_idx` (`actor_id`),
@@ -274,10 +274,10 @@ CREATE TABLE IF NOT EXISTS `user`
 (
   `id`                    BIGINT(20)   NOT NULL AUTO_INCREMENT,
   `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `username`              VARCHAR(32)  NOT NULL,
+  `username`              VARCHAR(255)  NOT NULL,
   `password`              VARCHAR(128)  NOT NULL,
-  `first_name`             VARCHAR(16)  NOT NULL,
-  `last_name`              VARCHAR(16)  NOT NULL,
+  `first_name`             VARCHAR(32)  NOT NULL,
+  `last_name`              VARCHAR(32)  NOT NULL,
   `externally_managed`    INT          NOT NULL DEFAULT 0,
   `timezone`              VARCHAR(16)  NULL,
   `locale`                VARCHAR(8)   NULL,

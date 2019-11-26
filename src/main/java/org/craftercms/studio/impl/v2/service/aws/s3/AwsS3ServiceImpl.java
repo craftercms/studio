@@ -18,12 +18,12 @@
 package org.craftercms.studio.impl.v2.service.aws.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
+import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -83,16 +83,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     * Add withEndpointConfiguration() to direct requests to a S3 compatible storage service
     */
     protected AmazonS3 getS3Client(S3Profile profile) {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard()
-            .withCredentials(profile.getCredentialsProvider());
-            
-        if (StringUtils.isNotEmpty(profile.getEndpoint()) && StringUtils.isNotEmpty(profile.getRegion())){
-            builder.withEndpointConfiguration(new AmazonS3ClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()));
-        } else if (StringUtils.isNotEmpty(profile.getRegion())) {
-            builder.withRegion(profile.getRegion());
-        }
-
-        return builder.build();
+        return S3Utils.createClient(profile);
     }
 
     /**

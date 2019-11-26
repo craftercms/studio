@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -68,8 +69,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     @ValidateParams
-    public void publish(@ValidateStringParam(name = "site") final String site, List<String> paths, ZonedDateTime launchDate,
-                        final MultiChannelPublishingContext mcpContext) {
+    public void publish(@ValidateStringParam(name = "site") final String site, List<String> paths,
+                        ZonedDateTime launchDate, final MultiChannelPublishingContext mcpContext) {
         boolean scheduledDateIsNow = false;
         if (launchDate == null) {
             scheduledDateIsNow=true;
@@ -96,7 +97,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     @ValidateParams
-    public void unpublish(@ValidateStringParam(name = "site") String site, List<String> paths, @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduleDate) {
+    public void unpublish(@ValidateStringParam(name = "site") String site, List<String> paths,
+                          @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduleDate) {
         if (scheduleDate == null) {
             scheduleDate = ZonedDateTime.now(ZoneOffset.UTC);
         }
@@ -109,7 +111,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     @ValidateParams
-    public void cancelScheduledItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void cancelScheduledItem(@ValidateStringParam(name = "site") String site,
+                                    @ValidateSecurePathParam(name = "path") String path) {
         try {
             deploymentService.cancelWorkflow(site, path);
         } catch (DeploymentException e) {
@@ -124,7 +127,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
      */
     @Override
     @ValidateParams
-	public boolean hasChannelsConfigure(@ValidateStringParam(name = "site") String site, MultiChannelPublishingContext mcpContext) {
+	public boolean hasChannelsConfigure(@ValidateStringParam(name = "site") String site,
+                                        MultiChannelPublishingContext mcpContext) {
     	boolean toReturn = false;
         if (mcpContext != null) {
             List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
@@ -141,7 +145,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     @ValidateParams
     public void bulkGoLive(@ValidateStringParam(name = "site") String site,
                            @ValidateStringParam String environment,
-                           @ValidateSecurePathParam(name = "path") String path) throws ServiceLayerException {
+                           @ValidateSecurePathParam(name = "path") String path,
+                           String comment) throws ServiceLayerException {
         logger.info("Starting Bulk Publish to '" + environment + "' for path " + path + " site " + site);
 
         String queryPath = path;
@@ -154,7 +159,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
         childrenPaths = objectStateService.getChangeSetForSubtree(site, queryPath);
 
-        logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path " + queryPath);
+        logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path "
+                + queryPath);
         Set<String> processedPaths = new HashSet<String>();
         ZonedDateTime launchDate = ZonedDateTime.now(ZoneOffset.UTC);
         for (String childPath : childrenPaths) {
@@ -173,7 +179,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                     }
                 }
                 String aprover = securityService.getCurrentUser();
-                String comment = "Bulk Publish invoked by " + aprover;
+                if (StringUtils.isEmpty(comment)) {
+                    comment = "Bulk Publish invoked by " + aprover;
+                }
                 logger.info("Deploying package of " + pathsToPublish.size() + " items to '" + environment +
                         "' for site" + site + " path " + childPath);
                 try {
@@ -192,24 +200,59 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         this.deploymentService = deploymentService;
     }
 
-    public SecurityService getSecurityService() {return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public SiteService getSiteService() {
+        return siteService;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
 
-    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public DependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
+
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
+
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
+
+    public DependencyService getDependencyService() {
+        return dependencyService;
+    }
+
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
+    }
 }

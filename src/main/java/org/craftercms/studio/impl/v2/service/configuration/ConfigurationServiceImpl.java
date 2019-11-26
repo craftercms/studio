@@ -24,6 +24,7 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -32,13 +33,19 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.event.EventService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -70,14 +77,17 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_LOCK_OWNER;
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIED;
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 
@@ -95,6 +105,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private SecurityService securityService;
     private ObjectMetadataManager objectMetadataManager;
     private ServicesConfig servicesConfig;
+    private ObjectStateService objectStateService;
+    private EventService eventService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -106,20 +118,22 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         try {
             document = contentService.getContentAsDocument(siteId, roleMappingsConfigPath);
-            Element root = document.getRootElement();
-            if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                for (Node node : groupNodes) {
-                    String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
-                    if (StringUtils.isNotEmpty(name)) {
-                        List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                        List<String> roles = new ArrayList<>();
+            if (document != null) {
+                Element root = document.getRootElement();
+                if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
+                    List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
+                    for (Node node : groupNodes) {
+                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
+                        if (StringUtils.isNotEmpty(name)) {
+                            List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
+                            List<String> roles = new ArrayList<>();
 
-                        for (Node roleNode : roleNodes) {
-                            roles.add(roleNode.getText());
+                            for (Node roleNode : roleNodes) {
+                                roles.add(roleNode.getText());
+                            }
+
+                            roleMappings.put(name, roles);
                         }
-
-                        roleMappings.put(name, roles);
                     }
                 }
             }
@@ -168,18 +182,26 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             throws DocumentException, IOException {
         String content = getEnvironmentConfiguration(siteId, module, path, environment);
         Document retDocument = null;
-        SAXReader saxReader = new SAXReader();
-        try {
-            saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        }catch (SAXException ex){
-            logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
-        }
-        try (InputStream is = IOUtils.toInputStream(content)) {
-            retDocument = saxReader.read(is);
+        if (StringUtils.isNotEmpty(content)) {
+            SAXReader saxReader = new SAXReader();
+            try {
+                saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            } catch (SAXException ex) {
+                logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
+            }
+            try (InputStream is = IOUtils.toInputStream(content)) {
+                retDocument = saxReader.read(is);
+            }
         }
         return retDocument;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    public String getGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path) {
+        return contentService.getContentAsString(StringUtils.EMPTY, path);
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {
@@ -243,8 +265,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         String configPath = Paths.get(configBasePath, path).toString();
         contentService.writeContent(siteId, configPath, content);
         String currentUser = securityService.getCurrentUser();
+        objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
         updateMetadata(siteId, configPath, currentUser);
         generateAuditLog(siteId, configPath, currentUser);
+
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(siteId);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
@@ -258,6 +285,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 String configPath = Paths.get(configBasePath, path).toString();
                 contentService.writeContent(siteId, configPath, content);
                 String currentUser = securityService.getCurrentUser();
+                objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
                 updateMetadata(siteId, configPath, currentUser);
                 generateAuditLog(siteId, configPath, currentUser);
             } else {
@@ -290,6 +318,46 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         auditLog.setPrimaryTargetValue(path);
         auditLog.setPrimaryTargetSubtype(CONTENT_TYPE_CONFIGURATION);
         auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    @Override
+    public ConfigurationHistory getConfigurationHistory(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                        String module, String path, String environment) {
+        String configPath = StringUtils.EMPTY;
+        if (!StringUtils.isEmpty(environment)) {
+            String configBasePath =
+                    studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
+                            .replaceAll(PATTERN_MODULE, module)
+                            .replaceAll(PATTERN_ENVIRONMENT, environment);
+            configPath = Paths.get(configBasePath, path).toString();
+        } else {
+            String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                    .replaceAll(PATTERN_MODULE, module);
+            configPath = Paths.get(configBasePath, path).toString();
+        }
+        ConfigurationHistory configurationHistory = new ConfigurationHistory();
+        configurationHistory.setItem(contentService.getContentItem(siteId, configPath));
+        List<ContentItemVersion> versions = new ArrayList<ContentItemVersion>();
+        VersionTO[] versionTOS = contentService.getContentItemVersionHistory(siteId, configPath);
+        for (VersionTO v : versionTOS) {
+            ContentItemVersion civ = new ContentItemVersion();
+            civ.setVersionNumber(v.getVersionNumber());
+            civ.setComment(v.getComment());
+            civ.setLastModifiedDate(v.getLastModifiedDate());
+            civ.setLastModifier(v.getLastModifier());
+            versions.add(civ);
+        }
+        configurationHistory.setVersions(versions);
+        return configurationHistory;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
+            throws ServiceLayerException {
+        contentService.writeContent(StringUtils.EMPTY, path, content);
+        String currentUser = securityService.getCurrentUser();
+        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
     }
 
     @Required
@@ -338,4 +406,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
         this.objectMetadataManager = objectMetadataManager;
     }
+
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
+
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
+
+    public void setEventService(final EventService eventService) {
+        this.eventService = eventService;
+    }
+
 }

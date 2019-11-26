@@ -25,14 +25,9 @@
 
     <!-- STUDIO CHANGES -->
 
-    <bean id="crafter.httpProxyRequestHandler" class="org.craftercms.engine.controller.HttpProxyRequestHandler">
-        <property name="proxyRegistry" ref="crafter.httpProxyRegistry" />
-    </bean>
-
      <util:map id="crafter.urlMappings">
         <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
         <entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
-        <entry key="/proxy/{proxyName}/**" value-ref="crafter.httpProxyRequestHandler"/>
         <entry key="/*" value-ref="crafter.pageRenderController"/>
     </util:map>
 
@@ -71,6 +66,7 @@
 
     <bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
         <property name="sitesService" ref="sitesService" />
+        <property name="marketplaceService" ref="marketplaceService"/>
     </bean>
 
     <bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">
@@ -96,11 +92,13 @@
 
     <bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
         <property name="configurationService" ref="configurationService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
         <property name="contentService" ref="contentService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="dependencyService" ref="dependencyService" />
     </bean>
 
     <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
@@ -109,6 +107,19 @@
 
     <bean id="dependencyController" class="org.craftercms.studio.controller.rest.v2.DependencyController" >
         <property name="dependencyService" ref="dependencyService" />
+    </bean>
+
+    <bean id="marketplaceController" class="org.craftercms.studio.controller.rest.v2.MarketplaceController">
+        <constructor-arg ref="marketplaceService"/>
+    </bean>
+
+    <bean id="webdavController" class="org.craftercms.studio.controller.rest.v2.WebdavController">
+        <constructor-arg ref="webDavService"/>
+    </bean>
+
+    <bean id="publishController" class="org.craftercms.studio.controller.rest.v2.PublishController">
+        <property name="publishService" ref="publishService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">

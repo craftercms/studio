@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.config;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
@@ -70,6 +71,14 @@ public interface ConfigurationService {
             throws DocumentException, IOException;
 
     /**
+     * Get configuration from global repository as String
+     *
+     * @param path path of configuration file
+     * @return
+     */
+    String getGlobalConfiguration(String path);
+
+    /**
      * Write configuration file for given parameters
      *
      * @param siteId site id to use
@@ -93,4 +102,24 @@ public interface ConfigurationService {
      */
     Resource getPluginFile(String siteId, String type, String name, String filename)
         throws ContentNotFoundException;
+
+    /**
+     * Get configuration history for given parameters
+     *
+     * @param siteId site id to use
+     * @param module crafter CMS module
+     * @param path path of configuration file
+     * @param environment environment to use. if empty using default
+     * @return configuration history
+     */
+    ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment);
+
+    /**
+     * Write configuration file within global repo
+     *
+     * @param path path of configuration file
+     * @param content content of configuration file
+     * @throws ServiceLayerException
+     */
+    void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
 }

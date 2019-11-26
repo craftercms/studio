@@ -79,5 +79,11 @@
             <icon>fa-align-left</icon>
             <permission>read_logs</permission>
         </item>
+        <item>
+            <id>home.globalMenu.globalConfig</id>
+            <label>Global Config</label>
+            <icon>fa-globe</icon>
+            <permission>write_global_configuration</permission>
+        </item>
     </items>
 </globalMenu>

@@ -35,11 +35,11 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.springframework.core.task.TaskExecutor;
 
@@ -56,12 +56,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
@@ -101,50 +101,62 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                     } else {
                         logger.debug("Cluster members count " + cm.size());
                         try {
-                            cleanupDeletedSites();
-
-                            Set<String> siteNames = siteService.getAllAvailableSites();
-
                             Map<String, String> params = new HashMap<String, String>();
                             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
                             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
                             List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
-                            if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                                int numActiveMembers = clusterDAO.countActiveMembers(params);
-                                logger.debug("Number of active cluster members: " + numActiveMembers);
-                            }
-                            if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
-                                for (String site : siteNames) {
-                                    SiteFeed siteFeed = siteService.getSite(site);
-                                    logger.debug("Creating task thread to sync cluster node for site " + site);
-                                    switch (repositoryType) {
-                                        case SANDBOX:
-                                            StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
-                                            nodeSandobxSyncTask.setSiteId(site);
-                                            nodeSandobxSyncTask.setSiteUuid(siteFeed.getSiteUuid());
-                                            nodeSandobxSyncTask.setSearchEngine(siteFeed.getSearchEngine());
-                                            nodeSandobxSyncTask.setDeployer(deployer);
-                                            nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
-                                            nodeSandobxSyncTask.setContentRepository(contentRepository);
-                                            nodeSandobxSyncTask.setSiteService(siteService);
-                                            nodeSandobxSyncTask.setServicesConfig(servicesConfig);
-                                            nodeSandobxSyncTask.setClusterNodes(clusterMembers);
-                                            nodeSandobxSyncTask.setDeploymentService(deploymentService);
-                                            taskExecutor.execute(nodeSandobxSyncTask);
-                                            break;
-                                        case PUBLISHED:
-                                            StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
-                                            nodePublishedSyncTask.setSiteId(site);
-                                            nodePublishedSyncTask.setSiteUuid(siteFeed.getSiteUuid());
-                                            nodePublishedSyncTask.setSearchEngine(siteFeed.getSearchEngine());
-                                            nodePublishedSyncTask.setDeployer(deployer);
-                                            nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
-                                            nodePublishedSyncTask.setContentRepository(contentRepository);
-                                            nodePublishedSyncTask.setSiteService(siteService);
-                                            nodePublishedSyncTask.setServicesConfig(servicesConfig);
-                                            nodePublishedSyncTask.setClusterNodes(clusterMembers);
-                                            nodePublishedSyncTask.setDeploymentService(deploymentService);
-                                            taskExecutor.execute(nodePublishedSyncTask);
+
+                            if (repositoryType.equals(GitRepositories.GLOBAL)) {
+                                StudioNodeSyncGlobalRepoTask nodeGlobalRepoSyncTask =
+                                        new StudioNodeSyncGlobalRepoTask();
+                                nodeGlobalRepoSyncTask.setClusterNodes(clusterMembers);
+                                nodeGlobalRepoSyncTask.setContentRepository(contentRepository);
+                                nodeGlobalRepoSyncTask.setStudioConfiguration(studioConfiguration);
+                                taskExecutor.execute(nodeGlobalRepoSyncTask);
+                            } else {
+                                cleanupDeletedSites();
+
+                                Set<String> siteNames = siteService.getAllAvailableSites();
+
+
+                                if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                                    int numActiveMembers = clusterDAO.countActiveMembers(params);
+                                    logger.debug("Number of active cluster members: " + numActiveMembers);
+                                }
+                                if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
+                                    for (String site : siteNames) {
+                                        SiteFeed siteFeed = siteService.getSite(site);
+                                        logger.debug("Creating task thread to sync cluster node for site " + site);
+                                        switch (repositoryType) {
+                                            case SANDBOX:
+                                                StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
+                                                nodeSandobxSyncTask.setSiteId(site);
+                                                nodeSandobxSyncTask.setSiteUuid(siteFeed.getSiteUuid());
+                                                nodeSandobxSyncTask.setSearchEngine(siteFeed.getSearchEngine());
+                                                nodeSandobxSyncTask.setDeployer(deployer);
+                                                nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
+                                                nodeSandobxSyncTask.setContentRepository(contentRepository);
+                                                nodeSandobxSyncTask.setSiteService(siteService);
+                                                nodeSandobxSyncTask.setServicesConfig(servicesConfig);
+                                                nodeSandobxSyncTask.setClusterNodes(clusterMembers);
+                                                nodeSandobxSyncTask.setDeploymentService(deploymentService);
+                                                taskExecutor.execute(nodeSandobxSyncTask);
+                                                break;
+                                            case PUBLISHED:
+                                                StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
+                                                nodePublishedSyncTask.setSiteId(site);
+                                                nodePublishedSyncTask.setSiteUuid(siteFeed.getSiteUuid());
+                                                nodePublishedSyncTask.setSearchEngine(siteFeed.getSearchEngine());
+                                                nodePublishedSyncTask.setDeployer(deployer);
+                                                nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
+                                                nodePublishedSyncTask.setContentRepository(contentRepository);
+                                                nodePublishedSyncTask.setSiteService(siteService);
+                                                nodePublishedSyncTask.setServicesConfig(servicesConfig);
+                                                nodePublishedSyncTask.setClusterNodes(clusterMembers);
+                                                nodePublishedSyncTask.setDeploymentService(deploymentService);
+                                                taskExecutor.execute(nodePublishedSyncTask);
+                                                break;
+                                        }
                                     }
                                 }
                             }

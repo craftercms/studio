@@ -23,12 +23,13 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException
-import org.craftercms.studio.api.v1.util.StudioConfiguration
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_REMOTE_NAME
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH
 
 def studioConfiguration = applicationContext.get("studioConfiguration")
 def result = [:]
@@ -63,6 +64,8 @@ try {
     def remoteToken = parsedReq.remote_token
     def remotePrivateKey = parsedReq.remote_private_key
     def createOption = parsedReq.create_option
+    def siteParams = parsedReq.site_params ?: [:]
+    def createAsOrphan = parsedReq.create_as_orphan ? parsedReq.create_as_orphan.toBoolean() : false
 
 /** Validate Parameters */
     def invalidParams = false;
@@ -95,21 +98,15 @@ try {
 
     // sandbox_branch
     if (StringUtils.isEmpty(sandboxBranch)) {
-        sandboxBranch = studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH);
+        sandboxBranch = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+    }
+
+    // remote_name
+    if (StringUtils.isEmpty(remoteName)) {
+        remoteName = studioConfiguration.getProperty(REPO_DEFAULT_REMOTE_NAME)
     }
 
     if (useRemote) {
-        // remote_name
-        try {
-            if (StringUtils.isEmpty(remoteName)) {
-                invalidParams = true
-                paramsList.add("remote_name")
-            }
-        } catch (Exception exc) {
-            invalidParams = true
-            paramsList.add("remote_name")
-        }
-
         // remote_url
         try {
             if (StringUtils.isEmpty(remoteUrl)) {
@@ -203,16 +200,17 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
         try {
             if (!useRemote) {
-                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description)
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description,
+                        siteParams, createAsOrphan)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             } else {
-                SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName,
-                        remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                        remoteToken, remotePrivateKey, createOption)
+                SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint,
+                        remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername,
+                        remotePassword, remoteToken, remotePrivateKey, createOption, siteParams, createAsOrphan)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId

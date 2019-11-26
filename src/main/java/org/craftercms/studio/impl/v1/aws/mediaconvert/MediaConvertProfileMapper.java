@@ -66,7 +66,9 @@ public class MediaConvertProfileMapper extends AbstractAwsProfileMapper<MediaCon
             throws ConfigurationException {
         MediaConvertProfile profile = super.mapProfile(profileConfig);
 
+        // For MediaConvert the endpoint is required
         profile.setEndpoint(getRequiredStringProperty(profileConfig, CONFIG_KEY_ENDPOINT));
+
         profile.setRole(getRequiredStringProperty(profileConfig, CONFIG_KEY_ROLE));
         profile.setQueue(getRequiredStringProperty(profileConfig, CONFIG_KEY_QUEUE));
         profile.setTemplate(getRequiredStringProperty(profileConfig, CONFIG_KEY_TEMPLATE));

@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FilenameUtils;
@@ -39,20 +38,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.context.support.ServletContextResource;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.GLOBAL_REPO_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 /**
@@ -69,7 +73,8 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  *
  * @author joseross
  */
-public abstract class AbstractUpgradeOperation implements UpgradeOperation, ServletContextAware {
+public abstract class AbstractUpgradeOperation implements UpgradeOperation, ServletContextAware,
+    ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
 
@@ -110,6 +115,11 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
      */
     protected ServletContext servletContext;
 
+    /**
+     * The application context
+     */
+    protected ApplicationContext applicationContext;
+
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
@@ -136,6 +146,11 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
 
     public void setServletContext(final ServletContext servletContext) {
         this.servletContext = servletContext;
+    }
+
+    @Override
+    public void setApplicationContext(final ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -275,19 +290,23 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
     protected Path getRepositoryPath(String site) {
         if(StringUtils.isEmpty(site)) {
             return Paths.get(
-                studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH),
+                studioConfiguration.getProperty(REPO_BASE_PATH),
+                studioConfiguration.getProperty(GLOBAL_REPO_PATH),
                 GIT_ROOT
             );
         } else {
             return Paths.get(
-                studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH),
+                studioConfiguration.getProperty(REPO_BASE_PATH),
+                studioConfiguration.getProperty(SITES_REPOS_PATH),
                 site,
-                studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH),
+                studioConfiguration.getProperty(SANDBOX_PATH),
                 GIT_ROOT
             );
         }
+    }
+
+    protected Resource loadResource(String path) {
+        return applicationContext.getResource(path);
     }
 
 }

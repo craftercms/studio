@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.1.16'
+  version: '3.1.4.8'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -46,6 +46,12 @@ tags:
     description: Plugin operations
   - name: dependency
     description: Dependencies operations
+  - name: marketplace
+    description: Marketplace operations
+  - name: webdav
+    description: WebDAV operations
+  - name: publishing
+    description: Publishing operations
 
 paths:
 
@@ -1323,6 +1329,107 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /webdav/list:
+    get:
+      tags:
+        - webdav
+      summary: Get a list of items from a WebDAV server
+      description: 'Required Permission: "webdav_read"'
+      operationId: listItemsWebdav
+      parameters:
+        - name: siteId
+          in: query
+          description: The site ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: profileId
+          in: query
+          description: The profile ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: path
+          in: query
+          description: The path of the directory to list (defaults to the root)
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: The type of items to list, defaults to all (possible values are 'image' and 'video')
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebDavItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /webdav/upload:
+    post:
+      tags:
+        - webdav
+      summary: Upload a file to a WebDAV server
+      description: 'Required Permission: "webdav_write"'
+      operationId: uploadItemWebdav
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The site ID
+                profileId:
+                  type: string
+                  description: The profile ID
+                path:
+                  type: string
+                  description: The path where the file will be uploaded
+                file:
+                  type: string
+                  format: binary
+                  description: The content of the file to upload
+              required:
+                - siteId
+                - profileId
+                - file
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/WebDavItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /cluster:
     get:
       tags:
@@ -1408,7 +1515,36 @@ paths:
                   blueprints:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Plugin'
+                      $ref: '#/components/schemas/PluginDescriptor'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sites/create_site_from_marketplace:
+    post:
+      tags:
+        - sites
+      summary: Create a site from a Marketplace blueprint
+      operationId: createSite
+      requestBody:
+        description: The site information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSiteFromMarketplace'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -2489,6 +2625,7 @@ paths:
         - name: path
           in: query
           description: Configuration file path, relative to /config/<module>
+          required: true
           schema:
             type: string
         - name: environment
@@ -2564,6 +2701,59 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/get_configuration_history:
+    get:
+      tags:
+        - configuration
+      summary: Get configuration history for site and configuration location
+      description: 'Required permission "read_configuration"'
+      operationId: getConfigurationHistory
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: module
+          in: query
+          description: Module name (e.g. studio, engine)
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Configuration file path, relative to /config/<module>
+          required: true
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: environment to use
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  history:
+                    $ref: '#/components/schemas/History'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2669,6 +2859,99 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/get_delete_package:
+    get:
+      tags:
+        - content
+      summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
+      description: 'Required permission "delete_content"'
+      operationId: getDeletePackage
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to get a delete package for
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: object
+                    properties:
+                      childItems:
+                        type: array
+                        items:
+                          type: string
+                      dependentItems:
+                        type: array
+                        items:
+                          type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/delete:
+    delete:
+      tags:
+        - content
+      summary: Delete content
+      description: 'Required Permission: "delete_content"'
+      operationId: deleteContent
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: Content paths to be deleted
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dependency/dependencies:
     get:
       tags:
@@ -2711,7 +2994,218 @@ paths:
                       softDependencies:
                         type: array
                         items:
-                          type: string                      
+                          type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /marketplace/search:
+    get:
+      tags:
+        - marketplace
+      summary: Search for compatible plugins in the marketplace
+      operationId: searchPlugins
+      parameters:
+        - name: type
+          in: query
+          description: Plugin type to search (e.g. blueprint, control, datasource)
+          schema:
+            type: string
+        - name: keywords
+          in: query
+          description: The keywords to filter plugins
+          schema:
+            type: string
+        - name: showPending
+          description: Include plugins pending of approval (default to false)
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: offset
+          in: query
+          description: Offset for pagination
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      anyOf:
+                        - $ref: '#/components/schemas/MarketplacePlugin'
+                        - $ref: '#/components/schemas/GitMarketplacePlugin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/packages:
+    get:
+      tags:
+        - publishing
+      summary: Get the list of packages in the publishing queue
+      description: 'Required permission "get_publishing_queue"'
+      operationId: PublishingPackages
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: filter by publishing environment
+          required: false
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: regular expression to filter by path
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: filter by package state
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  packages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishingPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/package:
+    get:
+      tags:
+        - publishing
+      summary: Get package details
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getPublishingPackageDetails
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: query
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/PublishingPackageDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/cancel:
+    post:
+      tags:
+        - publishing
+      summary: Cancel publishing packages
+      description: 'Required permission "cancel_publish"'
+      operationId: cancelPublishingPackages
+      requestBody:
+        description: cancel publishing packages request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                packageIds:
+                  type: array
+                  description: packageIds
+                  items:
+                    type: string
+              required:
+                - siteId
+                - packageIds
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2754,9 +3248,12 @@ components:
           * `CODE:` 12000, `MESSAGE:` Remote repository not found, `REMEDIAL ACTION:` Check if you sent in the right remote repository name
           * `CODE:` 12001, `MESSAGE:` Remote repository already exists, `REMEDIAL ACTION:` Get the list of remote repositories to validate
           * `CODE:` 12002, `MESSAGE:` Pull from remote repository resulted in conflict, `REMEDIAL ACTION:` Resolve conflicts before continuing work with repository
+          * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator
+          * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found
+          * `CODE:` 50003, `MESSAGE:` Target path does not exist in site repository, `REMEDIAL ACTION:` Check if you sent in the right Studio Path
           * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
           * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
       properties:
@@ -2933,6 +3430,23 @@ components:
         - jobArn
         - urls
 
+    WebDavItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Name of the item'
+        url:
+          type: string
+          description: 'URL of the item'
+        folder:
+          type: boolean
+          description: 'Indicates if the item is a folder'
+      required:
+        - name
+        - url
+        - folder
+
     ClusterMember:
       type: object
       properties:
@@ -2976,7 +3490,7 @@ components:
         - localAddress
         - state
         - heartbeat
-        - gitUrl 
+        - gitUrl
         - gitRemoteName
         - gitAuthType
 
@@ -3028,81 +3542,168 @@ components:
         - title
         - url
 
-    Plugin:
+    Parameter:
+      type: object
+      properties:
+        label:
+          type: string
+          description: The label to use for the parameter
+        name:
+          type: string
+          description: The name of the parameter (must be camelCase)
+        description:
+          type: string
+          description: The description of the parameter
+        defaultValue:
+          type: string
+          description: The default value of the parameter
+        type:
+          type: string
+          description: The type of the parameter. Currently supported values are STRING, PASSWORD
+        required:
+          type: boolean
+          description: Indicates if the parameter is required
+
+    PluginDescriptor:
       type: object
       properties:
         descriptorVersion:
           type: integer
           description: The version of the plugin descriptor
         plugin:
+          $ref: '#/components/schemas/Plugin'
+
+    Plugin:
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of plugin
+        id:
+          type: string
+          format: package name
+          description: The plugin id
+        name:
+          type: string
+          description: The plugin name
+        tags:
+          type: array
+          description: The plugin tags
+          items:
+            type: string
+        version:
+          $ref: '#/components/schemas/Version'
+        description:
+          type: string
+          description: The plugin description
+        website:
+          $ref: '#/components/schemas/Link'
+        media:
           type: object
           properties:
-            type:
-              type: string
-              description: The type of plugin
+            screenshots:
+              type: array
+              description: The screenshots of the plugin
+              items:
+                $ref: '#/components/schemas/Asset'
+            videos:
+              type: array
+              description: The videos of the plugin
+              items:
+                $ref: '#/components/schemas/Asset'
+        developer:
+          type: object
+          properties:
+            people:
+              type: array
+              description: The people that worked on the plugin
+              items:
+                $ref: '#/components/schemas/Link'
+            company:
+              $ref: '#/components/schemas/Link'
+        build:
+          type: object
+          properties:
             id:
               type: string
-              format: package name
-              description: The plugin id
-            name:
+              description: Build id of the plugin
+            date:
               type: string
-              description: The plugin name
-            tags:
-              type: array
-              description: The plugin tags
-              items:
-                type: string
-            version:
-              $ref: '#/components/schemas/Version'
-            description:
+              description: Build date of the plugin
+        license:
+          $ref: '#/components/schemas/Link'
+        crafterCmsVersions:
+          type: array
+          description: The supported Crafter CMS versions of the plugin
+          items:
+            $ref: '#/components/schemas/Version'
+        crafterCmsEditions:
+          type: array
+          description: The supported Crafter CMS editions of the plugin
+          items:
+            type: string
+        parameters:
+          type: array
+          description: The parameters supported by the plugin
+          items:
+            $ref: '#/components/schemas/Parameter'
+
+    MarketplacePlugin:
+      allOf:
+        - $ref: '#/components/schemas/Plugin'
+        - type: object
+          properties:
+            status:
+              description: The status of this version of the plugin (possible values are 'PENDING' approval and 'APPROVED')
               type: string
-              description: The plugin description
-            website:
-              $ref: '#/components/schemas/Link'
-            media:
-              type: object
-              properties:
-                screenshots:
-                  type: array
-                  description: The screenshots of the plugin
-                  items:
-                    $ref: '#/components/schemas/Asset'
-                videos:
-                  type: array
-                  description: The videos of the plugin
-                  items:
-                    $ref: '#/components/schemas/Asset'
-            developer:
-              type: object
-              properties:
-                people:
-                  type: array
-                  description: The people that worked on the plugin
-                  items:
-                    $ref: '#/components/schemas/Link'
-                company:
-                  $ref: '#/components/schemas/Link'
-            build:
-              type: object
-              properties:
-                id:
-                  type: string
-                  description: Build id of the plugin
-                date:
-                  type: string
-                  description: Build date of the plugin
-            license:
-              $ref: '#/components/schemas/Link'
-            crafterCmsVersions:
-              type: array
-              description: The supported Crafter CMS versions of the plugin
-              items:
-                $ref: '#/components/schemas/Version'
-            crafterCmsEditions:
-              type: array
-              description: The supported Crafter CMS editions of the plugin
-              items:
-                type: string
+            source:
+              type: string
+
+    MarketplaceRemotePlugin:
+      allOf:
+        - $ref: '#/components/schemas/MarketplacePlugin'
+        - type: object
+          properties:
+            url:
+              type: string
+
+    GitMarketplacePlugin:
+      allOf:
+        - $ref: '#/components/schemas/MarketplaceRemotePlugin'
+        - type: object
+          properties:
+            ref:
+              type: string
+
+    CreateSiteFromMarketplace:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: Site ID to use
+        description:
+          type: string
+          description: Site description
+        sandboxBranch:
+          type: string
+          description: Name for sandbox branch (default master)
+        remoteName:
+          type: string
+          description: Remote repository name (default origin)
+        blueprintId:
+          type: string
+          description: The ID of the blueprint to use
+        blueprintVersion:
+          $ref: '#/components/schemas/Version'
+        siteParams:
+          type: object
+          description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+          additionalProperties:
+            type: string
+      required:
+        - siteId
+        - blueprintId
+        - blueprintVersion
 
     SearchParams:
       type: object
@@ -3520,7 +4121,7 @@ components:
         path:
           type: string
           description: path expression to generate path for quick create
-    
+
     RepositoryStatus:
       type: object
       properties:
@@ -3537,6 +4138,118 @@ components:
         clean:
           type: boolean
           description: true if there are no conflicts or uncommited changes
+
+    History:
+      type: object
+      properties:
+        item:
+          $ref: '#/components/schemas/ContentItem'
+        versions:
+          type: array
+          description: list of versions
+          items:
+            $ref: '#/components/schemas/ContentItemVersion'
+
+    ContentItemVersion:
+      type: object
+      properties:
+        versionNumber:
+          type: string
+          description: version label
+        lastModifiedDate:
+          type: string
+          format: datetime
+          description: last modified date and time of version
+        lastModifier:
+          type: string
+          description: user that modified item
+        comment:
+          type: string
+          description: commit message
+
+    ContentItem:
+      type: object
+      description: API v1 object
+
+    PublishingPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: package ID
+        siteId:
+          type: string
+          description: site ID
+        schedule:
+          type: string
+          format: datetime
+          description: scheduled date and time
+        approver:
+          type: string
+          description: user that approved publishing package
+        state:
+          type: string
+          description: package state
+        environment:
+          type: string
+          description: environment where package will be published
+        comment:
+          type: string
+          description: submission comment
+      required:
+        - id
+        - siteId
+        - schedule
+        - approver
+        - state
+        - environment
+
+    PublishingPackageDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          description: package ID
+        siteId:
+          type: string
+          description: site ID
+        schedule:
+          type: string
+          format: datetime
+          description: scheduled date and time
+        approver:
+          type: string
+          description: user that approved publishing package
+        state:
+          type: string
+          description: package state
+        environment:
+          type: string
+          description: environment where package will be published
+        comment:
+          type: string
+          description: submission comment
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                description: content item path
+              contentTypeClass:
+                type: string
+                description: content type class
+              mimeType:
+                type: string
+                description: mime-type
+      required:
+        - id
+        - schedule
+        - approver
+        - state
+        - environment
+        - items
 
   responses:
     NotFound:

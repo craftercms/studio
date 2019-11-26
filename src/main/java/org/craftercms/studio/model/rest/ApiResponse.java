@@ -70,8 +70,8 @@ public class ApiResponse {
             new ApiResponse(6002, "User is externally managed", "Update the user in the main identity system " +
                                                                 "(e.g. LDAP)", StringUtils.EMPTY);
     public static final ApiResponse USER_PASSWORD_REQUIREMENTS_FAILED =
-            new ApiResponse(6003, "User password does not fullfill requirements",
-                    "Use password that will fullfill password requirements", StringUtils.EMPTY);
+            new ApiResponse(6003, "User password does not fulfill requirements",
+                    "Use password that will fulfill password requirements", StringUtils.EMPTY);
 
     public static final ApiResponse USER_PASSWORD_DOES_NOT_MATCH =
             new ApiResponse(6004, "User current password does not match",
@@ -113,6 +113,13 @@ public class ApiResponse {
             new ApiResponse(12002, "Pull from remote repository resulted in conflict",
                     "Resolve conflicts before continuing work with repository", StringUtils.EMPTY);
 
+    public static final ApiResponse MARKETPLACE_NOT_INITIALIZED = new ApiResponse(40000,
+        "Marketplace service is not initialized", "Contact your system administrator", StringUtils.EMPTY);
+
+    public static final ApiResponse MARKETPLACE_UNREACHABLE = new ApiResponse(40001,
+        "Marketplace server is unreachable", "Check the configuration to make sure the Marketplace URL is correct",
+        StringUtils.EMPTY);
+
     public static final ApiResponse CMIS_UNREACHABLE =
             new ApiResponse(50000, "CMIS server is unreachable", "Advise the user that the CMIS server is not " +
                                                                  "reachable", StringUtils.EMPTY);
@@ -124,6 +131,10 @@ public class ApiResponse {
     public static final ApiResponse CMIS_NOT_FOUND =
             new ApiResponse(50002, "CMIS server was not found", "Advise the user that the CMIS server was not " +
                     "found", StringUtils.EMPTY);
+
+    public static final ApiResponse CMIS_STUDIO_PATH_NOT_FOUND =
+            new ApiResponse(50003, "Target path does not exist in site repository",
+                    "Check if you sent in the right Studio Path", StringUtils.EMPTY);
 
     public static final ApiResponse BOX_UNREACHABLE =
             new ApiResponse(51000, "Box is unreachable", "Advise the user that Box is not reachable", StringUtils.EMPTY);

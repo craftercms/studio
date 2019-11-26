@@ -64,4 +64,18 @@ public interface ResultConstants {
     /* Dependency controller */
     String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";
     String RESULT_KEY_HARD_DEPENDENCIES = "hardDependencies";
+
+    /* Marketplace controller */
+    String RESULT_KEY_PLUGINS = "plugins";
+
+    /* Configuration controller */
+    String RESULT_KEY_HISTORY = "history";
+
+    /* Content controller */
+    String RESULT_KEY_CHILD_ITEMS = "childItems";
+    String RESULT_KEY_DEPENDENT_ITEMS = "dependentItems";
+
+    /** Publish controller */
+    String RESULT_KEY_PACKAGES = "packages";
+    String RESULT_KEY_PACKAGE = "package";
 }

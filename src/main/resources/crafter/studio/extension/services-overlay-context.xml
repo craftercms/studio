@@ -25,7 +25,8 @@
     <bean name="studio.crafter.properties" class="java.util.HashMap">
         <constructor-arg>
             <map key-type="java.lang.String" value-type="java.lang.String">
-                <entry key="environment" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
+                <entry key="environment"
+                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
                 <entry key="previewUrl" value="${previewUrl}"/>
 
             </map>
@@ -42,13 +43,14 @@
         <property name="scope" value="SERVLET_CONTEXT"/>
     </bean>
 
-    <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry"/>
-
     <bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager" depends-on="sqlSessionFactory">
         <property name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
         <property name="contextFactory" ref="crafter.siteContextFactory"/>
+        <property name="siteListResolver" ref="crafter.siteResolver"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
+        <property name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
         <property name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
+        <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
     </bean>
 
     <!-- ////////////////////////////////// -->

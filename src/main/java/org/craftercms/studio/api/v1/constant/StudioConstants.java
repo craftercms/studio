@@ -122,6 +122,7 @@ package org.craftercms.studio.api.v1.constant;
     String CONTENT_TYPE_SITE = "site";
     String CONTENT_TYPE_REMOTE_REPOSITORY = "remoteRepository";
     String CONTENT_TYPE_CONFIG_FOLDER = "content-types";
+    String CONTENT_TYPE_SCRIPT = "script";
 
     /**
      * System constants

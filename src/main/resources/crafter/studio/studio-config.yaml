@@ -9,6 +9,8 @@
 ##################################################
 # Load override configuration files (to override what's defined here)
 studio.config.overrideConfig: crafter/studio/extension/studio-config-override.yaml
+# Load override configuration files (to override what's defined here)
+studio.config.globalRepoOverrideConfig: configuration/studio-config-override.yaml
 
 ##################################################
 ##              Content Repository              ##
@@ -23,6 +25,8 @@ studio.repo.sitesRepoBasePath: sites
 studio.repo.siteSandboxPath: sandbox
 # Sandbox git repository branch for every site
 studio.repo.siteSandboxBranch: master
+# Name used for the git remote for remote sites
+studio.repo.defaultRemoteName: origin
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
 # If not using environment-config.xml, environments are configured here
@@ -36,6 +40,10 @@ studio.repo.blueprintsPath: blueprints
 studio.repo.blueprints.descriptor.filename: craftercms-plugin.yaml
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
 studio.repo.bootstrapRepo: true
+# Repository commit prologue message
+studio.repo.commitMessagePrologue:
+# Repository commit postscript message
+studio.repo.commitMessagePostscript:
 # Sandbox repository write commit message
 studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
 # Published repository commit message
@@ -48,6 +56,8 @@ studio.repo.createRepository.commitMessage: "Create new repository."
 studio.repo.createSandboxBranch.commitMessage: "Create {sandbox} branch."
 # Initial commit message
 studio.repo.initialCommit.commitMessage: "Initial commit."
+# Create as orphan commit message
+studio.repo.createAsOrphan.commitMessage: "Created as orphan."
 # Blueprints updated commit message
 studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
 # Create folder commit message
@@ -62,6 +72,8 @@ studio.repo.copyContent.commitMessage: "Copying {fromPath} to {toPath}"
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
 # Enable/disable notification messages in case of pull from remote conflicts
 studio.repo.pullFromRemote.conflict.notificationEnabled: false
+# The location in the classpath of the default gitignore file to add to all repos
+studio.repo.defaultIgnoreFile: crafter/studio/utils/default-gitignore
 
 ############################################################
 ##                   Site Configuration                   ##
@@ -130,6 +142,8 @@ studio.configuration.site.asset.processing.configurationPath: /config/studio/ass
 studio.configuration.site.defaultPreviewUrl: ^https?://localhost:8080/?
 # Default authoring URL
 studio.configuration.site.defaultAuthoringUrl: ^https?://localhost:8080/studio/?
+# Default GraphQL server URL
+studio.configuration.site.defaultGraphqlServerUrl: ^https?://localhost:8080/?
 
 ########################################################
 ##                   Import Service                   ##
@@ -198,16 +212,17 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
 studio.security.resetPassword.serviceUrl: "#/reset-password"
-# Enable password requirements validation
-studio.security.passwordRequirements.enabled: false
 # Password requirements validation regular expression
-#   (?=.*[0-9])       a digit must occur at least once
-#   (?=.*[a-z])       a lower case letter must occur at least once
-#   (?=.*[A-Z])       an upper case letter must occur at least once
-#   (?=.*[@#$%^&+=])  a special character must occur at least once
-#   (?=\S+$)          no whitespace allowed in the entire string
-#   .{8,}             anything, at least eight places though
-studio.security.passwordRequirements.validationRegex: ^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$
+# The supported capture group keys are:
+#   hasNumbers
+#   hasLowercase
+#   hasUppercase
+#   hasSpecialChars
+#   noSpaces
+#   minLength
+#   maxLength
+#   minMaxLength
+studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[~|!`,;\/@#$%^&+=]))(?<minLength>.{8,})$
 # Studio authentication chain configuration
 studio.authentication.chain:
   # Authentication provider type
@@ -307,9 +322,9 @@ studio.mail.debug: false
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
 studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message
-studio.job.deployContentToEnvironment.status.message.default: "idle|Idle"
+studio.job.deployContentToEnvironment.status.message.default: "ready|Ready"
 # Publishing idle status message
-studio.job.deployContentToEnvironment.status.message.idle: "idle|Last successful publish was for package:
+studio.job.deployContentToEnvironment.status.message.ready: "ready|Last successful publish was for package:
 {package_id} on {datetime} with {package_size} items"
 # Publishing busy status message
 studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publishing item: {item_path} on {datetime}"
@@ -386,6 +401,8 @@ studio.publishingManager.publishingWithoutDependencies.enabled: false
 # Embedded database configuration
 # JDBC driver and Java class used for accessing crafter database
 studio.db.driver: org.mariadb.jdbc.Driver
+# Database schema name
+studio.db.schema: crafter
 # Connection string used when connecting database with JDBC driver
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
@@ -505,6 +522,8 @@ studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
 studio.clustering.sandboxSyncJob.interval: 5000
 # Published Sync Job interval in milliseconds which is how often to sync the published repos
 studio.clustering.publishedSyncJob.interval: 60000
+# Global Repo Sync Job interval in milliseconds which is how often to sync the global repo
+studio.clustering.globalRepoSyncJob.interval: 45000
 # Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
 studio.clustering.heartbeatJob.interval: 10000
 # Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
@@ -697,6 +716,11 @@ studio.aws.mediaconvert.extension.hls: m3u8
 studio.aws.mediaconvert.extension.dash: mpd
 studio.aws.mediaconvert.extension.smooth: ism
 
+################################################################
+##                         WebDav                             ##
+################################################################
+studio.webdav.url.pattern: /remote-assets/webdav/%s/%s/%s
+
 ##########################################################
 ##                 Serverless Delivery                  ##
 ##########################################################
@@ -724,3 +748,10 @@ studio.serverless.delivery.deployer.target.template.params:
     cloudformation:
       namespace: craftercms
 
+##################################################
+##                 Marketplace                  ##
+##################################################
+# The full URL for the Marketplace
+studio.marketplace.url: https://mp.craftercms.org
+# Indicates if the search should include plugins pending of approval
+studio.marketplace.search.pending: false
