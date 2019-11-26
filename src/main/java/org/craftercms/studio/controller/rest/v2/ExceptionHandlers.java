@@ -18,6 +18,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.craftercms.commons.exceptions.InvalidMonitoringTokenException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
@@ -306,6 +307,14 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseBody handleMethodArgumentTypeMismatchException(HttpServletRequest request,
                                                                   MethodArgumentTypeMismatchException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(InvalidMonitoringTokenException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleInvalidMonitoringTokenException(HttpServletRequest request,
+                                                              InvalidMonitoringTokenException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }

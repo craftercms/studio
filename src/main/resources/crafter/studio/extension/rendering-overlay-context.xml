@@ -78,7 +78,9 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
-    <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController"/>
+    <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+    </bean>
 
     <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">
         <property name="cmisService" ref="cmisService" />
