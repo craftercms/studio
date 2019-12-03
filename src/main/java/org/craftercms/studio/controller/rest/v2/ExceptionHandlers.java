@@ -312,10 +312,10 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(InvalidMonitoringTokenException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseBody handleInvalidMonitoringTokenException(HttpServletRequest request,
                                                               InvalidMonitoringTokenException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(ApiResponse.UNAUTHORIZED);
         return handleExceptionInternal(request, e, response);
     }
 
