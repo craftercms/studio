@@ -18,7 +18,6 @@
 package org.craftercms.studio.api.v1.repository;
 
 
-import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -29,7 +28,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.io.InputStream;
@@ -272,16 +270,6 @@ public interface ContentRepository {
                  String author, String comment) throws DeploymentException;
 
     /**
-     * Get a list of operations since the commit ID provided (compare that commit to HEAD)
-     *
-     * @param site         site to use
-     * @param commitIdFrom commit ID to start at
-     * @param commitIdTo   commit ID to end at
-     * @return commit ID of current HEAD, updated operationsSinceCommit
-     */
-    List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo);
-
-    /**
      * Get last commit id from repository for given site.
      *
      * @param site site id
@@ -317,23 +305,7 @@ public interface ContentRepository {
      */
     boolean commitIdExists(String site, String commitId);
 
-    /**
-     * Get git log object from database
-     *
-     * @param siteId   site id
-     * @param commitId commit ID
-     * @return git log object
-     */
-    GitLog getGitLog(String siteId, String commitId);
 
-    /**
-     * Insert Git Log
-     *
-     * @param siteId    site
-     * @param commitId  commit ID
-     * @param processed processed
-     */
-    void insertGitLog(String siteId, String commitId, int processed);
 
     /**
      * Insert Full Git Log
@@ -342,14 +314,6 @@ public interface ContentRepository {
      * @param processed processed
      */
     void insertFullGitLog(String siteId, int processed);
-
-    /**
-     * Mark Git log as verified
-     *
-     * @param siteId   site identifier
-     * @param commitId commit id
-     */
-    void markGitLogVerifiedProcessed(String siteId, String commitId);
 
     /**
      * Delete Git log for site

@@ -78,11 +78,6 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="gitLogMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.GitLogMapper" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
-    </bean>
-
     <bean id="itemMetadataMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.ItemMetadataMapper" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
@@ -145,6 +140,11 @@
 
     <bean id="publishRequestDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.PublishRequestDAO" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="gitLogDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.GitLogDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
