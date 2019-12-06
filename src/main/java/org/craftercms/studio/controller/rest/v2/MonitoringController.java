@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MONITORING_AUTHORIZATION_TOKEN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_EVENTS;
 
 /**
@@ -60,7 +60,7 @@ public class MonitoringController extends MonitoringRestControllerBase {
 
     @Override
     protected String getConfiguredToken() {
-        return studioConfiguration.getProperty(CONFIGURATION_MONITORING_AUTHORIZATION_TOKEN);
+        return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
     }
 
     public StudioConfiguration getStudioConfiguration() {
