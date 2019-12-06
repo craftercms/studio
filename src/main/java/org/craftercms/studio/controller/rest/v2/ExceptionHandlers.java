@@ -18,7 +18,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.craftercms.commons.exceptions.InvalidMonitoringTokenException;
+import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
@@ -311,10 +311,10 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(InvalidMonitoringTokenException.class)
+    @ExceptionHandler(InvalidManagementTokenException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseBody handleInvalidMonitoringTokenException(HttpServletRequest request,
-                                                              InvalidMonitoringTokenException e) {
+                                                              InvalidManagementTokenException e) {
         ApiResponse response = new ApiResponse(ApiResponse.UNAUTHORIZED);
         return handleExceptionInternal(request, e, response);
     }
