@@ -54,7 +54,7 @@ public class MonitoringController extends MonitoringRestControllerBase {
             result.setEntities(RESULT_KEY_EVENTS, CircularQueueLogAppender.getLoggedEvents("craftercms", since));
             return result;
         } else {
-            throw new InvalidMonitoringTokenException("Invalid token for monitoring authorization");
+            throw new InvalidMonitoringTokenException("Monitoring authorization failed, invalid token.");
         }
     }
 
