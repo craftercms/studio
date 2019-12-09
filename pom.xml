@@ -543,7 +543,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.370</version>
+                <version>1.11.435</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -734,6 +734,7 @@
                                 <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
                                 <exclude>/WEB-INF/lib/aws-java-sdk-kms-1.11.435.jar</exclude>
                                 <exclude>/WEB-INF/lib/aws-java-sdk-core-1.11.435.jar</exclude>
+                                <exclude>/WEB-INF/classes/crafter/engine/services/security-context.xml</exclude>
                             </excludes>
                         </overlay>
                     </overlays>

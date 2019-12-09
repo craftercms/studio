@@ -1243,7 +1243,6 @@ configurations:
             path: *webdav
             template: crafter/studio/upgrade/update-version.xslt
 
-
   notification-config:
     path: &notification-config '/config/studio/workflow/notification-config.xml'
     pipeline:
@@ -1270,4 +1269,18 @@ configurations:
             commitDetails: Add new properties
           - type: xsltFileUpgrader
             path: *code-editor-config
+            template: crafter/studio/upgrade/update-version.xslt
+
+  engine-site-config:
+    path: &engine-site-config '/config/engine/site-config.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *engine-site-config
+            template: crafter/studio/upgrade/3.1.x/config/engine-site-config/engine-site-config-v2.xslt
+            commitDetails: Update security configuration
+          - type: xsltFileUpgrader
+            path: *engine-site-config
             template: crafter/studio/upgrade/update-version.xslt
