@@ -313,7 +313,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(InvalidManagementTokenException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseBody handleInvalidMonitoringTokenException(HttpServletRequest request,
+    public ResponseBody handleInvalidManagementTokenException(HttpServletRequest request,
                                                               InvalidManagementTokenException e) {
         ApiResponse response = new ApiResponse(ApiResponse.UNAUTHORIZED);
         return handleExceptionInternal(request, e, response);
