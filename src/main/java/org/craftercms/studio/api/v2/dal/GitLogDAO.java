@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v2.dal;
 
 import java.util.Map;
 
-public interface GitLogMapper {
+public interface GitLogDAO {
 
     GitLog getGitLog(Map params);
 

@@ -50,7 +50,6 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,8 +58,8 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
-import org.craftercms.studio.api.v1.dal.GitLog;
-import org.craftercms.studio.api.v1.dal.GitLogMapper;
+import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
@@ -83,7 +82,6 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -105,12 +103,10 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -133,11 +129,9 @@ import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -147,11 +141,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.RepoOperation.COPY;
-import static org.craftercms.studio.api.v1.constant.RepoOperation.CREATE;
-import static org.craftercms.studio.api.v1.constant.RepoOperation.DELETE;
-import static org.craftercms.studio.api.v1.constant.RepoOperation.MOVE;
-import static org.craftercms.studio.api.v1.constant.RepoOperation.UPDATE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -178,7 +167,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_MOVE_C
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_WRITE_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
@@ -212,7 +200,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected ServletContext ctx;
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
-    protected GitLogMapper gitLogMapper;
+    protected GitLogDAO gitLogDao;
     protected RemoteRepositoryDAO remoteRepositoryDAO;
     protected UserServiceInternal userServiceInternal;
     protected SecurityService securityService;
@@ -1327,147 +1315,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    @Override
-    public List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo) {
-        List<RepoOperationTO> operations = new ArrayList<>();
-        Repository repository =
-                helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-        if (repository != null) {
-            synchronized (repository) {
-                try {
-                    // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-                    boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
-                    String firstCommitId = getRepoFirstCommitId(site);
-                    if (fromEmptyRepo) {
-                        commitIdFrom = firstCommitId;
-                    }
-                    Repository repo = helper.getRepository(site, SANDBOX);
-                    ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
-                    ObjectId objCommitIdTo = repo.resolve(commitIdTo);
-
-                    ObjectId objFirstCommitId = repo.resolve(firstCommitId);
-                    boolean initialEqToCommit = StringUtils.equals(firstCommitId, commitIdTo);
-                    boolean initialEqFromCommit = StringUtils.equals(firstCommitId, commitIdFrom);
-
-                    try (Git git = new Git(repo)) {
-
-                        if (fromEmptyRepo) {
-                            try (RevWalk walk = new RevWalk(repo)) {
-                                RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                                try (ObjectReader reader = repo.newObjectReader()) {
-                                    CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                                    firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                                    // Diff the two commit Ids
-                                    List<DiffEntry> diffEntries = git.diff()
-                                            .setOldTree(firstCommitTreeParser)
-                                            .setNewTree(null)
-                                            .call();
-
-
-                                    // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                    // and add them to the list of RepoOperations to return to the caller
-                                    // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                    // convert to java date before sending over
-                                    operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(),
-                                            firstCommit.getCommitterIdent().getName(),
-                                            Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(UTC)));
-                                }
-                            }
-                        }
-
-                        // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                        // let's do it
-                        if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                            // Compare HEAD with commitId we're given
-                            // Get list of commits between commitId and HEAD in chronological order
-
-                            // Get the log of all the commits between commitId and head
-                            Iterable<RevCommit> commits = git.log().addRange(objCommitIdFrom, objCommitIdTo).call();
-
-                            // Loop through through the commits and diff one from the next util head
-                            ObjectId prevCommitId = objCommitIdFrom;
-                            ObjectId nextCommitId = objCommitIdFrom;
-                            String author = EMPTY;
-
-                            // Reverse orders of commits
-                            // TODO: DB: try to find better algorithm
-                            Iterator<RevCommit> iterator = commits.iterator();
-                            List<RevCommit> revCommits = new ArrayList<RevCommit>();
-                            while (iterator.hasNext()) {
-
-                                RevCommit commit = iterator.next();
-                                revCommits.add(commit);
-                            }
-
-                            ReverseListIterator<RevCommit> reverseIterator = new ReverseListIterator<RevCommit>(revCommits);
-                            while (reverseIterator.hasNext()) {
-
-                                RevCommit commit = reverseIterator.next();
-
-                                if (StringUtils.contains(commit.getFullMessage(),
-                                        studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING))) {
-                                    prevCommitId = commit.getId();
-                                    logger.debug("Skipping commitId: " + prevCommitId.getName() + " for site "
-                                            + site + " because it is marked not to be processed.");
-                                    GitLog gitLog = getGitLog(site, prevCommitId.getName());
-                                    if (gitLog != null) {
-                                        markGitLogVerifiedProcessed(site, prevCommitId.getName());
-                                    } else {
-                                        insertGitLog(site, prevCommitId.getName(), 1);
-                                    }
-                                    updateLastVerifiedGitlogCommitId(site, prevCommitId.getName());
-                                } else {
-                                    nextCommitId = commit.getId();
-                                    if (commit.getAuthorIdent() != null) {
-                                        author = commit.getAuthorIdent().getName();
-                                    }
-                                    if (StringUtils.isEmpty(author)) {
-                                        author = commit.getCommitterIdent().getName();
-                                    }
-
-                                    RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
-                                    RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
-                                    if (prevTree != null && nextTree != null) {
-                                        try (ObjectReader reader = repo.newObjectReader()) {
-                                            CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-                                            CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-                                            prevCommitTreeParser.reset(reader, prevTree.getId());
-                                            nextCommitTreeParser.reset(reader, nextTree.getId());
-
-                                            // Diff the two commit Ids
-                                            List<DiffEntry> diffEntries = git.diff()
-                                                    .setOldTree(prevCommitTreeParser)
-                                                    .setNewTree(nextCommitTreeParser)
-                                                    .call();
-
-
-                                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                            // and add them to the list of RepoOperations to return to the caller
-                                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                            // convert to java date before sending over
-                                            operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
-                                                    Instant.ofEpochSecond(commit.getCommitTime()).atZone(UTC)));
-                                            prevCommitId = nextCommitId;
-                                        }
-                                    }
-                                }
-                            }
-
-                        }
-                    } catch (GitAPIException e) {
-                        logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom
-                                + " to commit ID: " + commitIdTo, e);
-                    }
-                } catch (IOException e) {
-                    logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
-                            " to commit ID: " + commitIdTo, e);
-                }
-            }
-        }
-
-        return operations;
-    }
-
     private void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
@@ -1521,45 +1368,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
         }
 
-        return toReturn;
-    }
-
-    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, String author,
-                                                   ZonedDateTime commitTime) {
-        List<RepoOperationTO> toReturn = new ArrayList<RepoOperationTO>();
-
-        for (DiffEntry diffEntry : diffEntries) {
-
-            // Update the paths to have a preceding separator
-            String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
-            String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
-
-            RepoOperationTO repoOperation = null;
-            switch (diffEntry.getChangeType()) {
-                case ADD:
-                    repoOperation = new RepoOperationTO(CREATE, pathNew, commitTime, null, commitId.getName());
-                    break;
-                case MODIFY:
-                    repoOperation = new RepoOperationTO(UPDATE, pathNew, commitTime, null, commitId.getName());
-                    break;
-                case DELETE:
-                    repoOperation = new RepoOperationTO(DELETE, pathOld, commitTime, null, commitId.getName());
-                    break;
-                case RENAME:
-                    repoOperation = new RepoOperationTO(MOVE, pathOld, commitTime, pathNew, commitId.getName());
-                    break;
-                case COPY:
-                    repoOperation = new RepoOperationTO(COPY, pathNew, commitTime, null, commitId.getName());
-                    break;
-                default:
-                    logger.error("Error: Unknown git operation " + diffEntry.getChangeType());
-                    break;
-            }
-            if ((repoOperation != null) && (!repoOperation.getPath().endsWith(".keep"))) {
-                repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" : author);
-                toReturn.add(repoOperation);
-            }
-        }
         return toReturn;
     }
 
@@ -1715,33 +1523,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toRet;
     }
 
-    @Override
-    public GitLog getGitLog(String siteId, String commitId) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", siteId);
-        params.put("commitId", commitId);
-        return gitLogMapper.getGitLog(params);
-    }
-
-    @Override
-    public void insertGitLog(String siteId, String commitId, int processed) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", siteId);
-        params.put("commitId", commitId);
-        params.put("processed", processed);
-        try {
-            gitLogMapper.insertGitLog(params);
-        } catch (DuplicateKeyException e) {
-            logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId + " into" +
-                    " gitlog table, because it is duplicate entry. Marking it as not processed so it can be" +
-                    " processed by sync database task.");
-            params = new HashMap<String, Object>();
-            params.put("siteId", siteId);
-            params.put("commitId", commitId);
-            params.put("processed", 0);
-            gitLogMapper.markGitLogProcessed(params);
-        }
-    }
 
     @Override
     public void insertFullGitLog(String siteId, int processed) {
@@ -1767,23 +1548,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         params.put("siteId", siteId);
         params.put("gitLogs", gitLogs);
         params.put("processed", 1);
-        gitLogMapper.insertGitLogList(params);
+        gitLogDao.insertGitLogList(params);
     }
 
-    @Override
-    public void markGitLogVerifiedProcessed(String siteId, String commitId) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", siteId);
-        params.put("commitId", commitId);
-        params.put("processed", 1);
-        gitLogMapper.markGitLogProcessed(params);
-    }
 
     @Override
     public void deleteGitLogForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
-        gitLogMapper.deleteGitLogForSite(params);
+        gitLogDao.deleteGitLogForSite(params);
     }
 
     @Override
@@ -2488,12 +2261,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.servicesConfig = servicesConfig;
     }
 
-    public GitLogMapper getGitLogMapper() {
-        return gitLogMapper;
+    public GitLogDAO getGitLogDao() {
+        return gitLogDao;
     }
 
-    public void setGitLogMapper(GitLogMapper gitLogMapper) {
-        this.gitLogMapper = gitLogMapper;
+    public void setGitLogDao(GitLogDAO gitLogDao) {
+        this.gitLogDao = gitLogDao;
     }
 
     public RemoteRepositoryDAO getRemoteRepositoryDAO() {
