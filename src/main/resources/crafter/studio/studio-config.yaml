@@ -144,6 +144,9 @@ studio.configuration.site.defaultPreviewUrl: ^https?://localhost:8080/?
 studio.configuration.site.defaultAuthoringUrl: ^https?://localhost:8080/studio/?
 # Default GraphQL server URL
 studio.configuration.site.defaultGraphqlServerUrl: ^https?://localhost:8080/?
+# Studio management authorization token.
+# Please update this per installation and provide this token to the status monitors.
+studio.configuration.management.authorizationToken: defaultManagementToken
 
 ########################################################
 ##                   Import Service                   ##

@@ -18,6 +18,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
@@ -307,6 +308,14 @@ public class ExceptionHandlers {
     public ResponseBody handleMethodArgumentTypeMismatchException(HttpServletRequest request,
                                                                   MethodArgumentTypeMismatchException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(InvalidManagementTokenException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseBody handleInvalidManagementTokenException(HttpServletRequest request,
+                                                              InvalidManagementTokenException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.UNAUTHORIZED);
         return handleExceptionInternal(request, e, response);
     }
 
