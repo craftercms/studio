@@ -19,8 +19,12 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
+import org.craftercms.commons.monitoring.MemoryInfo;
+import org.craftercms.commons.monitoring.StatusInfo;
+import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase;
 import org.craftercms.engine.util.logging.CircularQueueLogAppender;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
@@ -29,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
@@ -44,11 +49,46 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 public class MonitoringController extends MonitoringRestControllerBase {
 
     private StudioConfiguration studioConfiguration;
+    private SecurityService securityService;
+
+    @GetMapping(ROOT_URL + MEMORY_URL)
+    public MemoryInfo getCurrentMemory(@RequestParam(name = "token", required = false) String token)
+            throws InvalidManagementTokenException {
+        if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
+                (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
+            return MemoryInfo.getCurrentMemory();
+        } else {
+            throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
+        }
+    }
+
+    @GetMapping(ROOT_URL + STATUS_URL)
+    public StatusInfo getCurrentStatus(@RequestParam(name = "token", required = false) String token)
+            throws InvalidManagementTokenException {
+        if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
+                (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
+            return StatusInfo.getCurrentStatus();
+        } else {
+            throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
+        }
+    }
+
+    @GetMapping(ROOT_URL + VERSION_URL)
+    public VersionInfo getCurrentVersion(@RequestParam(name = "token", required = false) String token)
+            throws InvalidManagementTokenException, IOException {
+        if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
+                (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
+            return VersionInfo.getVersion(this.getClass());
+        } else {
+            throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
+        }
+    }
 
     @GetMapping(ROOT_URL + LOG_URL)
     public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since, @RequestParam String token)
             throws InvalidManagementTokenException {
-        if (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken())) {
+        if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
+                (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
             ResultList<Map<String, Object>> result = new ResultList<>();
             result.setResponse(ApiResponse.OK);
             result.setEntities(RESULT_KEY_EVENTS, CircularQueueLogAppender.getLoggedEvents("craftercms", since));
@@ -69,5 +109,13 @@ public class MonitoringController extends MonitoringRestControllerBase {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 }
