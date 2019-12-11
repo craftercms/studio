@@ -80,6 +80,7 @@
 
     <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">
         <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">
