@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,6 +40,10 @@ import java.util.Map;
 import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_EVENTS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MEMORY;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_STAUS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_VERSION;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Rest controller to provide monitoring information
@@ -46,45 +51,59 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
  */
 @RestController
 @RequestMapping("/api/2")
-public class MonitoringController extends MonitoringRestControllerBase {
+public class MonitoringController {
+
+    public final static String ROOT_URL = "/monitoring";
+    public final static String MEMORY_URL = "/memory";
+    public final static String STATUS_URL = "/status";
+    public final static String VERSION_URL = "/version";
 
     private StudioConfiguration studioConfiguration;
     private SecurityService securityService;
 
-    @GetMapping(ROOT_URL + MEMORY_URL)
-    public MemoryInfo getCurrentMemory(@RequestParam(name = "token", required = false) String token)
+    @GetMapping(value = ROOT_URL + MEMORY_URL)
+    public ResultOne<MemoryInfo> getCurrentMemory(@RequestParam(name = "token", required = false) String token)
             throws InvalidManagementTokenException {
         if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
                 (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
-            return MemoryInfo.getCurrentMemory();
+            ResultOne<MemoryInfo> result = new ResultOne<>();
+            result.setResponse(ApiResponse.OK);
+            result.setEntity(RESULT_KEY_MEMORY, MemoryInfo.getCurrentMemory());
+            return result;
         } else {
             throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
         }
     }
 
-    @GetMapping(ROOT_URL + STATUS_URL)
-    public StatusInfo getCurrentStatus(@RequestParam(name = "token", required = false) String token)
+    @GetMapping(value = ROOT_URL + STATUS_URL)
+    public ResultOne<StatusInfo> getCurrentStatus(@RequestParam(name = "token", required = false) String token)
             throws InvalidManagementTokenException {
         if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
                 (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
-            return StatusInfo.getCurrentStatus();
+            ResultOne<StatusInfo> result = new ResultOne<>();
+            result.setResponse(ApiResponse.OK);
+            result.setEntity(RESULT_KEY_STAUS, StatusInfo.getCurrentStatus());
+            return result;
         } else {
             throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
         }
     }
 
-    @GetMapping(ROOT_URL + VERSION_URL)
-    public VersionInfo getCurrentVersion(@RequestParam(name = "token", required = false) String token)
+    @GetMapping(value = ROOT_URL + VERSION_URL)
+    public ResultOne<VersionInfo> getCurrentVersion(@RequestParam(name = "token", required = false) String token)
             throws InvalidManagementTokenException, IOException {
         if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
                 (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
-            return VersionInfo.getVersion(this.getClass());
+            ResultOne<VersionInfo> result = new ResultOne<>();
+            result.setResponse(ApiResponse.OK);
+            result.setEntity(RESULT_KEY_VERSION, VersionInfo.getVersion(getClass()));
+            return result;
         } else {
             throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
         }
     }
 
-    @GetMapping(ROOT_URL + LOG_URL)
+    @GetMapping(value = ROOT_URL + LOG_URL, produces = APPLICATION_JSON_VALUE)
     public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since, @RequestParam String token)
             throws InvalidManagementTokenException {
         if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
@@ -98,7 +117,6 @@ public class MonitoringController extends MonitoringRestControllerBase {
         }
     }
 
-    @Override
     protected String getConfiguredToken() {
         return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
     }
