@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.aws.mediaconvert;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfileMapper;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
@@ -57,8 +58,8 @@ public class MediaConvertProfileMapper extends AbstractAwsProfileMapper<MediaCon
     public static final String CONFIG_KEY_TEMPLATE = "template";
     public static final String CONFIG_KEY_INPUT_PATH = "inputPath";
 
-    public MediaConvertProfileMapper() {
-        super(CONFIG_KEY_MEDIACONVERT);
+    public MediaConvertProfileMapper(final EncryptionAwareConfigurationReader configurationReader) {
+        super(CONFIG_KEY_MEDIACONVERT, configurationReader);
     }
 
     @Override
