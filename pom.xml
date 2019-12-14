@@ -16,915 +16,939 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>org.craftercms</groupId>
-    <artifactId>crafter-studio</artifactId>
-    <name>Crafter Studio</name>
-    <description>Crafter Content Authoring Application</description>
-    <url>https://github.com/craftercms/studio</url>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.craftercms</groupId>
+  <artifactId>crafter-studio</artifactId>
+  <name>Crafter Studio</name>
+  <description>Crafter Content Authoring Application</description>
+  <url>https://github.com/craftercms/studio</url>
 
-    <packaging>war</packaging>
-    <version>3.1.5-SNAPSHOT</version><!-- craftercms version flag -->
-    <organization>
-        <name>CrafterCMS</name>
-        <url>http://craftercms.org</url>
-    </organization>
+  <packaging>war</packaging>
+  <version>3.1.5-SNAPSHOT</version><!-- craftercms version flag -->
+  <organization>
+    <name>CrafterCMS</name>
+    <url>http://craftercms.org</url>
+  </organization>
 
-    <properties>
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tika.version>1.5</tika.version>
-        <mockito.version>1.9.5</mockito.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
-        <testng.version>6.9.10</testng.version>
-        <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
-        <studio.ui.node.version>v10.16.0</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.16.0</studio.ui.yarn.version>
-        <spring.version>4.3.18.RELEASE</spring.version>
-        <spring.security.version>4.2.13.RELEASE</spring.security.version>
-        <spring.data.version>2.0.9.RELEASE</spring.data.version>
-        <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
-        <box.sdk.version>2.25.1</box.sdk.version>
-        <tinify.version>1.5.1</tinify.version>
-        <mariadb4j.version>2.4.2.3</mariadb4j.version>
-        <jackson.version>2.9.10</jackson.version>
-        <jackson.databind.version>2.9.10.1</jackson.databind.version>
-        <bouncycastle.version>1.60</bouncycastle.version>
-        <sardine.version>5.9</sardine.version>
-        <saxon.version>9.8.0-14</saxon.version>
-        <apache.cxf.version>3.1.18</apache.cxf.version>
-        <nekohtml.version>1.9.22</nekohtml.version>
-        <xerces.version>2.12.0</xerces.version>
-    </properties>
+  <properties>
+    <java.version>1.8</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <tika.version>1.5</tika.version>
+    <mockito.version>1.9.5</mockito.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
+    <testng.version>6.9.10</testng.version>
+    <studio.ui.path>target/ui/</studio.ui.path>
+    <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
+    <studio.ui.node.version>v10.16.0</studio.ui.node.version>
+    <studio.ui.yarn.version>v1.16.0</studio.ui.yarn.version>
+    <spring.version>4.3.18.RELEASE</spring.version>
+    <spring.security.version>4.2.13.RELEASE</spring.security.version>
+    <spring.data.version>2.0.9.RELEASE</spring.data.version>
+    <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
+    <box.sdk.version>2.25.1</box.sdk.version>
+    <tinify.version>1.5.1</tinify.version>
+    <mariadb4j.version>2.4.2.3</mariadb4j.version>
+    <jackson.version>2.9.10</jackson.version>
+    <jackson.databind.version>2.9.10.1</jackson.databind.version>
+    <bouncycastle.version>1.60</bouncycastle.version>
+    <sardine.version>5.9</sardine.version>
+    <saxon.version>9.8.0-14</saxon.version>
+    <apache.cxf.version>3.1.18</apache.cxf.version>
+    <nekohtml.version>1.9.22</nekohtml.version>
+    <xerces.version>2.12.0</xerces.version>
+  </properties>
 
-    <licenses>
-        <license>
-            <name>GNU GENERAL PUBLIC LICENSE, Version 3</name>
-            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+  <licenses>
+    <license>
+      <name>GNU GENERAL PUBLIC LICENSE, Version 3</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
-    <developers>
-        <developer>
-            <id>sumerjabri</id>
-            <name>Sumer Jabri</name>
-            <email>sumer.jabri@craftercms.org</email>
-        </developer>
-        <developer>
-            <name>Russ Danner</name>
-            <email>russ.danner@craftercms.org</email>
-        </developer>
-        <developer>
-            <id>dejanbrkic</id>
-            <name>Dejan Brkic</name>
-            <email>dejan.brkic@craftercms.org</email>
-        </developer>
-    </developers>
-    <scm>
-        <connection>scm:git:git://github.com/craftercms/studio</connection>
-        <developerConnection>scm:git:git://github.com/craftercms/studio</developerConnection>
-        <url>scm:git:git://github.com/craftercms/studio</url>
-    </scm>
+  <developers>
+    <developer>
+      <id>sumerjabri</id>
+      <name>Sumer Jabri</name>
+      <email>sumer.jabri@craftercms.org</email>
+    </developer>
+    <developer>
+      <name>Russ Danner</name>
+      <email>russ.danner@craftercms.org</email>
+    </developer>
+    <developer>
+      <id>dejanbrkic</id>
+      <name>Dejan Brkic</name>
+      <email>dejan.brkic@craftercms.org</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/craftercms/studio</connection>
+    <developerConnection>scm:git:git://github.com/craftercms/studio</developerConnection>
+    <url>scm:git:git://github.com/craftercms/studio</url>
+  </scm>
 
 
-    <repositories>
-        <repository>
-            <id>sonatype-snapshots</id>
-            <name>sonatype Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-        </repository>
+  <repositories>
+    <repository>
+      <id>sonatype-snapshots</id>
+      <name>sonatype Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+    </repository>
 
-        <repository>
-            <id>jgit-snapshot-repository</id>
-            <url>https://repo.eclipse.org/content/groups/jgit/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+    <repository>
+      <id>jgit-snapshot-repository</id>
+      <url>https://repo.eclipse.org/content/groups/jgit/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
+  <dependencies>
+    <!-- Servlet -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Crafter Engine -->
+    <dependency>
+      <groupId>org.craftercms</groupId>
+      <artifactId>crafter-engine</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.craftercms</groupId>
+      <artifactId>crafter-engine</artifactId>
+      <version>${project.version}</version>
+      <classifier>classes</classifier>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.craftercms</groupId>
+      <artifactId>crafter-commons-git</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.craftercms</groupId>
+      <artifactId>crafter-commons-security</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.craftercms</groupId>
+      <artifactId>crafter-commons-plugin</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Database DALs -->
+    <dependency>
+      <groupId>org.apache.ibatis</groupId>
+      <artifactId>ibatis-sqlmap</artifactId>
+      <version>2.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis-spring</artifactId>
+      <version>1.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>3.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-core</artifactId>
+      <version>${spring.security.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-aop</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-expression</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-config</artifactId>
+      <version>${spring.security.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-aop</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-web</artifactId>
+      <version>${spring.security.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-web</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-expression</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.transaction</groupId>
+      <artifactId>jta</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-dbcp2</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sf.json-lib</groupId>
+      <artifactId>json-lib</artifactId>
+      <version>2.4</version>
+      <classifier>jdk15</classifier>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-beanutils</artifactId>
+          <groupId>commons-beanutils</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- collections -->
+
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <version>2.3.23</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+      <version>1.3.3</version>
+    </dependency>
+
+    <!-- JGit -->
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>5.4.0.201906121030-r</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15on</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- testing -->
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>${testng.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.17</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.restassured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <version>2.4.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- MariaDB -->
+    <dependency>
+      <groupId>org.craftercms.mariaDB4j</groupId>
+      <artifactId>mariaDB4j</artifactId>
+      <version>${mariadb4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+      <version>1.5.8</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>1.7.23</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.23</version>
+    </dependency>
+
+    <!-- LDAP -->
+    <dependency>
+      <groupId>org.springframework.ldap</groupId>
+      <artifactId>spring-ldap-core</artifactId>
+      <version>${spring.ldap.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-expression</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-ldap</artifactId>
+      <version>${spring.security.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-expression</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-commons</artifactId>
+      <version>${spring.data.version}</version>
+    </dependency>
+
+    <!-- Apache Chemistry (for CMIS) -->
+    <dependency>
+      <groupId>org.apache.chemistry.opencmis</groupId>
+      <artifactId>chemistry-opencmis-client-impl</artifactId>
+      <version>1.1.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxws</artifactId>
+      <version>${apache.cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http</artifactId>
+      <version>${apache.cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-ws-policy</artifactId>
+      <version>${apache.cxf.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.databind.version}</version>
+    </dependency>
+
+    <!-- AWS SDK -->
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-elastictranscoder</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-mediaconvert</artifactId>
+    </dependency>
+    <!-- Box SDK -->
+    <dependency>
+      <groupId>com.box</groupId>
+      <artifactId>box-java-sdk</artifactId>
+      <version>${box.sdk.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15on</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcpkix-jdk15on</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- WebDAV Client -->
+    <dependency>
+      <groupId>com.github.lookfirst</groupId>
+      <artifactId>sardine</artifactId>
+      <version>${sardine.version}</version>
+    </dependency>
+
+    <!-- Saxon (to support XSLT 2.0) -->
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-HE</artifactId>
+      <version>${saxon.version}</version>
+    </dependency>
+
+    <!-- BouncyCastle Provider -->
+    <!-- This is required by the Box SDK but it uses an older version -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk15on</artifactId>
+      <version>${bouncycastle.version}</version>
+    </dependency>
+
+    <!-- Tinify -->
+    <dependency>
+      <groupId>com.tinify</groupId>
+      <artifactId>tinify</artifactId>
+      <version>${tinify.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sourceforge.nekohtml</groupId>
+      <artifactId>nekohtml</artifactId>
+      <version>${nekohtml.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>xerces</groupId>
+          <artifactId>xercesImpl</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>${xerces.version}</version>
+    </dependency>
+  </dependencies>
+
+  <dependencyManagement>
     <dependencies>
-        <!-- Servlet -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Crafter Engine -->
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-engine</artifactId>
-            <version>${project.version}</version>
-            <type>war</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-engine</artifactId>
-            <version>${project.version}</version>
-            <classifier>classes</classifier>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-git</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-security</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-plugin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- Database DALs -->
-        <dependency>
-            <groupId>org.apache.ibatis</groupId>
-            <artifactId>ibatis-sqlmap</artifactId>
-            <version>2.3.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis-spring</artifactId>
-            <version>1.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.4.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-dbcp2</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
-            <version>2.4</version>
-            <classifier>jdk15</classifier>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-beanutils</artifactId>
-                    <groupId>commons-beanutils</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- collections -->
-
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>2.3.23</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>1.3.3</version>
-        </dependency>
-
-        <!-- JGit -->
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit</artifactId>
-            <version>5.4.0.201906121030-r</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- testing -->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.17</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>2.4.1</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- MariaDB -->
-        <dependency>
-            <groupId>org.craftercms.mariaDB4j</groupId>
-            <artifactId>mariaDB4j</artifactId>
-            <version>${mariadb4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>1.5.8</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.23</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.23</version>
-        </dependency>
-
-        <!-- LDAP -->
-        <dependency>
-            <groupId>org.springframework.ldap</groupId>
-            <artifactId>spring-ldap-core</artifactId>
-            <version>${spring.ldap.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-ldap</artifactId>
-            <version>${spring.security.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-commons</artifactId>
-            <version>${spring.data.version}</version>
-        </dependency>
-
-        <!-- Apache Chemistry (for CMIS) -->
-        <dependency>
-            <groupId>org.apache.chemistry.opencmis</groupId>
-            <artifactId>chemistry-opencmis-client-impl</artifactId>
-            <version>1.1.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <version>${apache.cxf.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-http</artifactId>
-            <version>${apache.cxf.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-ws-policy</artifactId>
-            <version>${apache.cxf.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.databind.version}</version>
-        </dependency>
-
-        <!-- AWS SDK -->
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-elastictranscoder</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-mediaconvert</artifactId>
-        </dependency>
-        <!-- Box SDK -->
-        <dependency>
-            <groupId>com.box</groupId>
-            <artifactId>box-java-sdk</artifactId>
-            <version>${box.sdk.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcpkix-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- WebDAV Client -->
-        <dependency>
-            <groupId>com.github.lookfirst</groupId>
-            <artifactId>sardine</artifactId>
-            <version>${sardine.version}</version>
-        </dependency>
-
-        <!-- Saxon (to support XSLT 2.0) -->
-        <dependency>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-            <version>${saxon.version}</version>
-        </dependency>
-
-        <!-- BouncyCastle Provider -->
-        <!-- This is required by the Box SDK but it uses an older version -->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
-            <version>${bouncycastle.version}</version>
-        </dependency>
-
-        <!-- Tinify -->
-        <dependency>
-            <groupId>com.tinify</groupId>
-            <artifactId>tinify</artifactId>
-            <version>${tinify.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sourceforge.nekohtml</groupId>
-            <artifactId>nekohtml</artifactId>
-            <version>${nekohtml.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xercesImpl</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>${xerces.version}</version>
-        </dependency>
+      <!-- AWS SDK -->
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-bom</artifactId>
+        <version>1.11.370</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
+  </dependencyManagement>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- AWS SDK -->
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.370</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+  <build>
+    <finalName>studio</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>overlays/</directory>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <inherited>false</inherited> <!-- only execute these in the parent -->
+        <version>1.5.0</version>
+        <executions>
+          <execution>
+            <id>git get ui</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <executable>git</executable>
+              <arguments>
+                <argument>clone</argument>
+                <argument>--depth</argument>
+                <argument>1</argument>
+                <argument>-b</argument>
+                <argument>${studio.ui.version}</argument>
+                <argument>https://github.com/craftercms/studio-ui.git</argument>
+                <argument>${studio.ui.path}</argument>
+              </arguments>
+            </configuration>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.7.6</version>
+        <configuration>
+          <nodeVersion>${studio.ui.node.version}</nodeVersion>
+          <yarnVersion>${studio.ui.yarn.version}</yarnVersion>
+          <installDirectory>target</installDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>install node and yarn</id>
+            <goals>
+              <goal>install-node-and-yarn</goal>
+            </goals>
+            <phase>prepare-package</phase>
+          </execution>
+          <execution>
+            <id>yarn install sass</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>yarn build sass</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
+              <arguments>run build</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>yarn install react</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>yarn build react</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
+              <arguments>build</arguments>
+            </configuration>
+          </execution>
 
-    <build>
-        <finalName>studio</finalName>
+          <execution>
+            <id>install legacy hybrid deps</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build legacy hybrid files</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
+              <arguments>build</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>Java Code</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>create</goal>
+              <goal>create-timestamp</goal>
+            </goals>
+            <configuration>
+              <doCheck>false</doCheck>
+              <doUpdate>false</doUpdate>
+              <revisionOnScmFailure>unknown</revisionOnScmFailure>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>process-resources</phase>
+            <id>UI-Version</id>
+            <goals>
+              <goal>create</goal>
+              <goal>create-timestamp</goal>
+            </goals>
+            <configuration>
+              <doCheck>false</doCheck>
+              <doUpdate>false</doUpdate>
+              <revisionOnScmFailure>unknown</revisionOnScmFailure>
+              <scmDirectory>${studio.ui.path}</scmDirectory>
+              <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <attachClasses>true</attachClasses>
+          <warSourceExcludes>**/crafterTemplateRepository/</warSourceExcludes>
+          <workDirectory>target/overlay-war-folder</workDirectory>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Implementation-Build>${buildNumber}</Implementation-Build>
+              <Build-On>${timestamp}</Build-On>
+            </manifestEntries>
+          </archive>
+          <overlays>
+            <overlay>
+              <groupId>org.craftercms</groupId>
+              <artifactId>crafter-engine</artifactId>
+              <excludes>
+                <!--&lt;!&ndash; when udpdating ROOT base check here to see if these need to be updated &ndash;&gt;-->
+                <exclude>/WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
+                <exclude>/WEB-INF/lib/httpclient-4.5.2.jar</exclude>
+                <exclude>/WEB-INF/lib/httpcore-4.4.4.jar</exclude>
+                <exclude>/WEB-INF/lib/commons-logging-1.2.jar</exclude>
+                <exclude>/WEB-INF/lib/slf4j-api-1.7.7.jar</exclude>
+                <exclude>/WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
+                <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
+                <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
+                <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
+                <!-- AWS -->
+                <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
+                <exclude>/WEB-INF/lib/aws-java-sdk-kms-1.11.435.jar</exclude>
+                <exclude>/WEB-INF/lib/aws-java-sdk-core-1.11.435.jar</exclude>
+                <exclude>/WEB-INF/classes/crafter/engine/services/security-context.xml</exclude>
+              </excludes>
+            </overlay>
+          </overlays>
+          <webResources>
+            <!-- static-assets -->
+            <resource>
+              <directory>${studio.ui.path}static-assets</directory>
+              <filtering>false</filtering>
+              <targetPath>default-site/static-assets</targetPath>
+            </resource>
+
+            <!-- templates -->
+            <resource>
+              <directory>${studio.ui.path}templates</directory>
+              <filtering>true</filtering>
+              <targetPath>default-site/templates</targetPath>
+            </resource>
+
+            <!-- site -->
+            <resource>
+              <directory>${studio.ui.path}site</directory>
+              <filtering>false</filtering>
+              <targetPath>default-site/site</targetPath>
+            </resource>
+
+
+            <resource>
+              <directory>src/main/generated-resources/ftl</directory>
+              <filtering>true</filtering>
+              <targetPath>WEB-INF/templates/system/common</targetPath>
+            </resource>
+
+            <resource>
+              <directory>src/main/generated-resources/rest</directory>
+              <filtering>true</filtering>
+              <targetPath>default-site/scripts/rest</targetPath>
+            </resource>
+
+            <!-- empty blueprint -->
+            <resource>
+              <directory>src/main/webapp/repo-bootstrap/global/blueprints/4000_empty/static-assets/images/screenshots</directory>
+              <filtering>false</filtering>
+              <targetPath>default-site/static-assets/images/blueprints/empty</targetPath>
+            </resource>
+            <!-- headless blog blueprint -->
+            <resource>
+              <directory>src/main/webapp/repo-bootstrap/global/blueprints/5000_headless_blog/static-assets/images/screenshots</directory>
+              <filtering>false</filtering>
+              <targetPath>default-site/static-assets/images/blueprints/headless_blog</targetPath>
+            </resource>
+            <!-- headless store blueprint -->
+            <resource>
+              <directory>src/main/webapp/repo-bootstrap/global/blueprints/2000_headless_store/static-assets/images/screenshots</directory>
+              <filtering>false</filtering>
+              <targetPath>default-site/static-assets/images/blueprints/headless_store</targetPath>
+            </resource>
+            <!-- editorial blueprint -->
+            <resource>
+              <directory>src/main/webapp/repo-bootstrap/global/blueprints/1000_website_editorial/static-assets/images/screenshots</directory>
+              <filtering>false</filtering>
+              <targetPath>default-site/static-assets/images/blueprints/website_editorial</targetPath>
+            </resource>
+
+          </webResources>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18</version>
+        <configuration>
+          <systemPropertyVariables>
+            <application.logs>target/test-logs</application.logs>
+            <crafter.engine.extension.base>classpath*:crafter/studio/extension</crafter.engine.extension.base>
+            <crafter.bin.dir>target/test-resources/bin</crafter.bin.dir>
+          </systemPropertyVariables>
+          <environmentVariables>
+            <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>cloneUI</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+    <profile>
+      <id>JDK8</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
                 <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>overlays/</directory>
-                            <followSymlinks>false</followSymlinks>
-                        </fileset>
-                    </filesets>
+                  <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <inherited>false</inherited> <!-- only execute these in the parent -->
-                <version>1.5.0</version>
-                <executions>
-                    <execution>
-                        <id>git get ui</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <executable>git</executable>
-                            <arguments>
-                                <argument>clone</argument>
-                                <argument>--depth</argument>
-                                <argument>1</argument>
-                                <argument>-b</argument>
-                                <argument>${studio.ui.version}</argument>
-                                <argument>https://github.com/craftercms/studio-ui.git</argument>
-                                <argument>${studio.ui.path}</argument>
-                            </arguments>
-                        </configuration>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.7.6</version>
-                <configuration>
-                    <nodeVersion>${studio.ui.node.version}</nodeVersion>
-                    <yarnVersion>${studio.ui.yarn.version}</yarnVersion>
-                    <installDirectory>target</installDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>install node and yarn</id>
-                        <goals>
-                            <goal>install-node-and-yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                    </execution>
-                    <execution>
-                        <id>yarn install sass</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn build sass</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
-                            <arguments>run build</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn install react</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn build react</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                            <arguments>run build</arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.2</version>
-                <executions>
-                    <execution>
-                        <id>Java Code</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>create</goal>
-                            <goal>create-timestamp</goal>
-                        </goals>
-                        <configuration>
-                            <doCheck>false</doCheck>
-                            <doUpdate>false</doUpdate>
-                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <phase>process-resources</phase>
-                        <id>UI-Version</id>
-                        <goals>
-                            <goal>create</goal>
-                            <goal>create-timestamp</goal>
-                        </goals>
-                        <configuration>
-                            <doCheck>false</doCheck>
-                            <doUpdate>false</doUpdate>
-                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                            <scmDirectory>${studio.ui.path}</scmDirectory>
-                            <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <attachClasses>true</attachClasses>
-                    <warSourceExcludes>**/crafterTemplateRepository/</warSourceExcludes>
-                    <workDirectory>target/overlay-war-folder</workDirectory>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Implementation-Build>${buildNumber}</Implementation-Build>
-                            <Build-On>${timestamp}</Build-On>
-                        </manifestEntries>
-                    </archive>
-                    <overlays>
-                        <overlay>
-                            <groupId>org.craftercms</groupId>
-                            <artifactId>crafter-engine</artifactId>
-                            <excludes>
-                                <!--&lt;!&ndash; when udpdating ROOT base check here to see if these need to be updated &ndash;&gt;-->
-                                <exclude>/WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpclient-4.5.2.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpcore-4.4.4.jar</exclude>
-                                <exclude>/WEB-INF/lib/commons-logging-1.2.jar</exclude>
-                                <exclude>/WEB-INF/lib/slf4j-api-1.7.7.jar</exclude>
-                                <exclude>/WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
-                                <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
-                                <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
-                                <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
-                                <!-- AWS -->
-                                <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
-                                <exclude>/WEB-INF/lib/aws-java-sdk-kms-1.11.435.jar</exclude>
-                                <exclude>/WEB-INF/lib/aws-java-sdk-core-1.11.435.jar</exclude>
-                                <exclude>/WEB-INF/classes/crafter/engine/services/security-context.xml</exclude>
-                            </excludes>
-                        </overlay>
-                    </overlays>
-                    <webResources>
-                        <!-- static-assets -->
-                        <resource>
-                            <directory>${studio.ui.path}static-assets</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets</targetPath>
-                        </resource>
-
-                        <!-- templates -->
-                        <resource>
-                            <directory>${studio.ui.path}templates</directory>
-                            <filtering>true</filtering>
-                            <targetPath>default-site/templates</targetPath>
-                        </resource>
-
-                        <!-- site -->
-                        <resource>
-                            <directory>${studio.ui.path}site</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/site</targetPath>
-                        </resource>
-
-
-                        <resource>
-                            <directory>src/main/generated-resources/ftl</directory>
-                            <filtering>true</filtering>
-                            <targetPath>WEB-INF/templates/system/common</targetPath>
-                        </resource>
-
-                        <resource>
-                            <directory>src/main/generated-resources/rest</directory>
-                            <filtering>true</filtering>
-                            <targetPath>default-site/scripts/rest</targetPath>
-                        </resource>
-
-                        <!-- empty blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/4000_empty/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/empty</targetPath>
-                        </resource>
-                        <!-- headless blog blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/5000_headless_blog/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/headless_blog</targetPath>
-                        </resource>
-                        <!-- headless store blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/2000_headless_store/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/headless_store</targetPath>
-                        </resource>
-                        <!-- editorial blueprint -->
-                        <resource>
-                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/1000_website_editorial/static-assets/images/screenshots</directory>
-                            <filtering>false</filtering>
-                            <targetPath>default-site/static-assets/images/blueprints/website_editorial</targetPath>
-                        </resource>
-
-                    </webResources>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <application.logs>target/test-logs</application.logs>
-                        <crafter.engine.extension.base>classpath*:crafter/studio/extension</crafter.engine.extension.base>
-                        <crafter.bin.dir>target/test-resources/bin</crafter.bin.dir>
-                    </systemPropertyVariables>
-                    <environmentVariables>
-                        <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
-                    </environmentVariables>
-                </configuration>
-            </plugin>
-
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
-    </build>
+      </build>
+    </profile>
 
-    <profiles>
-        <profile>
-            <id>cloneUI</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>JDK8</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.4</version>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                                <configuration>
-                                    <additionalparam>-Xdoclint:none</additionalparam>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>2.7</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
-        <profile>
-            <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <version>2.7</version>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.4</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
 </project>
