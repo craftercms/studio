@@ -104,7 +104,8 @@ public class MonitoringController {
     }
 
     @GetMapping(value = ROOT_URL + LOG_URL, produces = APPLICATION_JSON_VALUE)
-    public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since, @RequestParam String token)
+    public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since,
+                                                       @RequestParam(name = "token", required = false) String token)
             throws InvalidManagementTokenException {
         if (StringUtils.isNotEmpty(securityService.getCurrentUser()) ||
                 (StringUtils.isNotEmpty(token) && StringUtils.equals(token, getConfiguredToken()))) {
