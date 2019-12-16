@@ -678,8 +678,8 @@
                             <arguments>build</arguments>
                         </configuration>
                     </execution>
-                </executions>
                 -->
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
