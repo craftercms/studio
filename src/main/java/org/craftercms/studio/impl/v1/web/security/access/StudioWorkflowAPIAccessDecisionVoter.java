@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -33,8 +34,10 @@ import org.springframework.security.web.FilterInvocation;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
@@ -43,7 +46,7 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
 
     private final static String GO_LIVE = "/api/1/services/api/1/workflow/go-live.json";
     private final static String REJECT = "/api/1/services/api/1/workflow/reject.json";
-    private final static String GO_DELETE = "/api/1/services/api/1/Workflow/go-delete.json";
+    private final static String GO_DELETE = "/api/1/services/api/1/workflow/go-delete.json";
 
     private final static Set<String> URIS_TO_VOTE = new HashSet<String>() {{
         add(GO_LIVE);
@@ -54,7 +57,7 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
     private final static String PUBLISH_PERMISSION = "publish";
     private final static String DELETE_PERMISSION = "delete";
     private final static String DELETE_CONTENT_PERMISSION = "delete_content";
-    private final static String CANCEL_PUBLISH_PERMISSION = "cancel";
+    private final static String CANCEL_PUBLISH_PERMISSION = "cancel_publish";
 
     private final static Set<String> DELETE_PERMISSIONS = new HashSet<String>() {{
         add(DELETE_PERMISSION);
@@ -82,13 +85,13 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
             if (URIS_TO_VOTE.contains(requestUri)) {
                 String userParam = request.getParameter("username");
                 String siteParam = request.getParameter("site_id");
+                List<String> paths = new ArrayList<String>();
                 if (StringUtils.isEmpty(siteParam)) {
                     siteParam = request.getParameter("site");
                 }
                 if (StringUtils.isEmpty(userParam)
                         && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
-                        && !ServletFileUpload.isMultipartContent(request)
-                ) {
+                        && !ServletFileUpload.isMultipartContent(request)) {
                     try {
                         InputStream is = request.getInputStream();
                         is.mark(0);
@@ -103,6 +106,12 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
                             }
                             if (jsonObject.has("site_id")) {
                                 siteParam = jsonObject.getString("site_id");
+                            }
+                            if (jsonObject.has("items")) {
+                                JSONArray jsonArray = jsonObject.getJSONArray("items");
+                                for (int i = 0; i < jsonArray.size(); i++) {
+                                    paths.add(jsonArray.optString(i));
+                                }
                             }
                         }
                         is.reset();
@@ -123,23 +132,28 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
                 switch (requestUri) {
                     case GO_LIVE:
                         if (siteService.exists(siteParam)) {
-                            if (currentUser != null && isSiteMember(siteParam, currentUser) &&
-                                    hasPermission(siteParam, "/", currentUser.getUsername(), PUBLISH_PERMISSION)) {
-                                toRet = ACCESS_GRANTED;
-                            } else {
-                                toRet = ACCESS_DENIED;
+                            for (String path : paths) {
+                                if (currentUser != null && isSiteMember(siteParam, currentUser) &&
+                                        hasPermission(siteParam, path, currentUser.getUsername(), PUBLISH_PERMISSION)) {
+                                    toRet = ACCESS_GRANTED;
+                                } else {
+                                    toRet = ACCESS_DENIED;
+                                    break;
+                                }
                             }
-                        } else {
-                            toRet = ACCESS_ABSTAIN;
                         }
                         break;
                     case REJECT:
                         if (siteService.exists(siteParam)) {
-                            if (currentUser != null && isSiteMember(siteParam, currentUser) &&
-                                    hasAnyPermission(siteParam, "/", currentUser.getUsername(), REJECT_PERMISSIONS)) {
-                                toRet = ACCESS_GRANTED;
-                            } else {
-                                toRet = ACCESS_DENIED;
+                            for (String path : paths) {
+                                if (currentUser != null && isSiteMember(siteParam, currentUser) &&
+                                        hasAnyPermission(siteParam, path, currentUser.getUsername(),
+                                                REJECT_PERMISSIONS)) {
+                                    toRet = ACCESS_GRANTED;
+                                } else {
+                                    toRet = ACCESS_DENIED;
+                                    break;
+                                }
                             }
                         } else {
                             toRet = ACCESS_ABSTAIN;
@@ -147,11 +161,15 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
                         break;
                     case GO_DELETE:
                         if (siteService.exists(siteParam)) {
-                            if (currentUser != null && isSiteMember(siteParam, currentUser) &&
-                                    hasAnyPermission(siteParam, "/", currentUser.getUsername(), DELETE_PERMISSIONS)) {
-                                toRet = ACCESS_GRANTED;
-                            } else {
-                                toRet = ACCESS_DENIED;
+                            for (String path : paths) {
+                                if (currentUser != null && isSiteMember(siteParam, currentUser) &&
+                                        hasAnyPermission(siteParam, path, currentUser.getUsername(),
+                                                DELETE_PERMISSIONS)) {
+                                    toRet = ACCESS_GRANTED;
+                                } else {
+                                    toRet = ACCESS_DENIED;
+                                    break;
+                                }
                             }
                         } else {
                             toRet = ACCESS_ABSTAIN;
