@@ -1172,6 +1172,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 9
+        nextVersion: 10
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/config/site-config-tools/site-config-tools-v10.xslt
+            commitDetails: Add internal-name control
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
 
   environment-config:
     path: &environment-config '/config/studio/environment/environment-config.xml'
