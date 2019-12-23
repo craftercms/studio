@@ -22,6 +22,7 @@ def result = [:]
 def site = params.site_id
 def path = params.path
 def edit = (params.edit == "true")?true:false
+def encoding = params.encoding
 
 /** Validate Parameters */
 def invalidParams = false
@@ -47,7 +48,7 @@ if (invalidParams) {
 } else {
     def context = ContentServices.createContext(applicationContext, request)
 
-    result.content = ContentServices.getContent(site, path, edit, context)
+    result.content = ContentServices.getContent(site, path, edit, encoding, context)
 
 }
 return result

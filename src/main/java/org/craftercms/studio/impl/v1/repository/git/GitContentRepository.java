@@ -284,6 +284,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public String writeContent(String site, String path, InputStream content) {
+        return writeContent(site, path, null, content);
+    }
+
+    @Override
+    public String writeContent(String site, String path, String encoding, InputStream content) {
         // Write content to git and commit it
         String commitId = null;
 
@@ -294,7 +299,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             try {
 
                 if (repo != null) {
-                    if (helper.writeFile(repo, site, path, content)) {
+                    if (helper.writeFile(repo, site, path, encoding, content)) {
                         PersonIdent user = helper.getCurrentUserIdent();
                         String username = securityService.getCurrentUser();
                         String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)

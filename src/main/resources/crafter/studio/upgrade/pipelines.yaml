@@ -670,6 +670,16 @@ pipelines:
             - /blueprints/3000_video-center
           commitDetails: Remove Video Center Blueprint from global repo
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.18
+      nextVersion: 3.1.4.19
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-site-config.xml
+              dest: configuration/samples/sample-site-config.xml
+          commitDetails: Update sample for site config file
+        - type: dbVersionUpgrader
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -902,6 +912,16 @@ configurations:
             path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v4.xslt
             commitDetails: Add new publishing configuration
+          - type: xsltFileUpgrader
+            path: *studio-site-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 4
+        nextVersion: 5
+        operations:
+          - type: xsltFileUpgrader
+            path: *studio-site-config
+            template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v5.xslt
+            commitDetails: Add default encoding configuration
           - type: xsltFileUpgrader
             path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt

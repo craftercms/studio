@@ -169,6 +169,8 @@ public interface SiteService {
    	 */
    	SiteBlueprintTO[] getAvailableBlueprints();
 
+   	String getDefaultEncoding(String site);
+
     String getPreviewServerUrl(String site);
 
     String getPreviewEngineServerUrl(String site);

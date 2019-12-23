@@ -1164,6 +1164,12 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
+    public String getDefaultEncoding(@ValidateStringParam(name = "site") String site) {
+        return servicesConfig.getDefaultEncoding(site);
+    }
+
+    @Override
+    @ValidateParams
     public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getPreviewServerUrl(site);
     }

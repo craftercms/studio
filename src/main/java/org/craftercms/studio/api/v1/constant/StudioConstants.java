@@ -164,6 +164,7 @@ package org.craftercms.studio.api.v1.constant;
     String SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT = "live-environment";
     String SITE_CONFIG_ELEMENT_SANDBOX_BRANCH = "sandbox-branch";
     String SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN = "plugin-folder-pattern";
+    String SITE_CONFIG_ELEMENT_DEFAULT_ENCODING = "default-encoding";
 
     /**
      * Repository commit messages variables

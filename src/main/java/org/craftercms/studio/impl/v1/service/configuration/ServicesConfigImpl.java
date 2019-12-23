@@ -56,6 +56,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_DEFAULT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
@@ -285,6 +286,17 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     @Override
     @ValidateParams
+    public String getDefaultEncoding(@ValidateStringParam(name = "site") String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getDefaultEncoding();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    @ValidateParams
     public String getPluginFolderPattern(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null) {
@@ -314,6 +326,7 @@ public class ServicesConfigImpl implements ServicesConfig {
              siteConfig.setName(name);
              siteConfig.setWemProject(configNode.valueOf("wem-project"));
              siteConfig.setTimezone(configNode.valueOf("default-timezone"));
+             siteConfig.setDefaultEncoding(configNode.valueOf(SITE_CONFIG_ELEMENT_DEFAULT_ENCODING));
              String sandboxBranch = configNode.valueOf(SITE_CONFIG_ELEMENT_SANDBOX_BRANCH);
              if (StringUtils.isEmpty(sandboxBranch)) {
                  sandboxBranch = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);

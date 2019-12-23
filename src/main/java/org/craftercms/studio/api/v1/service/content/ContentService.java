@@ -62,12 +62,23 @@ public interface ContentService {
     long getContentSize(String site, String path);
 
     /**
-     * get from wcm content
+     * get content as string from repository
      *
-     * @param path
+     * @param site site identifier
+     * @param path path of the content
      * @return document
      */
     String getContentAsString(String site, String path);
+
+    /**
+     * get content as string from repository
+     *
+     * @param site site identifier
+     * @param path path of the content
+     * @param encoding file encoding
+     * @return document
+     */
+    String getContentAsString(String site, String path, String encoding);
 
     /**
      * get document from wcm content
