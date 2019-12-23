@@ -19,6 +19,8 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.io.IOUtils
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import scripts.api.ContentServices
 
 def result = [:]
@@ -94,7 +96,11 @@ if(ServletFileUpload.isMultipartContent(request)) {
     edit = request.getParameter("edit")
     draft = request.getParameter("draft")
     unlock = request.getParameter("unlock")
-    content = request.getInputStream()
+    encoding = request.getCharacterEncoding()
+    if (encoding == null) {
+        encoding = StudioConstants.CONTENT_ENCODING
+    }
+    content = IOUtils.toInputStream(IOUtils.toString(request.getInputStream(), "UTF-8"), encoding)
 
     /** Validate Parameters */
     def invalidParams = false
