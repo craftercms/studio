@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v1.to;
 
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
@@ -58,6 +59,8 @@ public class SiteConfigTO implements Serializable {
 
 	/** default timezone **/
 	protected String timezone = null;
+
+	protected String defaultEncoding = StandardCharsets.UTF_8.name();
 
 	protected boolean stagingEnvironmentEnabled;
 
@@ -126,6 +129,14 @@ public class SiteConfigTO implements Serializable {
 	public String getTimezone() {
 		return timezone;
 	}
+
+    public String getDefaultEncoding() {
+        return defaultEncoding;
+    }
+
+    public void setDefaultEncoding(String defaultEncoding) {
+        this.defaultEncoding = defaultEncoding;
+    }
 
     public String getSandboxBranch() {
         return sandboxBranch;

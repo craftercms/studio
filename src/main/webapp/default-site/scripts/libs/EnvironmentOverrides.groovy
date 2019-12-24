@@ -44,6 +44,7 @@ class EnvironmentOverrides {
         try {
             def siteServiceSB = context.applicationContext.get(SITE_SERVICES_BEAN)
             result.site = Cookies.getCookieValue("crafterSite", request)
+            result.defaultEncoding = siteServiceSB.getDefaultEncoding(result.site)
             result.authoringServer =  siteServiceSB.getAuthoringServerUrl(result.site)
             result.previewServerUrl = siteServiceSB.getPreviewServerUrl(result.site)
             result.previewEngineServerUrl = siteServiceSB.getPreviewEngineServerUrl(result.site)

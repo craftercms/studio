@@ -160,6 +160,13 @@ public interface ServicesConfig {
 	 * @return default timezone
 	 */
 	String getDefaultTimezone(String site);
+
+	/**
+	 * get the default encoding value
+	 * @param site
+	 * @return default encoding
+	 */
+	String getDefaultEncoding(String site);
     
     List<String> getPreviewableMimetypesPaterns(String site);
 
