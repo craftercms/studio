@@ -28,14 +28,21 @@ import org.apache.http.entity.ContentType;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-    public static final String UTF8 = "UTF-8";
-    public static final Charset UTF8_CHARSET = Charset.forName(UTF8);
     private ByteArrayOutputStream cachedBytes;
     private Map<String, String[]> parameterMap;
 
@@ -59,7 +66,11 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        if (cachedBytes == null) cacheInputStream();
+        String encoding = getRequest().getCharacterEncoding();
+        if (StringUtils.isEmpty(encoding)) {
+            encoding = Charset.defaultCharset().name();
+        }
+        if (cachedBytes == null) cacheInputStream(encoding);
         return new CachedServletInputStream();
     }
 
@@ -68,12 +79,12 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
         return new BufferedReader(new InputStreamReader(getInputStream()));
     }
 
-    private void cacheInputStream() throws IOException {
+    private void cacheInputStream(String encoding) throws IOException {
     /* Cache the inputStream in order to read it multiple times. For
      * convenience, I use apache.commons IOUtils
      */
         cachedBytes = new ByteArrayOutputStream();
-        IOUtils.copy(super.getInputStream(), cachedBytes);
+        IOUtils.copy(new InputStreamReader(super.getInputStream()), cachedBytes, encoding);
     }
 
     @Override
@@ -94,7 +105,11 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
         if (parameterMap == null) {
             Map<String, String[]> result = new LinkedHashMap<String, String[]>();
             decode(getQueryString(), result);
-            decode(getPostBodyAsString(), result);
+            String encoding = getRequest().getCharacterEncoding();
+            if (StringUtils.isEmpty(encoding)) {
+                encoding = Charset.defaultCharset().name();
+            }
+            decode(getPostBodyAsString(encoding), result);
             parameterMap = Collections.unmodifiableMap(result);
         }
         return parameterMap;
@@ -105,13 +120,19 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
     }
 
     private Iterable<NameValuePair> decodeParams(String body) {
-        List<NameValuePair> params = new ArrayList<>(URLEncodedUtils.parse(body, UTF8_CHARSET));
+        String encoding = getRequest().getCharacterEncoding();
+        if (StringUtils.isEmpty(encoding)) {
+            encoding = Charset.defaultCharset().name();
+        }
+        List<NameValuePair> params = new ArrayList<>(
+                URLEncodedUtils.parse(body, Charset.forName(encoding)));
         try {
             String cts = getContentType();
             if (cts != null) {
                 ContentType ct = ContentType.parse(cts);
                 if (ct.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
-                    List<NameValuePair> postParams = URLEncodedUtils.parse(IOUtils.toString(getReader()), UTF8_CHARSET);
+                    List<NameValuePair> postParams = URLEncodedUtils.parse(
+                            IOUtils.toString(getReader()), Charset.forName(encoding));
                     CollectionUtils.addAll(params, postParams);
                 }
             }
@@ -121,10 +142,10 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
         return params;
     }
 
-    public String getPostBodyAsString() {
+    public String getPostBodyAsString(String encoding) {
         try {
-            if (cachedBytes == null) cacheInputStream();
-            return cachedBytes.toString(UTF8);
+            if (cachedBytes == null) cacheInputStream(encoding);
+            return cachedBytes.toString(encoding);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -152,7 +173,11 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
         String query = StringUtils.isEmpty(getQueryString()) ? StringUtils.EMPTY : getQueryString();
         StringBuilder sb = new StringBuilder();
         sb.append("URL='").append(getRequestURI()).append(query.isEmpty() ? "" : "?" + query).append("', body='");
-        sb.append(getPostBodyAsString());
+        String encoding = getRequest().getCharacterEncoding();
+        if (StringUtils.isEmpty(encoding)) {
+            encoding = Charset.defaultCharset().name();
+        }
+        sb.append(getPostBodyAsString(encoding));
         sb.append("'");
         return sb.toString();
     }

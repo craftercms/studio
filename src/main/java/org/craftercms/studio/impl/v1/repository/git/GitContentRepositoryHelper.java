@@ -746,7 +746,7 @@ public class GitContentRepositoryHelper {
         }
     }
 
-    public boolean writeFile(Repository repo, String site, String path, String encoding, InputStream content) {
+    public boolean writeFile(Repository repo, String site, String path, InputStream content) {
         boolean result = true;
 
         try {

@@ -80,16 +80,6 @@ public interface ContentRepository {
     String writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
     /**
-     * write content
-     *
-     * @param site    site id where the operation will be executed
-     * @param path    path to content
-     * @param content stream of content to write
-     * @return Commit Id if successful, null otherwise
-     */
-    String writeContent(String site, String path, String encoding, InputStream content) throws ServiceLayerException;
-
-    /**
      * create a folder
      *
      * @param site site id where the operation will be executed
