@@ -1434,7 +1434,7 @@ text/csv					csv
 # text/enriched
 # text/example
 # text/fwdred
-text/html					html htm
+text/html					html htm tmpl
 # text/javascript
 text/n3						n3
 # text/parityfec
