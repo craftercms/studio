@@ -22,8 +22,8 @@ import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.aws.S3ClientCachingFactory;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
-import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -51,6 +51,11 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     public static final String ITEM_FILTER = "item";
 
     /**
+     * The S3 client factory.
+     */
+    protected S3ClientCachingFactory clientFactory;
+
+    /**
      * The part size used for S3 uploads
      */
     protected int partSize = AwsUtils.MIN_PART_SIZE;
@@ -64,7 +69,12 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * The URL pattern for the generated files
      */
     protected String urlPattern;
-    
+
+    @Required
+    public void setClientFactory(S3ClientCachingFactory clientFactory) {
+        this.clientFactory = clientFactory;
+    }
+
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
     }
@@ -79,11 +89,8 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         this.urlPattern = urlPattern;
     }
 
-    /**
-    * Add withEndpointConfiguration() to direct requests to a S3 compatible storage service
-    */
     protected AmazonS3 getS3Client(S3Profile profile) {
-        return S3Utils.createClient(profile);
+        return clientFactory.getClient(profile);
     }
 
     /**
