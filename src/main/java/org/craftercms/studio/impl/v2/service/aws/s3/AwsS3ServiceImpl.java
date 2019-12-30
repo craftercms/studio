@@ -106,7 +106,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
-        String key = StringUtils.isNotEmpty(path)? StringUtils.appendIfMissing(path, delimiter) + filename : filename;
+        String key = StringUtils.isNotEmpty(path)? normalizePrefix(path) + filename : filename;
 
         AwsUtils.uploadStream(inputBucket, key, s3Client, partSize, filename, content);
 
@@ -130,7 +130,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         MimeType filerType =
             StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER)? MimeTypeUtils.ALL : new MimeType(type);
 
-        String prefix = StringUtils.isEmpty(path)? path : StringUtils.appendIfMissing(path, delimiter);
+        String prefix = StringUtils.isEmpty(path)? path : normalizePrefix(path);
 
         ListObjectsV2Request request = new ListObjectsV2Request()
                                             .withBucketName(profile.getBucketName())
@@ -160,6 +160,15 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
     protected String createUrl(String profileId, String key) {
         return String.format(urlPattern, profileId, key);
+    }
+
+    protected String normalizePrefix(String prefix) {
+        if (!prefix.equals(delimiter)) {
+            prefix = StringUtils.stripStart(prefix, delimiter);
+            prefix = StringUtils.appendIfMissing(prefix, delimiter);
+        }
+
+        return prefix;
     }
 
 }
