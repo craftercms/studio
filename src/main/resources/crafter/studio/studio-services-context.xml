@@ -1210,6 +1210,8 @@
         </constructor-arg>
     </bean>
 
+    <bean id="studioFileEncodingConverter" class="org.craftercms.studio.impl.v1.asset.processing.FileEncodingConvertingAssetProcessor"/>
+
     <bean id="studioAssetProcessorResolver" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessorResolverImpl">
         <property name="beanNameFormat" value="studio%s"/>
     </bean>

@@ -33,15 +33,17 @@
 	</pipeline>
 
     - inputPathPattern: regex that the assets need to match in order to be processed by the pipeline. Groups that are captured by this
-    regex are available later to the outputPathFormat.
+      regex are available later to the outputPathFormat.
     - keepOriginal (optional): if the original asset (without changes) should be saved.
-    - type: the type of the processor. Right now 2 types are supported: ImageMagickTransformer and TinifyTransformer.
+    - type: the type of the processor. Right now 3 types are supported:
 		- ImageMagickTransformer: runs ImageMagick from the command line, with params.options as the command line params.
 		- TinifyTransformer: uses the Java client of TinyPNG to compress JPEG/PNG images (see https://tinypng.com/developers/reference).
-		The Tinify API key must be specified in the studio-config-overrides.yaml.
+		  The Tinify API key must be specified in the studio-config-overrides.yaml.
+		- FileEncodingConverter: converts a file written in a certain encoding (params.inputEncoding) into another encoding
+		  (params.outputEncoding).
 	- outputPathFormat (optional): the format of the output path. Variables that have a dollar sign ($) and an index are later replaced
-	by groups that resulted during input path matching, to form the final output path. If not specified, then the same input path is used
-	as the output path.
+	  by groups that resulted during input path matching, to form the final output path. If not specified, then the same input path is used
+	  as the output path.
 
 -->
 <assetProcessing>
@@ -76,6 +78,22 @@
                 </processor>
                 <processor>
                     <type>TinifyTransformer</type>
+                </processor>
+            </processors>
+        </pipeline>
+
+        <!-- File encoding converter pipeline -->
+        <pipeline>
+            <inputPathPattern>^/static-assets/tmpl/euc-jp/(.+)$</inputPathPattern>
+            <keepOriginal>false</keepOriginal>
+            <processors>
+                <processor>
+                    <type>FileEncodingConverter</type>
+                    <params>
+                        <inputEncoding>EUC-JP</inputEncoding>
+                        <outputEncoding>UTF-8</outputEncoding>
+                    </params>
+                    <outputPathFormat>/static-assets/tmpl/utf-8/$1</outputPathFormat>
                 </processor>
             </processors>
         </pipeline>
