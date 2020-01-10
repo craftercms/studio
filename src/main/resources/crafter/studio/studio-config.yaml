@@ -580,6 +580,10 @@ studio.cors.maxage: -1
 ################################################################
 # URLs to connect to Elasticsearch
 studio.search.urls: http://localhost:9201
+# The username for Elasticsearch
+studio.search.username: ''
+# The password for Elasticsearch
+studio.search.password: ''
 # Suffix added to the name for authoring indexes
 studio.search.index.suffix: -authoring
 # Name of the field for paths

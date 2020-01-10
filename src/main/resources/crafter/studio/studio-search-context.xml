@@ -22,6 +22,8 @@
 
     <bean id="elasticsearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
         <property name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
+        <property name="username" value="#{studioConfiguration.getProperty('studio.search.username')}"/>
+        <property name="password" value="#{studioConfiguration.getProperty('studio.search.password')}"/>
         <property name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
         <property name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
     </bean>
