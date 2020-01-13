@@ -679,6 +679,16 @@ pipelines:
               dest: configuration/samples/sample-site-config.xml
           commitDetails: Update sample for site config file
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.4.19
+      nextVersion: 3.1.5.1
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-aws.xml
+              dest: configuration/samples/sample-aws.xml
+          commitDetails: Update sample for site config file
+        - type: dbVersionUpgrader
+
 
   # Pipeline to upgrade site repositories
   site:

@@ -17,6 +17,7 @@
   -->
 
 <site>
+    <version>2</version>
     <cors>
         <enable>true</enable>
         <accessControlMaxAge>3600</accessControlMaxAge>
