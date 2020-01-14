@@ -30,10 +30,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,48 +41,26 @@ import java.util.Map;
 
 public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-    private ByteArrayOutputStream cachedBytes;
+    private byte[] cachedBytes;
     private Map<String, String[]> parameterMap;
 
     public MultiReadHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
     }
 
-    public static void toMap(Iterable<NameValuePair> inputParams, Map<String, String[]> toMap) {
-        for (NameValuePair e : inputParams) {
-            String key = e.getName();
-            String value = e.getValue();
-            if (toMap.containsKey(key)) {
-                String[] newValue = ArrayUtils.addAll(toMap.get(key), value);
-                toMap.remove(key);
-                toMap.put(key, newValue);
-            } else {
-                toMap.put(key, new String[]{value});
-            }
-        }
-    }
-
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        String encoding = getRequest().getCharacterEncoding();
-        if (StringUtils.isEmpty(encoding)) {
-            encoding = Charset.defaultCharset().name();
-        }
-        if (cachedBytes == null) cacheInputStream(encoding);
+        if (cachedBytes == null) cacheInputStream();
         return new CachedServletInputStream();
     }
 
     @Override
     public BufferedReader getReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(getInputStream()));
+        return new BufferedReader(new InputStreamReader(getInputStream(), getCharset()));
     }
 
-    private void cacheInputStream(String encoding) throws IOException {
-    /* Cache the inputStream in order to read it multiple times. For
-     * convenience, I use apache.commons IOUtils
-     */
-        cachedBytes = new ByteArrayOutputStream();
-        IOUtils.copy(new InputStreamReader(super.getInputStream()), cachedBytes, encoding);
+    private void cacheInputStream() throws IOException {
+        cachedBytes = IOUtils.toByteArray(super.getInputStream());
     }
 
     @Override
@@ -104,52 +80,58 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
     public Map<String, String[]> getParameterMap() {
         if (parameterMap == null) {
             Map<String, String[]> result = new LinkedHashMap<String, String[]>();
-            decode(getQueryString(), result);
-            String encoding = getRequest().getCharacterEncoding();
-            if (StringUtils.isEmpty(encoding)) {
-                encoding = Charset.defaultCharset().name();
-            }
-            decode(getPostBodyAsString(encoding), result);
+            parseQueryString(result);
+            parseUrlEncodedBody(result);
             parameterMap = Collections.unmodifiableMap(result);
         }
         return parameterMap;
     }
 
-    private void decode(String queryString, Map<String, String[]> result) {
-        if (queryString != null) toMap(decodeParams(queryString), result);
+    private void parseQueryString(Map<String, String[]> params) {
+        String queryString = getQueryString();
+        if (StringUtils.isNotEmpty(queryString)) {
+            toMap(URLEncodedUtils.parse(queryString, getCharset()), params);
+        }
     }
 
-    private Iterable<NameValuePair> decodeParams(String body) {
+    private void parseUrlEncodedBody(Map<String, String[]> params) {
+        String contentTypeStr = getContentType();
+        if (contentTypeStr != null) {
+            ContentType contentType = ContentType.parse(contentTypeStr);
+            if (contentType.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
+                toMap(URLEncodedUtils.parse(getBodyAsString(), getCharset()), params);
+            }
+        }
+    }
+
+    private String getBodyAsString() {
+        try {
+            if (cachedBytes == null) cacheInputStream();
+            return new String(cachedBytes, getCharset());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Charset getCharset() {
         String encoding = getRequest().getCharacterEncoding();
         if (StringUtils.isEmpty(encoding)) {
-            encoding = Charset.defaultCharset().name();
+            return Charset.defaultCharset();
+        } else {
+            return Charset.forName(encoding);
         }
-        List<NameValuePair> params = new ArrayList<>(
-                URLEncodedUtils.parse(body, Charset.forName(encoding)));
-        try {
-            String cts = getContentType();
-            if (cts != null) {
-                ContentType ct = ContentType.parse(cts);
-                if (ct.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
-                    List<NameValuePair> postParams = URLEncodedUtils.parse(
-                            IOUtils.toString(getReader()), Charset.forName(encoding));
-                    CollectionUtils.addAll(params, postParams);
-                }
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-        return params;
     }
 
-    public String getPostBodyAsString(String encoding) {
-        try {
-            if (cachedBytes == null) cacheInputStream(encoding);
-            return cachedBytes.toString(encoding);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private void toMap(Iterable<NameValuePair> valuePairs, Map<String, String[]> map) {
+        for (NameValuePair e : valuePairs) {
+            String key = e.getName();
+            String value = e.getValue();
+            if (map.containsKey(key)) {
+                String[] newValue = ArrayUtils.addAll(map.get(key), value);
+                map.put(key, newValue);
+            } else {
+                map.put(key, new String[]{value});
+            }
         }
     }
 
@@ -159,7 +141,7 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
 
         public CachedServletInputStream() {
             /* create a new input stream from the cached request body */
-            input = new ByteArrayInputStream(cachedBytes.toByteArray());
+            input = new ByteArrayInputStream(cachedBytes);
         }
 
         @Override
@@ -173,11 +155,7 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
         String query = StringUtils.isEmpty(getQueryString()) ? StringUtils.EMPTY : getQueryString();
         StringBuilder sb = new StringBuilder();
         sb.append("URL='").append(getRequestURI()).append(query.isEmpty() ? "" : "?" + query).append("', body='");
-        String encoding = getRequest().getCharacterEncoding();
-        if (StringUtils.isEmpty(encoding)) {
-            encoding = Charset.defaultCharset().name();
-        }
-        sb.append(getPostBodyAsString(encoding));
+        sb.append(getBodyAsString());
         sb.append("'");
         return sb.toString();
     }
