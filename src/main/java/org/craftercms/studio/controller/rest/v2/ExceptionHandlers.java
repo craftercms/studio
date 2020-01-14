@@ -50,6 +50,8 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachable
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -72,6 +74,7 @@ import static org.craftercms.studio.api.v1.log.Logger.LEVEL_WARN;
  *
  * @author avasquez
  */
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice("org.craftercms.studio.controller.rest.v2")
 public class ExceptionHandlers {
 
