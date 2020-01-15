@@ -655,8 +655,6 @@
                         </configuration>
                     </execution>
 
-                    <!--
-                    To be enabled when studio-ui 2019 branch becomes develop.
                     <execution>
                         <id>install legacy hybrid deps</id>
                         <goals>
@@ -678,7 +676,7 @@
                             <arguments>build</arguments>
                         </configuration>
                     </execution>
-                -->
+
                 </executions>
             </plugin>
             <plugin>
