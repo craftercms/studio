@@ -85,5 +85,11 @@
             <icon>fa-globe</icon>
             <permission>write_global_configuration</permission>
         </item>
+        <item>
+            <id>home.globalMenu.encryptionTool</id>
+            <label lang="en">Encryption Tool</label>
+            <icon>fa-lock</icon>
+            <permission>encryption_tool</permission>
+        </item>
     </items>
 </globalMenu>
