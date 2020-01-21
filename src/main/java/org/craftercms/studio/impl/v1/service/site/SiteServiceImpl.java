@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -765,6 +764,12 @@ public class SiteServiceImpl implements SiteService {
                 "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
 
             throw e;
+        }
+
+        if (!success) {
+            contentRepository.deleteSite(siteId);
+            throw new ServiceLayerException("Failed to create site: " + siteId + " ID: " + siteId + " as clone from " +
+                    "remote repository: " + remoteName + " (" + remoteUrl + ")");
         }
 
         // try to get the search engine from the blueprint descriptor file
