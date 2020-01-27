@@ -688,7 +688,18 @@ pipelines:
               dest: configuration/samples/sample-aws.xml
           commitDetails: Update sample for site config file
         - type: dbVersionUpgrader
-
+    - currentVersion: 3.1.5.1
+      nextVersion: 3.1.5.2
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-menu-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.5.2/system/global-menu-config.xslt
+          commitDetails: Add encryption tool to the global menu
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.5.2/system/global-menu-config.xslt
+          commitDetails: Add new permission to admin
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
