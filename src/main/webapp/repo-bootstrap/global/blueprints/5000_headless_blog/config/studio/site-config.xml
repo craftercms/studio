@@ -22,11 +22,10 @@
 
 -->
 <site-config>
-    <version>5</version>
+    <version>6</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
-    <default-encoding>UTF-8</default-encoding>
     
     <published-repository>
         <enable-staging-environment>false</enable-staging-environment>

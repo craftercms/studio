@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -206,24 +205,12 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public String getContentAsString(@ValidateStringParam(name = "site") String site,
                                      @ValidateSecurePathParam(name = "path") String path) {
-        return getContentAsString(site, path, null);
-    }
-
-    @Override
-    @ValidateParams
-    public String getContentAsString(@ValidateStringParam(name = "site") String site,
-                                     @ValidateSecurePathParam(name = "path") String path,
-                                     @ValidateStringParam(name = "encoding") String encoding)  {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
         try (InputStream is = _contentRepository.getContent(site, path)) {
             if (is != null) {
-                if (StringUtils.isEmpty(encoding)) {
-                    content = IOUtils.toString(is);
-                } else {
-                    content = IOUtils.toString(is, encoding);
-                }
+                content = IOUtils.toString(is);
             }
         }
         catch(Exception err) {

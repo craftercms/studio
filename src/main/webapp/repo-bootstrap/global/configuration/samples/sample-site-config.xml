@@ -20,7 +20,6 @@
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
-    <default-encoding>UTF-8</default-encoding>
 
     <publishing>
         <comments>
