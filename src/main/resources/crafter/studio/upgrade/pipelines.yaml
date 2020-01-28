@@ -700,6 +700,15 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.5.2/system/global-menu-config.xslt
           commitDetails: Add new permission to admin
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.5.2
+      nextVersion: 3.1.5.3
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-site-config.xml
+              dest: configuration/samples/sample-site-config.xml
+          commitDetails: Update sample for site config file
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -942,6 +951,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v5.xslt
+            commitDetails: Add default encoding configuration
+          - type: xsltFileUpgrader
+            path: *studio-site-config
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 5
+        nextVersion: 6
+        operations:
+          - type: xsltFileUpgrader
+            path: *studio-site-config
+            template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v6.xslt
             commitDetails: Add default encoding configuration
           - type: xsltFileUpgrader
             path: *studio-site-config
