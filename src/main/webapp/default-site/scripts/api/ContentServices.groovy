@@ -73,12 +73,12 @@ class ContentServices {
 	 * @param path - the path of the content to get
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContent(site, path, edit, context) {
+	static getContent(site, path, edit, encoding, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		if (edit) {
 			contentServicesImpl.lockContent(site, path);
 		}
-		return contentServicesImpl.getContent(site, path)
+		return contentServicesImpl.getContent(site, path, encoding)
 	}
 
 	/**

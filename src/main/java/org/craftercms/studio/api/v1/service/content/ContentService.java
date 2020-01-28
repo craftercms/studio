@@ -70,6 +70,16 @@ public interface ContentService {
     String getContentAsString(String site, String path);
 
     /**
+     * get content as string from repository
+     *
+     * @param site site identifier
+     * @param path path of the content
+     * @param encoding file encoding
+     * @return document
+     */
+    String getContentAsString(String site, String path, String encoding);
+
+    /**
      * get document from wcm content
      *
      * @param path

@@ -205,12 +205,24 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public String getContentAsString(@ValidateStringParam(name = "site") String site,
                                      @ValidateSecurePathParam(name = "path") String path) {
+        return getContentAsString(site, path, null);
+    }
+
+    @Override
+    @ValidateParams
+    public String getContentAsString(@ValidateStringParam(name = "site") String site,
+                                     @ValidateSecurePathParam(name = "path") String path,
+                                     @ValidateStringParam(name = "encoding") String encoding)  {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
         try (InputStream is = _contentRepository.getContent(site, path)) {
             if (is != null) {
-                content = IOUtils.toString(is);
+                if (StringUtils.isEmpty(encoding)) {
+                    content = IOUtils.toString(is);
+                } else {
+                    content = IOUtils.toString(is, encoding);
+                }
             }
         }
         catch(Exception err) {
