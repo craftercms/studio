@@ -767,6 +767,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         if (!success) {
+            contentRepository.removeRemoteRepositoriesForSite(siteId);
             contentRepository.deleteSite(siteId);
             throw new ServiceLayerException("Failed to create site: " + siteId + " ID: " + siteId + " as clone from " +
                     "remote repository: " + remoteName + " (" + remoteUrl + ")");
