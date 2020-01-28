@@ -17,6 +17,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.security.EncryptionService;
@@ -34,6 +36,7 @@ public class EncryptionServiceImpl implements EncryptionService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "encryption_tool")
     public String encrypt(@ValidateStringParam(name = "text") final String text) throws ServiceLayerException {
         return encryptionServiceInternal.encrypt(text);
     }
