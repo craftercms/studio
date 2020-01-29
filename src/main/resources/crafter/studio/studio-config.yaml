@@ -294,7 +294,7 @@ studio.security.encryption.key: default_encryption_key
 # The salt used for encryption of configuration properties
 studio.security.encryption.salt: default_encryption_salt
 # Amount of time (in seconds) to delay encryption response
-studio.security.encryption.delay: 3
+studio.security.encryption.delay: 1
 # Amount of characters to limit the encryption input
 studio.security.encryption.maxLength: 512
 
