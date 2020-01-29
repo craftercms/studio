@@ -709,6 +709,14 @@ pipelines:
               dest: configuration/samples/sample-site-config.xml
           commitDetails: Update sample for site config file
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.5.3
+      nextVersion: 3.1.5.4
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.5.2/system/global-permission-mappings-config.xslt
+          commitDetails: Add new permission to admin
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
