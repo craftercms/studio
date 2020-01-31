@@ -82,10 +82,10 @@ public class ProxyController {
         }
 
         // Execute proxied request and return response
-        HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
+        HttpEntity httpEntity = new HttpEntity(body, headers);
         RestTemplate restTemplate = new RestTemplate();
         try {
-            return restTemplate.exchange(uri, method, httpEntity, String.class);
+            return restTemplate.exchange(uri, method, httpEntity, Object.class);
         } catch(HttpStatusCodeException e) {
             return ResponseEntity.status(e.getRawStatusCode())
                     .headers(e.getResponseHeaders())
