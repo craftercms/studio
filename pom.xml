@@ -603,6 +603,7 @@
                     <nodeVersion>${studio.ui.node.version}</nodeVersion>
                     <yarnVersion>${studio.ui.yarn.version}</yarnVersion>
                     <installDirectory>target</installDirectory>
+                    <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
                     <execution>
