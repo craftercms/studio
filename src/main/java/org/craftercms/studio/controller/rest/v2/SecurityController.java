@@ -22,15 +22,19 @@ import org.craftercms.studio.api.v2.service.security.EncryptionService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.craftercms.studio.model.rest.security.EncryptRequest;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 
 /**
+ * Rest controller that provides access to security operations
+ *
  * @author joseross
+ * @since 3.1.5
  */
 @RestController
 @RequestMapping("/api/2/security")
@@ -42,9 +46,9 @@ public class SecurityController {
         this.encryptionService = encryptionService;
     }
 
-    @GetMapping("/encrypt")
-    public ResponseBody encryptText(@RequestParam String text) throws ServiceLayerException {
-        String encrypted = encryptionService.encrypt(text);
+    @PostMapping("/encrypt")
+    public ResponseBody encryptText(@RequestBody EncryptRequest request) throws ServiceLayerException {
+        String encrypted = encryptionService.encrypt(request.getText());
 
         ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_ITEM, encrypted);
