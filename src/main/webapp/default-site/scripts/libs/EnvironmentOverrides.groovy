@@ -24,6 +24,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_TY
 
 class EnvironmentOverrides {
     static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
+    static USER_SERVICES_BEAN = "userService"
 
     static getValuesForSite(appContext, request, response) {
 
@@ -42,6 +43,7 @@ class EnvironmentOverrides {
 
         try {
             def siteServiceSB = context.applicationContext.get(SITE_SERVICES_BEAN)
+            def userServiceSB = context.applicationContext.get(USER_SERVICES_BEAN)
             result.site = Cookies.getCookieValue("crafterSite", request)
             result.authoringServer =  siteServiceSB.getAuthoringServerUrl(result.site)
             result.previewServerUrl = siteServiceSB.getPreviewServerUrl(result.site)
@@ -51,8 +53,12 @@ class EnvironmentOverrides {
             result.user = SecurityServices.getCurrentUser(context)
 
             def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
-            def authenticationType = studioConfigurationSB.getProperty(SECURITY_TYPE)
-            result.authenticationType = authenticationType
+            try {
+                def authenticatedUser = userServiceSB.getCurrentUser()
+                result.authenticationType = authenticatedUser.getAuthenticationType()
+            } catch (error) {
+                result.authenticationType = ""
+            }
 
             result.passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
 
