@@ -38,7 +38,7 @@ model.versionTO = versionTO
 model.xsl = HTMLCompareTools.CONTENT_XML_TO_HTML_XSL
 
 if([Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } == false && !versionTO) {
-	original = ContentServices.getContent(site, path, false, context)
+	original = ContentServices.getContent(site, path, false, null, context)
 	revised = ContentServices.getContentVersionAtPath(site, path, version, context)
 }
 else {
