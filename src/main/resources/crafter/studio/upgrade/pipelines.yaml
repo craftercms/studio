@@ -717,6 +717,15 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.5.2/system/global-permission-mappings-config.xslt
           commitDetails: Add new permission to admin
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.5.4
+      nextVersion: 3.1.5.5
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+              dest: configuration/samples/sample-studio-config-override.yaml
+          commitDetails: Update sample for global config override file
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
