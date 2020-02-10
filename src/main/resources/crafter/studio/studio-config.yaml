@@ -209,7 +209,7 @@ studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-se
 # Public URLs
 studio.security.publicUrls: >
   /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
-  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password
+  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)

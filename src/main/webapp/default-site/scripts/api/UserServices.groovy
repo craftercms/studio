@@ -14,29 +14,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.SecurityServices
-import scripts.api.UserServices
+package scripts.api
 
-def result = [:]
+import scripts.api.ServiceFactory
 
-def context = SecurityServices.createContext(applicationContext, request)
+import groovy.util.logging.Log
 
-try {
-    def success = SecurityServices.validateSession(context, request)
-    if (success) {
-        result.message = "OK"
-        result.active = true
-        result.user = UserServices.getCurrentUser(context)
-        response.setStatus(200)
-    } else {
-        result.message = null
-        result.active = false
-        result.user = null
-        response.setStatus(200)
-    }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+/**
+ * user services
+ */
+@Log
+class UserServices {
+
+	/**
+	 * create the context object
+	 * @param applicationContext - studio application's contect (spring container etc)
+	 * @param request - web request if in web request context
+	 */
+	static createContext(applicationContext, request) {
+		return ServiceFactory.createContext(applicationContext, request)
+	}
+
+	static getCurrentUser(context) {  
+		def userServicesImpl = ServiceFactory.getUserServices(context)
+		return userServicesImpl.getCurrentUser()
+	}
 }
-
-return result
