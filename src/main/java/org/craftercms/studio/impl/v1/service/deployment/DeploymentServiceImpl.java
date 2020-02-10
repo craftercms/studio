@@ -77,6 +77,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -761,9 +762,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected Set<String> getAllPublishedEnvironments(String site) {
-        Set<String> publishedEnvironments = new HashSet<String>();
-        publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
+        Set<String> publishedEnvironments = new LinkedHashSet<String>();
         publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
+        publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
         return publishedEnvironments;
     }
 
