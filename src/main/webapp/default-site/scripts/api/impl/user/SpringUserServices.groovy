@@ -14,29 +14,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.SecurityServices
-import scripts.api.UserServices
+package scripts.api.impl.user
 
-def result = [:]
+class SpringUserServices {
 
-def context = SecurityServices.createContext(applicationContext, request)
+    def USER_SERVICES_BEAN = "userService"
 
-try {
-    def success = SecurityServices.validateSession(context, request)
-    if (success) {
-        result.message = "OK"
-        result.active = true
-        result.user = UserServices.getCurrentUser(context)
-        response.setStatus(200)
-    } else {
-        result.message = null
-        result.active = false
-        result.user = null
-        response.setStatus(200)
+    def context = null
+
+    /**
+     * constructor
+     *
+     * @param context - service context
+     */
+    def SpringUserServices(context) {
+        this.context = context
     }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
-}
 
-return result
+    def getCurrentUser() {
+        def springBackedService = this.context.applicationContext.get(USER_SERVICES_BEAN)
+        return springBackedService.getCurrentUser()
+    }
+}
