@@ -329,7 +329,7 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Get blueprint descriptor for: " + blueprintId);
         PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
-            throw new BlueprintNotFoundException();
+            throw new BlueprintNotFoundException("Blueprint not found " + blueprintId);
         }
 
         logger.debug("Validating blueprint parameters");
@@ -890,7 +890,7 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Get blueprint descriptor for " + blueprintId);
         PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
-            throw new BlueprintNotFoundException();
+            throw new BlueprintNotFoundException("Blueprint not found " + blueprintId);
         }
 
         logger.debug("Validate blueprint parameters");

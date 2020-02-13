@@ -136,6 +136,10 @@ public class ApiResponse {
             new ApiResponse(40001, "Marketplace server is unreachable",
                     "Check the configuration to make sure the Marketplace URL is correct", StringUtils.EMPTY);
 
+    public static final ApiResponse PLUGIN_ALREADY_INSTALLED =
+            new ApiResponse(40002, "Plugin is already installed",
+                    "Check that the site id, plugin id and plugin version are correct", StringUtils.EMPTY);
+
     // 50000 - 51000
     public static final ApiResponse CMIS_UNREACHABLE = new ApiResponse(50000, "CMIS server is unreachable",
             "Advise the user that the CMIS server is not reachable", StringUtils.EMPTY);

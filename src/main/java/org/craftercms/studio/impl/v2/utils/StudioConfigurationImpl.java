@@ -193,6 +193,11 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     }
 
     @Override
+    public <T> List<T> getList(String key, Class<T> clazz) {
+        return getConfig().getList(clazz, key);
+    }
+
+    @Override
     public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
         try {
             return getConfig().configurationAt(key);

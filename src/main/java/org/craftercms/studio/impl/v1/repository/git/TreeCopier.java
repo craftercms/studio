@@ -38,8 +38,8 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
  */
 public class TreeCopier  implements FileVisitor<Path> {
     private static final Logger logger = LoggerFactory.getLogger(TreeCopier.class);
-    private final Path source;
-    private final Path target;
+    protected final Path source;
+    protected final Path target;
 
     public TreeCopier(Path source, Path target) {
         this.source = source;

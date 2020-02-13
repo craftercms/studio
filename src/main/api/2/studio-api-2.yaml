@@ -3945,6 +3945,88 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /marketplace/installed:
+    get:
+      tags:
+        - marketplace
+      summary: Get the list of plugins installed in the given site
+      operationId: getInstalledPlugins
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  plugins:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PluginRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /marketplace/install:
+    post:
+      tags:
+        - marketplace
+      summary: Install a plugin in the given site
+      operationId: installPlugin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: The id of the site
+                  type: string
+                pluginId:
+                  description: The id of the plugin
+                  type: string
+                pluginVersion:
+                  $ref: '#/components/schemas/Version'
+              required:
+                - siteId
+                - pluginId
+                - pluginVersion
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /publish/packages:
     get:
       tags:
@@ -5105,6 +5187,7 @@ components:
           * `CODE:` 12006, `MESSAGE:` Remove remote repository failed, `REMEDIAL ACTION:` The remote repository is a cluster node repository. It can't be removed.
           * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
+          * `CODE:` 40002, `MESSAGE:` Plugin is already installed, `REMEDIAL ACTION:` Check that the site id, plugin id and plugin version are correct
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found
@@ -5564,6 +5647,37 @@ components:
         - siteId
         - blueprintId
         - blueprintVersion
+
+    PluginRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The id of the plugin
+        version:
+          $ref: '#/components/schemas/Version'
+        pluginUrl:
+          type: string
+          description: The URL of the plugin
+        installationDate:
+          type: string
+          format: date-time
+          description: The date when the plugin was installed
+        files:
+          type: array
+          description: The list of installed files
+          items:
+            $ref: '#/components/schemas/FileRecord'
+
+    FileRecord:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The path where the file was copied during installation
+        sha512:
+          type: string
+          description: The SHA-512 checksum of the file during installation
 
     SearchParams:
       type: object

@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedExceptio
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
+import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -140,6 +141,16 @@ public class ExceptionHandlers {
     public ResponseBody handleMarketplaceUnreachableException(HttpServletRequest request,
                                                               MarketplaceUnreachableException e) {
         ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_UNREACHABLE);
+        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PluginAlreadyInstalledException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handlePluginAlreadyInstalledException(HttpServletRequest request,
+                                                              PluginAlreadyInstalledException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_ALREADY_INSTALLED);
         response.setMessage(response.getMessage() + ": "+ e.getMessage());
 
         return handleExceptionInternal(request, e, response);

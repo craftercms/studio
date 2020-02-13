@@ -1412,17 +1412,21 @@
     <!-- ////////////////////////////////////// -->
     <bean id="marketplaceServiceInternal"
           class="org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl">
-        <property name="instanceService" ref="instanceService"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="sitesServiceInternal" ref="sitesServiceInternal"/>
-        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg ref="instanceService"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="sitesServiceInternal"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="studio.gitRepositoryHelper"/>
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
+        <property name="pluginRegistryPath"
+                  value="#{studioConfiguration.getProperty('studio.marketplace.plugin.registry.path')}"/>
         <property name="showPending" value="#{studioConfiguration.getProperty('studio.marketplace.search.pending')}"/>
+        <property name="pluginsFolder" value="#{studioConfiguration.getProperty('studio.marketplace.plugin.folder')}"/>
     </bean>
 
     <bean id="marketplaceService"
           class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
-        <property name="marketplaceServiceInternal" ref="marketplaceServiceInternal"/>
+        <constructor-arg ref="marketplaceServiceInternal"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

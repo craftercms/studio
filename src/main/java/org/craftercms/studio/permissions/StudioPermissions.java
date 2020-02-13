@@ -53,4 +53,6 @@ public interface StudioPermissions {
     String ACTION_WRITE = "write";
     String ACTION_WRITE_CONFIGURATION = "write_configuration";
     String ACTION_WRITE_GLOBAL_CONFIGURATION = "write_global_configuration";
+    String ACTION_LIST_PLUGINS = "list_plugins";
+    String ACTION_INSTALL_PLUGINS = "install_plugins";
 }

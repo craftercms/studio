@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,17 +14,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.exception;
+package org.craftercms.studio.api.v2.exception.marketplace;
 
-import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundException;
+/**
+ * Exception thrown when a plugin descriptor is not found
+ *
+ * @author joseross
+ * @since 4.0.0
+ */
+public class PluginNotFoundException extends MarketplaceException {
 
-public class BlueprintNotFoundException extends PluginNotFoundException {
-
-    public BlueprintNotFoundException(String message) {
+    public PluginNotFoundException(String message) {
         super(message);
     }
 
-    public BlueprintNotFoundException(String message, Exception e) {
+    public PluginNotFoundException(String message, Exception e) {
         super(message, e);
     }
 

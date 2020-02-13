@@ -361,6 +361,8 @@ public interface StudioConfiguration {
 
     <T> T[] getArray(String key, Class<T> clazz);
 
+    <T> List<T> getList(String key, Class<T> clazz);
+
     HierarchicalConfiguration<ImmutableNode> getSubConfig(String key);
 
     List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key);
