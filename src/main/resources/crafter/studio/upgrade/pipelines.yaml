@@ -726,6 +726,17 @@ pipelines:
               dest: configuration/samples/sample-studio-config-override.yaml
           commitDetails: Update sample for global config override file
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.5.5
+      nextVersion: 3.1.5.6
+      operations:
+        - type: findAndReplaceUpgrader
+          includedPaths:
+            - configuration/studio-config-override.yaml
+          pattern: "studio.security.publicUrls: >\\r*\\n*\\s+"
+          replacement: |-
+            studio.security.publicUrls: >
+              /api/1/services/api/1/security/validate-session.json,
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
