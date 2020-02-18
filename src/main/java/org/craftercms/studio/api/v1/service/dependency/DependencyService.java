@@ -73,8 +73,9 @@ public interface DependencyService {
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
+	 * @return
 	 */
-	Set<String> getPublishingDependencies(String site, String path)
+	List<String> getPublishingDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
@@ -88,8 +89,9 @@ public interface DependencyService {
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException One or more paths doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
+	 * @return
 	 */
-	Set<String> getPublishingDependencies(String site, List<String> paths)
+	List<String> getPublishingDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
