@@ -1791,7 +1791,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
 
-            Set<String> dependenciesPaths = dependencyService.getPublishingDependencies(site, submittedItem.getUri());
+            List<String> dependenciesPaths = dependencyService.getPublishingDependencies(site, submittedItem.getUri());
             for (String depPath : dependenciesPaths) {
                 DmDependencyTO dmDependencyTO = new DmDependencyTO();
                 dmDependencyTO.setUri(depPath);
@@ -1897,7 +1897,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
             }
-            Set<String> dependencyPaths = dependencyService.getPublishingDependencies(site, item.getUri());
+            List<String> dependencyPaths = dependencyService.getPublishingDependencies(site, item.getUri());
             submittedPaths.addAll(dependencyPaths);
             processedPaths.addAll(dependencyPaths);
             processedPaths.add(item.getUri());
