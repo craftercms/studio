@@ -17,6 +17,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,9 +79,12 @@ public class ContentController {
     public ResponseBody getDeletePackage(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
             @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths) {
-        List<String> childItems = contentService.getChildItems(siteId, paths);
-        List<String> dependentItems = dependencyService.getDependentItems(siteId, paths);
-
+        List<String> childItems = new ArrayList<String>();
+        List<String> dependentItems = new ArrayList<String>();
+        if (CollectionUtils.isNotEmpty(paths)) {
+            childItems = contentService.getChildItems(siteId, paths);
+            dependentItems = dependencyService.getDependentItems(siteId, paths);
+        }
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<Map<String, List<String>>>();
         result.setResponse(ApiResponse.OK);
