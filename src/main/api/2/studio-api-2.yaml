@@ -3362,17 +3362,22 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /security/encrypt:
-    get:
+    post:
       tags:
         - security
       summary: Encrypt a text value
       operationId: encrypt
-      parameters:
-        - name: text
-          schema:
-            type: string
-          required: true
-          in: query
+      description: Required permission "encryption_tool"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  required: true
       responses:
         '200':
           description: OK
