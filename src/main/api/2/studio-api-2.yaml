@@ -3434,7 +3434,14 @@ paths:
             type: string
         - name: sortBy
           in: query
-          description: order result by column
+          description: >-
+            order result by column
+            List of columns:
+              - label
+              - datetime (published, edited, scheduled)
+              - environment
+              - content type
+              - user
           required: true
           schema:
             type: string
@@ -3461,7 +3468,15 @@ paths:
             type: integer
         - name: filters
           in: query
-          description: list of filters to apply on result set
+          description: >-
+            list of filters to apply on result set
+            Filter:
+              - path
+              - date range
+              - content type
+              - environment
+              - user
+              - state
           schema:
             type: array
             items:
@@ -3634,9 +3649,7 @@ paths:
           description: item path
           required: true
           schema:
-            type: array
-            items:
-              type: string
+            type: string
       responses:
         '200':
           description: OK
@@ -3655,6 +3668,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3679,8 +3694,10 @@ paths:
                   type: string
                   description: site ID
                 path:
-                  type: string
-                  description: path of the item
+                  type: array
+                  item:
+                    type: string
+                  description: path(s) of the item(s)
                 locales:
                   type: array
                   description: locale codes
@@ -4880,7 +4897,7 @@ components:
             lastModified:
               type: string
               format: datetime
-              description: timestampe when was item last modified in sandbox
+              description: timestamp when was item last modified in sandbox
             commitId:
               type: string
               description: commit id of last modification in the sandbox repository
@@ -4888,14 +4905,14 @@ components:
           type: object
           description: metadata of content item version stored in staging repository
           properties:
-            lastScheduled:
+            lastScheduledDate:
               type: string
               format: datetime
-              description: timestampe when is item scheduled for publishing to staging repository
-            lastPublished:
+              description: timestamp when is item scheduled for publishing to staging repository
+            lastPublishedDate:
               type: string
               format: datetime
-              description: timestampe when was item last time published to staging repository
+              description: timestamp when was item last time published to staging repository
             publisher:
               type: string
               description: username of last user that published item to staging repository
@@ -4906,14 +4923,14 @@ components:
           type: object
           description: metadata of content item version stored in live repository
           properties:
-            lastScheduled:
+            lastScheduledDate:
               type: string
               format: datetime
-              description: timestampe when is item scheduled for publishing to live repository
-            lastPublished:
+              description: timestamp when is item scheduled for publishing to live repository
+            lastPublishedDate:
               type: string
               format: datetime
-              description: timestampe when was item last time published to live repositroy
+              description: timestamp when was item last time published to live repositroy
             publisher:
               type: string
               description: username of last user that published item to live repository
@@ -4960,8 +4977,22 @@ components:
           description: mime-type of content item file
         state:
           type: integer
-          format: int32
-          description: bitmap of states
+          format: int64
+          description: >-
+            bitmap of states
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: New, `DESCRIPTION`: The item is new and never been published
+              * `BIT ORDER (little-endian)`: 1: `FLAG`: Modified, `DESCRIPTION`: The item has been published in the past and has been modified in the sandbox
+              * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
+              * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+
         lockOwner:
           type: string
           description: username of user that locked item for editing
