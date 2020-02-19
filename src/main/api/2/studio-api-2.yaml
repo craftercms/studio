@@ -3010,7 +3010,13 @@ paths:
             type: string
         - name: path
           in: query
-          description: content path to get children for
+          description: content path to get children for (required path or id)
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: query
+          description: content id to get children for (required path or id)
           required: true
           schema:
             type: string
@@ -3021,7 +3027,12 @@ paths:
             type: string
         - name: sortStrategy
           in: query
-          description: sort strategy (sort order)
+          description: >-
+            sort strategy (sort order)
+            Possible values:
+              - default
+              - alphabetic
+              - folders first
           schema:
             type: string
         - name: offset
@@ -3052,6 +3063,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3061,8 +3074,8 @@ paths:
     get:
       tags:
         - content
-      summary: Get list of children for given content path
-      description: 'Required permission "get_detailed_item" ("site member")'
+      summary: Get content item for given content path
+      description: 'Required permission "get_detailed_item" "read_item" ("site member")'
       operationId: getDetailedItem
       parameters:
         - name: id
@@ -3093,6 +3106,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3557,7 +3572,7 @@ paths:
     get:
       tags:
         - translation
-      summary: Get transaltion item detail
+      summary: Get transaltion item(s) detail
       description: 'Required permission "get_translation_item_detail"'
       operationId: getTranslationItem
       parameters:
@@ -3569,7 +3584,7 @@ paths:
             type: string
         - name: path
           in: query
-          description: item path
+          description: Path(s) to item(s) to retrieve
           required: true
           schema:
             type: array
@@ -3585,12 +3600,16 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/LocalizationItem'
+                  items:
+                    type: array
+                    item:
+                      $ref: '#/components/schemas/LocalizationItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
