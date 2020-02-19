@@ -1,8 +1,5 @@
 openapi: 3.0.0
 servers:
-  # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/dejan-brkic/StudioV2/3.1.6.1
   - url: 'http://localhost:8080/studio/api/2'
 info:
   description: |-
