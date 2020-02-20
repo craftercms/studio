@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -41,12 +40,6 @@ import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.EDITED_STATES_PARAM;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.NEW_STATES_PARAM;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.PATHS_PARAM;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.REGEX_PARAM;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.SITE_ID_PARAM;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.SITE_PARAM;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
@@ -205,7 +198,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private Set<String> calculatePossibleParents(List<String> paths) {
         Set<String> possibleParents = new HashSet<String>();
         for (String path : paths) {
-            StringTokenizer stPath = new StringTokenizer(path.replace(FILE_SEPARATOR + INDEX_FILE, ""), FILE_SEPARATOR);
+            StringTokenizer stPath =
+                    new StringTokenizer(path.replace(FILE_SEPARATOR + INDEX_FILE, ""), FILE_SEPARATOR);
             StringBuilder candidate = new StringBuilder(FILE_SEPARATOR);
             if (stPath.countTokens() > 0) {
                 do {
@@ -250,7 +244,11 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     @Override
     public List<String> getItemSpecificDependencies(String siteId, List<String> paths) {
-        return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
+        if (CollectionUtils.isNotEmpty(paths)) {
+            return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
+        } else {
+            return new ArrayList<String>();
+        }
     }
 
     public SiteService getSiteService() {
