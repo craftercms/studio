@@ -2994,13 +2994,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/children:
+  /content/children_by_id:
     get:
       tags:
         - content
-      summary: Get list of children for given content path
+      summary: Get list of children for given content id
       description: 'Required permission "get_children" ("site member")'
-      operationId: getChildren
+      operationId: getChildrenById
       parameters:
         - name: siteId
           in: query
@@ -3008,15 +3008,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: path
-          in: query
-          description: content path to get children for (required path or id)
-          required: true
-          schema:
-            type: string
         - name: id
           in: query
-          description: content id to get children for (required path or id)
+          description: content id to get children for
           required: true
           schema:
             type: string
@@ -3070,23 +3064,136 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item:
+  /content/children_by_path:
     get:
       tags:
         - content
-      summary: Get content item for given content path
-      description: 'Required permission "get_detailed_item" "read_item" ("site member")'
-      operationId: getDetailedItem
+      summary: Get list of children for given content path
+      description: 'Required permission "get_children" ("site member")'
+      operationId: getChildrenNyPath
       parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: content path to get children for
+          required: true
+          schema:
+            type: string
+        - name: locale
+          in: query
+          description: filter children by locale, or show source items (not translation) if translatation to specified locale does not exist
+          schema:
+            type: string
+        - name: sortStrategy
+          in: query
+          description: >-
+            sort strategy (sort order)
+            Possible values:
+              - default
+              - alphabetic
+              - folders first
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of first child in response - default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of children to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SidebarItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/item_by_id:
+    get:
+      tags:
+        - content
+      summary: Get content item for given content id
+      description: 'Required permission "get_detailed_item" "read_item" ("site member")'
+      operationId: getDetailedItemById
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
         - name: id
           in: query
           description: item identifier
           required: true
           schema:
             type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/DetailedItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/item_by_path:
+    get:
+      tags:
+        - content
+      summary: Get content item for given content path
+      description: 'Required permission "get_detailed_item" "read_item" ("site member")'
+      operationId: getDetailedItemByPAth
+      parameters:
         - name: siteId
           in: query
           description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: item path
           required: true
           schema:
             type: string
@@ -3412,23 +3519,17 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/data:
+  /dashboard/content:
     get:
       tags:
         - dashboard
-      summary: Get content for custom dashboard
-      description: 'Required permission "get_custom_dashboard" ("site member")'
-      operationId: getDashboardData
+      summary: Get content for dashboard of content
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getDashboardContent
       parameters:
         - name: siteId
           in: query
           description: site ID
-          required: true
-          schema:
-            type: string
-        - name: queryType
-          in: query
-          description: query type (data type) for dashboard (content, audit, workflow, publishing)
           required: true
           schema:
             type: string
@@ -3438,10 +3539,10 @@ paths:
             order result by column
             List of columns:
               - label
-              - datetime (published, edited, scheduled)
-              - environment
+              - path
+              - modifier
+              - modifiedDate
               - content type
-              - user
           required: true
           schema:
             type: string
@@ -3472,10 +3573,10 @@ paths:
             list of filters to apply on result set
             Filter:
               - path
-              - date range
+              - modifier
+              - modifiedDateFrom
+              - modifiedDateTo
               - content type
-              - environment
-              - user
               - state
           schema:
             type: array
@@ -3502,6 +3603,457 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing:
+    get:
+      tags:
+        - dashboard
+      summary: Get content for dashboard of publishing
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getDashboardPublishing
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: >-
+            order result by column
+            List of columns:
+              - label
+              - path
+              - publisher
+              - publishedDate
+              - environment
+              - content type
+          required: true
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: order of sorted data (ASC or DESC)
+          schema:
+            type: string
+            format: ASC, DESC
+        - name: groupBy
+          in: query
+          description: group data by column
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          schema:
+            type: integer
+        - name: filters
+          in: query
+          description: >-
+            list of filters to apply on result set
+            Filter:
+              - path
+              - publisher
+              - publishedDateFrom
+              - publishedDateTo
+              - content type
+              - environment
+              - state
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                column:
+                  type: string
+                value:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/DashboardItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/audit:
+    get:
+      tags:
+        - dashboard
+      summary: Get content for dashboard of audit
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getDashboardAudit
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: >-
+            order result by column
+            List of columns:
+              - site
+              - actor
+              - operation
+              - operationTimestamp
+              - target
+          required: true
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: order of sorted data (ASC or DESC)
+          schema:
+            type: string
+            format: ASC, DESC
+        - name: groupBy
+          in: query
+          description: group data by column
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          schema:
+            type: integer
+        - name: filters
+          in: query
+          description: >-
+            list of filters to apply on result set
+            Filter:
+              - site
+              - actor
+              - operation
+              - operationTimestampFrom
+              - operationTimestampTo
+              - target
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                column:
+                  type: string
+                value:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/DashboardItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/workflow:
+    get:
+      tags:
+        - dashboard
+      summary: Get content for dashboard of workflow
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getDashboardWorkflow
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: >-
+            order result by column
+            List of columns:
+              - label
+              - path
+              - modifier
+              - scheduledDate
+              - environment
+              - content type
+          required: true
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: order of sorted data (ASC or DESC)
+          schema:
+            type: string
+            format: ASC, DESC
+        - name: groupBy
+          in: query
+          description: group data by column
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          schema:
+            type: integer
+        - name: filters
+          in: query
+          description: >-
+            list of filters to apply on result set
+            Filter:
+              - path
+              - modifier
+              - scheduledDateFrom
+              - scheduledDateTo
+              - content type
+              - environment
+              - state
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                column:
+                  type: string
+                value:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/DashboardItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/user:
+    get:
+      tags:
+        - dashboard
+      summary: Get content for dashboard of user
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getDashboardData
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: >-
+            order result by column
+            List of columns:
+              - username
+              - firstName
+              - lastName
+              - email
+              - active
+              - externallyManaged
+          required: true
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: order of sorted data (ASC or DESC)
+          schema:
+            type: string
+            format: ASC, DESC
+        - name: groupBy
+          in: query
+          description: group data by column
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          schema:
+            type: integer
+        - name: filters
+          in: query
+          description: >-
+            list of filters to apply on result set
+            Filter:
+              - username
+              - email
+              - active
+              - externallyManaged
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                column:
+                  type: string
+                value:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/DashboardItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/group:
+    get:
+      tags:
+        - dashboard
+      summary: Get content for dashboard group
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getDashboardGroup
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: >-
+            order result by column
+            List of columns:
+              - groupName
+          required: true
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: order of sorted data (ASC or DESC)
+          schema:
+            type: string
+            format: ASC, DESC
+        - name: groupBy
+          in: query
+          description: group data by column
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          schema:
+            type: integer
+        - name: filters
+          in: query
+          description: >-
+            list of filters to apply on result set
+            Filter:
+              - groupName
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                column:
+                  type: string
+                value:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/DashboardItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '401':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3523,14 +4075,14 @@ paths:
             type: string
         - name: path
           in: query
-          description: filter results by path (return items within subtree)
+          description: filter results by paths (return items within subtree)
           schema:
             type: array
             items:
               type: string
         - name: locale
           in: query
-          description: filter results by locale
+          description: filter results by locales
           schema:
             type: array
             items:
@@ -3578,18 +4130,67 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /translation/item:
+  /translation/item_by_id:
     get:
       tags:
         - translation
       summary: Get transaltion item(s) detail
       description: 'Required permission "get_translation_item_detail"'
-      operationId: getTranslationItem
+      operationId: getTranslationItemById
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: query
+          description: Id(s) of item(s) to retrieve
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    item:
+                      $ref: '#/components/schemas/LocalizationItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /translation/item_by_path:
+    get:
+      tags:
+        - translation
+      summary: Get transaltion item(s) detail
+      description: 'Required permission "get_translation_item_detail"'
+      operationId: getTranslationItemByPath
       parameters:
         - name: siteId
           in: query
@@ -3675,13 +4276,64 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /translation/mark_for_translation:
+  /translation/mark_for_translation_by_id:
     post:
       tags:
         - translation
       summary: Request item to be translated
       description: 'Required permission "mark_for_translation"'
-      operationId: markForTranslation
+      operationId: markForTranslationById
+      requestBody:
+        description: Item and list of locales to translate to
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                id:
+                  type: array
+                  item:
+                    type: string
+                  description: id(s) of the item(s)
+                locales:
+                  type: array
+                  description: locale codes
+                  items:
+                    type: string
+              required:
+                - siteId
+                - path
+                - locales
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /translation/mark_for_translation_by_path:
+    post:
+      tags:
+        - translation
+      summary: Request item to be translated
+      description: 'Required permission "mark_for_translation"'
+      operationId: markForTranslationByPath
       requestBody:
         description: Item and list of locales to translate to
         required: true
@@ -4788,8 +5440,21 @@ components:
           description: mime-type of content item file
         state:
           type: integer
-          format: int32
-          description: bitmap of states
+          format: int64
+          description: >-
+            bitmap of states
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: New, `DESCRIPTION`: The item is new and never been published
+              * `BIT ORDER (little-endian)`: 1: `FLAG`: Modified, `DESCRIPTION`: The item has been published in the past and has been modified in the sandbox
+              * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
+              * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -4866,8 +5531,21 @@ components:
           description: mime-type of content item file
         state:
           type: integer
-          format: int32
-          description: bitmap of states
+          format: int64
+          description: >-
+            bitmap of states
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: New, `DESCRIPTION`: The item is new and never been published
+              * `BIT ORDER (little-endian)`: 1: `FLAG`: Modified, `DESCRIPTION`: The item has been published in the past and has been modified in the sandbox
+              * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
+              * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -4992,7 +5670,6 @@ components:
               * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
               * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
-
         lockOwner:
           type: string
           description: username of user that locked item for editing
