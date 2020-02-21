@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,6 +24,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_TY
 
 class EnvironmentOverrides {
     static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
+    static USER_SERVICES_BEAN = "userService"
 
     static getValuesForSite(appContext, request, response) {
 
@@ -43,6 +43,7 @@ class EnvironmentOverrides {
 
         try {
             def siteServiceSB = context.applicationContext.get(SITE_SERVICES_BEAN)
+            def userServiceSB = context.applicationContext.get(USER_SERVICES_BEAN)
             result.site = Cookies.getCookieValue("crafterSite", request)
             result.authoringServer =  siteServiceSB.getAuthoringServerUrl(result.site)
             result.previewServerUrl = siteServiceSB.getPreviewServerUrl(result.site)
@@ -52,8 +53,12 @@ class EnvironmentOverrides {
             result.user = SecurityServices.getCurrentUser(context)
 
             def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
-            def authenticationType = studioConfigurationSB.getProperty(SECURITY_TYPE)
-            result.authenticationType = authenticationType
+            try {
+                def authenticatedUser = userServiceSB.getCurrentUser()
+                result.authenticationType = authenticatedUser.getAuthenticationType()
+            } catch (error) {
+                result.authenticationType = ""
+            }
 
             result.passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
 

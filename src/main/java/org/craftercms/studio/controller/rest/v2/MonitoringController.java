@@ -17,12 +17,15 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import java.util.Map;
-
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.monitoring.MemoryInfo;
 import org.craftercms.commons.monitoring.StatusInfo;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.engine.util.logging.CircularQueueLogAppender;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -31,51 +34,101 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.*;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
+
+import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.MEMORY_URL;
+import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.ROOT_URL;
+import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.STATUS_URL;
+import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.VERSION_URL;
 import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_EVENTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MEMORY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_STAUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_VERSION;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Rest controller to provide monitoring information
  * @author joseross
  */
 @RestController
-@RequestMapping("/api/2" + ROOT_URL)
+@RequestMapping("/api/2")
 public class MonitoringController {
 
-    @GetMapping(MEMORY_URL)
-    public ResultOne<MemoryInfo> getCurrentMemory() {
+    private StudioConfiguration studioConfiguration;
+    private SecurityService securityService;
+
+    protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
+        if (StringUtils.isEmpty(securityService.getCurrentUser())) {
+            if (Objects.isNull(token)) {
+                throw new InvalidParametersException("Missing parameter: 'token'");
+            } else if(!StringUtils.equals(token, getConfiguredToken())) {
+                throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
+            }
+        }
+    }
+
+    @GetMapping(value = ROOT_URL + MEMORY_URL)
+    public ResultOne<MemoryInfo> getCurrentMemory(@RequestParam(name = "token", required = false) String token)
+        throws InvalidManagementTokenException, InvalidParametersException {
+        validateToken(token);
         ResultOne<MemoryInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(RESULT_KEY_MEMORY, MemoryInfo.getCurrentMemory());
         return result;
     }
 
-    @GetMapping(STATUS_URL)
-    public ResultOne<StatusInfo> getCurrentStatus() {
+    @GetMapping(value = ROOT_URL + STATUS_URL)
+    public ResultOne<StatusInfo> getCurrentStatus(@RequestParam(name = "token", required = false) String token)
+        throws InvalidManagementTokenException, InvalidParametersException {
+        validateToken(token);
         ResultOne<StatusInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(RESULT_KEY_STAUS, StatusInfo.getCurrentStatus());
         return result;
     }
 
-    @GetMapping(VERSION_URL)
-    public ResultOne<VersionInfo> getCurrentVersion() throws Exception {
+    @GetMapping(value = ROOT_URL + VERSION_URL)
+    public ResultOne<VersionInfo> getCurrentVersion(@RequestParam(name = "token", required = false) String token)
+        throws InvalidManagementTokenException, IOException, InvalidParametersException {
+        validateToken(token);
         ResultOne<VersionInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(RESULT_KEY_VERSION, VersionInfo.getVersion(getClass()));
         return result;
     }
 
-    @GetMapping(LOG_URL)
-    public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since) {
-        ResultList<Map<String,Object>> result = new ResultList<>();
+    @GetMapping(value = ROOT_URL + LOG_URL, produces = APPLICATION_JSON_VALUE)
+    public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since,
+                                                       @RequestParam(name = "token", required = false) String token)
+        throws InvalidManagementTokenException, InvalidParametersException {
+        validateToken(token);
+        ResultList<Map<String, Object>> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(RESULT_KEY_EVENTS, CircularQueueLogAppender.getLoggedEvents("craftercms", since));
         return result;
     }
 
+    protected String getConfiguredToken() {
+        return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 }

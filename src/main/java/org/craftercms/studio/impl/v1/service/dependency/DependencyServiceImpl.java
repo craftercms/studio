@@ -83,6 +83,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
 
     @Override
     public Set<String> upsertDependencies(String site, String path)
@@ -204,7 +205,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getPublishingDependencies(String site, String path)
+    public List<String> getPublishingDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         logger.debug("Get publishing dependencies for site: " + site + " path:" + path);
         List<String> paths = new ArrayList<String>();
@@ -213,7 +214,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getPublishingDependencies(String site, List<String> paths)
+    public List<String> getPublishingDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         Set<String> toRet = new HashSet<String>();
         Set<String> pathsParams = new HashSet<String>();
@@ -228,7 +229,7 @@ public class DependencyServiceImpl implements DependencyService {
             pathsParams.addAll(deps);
         } while (!exitCondition);
 
-        return toRet;
+        return dependencyService.getHardDependencies(site, paths);
     }
 
     private List<String> getPublishingDependenciesForListFromDB(String site, Set<String> paths) {
@@ -755,5 +756,13 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void setItemStateMapper(ItemStateMapper itemStateMapper) {
         this.itemStateMapper = itemStateMapper;
+    }
+
+    public org.craftercms.studio.api.v2.service.dependency.DependencyService getDependencyService() {
+        return dependencyService;
+    }
+
+    public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
     }
 }

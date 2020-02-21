@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -59,7 +58,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -104,10 +102,11 @@ import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -175,6 +174,7 @@ public class SiteServiceImpl implements SiteService {
     protected ContentService contentService;
     protected SiteEnvironmentConfig environmentConfig;
     protected ContentRepository contentRepository;
+    protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
     protected ObjectStateService objectStateService;
     protected DependencyService dependencyService;
     protected SecurityService securityService;
@@ -247,7 +247,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (commitId != null) {
             objectMetadataManager.updateCommitId(site, path, commitId);
-            contentRepository.insertGitLog(site, commitId, 1);
+            contentRepositoryV2.insertGitLog(site, commitId, 1);
         }
         boolean toRet = StringUtils.isEmpty(commitId);
 
@@ -764,6 +764,13 @@ public class SiteServiceImpl implements SiteService {
                 "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
 
             throw e;
+        }
+
+        if (!success) {
+            contentRepository.removeRemoteRepositoriesForSite(siteId);
+            contentRepository.deleteSite(siteId);
+            throw new ServiceLayerException("Failed to create site: " + siteId + " ID: " + siteId + " as clone from " +
+                    "remote repository: " + remoteName + " (" + remoteUrl + ")");
         }
 
         // try to get the search engine from the blueprint descriptor file
@@ -1283,18 +1290,20 @@ public class SiteServiceImpl implements SiteService {
                                         boolean generateAuditLog) throws SiteNotFoundException {
 		boolean toReturn = true;
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
-        List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, repoLastCommitId);
+        List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
+                repoLastCommitId);
+        List<RepoOperation> repoOperations = contentRepositoryV2.getOperations(site, fromCommitId, repoLastCommitId);
         if (CollectionUtils.isEmpty(repoOperations)) {
             logger.debug("Database is up to date with repository for site: " + site);
-            contentRepository.markGitLogVerifiedProcessed(site, fromCommitId);
+            contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
             return toReturn;
         }
 
         logger.info("Syncing database with repository for site: " + site + " fromCommitId = " +
                 (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
         logger.debug("Operations to sync: ");
-	    for (RepoOperationTO repoOperation: repoOperations) {
-	    	logger.debug("\tOperation: " + repoOperation.getOperation().toString() + " " + repoOperation.getPath());
+	    for (RepoOperation repoOperation: repoOperationsDelta) {
+	    	logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
 	    }
 
 	    boolean diverged = false;
@@ -1302,40 +1311,11 @@ public class SiteServiceImpl implements SiteService {
 	    SiteFeed siteFeed = getSite(site);
 	    boolean isPreviewSyncNeeded = !StringUtils.equals(repoLastCommitId, siteFeed.getLastCommitId());
 
-	    // Process all operations and track if one or more have failed
-	    for (RepoOperationTO repoOperation: repoOperations) {
-            boolean gitLogProcessed = false;
-            logger.debug("Verifying repo opertation " + repoOperation.getOperation().toString() + " " +
-                    repoOperation.getPath());
-            logger.debug("Get Git Log from database for commit id " + repoOperation.getCommitId());
-            GitLog gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
-            if (gitLog != null) {
-                diverged = diverged || gitLog.getProcessed() < 1;
-            } else {
-                logger.debug("Git Log does not exist in database for commit id " + repoOperation.getCommitId());
-                logger.debug("Inserting Git Log for commit id " + repoOperation.getCommitId() + " and site " + site);
-                contentRepository.insertGitLog(site, repoOperation.getCommitId(), 0);
-                logger.debug("Repository diverged from database. " +
-                        "All repository operations onwards need to be processed");
-                diverged = true;
-                gitLogProcessed = false;
-                gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
-            }
-
-            if (current == null) {
-                current = gitLog;
-            } else {
-	            if (!current.getCommitId().equals(gitLog.getCommitId())) {
-                    contentRepository.markGitLogVerifiedProcessed(site, current.getCommitId());
-                    current = gitLog;
-                }
-            }
-
-	        if (diverged) {
+        for (RepoOperation repoOperation: repoOperationsDelta) {
                 Map<String, String> activityInfo = new HashMap<String, String>();
                 String contentClass;
                 Map<String, Object> properties;
-                switch (repoOperation.getOperation()) {
+                switch (repoOperation.getAction()) {
                     case CREATE:
                     case COPY:
                         ItemState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
@@ -1366,21 +1346,6 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_CREATE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
                         break;
 
                     case UPDATE:
@@ -1406,21 +1371,6 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_UPDATE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
                         break;
 
                     case DELETE:
@@ -1438,21 +1388,6 @@ public class SiteServiceImpl implements SiteService {
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_DELETE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
                         }
                         break;
 
@@ -1525,6 +1460,122 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
+                        break;
+
+                    default:
+                        logger.error("Error: Unknown repo operation for site " + site + " operation: " +
+                                repoOperation.getAction());
+                        toReturn = false;
+                        break;
+                }
+        }
+
+	    // Process all operations and track if one or more have failed
+	    for (RepoOperation repoOperation: repoOperations) {
+            boolean gitLogProcessed = false;
+            logger.debug("Verifying repo opertation " + repoOperation.getAction().toString() + " " +
+                    repoOperation.getPath());
+            logger.debug("Get Git Log from database for commit id " + repoOperation.getCommitId());
+            GitLog gitLog = contentRepositoryV2.getGitLog(site, repoOperation.getCommitId());
+            if (gitLog != null) {
+                diverged = diverged || gitLog.getProcessed() < 1;
+            } else {
+                logger.debug("Git Log does not exist in database for commit id " + repoOperation.getCommitId());
+                logger.debug("Inserting Git Log for commit id " + repoOperation.getCommitId() + " and site " + site);
+                contentRepositoryV2.insertGitLog(site, repoOperation.getCommitId(), 0);
+                logger.debug("Repository diverged from database. " +
+                        "All repository operations onwards need to be processed");
+                diverged = true;
+                gitLogProcessed = false;
+                gitLog = contentRepositoryV2.getGitLog(site, repoOperation.getCommitId());
+            }
+
+            if (current == null) {
+                current = gitLog;
+            } else {
+	            if (!current.getCommitId().equals(gitLog.getCommitId())) {
+                    contentRepositoryV2.markGitLogVerifiedProcessed(site, current.getCommitId());
+                    current = gitLog;
+                }
+            }
+
+	        if (diverged) {
+                Map<String, String> activityInfo = new HashMap<String, String>();
+                String contentClass;
+                Map<String, Object> properties;
+                switch (repoOperation.getAction()) {
+                    case CREATE:
+                    case COPY:
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                            auditLog.setOperation(OPERATION_CREATE);
+                            auditLog.setSiteId(siteFeed.getId());
+                            auditLog.setActorId(repoOperation.getAuthor());
+                            auditLog.setActorDetails(repoOperation.getAuthor());
+                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                    repoOperation.getPath()));
+                            auditLog.setOrigin(ORIGIN_GIT);
+                            auditServiceInternal.insertAuditLog(auditLog);
+                        }
+                        break;
+
+                    case UPDATE:
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                            auditLog.setOperation(OPERATION_UPDATE);
+                            auditLog.setSiteId(siteFeed.getId());
+                            auditLog.setActorId(repoOperation.getAuthor());
+                            auditLog.setActorDetails(repoOperation.getAuthor());
+                            auditLog.setOrigin(ORIGIN_GIT);
+                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                    repoOperation.getPath()));
+                            auditServiceInternal.insertAuditLog(auditLog);
+                        }
+                        break;
+
+                    case DELETE:
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                            auditLog.setOperation(OPERATION_DELETE);
+                            auditLog.setSiteId(siteFeed.getId());
+                            auditLog.setOrigin(ORIGIN_GIT);
+                            auditLog.setActorId(repoOperation.getAuthor());
+                            auditLog.setActorDetails(repoOperation.getAuthor());
+                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                    repoOperation.getPath()));
+                            auditServiceInternal.insertAuditLog(auditLog);
+                        }
+                        break;
+
+                    case MOVE:
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
+                        if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
                         if (generateAuditLog) {
                             logger.debug("Insert audit log for site: " + site + " path: " +
                                     repoOperation.getMoveToPath());
@@ -1545,14 +1596,14 @@ public class SiteServiceImpl implements SiteService {
 
                     default:
                         logger.error("Error: Unknown repo operation for site " + site + " operation: " +
-                                repoOperation.getOperation());
+                                repoOperation.getAction());
                         toReturn = false;
                         break;
                 }
             }
 	    }
         if (current != null) {
-            contentRepository.markGitLogVerifiedProcessed(site, current.getCommitId());
+            contentRepositoryV2.markGitLogVerifiedProcessed(site, current.getCommitId());
             updateLastVerifiedGitlogCommitId(site, current.getCommitId());
         }
 
@@ -2037,5 +2088,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public org.craftercms.studio.api.v2.repository.ContentRepository getContentRepositoryV2() {
+        return contentRepositoryV2;
+    }
+
+    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
+        this.contentRepositoryV2 = contentRepositoryV2;
     }
 }

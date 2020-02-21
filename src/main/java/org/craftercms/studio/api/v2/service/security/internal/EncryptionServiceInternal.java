@@ -15,19 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v2.service.security.internal;
 
-import java.util.Map;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-public interface GitLogMapper {
+/**
+ * @author joseross
+ */
+public interface EncryptionServiceInternal {
 
-    GitLog getGitLog(Map params);
+    String encrypt(String text) throws ServiceLayerException;
 
-    void insertGitLog(Map params);
-
-    void insertGitLogList(Map params);
-
-    void markGitLogProcessed(Map params);
-
-    void deleteGitLogForSite(Map params);
 }

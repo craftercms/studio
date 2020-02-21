@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
@@ -150,7 +151,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      */
     @Override
     @HasPermission(type = DefaultPermission.class, action = "s3 write")
-    public MediaConvertResult uploadVideo(@ValidateStringParam final String site,
+    public MediaConvertResult uploadVideo(@ValidateStringParam @ProtectedResourceId("siteId") final String site,
                                           @ValidateStringParam final String inputProfileId,
                                           @ValidateStringParam final String outputProfileId,
                                           @ValidateStringParam final String filename,

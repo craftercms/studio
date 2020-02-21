@@ -128,6 +128,11 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_DEFAULT_PREVIEW_URL = "studio.configuration.site.defaultPreviewUrl";
     String CONFIGURATION_SITE_DEFAULT_AUTHORING_URL = "studio.configuration.site.defaultAuthoringUrl";
     String CONFIGURATION_SITE_DEFAULT_GRAPHQL_SERVER_URL = "studio.configuration.site.defaultGraphqlServerUrl";
+    String CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN = "studio.configuration.management.authorizationToken";
+    String CONFIGURATION_MANAGEMENT_PREVIEW_AUTHORIZATION_TOKEN =
+            "studio.configuration.management.previewAuthorizationToken";
+    String CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS =
+            "studio.configuration.management.previewProtectedUrls";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

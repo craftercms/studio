@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.4.8'
+  version: '3.1.5.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -52,6 +52,8 @@ tags:
     description: WebDAV operations
   - name: publishing
     description: Publishing operations
+  - name: security
+    description: Security operations
 
 paths:
 
@@ -1743,6 +1745,13 @@ paths:
         - monitoring
       summary: Get the current version information
       operationId: getVersion
+      parameters:
+        - name: token
+          in: path
+          description: Management token - not required for authenticated users
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1755,6 +1764,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   version:
                     $ref: '#/components/schemas/VersionItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1764,6 +1775,13 @@ paths:
         - monitoring
       summary: Get the current status information
       operationId: getStatus
+      parameters:
+        - name: token
+          in: path
+          description: Management token - not required for authenticated users
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1776,6 +1794,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   version:
                     $ref: '#/components/schemas/StatusItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1785,6 +1805,13 @@ paths:
         - monitoring
       summary: Get the current memory information
       operationId: getMemory
+      parameters:
+        - name: token
+          in: path
+          description: Management token - not required for authenticated users
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1797,6 +1824,8 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   version:
                     $ref: '#/components/schemas/MemoryItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1814,6 +1843,12 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: token
+          in: path
+          description: Management token - not required for authenticated users
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -1828,7 +1863,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/LogEvent'
-
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -3212,6 +3248,42 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /security/encrypt:
+    post:
+      tags:
+        - security
+      summary: Encrypt a text value
+      operationId: encrypt
+      description: Required permission "encryption_tool"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 

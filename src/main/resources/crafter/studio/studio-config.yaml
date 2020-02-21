@@ -121,7 +121,7 @@ studio.configuration.defaultAdminGroup: site_admin
 # Location where data sources configuration is stored for a site.
 studio.configuration.site.dataSources.configLocation: /config/studio/data-sources/cmis-config.xml
 # Destroy site context url for preview engine
-studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api/1/site/context/destroy.json?crafterSite={siteName}
+studio.configuration.site.preview.destroy.context.url: http://localhost:8080/api/1/site/context/destroy.json?crafterSite={siteName}&token=${studio.configuration.management.previewAuthorizationToken}
 # Location pattern where default dependency resolver specific configuration for is stored
 studio.configuration.default.dependencyResolver.configBasePath: /configuration/dependency
 # File name where default dependency specific configuration is stored
@@ -144,7 +144,25 @@ studio.configuration.site.defaultPreviewUrl: ^https?://localhost:8080/?
 studio.configuration.site.defaultAuthoringUrl: ^https?://localhost:8080/studio/?
 # Default GraphQL server URL
 studio.configuration.site.defaultGraphqlServerUrl: ^https?://localhost:8080/?
-
+# Studio management authorization token.
+# Please update this per installation and provide this token to the status monitors.
+studio.configuration.management.authorizationToken: defaultManagementToken
+# Preview engine management authorization token.
+# Please update this per installation and provide this token to the status monitors.
+studio.configuration.management.previewAuthorizationToken: ${env:ENGINE_MANAGEMENT_TOKEN}
+# Protected URLs with preview engine management authorization token.
+# Coma separated list of preview engine urls
+studio.configuration.management.previewProtectedUrls: >-
+  /api/1/monitoring/log.json,
+  /api/1/monitoring/memory.json,
+  /api/1/monitoring/status.json,
+  /api/1/monitoring/version.json,
+  /api/1/site/context/id,
+  /api/1/site/context/destroy,
+  /api/1/site/context/rebuild,
+  /api/1/site/context/graphql/rebuild,
+  /api/1/site/cache/clear,
+  /api/1/site/cache/statistics
 ########################################################
 ##                   Import Service                   ##
 ########################################################
@@ -191,7 +209,8 @@ studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-se
 # Public URLs
 studio.security.publicUrls: >
   /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
-  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password
+  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
+  /static-assets/.+
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -282,6 +301,16 @@ studio.authentication.chain:
   - provider: DB
     # Authentication via DB enabled
     enabled: true
+
+# The key used for encryption of configuration properties
+studio.security.encryption.key: default_encryption_key
+# The salt used for encryption of configuration properties
+studio.security.encryption.salt: default_encryption_salt
+# Amount of time (in seconds) to delay encryption response
+studio.security.encryption.delay: 1
+# Amount of characters to limit the encryption input
+studio.security.encryption.maxLength: 512
+
 ###############################################################
 ##               Page Navigation Order Service               ##
 ###############################################################
@@ -564,6 +593,10 @@ studio.cors.maxage: -1
 ################################################################
 # URLs to connect to Elasticsearch
 studio.search.urls: http://localhost:9201
+# The username for Elasticsearch
+studio.search.username: ''
+# The password for Elasticsearch
+studio.search.password: ''
 # Suffix added to the name for authoring indexes
 studio.search.index.suffix: -authoring
 # Name of the field for paths

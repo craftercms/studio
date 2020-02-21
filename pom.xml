@@ -16,8 +16,11 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.craftercms</groupId>
     <artifactId>crafter-studio</artifactId>
@@ -26,7 +29,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.4</version><!-- craftercms version flag -->
+    <version>3.1.5</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -41,9 +44,9 @@
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
         <testng.version>6.9.10</testng.version>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>master</studio.ui.version><!-- craftercms ui version flag -->
-        <studio.ui.node.version>v10.16.0</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.16.0</studio.ui.yarn.version>
+        <studio.ui.version>v3.1.5</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.node.version>v13.6.0</studio.ui.node.version>
+        <studio.ui.yarn.version>v1.21.1</studio.ui.yarn.version>
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
@@ -52,7 +55,7 @@
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.4.2.3</mariadb4j.version>
         <jackson.version>2.9.10</jackson.version>
-        <jackson.databind.version>2.9.10.1</jackson.databind.version>
+        <jackson.databind.version>2.9.10.2</jackson.databind.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.9</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
@@ -600,6 +603,7 @@
                     <nodeVersion>${studio.ui.node.version}</nodeVersion>
                     <yarnVersion>${studio.ui.yarn.version}</yarnVersion>
                     <installDirectory>target</installDirectory>
+                    <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
                     <execution>
@@ -648,9 +652,32 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                            <arguments>run build</arguments>
+                            <arguments>build</arguments>
                         </configuration>
                     </execution>
+
+                    <execution>
+                        <id>install legacy hybrid deps</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build legacy hybrid files</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+
                 </executions>
             </plugin>
             <plugin>
@@ -734,6 +761,7 @@
                                 <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
                                 <exclude>/WEB-INF/lib/aws-java-sdk-kms-1.11.435.jar</exclude>
                                 <exclude>/WEB-INF/lib/aws-java-sdk-core-1.11.435.jar</exclude>
+                                <exclude>/WEB-INF/classes/crafter/engine/services/security-context.xml</exclude>
                             </excludes>
                         </overlay>
                     </overlays>
