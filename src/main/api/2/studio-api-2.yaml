@@ -3585,7 +3585,7 @@ paths:
             list of filters to apply on result set
             Filter:
               - path - filter items by path
-              - modifier - filter items by username 
+              - modifier - filter items by username
               - modifiedDateFrom - filter items by modified date setting lower boundary for date range
               - modifiedDateTo - filter items by modified date setting upper boundary for date range
               - contentType - filter items by content types
@@ -3825,7 +3825,7 @@ paths:
           description: >-
             order result by column
             List of columns:
-              - label - label or internalName - user friendly name of item 
+              - label - label or internalName - user friendly name of item
               - path - path of an item item
               - modifier - user that last modified item
               - scheduledDate - data and time item is scheduled
