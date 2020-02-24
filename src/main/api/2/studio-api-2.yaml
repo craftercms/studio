@@ -2998,7 +2998,7 @@ paths:
     get:
       tags:
         - content
-      summary: Get list of children for given content id
+      summary: Get list of children for given item id
       description: 'Required permission "get_children" ("site member")'
       operationId: getChildrenById
       parameters:
@@ -3010,7 +3010,7 @@ paths:
             type: string
         - name: id
           in: query
-          description: content id to get children for
+          description: item id to get children for
           required: true
           schema:
             type: string
@@ -3024,11 +3024,17 @@ paths:
           description: >-
             sort strategy (sort order)
             Possible values:
-              - default
-              - alphabetic
+              - default (order by: navigation pages, floating pages, folders, level descriptor)
+              - alphabetical
               - folders first
           schema:
             type: string
+        - name: order
+          in: query
+          description: order for srot strategy ascending or descending (ASC / DESC)
+          schema:
+            type: string
+            format: ASC, DESC
         - name: offset
           in: query
           description: offset of first child in response - default 0
@@ -3068,9 +3074,9 @@ paths:
     get:
       tags:
         - content
-      summary: Get list of children for given content path
+      summary: Get list of children for given item path
       description: 'Required permission "get_children" ("site member")'
-      operationId: getChildrenNyPath
+      operationId: getChildrenByPath
       parameters:
         - name: siteId
           in: query
@@ -3080,7 +3086,7 @@ paths:
             type: string
         - name: path
           in: query
-          description: content path to get children for
+          description: item path to get children for
           required: true
           schema:
             type: string
@@ -3094,11 +3100,17 @@ paths:
           description: >-
             sort strategy (sort order)
             Possible values:
-              - default
-              - alphabetic
+              - default (order by: navigation pages, floating pages, folders, level descriptor)
+              - alphabetical
               - folders first
           schema:
             type: string
+        - name: order
+          in: query
+          description: order for srot strategy ascending or descending (ASC / DESC)
+          schema:
+            type: string
+            format: ASC, DESC
         - name: offset
           in: query
           description: offset of first child in response - default 0
@@ -3138,7 +3150,7 @@ paths:
     get:
       tags:
         - content
-      summary: Get content item for given content id
+      summary: Get content item for given item id
       description: 'Required permission "get_detailed_item" "read_item" ("site member")'
       operationId: getDetailedItemById
       parameters:
@@ -3181,9 +3193,9 @@ paths:
     get:
       tags:
         - content
-      summary: Get content item for given content path
+      summary: Get item details for given an item path
       description: 'Required permission "get_detailed_item" "read_item" ("site member")'
-      operationId: getDetailedItemByPAth
+      operationId: getDetailedItemByPath
       parameters:
         - name: siteId
           in: query
@@ -3523,9 +3535,9 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get content for dashboard of content
+      summary: Get content dashboard
       description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getDashboardContent
+      operationId: getContentDashboard
       parameters:
         - name: siteId
           in: query
@@ -3538,11 +3550,11 @@ paths:
           description: >-
             order result by column
             List of columns:
-              - label
-              - path
-              - modifier
-              - modifiedDate
-              - content type
+              - label - label or internalName - user friendly name of item
+              - path - path of an item item
+              - modifier - user that last modified item
+              - modifiedDate - data and time of last modification of an item
+              - contentType - content type of an item
           required: true
           schema:
             type: string
@@ -3572,12 +3584,12 @@ paths:
           description: >-
             list of filters to apply on result set
             Filter:
-              - path
-              - modifier
-              - modifiedDateFrom
-              - modifiedDateTo
-              - content type
-              - state
+              - path - filter items by path
+              - modifier - filter items by username 
+              - modifiedDateFrom - filter items by modified date setting lower boundary for date range
+              - modifiedDateTo - filter items by modified date setting upper boundary for date range
+              - contentType - filter items by content types
+              - state - filter items by state (bitmap state values)
           schema:
             type: array
             items:
@@ -3614,9 +3626,9 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get content for dashboard of publishing
+      summary: Get publishing dashboard
       description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getDashboardPublishing
+      operationId: getPublishingDashboard
       parameters:
         - name: siteId
           in: query
@@ -3629,12 +3641,12 @@ paths:
           description: >-
             order result by column
             List of columns:
-              - label
-              - path
-              - publisher
-              - publishedDate
-              - environment
-              - content type
+              - label - label or internalName - user friendly name of item
+              - path - path of an item item
+              - publisher - user that published item
+              - publishedDate - data and time when item was published
+              - environment - environment where item was published
+              - content type - content type of an item
           required: true
           schema:
             type: string
@@ -3664,13 +3676,13 @@ paths:
           description: >-
             list of filters to apply on result set
             Filter:
-              - path
-              - publisher
-              - publishedDateFrom
-              - publishedDateTo
-              - content type
-              - environment
-              - state
+              - path - filter items by path
+              - publisher - filter items by username
+              - publishedDateFrom - filter items by published date setting lower boundary for date range
+              - publishedDateTo - filter items by published date setting upper boundary for date range
+              - content type - filter items by content types
+              - environment - filter items by environment where published
+              - state - filter items by state (bitmap state values)
           schema:
             type: array
             items:
@@ -3707,9 +3719,9 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get content for dashboard of audit
+      summary: Get audit dashboard
       description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getDashboardAudit
+      operationId: getAuditDashboard
       parameters:
         - name: siteId
           in: query
@@ -3722,11 +3734,11 @@ paths:
           description: >-
             order result by column
             List of columns:
-              - site
-              - actor
-              - operation
-              - operationTimestamp
-              - target
+              - site - site of the audit item
+              - actor - user that executed action
+              - operation - operation that was audited
+              - operationTimestamp - timestamp when operation was executed
+              - target - target upon which operation was executed
           required: true
           schema:
             type: string
@@ -3756,12 +3768,12 @@ paths:
           description: >-
             list of filters to apply on result set
             Filter:
-              - site
-              - actor
-              - operation
-              - operationTimestampFrom
-              - operationTimestampTo
-              - target
+              - site - filter items by site
+              - actor - filter items by username
+              - operation - filter items by operation
+              - operationTimestampFrom - filter items by execution time setting lower boudery for time range
+              - operationTimestampTo- filter items by execution time setting upper boudery for time range
+              - target - filter items by target uppon which was executed operation
           schema:
             type: array
             items:
@@ -3798,9 +3810,9 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get content for dashboard of workflow
+      summary: Get workflow dashboard
       description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getDashboardWorkflow
+      operationId: getWorkflowDashboard
       parameters:
         - name: siteId
           in: query
@@ -3813,12 +3825,12 @@ paths:
           description: >-
             order result by column
             List of columns:
-              - label
-              - path
-              - modifier
-              - scheduledDate
-              - environment
-              - content type
+              - label - label or internalName - user friendly name of item 
+              - path - path of an item item
+              - modifier - user that last modified item
+              - scheduledDate - data and time item is scheduled
+              - environment - environment where item is scheduled
+              - contentType - content type of an item
           required: true
           schema:
             type: string
@@ -3848,13 +3860,13 @@ paths:
           description: >-
             list of filters to apply on result set
             Filter:
-              - path
-              - modifier
-              - scheduledDateFrom
-              - scheduledDateTo
-              - content type
-              - environment
-              - state
+              - path - filter items by path
+              - modifier - filter items by username of last modifier
+              - scheduledDateFrom - filter items by scheduled date setting lower boudery for date range
+              - scheduledDateTo - filter items by scheduled date setting upper boudery for date range
+              - contentType - filter items by content type
+              - environment - filter itesm by environment where scheduled
+              - state - filter items by state (state bitmap values)
           schema:
             type: array
             items:
@@ -3881,178 +3893,6 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /dashboard/user:
-    get:
-      tags:
-        - dashboard
-      summary: Get content for dashboard of user
-      description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getDashboardData
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: sortBy
-          in: query
-          description: >-
-            order result by column
-            List of columns:
-              - username
-              - firstName
-              - lastName
-              - email
-              - active
-              - externallyManaged
-          required: true
-          schema:
-            type: string
-        - name: order
-          in: query
-          description: order of sorted data (ASC or DESC)
-          schema:
-            type: string
-            format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: offset of the first result item, default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-        - name: filters
-          in: query
-          description: >-
-            list of filters to apply on result set
-            Filter:
-              - username
-              - email
-              - active
-              - externallyManaged
-          schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/DashboardItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /dashboard/group:
-    get:
-      tags:
-        - dashboard
-      summary: Get content for dashboard group
-      description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getDashboardGroup
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: sortBy
-          in: query
-          description: >-
-            order result by column
-            List of columns:
-              - groupName
-          required: true
-          schema:
-            type: string
-        - name: order
-          in: query
-          description: order of sorted data (ASC or DESC)
-          schema:
-            type: string
-            format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: offset of the first result item, default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-        - name: filters
-          in: query
-          description: >-
-            list of filters to apply on result set
-            Filter:
-              - groupName
-          schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/DashboardItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '401':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
@@ -4087,19 +3927,14 @@ paths:
             type: array
             items:
               type: string
-        - name: translated
-          in: query
-          description: include items if transated only (default false)
-          schema:
-            type: boolean
         - name: markedForTranslation
           in: query
-          description: include items if marked for translation only (default false)
+          description: if true include only items marked for translation, otherwise exclude them (default flase)
           schema:
             type: boolean
         - name: transalationOutOfDate
           in: query
-          description: include items if translation out of date only (default false)
+          description: if true include items with translation out of date, otherwise exclude them (default false)
           schema:
             type: boolean
         - name: offset
@@ -4375,6 +4210,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -5469,17 +5306,17 @@ components:
         translationSourceId:
           type: string
           description: ID of content item that is original for translation that current item represents
+        creator:
+          type: string
+          description: username of user that created item
         createdDate:
           type: string
           format: datetime
           description: timestamp when item was created
-        creator:
-          type: string
-          description: username of user that created item
         modifier:
           type: string
           description: username of last user that modified item
-        lastModified:
+        lastModifiedDate:
           type: string
           format: datetime
           description: timestamp when was item last modified
@@ -5488,7 +5325,7 @@ components:
           description: commit id of last modification in the repository for item
         sizeInBytes:
           type: integer
-          format: int32
+          format: int64
           description: size of content item in the repository
       required:
         - id
@@ -5504,7 +5341,7 @@ components:
         - createdDate
         - creator
         - modifier
-        - lastModified
+        - lastModifiedDate
         - commitId
 
     DetailedItem:
@@ -5527,7 +5364,8 @@ components:
           description: url for previewing content item
         systemType:
           type: string
-          description: one of predifined type values (page, component, asset, level descriptor, folder ...)
+          format: page, component, asset, level descriptor, folder
+          description: type of item in crafter CMS domain
         mimeType:
           type: string
           description: mime-type of content item file
@@ -5564,23 +5402,27 @@ components:
           type: object
           description: metadata of content item version stored in sandbox repository
           properties:
+            creator:
+              type: string
+              description: username of user that created item
             createdDate:
               type: string
               format: datetime
               description: timestamp when item was created
-            creator:
-              type: string
-              description: username of user that created item
             modifier:
               type: string
               description: username of last user that modified sandbox version of item
-            lastModified:
+            lastModifiedDate:
               type: string
               format: datetime
               description: timestamp when was item last modified in sandbox
             commitId:
               type: string
               description: commit id of last modification in the sandbox repository
+            sizeInBytes:
+              type: integer
+              format: int64
+              description: size of content item in the repository
         staging:
           type: object
           description: metadata of content item version stored in staging repository
@@ -5617,10 +5459,6 @@ components:
             commitId:
               type: string
               description: commit id of last modification in the live repository
-        sizeInBytes:
-          type: integer
-          format: int32
-          description: size of content item in the repository
       required:
         - id
         - label
