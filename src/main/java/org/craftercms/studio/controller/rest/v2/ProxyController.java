@@ -52,6 +52,7 @@ public class ProxyController {
     private StudioConfiguration studioConfiguration;
 
     @RequestMapping(PROXY_ENGINE + ALL_SUB_URLS)
+    @SuppressWarnings("unchecked")
     public ResponseEntity proxyEngine(@RequestBody(required = false) String body,
                                       HttpMethod method, HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(value = "crafterSite", required = true) String site)
