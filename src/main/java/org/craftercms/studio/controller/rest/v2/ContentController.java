@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,9 +78,12 @@ public class ContentController {
     public ResponseBody getDeletePackage(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
             @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths) {
-        List<String> childItems = contentService.getChildItems(siteId, paths);
-        List<String> dependentItems = dependencyService.getDependentItems(siteId, paths);
-
+        List<String> childItems = new ArrayList<String>();
+        List<String> dependentItems = new ArrayList<String>();
+        if (CollectionUtils.isNotEmpty(paths)) {
+            childItems = contentService.getChildItems(siteId, paths);
+            dependentItems = dependencyService.getDependentItems(siteId, paths);
+        }
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<Map<String, List<String>>>();
         result.setResponse(ApiResponse.OK);
