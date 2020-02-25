@@ -3026,7 +3026,7 @@ paths:
             Possible values:
               - default (order by: navigation pages, floating pages, folders, level descriptor)
               - alphabetical
-              - folders first
+              - foldersFirst (order by: folders alphabetical, files alphabetical)
           schema:
             type: string
         - name: order
@@ -3058,7 +3058,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SidebarItem'
+                      $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3134,7 +3134,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SidebarItem'
+                      $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3584,7 +3584,7 @@ paths:
           description: >-
             list of filters to apply on result set
             Filter:
-              - path - filter items by path
+              - path - filter items by regular expression applied on path
               - modifier - filter items by username
               - modifiedDateFrom - filter items by modified date setting lower boundary for date range
               - modifiedDateTo - filter items by modified date setting upper boundary for date range
@@ -3927,12 +3927,17 @@ paths:
             type: array
             items:
               type: string
-        - name: markedForTranslation
+        - name: translated
           in: query
-          description: if true include only items marked for translation, otherwise exclude them (default flase)
+          description: if true include only translated items (default false)
           schema:
             type: boolean
-        - name: transalationOutOfDate
+        - name: markedForTranslation
+          in: query
+          description: if true include only items marked for translation, otherwise exclude them (default false)
+          schema:
+            type: boolean
+        - name: translationOutOfDate
           in: query
           description: if true include items with translation out of date, otherwise exclude them (default false)
           schema:
@@ -5253,7 +5258,7 @@ components:
         - environment
         - items
 
-    SidebarItem:
+    SandboxItem:
       type: object
       properties:
         id:
@@ -5364,7 +5369,7 @@ components:
           description: url for previewing content item
         systemType:
           type: string
-          format: page, component, asset, level descriptor, folder
+          format: page, component, asset, levelDescriptor, folder
           description: type of item in crafter CMS domain
         mimeType:
           type: string
