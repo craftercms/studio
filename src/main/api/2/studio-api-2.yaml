@@ -3585,7 +3585,7 @@ paths:
             list of filters to apply on result set
             Filter:
               - path - filter items by regular expression applied on path
-              - modifier - filter items by username
+              - modifier - filter items by username(s)
               - modifiedDateFrom - filter items by modified date setting lower boundary for date range
               - modifiedDateTo - filter items by modified date setting upper boundary for date range
               - contentType - filter items by content types
@@ -3677,7 +3677,7 @@ paths:
             list of filters to apply on result set
             Filter:
               - path - filter items by path
-              - publisher - filter items by username
+              - publisher - filter items by username(s)
               - publishedDateFrom - filter items by published date setting lower boundary for date range
               - publishedDateTo - filter items by published date setting upper boundary for date range
               - content type - filter items by content types
@@ -3769,11 +3769,11 @@ paths:
             list of filters to apply on result set
             Filter:
               - site - filter items by site
-              - actor - filter items by username
-              - operation - filter items by operation
+              - actor - filter items by username(s)
+              - operation - filter items by operation(s)
               - operationTimestampFrom - filter items by execution time setting lower boudery for time range
               - operationTimestampTo- filter items by execution time setting upper boudery for time range
-              - target - filter items by target uppon which was executed operation
+              - target - filter items by target(s) uppon which was executed operation
           schema:
             type: array
             items:
@@ -3827,7 +3827,7 @@ paths:
             List of columns:
               - label - label or internalName - user friendly name of item
               - path - path of an item item
-              - modifier - user that last modified item
+              - actor - user that last acted on the item
               - scheduledDate - data and time item is scheduled
               - environment - environment where item is scheduled
               - contentType - content type of an item
@@ -3860,12 +3860,12 @@ paths:
           description: >-
             list of filters to apply on result set
             Filter:
-              - path - filter items by path
-              - modifier - filter items by username of last modifier
+              - path - filter items by path regex
+              - actor - filter items by username(s) of last actor
               - scheduledDateFrom - filter items by scheduled date setting lower boudery for date range
               - scheduledDateTo - filter items by scheduled date setting upper boudery for date range
               - contentType - filter items by content type
-              - environment - filter itesm by environment where scheduled
+              - environment - filter items by environment where scheduled
               - state - filter items by state (state bitmap values)
           schema:
             type: array
@@ -3915,7 +3915,7 @@ paths:
             type: string
         - name: path
           in: query
-          description: filter results by paths (return items within subtree)
+          description: filter results by path regexes
           schema:
             type: array
             items:
@@ -3927,19 +3927,19 @@ paths:
             type: array
             items:
               type: string
-        - name: translated
-          in: query
-          description: if true include only translated items (default false)
-          schema:
-            type: boolean
         - name: markedForTranslation
           in: query
-          description: if true include only items marked for translation, otherwise exclude them (default false)
+          description: Include only items marked for translation and exclude everything else (default true)
+          schema:
+            type: boolean
+        - name: notTranslated
+          in: query
+          description: Include only items that have not been translated yet (default true)
           schema:
             type: boolean
         - name: translationOutOfDate
           in: query
-          description: if true include items with translation out of date, otherwise exclude them (default false)
+          description: Include items with translation out of date, otherwise exclude them (default true)
           schema:
             type: boolean
         - name: offset
@@ -4120,7 +4120,7 @@ paths:
     post:
       tags:
         - translation
-      summary: Request item to be translated
+      summary: Mark item to be translated to specific locales
       description: 'Required permission "mark_for_translation"'
       operationId: markForTranslationById
       requestBody:
@@ -4173,7 +4173,7 @@ paths:
     post:
       tags:
         - translation
-      summary: Request item to be translated
+      summary: Mark item to be translated to specific locales
       description: 'Required permission "mark_for_translation"'
       operationId: markForTranslationByPath
       requestBody:
@@ -5278,7 +5278,7 @@ components:
           description: url for previewing content item
         systemType:
           type: string
-          description: one of predifined type values (page, component, asset, level descriptor, folder ...)
+          description: one of predifined type values (page, component, asset, levelDescriptor, folder ...)
         mimeType:
           type: string
           description: mime-type of content item file
