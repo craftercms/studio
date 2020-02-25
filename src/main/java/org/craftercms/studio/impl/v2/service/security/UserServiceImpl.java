@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -44,7 +43,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParamter;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -239,9 +238,9 @@ public class UserServiceImpl implements UserService {
             auditLog.setPrimaryTargetId(siteFeed.getSiteId());
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(siteFeed.getName());
-            List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
+            List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
             for (User deletedUser : toDelete) {
-                AuditLogParamter paramter = new AuditLogParamter();
+                AuditLogParameter paramter = new AuditLogParameter();
                 paramter.setTargetId(Long.toString(deletedUser.getId()));
                 paramter.setTargetType(TARGET_TYPE_USER);
                 paramter.setTargetValue(deletedUser.getUsername());
@@ -278,9 +277,9 @@ public class UserServiceImpl implements UserService {
         auditLog.setPrimaryTargetId(siteFeed.getSiteId());
         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
         auditLog.setPrimaryTargetValue(siteFeed.getName());
-        List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
+        List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
         for (User u : users) {
-            AuditLogParamter paramter = new AuditLogParamter();
+            AuditLogParameter paramter = new AuditLogParameter();
             paramter.setTargetId(Long.toString(u.getId()));
             paramter.setTargetType(TARGET_TYPE_USER);
             paramter.setTargetValue(u.getUsername());

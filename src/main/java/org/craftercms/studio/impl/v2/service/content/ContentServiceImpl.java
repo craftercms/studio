@@ -28,7 +28,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParamter;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.ContentService;
@@ -125,15 +125,15 @@ public class ContentServiceImpl implements ContentService {
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteId);
-        List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
+        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
         for (String itemToDelete : contentToDelete) {
-            AuditLogParamter auditLogParamter = new AuditLogParamter();
-            auditLogParamter.setTargetId(siteId + ":" + itemToDelete);
-            auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParamter.setTargetValue(itemToDelete);
-            auditLogParamters.add(auditLogParamter);
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":" + itemToDelete);
+            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLogParameter.setTargetValue(itemToDelete);
+            auditLogParameters.add(auditLogParameter);
         }
-        auditLog.setParameters(auditLogParamters);
+        auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 

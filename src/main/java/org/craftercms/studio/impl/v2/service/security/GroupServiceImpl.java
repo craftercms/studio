@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +29,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParamter;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -152,9 +151,9 @@ public class GroupServiceImpl implements GroupService {
         auditLog.setPrimaryTargetId(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
         auditLog.setPrimaryTargetValue(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-        List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
+        List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
         for (Group g : groups) {
-            AuditLogParamter paramter = new AuditLogParamter();
+            AuditLogParameter paramter = new AuditLogParameter();
             paramter.setTargetId(Long.toString(g.getId()));
             paramter.setTargetType(TARGET_TYPE_GROUP);
             paramter.setTargetValue(g.getGroupName());
@@ -191,9 +190,9 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupServiceInternal.getGroup(groupId);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        List<AuditLogParamter> parameters = new ArrayList<AuditLogParamter>();
+        List<AuditLogParameter> parameters = new ArrayList<AuditLogParameter>();
         for (User user : users) {
-            AuditLogParamter parameter = new AuditLogParamter();
+            AuditLogParameter parameter = new AuditLogParameter();
             parameter.setTargetId(Long.toString(user.getId()));
             parameter.setTargetType(TARGET_TYPE_USER);
             parameter.setTargetValue(user.getUsername());
@@ -251,9 +250,9 @@ public class GroupServiceImpl implements GroupService {
             auditLog.setPrimaryTargetId(Long.toString(group.getId()));
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(group.getGroupName());
-            List<AuditLogParamter> paramters = new ArrayList<AuditLogParamter>();
+            List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
             for (User user : users) {
-                AuditLogParamter paramter = new AuditLogParamter();
+                AuditLogParameter paramter = new AuditLogParameter();
                 paramter.setTargetId(Long.toString(user.getId()));
                 paramter.setTargetType(TARGET_TYPE_USER);
                 paramter.setTargetValue(user.getUsername());
