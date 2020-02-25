@@ -3511,7 +3511,8 @@ paths:
               properties:
                 text:
                   type: string
-                  required: true
+              required:
+                - text
       responses:
         '200':
           description: OK
@@ -4011,7 +4012,7 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   items:
                     type: array
-                    item:
+                    items:
                       $ref: '#/components/schemas/LocalizationItem'
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4058,7 +4059,7 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   items:
                     type: array
-                    item:
+                    items:
                       $ref: '#/components/schemas/LocalizationItem'
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4136,9 +4137,9 @@ paths:
                   description: site ID
                 id:
                   type: array
-                  item:
-                    type: string
                   description: id(s) of the item(s)
+                  items:
+                    type: string
                 locales:
                   type: array
                   description: locale codes
@@ -4189,9 +4190,10 @@ paths:
                   description: site ID
                 path:
                   type: array
-                  item:
-                    type: string
                   description: path(s) of the item(s)
+                  items:
+                    type: string
+                  
                 locales:
                   type: array
                   description: locale codes
