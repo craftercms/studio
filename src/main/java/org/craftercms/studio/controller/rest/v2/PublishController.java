@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -27,7 +43,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PACKAGE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATE;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -44,7 +60,8 @@ public class PublishController {
                                               @RequestParam(name = REQUEST_PARAM_ENVIRONMENT, required = false)
                                                       String environment,
                                               @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
-                                              @RequestParam(name = REQUEST_PARAM_STATE, required = false) String state,
+                                              @RequestParam(name = REQUEST_PARAM_STATES, required = false)
+                                                          List<String> states,
                                               @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
                                                       defaultValue = "0") int offset,
                                               @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
@@ -52,10 +69,10 @@ public class PublishController {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        int total = publishService.getPublishingPackagesTotal(siteId, environment, path, state);
+        int total = publishService.getPublishingPackagesTotal(siteId, environment, path, states);
         List<PublishingPackage> packages = new ArrayList<PublishingPackage>();
         if (total > 0) {
-            packages = publishService.getPublishingPackages(siteId, environment, path, state, offset, limit);
+            packages = publishService.getPublishingPackages(siteId, environment, path, states, offset, limit);
         }
 
         ResponseBody responseBody = new ResponseBody();

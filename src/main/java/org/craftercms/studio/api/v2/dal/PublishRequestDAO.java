@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
@@ -11,7 +27,7 @@ public interface PublishRequestDAO extends BaseDAO {
      *
      * @param siteId site identifier
      * @param environment publishing environment
-     * @param state publishing package state
+     * @param states publishing package state
      * @param path regular expression for paths
      *
      * @return number of publishing packages
@@ -19,7 +35,7 @@ public interface PublishRequestDAO extends BaseDAO {
     int getPublishingPackagesTotal(@Param(PARAM_NAME_SITE_ID) String siteId,
                                    @Param(PARAM_NAME_ENVIRONMENT) String environment,
                                    @Param(PARAM_NAME_PATH) String path,
-                                   @Param(PARAM_NAME_STATE) String state);
+                                   @Param(PARAM_NAME_STATES) List<String> states);
 
     /**
      * Get publishing packages for given search filters
@@ -34,7 +50,7 @@ public interface PublishRequestDAO extends BaseDAO {
     List<PublishingPackage> getPublishingPackages(@Param(PARAM_NAME_SITE_ID) String siteId,
                                                   @Param(PARAM_NAME_ENVIRONMENT) String environment,
                                                   @Param(PARAM_NAME_PATH) String path,
-                                                  @Param(PARAM_NAME_STATE) String state,
+                                                  @Param(PARAM_NAME_STATES) List<String> states,
                                                   @Param(PARAM_NAME_OFFSET) int offset,
                                                   @Param(PARAM_NAME_LIMIT) int limit);
 

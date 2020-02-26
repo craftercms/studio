@@ -59,23 +59,23 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
     public int getPublishingPackagesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String environment,
-                                          String path, String state)
+                                          String path, List<String> states)
             throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, state);
+        return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, states);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
     public List<PublishingPackage> getPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                         String environment, String path, String state, int offset,
-                                                         int limit) throws SiteNotFoundException {
+                                                         String environment, String path, List<String> states,
+                                                         int offset, int limit) throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        return publishServiceInternal.getPublishingPackages(siteId, environment, path, state, offset, limit);
+        return publishServiceInternal.getPublishingPackages(siteId, environment, path, states, offset, limit);
     }
 
     @Override
