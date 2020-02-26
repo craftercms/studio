@@ -40,7 +40,7 @@ import java.util.List;
 
 import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_UNPUBLISHED_UNLOCKED;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -126,7 +126,7 @@ public class PublishServiceImpl implements PublishService {
     private void createAuditLogEntry(String siteId, List<AuditLogParameter> auditLogParameters) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_REJECT);
+        auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
         auditLog.setActorId(securityService.getCurrentUser());
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setPrimaryTargetId(siteId);
