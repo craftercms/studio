@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.craftercms.studio.impl.v2.service.publish;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,23 +49,23 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
     public int getPublishingPackagesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String environment,
-                                          String path, String state)
+                                          String path, List<String> states)
             throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, state);
+        return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, states);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
     public List<PublishingPackage> getPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                         String environment, String path, String state, int offset,
-                                                         int limit) throws SiteNotFoundException {
+                                                         String environment, String path, List<String> states,
+                                                         int offset, int limit) throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        return publishServiceInternal.getPublishingPackages(siteId, environment, path, state, offset, limit);
+        return publishServiceInternal.getPublishingPackages(siteId, environment, path, states, offset, limit);
     }
 
     @Override

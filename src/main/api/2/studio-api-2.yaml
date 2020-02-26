@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.6.1'
+  version: '3.1.6.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3366,12 +3366,14 @@ paths:
           required: false
           schema:
             type: string
-        - name: state
+        - name: states
           in: query
-          description: filter by package state
+          description: filter by package state(s)
           required: false
           schema:
-            type: string
+            type: array
+            items:
+              type: string
         - name: offset
           in: query
           description: Offset for pagination
