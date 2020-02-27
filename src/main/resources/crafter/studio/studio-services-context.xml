@@ -1088,6 +1088,7 @@
     <!-- v2 Service -->
     <bean id="awsS3Service" class="org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl">
         <property name="profileLoader" ref="studioS3ProfileLoader"/>
+        <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
         <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
     </bean>
