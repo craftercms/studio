@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.6.2'
+  version: '3.1.6.3'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3809,98 +3809,98 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/workflow:
-    get:
-      tags:
-        - dashboard
-      summary: Get workflow dashboard
-      description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getWorkflowDashboard
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: sortBy
-          in: query
-          description: >-
-            order result by column
-            List of columns:
-              - label - label or internalName - user friendly name of item
-              - path - path of an item item
-              - actor - user that last acted on the item
-              - scheduledDate - data and time item is scheduled
-              - environment - environment where item is scheduled
-              - contentType - content type of an item
-          required: true
-          schema:
-            type: string
-        - name: order
-          in: query
-          description: order of sorted data (ASC or DESC)
-          schema:
-            type: string
-            format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: offset of the first result item, default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-        - name: filters
-          in: query
-          description: >-
-            list of filters to apply on result set
-            Filter:
-              - path - filter items by path regex
-              - actor - filter items by username(s) of last actor
-              - scheduledDateFrom - filter items by scheduled date setting lower boudery for date range
-              - scheduledDateTo - filter items by scheduled date setting upper boudery for date range
-              - contentType - filter items by content type
-              - environment - filter items by environment where scheduled
-              - state - filter items by state (state bitmap values)
-          schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/DashboardItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+#  /dashboard/workflow:
+#    get:
+#      tags:
+#        - dashboard
+#      summary: Get workflow dashboard
+#      description: 'Required permission "get_dashboard" ("site member")'
+#      operationId: getWorkflowDashboard
+#      parameters:
+#        - name: siteId
+#          in: query
+#          description: site ID
+#          required: true
+#          schema:
+#            type: string
+#        - name: sortBy
+#          in: query
+#          description: >-
+#            order result by column
+#            List of columns:
+#              - label - label or internalName - user friendly name of item
+#              - path - path of an item item
+#              - actor - user that last acted on the item
+#              - scheduledDate - data and time item is scheduled
+#              - environment - environment where item is scheduled
+#              - contentType - content type of an item
+#          required: true
+#          schema:
+#            type: string
+#        - name: order
+#          in: query
+#          description: order of sorted data (ASC or DESC)
+#          schema:
+#            type: string
+#            format: ASC, DESC
+#        - name: groupBy
+#          in: query
+#          description: group data by column
+#          schema:
+#            type: string
+#        - name: offset
+#          in: query
+#          description: offset of the first result item, default 0
+#          schema:
+#            type: integer
+#        - name: limit
+#          in: query
+#          description: number of results to return, default 10
+#          schema:
+#            type: integer
+#        - name: filters
+#          in: query
+#          description: >-
+#            list of filters to apply on result set
+#            Filter:
+#              - path - filter items by path regex
+#              - actor - filter items by username(s) of last actor
+#              - scheduledDateFrom - filter items by scheduled date setting lower boudery for date range
+#              - scheduledDateTo - filter items by scheduled date setting upper boudery for date range
+#              - contentType - filter items by content type
+#              - environment - filter items by environment where scheduled
+#              - state - filter items by state (state bitmap values)
+#          schema:
+#            type: array
+#            items:
+#              type: object
+#              properties:
+#                column:
+#                  type: string
+#                value:
+#                  type: string
+#      responses:
+#        '200':
+#          description: OK
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  response:
+#                    $ref: '#/components/schemas/ApiResponse'
+#                  item:
+#                    $ref: '#/components/schemas/DashboardItem'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '404':
+#          $ref: '#/components/responses/NotFound'
+#        '500':
+#          $ref: '#/components/responses/InternalServerError'
 
   /translation/list:
     get:
