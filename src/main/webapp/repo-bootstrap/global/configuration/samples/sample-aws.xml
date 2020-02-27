@@ -47,8 +47,10 @@
         Additional properties:
 
         <bucketName/>
+        <pathStyleAccess/>
 
         bucketName: name of the bucket where files will be uploaded
+        pathStyleAccess: indicates if path style access should be used for all requests (defaults to false)
 
         -->
         <profile>
@@ -59,6 +61,7 @@
             </credentials>
             <region>us-west-1</region>
             <bucketName>sample-input-bucket</bucketName>
+            <pathStyleAccess>true</pathStyleAccess>
         </profile>
     </s3>
 

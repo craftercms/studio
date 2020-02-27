@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -77,7 +76,7 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParamter;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -989,14 +988,14 @@ public class WorkflowServiceImpl implements WorkflowService {
                                 addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
                         goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
-                        List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
+                        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             goLivePaths.add(goLiveItem.getUri());
-                            AuditLogParamter auditLogParamter = new AuditLogParamter();
-                            auditLogParamter.setTargetId(site + ":" + goLiveItem.getUri());
-                            auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLogParamter.setTargetValue(goLiveItem.getUri());
-                            auditLogParamters.add(auditLogParamter);
+                            AuditLogParameter auditLogParameter = new AuditLogParameter();
+                            auditLogParameter.setTargetId(site + ":" + goLiveItem.getUri());
+                            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                            auditLogParameter.setTargetValue(goLiveItem.getUri());
+                            auditLogParameters.add(auditLogParameter);
                         }
                         goLive(site, goLiveItems, approver, mcpContext);
                         SiteFeed siteFeed = siteService.getSite(site);
@@ -1006,7 +1005,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         auditLog.setPrimaryTargetId(site);
                         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                         auditLog.setPrimaryTargetValue(site);
-                        auditLog.setParameters(auditLogParamters);
+                        auditLog.setParameters(auditLogParameters);
                         if (scheduledDate != null && !isNow) {
                             auditLog.setOperation(OPERATION_APPROVE_SCHEDULED);
                         } else {
@@ -1047,15 +1046,15 @@ public class WorkflowServiceImpl implements WorkflowService {
                     responseMessageKey = NotificationService.COMPLETE_DELETE;
                     List<String> deletePaths = new ArrayList<>();
                     List<String> nodeRefs = new ArrayList<String>();
-                    List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
+                    List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
                     for (DmDependencyTO deletedItem : submittedItems) {
                         //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
                         deletePaths.add(deletedItem.getUri());
-                        AuditLogParamter auditLogParamter = new AuditLogParamter();
-                        auditLogParamter.setTargetId(site + ":" + deletedItem.getUri());
-                        auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-                        auditLogParamter.setTargetValue(deletedItem.getUri());
-                        auditLogParamters.add(auditLogParamter);
+                        AuditLogParameter auditLogParameter = new AuditLogParameter();
+                        auditLogParameter.setTargetId(site + ":" + deletedItem.getUri());
+                        auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                        auditLogParameter.setTargetValue(deletedItem.getUri());
+                        auditLogParameters.add(auditLogParameter);
                     }
                     doDelete(site, submittedItems, approver);
                     SiteFeed siteFeed = siteService.getSite(site);
@@ -1066,7 +1065,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     auditLog.setPrimaryTargetId(site);
                     auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                     auditLog.setPrimaryTargetValue(site);
-                    auditLog.setParameters(auditLogParamters);
+                    auditLog.setParameters(auditLogParameters);
                     auditServiceInternal.insertAuditLog(auditLog);
 
             }
@@ -1791,7 +1790,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
 
-            Set<String> dependenciesPaths = dependencyService.getPublishingDependencies(site, submittedItem.getUri());
+            List<String> dependenciesPaths = dependencyService.getPublishingDependencies(site, submittedItem.getUri());
             for (String depPath : dependenciesPaths) {
                 DmDependencyTO dmDependencyTO = new DmDependencyTO();
                 dmDependencyTO.setUri(depPath);
@@ -1897,7 +1896,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
             }
-            Set<String> dependencyPaths = dependencyService.getPublishingDependencies(site, item.getUri());
+            List<String> dependencyPaths = dependencyService.getPublishingDependencies(site, item.getUri());
             submittedPaths.addAll(dependencyPaths);
             processedPaths.addAll(dependencyPaths);
             processedPaths.add(item.getUri());
@@ -2237,16 +2236,16 @@ public class WorkflowServiceImpl implements WorkflowService {
                     submittedItems.add(submittedItem);
                 }
                 List<String> paths = new ArrayList<String>();
-                List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
+                List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
                 for (DmDependencyTO goLiveItem : submittedItems) {
                     if (contentService.contentExists(site, goLiveItem.getUri())) {
                         paths.add(goLiveItem.getUri());
                     }
-                    AuditLogParamter auditLogParamter = new AuditLogParamter();
-                    auditLogParamter.setTargetId(site + ":" + goLiveItem.getUri());
-                    auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-                    auditLogParamter.setTargetValue(goLiveItem.getUri());
-                    auditLogParamters.add(auditLogParamter);
+                    AuditLogParameter auditLogParameter = new AuditLogParameter();
+                    auditLogParameter.setTargetId(site + ":" + goLiveItem.getUri());
+                    auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+                    auditLogParameter.setTargetValue(goLiveItem.getUri());
+                    auditLogParameters.add(auditLogParameter);
                 }
                 objectStateService.setSystemProcessingBulk(site, paths, true);
                 Set<String> cancelPaths = new HashSet<String>();
@@ -2261,7 +2260,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditLog.setPrimaryTargetId(site);
                 auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                 auditLog.setPrimaryTargetValue(site);
-                auditLog.setParameters(auditLogParamters);
+                auditLog.setParameters(auditLogParameters);
                 auditServiceInternal.insertAuditLog(auditLog);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);

@@ -153,6 +153,19 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         return toRet;
     }
 
+    protected boolean hasPermission(String siteId, String path, String user, String permission) {
+        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user, null);
+        return StringUtils.isEmpty(permission) ||
+                (CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(permission));
+    }
+
+    protected boolean hasAnyPermission(String siteId, String path, String user, Set<String> permissions) {
+        Set<String> userPermissions = securityService.getUserPermissions(siteId, path, user, null);
+        return CollectionUtils.isEmpty(permissions) ||
+                (CollectionUtils.isNotEmpty(userPermissions)
+                        && CollectionUtils.containsAny(userPermissions, permissions));
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }

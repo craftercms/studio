@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -148,6 +147,7 @@ public class ContentServiceImpl implements ContentService {
     private static final String COPY_DEP = "{copyDep}";
 
     private ContentRepository _contentRepository;
+    private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
     protected ObjectStateService objectStateService;
@@ -204,13 +204,25 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @ValidateParams
     public String getContentAsString(@ValidateStringParam(name = "site") String site,
-                                     @ValidateSecurePathParam(name = "path") String path)  {
+                                     @ValidateSecurePathParam(name = "path") String path) {
+        return getContentAsString(site, path, null);
+    }
+
+    @Override
+    @ValidateParams
+    public String getContentAsString(@ValidateStringParam(name = "site") String site,
+                                     @ValidateSecurePathParam(name = "path") String path,
+                                     @ValidateStringParam(name = "encoding") String encoding)  {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
         try (InputStream is = _contentRepository.getContent(site, path)) {
             if (is != null) {
-                content = IOUtils.toString(is);
+                if (StringUtils.isEmpty(encoding)) {
+                    content = IOUtils.toString(is);
+                } else {
+                    content = IOUtils.toString(is, encoding);
+                }
             }
         }
         catch(Exception err) {
@@ -575,7 +587,7 @@ public class ContentServiceImpl implements ContentService {
                 objectMetadataManager.insertNewObjectMetadata(site, path);
             }
             objectMetadataManager.updateCommitId(site, path, commitId);
-            _contentRepository.insertGitLog(site, commitId, 1);
+            contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
         }
 
@@ -635,7 +647,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         if (StringUtils.isNotEmpty(commitId)) {
-            _contentRepository.insertGitLog(site, commitId, 1);
+            contentRepository.insertGitLog(site, commitId, 1);
         }
 
         PreviewEventContext context = new PreviewEventContext();
@@ -942,7 +954,7 @@ public class ContentServiceImpl implements ContentService {
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                    _contentRepository.insertGitLog(site, entry.getValue(), 1);
+                    contentRepository.insertGitLog(site, entry.getValue(), 1);
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
@@ -1912,7 +1924,7 @@ public class ContentServiceImpl implements ContentService {
             // Update the database with the commitId for the target item
             objectStateService.transition(site, path, REVERT);
             objectMetadataManager.updateCommitId(site, path, commitId);
-            _contentRepository.insertGitLog(site, commitId, 1);
+            contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
 
             SiteFeed siteFeed = siteService.getSite(site);
@@ -2473,7 +2485,7 @@ public class ContentServiceImpl implements ContentService {
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                _contentRepository.insertGitLog(site, entry.getValue(), 1);
+                contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 
@@ -2659,5 +2671,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setUserService(UserService userService) {
         this.userService = userService;
+    }
+
+    public org.craftercms.studio.api.v2.repository.ContentRepository getContentRepositoryV2() {
+        return this.contentRepository;
+    }
+
+    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 }

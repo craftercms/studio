@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -83,6 +82,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
+    protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
 
     @Override
     public Set<String> upsertDependencies(String site, String path)
@@ -204,7 +204,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getPublishingDependencies(String site, String path)
+    public List<String> getPublishingDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         logger.debug("Get publishing dependencies for site: " + site + " path:" + path);
         List<String> paths = new ArrayList<String>();
@@ -213,33 +213,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getPublishingDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
-        Set<String> toRet = new HashSet<String>();
-        Set<String> pathsParams = new HashSet<String>();
-
-        logger.debug("Get all publishing dependencies");
-        pathsParams.addAll(paths);
-        boolean exitCondition = false;
-        do {
-            List<String> deps = getPublishingDependenciesForListFromDB(site, pathsParams);
-            exitCondition = !toRet.addAll(deps);
-            pathsParams.clear();
-            pathsParams.addAll(deps);
-        } while (!exitCondition);
-
-        return toRet;
-    }
-
-    private List<String> getPublishingDependenciesForListFromDB(String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_PARAM, site);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
-        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(EDITED_STATES_PARAM, onlyEditStates);
-        params.put(NEW_STATES_PARAM, State.NEW_STATES);
-        return dependencyMapper.getPublishingDependenciesForList(params);
+    public List<String> getPublishingDependencies(String site, List<String> paths)
+            throws ServiceLayerException {
+        return dependencyService.getHardDependencies(site, paths);
     }
 
     @Override
@@ -755,5 +731,13 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void setItemStateMapper(ItemStateMapper itemStateMapper) {
         this.itemStateMapper = itemStateMapper;
+    }
+
+    public org.craftercms.studio.api.v2.service.dependency.DependencyService getDependencyService() {
+        return dependencyService;
+    }
+
+    public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
     }
 }

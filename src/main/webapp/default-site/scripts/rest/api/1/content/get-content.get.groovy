@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,6 +21,7 @@ def result = [:]
 def site = params.site_id
 def path = params.path
 def edit = (params.edit == "true")?true:false
+def encoding = params.encoding
 
 /** Validate Parameters */
 def invalidParams = false
@@ -47,7 +47,7 @@ if (invalidParams) {
 } else {
     def context = ContentServices.createContext(applicationContext, request)
 
-    result.content = ContentServices.getContent(site, path, edit, context)
+    result.content = ContentServices.getContent(site, path, edit, encoding, context)
 
 }
 return result

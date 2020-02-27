@@ -15,17 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.to;
+package org.craftercms.studio.api.v2.dal;
 
 import java.time.ZonedDateTime;
 
-import org.craftercms.studio.api.v1.constant.RepoOperation;
-
-/**
- * Created by Sumer Jabri on 1/11/17.
- */
-public class RepoOperationTO {
-	protected RepoOperation operation;
+public class RepoOperation {
+	protected Action action;
 	protected String path;
 	protected ZonedDateTime dateTime;
 	protected String moveToPath;
@@ -34,9 +29,9 @@ public class RepoOperationTO {
 	protected String comment;
 	protected String commitId;
 
-	public RepoOperationTO(final RepoOperation operation, final String path, final ZonedDateTime dateTime, final String
-		moveToPath, String commitId) {
-		this.operation = operation;
+	public RepoOperation(final Action action, final String path, final ZonedDateTime dateTime, final String moveToPath,
+						 final String commitId) {
+		this.action = action;
 		this.path = path;
 		this.dateTime = dateTime;
 		this.moveToPath = moveToPath;
@@ -59,12 +54,12 @@ public class RepoOperationTO {
 		this.dateTime = dateTime;
 	}
 
-	public RepoOperation getOperation() {
-		return operation;
+	public Action getAction() {
+		return action;
 	}
 
-	public void setOperation(final RepoOperation operation) {
-		this.operation = operation;
+	public void setAction(Action action) {
+		this.action = action;
 	}
 
 	public String getMoveToPath() {
@@ -106,4 +101,12 @@ public class RepoOperationTO {
     public void setCommitId(String commitId) {
         this.commitId = commitId;
     }
+
+	public enum Action {
+		CREATE,
+		DELETE,
+		MOVE,
+		UPDATE,
+		COPY
+	}
 }

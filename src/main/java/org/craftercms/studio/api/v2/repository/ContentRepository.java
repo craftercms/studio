@@ -17,6 +17,9 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.RepoOperation;
+
 import java.util.List;
 
 public interface ContentRepository {
@@ -29,4 +32,58 @@ public interface ContentRepository {
      * @return list of item paths contained in the subtree
      */
     List<String> getSubtreeItems(String site, String path);
+
+    /**
+     * Get a list of operations since the commit ID provided (compare that commit to HEAD)
+     *
+     * @param site         site to use
+     * @param commitIdFrom commit ID to start at
+     * @param commitIdTo   commit ID to end at
+     * @return commit ID of current HEAD, updated operationsSinceCommit
+     */
+    List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo);
+
+    /**
+     * Get a list of operations since the commit ID provided (compare that commit to HEAD)
+     *
+     * @param site         site to use
+     * @param commitIdFrom commit ID to start at
+     * @param commitIdTo   commit ID to end at
+     * @return commit ID of current HEAD, updated operationsSinceCommit
+     */
+    List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo);
+
+    /**
+     * Get first id from repository for given site
+     *
+     * @param site site id
+     * @return first commit id
+     */
+    String getRepoFirstCommitId(String site);
+
+    /**
+     * Get git log object from database
+     *
+     * @param siteId   site id
+     * @param commitId commit ID
+     * @return git log object
+     */
+    GitLog getGitLog(String siteId, String commitId);
+
+    /**
+     * Mark Git log as verified
+     *
+     * @param siteId   site identifier
+     * @param commitId commit id
+     */
+    void markGitLogVerifiedProcessed(String siteId, String commitId);
+
+    /**
+     * Insert Git Log
+     *
+     * @param siteId    site
+     * @param commitId  commit ID
+     * @param processed processed
+     */
+    void insertGitLog(String siteId, String commitId, int processed);
 }

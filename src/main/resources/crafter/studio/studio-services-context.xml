@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
   ~
   ~ This program is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -65,6 +64,7 @@
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="userService" ref="userService" />
+        <property name="contentRepositoryV2" ref="contentRepositoryV2" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -78,6 +78,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="itemStateMapper" ref="itemStateMapper" />
         <property name="dependencyMapper" ref="dependencyMapper" />
+        <property name="dependencyService" ref="dependencyService" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -120,6 +121,7 @@
         <property name="sitesServiceInternal" ref="sitesServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
+        <property name="contentRepositoryV2" ref="contentRepositoryV2" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -168,6 +170,7 @@
          <property name="studioConfiguration" ref="studioConfiguration" />
          <property name="publishRequestMapper" ref="publishRequestMapper" />
          <property name="auditServiceInternal" ref="auditServiceInternal" />
+         <property name="contentRepositoryV2" ref="contentRepositoryV2" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -461,6 +464,8 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="publishServiceInternal"
@@ -746,7 +751,7 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
-        <property name="gitLogMapper" ref="gitLogMapper" />
+        <property name="gitLogDao" ref="gitLogDao" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
@@ -754,6 +759,8 @@
 
     <bean id="contentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="gitLogDao" ref="gitLogDao" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <!-- /////// -->
@@ -1038,7 +1045,9 @@
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper"/>
+            <bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper">
+                <constructor-arg ref="crafter.configurationReader"/>
+            </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
@@ -1047,7 +1056,9 @@
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertProfileMapper"/>
+            <bean class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertProfileMapper">
+                <constructor-arg ref="crafter.configurationReader"/>
+            </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
@@ -1056,7 +1067,9 @@
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper"/>
+            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper">
+                <constructor-arg ref="crafter.configurationReader"/>
+            </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
@@ -1108,7 +1121,9 @@
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper"/>
+            <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper">
+                <constructor-arg ref="crafter.configurationReader"/>
+            </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
@@ -1124,7 +1139,9 @@
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMappper"/>
+            <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMapper">
+                <constructor-arg ref="crafter.configurationReader"/>
+            </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
@@ -1239,6 +1256,25 @@
     <bean id="marketplaceService"
           class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
         <constructor-arg ref="marketplaceServiceInternal"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--              Encryption                -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="crafter.textEncryptor" class="org.craftercms.commons.crypto.impl.PbkAesTextEncryptor">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.key')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.salt')}"/>
+    </bean>
+
+    <bean id="encryptionServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.security.internal.EncryptionServiceInternalImpl">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.delay')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.maxLength')}"/>
+        <constructor-arg ref="crafter.textEncryptor"/>
+    </bean>
+
+    <bean id="encryptionService" class="org.craftercms.studio.impl.v2.service.security.EncryptionServiceImpl">
+        <constructor-arg ref="encryptionServiceInternal"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

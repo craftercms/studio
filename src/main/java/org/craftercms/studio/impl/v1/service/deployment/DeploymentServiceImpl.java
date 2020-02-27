@@ -58,10 +58,10 @@ import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
-import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -77,6 +77,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -122,6 +123,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected StudioConfiguration studioConfiguration;
     protected PublishRequestMapper publishRequestMapper;
     protected AuditServiceInternal auditServiceInternal;
+    protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
 
     @Override
     @ValidateParams
@@ -760,9 +762,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected Set<String> getAllPublishedEnvironments(String site) {
-        Set<String> publishedEnvironments = new HashSet<String>();
-        publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
+        Set<String> publishedEnvironments = new LinkedHashSet<String>();
         publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
+        publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
         return publishedEnvironments;
     }
 
@@ -910,10 +912,10 @@ public class DeploymentServiceImpl implements DeploymentService {
         logger.debug("Get repository operations for each commit id and create publish request items");
         for (String commitId : commitIds) {
             logger.debug("Get repository operations for commit " + commitId);
-            List<RepoOperationTO> operations =
-                    contentRepository.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
+            List<RepoOperation> operations =
+                    contentRepositoryV2.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 
-            for (RepoOperationTO op : operations) {
+            for (RepoOperation op : operations) {
                 logger.debug("Creating publish request item: ");
                 PublishRequest item = new PublishRequest();
                 item.setId(++CTED_AUTOINCREMENT);
@@ -926,7 +928,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setPackageId(packageId);
                 item.setSubmissionComment(comment);
 
-                switch (op.getOperation()) {
+                switch (op.getAction()) {
                     case CREATE:
                     case COPY:
                         item.setPath(op.getPath());
@@ -955,7 +957,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
                     default:
                         logger.error("Error: Unknown repo operation for site " + site + " operation: " +
-                                op.getOperation());
+                                op.getAction());
                         continue;
                 }
                 logger.debug("\tPath: " + item.getPath() + " operation: " + item.getAction());
@@ -1122,5 +1124,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public org.craftercms.studio.api.v2.repository.ContentRepository getContentRepositoryV2() {
+        return contentRepositoryV2;
+    }
+
+    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
+        this.contentRepositoryV2 = contentRepositoryV2;
     }
 }
