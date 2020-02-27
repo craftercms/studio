@@ -16,16 +16,29 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-public interface RequestMappingConstants {
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-    String ALL_SUB_URLS = "/**";
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DASHBOARD;
 
-    /** API 2 Root */
-    String API_2 = "/api/2";
+@RestController
+@RequestMapping(API_2 + DASHBOARD)
+public class DashboardController {
 
-    /** Proxy Controller */
-    String PROXY_ENGINE = "/engine";
+    public void getContentDashboard() {
 
-    /** Dashboard Controller */
-    String DASHBOARD = "/dashboard";
+    }
+
+    public void getPublishingDashboard() {
+
+    }
+
+    public void getAuditDashboard() {
+
+    }
+
+    public void getWorkflowDashboard() {
+
+    }
 }
