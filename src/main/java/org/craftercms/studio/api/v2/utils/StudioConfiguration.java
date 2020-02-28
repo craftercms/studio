@@ -320,6 +320,9 @@ public interface StudioConfiguration {
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH = "studio.serverless.delivery.deployer.target.localRepoPath";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS = "studio.serverless.delivery.deployer.target.template.params";
 
+    /** Cache Configuration  **/
+    String CACHE_TEMPLATES = "studio.cache.templates";
+
     void loadConfig();
 
     String getProperty(String key);

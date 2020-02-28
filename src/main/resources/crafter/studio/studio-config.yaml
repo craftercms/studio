@@ -788,3 +788,9 @@ studio.serverless.delivery.deployer.target.template.params:
 studio.marketplace.url: https://mp.craftercms.org
 # Indicates if the search should include plugins pending of approval
 studio.marketplace.search.pending: false
+
+##################################################
+##                    Cache                     ##
+##################################################
+# If Studio should cache its FreeMarker templates
+studio.cache.templates: true
