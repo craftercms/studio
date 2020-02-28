@@ -52,6 +52,30 @@
         <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
     </bean>
 
+    <!-- Declared with scope="prototype" so that a new one is created for every SiteContext -->
+    <bean id="crafter.freeMarkerConfig" class="org.craftercms.engine.freemarker.CrafterFreeMarkerConfigurer" scope="prototype" depends-on="studioConfiguration">
+        <property name="templateExceptionHandler" ref="crafter.crafterTemplateExceptionHandler"/>
+        <property name="templateLoaderPaths" value="WEB-INF"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+        <property name="freemarkerSettings">
+            <props>
+                <prop key="output_encoding">UTF-8</prop>
+                <prop key="localized_lookup">false</prop>
+                <prop key="object_wrapper">org.craftercms.engine.freemarker.CrafterObjectWrapper</prop>
+                <prop key="datetime_format">${crafter.engine.model.datetime.pattern}</prop>
+                <prop key="time_zone">${crafter.engine.model.datetime.timeZone}</prop>
+                <prop key="new_builtin_class_resolver">safer</prop>
+            </props>
+        </property>
+        <property name="freemarkerVariables" ref="crafter.freemarkerVariables"/>
+        <property name="preTemplateLoaders">
+            <array>
+                <ref bean="crafter.crafterFreeMarkerTemplateLoader"/>
+            </array>
+        </property>
+        <property name="cacheTemplates" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CACHE_TEMPLATES)}"/>
+    </bean>
+
     <!-- ////////////////////////////////// -->
     <!--                                    -->
     <!--            STUDIO                  -->
