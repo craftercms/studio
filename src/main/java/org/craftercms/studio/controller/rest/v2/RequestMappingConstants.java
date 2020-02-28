@@ -20,6 +20,13 @@ public interface RequestMappingConstants {
 
     String ALL_SUB_URLS = "/**";
 
+    /** API 2 Root */
+    String API_2 = "/api/2";
+
     /** Proxy Controller */
     String PROXY_ENGINE = "/engine";
+
+    /** Dashboard Controller */
+    String DASHBOARD = "/dashboard";
+    String AUDIT_DASHBOARD = "/audit";
 }
