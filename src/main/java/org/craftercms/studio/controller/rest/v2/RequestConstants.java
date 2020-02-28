@@ -75,4 +75,10 @@ public interface RequestConstants {
     String REQUEST_PARAM_STATES = "states";
 
     String REQUEST_PARAM_PACKAGE_ID = "packageId";
+
+    String REQUEST_PARAM_SORT_BY = "sortBy";
+
+    String REQUEST_PARAM_GROUP_BY = "groupBy";
+
+    String REQUEST_PARAM_FILTERS = "filters";
 }

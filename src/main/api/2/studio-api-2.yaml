@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.6.3'
+  version: '3.1.6.4'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3766,26 +3766,35 @@ paths:
           description: number of results to return, default 10
           schema:
             type: integer
-        - name: filters
+        - name: filters.actor
           in: query
-          description: >-
-            list of filters to apply on result set
-            Filter:
-              - site - filter items by site
-              - actor - filter items by username(s)
-              - operation - filter items by operation(s)
-              - operationTimestampFrom - filter items by execution time setting lower boudery for time range
-              - operationTimestampTo- filter items by execution time setting upper boudery for time range
-              - target - filter items by target(s) uppon which was executed operation
+          description: filter items by username
+          schema:
+            type: string
+        - name: filters.operations
+          in: query
+          description: filter items by operations
           schema:
             type: array
             items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
+              type: string
+        - name: filters.operationTimestampFrom
+          in: query
+          description: filter items by operations timestamp setting lower boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.operationTimestampTo
+          in: query
+          description: filter items by operations timestamp setting upper boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.target
+          in: query
+          description: filter items by target
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -3797,7 +3806,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   item:
-                    $ref: '#/components/schemas/DashboardItem'
+                    $ref: '#/components/schemas/AuditDashboardItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5543,6 +5552,26 @@ components:
         - lockOwner
         - disabled
         - localeCode
+
+    AuditDashboardItem:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site identifier
+        actor:
+          type: string
+          description: username of actor that executed operation
+        operation:
+          type: string
+          description: operation that was executed
+        operationTimestamp:
+          type: string
+          format: datetime
+          description: timestamp when operation was executed
+        target:
+          type: string
+          description: target upon which operation was executed
 
     DashboardItem:
       type: object

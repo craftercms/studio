@@ -28,4 +28,5 @@ public interface RequestMappingConstants {
 
     /** Dashboard Controller */
     String DASHBOARD = "/dashboard";
+    String AUDIT_DASHBOARD = "/audit";
 }
