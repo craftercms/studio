@@ -748,6 +748,15 @@ pipelines:
             studio.security.publicUrls: >
               /static-assets/.+,
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.5.7
+      nextVersion: 3.1.6.1
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-stores.xml
+              dest: configuration/samples/sample-stores.xml
+          commitDetails: Add new sample file for blob stores
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:

@@ -143,6 +143,7 @@
         FROM item_state
         WHERE site=#{site}
         AND (path = #{path} or path like #{likepath})
+        AND path NOT LIKE '${blobFilePattern}'
         AND state in
         <foreach item="state" index="index" collection="states"
                  open="(" separator="," close=")">

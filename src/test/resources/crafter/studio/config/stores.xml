@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<blobStores>
+    <blobStore>
+        <id>myBlobStore</id>
+        <type>s3BlobStore</type>
+        <pattern>/static-assets/remote.*</pattern>
+        <configuration>
+            <credentials>
+                <accessKey>myAccessKey</accessKey>
+                <secretKey>mySecretKey</secretKey>
+            </credentials>
+            <region>myRegion</region>
+            <pathStyleAccess>true</pathStyleAccess>
+        </configuration>
+        <mappings>
+            <mapping>
+                <environment>preview</environment>
+                <target>my-mapping</target>
+                <prefix>sandbox</prefix>
+            </mapping>
+            <mapping>
+                <environment>staging</environment>
+                <target>my-mapping</target>
+                <prefix>stage</prefix>
+            </mapping>
+            <mapping>
+                <environment>live</environment>
+                <target>my-mapping-live</target>
+            </mapping>
+        </mappings>
+    </blobStore>
+    <blobStore>
+        <id>anotherBlobStore</id>
+        <pattern>/static-assets/another.*</pattern>
+        <type>anotherBlobStore</type>
+        <configuration>
+        </configuration>
+    </blobStore>
+</blobStores>

@@ -194,6 +194,9 @@
     </select>
 
     <select id="getSameCommitItems" parameterType="java.util.Map" resultType="String">
-        SELECT im1.path FROM item_metadata im1 INNER JOIN item_metadata im2 ON im1.commit_id = im2.commit_id WHERE im2.site=#{siteId} AND im2.path=#{path}
+        SELECT im1.path
+        FROM item_metadata im1
+        INNER JOIN item_metadata im2 ON im1.commit_id = im2.commit_id
+        WHERE im2.site=#{siteId} AND im2.path=#{path} AND im1.path NOT LIKE '${blobFilePattern}'
     </select>
 </mapper>
