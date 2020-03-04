@@ -3766,14 +3766,40 @@ paths:
           in: query
           description: filter items by path regular expression
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
+            type: string
+        - name: filters.publisher
+          in: query
+          description: filter items by username that published content
+          schema:
+            type: string
+        - name: filters.publishedDateFrom
+          in: query
+          description: filter items by published date setting lower boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.publishedDateTo
+          in: query
+          description: filter items by published date setting upper boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.environment
+          in: query
+          description: filter items by environment where published
+          schema:
+            type: string
+        - name: filters.contentType
+          in: query
+          description: filter items by contentTypes
+          schema:
+            type: string
+        - name: filters.state
+          in: query
+          description: filter items by state (bitmap state values)
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
