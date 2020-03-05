@@ -419,4 +419,59 @@
         </choose>
         LIMIT #{offset}, #{limit}
     </select>
+
+    <select id="getContentDashboardTotal" parameterType="java.util.Map" resultType="int">
+        select count (1) from item_metadata where site=#{siteId}
+        <if test="path != null">
+            AND path = #{path}
+        </if>
+        <if test="modifier != null">
+            AND modifier = #{modifier}
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND modified BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND modified >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= modified
+            </when>
+        </choose>
+    </select>
+
+    <select id="getContentDashboard" parameterType="java.util.Map"
+            resultType="org.craftercms.studio.api.v1.dal.ItemMetadata">
+        select * from item_metadata where site=#{siteId}
+        <if test="path != null">
+            AND path RLIKE #{path}
+        </if>
+        <if test="modifier != null">
+            AND modifier = #{modifier}
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND modified BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND modified >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= modified
+            </when>
+        </choose>
+        <choose>
+            <when test="sort != null and sort !=  '' and order != null and order != '' ">
+                ORDER BY #{sortBy} #{order}
+            </when>
+            <when test="sort != null and sort !=  '' and order == null and order == '' ">
+                ORDER BY #{sortBy}
+            </when>
+            <otherwise>
+                ORDER BY modified DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{limit}
+    </select>
 </mapper>
