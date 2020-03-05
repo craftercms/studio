@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -61,4 +62,10 @@ public interface ObjectMetadataManager {
 
     int countAllItems();
 
+    int getContentDashboardTotal(String siteId, String path, String modifier, String contentType,
+                                 long state, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+
+    List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
+                                           long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                           String sortBy, String order, String groupBy, int offset, int limit);
 }
