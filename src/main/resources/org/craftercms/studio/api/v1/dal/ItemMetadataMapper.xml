@@ -254,5 +254,4 @@
         </choose>
         LIMIT #{offset}, #{limit}
     </select>
-
 </mapper>
