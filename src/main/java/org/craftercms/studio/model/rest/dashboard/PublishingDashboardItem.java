@@ -21,10 +21,11 @@ import java.time.ZonedDateTime;
 public class PublishingDashboardItem {
 
     private String siteId;
-    private String actor;
-    private String operation;
-    private ZonedDateTime operationTimestamp;
-    private String target;
+    private String label;
+    private String path;
+    private String publisher;
+    private ZonedDateTime publishedDate;
+    private String environment;
 
     public String getSiteId() {
         return siteId;
@@ -34,35 +35,43 @@ public class PublishingDashboardItem {
         this.siteId = siteId;
     }
 
-    public String getActor() {
-        return actor;
+    public String getLabel() {
+        return label;
     }
 
-    public void setActor(String actor) {
-        this.actor = actor;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
-    public String getOperation() {
-        return operation;
+    public String getPath() {
+        return path;
     }
 
-    public void setOperation(String operation) {
-        this.operation = operation;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public ZonedDateTime getOperationTimestamp() {
-        return operationTimestamp;
+    public String getPublisher() {
+        return publisher;
     }
 
-    public void setOperationTimestamp(ZonedDateTime operationTimestamp) {
-        this.operationTimestamp = operationTimestamp;
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
     }
 
-    public String getTarget() {
-        return target;
+    public ZonedDateTime getPublishedDate() {
+        return publishedDate;
     }
 
-    public void setTarget(String target) {
-        this.target = target;
+    public void setPublishedDate(ZonedDateTime publishedDate) {
+        this.publishedDate = publishedDate;
+    }
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
     }
 }
