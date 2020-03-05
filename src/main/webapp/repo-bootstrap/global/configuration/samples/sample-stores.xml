@@ -91,7 +91,6 @@
                 <secretKey>xxxxxxxxx</secretKey>
             </credentials>
             <region>us-west-1</region>
-            <bucketName>sample-input-mapping</bucketName>
             <pathStyleAccess>true</pathStyleAccess>
         </configuration>
     </blobStore>

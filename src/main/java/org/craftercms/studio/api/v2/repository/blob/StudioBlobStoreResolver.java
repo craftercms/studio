@@ -16,21 +16,29 @@
 package org.craftercms.studio.api.v2.repository.blob;
 
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.file.blob.BlobStore;
+import org.craftercms.commons.file.blob.BlobStoreResolver;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
+import java.io.InputStream;
+import java.util.function.Function;
+
 /**
- * Provides access to all known instances of {@link BlobStore}
+ * Extension of {@link BlobStoreResolver} that adds site multi-tenancy
  *
  * @author joseross
  * @since 3.1.6
  */
-public interface BlobStoreFactory {
+public interface StudioBlobStoreResolver extends BlobStoreResolver {
 
-    String CONFIG_KEY_STORE = "blobStore";
-    String CONFIG_KEY_TYPE = "type";
+    @Override
+    default BlobStore getById(Function<String, InputStream> configGetter, String storeId) {
+        // not used by studio
+        return null;
+    }
 
     /**
-     * Returns the first {@link BlobStore} compatible with all given paths
+     * Returns the first {@link StudioBlobStore} compatible with all given paths for the given site
      *
      * @param site the id of the site
      * @param paths the lists of paths to check
@@ -38,6 +46,6 @@ public interface BlobStoreFactory {
      * @throws ServiceLayerException if there is any error looking up the stores
      * @throws ConfigurationException if there is any error reading the configuration
      */
-    BlobStore getByPaths(String site, String[] paths) throws ServiceLayerException, ConfigurationException;
+    BlobStore getByPaths(String site, String... paths) throws ServiceLayerException, ConfigurationException;
 
 }

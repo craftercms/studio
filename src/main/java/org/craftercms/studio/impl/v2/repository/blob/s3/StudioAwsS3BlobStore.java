@@ -15,17 +15,15 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.ArrayUtils;
-import org.craftercms.commons.aws.S3ClientCachingFactory;
-import org.craftercms.commons.config.profiles.aws.S3Profile;
+import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.repository.blob.Blob;
-import org.craftercms.studio.impl.v2.repository.blob.AbstractBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -40,34 +38,14 @@ import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.MIN_PART_SIZE;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.uploadStream;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.repository.blob.BlobStore} for AWS S3
+ * Implementation of {@link StudioBlobStore} for AWS S3
  *
  * @author joseross
  * @since 3.1.6
  */
-public class AwsS3BlobStore extends AbstractBlobStore<S3Profile> {
+public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobStoreAdapter {
 
     public static final String OK = "OK";
-
-    protected S3ClientCachingFactory clientFactory;
-
-    public void setClientFactory(S3ClientCachingFactory clientFactory) {
-        this.clientFactory = clientFactory;
-    }
-
-    @Override
-    public void doInit(HierarchicalConfiguration<ImmutableNode> config) {
-        // do nothing
-    }
-
-    protected String getKey(Mapping mapping, String site, String path) {
-        StringBuilder sb = new StringBuilder();
-        if (isNotEmpty(mapping.prefix)) {
-            sb.append(mapping.prefix).append("/");
-        }
-        sb.append(site).append(prependIfMissing(path, "/"));
-        return  sb.toString();
-    }
 
     protected boolean isFolder(String path) {
         return isEmpty(getExtension(path));
@@ -75,38 +53,35 @@ public class AwsS3BlobStore extends AbstractBlobStore<S3Profile> {
 
     @Override
     public Blob getReference(String site, String path) {
-        return new Blob(id, getKey(getPreviewMapping(), site, path));
-    }
-
-    protected AmazonS3 getClient() {
-        return clientFactory.getClient(profile);
+        Mapping mapping = getMapping(environmentResolver.getEnvironment());
+        return new Blob(id, getKey(mapping, site, path));
     }
 
     // Start API 1
 
     @Override
     public boolean contentExists(String site, String path) {
-        Mapping previewMapping = getPreviewMapping();
-        return getClient().doesObjectExist(previewMapping.target, getKey(previewMapping, site, path));
+        Mapping mapping = getMapping(environmentResolver.getEnvironment());
+        return getClient().doesObjectExist(mapping.target, getKey(mapping, site, path));
     }
 
     @Override
     public InputStream getContent(String site, String path) {
-        Mapping previewMapping = getPreviewMapping();
+        Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         S3Object object = getClient().getObject(previewMapping.target, getKey(previewMapping, site, path));
         return object.getObjectContent();
     }
 
     @Override
     public long getContentSize(String site, String path) {
-        Mapping previewMapping = getPreviewMapping();
+        Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         S3Object object = getClient().getObject(previewMapping.target, getKey(previewMapping, site, path));
         return object.getObjectMetadata().getContentLength();
     }
 
     @Override
     public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
-        Mapping previewMapping = getPreviewMapping();
+        Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         uploadStream(previewMapping.target,
                 getKey(previewMapping, site, path), getClient(), MIN_PART_SIZE, path, content);
         return OK;
@@ -120,7 +95,7 @@ public class AwsS3BlobStore extends AbstractBlobStore<S3Profile> {
 
     @Override
     public String deleteContent(String site, String path, String approver) {
-        Mapping previewMapping = getPreviewMapping();
+        Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         if (!isFolder(path)) {
             getClient().deleteObject(previewMapping.target, getKey(previewMapping, site, path));
         } else {
@@ -145,7 +120,7 @@ public class AwsS3BlobStore extends AbstractBlobStore<S3Profile> {
 
     @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
-        Mapping previewMapping = getPreviewMapping();
+        Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         if (isEmpty(newName)) {
             if (isFolder(fromPath)) {
                 ListObjectsV2Request request = new ListObjectsV2Request()
@@ -182,7 +157,7 @@ public class AwsS3BlobStore extends AbstractBlobStore<S3Profile> {
 
     @Override
     public String copyContent(String site, String fromPath, String toPath) {
-        Mapping previewMapping = getPreviewMapping();
+        Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         if (isFolder(fromPath)) {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
@@ -213,7 +188,7 @@ public class AwsS3BlobStore extends AbstractBlobStore<S3Profile> {
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) {
-        Mapping previewMapping = getPreviewMapping();
+        Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         Mapping envMapping = getMapping(environment);
         for(DeploymentItemTO item : deploymentItems) {
             if (item.isDelete()) {

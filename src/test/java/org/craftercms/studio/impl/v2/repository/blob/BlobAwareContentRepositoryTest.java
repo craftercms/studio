@@ -21,8 +21,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v2.repository.blob.BlobStore;
-import org.craftercms.studio.api.v2.repository.blob.BlobStoreFactory;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -37,7 +37,6 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.*;
@@ -72,10 +71,10 @@ public class BlobAwareContentRepositoryTest {
     private GitContentRepository local;
 
     @Mock
-    private BlobStore store;
+    private StudioBlobStore store;
 
     @Mock
-    private BlobStoreFactory factory;
+    private StudioBlobStoreResolver resolver;
 
     @Captor
     private ArgumentCaptor<List<DeploymentItemTO>> itemsCaptor;
@@ -86,8 +85,10 @@ public class BlobAwareContentRepositoryTest {
 
         when(store.getId()).thenReturn(STORE_ID);
 
-        when(factory.getByPaths(eq(SITE), eq(new String[] { LOCAL_PATH }))).thenReturn(null);
-        when(factory.getByPaths(eq(SITE), argThat(not(new String[] { LOCAL_PATH })))).thenReturn(store);
+        when(resolver.getByPaths(SITE, FOLDER_PATH)).thenReturn(store);
+        when(resolver.getByPaths(SITE, ORIGINAL_PATH)).thenReturn(store);
+        when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
+        when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
 
         when(local.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
         when(local.contentExists(SITE, POINTER_PATH)).thenReturn(true);
@@ -110,7 +111,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void getContentTest() throws ContentNotFoundException {
+    public void getContentTest() {
         assertEquals(proxy.getContent(SITE, ORIGINAL_PATH), CONTENT, "original path should return the original content");
     }
 

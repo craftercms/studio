@@ -747,25 +747,34 @@
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
 
-    <bean id="blobStoreFactory" class="org.craftercms.studio.impl.v2.repository.blob.BlobStoreFactoryImpl">
+    <bean id="crafter.environmentResolver" class="org.craftercms.commons.file.blob.impl.FixedEnvironmentResolver">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.blob.environment')}"/>
+    </bean>
+
+    <!-- Workaround for cyclic dependency issue (using the same bean name as core will mess the init order -->
+    <bean id="crafter.blobStoreResolver" class="org.craftercms.studio.impl.v2.repository.blob.NoopBlobStoreResolver"/>
+
+    <bean id="blobStoreResolver" class="org.craftercms.studio.impl.v2.repository.blob.StudioBlobStoreResolverImpl">
         <property name="configurationPath" value="#{studioConfiguration.getProperty('studio.blob.config.path')}"/>
         <property name="contentRepository" ref="gitContentRepository"/>
         <property name="configurationReader" ref="crafter.configurationReader"/>
     </bean>
 
-    <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.AwsS3BlobStore" scope="prototype">
+    <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
+        <property name="environmentResolver" ref="crafter.environmentResolver"/>
     </bean>
     
-    <bean id="contentRepository" class="org.craftercms.studio.impl.v2.repository.blob.BlobAwareContentRepository">
+    <bean id="contentRepository"
+          class="org.craftercms.studio.impl.v2.repository.blob.BlobAwareContentRepository">
         <property name="fileExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
         <property name="localRepositoryV1" ref="gitContentRepository"/>
         <property name="localRepositoryV2" ref="gitContentRepositoryV2"/>
-        <property name="factory" ref="blobStoreFactory"/>
+        <property name="blobStoreResolver" ref="blobStoreResolver"/>
     </bean>
 
-    <bean id="gitContentRepository"
+    <bean id="gitContentRepository" depends-on="databaseInitializer"
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>

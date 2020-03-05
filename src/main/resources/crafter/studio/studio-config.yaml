@@ -82,6 +82,8 @@ studio.repo.defaultIgnoreFile: crafter/studio/utils/default-gitignore
 studio.blob.config.path: /config/studio/stores.xml
 # Extension used for the blob files in the site
 studio.blob.file.extension: blob
+# Environment to use for all operations
+studio.blob.environment: preview
 
 ############################################################
 ##                   Site Configuration                   ##

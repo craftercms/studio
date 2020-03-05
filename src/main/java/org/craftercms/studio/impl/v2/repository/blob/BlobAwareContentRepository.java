@@ -22,6 +22,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -39,8 +40,8 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.repository.blob.Blob;
-import org.craftercms.studio.api.v2.repository.blob.BlobStore;
-import org.craftercms.studio.api.v2.repository.blob.BlobStoreFactory;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -58,7 +59,7 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository} and
- * {@link DeploymentHistoryProvider} that delegates calls to a {@link BlobStore} when appropriate
+ * {@link DeploymentHistoryProvider} that delegates calls to a {@link StudioBlobStore} when appropriate
  *
  * @author joseross
  * @since 3.1.6
@@ -77,7 +78,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected org.craftercms.studio.impl.v2.repository.GitContentRepository localRepositoryV2;
 
-    protected BlobStoreFactory factory;
+    protected StudioBlobStoreResolver blobStoreResolver;
 
     protected ObjectMapper objectMapper = new XmlMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
@@ -93,8 +94,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         this.localRepositoryV2 = localRepositoryV2;
     }
 
-    public void setFactory(BlobStoreFactory factory) {
-        this.factory = factory;
+    public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
+        this.blobStoreResolver = blobStoreResolver;
     }
 
     protected boolean isFolder(String path) {
@@ -109,12 +110,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         return isFolder(path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
     }
 
-    protected BlobStore getRemoteStore(String site, String... paths)
+    protected StudioBlobStore getBlobStore(String site, String... paths)
             throws ServiceLayerException, ConfigurationException {
         if (ArrayUtils.isEmpty(paths)) {
             throw new IllegalArgumentException("At least one path needs to be provided");
         }
-        return factory.getByPaths(site, paths);
+        return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
     }
 
     // Start API 1
@@ -124,13 +125,14 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         logger.debug("Checking if {0} exists in site {1}", path, site);
         try {
             if (!isFolder(path)) {
-                BlobStore store = getRemoteStore(site, path);
+                StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.contentExists(site, path);
                 }
             }
             return localRepositoryV1.contentExists(site, path);
         } catch (Exception e) {
+            logger.error("Error checking if content {0} exist in site {1}", e, path, site);
             return false;
         }
     }
@@ -140,13 +142,14 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         logger.debug("Getting content of {0} in site {1}", path, site);
         try {
             if (!isFolder(path)) {
-                BlobStore store = getRemoteStore(site, path);
+                StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.getContent(site, path);
                 }
             }
             return localRepositoryV1.getContent(site, path);
         } catch (Exception e) {
+            logger.error("Error getting content {0} in site {1}", e, path, site);
             return null;
         }
     }
@@ -155,12 +158,13 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public long getContentSize(String site, String path) {
         logger.debug("Getting size of {0} in site {1}", path, site);
         try {
-            BlobStore store = getRemoteStore(site, path);
+            StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
                 return store.getContentSize(site, path);
             }
             return localRepositoryV1.getContentSize(site, path);
         } catch (Exception e) {
+            logger.error("Error getting size for content {0} in site {1}", e, path, site);
             return -1L;
         }
     }
@@ -169,7 +173,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public String writeContent(String site, String path, InputStream content) {
         logger.debug("Writing {0} in site {1}", path, site);
         try {
-            BlobStore store = getRemoteStore(site, path);
+            StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
                 store.writeContent(site, path, content);
                 Blob reference = store.getReference(site, path);
@@ -178,7 +182,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             }
             return localRepositoryV1.writeContent(site, path, content);
         } catch (Exception e) {
-            logger.error("Error writing content", e);
+            logger.error("Error writing content {0} in site {1}", e, path, site);
             return null;
         }
     }
@@ -187,12 +191,13 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public String createFolder(String site, String path, String name) {
         logger.debug("Creating folder {0} in site {1}", path, site);
         try {
-            BlobStore store = getRemoteStore(site, path);
+            StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
                 store.createFolder(site, path, name);
             }
             return localRepositoryV1.createFolder(site, path, name);
         } catch (Exception e) {
+            logger.error("Error creating folder {0} in site {1}", e, path, site);
             return null;
         }
     }
@@ -201,7 +206,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public String deleteContent(String site, String path, String approver) {
         logger.debug("Deleting {0} in site {1}", path, site);
         try {
-            BlobStore store = getRemoteStore(site, path);
+            StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
                 String result = store.deleteContent(site, path, approver);
                 if (result != null) {
@@ -210,6 +215,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             }
             return localRepositoryV1.deleteContent(site, path, approver);
         } catch (Exception e) {
+            logger.error("Error deleting content {0} in site {1}", e, path, site);
             return null;
         }
     }
@@ -218,7 +224,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
         logger.debug("Moving content from {0} to {1} in site {2}", fromPath, toPath, site);
         try {
-            BlobStore store = getRemoteStore(site, fromPath, toPath);
+            StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
                 Map<String, String> result = store.moveContent(site, fromPath, toPath, newName);
                 if (result != null) {
@@ -228,6 +234,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             }
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
         } catch (Exception e) {
+            logger.error("Error moving content from {0} to {1} in site {2}", e, fromPath, toPath, site);
             return null;
         }
     }
@@ -236,7 +243,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public String copyContent(String site, String fromPath, String toPath) {
         logger.debug("Copying content from {0} to {1} in site {2}", fromPath, toPath, site);
         try {
-            BlobStore store = getRemoteStore(site, fromPath, toPath);
+            StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
                 String result = store.copyContent(site, fromPath, toPath);
                 if (result != null) {
@@ -245,6 +252,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             }
             return localRepositoryV1.copyContent(site, fromPath, toPath);
         } catch (Exception e) {
+            logger.error("Error copying content from {0} to {1} in site {2}", e, fromPath, toPath, site);
             return null;
         }
     }
@@ -347,12 +355,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
         logger.debug("Publishing items {0} to environment {1} in site {2}", deploymentItems, environment, site);
-        Map<String, BlobStore> stores = new LinkedHashMap<>();
+        Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
         MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
         List<DeploymentItemTO> localItems = new LinkedList<>();
         try {
             for (DeploymentItemTO item : deploymentItems) {
-                BlobStore store = factory.getByPaths(site, new String[] { item.getPath() });
+                StudioBlobStore store = getBlobStore(site, item.getPath());
                 if (store != null) {
                     stores.putIfAbsent(store.getId(), store);
                     items.add(store.getId(), item);

@@ -15,46 +15,25 @@
  */
 package org.craftercms.studio.api.v2.repository.blob;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
+import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.file.blob.BlobStore;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 
 /**
- * Holds the reference to a file in a blob store
+ * Extension of {@link BlobStore} that adds support for Studio content repository operations
  *
  * @author joseross
  * @since 3.1.6
  */
-@JsonRootName("blob")
-public class Blob {
-
-    public Blob(String storeId, String url) {
-        this.storeId = storeId;
-        this.url = url;
-    }
+public interface StudioBlobStore extends BlobStore, ContentRepository,
+        org.craftercms.studio.api.v2.repository.ContentRepository {
 
     /**
-     * The id of the blob store
+     * Return a reference to a file in the store
+     * @param site the id of the site
+     * @param path the path of the file
+     * @return the blob object
      */
-    protected String storeId;
-
-    /**
-     * The url of the file in the blob store
-     */
-    protected String url;
-
-    public String getStoreId() {
-        return storeId;
-    }
-
-    public void setStoreId(String storeId) {
-        this.storeId = storeId;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    Blob getReference(String site, String path);
 
 }

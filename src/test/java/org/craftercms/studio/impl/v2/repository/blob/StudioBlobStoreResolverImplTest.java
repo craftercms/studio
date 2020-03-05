@@ -18,10 +18,11 @@ package org.craftercms.studio.impl.v2.repository.blob;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.impl.NoOpTextEncryptor;
+import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v2.repository.blob.BlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
@@ -39,7 +40,7 @@ import static org.testng.Assert.*;
 /**
  * @author joseross
  */
-public class BlobStoreFactoryImplTest {
+public class StudioBlobStoreResolverImplTest {
 
     public static final String SITE_ID = "mySite";
 
@@ -57,9 +58,6 @@ public class BlobStoreFactoryImplTest {
 
     public static final Resource CONFIG_FILE = new ClassPathResource("crafter/studio/config/stores.xml");
 
-    @InjectMocks
-    private BlobStoreFactoryImpl factory;
-
     @Mock
     private ContentRepository contentRepository;
 
@@ -67,10 +65,13 @@ public class BlobStoreFactoryImplTest {
     private ApplicationContext applicationContext;
 
     @Mock
-    private BlobStore myBlobStore;
+    private StudioBlobStore myBlobStore;
 
     @Mock
-    private BlobStore anotherBlobStore;
+    private StudioBlobStore anotherBlobStore;
+
+    @InjectMocks
+    private StudioBlobStoreResolverImpl resolver;
 
     @BeforeMethod
     public void setUp() throws ContentNotFoundException, IOException {
@@ -86,13 +87,13 @@ public class BlobStoreFactoryImplTest {
         when(applicationContext.getBean(BLOB_STORE_TYPE, BlobStore.class)).thenReturn(myBlobStore);
         when(applicationContext.getBean(ANOTHER_BLOB_STORE, BlobStore.class)).thenReturn(anotherBlobStore);
 
-        factory.setConfigurationPath(CONFIG_PATH);
-        factory.setConfigurationReader(new EncryptionAwareConfigurationReader(new NoOpTextEncryptor()));
+        resolver.setConfigurationPath(CONFIG_PATH);
+        resolver.setConfigurationReader(new EncryptionAwareConfigurationReader(new NoOpTextEncryptor()));
     }
 
     @Test
     public void getByRemotePathTest() throws ServiceLayerException, ConfigurationException {
-        BlobStore store = factory.getByPaths(SITE_ID, new String[]{ REMOTE_PATH, REMOTE_PATH });
+        BlobStore store = resolver.getByPaths(SITE_ID, REMOTE_PATH, REMOTE_PATH);
 
         assertNotNull(store, "store should not be null");
         assertNotEquals(store.getId(), STORE_ID);
@@ -100,14 +101,14 @@ public class BlobStoreFactoryImplTest {
 
     @Test
     public void getByLocalPathTest() throws ServiceLayerException, ConfigurationException {
-        BlobStore store = factory.getByPaths(SITE_ID, new String[] { LOCAL_PATH, LOCAL_PATH });
+        BlobStore store = resolver.getByPaths(SITE_ID, LOCAL_PATH, LOCAL_PATH);
 
         assertNull(store, "store should be null");
     }
 
     @Test(expectedExceptions = { ServiceLayerException.class })
     public void getByMixedPathsTest() throws ServiceLayerException, ConfigurationException {
-        factory.getByPaths(SITE_ID, new String[] { REMOTE_PATH, LOCAL_PATH });
+        resolver.getByPaths(SITE_ID, REMOTE_PATH, LOCAL_PATH);
     }
 
 }
