@@ -18,13 +18,12 @@ package org.craftercms.studio.model.rest.dashboard;
 
 import java.time.ZonedDateTime;
 
-public class PublishingDashboardFilters {
+public class ContentDashboardFilters {
 
     private String path;
-    private String publisher;
-    private ZonedDateTime publishedDateFrom;
-    private ZonedDateTime publishedDateTo;
-    private String environment;
+    private String modifier;
+    private ZonedDateTime modifiedDateFrom;
+    private ZonedDateTime modifiedDateTo;
     private String contentType;
     private long state;
 
@@ -36,36 +35,28 @@ public class PublishingDashboardFilters {
         this.path = path;
     }
 
-    public String getPublisher() {
-        return publisher;
+    public String getModifier() {
+        return modifier;
     }
 
-    public void setPublisher(String publisher) {
-        this.publisher = publisher;
+    public void setModifier(String modifier) {
+        this.modifier = modifier;
     }
 
-    public ZonedDateTime getPublishedDateFrom() {
-        return publishedDateFrom;
+    public ZonedDateTime getModifiedDateFrom() {
+        return modifiedDateFrom;
     }
 
-    public void setPublishedDateFrom(ZonedDateTime publishedDateFrom) {
-        this.publishedDateFrom = publishedDateFrom;
+    public void setModifiedDateFrom(ZonedDateTime modifiedDateFrom) {
+        this.modifiedDateFrom = modifiedDateFrom;
     }
 
-    public ZonedDateTime getPublishedDateTo() {
-        return publishedDateTo;
+    public ZonedDateTime getModifiedDateTo() {
+        return modifiedDateTo;
     }
 
-    public void setPublishedDateTo(ZonedDateTime publishedDateTo) {
-        this.publishedDateTo = publishedDateTo;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setModifiedDateTo(ZonedDateTime modifiedDateTo) {
+        this.modifiedDateTo = modifiedDateTo;
     }
 
     public String getContentType() {
