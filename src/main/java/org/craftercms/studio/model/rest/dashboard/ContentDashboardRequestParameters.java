@@ -18,7 +18,7 @@ package org.craftercms.studio.model.rest.dashboard;
 
 import javax.validation.constraints.NotNull;
 
-public class AuditDashboardRequestParameters {
+public class ContentDashboardRequestParameters {
 
     @NotNull
     private String siteId;
@@ -28,7 +28,7 @@ public class AuditDashboardRequestParameters {
     private String groupBy;
     private int offset = 0;
     private int limit = 10;
-    AuditDashboardFilters filters;
+    ContentDashboardFilters filters;
 
     public String getSiteId() {
         return siteId;
@@ -78,11 +78,11 @@ public class AuditDashboardRequestParameters {
         this.limit = limit;
     }
 
-    public AuditDashboardFilters getFilters() {
+    public ContentDashboardFilters getFilters() {
         return filters;
     }
 
-    public void setFilters(AuditDashboardFilters filters) {
+    public void setFilters(ContentDashboardFilters filters) {
         this.filters = filters;
     }
 }

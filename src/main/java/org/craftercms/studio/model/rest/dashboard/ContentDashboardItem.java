@@ -14,17 +14,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.model.rest.dashboard;
 
 import java.time.ZonedDateTime;
 
-public class PublishingHistoryItem {
+public class ContentDashboardItem {
 
     private String siteId;
-    private String environment;
+    private String label;
     private String path;
-    private String publisher;
-    private ZonedDateTime publishedDate;
+    private String modifier;
+    private ZonedDateTime modifiedDate;
+    private String contentType;
 
     public String getSiteId() {
         return siteId;
@@ -34,12 +35,12 @@ public class PublishingHistoryItem {
         this.siteId = siteId;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getLabel() {
+        return label;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public String getPath() {
@@ -50,19 +51,27 @@ public class PublishingHistoryItem {
         this.path = path;
     }
 
-    public String getPublisher() {
-        return publisher;
+    public String getModifier() {
+        return modifier;
     }
 
-    public void setPublisher(String publisher) {
-        this.publisher = publisher;
+    public void setModifier(String modifier) {
+        this.modifier = modifier;
     }
 
-    public ZonedDateTime getPublishedDate() {
-        return publishedDate;
+    public ZonedDateTime getModifiedDate() {
+        return modifiedDate;
     }
 
-    public void setPublishedDate(ZonedDateTime publishedDate) {
-        this.publishedDate = publishedDate;
+    public void setModifiedDate(ZonedDateTime modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 }
