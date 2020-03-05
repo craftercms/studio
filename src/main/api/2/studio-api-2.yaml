@@ -1194,15 +1194,13 @@ paths:
           description: The site ID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
         - name: profileId
           in: query
           description: The profile ID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
         - name: path
           in: query
           description: The path of the directory to list (defaults to the root)
@@ -1350,15 +1348,13 @@ paths:
           description: The site ID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
         - name: profileId
           in: query
           description: The profile ID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
         - name: path
           in: query
           description: The path of the directory to list (defaults to the root)
