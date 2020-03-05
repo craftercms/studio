@@ -50,4 +50,8 @@ public interface ItemMetadataMapper {
     List<String> getSameCommitItems(Map params);
 
     void setPropertiesForCommit(Map params);
+
+    int getContentDashboardTotal(Map params);
+
+    List<ItemMetadata> getContentDashboard(Map params);
 }
