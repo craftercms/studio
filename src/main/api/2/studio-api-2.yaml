@@ -3057,9 +3057,9 @@ paths:
           description: number of children to return
           schema:
             type: integer
-        - name: keywords
+        - name: keyword
           in: query
-          description: filter children by keywords
+          description: filter children by keyword
           schema:
             type: string
       responses:
@@ -3150,9 +3150,9 @@ paths:
           description: number of children to return
           schema:
             type: integer
-        - name: keywords
+        - name: keyword
           in: query
-          description: filter children by keywords
+          description: filter children by keyword
           schema:
             type: string
       responses:

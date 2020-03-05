@@ -16,9 +16,11 @@
 
 package org.craftercms.studio.api.v2.service.publish.internal;
 
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface PublishServiceInternal {
@@ -66,4 +68,44 @@ public interface PublishServiceInternal {
      * @param packageIds list of package identifiers
      */
     void cancelPublishingPackages(String siteId, List<String> packageIds);
+    /**
+     * Get total number of publishing history items for given search parameters
+     *
+     * @param siteId site identifier
+     * @param environment environment to get publishing history
+     * @param path regular expression to filter paths
+     * @param publisher filter publishing history for specified user
+     * @param dateFrom lower boundary for date range
+     * @param dateTo upper boundary for date range
+     * @param contentType publishing history for specified content type
+     * @param state filter items by their state
+     *
+     * @return total number of deployment history items
+     */
+    int getPublishingHistoryTotal(String siteId, String environment, String path, String publisher,
+                                  ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state);
+
+    /**
+     * Get deployment history items for given search parameters
+     *
+     * @param siteId site identifier
+     * @param environment environment to get publishing history
+     * @param path regular expression to filter paths
+     * @param publisher filter publishing history for specified user
+     * @param dateFrom lower boundary for date range
+     * @param dateTo upper boundary for date range
+     * @param contentType publishing history for specified content type
+     * @param state filter items by their state
+     * @param sortBy sort publishing history
+     * @param order apply order to publishing history
+     * @param groupBy group publishing history items
+     * @param offset offset of the first item in the result set
+     * @param limit number of items to return
+     *
+     * @return total number of publishing packages
+     */
+    List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
+                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state,
+                                                     String sortBy, String order, String groupBy, int offset, int limit);
+
 }

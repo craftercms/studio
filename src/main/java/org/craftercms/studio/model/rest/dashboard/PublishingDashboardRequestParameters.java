@@ -16,15 +16,19 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
+import javax.validation.constraints.NotNull;
+
 public class PublishingDashboardRequestParameters {
 
+    @NotNull
     private String siteId;
+    @NotNull
     private String sortBy;
     private String order;
     private String groupBy;
     private int offset = 0;
     private int limit = 10;
-    AuditDashboardFilters filters;
+    PublishingDashboardFilters filters;
 
     public String getSiteId() {
         return siteId;
@@ -74,11 +78,11 @@ public class PublishingDashboardRequestParameters {
         this.limit = limit;
     }
 
-    public AuditDashboardFilters getFilters() {
+    public PublishingDashboardFilters getFilters() {
         return filters;
     }
 
-    public void setFilters(AuditDashboardFilters filters) {
+    public void setFilters(PublishingDashboardFilters filters) {
         this.filters = filters;
     }
 }
