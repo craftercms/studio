@@ -40,6 +40,9 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.stripStart;
+
 /**
  * Default implementation of {@link AwsS3Service}.
  *
@@ -162,12 +165,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     }
 
     protected String normalizePrefix(String prefix) {
-        if (!prefix.equals(delimiter)) {
-            prefix = StringUtils.stripStart(prefix, delimiter);
-            prefix = StringUtils.appendIfMissing(prefix, delimiter);
-        }
-
-        return prefix;
+        return stripStart(appendIfMissing(prefix, delimiter), delimiter);
     }
 
 }
