@@ -3068,6 +3068,14 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  parent:
+                    $ref: '#/components/schemas/SandboxItem'
+                  levelDescriptor:
+                    $ref: '#/components/schemas/SandboxItem'
+                  children:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
                   total:
                     type: integer
                     format: int32
@@ -3080,10 +3088,6 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
