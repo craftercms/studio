@@ -753,8 +753,8 @@ pipelines:
       operations:
         - type: globalRepoUpgrader
           files:
-            - src: repo-bootstrap/global/configuration/samples/sample-stores.xml
-              dest: configuration/samples/sample-stores.xml
+            - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+              dest: configuration/samples/sample-blob-stores-config.xml
           commitDetails: Add new sample file for blob stores
         - type: dbVersionUpgrader
 
@@ -1194,6 +1194,16 @@ configurations:
             path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.4.4/site/config-list.xslt
             commitDetails: Add new configuration file
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 7
+        nextVersion: 8
+        operations:
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v8.xslt
+            commitDetails: Add new configuration file for blob stores
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
