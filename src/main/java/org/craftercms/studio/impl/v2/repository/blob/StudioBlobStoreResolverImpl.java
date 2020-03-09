@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -46,7 +47,8 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
     }
 
     @Override
-    public BlobStore getByPaths(String site, String... paths) throws ServiceLayerException, ConfigurationException {
+    public BlobStore getByPaths(String site, String... paths)
+            throws ServiceLayerException, ConfigurationException, IOException {
         logger.debug("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
         Function<String, InputStream> configGetter = path -> {
             try {

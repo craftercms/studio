@@ -20,6 +20,7 @@ import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.BlobStoreResolver;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
 
@@ -32,7 +33,8 @@ import java.util.function.Function;
 public interface StudioBlobStoreResolver extends BlobStoreResolver {
 
     @Override
-    default BlobStore getById(Function<String, InputStream> configGetter, String storeId) {
+    default BlobStore getById(Function<String, InputStream> configGetter, String storeId)
+            throws IOException, ConfigurationException {
         // not used by studio
         return null;
     }
@@ -46,6 +48,7 @@ public interface StudioBlobStoreResolver extends BlobStoreResolver {
      * @throws ServiceLayerException if there is any error looking up the stores
      * @throws ConfigurationException if there is any error reading the configuration
      */
-    BlobStore getByPaths(String site, String... paths) throws ServiceLayerException, ConfigurationException;
+    BlobStore getByPaths(String site, String... paths)
+            throws ServiceLayerException, ConfigurationException, IOException;
 
 }

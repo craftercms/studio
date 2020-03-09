@@ -92,7 +92,7 @@ public class StudioBlobStoreResolverImplTest {
     }
 
     @Test
-    public void getByRemotePathTest() throws ServiceLayerException, ConfigurationException {
+    public void getByRemotePathTest() throws ServiceLayerException, ConfigurationException, IOException {
         BlobStore store = resolver.getByPaths(SITE_ID, REMOTE_PATH, REMOTE_PATH);
 
         assertNotNull(store, "store should not be null");
@@ -100,14 +100,14 @@ public class StudioBlobStoreResolverImplTest {
     }
 
     @Test
-    public void getByLocalPathTest() throws ServiceLayerException, ConfigurationException {
+    public void getByLocalPathTest() throws ServiceLayerException, ConfigurationException, IOException {
         BlobStore store = resolver.getByPaths(SITE_ID, LOCAL_PATH, LOCAL_PATH);
 
         assertNull(store, "store should be null");
     }
 
     @Test(expectedExceptions = { ServiceLayerException.class })
-    public void getByMixedPathsTest() throws ServiceLayerException, ConfigurationException {
+    public void getByMixedPathsTest() throws ServiceLayerException, ConfigurationException, IOException {
         resolver.getByPaths(SITE_ID, REMOTE_PATH, LOCAL_PATH);
     }
 
