@@ -433,11 +433,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath) {
-        return moveContent(site, fromPath, toPath, null);
-    }
-
-    @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
         Map<String, String> toRet = new TreeMap<String, String>();
         String commitId;

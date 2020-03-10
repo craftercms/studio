@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class DeploymentItemTO implements Serializable {
     private static final long serialVersionUID = -14642162984484167L;
@@ -84,4 +85,32 @@ public class DeploymentItemTO implements Serializable {
     public void setOldPath(String oldPath) {
         this.oldPath = oldPath;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DeploymentItemTO)) return false;
+        DeploymentItemTO that = (DeploymentItemTO) o;
+        return move == that.move &&
+                delete == that.delete &&
+                Objects.equals(site, that.site) &&
+                Objects.equals(path, that.path) &&
+                Objects.equals(commitId, that.commitId) &&
+                Objects.equals(packageId, that.packageId) &&
+                Objects.equals(oldPath, that.oldPath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(site, path, commitId, packageId, move, delete, oldPath);
+    }
+
+    @Override
+    public String toString() {
+        return "DeploymentItemTO{" +
+                "site='" + site + '\'' +
+                ", path='" + path + '\'' +
+                '}';
+    }
+
 }

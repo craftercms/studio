@@ -76,6 +76,16 @@ studio.repo.pullFromRemote.conflict.notificationEnabled: false
 studio.repo.defaultIgnoreFile: crafter/studio/utils/default-gitignore
 
 ############################################################
+##                       Blob Store                       ##
+############################################################
+# Location of the blob store configuration file in the site
+studio.blob.config.path: /config/studio/stores.xml
+# Extension used for the blob files in the site
+studio.blob.file.extension: blob
+# Environment to use for all operations
+studio.blob.environment: preview
+
+############################################################
 ##                   Site Configuration                   ##
 ############################################################
 # Location where global configuration files are stored.
