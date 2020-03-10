@@ -472,7 +472,7 @@ studio.db.testOnBorrow: true
 studio.db.validationQuery: SELECT 1
 # Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
 # Use a value less than or equal to 0 for no timeout.
-studio.db.validationInterval: 34000
+studio.db.validationInterval: 1
 # Base folder for the embedded database
 studio.db.basePath: ${sys:crafter.bin.dir}/dbms
 # Data folder for the embedded database
