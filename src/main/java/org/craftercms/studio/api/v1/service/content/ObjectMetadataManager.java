@@ -62,9 +62,38 @@ public interface ObjectMetadataManager {
 
     int countAllItems();
 
+    /**
+     * Get total number of records for content dashboard
+     *
+     * @param siteId site identifier
+     * @param path path regular expression to apply as filter for result set
+     * @param modifier filter results by user
+     * @param contentType filter results by content type
+     * @param state filter results by state
+     * @param dateFrom lower boundary for modified date
+     * @param dateTo upper boundary for modified date
+     * @return total number of records in result set
+     */
     int getContentDashboardTotal(String siteId, String path, String modifier, String contentType,
                                  long state, ZonedDateTime dateFrom, ZonedDateTime dateTo);
 
+    /**
+     * Get result set for content dashboard
+     *
+     * @param siteId site identifier
+     * @param path path regular expression to apply as filter for result set
+     * @param modifier filter results by user
+     * @param contentType filter results by content type
+     * @param state filter results by state
+     * @param dateFrom lower boundary for modified date
+     * @param dateTo upper boundary for modified date
+     * @param sortBy sort results by column
+     * @param order order of results
+     * @param groupBy group results by column
+     * @param offset offset of the first record in result set
+     * @param limit number of records to return
+     * @return list of item metadata records
+     */
     List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
                                            long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                            String sortBy, String order, String groupBy, int offset, int limit);
