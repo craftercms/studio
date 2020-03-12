@@ -53,7 +53,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public Blob getReference(String site, String path) {
         Mapping mapping = getMapping(environmentResolver.getEnvironment());
-        return new Blob(id, getKey(mapping, site, path));
+        return new Blob(id, Paths.get(site, path).toString());
     }
 
     // Start API 1
