@@ -49,7 +49,6 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RequestMapping(API_2 + DASHBOARD)
 public class DashboardController {
 
-    private AuditService auditService;
     private PublishService publishService;
     private DashboardService dashboardService;
 
@@ -70,12 +69,12 @@ public class DashboardController {
             target = requestParameters.getFilters().getTarget();
         }
 
-        int total = auditService.getAuditLogTotal(null, requestParameters.getSiteId(), user, operations, false, dateFrom,
-                dateTo, target, null, null);
+        int total = dashboardService.getAuditDashboardTotal(requestParameters.getSiteId(), user, operations, dateFrom,
+                dateTo, target);
 
-        List<AuditLog> auditLog = auditService.getAuditLog(null, requestParameters.getSiteId(),
-                requestParameters.getOffset(), requestParameters.getLimit(), user, operations, false, dateFrom,
-                dateTo, target, null, null, requestParameters.getSortBy(), requestParameters.getOrder());
+        List<AuditLog> auditLog = dashboardService.getAuditDashboard(requestParameters.getSiteId(),
+                requestParameters.getOffset(), requestParameters.getLimit(), user, operations, dateFrom, dateTo, target,
+                requestParameters.getSortBy(), requestParameters.getOrder());
 
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<AuditDashboardItem> result = new PaginatedResultList<AuditDashboardItem>();
@@ -174,14 +173,6 @@ public class DashboardController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    public AuditService getAuditService() {
-        return auditService;
-    }
-
-    public void setAuditService(AuditService auditService) {
-        this.auditService = auditService;
     }
 
     public PublishService getPublishService() {
