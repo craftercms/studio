@@ -64,6 +64,39 @@ public interface AuditServiceInternal {
                                     String target, String origin, String clusterNodeId);
 
     /**
+     * Get total number of records for audit dashboard filtered by parameters
+     *
+     * @param siteId site identifier
+     * @param user filter logs by user
+     * @param operations filter logs by action
+     * @param dateFrom lower boundary for operation timestamp
+     * @param dateTo upper boundary for operation timestamp
+     * @param target filter logs by target
+     * @return total number of records
+     */
+    int getAuditDashboardTotal(String siteId,String user, List<String> operations, ZonedDateTime dateFrom,
+                               ZonedDateTime dateTo, String target);
+
+    /**
+     * Get audit dashboard content filtered by parameters
+     *
+     * @param siteId site identifier
+     * @param offset offset of the first record
+     * @param limit number of records to return
+     * @param user filter logs by user
+     * @param operations filter logs by actions
+     * @param dateFrom lower boundary for operation timestamp
+     * @param dateTo upper boundary for operation timestamp
+     * @param target filter logs by target
+     * @param sort sort for records
+     * @param order order for records
+     * @return list of records for audit dashboard
+     */
+    List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
+                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort,
+                                     String order);
+
+    /**
      * Get audit log entry by id
      *
      * @param auditLogId id of audit log entry to get

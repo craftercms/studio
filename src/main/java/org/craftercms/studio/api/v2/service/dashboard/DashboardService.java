@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.dashboard;
 
+import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 
 import java.time.ZonedDateTime;
@@ -25,6 +26,39 @@ import java.util.List;
  * Service that process requests for Dashboard API
  */
 public interface DashboardService {
+
+    /**
+     * Get total number of audit log entries for audit dashboard
+     *
+     * @param siteId filter logs by given site id
+     * @param user filter logs by given user
+     * @param operations filter logs by given operations
+     * @param dateFrom filter logs by date starting from given date
+     * @param dateTo filter logs by date until given date
+     * @param target filter logs by given operation target
+     * @return number of audit log entries
+     */
+    int getAuditDashboardTotal(String siteId, String user, List<String> operations, ZonedDateTime dateFrom,
+                         ZonedDateTime dateTo, String target);
+
+    /**
+     * Get content for audit dashboard
+     *
+     * @param siteId filter logs by given site id
+     * @param offset offset of the first record
+     * @param limit number of records to return
+     * @param user filter logs by given user
+     * @param operations filter logs by given operations
+     * @param dateFrom filter logs by date starting from given date
+     * @param dateTo filter logs by date until given date
+     * @param target filter logs by given operation target
+     * @param sort sort logs by given sort type
+     * @param order order logs
+     *
+     * @return audit log result set
+     */
+    List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
+                               ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort, String order);
 
     /**
      * Get total number of records for content dashboard
