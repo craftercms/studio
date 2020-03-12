@@ -771,7 +771,7 @@
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="environmentResolver" ref="crafter.environmentResolver"/>
     </bean>
-    
+
     <bean id="contentRepository"
           class="org.craftercms.studio.impl.v2.repository.blob.BlobAwareContentRepository">
         <property name="fileExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
