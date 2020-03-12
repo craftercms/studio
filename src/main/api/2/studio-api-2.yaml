@@ -3870,11 +3870,6 @@ paths:
           schema:
             type: string
             format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0

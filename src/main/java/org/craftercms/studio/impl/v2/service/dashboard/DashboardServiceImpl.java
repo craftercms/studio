@@ -16,8 +16,11 @@
 
 package org.craftercms.studio.impl.v2.service.dashboard;
 
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 
@@ -25,9 +28,27 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+
 public class DashboardServiceImpl implements DashboardService {
 
     private ObjectMetadataManager objectMetadataManager;
+    private AuditServiceInternal auditServiceInternal;
+
+    @Override
+    public int getAuditDashboardTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String user,
+                                      List<String> operations, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                      String target) {
+        return auditServiceInternal.getAuditDashboardTotal(siteId, user, operations, dateFrom, dateTo, target);
+    }
+
+    @Override
+    public List<AuditLog> getAuditDashboard(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset,
+                                            int limit, String user, List<String> operations, ZonedDateTime dateFrom,
+                                            ZonedDateTime dateTo, String target, String sort, String order) {
+        return auditServiceInternal.getAuditDashboard(siteId, offset, limit, user, operations, dateFrom, dateTo, target,
+                sort, order);
+    }
 
     @Override
     public int getContentDashboardTotal(String siteId, String path, String modifier, String contentType, long state,
@@ -67,5 +88,13 @@ public class DashboardServiceImpl implements DashboardService {
 
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
         this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

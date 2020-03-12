@@ -189,6 +189,69 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
+    public int getAuditDashboardTotal(String siteId,String user, List<String> operations,ZonedDateTime dateFrom,
+                                      ZonedDateTime dateTo, String target) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        if (StringUtils.isNotEmpty(siteId)) {
+            params.put(SITE_ID, siteId);
+        }
+        if (StringUtils.isNotEmpty(user)) {
+            params.put(USERNAME, user);
+        }
+        if (CollectionUtils.isNotEmpty(operations)) {
+            params.put(OPERATIONS, operations);
+        }
+        if (dateFrom != null) {
+            params.put(DATE_FROM, dateFrom);
+        }
+        if (dateTo != null) {
+            params.put(DATE_TO, dateTo);
+        }
+        if (StringUtils.isNotEmpty(target)) {
+            params.put(TARGET, target);
+        }
+        return auditDao.getAuditLogTotal(params);
+    }
+
+    @Override
+    public List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
+                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort,
+                                            String order) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(OFFSET, offset);
+        params.put(LIMIT, limit);
+        if (StringUtils.isNotEmpty(siteId)) {
+            params.put(SITE_ID, siteId);
+        }
+        if (StringUtils.isNotEmpty(user)) {
+            params.put(USERNAME, user);
+        }
+        if (CollectionUtils.isNotEmpty(operations)) {
+            params.put(OPERATIONS, operations);
+        }
+        if (dateFrom != null) {
+            params.put(DATE_FROM, dateFrom);
+        }
+        if (dateTo != null) {
+            params.put(DATE_TO, dateTo);
+        }
+        if (StringUtils.isNotEmpty(target)) {
+            params.put(TARGET, target);
+        }
+        if (StringUtils.isNotEmpty(sort) && StringUtils.equalsIgnoreCase(sort, "date")) {
+            params.put(SORT, "operation_timestamp");
+        }
+        if (StringUtils.isNotEmpty(order)) {
+            if (StringUtils.equalsIgnoreCase("DESC", order)) {
+                params.put(ORDER, "DESC");
+            } else {
+                params.put(ORDER, "ASC");
+            }
+        }
+        return auditDao.getAuditLog(params);
+    }
+
+    @Override
     public AuditLog getAuditLogEntry(long auditLogId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(QueryParameterNames.ID, auditLogId);
