@@ -210,7 +210,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         if (StringUtils.isNotEmpty(target)) {
             params.put(TARGET, target);
         }
-        return auditDao.getAuditLogTotal(params);
+        return auditDao.getAuditDashboardTotal(params);
     }
 
     @Override
@@ -248,7 +248,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
                 params.put(ORDER, "ASC");
             }
         }
-        return auditDao.getAuditLog(params);
+        return auditDao.getAuditDashboard(params);
     }
 
     @Override

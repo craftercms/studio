@@ -16,13 +16,11 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
-import org.hibernate.validator.constraints.NotEmpty;
-
-import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.NotBlank;
 
 public class AuditDashboardRequestParameters {
 
-    @NotEmpty
+    @NotBlank
     private String siteId;
     private String sortBy;
     private String order;
