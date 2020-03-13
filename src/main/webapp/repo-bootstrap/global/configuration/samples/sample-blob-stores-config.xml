@@ -72,17 +72,17 @@
         <mappings>
             <mapping>
                 <environment>preview</environment>
-                <target>my-authoring-mapping</target>
+                <target>my-authoring-bucket</target>
                 <prefix>sandbox</prefix>
             </mapping>
             <mapping>
                 <environment>staging</environment>
-                <target>my-authoring-mapping</target>
+                <target>my-authoring-bucket</target>
                 <prefix>staging</prefix>
             </mapping>
             <mapping>
                 <environment>live</environment>
-                <target>my-live-mapping</target>
+                <target>my-delivery-bucket</target>
             </mapping>
         </mappings>
         <configuration>

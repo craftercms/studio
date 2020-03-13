@@ -757,6 +757,15 @@ pipelines:
               dest: configuration/samples/sample-blob-stores-config.xml
           commitDetails: Add new sample file for blob stores
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.6.1
+      nextVersion: 3.1.6.2
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+              dest: configuration/samples/sample-blob-stores-config.xml
+          commitDetails: Update sample file for blob stores
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
