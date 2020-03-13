@@ -3632,7 +3632,6 @@ paths:
               - modifier - user that last modified item
               - modifiedDate - data and time of last modification of an item
               - contentType - content type of an item
-          required: true
           schema:
             type: string
         - name: order
@@ -3641,11 +3640,6 @@ paths:
           schema:
             type: string
             format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -3738,7 +3732,6 @@ paths:
               - publishedDate - data and time when item was published
               - environment - environment where item was published
               - content type - content type of an item
-          required: true
           schema:
             type: string
         - name: order
@@ -3747,11 +3740,6 @@ paths:
           schema:
             type: string
             format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -3861,7 +3849,6 @@ paths:
               - operation - operation that was audited
               - operationTimestamp - timestamp when operation was executed
               - target - target upon which operation was executed
-          required: true
           schema:
             type: string
         - name: order
@@ -3971,7 +3958,6 @@ paths:
 #              - scheduledDate - data and time item is scheduled
 #              - environment - environment where item is scheduled
 #              - contentType - content type of an item
-#          required: true
 #          schema:
 #            type: string
 #        - name: order
@@ -3980,11 +3966,6 @@ paths:
 #          schema:
 #            type: string
 #            format: ASC, DESC
-#        - name: groupBy
-#          in: query
-#          description: group data by column
-#          schema:
-#            type: string
 #        - name: offset
 #          in: query
 #          description: offset of the first result item, default 0

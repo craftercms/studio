@@ -16,16 +16,14 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
-import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.NotEmpty;
 
 public class PublishingDashboardRequestParameters {
 
-    @NotNull
+    @NotEmpty
     private String siteId;
-    @NotNull
     private String sortBy;
     private String order;
-    private String groupBy;
     private int offset = 0;
     private int limit = 10;
     PublishingDashboardFilters filters;
@@ -52,14 +50,6 @@ public class PublishingDashboardRequestParameters {
 
     public void setOrder(String order) {
         this.order = order;
-    }
-
-    public String getGroupBy() {
-        return groupBy;
-    }
-
-    public void setGroupBy(String groupBy) {
-        this.groupBy = groupBy;
     }
 
     public int getOffset() {

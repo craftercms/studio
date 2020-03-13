@@ -529,68 +529,70 @@ public class GitContentRepository implements ContentRepository {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
             Repository publishedRepo = helper.getRepository(siteId, PUBLISHED);
-            int counter = 0;
-            try (Git git = new Git(publishedRepo)) {
-                // List all environments
-                List<Ref> environments = git.branchList().call();
-                for (int i = 0; i < environments.size() && counter < limit; i++) {
-                    Ref env = environments.get(i);
-                    String environmentGit = env.getName();
-                    environmentGit = environmentGit.replace(R_HEADS, "");
-                    if (StringUtils.isBlank(environment) || StringUtils.equals(environment, environmentGit)) {
-                        List<RevFilter> filters = new ArrayList<RevFilter>();
-                        if (fromDate != null) {
-                            filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
-                        }
-                        if (toDate != null) {
-                            filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
-                        } else {
-                            filters.add(CommitTimeRevFilter.before(ZonedDateTime.now().toInstant().toEpochMilli()));
-                        }
-                        filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
+            if (publishedRepo != null) {
+                int counter = 0;
+                try (Git git = new Git(publishedRepo)) {
+                    // List all environments
+                    List<Ref> environments = git.branchList().call();
+                    for (int i = 0; i < environments.size() && counter < limit; i++) {
+                        Ref env = environments.get(i);
+                        String environmentGit = env.getName();
+                        environmentGit = environmentGit.replace(R_HEADS, "");
+                        if (StringUtils.isBlank(environment) || StringUtils.equals(environment, environmentGit)) {
+                            List<RevFilter> filters = new ArrayList<RevFilter>();
+                            if (fromDate != null) {
+                                filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
+                            }
+                            if (toDate != null) {
+                                filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
+                            } else {
+                                filters.add(CommitTimeRevFilter.before(ZonedDateTime.now().toInstant().toEpochMilli()));
+                            }
+                            filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
 
-                        Iterable<RevCommit> branchLog = git.log()
-                                .add(env.getObjectId())
-                                .setRevFilter(AndRevFilter.create(filters))
-                                .call();
+                            Iterable<RevCommit> branchLog = git.log()
+                                    .add(env.getObjectId())
+                                    .setRevFilter(AndRevFilter.create(filters))
+                                    .call();
 
-                        Iterator<RevCommit> iterator = branchLog.iterator();
-                        while (iterator.hasNext() && counter < limit) {
-                            RevCommit revCommit = iterator.next();
-                            List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
-                            for (int j = 0; j < files.size() && counter < limit; j++) {
-                                String file = files.get(j);
-                                Path path = Paths.get(file);
-                                String fileName = path.getFileName().toString();
-                                if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
-                                    boolean addFile = false;
-                                    if (StringUtils.isNotEmpty(pathRegex)) {
-                                        Pattern pattern = Pattern.compile(pathRegex);
-                                        Matcher matcher = pattern.matcher(file);
+                            Iterator<RevCommit> iterator = branchLog.iterator();
+                            while (iterator.hasNext() && counter < limit) {
+                                RevCommit revCommit = iterator.next();
+                                List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
+                                for (int j = 0; j < files.size() && counter < limit; j++) {
+                                    String file = files.get(j);
+                                    Path path = Paths.get(file);
+                                    String fileName = path.getFileName().toString();
+                                    if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                                        boolean addFile = false;
+                                        if (StringUtils.isNotEmpty(pathRegex)) {
+                                            Pattern pattern = Pattern.compile(pathRegex);
+                                            Matcher matcher = pattern.matcher(file);
                                             addFile = matcher.matches();
-                                    } else {
-                                        addFile = true;
-                                    }
-                                    if (addFile) {
-                                        PublishingHistoryItem phi = new PublishingHistoryItem();
-                                        phi.setSiteId(siteId);
-                                        phi.setPath(file);
-                                        phi.setPublishedDate(
-                                                Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
-                                        phi.setPublisher(revCommit.getAuthorIdent().getName());
-                                        phi.setEnvironment(environment.replace(R_HEADS, ""));
-                                        toRet.add(phi);
-                                        counter++;
+                                        } else {
+                                            addFile = true;
+                                        }
+                                        if (addFile) {
+                                            PublishingHistoryItem phi = new PublishingHistoryItem();
+                                            phi.setSiteId(siteId);
+                                            phi.setPath(file);
+                                            phi.setPublishedDate(
+                                                    Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
+                                            phi.setPublisher(revCommit.getAuthorIdent().getName());
+                                            phi.setEnvironment(environmentGit.replace(R_HEADS, ""));
+                                            toRet.add(phi);
+                                            counter++;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    git.close();
+                    toRet.sort((o1, o2) -> o2.getPublishedDate().compareTo(o1.getPublishedDate()));
+                } catch (IOException | GitAPIException e1) {
+                    logger.error("Error while getting deployment history for site " + siteId, e1);
                 }
-                git.close();
-                toRet.sort((o1, o2) -> o2.getPublishedDate().compareTo(o1.getPublishedDate()));
-            } catch (IOException | GitAPIException e1) {
-                logger.error("Error while getting deployment history for site " + siteId, e1);
             }
         } catch (CryptoException e) {
             e.printStackTrace();

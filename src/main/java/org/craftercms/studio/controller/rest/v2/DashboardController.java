@@ -18,9 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
-import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.dashboard.AuditDashboardItem;
@@ -50,7 +48,6 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RequestMapping(API_2 + DASHBOARD)
 public class DashboardController {
 
-    private PublishService publishService;
     private DashboardService dashboardService;
 
     @GetMapping(AUDIT_DASHBOARD)
@@ -103,7 +100,7 @@ public class DashboardController {
     }
 
     @GetMapping(PUBLISHING_DASHBOARD)
-    public ResponseBody getPublishingDashboard(PublishingDashboardRequestParameters requestParameters) {
+    public ResponseBody getPublishingDashboard(@Valid PublishingDashboardRequestParameters requestParameters) {
 
         String user = null;
         String environment = null;
@@ -124,9 +121,8 @@ public class DashboardController {
 
         int total = 0;
         List<PublishingDashboardItem> publishingHistory =
-                publishService.getPublishingHistory(requestParameters.getSiteId(), environment, path, user,
-                        dateFrom, dateTo, contentType, state, requestParameters.getSortBy(),
-                        requestParameters.getOrder(), requestParameters.getGroupBy(),
+                dashboardService.getPublishingHistory(requestParameters.getSiteId(), environment, path, user, dateFrom,
+                        dateTo, contentType, state, requestParameters.getSortBy(), requestParameters.getOrder(),
                         requestParameters.getOffset(), requestParameters.getLimit());
 
         ResponseBody responseBody = new ResponseBody();
@@ -141,7 +137,7 @@ public class DashboardController {
     }
 
     @GetMapping(CONTENT_DASHBOARD)
-    public ResponseBody getContentDashboard(ContentDashboardRequestParameters requestParameters) {
+    public ResponseBody getContentDashboard(@Valid ContentDashboardRequestParameters requestParameters) {
         String modifier = null;
         String path = null;
         ZonedDateTime dateFrom = null;
@@ -163,7 +159,7 @@ public class DashboardController {
         List<ContentDashboardItem> contentDashboardItems =
                 dashboardService.getContentDashboard(requestParameters.getSiteId(), path, modifier, contentType,
                         state, dateFrom, dateTo, requestParameters.getSortBy(), requestParameters.getOrder(),
-                        requestParameters.getGroupBy(), requestParameters.getOffset(), requestParameters.getLimit());
+                        requestParameters.getOffset(), requestParameters.getLimit());
 
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<ContentDashboardItem> result = new PaginatedResultList<ContentDashboardItem>();
@@ -174,14 +170,6 @@ public class DashboardController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    public PublishService getPublishService() {
-        return publishService;
-    }
-
-    public void setPublishService(PublishService publishService) {
-        this.publishService = publishService;
     }
 
     public DashboardService getDashboardService() {

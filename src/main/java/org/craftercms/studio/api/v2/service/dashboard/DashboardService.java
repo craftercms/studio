@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.dashboard;
 
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
+import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -87,12 +88,50 @@ public interface DashboardService {
      * @param dateTo upper boundary for modified date
      * @param sortBy sort results by column
      * @param order order results
-     * @param groupBy group results by column
      * @param offset offset of the first record in result set
      * @param limit number of records to return as result set
      * @return list of items for content dashboard
      */
     List<ContentDashboardItem> getContentDashboard(String siteId, String path, String modifier, String contentType,
                                                    long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                   String sortBy, String order, String groupBy, int offset, int limit);
+                                                   String sortBy, String order, int offset, int limit);
+
+    /**
+     * Get total number of publishing history items for given search parameters
+     *
+     * @param siteId site identifier
+     * @param environment environment to get publishing history
+     * @param path regular expression to filter paths
+     * @param publisher filter publishing history for specified user
+     * @param dateFrom lower boundary for date range
+     * @param dateTo upper boundary for date range
+     * @param contentType publishing history for specified content type
+     * @param state filter items by their state
+     *
+     * @return total number of deployment history items
+     */
+    int getPublishingHistoryTotal(String siteId, String environment, String path, String publisher,
+                                  ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state);
+
+    /**
+     * Get deployment history items for given search parameters
+     *
+     * @param siteId site identifier
+     * @param environment environment to get publishing history
+     * @param path regular expression to filter paths
+     * @param publisher filter publishing history for specified user
+     * @param dateFrom lower boundary for date range
+     * @param dateTo upper boundary for date range
+     * @param contentType publishing history for specified content type
+     * @param state filter items by their state
+     * @param sortBy sort publishing history
+     * @param order apply order to publishing history
+     * @param offset offset of the first item in the result set
+     * @param limit number of items to return
+     *
+     * @return total number of publishing packages
+     */
+    List<PublishingDashboardItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
+                                                       ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
+                                                       long state, String sortBy, String order, int offset, int limit);
 }
