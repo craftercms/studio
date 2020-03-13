@@ -19,7 +19,9 @@ package org.craftercms.studio.api.v2.service.publish;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface PublishService {
