@@ -98,14 +98,13 @@ public interface PublishServiceInternal {
      * @param state filter items by their state
      * @param sortBy sort publishing history
      * @param order apply order to publishing history
-     * @param groupBy group publishing history items
      * @param offset offset of the first item in the result set
      * @param limit number of items to return
      *
      * @return total number of publishing packages
      */
     List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
-                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state,
-                                                     String sortBy, String order, String groupBy, int offset, int limit);
+                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
+                                                     long state, String sortBy, String order, int offset, int limit);
 
 }

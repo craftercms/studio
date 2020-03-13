@@ -29,15 +29,12 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -137,42 +134,6 @@ public class PublishServiceImpl implements PublishService {
         auditLog.setPrimaryTargetValue(siteId);
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
-    }
-
-    @Override
-    public int getPublishingHistoryTotal(String siteId, String environment, String path, String publisher,
-                                         ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state) {
-        return publishServiceInternal.getPublishingHistoryTotal(siteId, environment, path, publisher, dateFrom, dateTo,
-                contentType, state);
-    }
-
-    @Override
-    public List<PublishingDashboardItem> getPublishingHistory(String siteId, String environment, String path,
-                                                        String publisher,
-                                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
-                                                            long state, String sortBy, String order, String groupBy, int offset,
-                                                            int limit) {
-        List<PublishingHistoryItem> publishingHistoryItems = publishServiceInternal.getPublishingHistory(siteId,
-                environment, path, publisher, dateFrom, dateTo, contentType, state, sortBy, order, groupBy, offset,
-                limit);
-        return preparePublishingResult(publishingHistoryItems);
-    }
-
-    private List<PublishingDashboardItem> preparePublishingResult(List<PublishingHistoryItem> publishingHistory) {
-        List<PublishingDashboardItem> publishingDashboardItems = new ArrayList<PublishingDashboardItem>();
-        for (PublishingHistoryItem historyItem : publishingHistory) {
-            PublishingDashboardItem dashboardItem = new PublishingDashboardItem();
-            ItemMetadata itemMetadata = objectMetadataManager.getProperties(historyItem.getSiteId(),
-                    historyItem.getPath());
-            dashboardItem.setSiteId(historyItem.getSiteId());
-            dashboardItem.setPath(historyItem.getPath());
-            dashboardItem.setLabel(itemMetadata.getName());
-            dashboardItem.setEnvironment(historyItem.getEnvironment());
-            dashboardItem.setPublishedDate(historyItem.getPublishedDate());
-            dashboardItem.setPublisher(historyItem.getPublisher());
-            publishingDashboardItems.add(dashboardItem);
-        }
-        return publishingDashboardItems;
     }
 
     public PublishServiceInternal getPublishServiceInternal() {

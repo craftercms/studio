@@ -89,12 +89,11 @@ public interface ObjectMetadataManager {
      * @param dateTo upper boundary for modified date
      * @param sortBy sort results by column
      * @param order order of results
-     * @param groupBy group results by column
      * @param offset offset of the first record in result set
      * @param limit number of records to return
      * @return list of item metadata records
      */
     List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
                                            long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                           String sortBy, String order, String groupBy, int offset, int limit);
+                                           String sortBy, String order, int offset, int limit);
 }

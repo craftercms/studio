@@ -280,7 +280,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     @Override
     public List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
                                                   long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                  String sortBy, String order, String groupBy, int offset, int limit) {
+                                                  String sortBy, String order, int offset, int limit) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         params.put("path", path);
@@ -290,7 +290,6 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("dateTo", dateTo);
         params.put("sortBy", sortBy);
         params.put("order", order);
-        params.put("groupBy", groupBy);
         params.put("offset", offset);
         params.put("limit", limit);
         return itemMetadataMapper.getContentDashboard(params);

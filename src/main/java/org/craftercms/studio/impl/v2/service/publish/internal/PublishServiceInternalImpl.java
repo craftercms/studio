@@ -85,10 +85,10 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     }
 
     @Override
-    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
-                                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
-                                                            long state, String sortBy, String order, String groupBy, int offset,
-                                                            int limit) {
+    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
+                                                            String publisher, ZonedDateTime dateFrom,
+                                                            ZonedDateTime dateTo, String contentType, long state,
+                                                            String sortBy, String order, int offset, int limit) {
         return contentRepository.getPublishingHistory(siteId, environment, path, dateFrom, dateTo, limit);
     }
 
