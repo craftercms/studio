@@ -19,9 +19,11 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 
 import java.io.InputStream;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -276,4 +278,10 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    default List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
+                                                      ZonedDateTime fromDate, ZonedDateTime toDate, int limit) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
 }

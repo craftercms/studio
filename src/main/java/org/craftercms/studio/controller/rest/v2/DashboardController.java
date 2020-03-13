@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class DashboardController {
     private DashboardService dashboardService;
 
     @GetMapping(AUDIT_DASHBOARD)
-    public ResponseBody getAuditDashboard(AuditDashboardRequestParameters requestParameters) {
+    public ResponseBody getAuditDashboard(@Valid AuditDashboardRequestParameters requestParameters) {
 
         String user = null;
         List<String> operations = null;

@@ -316,7 +316,7 @@
         FROM audit a INNER JOIN site s on a.site_id = s.id
         WHERE 1 = 1
         <if test="siteId != null and siteId !=  '' ">
-            AND a.site_name = #{siteId}
+            AND s.name = #{siteId}
         </if>
         <if test="username != null and username !=  '' ">
             AND a.actor_id = #{username}
@@ -347,13 +347,10 @@
     <select id="getAuditDashboard" parameterType="java.util.Map" resultMap="AuditLogMap">
         <bind name="sortBy" value="'a.' + sort"/>
         SELECT a.*, s.site_id as site_name
-        <if test="includeParameters">
-            , ap.*
-        </if>
         FROM audit a INNER JOIN site s on a.site_id = s.id
         WHERE 1 = 1
         <if test="siteId != null and siteId !=  '' ">
-            AND a.site_name = #{siteId}
+            AND s.name = #{siteId}
         </if>
         <if test="username != null and username !=  '' ">
             AND a.actor_id = #{username}

@@ -53,6 +53,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -318,6 +319,13 @@ public class ExceptionHandlers {
     public ResponseBody handleInvalidManagementTokenException(HttpServletRequest request,
                                                               InvalidManagementTokenException e) {
         ApiResponse response = new ApiResponse(ApiResponse.UNAUTHORIZED);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(BindException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleBeanPropertyBindingResult(HttpServletRequest request, BindException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 

@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
@@ -550,4 +551,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                 .collect(toList());
     }
 
+    @Override
+    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path, ZonedDateTime fromDate, ZonedDateTime toDate, int limit) {
+        return localRepositoryV2.getPublishingHistory(siteId, environment, path, fromDate, toDate, limit);
+    }
 }
