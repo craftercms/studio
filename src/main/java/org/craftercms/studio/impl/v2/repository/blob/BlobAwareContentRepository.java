@@ -48,6 +48,7 @@ import org.springframework.util.MultiValueMap;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -110,6 +111,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         return isFolder(path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
     }
 
+    protected String normalize(String path) {
+        return Paths.get(path).normalize().toString();
+    }
+
     protected StudioBlobStore getBlobStore(String site, String... paths)
             throws ServiceLayerException, ConfigurationException, IOException {
         if (ArrayUtils.isEmpty(paths)) {
@@ -127,7 +132,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (!isFolder(path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
-                    return store.contentExists(site, path);
+                    return store.contentExists(site, normalize(path));
                 }
             }
             return localRepositoryV1.contentExists(site, path);
@@ -144,7 +149,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (!isFolder(path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
-                    return store.getContent(site, path);
+                    return store.getContent(site, normalize(path));
                 }
             }
             return localRepositoryV1.getContent(site, path);
@@ -160,7 +165,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
-                return store.getContentSize(site, path);
+                return store.getContentSize(site, normalize(path));
             }
             return localRepositoryV1.getContentSize(site, path);
         } catch (Exception e) {
@@ -175,8 +180,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
-                store.writeContent(site, path, content);
-                Blob reference = store.getReference(site, path);
+                store.writeContent(site, normalize(path), content);
+                Blob reference = store.getReference(site, normalize(path));
                 return localRepositoryV1.writeContent(site, getPointerPath(path),
                         new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
             }
@@ -193,7 +198,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
-                store.createFolder(site, path, name);
+                store.createFolder(site, normalize(path), name);
             }
             return localRepositoryV1.createFolder(site, path, name);
         } catch (Exception e) {
@@ -208,7 +213,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
-                String result = store.deleteContent(site, path, approver);
+                String result = store.deleteContent(site, normalize(path), approver);
                 if (result != null) {
                     return localRepositoryV1.deleteContent(site, getPointerPath(path), approver);
                 }
@@ -226,7 +231,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
-                Map<String, String> result = store.moveContent(site, fromPath, toPath, newName);
+                Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
                     return localRepositoryV1.moveContent(site, getPointerPath(fromPath),
                             getPointerPath(toPath), newName);
@@ -245,7 +250,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
-                String result = store.copyContent(site, fromPath, toPath);
+                String result = store.copyContent(site, normalize(fromPath), normalize(toPath));
                 if (result != null) {
                     return localRepositoryV1.copyContent(site, getPointerPath(fromPath), getPointerPath(toPath));
                 }
