@@ -933,6 +933,16 @@ pipelines:
           regex: config/studio/content-types/.+/form-definition\.xml
         - type: versionFileUpgrader
 
+    - currentVersion: 3.1.4.4
+      nextVersion: 3.1.7.1
+      operations:
+        - type: templateRenameUpgrader
+          commitDetails: Update structure for engine site config
+          basePath: '/config/engine'
+          oldPath: '([^-]+)-(site-config|application-context|urlrewrite).(xml|conf)'
+          newPath: 'env/$1/$2.$3'
+#        - type: versionFileUpgrader
+
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
