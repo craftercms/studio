@@ -34,6 +34,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -154,15 +155,19 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
 
     @Override
     public void init(final String sourceVersion, final String targetVersion,
-                     final HierarchicalConfiguration<ImmutableNode> config) {
+                     final HierarchicalConfiguration<ImmutableNode> config) throws UpgradeException {
         this.currentVersion = sourceVersion;
         this.nextVersion = targetVersion;
         this.commitDetails = config.getString(CONFIG_KEY_COMMIT_DETAILS);
 
-        doInit(config);
+        try {
+            doInit(config);
+        } catch (ConfigurationException e) {
+            throw new UpgradeException("Error initializing operation", e);
+        }
     }
 
-    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) throws ConfigurationException {
         // do nothing by default
     }
 
