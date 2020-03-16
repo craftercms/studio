@@ -56,8 +56,8 @@ public abstract class AwsUtils {
             logger.debug("Starting upload for file '{}'", filename);
 
             while (0 < (read = IOUtils.read(content, buffer))) {
+                totalBytes += read;
                 if (logger.isTraceEnabled()) {
-                    totalBytes += read;
                     logger.trace("Uploading part {} with size {} - total: {}", partNumber, read, totalBytes);
                 }
                 ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, read);
