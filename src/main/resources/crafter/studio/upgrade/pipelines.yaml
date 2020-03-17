@@ -1309,6 +1309,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 10
+        nextVersion: 11
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/config/site-config-tools/site-config-tools-v11.xslt
+            commitDetails: Add transcoded-video-picker control
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
 
   environment-config:
     path: &environment-config '/config/studio/environment/environment-config.xml'

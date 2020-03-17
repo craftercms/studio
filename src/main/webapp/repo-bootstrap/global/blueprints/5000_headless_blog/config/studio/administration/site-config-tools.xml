@@ -40,7 +40,7 @@
     </config>
 -->
 <config>
-    <version>10</version>
+    <version>11</version>
     <tools>
         <tool>
             <name>content-types</name>
