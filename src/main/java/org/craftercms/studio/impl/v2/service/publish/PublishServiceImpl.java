@@ -148,12 +148,11 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     public List<PublishingDashboardItem> getPublishingHistory(String siteId, String environment, String path,
-                                                        String publisher,
-                                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
-                                                            long state, String sortBy, String order, String groupBy, int offset,
-                                                            int limit) {
+                                                              String publisher, ZonedDateTime dateFrom,
+                                                              ZonedDateTime dateTo, String contentType, long state,
+                                                              String sortBy, String order, int offset, int limit) {
         List<PublishingHistoryItem> publishingHistoryItems = publishServiceInternal.getPublishingHistory(siteId,
-                environment, path, publisher, dateFrom, dateTo, contentType, state, sortBy, order, groupBy, offset,
+                environment, path, publisher, dateFrom, dateTo, contentType, state, sortBy, order, offset,
                 limit);
         return preparePublishingResult(publishingHistoryItems);
     }

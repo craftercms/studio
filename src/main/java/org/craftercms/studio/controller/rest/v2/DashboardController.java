@@ -43,6 +43,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.D
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISHING_DASHBOARD;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping(API_2 + DASHBOARD)
@@ -50,7 +51,7 @@ public class DashboardController {
 
     private DashboardService dashboardService;
 
-    @GetMapping(AUDIT_DASHBOARD)
+    @GetMapping(value = AUDIT_DASHBOARD, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getAuditDashboard(@Valid AuditDashboardRequestParameters requestParameters) {
 
         String user = null;
@@ -99,7 +100,7 @@ public class DashboardController {
         return resultItems;
     }
 
-    @GetMapping(PUBLISHING_DASHBOARD)
+    @GetMapping(value = PUBLISHING_DASHBOARD, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getPublishingDashboard(@Valid PublishingDashboardRequestParameters requestParameters) {
 
         String user = null;
@@ -136,7 +137,7 @@ public class DashboardController {
         return responseBody;
     }
 
-    @GetMapping(CONTENT_DASHBOARD)
+    @GetMapping(value = CONTENT_DASHBOARD, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentDashboard(@Valid ContentDashboardRequestParameters requestParameters) {
         String modifier = null;
         String path = null;
