@@ -75,8 +75,9 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public long getContentSize(String site, String path) {
         Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
-        S3Object object = getClient().getObject(previewMapping.target, getKey(previewMapping, site, path));
-        return object.getObjectMetadata().getContentLength();
+        ObjectMetadata metadata =
+                getClient().getObjectMetadata(previewMapping.target, getKey(previewMapping, site, path));
+        return metadata.getContentLength();
     }
 
     @Override
