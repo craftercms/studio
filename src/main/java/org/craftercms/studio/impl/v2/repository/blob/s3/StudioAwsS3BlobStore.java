@@ -54,7 +54,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     public Blob getReference(String site, String path) {
         Mapping mapping = getMapping(environmentResolver.getEnvironment());
         ObjectMetadata metadata = getClient().getObjectMetadata(mapping.target, getKey(mapping, site, path));
-        return new Blob(id, Paths.get(site, path).toString(), metadata.getETag());
+        return new Blob(site, id, metadata.getETag());
     }
 
     // Start API 1
