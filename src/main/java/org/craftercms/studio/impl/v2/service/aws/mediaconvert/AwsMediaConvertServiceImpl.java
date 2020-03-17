@@ -202,10 +202,8 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                     break;
                 case HLS_GROUP_SETTINGS:
                     HlsGroupSettings hlsSettings = outputGroup.getOutputGroupSettings().getHlsGroupSettings();
-                    outputGroup.getOutputs().forEach(output -> {
-                        addUrl(urls, outputProfileId, hlsSettings.getDestination(), originalName,
+                    addUrl(urls, outputProfileId, hlsSettings.getDestination(), originalName,
                             StringUtils.EMPTY, hlsExtension);
-                    });
                     break;
                 case DASH_ISO_GROUP_SETTINGS:
                     DashIsoGroupSettings dashSettings = outputGroup.getOutputGroupSettings().getDashIsoGroupSettings();
