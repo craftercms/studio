@@ -30,10 +30,9 @@ public interface StudioBlobStore extends BlobStore, ContentRepository,
 
     /**
      * Return a reference to a file in the store
-     * @param site the id of the site
      * @param path the path of the file
      * @return the blob object
      */
-    Blob getReference(String site, String path);
+    Blob getReference(String path);
 
 }

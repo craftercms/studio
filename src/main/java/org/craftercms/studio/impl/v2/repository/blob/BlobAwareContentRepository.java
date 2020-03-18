@@ -181,7 +181,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
                 store.writeContent(site, normalize(path), content);
-                Blob reference = store.getReference(site, normalize(path));
+                Blob reference = store.getReference(normalize(path));
                 return localRepositoryV1.writeContent(site, getPointerPath(path),
                         new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
             }
