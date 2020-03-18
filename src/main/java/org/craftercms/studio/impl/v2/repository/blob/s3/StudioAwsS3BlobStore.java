@@ -51,10 +51,10 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public Blob getReference(String site, String path) {
+    public Blob getReference(String path) {
         Mapping mapping = getMapping(environmentResolver.getEnvironment());
-        ObjectMetadata metadata = getClient().getObjectMetadata(mapping.target, getKey(mapping, site, path));
-        return new Blob(site, id, metadata.getETag());
+        ObjectMetadata metadata = getClient().getObjectMetadata(mapping.target, getKey(mapping, path));
+        return new Blob(id, metadata.getETag());
     }
 
     // Start API 1
@@ -62,13 +62,13 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public boolean contentExists(String site, String path) {
         Mapping mapping = getMapping(environmentResolver.getEnvironment());
-        return getClient().doesObjectExist(mapping.target, getKey(mapping, site, path));
+        return getClient().doesObjectExist(mapping.target, getKey(mapping, path));
     }
 
     @Override
     public InputStream getContent(String site, String path) {
         Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
-        S3Object object = getClient().getObject(previewMapping.target, getKey(previewMapping, site, path));
+        S3Object object = getClient().getObject(previewMapping.target, getKey(previewMapping, path));
         return object.getObjectContent();
     }
 
@@ -76,7 +76,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     public long getContentSize(String site, String path) {
         Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         ObjectMetadata metadata =
-                getClient().getObjectMetadata(previewMapping.target, getKey(previewMapping, site, path));
+                getClient().getObjectMetadata(previewMapping.target, getKey(previewMapping, path));
         return metadata.getContentLength();
     }
 
@@ -84,7 +84,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
         Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         uploadStream(previewMapping.target,
-                getKey(previewMapping, site, path), getClient(), MIN_PART_SIZE, path, content);
+                getKey(previewMapping, path), getClient(), MIN_PART_SIZE, path, content);
         return OK;
     }
 
@@ -98,11 +98,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     public String deleteContent(String site, String path, String approver) {
         Mapping previewMapping = getMapping(environmentResolver.getEnvironment());
         if (!isFolder(path)) {
-            getClient().deleteObject(previewMapping.target, getKey(previewMapping, site, path));
+            getClient().deleteObject(previewMapping.target, getKey(previewMapping, path));
         } else {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
-                    .withPrefix(getKey(previewMapping, site, path));
+                    .withPrefix(getKey(previewMapping, path));
             do {
                 ListObjectsV2Result result = getClient().listObjectsV2(request);
                 request.setContinuationToken(result.getContinuationToken());
@@ -126,7 +126,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             if (isFolder(fromPath)) {
                 ListObjectsV2Request request = new ListObjectsV2Request()
                         .withBucketName(previewMapping.target)
-                        .withPrefix(getKey(previewMapping, site, fromPath));
+                        .withPrefix(getKey(previewMapping, fromPath));
                 do {
                     ListObjectsV2Result result = getClient().listObjectsV2(request);
                     request.setContinuationToken(result.getContinuationToken());
@@ -138,16 +138,16 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
                     for (String key : keys) {
                         String filePath =
-                                Paths.get(getKey(previewMapping, site, fromPath)).relativize(Paths.get(key)).toString();
+                                Paths.get(getKey(previewMapping, fromPath)).relativize(Paths.get(key)).toString();
                         getClient().copyObject(previewMapping.target, key, previewMapping.target,
-                                getKey(previewMapping, site, toPath + "/" + filePath));
+                                getKey(previewMapping, toPath + "/" + filePath));
                     }
                     getClient().deleteObjects(new DeleteObjectsRequest(previewMapping.target).withKeys(keys));
                 } while(isNotEmpty(request.getContinuationToken()));
             } else {
-                getClient().copyObject(previewMapping.target, getKey(previewMapping, site, fromPath),
-                                        previewMapping.target, getKey(previewMapping, site, toPath));
-                getClient().deleteObject(previewMapping.target, getKey(previewMapping, site, fromPath));
+                getClient().copyObject(previewMapping.target, getKey(previewMapping, fromPath),
+                                        previewMapping.target, getKey(previewMapping, toPath));
+                getClient().deleteObject(previewMapping.target, getKey(previewMapping, fromPath));
             }
         } else {
             //TODO: Check if this is really needed, it looks like newName is always null
@@ -162,7 +162,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         if (isFolder(fromPath)) {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
-                    .withPrefix(getKey(previewMapping, site, fromPath));
+                    .withPrefix(getKey(previewMapping, fromPath));
             do {
                 ListObjectsV2Result result = getClient().listObjectsV2(request);
                 request.setContinuationToken(result.getContinuationToken());
@@ -174,14 +174,14 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
                 for (String key : keys) {
                     String filePath =
-                            Paths.get(getKey(previewMapping, site, fromPath)).relativize(Paths.get(key)).toString();
+                            Paths.get(getKey(previewMapping, fromPath)).relativize(Paths.get(key)).toString();
                     getClient().copyObject(previewMapping.target, key, previewMapping.target,
-                            getKey(previewMapping, site, toPath + "/" + filePath));
+                            getKey(previewMapping, toPath + "/" + filePath));
                 }
             } while(isNotEmpty(request.getContinuationToken()));
         } else {
-            getClient().copyObject(previewMapping.target, getKey(previewMapping, site, fromPath),
-                                    previewMapping.target, getKey(previewMapping, site, toPath));
+            getClient().copyObject(previewMapping.target, getKey(previewMapping, fromPath),
+                                    previewMapping.target, getKey(previewMapping, toPath));
         }
         return OK;
     }
@@ -193,14 +193,14 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         Mapping envMapping = getMapping(environment);
         for(DeploymentItemTO item : deploymentItems) {
             if (item.isDelete()) {
-                getClient().deleteObject(envMapping.target, getKey(envMapping, site, item.getPath()));
+                getClient().deleteObject(envMapping.target, getKey(envMapping, item.getPath()));
             } else if (item.isMove()) {
-                getClient().copyObject(envMapping.target, getKey(envMapping, site, item.getOldPath()),
-                                        envMapping.target, getKey(envMapping, site, item.getPath()));
-                getClient().deleteObject(envMapping.target, getKey(envMapping, site, item.getOldPath()));
+                getClient().copyObject(envMapping.target, getKey(envMapping, item.getOldPath()),
+                                        envMapping.target, getKey(envMapping, item.getPath()));
+                getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
             } else {
-                getClient().copyObject(previewMapping.target, getKey(previewMapping, site, item.getPath()),
-                                        envMapping.target, getKey(envMapping, site, item.getPath()));
+                getClient().copyObject(previewMapping.target, getKey(previewMapping, item.getPath()),
+                                        envMapping.target, getKey(envMapping, item.getPath()));
             }
         }
     }
