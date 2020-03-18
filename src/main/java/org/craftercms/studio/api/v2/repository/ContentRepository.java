@@ -17,8 +17,10 @@
 package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface ContentRepository {
@@ -85,4 +87,18 @@ public interface ContentRepository {
      * @param processed processed
      */
     void insertGitLog(String siteId, String commitId, int processed);
+
+    /**
+     * Get publishing history
+     *
+     * @param siteId site identifier
+     * @param environment environment
+     * @param path path regular expression to use as filter
+     * @param fromDate lower boundary for published date
+     * @param toDate upper boundary for published date
+     * @param limit number of records to return
+     * @return
+     */
+    List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
+                                                     ZonedDateTime fromDate, ZonedDateTime toDate, int limit);
 }

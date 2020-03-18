@@ -16,17 +16,16 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import java.time.ZonedDateTime;
 
-public class AuditDashboardRequestParameters {
+public class PublishingDashboardItem {
 
-    @NotEmpty
     private String siteId;
-    private String sortBy;
-    private String order;
-    private int offset = 0;
-    private int limit = 10;
-    AuditDashboardFilters filters;
+    private String label;
+    private String path;
+    private String publisher;
+    private ZonedDateTime publishedDate;
+    private String environment;
 
     public String getSiteId() {
         return siteId;
@@ -36,43 +35,43 @@ public class AuditDashboardRequestParameters {
         this.siteId = siteId;
     }
 
-    public String getSortBy() {
-        return sortBy;
+    public String getLabel() {
+        return label;
     }
 
-    public void setSortBy(String sortBy) {
-        this.sortBy = sortBy;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
-    public String getOrder() {
-        return order;
+    public String getPath() {
+        return path;
     }
 
-    public void setOrder(String order) {
-        this.order = order;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public int getOffset() {
-        return offset;
+    public String getPublisher() {
+        return publisher;
     }
 
-    public void setOffset(int offset) {
-        this.offset = offset;
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
     }
 
-    public int getLimit() {
-        return limit;
+    public ZonedDateTime getPublishedDate() {
+        return publishedDate;
     }
 
-    public void setLimit(int limit) {
-        this.limit = limit;
+    public void setPublishedDate(ZonedDateTime publishedDate) {
+        this.publishedDate = publishedDate;
     }
 
-    public AuditDashboardFilters getFilters() {
-        return filters;
+    public String getEnvironment() {
+        return environment;
     }
 
-    public void setFilters(AuditDashboardFilters filters) {
-        this.filters = filters;
+    public void setEnvironment(String environment) {
+        this.environment = environment;
     }
 }

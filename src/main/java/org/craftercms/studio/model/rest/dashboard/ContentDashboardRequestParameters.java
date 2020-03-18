@@ -18,7 +18,7 @@ package org.craftercms.studio.model.rest.dashboard;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
-public class AuditDashboardRequestParameters {
+public class ContentDashboardRequestParameters {
 
     @NotEmpty
     private String siteId;
@@ -26,7 +26,7 @@ public class AuditDashboardRequestParameters {
     private String order;
     private int offset = 0;
     private int limit = 10;
-    AuditDashboardFilters filters;
+    ContentDashboardFilters filters;
 
     public String getSiteId() {
         return siteId;
@@ -68,11 +68,11 @@ public class AuditDashboardRequestParameters {
         this.limit = limit;
     }
 
-    public AuditDashboardFilters getFilters() {
+    public ContentDashboardFilters getFilters() {
         return filters;
     }
 
-    public void setFilters(AuditDashboardFilters filters) {
+    public void setFilters(ContentDashboardFilters filters) {
         this.filters = filters;
     }
 }

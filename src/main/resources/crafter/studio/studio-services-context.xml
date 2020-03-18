@@ -471,6 +471,13 @@
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
+        <property name="contentRepository" ref="gitContentRepositoryV2" />
+    </bean>
+
+    <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="publishServiceInternal" ref="publishServiceInternal" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -765,7 +772,7 @@
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="environmentResolver" ref="crafter.environmentResolver"/>
     </bean>
-    
+
     <bean id="contentRepository"
           class="org.craftercms.studio.impl.v2.repository.blob.BlobAwareContentRepository">
         <property name="fileExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
