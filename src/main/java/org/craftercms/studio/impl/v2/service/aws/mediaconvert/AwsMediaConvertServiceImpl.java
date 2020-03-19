@@ -207,17 +207,13 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                     break;
                 case DASH_ISO_GROUP_SETTINGS:
                     DashIsoGroupSettings dashSettings = outputGroup.getOutputGroupSettings().getDashIsoGroupSettings();
-                    outputGroup.getOutputs().forEach(output -> {
-                        addUrl(urls, outputProfileId, dashSettings.getDestination(), originalName,
-                            StringUtils.EMPTY, dashExtension);
-                    });
+                    addUrl(urls, outputProfileId, dashSettings.getDestination(), originalName,
+                        StringUtils.EMPTY, dashExtension);
                     break;
                 case MS_SMOOTH_GROUP_SETTINGS:
                     MsSmoothGroupSettings smoothSettings = outputGroup.getOutputGroupSettings().getMsSmoothGroupSettings();
-                    outputGroup.getOutputs().forEach(output -> {
-                        addUrl(urls, outputProfileId, smoothSettings.getDestination(), originalName,
-                            StringUtils.EMPTY, smoothExtension);
-                    });
+                    addUrl(urls, outputProfileId, smoothSettings.getDestination(), originalName,
+                        StringUtils.EMPTY, smoothExtension);
                     break;
                 case CMAF_GROUP_SETTINGS:
                     CmafGroupSettings cmafSettings = outputGroup.getOutputGroupSettings().getCmafGroupSettings();
