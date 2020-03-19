@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.springframework.dao.DuplicateKeyException;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -263,6 +264,36 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         return itemMetadataMapper.countAllItems();
     }
 
+    @Override
+    public int getContentDashboardTotal(String siteId, String path, String modifier, String contentType, long state,
+                                        ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("path", path);
+        params.put("modifier", modifier);
+        params.put("contentType", contentType);
+        params.put("dateFrom", dateFrom);
+        params.put("dateTo", dateTo);
+        return itemMetadataMapper.getContentDashboardTotal(params);
+    }
+
+    @Override
+    public List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
+                                                  long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                  String sortBy, String order, int offset, int limit) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("path", path);
+        params.put("modifier", modifier);
+        params.put("contentType", contentType);
+        params.put("dateFrom", dateFrom);
+        params.put("dateTo", dateTo);
+        params.put("sortBy", sortBy);
+        params.put("order", order);
+        params.put("offset", offset);
+        params.put("limit", limit);
+        return itemMetadataMapper.getContentDashboard(params);
+    }
 
     public ItemMetadataMapper getItemMetadataMapper() {
         return itemMetadataMapper;

@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -35,15 +36,23 @@ import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.AndRevFilter;
+import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
+import org.eclipse.jgit.revwalk.filter.MessageRevFilter;
+import org.eclipse.jgit.revwalk.filter.NotRevFilter;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -51,10 +60,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -67,6 +79,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_D
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.OBJ_TREE;
+import static org.eclipse.jgit.lib.Constants.R_HEADS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 
 public class GitContentRepository implements ContentRepository {
@@ -507,6 +520,84 @@ public class GitContentRepository implements ContentRepository {
         params.put("siteId", site);
         params.put("commitId", commitId);
         siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+    }
+
+    @Override
+    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String pathRegex,
+                                                            ZonedDateTime fromDate, ZonedDateTime toDate, int limit) {
+        List<PublishingHistoryItem> toRet = new ArrayList<PublishingHistoryItem>();
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+            Repository publishedRepo = helper.getRepository(siteId, PUBLISHED);
+            if (publishedRepo != null) {
+                int counter = 0;
+                try (Git git = new Git(publishedRepo)) {
+                    // List all environments
+                    List<Ref> environments = git.branchList().call();
+                    for (int i = 0; i < environments.size() && counter < limit; i++) {
+                        Ref env = environments.get(i);
+                        String environmentGit = env.getName();
+                        environmentGit = environmentGit.replace(R_HEADS, "");
+                        if (StringUtils.isBlank(environment) || StringUtils.equals(environment, environmentGit)) {
+                            List<RevFilter> filters = new ArrayList<RevFilter>();
+                            if (fromDate != null) {
+                                filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
+                            }
+                            if (toDate != null) {
+                                filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
+                            } else {
+                                filters.add(CommitTimeRevFilter.before(ZonedDateTime.now().toInstant().toEpochMilli()));
+                            }
+                            filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
+
+                            Iterable<RevCommit> branchLog = git.log()
+                                    .add(env.getObjectId())
+                                    .setRevFilter(AndRevFilter.create(filters))
+                                    .call();
+
+                            Iterator<RevCommit> iterator = branchLog.iterator();
+                            while (iterator.hasNext() && counter < limit) {
+                                RevCommit revCommit = iterator.next();
+                                List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
+                                for (int j = 0; j < files.size() && counter < limit; j++) {
+                                    String file = files.get(j);
+                                    Path path = Paths.get(file);
+                                    String fileName = path.getFileName().toString();
+                                    if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                                        boolean addFile = false;
+                                        if (StringUtils.isNotEmpty(pathRegex)) {
+                                            Pattern pattern = Pattern.compile(pathRegex);
+                                            Matcher matcher = pattern.matcher(file);
+                                            addFile = matcher.matches();
+                                        } else {
+                                            addFile = true;
+                                        }
+                                        if (addFile) {
+                                            PublishingHistoryItem phi = new PublishingHistoryItem();
+                                            phi.setSiteId(siteId);
+                                            phi.setPath(file);
+                                            phi.setPublishedDate(
+                                                    Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
+                                            phi.setPublisher(revCommit.getAuthorIdent().getName());
+                                            phi.setEnvironment(environmentGit.replace(R_HEADS, ""));
+                                            toRet.add(phi);
+                                            counter++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    git.close();
+                    toRet.sort((o1, o2) -> o2.getPublishedDate().compareTo(o1.getPublishedDate()));
+                } catch (IOException | GitAPIException e1) {
+                    logger.error("Error while getting deployment history for site " + siteId, e1);
+                }
+            }
+        } catch (CryptoException e) {
+            e.printStackTrace();
+        }
+        return toRet;
     }
 
     public StudioConfiguration getStudioConfiguration() {
