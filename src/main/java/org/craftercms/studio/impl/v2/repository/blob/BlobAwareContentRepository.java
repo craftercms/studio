@@ -328,8 +328,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                                                             ZonedDateTime fromDate, ZonedDateTime toDate,
                                                             DmFilterWrapper dmFilterWrapper, String filterType,
                                                             int numberOfItems) {
-        return localRepositoryV1.getDeploymentHistory(site, environmentNames, fromDate, toDate, dmFilterWrapper,
-                filterType, numberOfItems);
+        List<DeploymentSyncHistory> histories = localRepositoryV1.getDeploymentHistory(site, environmentNames,
+                fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
+
+        return histories.stream()
+                .peek(history -> history.setPath(getOriginalPath(history.getPath())))
+                .collect(toList());
     }
 
     @Override
