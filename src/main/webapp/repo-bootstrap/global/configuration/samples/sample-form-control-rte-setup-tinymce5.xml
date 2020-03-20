@@ -39,7 +39,7 @@
 			textpattern help acecode
         </plugins>
 
-        <extendedElements>script</extendedElements> <!-- elements whitelist (won't be stripped out) -->
+        <extendedElements>script,blockquote,custom-element</extendedElements> <!-- elements whitelist (won't be stripped out) -->
 
         <toolbarItems1>
             formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat
