@@ -81,4 +81,8 @@ public interface RequestConstants {
     String REQUEST_PARAM_GROUP_BY = "groupBy";
 
     String REQUEST_PARAM_FILTERS = "filters";
+
+    String REQUEST_PARAM_LOCALE = "locale";
+
+    String REQUEST_PARAM_SORT_STRATEGY = "sortStrategy";
 }

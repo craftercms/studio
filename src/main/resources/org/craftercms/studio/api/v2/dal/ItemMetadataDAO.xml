@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.ItemMetadataDAO">
+    <resultMap id="SandboxItemMap" type="org.craftercms.studio.api.v2.dal.SandboxItem">
+        <id property="id" column="id"/>
+        <result property="label" column="label" />
+        <result property="contentTypeId" column="content_type_id" />
+        <result property="path" column="path"/>
+        <result property="previewUrl" column="preview_url"/>
+        <result property="systemType" column="system_type" />
+        <result property="mimeType" column="mime_type" />
+        <result property="state" column="state" />
+        <result property="lockOwner" column="lock_owner" />
+        <result property="disabledAsInt" column="disabled" />
+        <result property="localeCode" column="locale_code" />
+        <result property="translationSourceId" column="translation_source_id" />
+        <result property="creator" column="creator" />
+        <result property="createdDate" column="created_date" />
+        <result property="modifier" column="modifier"/>
+        <result property="lastModifiedDate" column="last_modified_date" />
+        <result property="commitId" column="commit_id" />
+        <result property="sizeInBytes" column="size_in_bytes" />
+    </resultMap>
+
+    <select id="getChildrenByPath" resultMap="SandboxItemMap">
+        select * from item_metadata where site = #{site} and path = #{parentPath}
+        union
+        select * from item_metadata where site = #{site} and path = #{ldPath}
+        union
+        select * from item_metadata where site = #{site} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
+        #{path} + '/[^/]+$')
+    </select>
+
+    <select id="getChildrenByPathTotal" resultType="Integer">
+        select count(1) from item_metadata where site = #{site} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
+        #{path} + '/[^/]+$')
+    </select>
+</mapper>
