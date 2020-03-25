@@ -440,6 +440,8 @@
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
         <property name="contentRepository" ref="contentRepository" />
+        <property name="itemMetadataDao" ref="itemMetadataDao" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"

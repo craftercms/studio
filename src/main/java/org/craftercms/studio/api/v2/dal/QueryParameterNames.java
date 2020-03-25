@@ -29,6 +29,8 @@ public abstract class QueryParameterNames {
 
     public static final String ORDER = "order";
 
+    public static final String PATH = "path";
+
     /* Organizations */
 
     // Organization ID
@@ -117,6 +119,13 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_NODE_ID = "clusterNodeId";
 
     public static final String INCLUDE_PARAMETERS = "includeParameters";
+
+    /* Item Metadata */
+    public static final String LOCALE_CODE = "localeCode";
+
+    public static final String PARENT_PATH = "parentPath";
+
+    public static final String LEVEL_DESCRIPTOR_PATH = "ldPath";
 
     private QueryParameterNames() { }
 }

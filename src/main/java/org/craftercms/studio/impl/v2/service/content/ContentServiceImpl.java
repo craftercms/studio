@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -46,6 +47,7 @@ import java.util.List;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class ContentServiceImpl implements ContentService {
@@ -135,6 +137,15 @@ public class ContentServiceImpl implements ContentService {
         }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                               @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
+                                               String sortStrategy,
+                                               String order, int offset, int limit) {
+        return contentServiceInternal.getChildrenByPath(siteId, path, locale, sortStrategy, order, offset, limit);
     }
 
     public ContentServiceInternal getContentServiceInternal() {
