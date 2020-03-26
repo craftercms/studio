@@ -19,9 +19,9 @@ BEGIN
     END IF;
 END ;
 
-call dropIndexIfExists('crafter', 'site', 'site_id_unique') ;
+call dropIndexIfExists(@crafter_schema_name, 'site', 'site_id_unique') ;
 
-call dropIndexIfExists('crafter', 'site', 'site_id_idx') ;
+call dropIndexIfExists(@crafter_schema_name, 'site', 'site_id_idx') ;
 
 DROP PROCEDURE IF EXISTS addColumnIfNotExists ;
 
@@ -45,9 +45,9 @@ CREATE PROCEDURE addColumnIfNotExists(
     END IF;
   END ;
 
-call addColumnIfNotExists('crafter', 'site', 'site_uuid', 'VARCHAR(50) NOT NULL') ;
+call addColumnIfNotExists(@crafter_schema_name, 'site', 'site_uuid', 'VARCHAR(50) NOT NULL') ;
 
-call addColumnIfNotExists('crafter', 'site', 'deleted', 'INT NOT NULL DEFAULT 0') ;
+call addColumnIfNotExists(@crafter_schema_name, 'site', 'deleted', 'INT NOT NULL DEFAULT 0') ;
 
 DROP PROCEDURE IF EXISTS addUniqueIfNotExists ;
 
@@ -71,7 +71,7 @@ BEGIN
     END IF;
 END ;
 
-call addUniqueIfNotExists('crafter', 'site', 'site_id_site_uuid_unique', '(`site_id` ASC, `site_uuid` ASC)') ;
+call addUniqueIfNotExists(@crafter_schema_name, 'site', 'site_id_site_uuid_unique', '(`site_id` ASC, `site_uuid` ASC)') ;
 
 DROP PROCEDURE IF EXISTS addIndexIfNotExists ;
 
@@ -95,7 +95,7 @@ BEGIN
     END IF;
 END ;
 
-call addIndexIfNotExists('crafter', 'site', 'site_id_idx', '(`site_id` ASC)') ;
+call addIndexIfNotExists(@crafter_schema_name, 'site', 'site_id_idx', '(`site_id` ASC)') ;
 
 UPDATE `site` SET site_uuid = UUID() WHERE site_uuid IS NULL OR site_uuid = '' ;
 

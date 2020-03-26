@@ -20,6 +20,6 @@ CREATE PROCEDURE addColumnIfNotExists(
     END IF;
   END ;
 
-call addColumnIfNotExists('crafter', 'publish_request', 'package_id', 'VARCHAR(50) NULL') ;
+call addColumnIfNotExists(@crafter_schema_name, 'publish_request', 'package_id', 'VARCHAR(50) NULL') ;
 
 UPDATE _meta SET version = '3.0.11.2' ;

@@ -775,6 +775,16 @@ pipelines:
               dest: configuration/samples/sample-blob-stores-config.xml
           commitDetails: Update sample file for blob stores
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.6.3
+      nextVersion: 3.1.7.1
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.7.1/system/global-permission-mappings-config.xslt
+          commitDetails: Add get_children permission to admin
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.6.3-to-3.1.7.1.sql
+          updateIntegrity: true
 
   # Pipeline to upgrade site repositories
   site:
@@ -1116,6 +1126,16 @@ configurations:
             template: crafter/studio/upgrade/3.1.x/3.1.4.8/site/permission-mappings-config.xslt
             commitDetails: Added remote repository permissions for developer
           - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 11
+        nextVersion: 12
+        operations:
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
+            template: crafter/studio/upgrade/3.1.x/3.1.7.1/site/permission-mappings-config.xslt
+            commitDetails: Added get_children permission
+          - type: xsltFileUpgrader
+            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
 
   role-mappings-config:

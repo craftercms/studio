@@ -20,6 +20,6 @@ CREATE PROCEDURE addColumnIfNotExists(
     END IF;
   END ;
 
-call addColumnIfNotExists('crafter', 'cluster', 'heartbeat', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP') ;
+call addColumnIfNotExists(@crafter_schema_name, 'cluster', 'heartbeat', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP') ;
 
 UPDATE _meta SET version = '3.1.0.11' ;
