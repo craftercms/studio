@@ -105,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.5.7', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.7.1', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -242,13 +242,13 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
   `site`                    VARCHAR(50)   NOT NULL,
   `path`                    VARCHAR(2000) NOT NULL,
   `name`                    VARCHAR(255)  NULL,
-  `modified`                DATETIME      NULL,
+  `last_modified_date`      DATETIME      NULL,
   `modifier`                VARCHAR(255)  NULL,
   `owner`                   VARCHAR(255)  NULL,
   `creator`                 VARCHAR(255)  NULL,
   `firstname`               VARCHAR(255)  NULL,
   `lastname`                VARCHAR(255)  NULL,
-  `lockowner`               VARCHAR(255)  NULL,
+  `lock_owner`               VARCHAR(255)  NULL,
   `email`                   VARCHAR(255)  NULL,
   `renamed`                 INT           NULL,
   `oldurl`                  TEXT          NULL,
@@ -263,8 +263,32 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
   `launchdate`              DATETIME      NULL,
   `commit_id`               VARCHAR(50)   NULL,
   `submittedtoenvironment`  VARCHAR(255)  NULL,
+  `label`                   VARCHAR(255)  NULL,
+  `content_type_id`         VARCHAR(255)  NULL,
+  `preview_url`             text          NULL,
+  `system_type`             VARCHAR(50)   NULL,
+  `mime_type`               VARCHAR(50)   NULL,
+  `state`                   INT           NOT NULL DEFAULT 0,
+  `disabled`                INT           NOT NULL DEFAULT 0,
+  `locale_code`             VARCHAR(20)   NULL,
+  `translation_source_id`   BIGINT(20)    NULL,
+  `created_date`            DATETIME      NULL,
+  `size_in_bytes`           INT           NULL,
+  `item_id`                 VARCHAR(255)  NULL
   PRIMARY KEY (`id`),
   UNIQUE `uq__im_site_path` (`site`, `path`(900))
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `item_translation` (
+  `object_id`             VARCHAR(255) NOT NULL,
+  `source_id`             BIGINT(20) NOT NULL,
+  `translation_id`        BIGINT(20) NOT NULL,
+  `locale_code`           VARCHAR(20) NOT NULL,
+  `date_translated`       DATETIME NOT NULL,
+  PRIMARY KEY (`object_id`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

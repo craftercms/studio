@@ -45,8 +45,8 @@
         union
         select * from item_metadata where site = #{site} and path = #{ldPath}
         union
-        select * from item_metadata where site = #{site} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
-        #{path} + '/[^/]+$')
+        (select * from item_metadata where site = #{site} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
+        #{path} + '/[^/]+$') limit #{offset},#{limit})
     </select>
 
     <select id="getChildrenByPathTotal" resultType="Integer">
