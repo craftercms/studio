@@ -89,7 +89,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                                                             String publisher, ZonedDateTime dateFrom,
                                                             ZonedDateTime dateTo, String contentType, long state,
                                                             String sortBy, String order, int offset, int limit) {
-        return contentRepository.getPublishingHistory(siteId, environment, path, dateFrom, dateTo, limit);
+        return contentRepository.getPublishingHistory(siteId, environment, path, publisher, dateFrom, dateTo, limit);
     }
 
     public PublishRequestDAO getPublishRequestDao() {

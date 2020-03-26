@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.6.5'
+  version: '3.1.6.6'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3650,26 +3650,39 @@ paths:
           description: number of results to return, default 10
           schema:
             type: integer
-        - name: filters
+        - name: filters.path
           in: query
-          description: >-
-            list of filters to apply on result set
-            Filter:
-              - path - filter items by regular expression applied on path
-              - modifier - filter items by username(s)
-              - modifiedDateFrom - filter items by modified date setting lower boundary for date range
-              - modifiedDateTo - filter items by modified date setting upper boundary for date range
-              - contentType - filter items by content types
-              - state - filter items by state (bitmap state values)
+          description: filter items by path regular expression
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
+            type: string
+        - name: filters.modifier
+          in: query
+          description: filter items by username that modified content
+          schema:
+            type: string
+        - name: filters.modifiedDateFrom
+          in: query
+          description: filter items by modified date setting lower boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.modifiedDateTo
+          in: query
+          description: filter items by modified date setting upper boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.contentType
+          in: query
+          description: filter items by contentTypes
+          schema:
+            type: string
+        - name: filters.state
+          in: query
+          description: filter items by state (bitmap state values)
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK

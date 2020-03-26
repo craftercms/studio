@@ -796,6 +796,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="gitLogDao" ref="gitLogDao" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <!-- /////// -->

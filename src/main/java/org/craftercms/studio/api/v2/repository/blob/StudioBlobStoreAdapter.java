@@ -280,7 +280,8 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
-                                                      ZonedDateTime fromDate, ZonedDateTime toDate, int limit) {
+                                                      String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                             int limit) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }

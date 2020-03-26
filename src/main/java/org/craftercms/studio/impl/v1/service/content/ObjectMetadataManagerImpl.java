@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -31,6 +32,8 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 
 public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
@@ -288,7 +291,31 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("contentType", contentType);
         params.put("dateFrom", dateFrom);
         params.put("dateTo", dateTo);
-        params.put("sortBy", sortBy);
+        if (StringUtils.isNotEmpty(sortBy)) {
+            String sortParam = "";
+            switch (sortBy) {
+                case "label":
+                    sortParam = "label";
+                    break;
+                case "path":
+                    sortParam = "path";
+                    break;
+                case "modifier":
+                    sortParam = "modifier";
+                    break;
+                case "modifiedDate":
+                    sortParam = "modified";
+                    break;
+                case "contentType":
+                    sortParam = "content_type";
+                    break;
+                default:
+                    break;
+            }
+            if (StringUtils.isNotEmpty(sortParam)) {
+                params.put(SORT, sortParam);
+            }
+        }
         params.put("order", order);
         params.put("offset", offset);
         params.put("limit", limit);

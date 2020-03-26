@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -23,7 +25,9 @@ public class AuditDashboardFilters {
 
     private String actor;
     private List<String> operations;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private ZonedDateTime operationTimestampFrom;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private ZonedDateTime operationTimestampTo;
     private String target;
 
