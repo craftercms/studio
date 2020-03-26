@@ -21,13 +21,17 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
@@ -42,6 +46,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.AndRevFilter;
+import org.eclipse.jgit.revwalk.filter.AuthorRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
 import org.eclipse.jgit.revwalk.filter.MessageRevFilter;
 import org.eclipse.jgit.revwalk.filter.NotRevFilter;
@@ -78,6 +83,7 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.lib.Constants.HEAD;
+import static org.eclipse.jgit.lib.Constants.MASTER;
 import static org.eclipse.jgit.lib.Constants.OBJ_TREE;
 import static org.eclipse.jgit.lib.Constants.R_HEADS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
@@ -89,6 +95,7 @@ public class GitContentRepository implements ContentRepository {
     private StudioConfiguration studioConfiguration;
     private GitLogDAO gitLogDao;
     private SiteFeedMapper siteFeedMapper;
+    private UserServiceInternal userServiceInternal;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -524,7 +531,8 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String pathRegex,
-                                                            ZonedDateTime fromDate, ZonedDateTime toDate, int limit) {
+                                                            String publisher, ZonedDateTime fromDate,
+                                                            ZonedDateTime toDate, int limit) {
         List<PublishingHistoryItem> toRet = new ArrayList<PublishingHistoryItem>();
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
@@ -538,7 +546,8 @@ public class GitContentRepository implements ContentRepository {
                         Ref env = environments.get(i);
                         String environmentGit = env.getName();
                         environmentGit = environmentGit.replace(R_HEADS, "");
-                        if (StringUtils.isBlank(environment) || StringUtils.equals(environment, environmentGit)) {
+                        if ((StringUtils.isBlank(environment) && !StringUtils.equals(MASTER, environmentGit))
+                                || StringUtils.equals(environment, environmentGit)) {
                             List<RevFilter> filters = new ArrayList<RevFilter>();
                             if (fromDate != null) {
                                 filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
@@ -549,7 +558,10 @@ public class GitContentRepository implements ContentRepository {
                                 filters.add(CommitTimeRevFilter.before(ZonedDateTime.now().toInstant().toEpochMilli()));
                             }
                             filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
-
+                            if (StringUtils.isNotEmpty(publisher)) {
+                                User user = userServiceInternal.getUserByIdOrUsername(-1, publisher);
+                                filters.add(AuthorRevFilter.create(helper.getAuthorIdent(user).getName()));
+                            }
                             Iterable<RevCommit> branchLog = git.log()
                                     .add(env.getObjectId())
                                     .setRevFilter(AndRevFilter.create(filters))
@@ -590,7 +602,7 @@ public class GitContentRepository implements ContentRepository {
                     }
                     git.close();
                     toRet.sort((o1, o2) -> o2.getPublishedDate().compareTo(o1.getPublishedDate()));
-                } catch (IOException | GitAPIException e1) {
+                } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e1) {
                     logger.error("Error while getting deployment history for site " + siteId, e1);
                 }
             }
@@ -622,5 +634,13 @@ public class GitContentRepository implements ContentRepository {
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }

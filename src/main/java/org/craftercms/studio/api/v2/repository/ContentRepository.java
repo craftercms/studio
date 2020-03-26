@@ -94,11 +94,13 @@ public interface ContentRepository {
      * @param siteId site identifier
      * @param environment environment
      * @param path path regular expression to use as filter
+     * @param publisher user to filter by
      * @param fromDate lower boundary for published date
      * @param toDate upper boundary for published date
      * @param limit number of records to return
      * @return
      */
     List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
-                                                     ZonedDateTime fromDate, ZonedDateTime toDate, int limit);
+                                                     String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                     int limit);
 }

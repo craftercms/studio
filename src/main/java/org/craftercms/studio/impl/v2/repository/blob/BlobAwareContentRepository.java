@@ -556,7 +556,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path, ZonedDateTime fromDate, ZonedDateTime toDate, int limit) {
-        return localRepositoryV2.getPublishingHistory(siteId, environment, path, fromDate, toDate, limit);
+    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
+                                                            String publisher, ZonedDateTime fromDate,
+                                                            ZonedDateTime toDate, int limit) {
+        return localRepositoryV2.getPublishingHistory(siteId, environment, path, publisher, fromDate, toDate, limit);
     }
 }

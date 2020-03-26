@@ -238,8 +238,30 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         if (StringUtils.isNotEmpty(target)) {
             params.put(TARGET, target);
         }
-        if (StringUtils.isNotEmpty(sort) && StringUtils.equalsIgnoreCase(sort, "date")) {
-            params.put(SORT, "operation_timestamp");
+        if (StringUtils.isNotEmpty(sort)) {
+            String sortParam = "";
+            switch (sort) {
+                case "site":
+                    sortParam = "site_name";
+                    break;
+                case "actor":
+                    sortParam = "actor_id";
+                    break;
+                case "operation":
+                    sortParam = "operation";
+                    break;
+                case "operationTimestamp":
+                    sortParam = "operation_timestamp";
+                    break;
+                case "target":
+                    sortParam = "primary_target_value";
+                    break;
+                default:
+                    break;
+            }
+            if (StringUtils.isNotEmpty(sortParam)) {
+                params.put(SORT, sortParam);
+            }
         }
         if (StringUtils.isNotEmpty(order)) {
             if (StringUtils.equalsIgnoreCase("DESC", order)) {

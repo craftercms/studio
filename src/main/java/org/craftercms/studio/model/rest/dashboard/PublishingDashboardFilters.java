@@ -16,13 +16,17 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.ZonedDateTime;
 
 public class PublishingDashboardFilters {
 
     private String path;
     private String publisher;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private ZonedDateTime publishedDateFrom;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private ZonedDateTime publishedDateTo;
     private String environment;
     private String contentType;
