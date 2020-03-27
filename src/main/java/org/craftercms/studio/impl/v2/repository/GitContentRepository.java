@@ -207,9 +207,7 @@ public class GitContentRepository implements ContentRepository {
                                         // and add them to the list of RepoOperations to return to the caller
                                         // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                         // convert to java date before sending over
-                                        operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(),
-                                                firstCommit.getCommitterIdent().getName(),
-                                                Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(UTC)));
+                                        operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
                                     }
                                 }
                             }
@@ -284,8 +282,7 @@ public class GitContentRepository implements ContentRepository {
                                                 // and add them to the list of RepoOperations to return to the caller
                                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                                 // convert to java date before sending over
-                                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
-                                                        Instant.ofEpochSecond(commit.getCommitTime()).atZone(UTC)));
+                                                operations.addAll(processDiffEntry(git, diffEntries, nextCommitId));
                                                 prevCommitId = nextCommitId;
                                             }
                                         }
@@ -354,9 +351,7 @@ public class GitContentRepository implements ContentRepository {
                                         // and add them to the list of RepoOperations to return to the caller
                                         // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                         // convert to java date before sending over
-                                        operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(),
-                                                firstCommit.getCommitterIdent().getName(),
-                                                Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(UTC)));
+                                        operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
                                     }
                                 }
                             }
@@ -388,7 +383,7 @@ public class GitContentRepository implements ContentRepository {
                                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                                 // convert to java date before sending over
                                                 operations.addAll(
-                                                        processDiffEntry(diffEntries, objCommitIdTo, null,null));
+                                                        processDiffEntry(git, diffEntries, objCommitIdTo));
                                             }
                                         }
 
@@ -445,8 +440,8 @@ public class GitContentRepository implements ContentRepository {
         return toReturn;
     }
 
-    private List<RepoOperation> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, String author,
-                                                   ZonedDateTime commitTime) {
+    private List<RepoOperation> processDiffEntry(Git git, List<DiffEntry> diffEntries, ObjectId commitId)
+            throws GitAPIException {
         List<RepoOperation> toReturn = new ArrayList<RepoOperation>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -456,21 +451,47 @@ public class GitContentRepository implements ContentRepository {
             String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
 
             RepoOperation repoOperation = null;
+            Iterable<RevCommit> iterable = null;
+            RevCommit latestCommit = null;
+            ZonedDateTime commitTime = null;
+            String author = null;
             switch (diffEntry.getChangeType()) {
                 case ADD:
+                    iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
+                    latestCommit = iterable.iterator().next();
+                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
+                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(CREATE, pathNew, commitTime, null,
-                            commitId.getName());
+                            latestCommit.getId().getName());
                     break;
                 case MODIFY:
-                    repoOperation = new RepoOperation(UPDATE, pathNew, commitTime, null, commitId.getName());
+                    iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
+                    latestCommit = iterable.iterator().next();
+                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
+                    author = latestCommit.getAuthorIdent().getName();
+                    repoOperation = new RepoOperation(UPDATE, pathNew, commitTime, null,
+                            latestCommit.getId().getName());
                     break;
                 case DELETE:
-                    repoOperation = new RepoOperation(DELETE, pathOld, commitTime, null, commitId.getName());
+                    iterable = git.log().addPath(diffEntry.getOldPath()).setMaxCount(1).call();
+                    latestCommit = iterable.iterator().next();
+                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
+                    author = latestCommit.getAuthorIdent().getName();
+                    repoOperation = new RepoOperation(DELETE, pathOld, commitTime, null,
+                            latestCommit.getId().getName());
                     break;
                 case RENAME:
+                    iterable = git.log().addPath(diffEntry.getOldPath()).setMaxCount(1).call();
+                    latestCommit = iterable.iterator().next();
+                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
+                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(MOVE, pathOld, commitTime, pathNew, commitId.getName());
                     break;
                 case COPY:
+                    iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
+                    latestCommit = iterable.iterator().next();
+                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
+                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(COPY, pathNew, commitTime, null, commitId.getName());
                     break;
                 default:
