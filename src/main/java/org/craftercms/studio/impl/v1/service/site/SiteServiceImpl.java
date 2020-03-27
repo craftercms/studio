@@ -1332,13 +1332,16 @@ public class SiteServiceImpl implements SiteService {
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
                         }
-                        properties = new HashMap<String, Object>();
-                        properties.put(ItemMetadata.PROP_SITE, site);
-                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                        properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        ItemMetadata metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                        if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
+                            properties = new HashMap<String, Object>();
+                            properties.put(ItemMetadata.PROP_SITE, site);
+                            properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                            properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
+                            properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                            properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                            objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        }
                         logger.debug("Extract dependencies for site: " + site + " path: " +
                                 repoOperation.getPath());
                         toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
@@ -1357,14 +1360,16 @@ public class SiteServiceImpl implements SiteService {
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
                         }
-                        properties = new HashMap<String, Object>();
-                        properties.put(ItemMetadata.PROP_SITE, site);
-                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                        properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-
+                        ItemMetadata metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                        if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
+                            properties = new HashMap<String, Object>();
+                            properties.put(ItemMetadata.PROP_SITE, site);
+                            properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                            properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
+                            properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                            properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                            objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        }
                         logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                         toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
