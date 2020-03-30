@@ -378,10 +378,10 @@
         </if>
         <choose>
             <when test="(sort != null and sort !=  '') and (order != null and order != '')">
-                ORDER BY #{sortBy} ${order}
+                ORDER BY ${sort} ${order}
             </when>
             <when test="(sort != null and sort !=  '') and (order == null or order == '')">
-                ORDER BY #{sortBy}
+                ORDER BY ${sort}
             </when>
             <when test="(sort == null or sort !=  '') and (order != null and order != '')">
                 ORDER BY a.operation_timestamp ${order}
