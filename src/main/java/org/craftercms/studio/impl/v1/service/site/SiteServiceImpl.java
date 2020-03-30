@@ -1315,6 +1315,7 @@ public class SiteServiceImpl implements SiteService {
                 Map<String, String> activityInfo = new HashMap<String, String>();
                 String contentClass;
                 Map<String, Object> properties;
+                ItemMetadata metadata;
                 switch (repoOperation.getAction()) {
                     case CREATE:
                     case COPY:
@@ -1332,7 +1333,7 @@ public class SiteServiceImpl implements SiteService {
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
                         }
-                        ItemMetadata metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                        metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
                         if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
                             properties = new HashMap<String, Object>();
                             properties.put(ItemMetadata.PROP_SITE, site);
@@ -1360,7 +1361,7 @@ public class SiteServiceImpl implements SiteService {
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
                         }
-                        ItemMetadata metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                        metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
                         if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
                             properties = new HashMap<String, Object>();
                             properties.put(ItemMetadata.PROP_SITE, site);
