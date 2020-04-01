@@ -979,464 +979,395 @@ pipelines:
 configurations:
 
   studio-site-config:
-    path: &studio-site-config '/config/studio/site-config.xml'
+    module: studio
+    path: site-config.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config.xslt
             commitDetails: Add extension folder pattern property
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 2
         nextVersion: 3
         operations:
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/3.1.2/site/site-config.xslt
             commitDetails: Add postfix ignore field list
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 3
         nextVersion: 4
         operations:
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v4.xslt
             commitDetails: Add new publishing configuration
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 4
         nextVersion: 5
         operations:
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v5.xslt
             commitDetails: Add default encoding configuration
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 5
         nextVersion: 6
         operations:
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v6.xslt
             commitDetails: Add default encoding configuration
           - type: xsltFileUpgrader
-            path: *studio-site-config
             template: crafter/studio/upgrade/update-version.xslt
 
   permission-mappings-config:
-    path: &permission-mappings-config '/config/studio/permission-mappings-config.xml'
+    module: studio
+    path: permission-mappings-config.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.0.x/site/permission-mappings-config-2.xslt
             commitDetails: Add new S3 permissions
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 2
         nextVersion: 3
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.26/site/permission-mappings-config.xslt
             commitDetails: Add new CMIS permissions
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 3
         nextVersion: 4
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.28/site/permission-mappings-config.xslt
             commitDetails: Add new CMIS permissions
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 4
         nextVersion: 5
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.29/site/permission-mappings-config.xslt
             commitDetails: Add configuration service permissions
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 5
         nextVersion: 6
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.35/site/permission-mappings-config.xslt
             commitDetails: Add resolve conflict APIs permissions
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 6
         nextVersion: 7
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.4/site/permission-mappings-config.xslt
             commitDetails: Add delete_content permission
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 7
         nextVersion: 8
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.4.2/site/permission-mappings-config.xslt
             commitDetails: Add new permissions for WebDAV
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 8
         nextVersion: 9
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.4.3/site/permission-mappings-config.xslt
             commitDetails: Add write_configuration permission for developer
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 9
         nextVersion: 10
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.4.6/site/permission-mappings-config.xslt
             commitDetails: Add publishing queue dialog permissions for developer
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 10
         nextVersion: 11
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.4.8/site/permission-mappings-config.xslt
             commitDetails: Added remote repository permissions for developer
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
 
   role-mappings-config:
-    path: &role-mappings-config '/config/studio/role-mappings-config.xml'
+    module: studio
+    path: role-mappings-config.xml
     pipeline:
       # Initial version, assumed if the file doesn't contain a version tag
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *role-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.0/site/role-mappings-config-2.xslt
             commitDetails: Update role mappings configuration
           - type: xsltFileUpgrader
-            path: *role-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
 
   config-list:
-    path: &config-list '/config/studio/administration/config-list.xml'
+    module: studio
+    path: administration/config-list.xml
     pipeline:
       # Initial version, assumed if the file doesn't contain a version tag
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.0.1/site/config-list-2.xslt
             commitDetails: Add url rewrite to configuration list
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 2
         nextVersion: 3
         operations:
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.0.2/site/config-list-3.xslt
             commitDetails: Add webdav to configuration list
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 3
         nextVersion: 4
         operations:
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.0.18/site/config-list-4.xslt
             commitDetails: Add rte-tinymce5 to configuration list
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 4
         nextVersion: 5
         operations:
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.0.24/site/config-list-5.xslt
             commitDetails: Move sample configuration files to global configuration
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 5
         nextVersion: 6
         operations:
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.0.29/site/config-list.xslt
             commitDetails: Move sample configuration files to global configuration
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 6
         nextVersion: 7
         operations:
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/3.1.x/3.1.4.4/site/config-list.xslt
             commitDetails: Add new configuration file
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 7
         nextVersion: 8
         operations:
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v8.xslt
             commitDetails: Add new configuration file for blob stores
           - type: xsltFileUpgrader
-            path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
 
   site-config-tools:
-    path: &site-config-tools '/config/studio/administration/site-config-tools.xml'
+    module: studio
+    path: administration/site-config-tools.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.2/site/site-config-tools-2.xslt
             commitDetails: Add webdav datasources to site configuration
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 2
         nextVersion: 3
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.5/site/site-config-tools-3.xslt
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 3
         nextVersion: 4
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.18/site/site-config-tools-4.xslt
             commitDetails: Add S3 datasources, GraphiQL and remove Logging Levels from site configuration
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 4
         nextVersion: 5
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.26/site/site-config-tools-5.xslt
             commitDetails: Add CMIS datasources
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 5
         nextVersion: 6
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.27/site/site-config-tools-6.xslt
             commitDetails: Add time control
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 6
         nextVersion: 7
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.34/site/site-config-tools.xslt
             commitDetails: Add video transcode datasource and no-template property
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 7
         nextVersion: 8
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.0.35/site/site-config-tools.xslt
             commitDetails: Add numeric input control
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 8
         nextVersion: 9
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/3.1.4.9/site/site-config-tools.xslt
             commitDetails: Add shared & embedded datasources
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 9
         nextVersion: 10
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/config/site-config-tools/site-config-tools-v10.xslt
             commitDetails: Add internal-name control
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
       - currentVersion: 10
         nextVersion: 11
         operations:
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/config/site-config-tools/site-config-tools-v11.xslt
             commitDetails: Add transcoded-video-picker control
           - type: xsltFileUpgrader
-            path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt
 
   environment-config:
-    path: &environment-config '/config/studio/environment/environment-config.xml'
+    module: studio
+    path: environment/environment-config.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *environment-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.24/site/environment-config.xslt
             commitDetails: Add previewEngineServerUrl and graphqlServerUrl properties to environment configuration
           - type: xsltFileUpgrader
-            path: *environment-config
             template: crafter/studio/upgrade/update-version.xslt
 
   contextual-nav:
-    path: &contextual-nav '/config/studio/context-nav/contextual-nav.xml'
+    module: studio
+    path: context-nav/contextual-nav.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *contextual-nav
             template: crafter/studio/upgrade/3.1.x/3.1.0.31/site/contextual-nav.xslt
             commitDetails: Add quick create menu item
           - type: xsltFileUpgrader
-            path: *contextual-nav
             template: crafter/studio/upgrade/update-version.xslt
 
   aws:
-    path: &aws '/config/studio/aws/aws.xml'
+    module: studio
+    path: aws/aws.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *aws
             template: crafter/studio/upgrade/3.1.x/3.1.0.32/site/aws.xslt
             commitDetails: Add sections for services
           - type: xsltFileUpgrader
-            path: *aws
             template: crafter/studio/upgrade/update-version.xslt
 
   box:
-    path: &box '/config/studio/box/box.xml'
+    module: studio
+    path: box/box.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *box
             template: crafter/studio/upgrade/3.1.x/3.1.0.32/site/box.xslt
             commitDetails: Add sections for services
           - type: xsltFileUpgrader
-            path: *box
             template: crafter/studio/upgrade/update-version.xslt
 
   webdav:
-    path: &webdav '/config/studio/webdav/webdav.xml'
+    module: studio
+    path: webdav/webdav.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *webdav
             template: crafter/studio/upgrade/3.1.x/3.1.0.32/site/webdav.xslt
             commitDetails: Add sections for services
           - type: xsltFileUpgrader
-            path: *webdav
             template: crafter/studio/upgrade/update-version.xslt
 
   notification-config:
-    path: &notification-config '/config/studio/workflow/notification-config.xml'
+    module: studio
+    path: workflow/notification-config.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *notification-config
             template: crafter/studio/upgrade/3.1.x/3.1.0.33/site/notification-config.xslt
             commitDetails: Add pull from remote conflict notifiction
           - type: xsltFileUpgrader
-            path: *notification-config
             template: crafter/studio/upgrade/update-version.xslt
 
   code-editor-config:
-    path: &code-editor-config '/config/studio/code-editor-config.xml'
+    module: studio
+    path: code-editor-config.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *code-editor-config
             template: crafter/studio/upgrade/3.1.x/config/code-editor-config/code-editor-config-v2.xslt
             commitDetails: Add new properties
           - type: xsltFileUpgrader
-            path: *code-editor-config
             template: crafter/studio/upgrade/update-version.xslt
 
   engine-site-config:
-    path: &engine-site-config '/config/engine/site-config.xml'
+    module: engine
+    path: site-config.xml
     pipeline:
       - currentVersion: 1
         nextVersion: 2
         operations:
           - type: xsltFileUpgrader
-            path: *engine-site-config
             template: crafter/studio/upgrade/3.1.x/config/engine-site-config/engine-site-config-v2.xslt
             commitDetails: Update security configuration
           - type: xsltFileUpgrader
-            path: *engine-site-config
             template: crafter/studio/upgrade/update-version.xslt
