@@ -18,6 +18,8 @@ package org.craftercms.studio.api.v2.upgrade;
 
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 
+import java.util.List;
+
 /**
  * Manages the current version and applies the required upgrades.
  * @author joseross
@@ -55,5 +57,12 @@ public interface UpgradeManager {
      * @throws UpgradeException if any of the upgrades fails
      */
     void upgradeBlueprints() throws UpgradeException;
+
+    /**
+     * Returns all existing environments for the given site
+     * @param site the id of the site
+     * @return the list of environments
+     */
+    List<String> getExistingEnvironments(String site);
 
 }

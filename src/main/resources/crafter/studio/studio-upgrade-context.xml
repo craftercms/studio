@@ -26,6 +26,7 @@
         <property name="dataSource" ref="dataSource"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
         <property name="contentRepository" ref="contentRepository"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
 
         <property name="configurationFile"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_CONFIGURATION_FILE)}"/>
