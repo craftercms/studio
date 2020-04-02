@@ -24,13 +24,13 @@
         <result property="site" column="site"/>
         <result property="path" column="path"/>
         <result property="name" column="name"/>
-        <result property="modified" column="modified"/>
+        <result property="lastModifiedDate" column="lastModifiedDate"/>
         <result property="modifier" column="modifier"/>
         <result property="owner" column="owner"/>
         <result property="creator" column="creator"/>
         <result property="firstName" column="firstname"/>
         <result property="lastName" column="lastname"/>
-        <result property="lockOwner" column="lockowner"/>
+        <result property="lockOwner" column="lock_owner"/>
         <result property="email" column="email"/>
         <result property="renamed" column="renamed"/>
         <result property="oldUrl" column="oldurl"/>
@@ -54,13 +54,13 @@
         <trim prefix="SET" suffixOverrides=",">
             <if test="newPath != null">path=#{newPath},</if>
             <if test="name != null">name=#{name},</if>
-            <if test="modified != null">modified=#{modified},</if>
+            <if test="lastModifiedDate != null">last_modified_date=#{lastModifiedDate},</if>
             <if test="modifier != null">modifier=#{modifier},</if>
             <if test="owner != null">owner=#{owner},</if>
             <if test="creator != null">creator=#{creator},</if>
             <if test="firstName != null">firstname=#{firstName},</if>
             <if test="lastName != null">lastname=#{lastName},</if>
-            <if test="lockOwner != null">lockowner=#{lockOwner},</if>
+            <if test="lockOwner != null">lock_owner=#{lockOwner},</if>
             <if test="email != null">email=#{email},</if>
             <if test="renamed != null">renamed=#{renamed},</if>
             <if test="oldUrl != null">oldurl=#{oldUrl},</if>
@@ -85,13 +85,13 @@
         <trim prefix="SET" suffixOverrides=",">
             <if test="newPath != null">path=#{newPath},</if>
             <if test="name != null">name=#{name},</if>
-            <if test="modified != null">modified=#{modified},</if>
+            <if test="lastModifiedDate != null">last_modified_date=#{lastModifiedDate},</if>
             <if test="modifier != null">modifier=#{modifier},</if>
             <if test="owner != null">owner=#{owner},</if>
             <if test="creator != null">creator=#{creator},</if>
             <if test="firstName != null">firstname=#{firstName},</if>
             <if test="lastName != null">lastname=#{lastName},</if>
-            <if test="lockOwner != null">lockowner=#{lockOwner},</if>
+            <if test="lockOwner != null">lock_owner=#{lockOwner},</if>
             <if test="email != null">email=#{email},</if>
             <if test="renamed != null">renamed=#{renamed},</if>
             <if test="oldUrl != null">oldurl=#{oldUrl},</if>
@@ -116,13 +116,13 @@
         SET
             path=path,
             name=#{name},
-            modified=#{modified},
+            last_modified_date=#{lastModifiedDate},
             modifier=#{modifier},
             owner=#{owner},
             creator=#{creator},
             firstname=#{firstName},
             lastname=#{lastName},
-            lockowner=#{lockOwner},
+            lock_owner=#{lockOwner},
             email=#{email},
             renamed=#{renamed},
             oldurl=#{oldUrl},
@@ -142,7 +142,7 @@
 
     <update id="setLockOwner" parameterType="java.util.Map">
         UPDATE item_metadata SET
-        lockowner=#{lockOwner}
+        lock_owner=#{lockOwner}
         WHERE site=#{site}
         AND path=#{path}
     </update>
@@ -210,13 +210,13 @@
         </if>
         <choose>
             <when test="dateFrom != null and dateTo != null ">
-                AND modified BETWEEN #{dateFrom} AND #{dateTo}
+                AND last_modified_date BETWEEN #{dateFrom} AND #{dateTo}
             </when>
             <when test="dateFrom != null and dateTo == null ">
-                AND modified >= #{dateFrom}
+                AND last_modified_date >= #{dateFrom}
             </when>
             <when test="dateFrom == null and dateTo != null ">
-                AND #{dateTo} >= modified
+                AND #{dateTo} >= last_modified_date
             </when>
         </choose>
     </select>
@@ -232,13 +232,13 @@
         </if>
         <choose>
             <when test="dateFrom != null and dateTo != null ">
-                AND modified BETWEEN #{dateFrom} AND #{dateTo}
+                AND last_modified_date BETWEEN #{dateFrom} AND #{dateTo}
             </when>
             <when test="dateFrom != null and dateTo == null ">
-                AND modified >= #{dateFrom}
+                AND last_modified_date >= #{dateFrom}
             </when>
             <when test="dateFrom == null and dateTo != null ">
-                AND #{dateTo} >= modified
+                AND #{dateTo} >= last_modified_date
             </when>
         </choose>
         <choose>
@@ -249,10 +249,10 @@
                 ORDER BY ${sort}
             </when>
             <when test="(sort == null or sort !=  '') and (order != null and order != '')">
-                ORDER BY modified ${order}
+                ORDER BY last_modified_date ${order}
             </when>
             <otherwise>
-                ORDER BY modified DESC
+                ORDER BY last_modified_date DESC
             </otherwise>
         </choose>
         LIMIT #{offset}, #{limit}

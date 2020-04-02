@@ -80,7 +80,7 @@ public class DashboardServiceImpl implements DashboardService {
                 contentDashboardItem.setPath(item.getPath());
                 contentDashboardItem.setLabel(item.getName());
                 contentDashboardItem.setModifier(item.getModifier());
-                contentDashboardItem.setModifiedDate(item.getModified());
+                contentDashboardItem.setModifiedDate(item.getLastModifiedDate());
                 contentDashboardItemList.add(contentDashboardItem);
             }
         }

@@ -26,7 +26,7 @@ public class ItemMetadata implements Serializable {
     public static final String PROP_PATH = "path";
     public static final String PROP_NEW_PATH = "newPath";
     public static final String PROP_NAME = "name";
-    public static final String PROP_MODIFIED = "modified";
+    public static final String PROP_MODIFIED = "lastModifiedDate";
     public static final String PROP_MODIFIER = "modifier";
     public static final String PROP_OWNER = "owner";
     public static final String PROP_CREATOR = "creator";
@@ -52,7 +52,7 @@ public class ItemMetadata implements Serializable {
     protected String site;
     protected String path;
     protected String name;
-    protected ZonedDateTime modified;
+    protected ZonedDateTime lastModifiedDate;
     protected String modifier;
     protected String owner;
     protected String creator;
@@ -106,12 +106,12 @@ public class ItemMetadata implements Serializable {
         this.name = name;
     }
 
-    public ZonedDateTime getModified() {
-        return modified;
+    public ZonedDateTime getLastModifiedDate() {
+        return lastModifiedDate;
     }
 
-    public void setModified(ZonedDateTime modified) {
-        this.modified = modified;
+    public void setLastModifiedDate(ZonedDateTime lastModifiedDate) {
+        this.lastModifiedDate = lastModifiedDate;
     }
 
     public String getModifier() {
