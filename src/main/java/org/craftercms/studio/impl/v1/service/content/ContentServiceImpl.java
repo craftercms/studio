@@ -1846,11 +1846,11 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
 
-            if (metadata.getModified() != null) {
-                item.lastEditDate = metadata.getModified();
-                item.eventDate = metadata.getModified();
-                item.setLastEditDate(metadata.getModified());
-                item.setEventDate(metadata.getModified());
+            if (metadata.getLastModifiedDate() != null) {
+                item.lastEditDate = metadata.getLastModifiedDate();
+                item.eventDate = metadata.getLastModifiedDate();
+                item.setLastEditDate(metadata.getLastModifiedDate());
+                item.setEventDate(metadata.getLastModifiedDate());
             }
             if (StringUtils.isNotEmpty(metadata.getSubmissionComment())) {
                 item.setSubmissionComment(metadata.getSubmissionComment());

@@ -1,3 +1,5 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 USE @crafter_schema_name ;
 
 CREATE PROCEDURE addColumnIfNotExists(
@@ -468,4 +470,16 @@ INSERT IGNORE INTO site (site_id, name, description, system)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
 
 INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 1) ;
+
+CREATE TABLE IF NOT EXISTS `item_translation` (
+  `object_id` VARCHAR(255) NOT NULL,
+  `source_id` BIGINT(20) NOT NULL,
+  `translation_id` BIGINT(20) NOT NULL,
+  `locale_code` VARCHAR(20) NOT NULL,
+  `date_translated` DATETIME NOT NULL,
+  PRIMARY KEY (`object_id`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
 
