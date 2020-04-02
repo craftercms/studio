@@ -57,9 +57,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @HasPermission(type = DefaultPermission.class, action = "create-site")
     public Map<String, Object> searchPlugins(@ValidateStringParam(name = "type") String type,
                                              @ValidateStringParam(name = "keywords") String keywords,
-                                             long offset, long limit)
+                                             boolean showIncompatible, long offset, long limit)
         throws MarketplaceException {
-        return marketplaceServiceInternal.searchPlugins(type, keywords, offset, limit);
+        return marketplaceServiceInternal.searchPlugins(type, keywords, showIncompatible, offset, limit);
     }
 
     @Override
