@@ -18,6 +18,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import scripts.api.ContentServices
 
 def result = [:]
@@ -79,8 +80,18 @@ if(ServletFileUpload.isMultipartContent(request)) {
                 fileName = FilenameUtils.getName(fileName)
             }
             contentType = item.getContentType()
-            result = ContentServices.writeContentAsset(context, site, path, fileName, stream,
-                    isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+            try {
+                result = ContentServices.writeContentAsset(context, site, path, fileName, stream,
+                        isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+                if (result.message.isDeleted()) {
+                    response.setStatus(500)
+                    result.success = false
+                    result.message = "Failed to write asset"
+                }
+            } catch (ServiceLayerException e) {
+                response.setStatus(500)
+                result.setMessage = e.getMessage()
+            }
         }
     }
 } else {

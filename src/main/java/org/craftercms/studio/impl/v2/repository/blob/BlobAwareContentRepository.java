@@ -176,7 +176,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public String writeContent(String site, String path, InputStream content) {
+    public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
         logger.debug("Writing {0} in site {1}", path, site);
         try {
             StudioBlobStore store = getBlobStore(site, path);
@@ -189,7 +189,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             return localRepositoryV1.writeContent(site, path, content);
         } catch (Exception e) {
             logger.error("Error writing content {0} in site {1}", e, path, site);
-            return null;
+            throw new ServiceLayerException(e);
         }
     }
 
