@@ -29,6 +29,7 @@ public interface Constants {
     String PARAM_EDITION = "edition";
     String PARAM_KEYWORDS = "keywords";
     String PARAM_SHOW_PENDING = "showPending";
+    String PARAM_SHOW_INCOMPATIBLE = "showIncompatible";
     String PARAM_OFFSET = "offset";
     String PARAM_LIMIT = "limit";
 
