@@ -73,8 +73,8 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
+import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_LAST_MODIFIED_DATE;
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_LOCK_OWNER;
-import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIED;
 import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
@@ -298,7 +298,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private void updateMetadata(String siteId, String path, String user) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(PROP_MODIFIER, user);
-        properties.put(PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+        properties.put(PROP_LAST_MODIFIED_DATE, ZonedDateTime.now(ZoneOffset.UTC));
         properties.put(PROP_LOCK_OWNER, StringUtils.EMPTY);
         if (!objectMetadataManager.metadataExist(siteId, path)) {
             objectMetadataManager.insertNewObjectMetadata(siteId, path);

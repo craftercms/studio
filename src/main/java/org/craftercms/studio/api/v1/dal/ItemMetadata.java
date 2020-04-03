@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
@@ -26,7 +28,6 @@ public class ItemMetadata implements Serializable {
     public static final String PROP_PATH = "path";
     public static final String PROP_NEW_PATH = "newPath";
     public static final String PROP_NAME = "name";
-    public static final String PROP_MODIFIED = "lastModifiedDate";
     public static final String PROP_MODIFIER = "modifier";
     public static final String PROP_OWNER = "owner";
     public static final String PROP_CREATOR = "creator";
@@ -47,6 +48,20 @@ public class ItemMetadata implements Serializable {
     public static final String PROP_LAUNCH_DATE = "launchDate";
     public static final String PROP_COMMIT_ID = "commitId";
     public static final String PROP_SUBMITTED_TO_ENVIRONMENT = "submittedToEnvironment";
+
+    public static final String PROP_LABEL = "label";
+    public static final String PROP_CONTENT_TYPE_ID = "contentTypeId";
+    public static final String PROP_PREVIEW_URL = "previewUrl";
+    public static final String PROP_SYSTEM_TYPE = "systemType";
+    public static final String PROP_MIME_TYPE = "mimeType";
+    public static final String PROP_STATE = "state";
+    public static final String PROP_DISABLED = "disabled";
+    public static final String PROP_LOCALE_CODE = "localeCode";
+    public static final String PROP_TRANSLATION_SOURCE_ID = "translationSourceId";
+    public static final String PROP_CREATED_DATE = "createdDate";
+    public static final String PROP_LAST_MODIFIED_DATE = "lastModifiedDate";
+    public static final String PROP_SIZE_IN_BYTES = "sizeInBytes";
+
 
     protected int id;
     protected String site;
@@ -73,6 +88,18 @@ public class ItemMetadata implements Serializable {
     protected ZonedDateTime launchDate;
     protected String commitId;
     protected String submittedToEnvironment;
+
+    private String label;
+    private String contentTypeId;
+    private String previewUrl;
+    private String systemType;
+    private String mimeType;
+    private int state;
+    private boolean disabled;
+    private String localeCode;
+    private String translationSourceId;
+    private ZonedDateTime createdDate;
+    private long sizeInBytes;
 
     public int getId() {
         return id;
@@ -272,5 +299,103 @@ public class ItemMetadata implements Serializable {
 
     public void setSubmittedToEnvironment(String submittedToEnvironment) {
         this.submittedToEnvironment = submittedToEnvironment;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getContentTypeId() {
+        return contentTypeId;
+    }
+
+    public void setContentTypeId(String contentTypeId) {
+        this.contentTypeId = contentTypeId;
+    }
+
+    public String getPreviewUrl() {
+        return previewUrl;
+    }
+
+    public void setPreviewUrl(String previewUrl) {
+        this.previewUrl = previewUrl;
+    }
+
+    public String getSystemType() {
+        return systemType;
+    }
+
+    public void setSystemType(String systemType) {
+        this.systemType = systemType;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    @JsonProperty("disabled")
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    @JsonProperty("disabled")
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
+
+    public int getDisabledAsInt() {
+        return disabled ? 1 : 0;
+    }
+
+    public void setDisabledAsInt(int disabled) {
+        this.disabled = disabled > 0;
+    }
+
+    public String getLocaleCode() {
+        return localeCode;
+    }
+
+    public void setLocaleCode(String localeCode) {
+        this.localeCode = localeCode;
+    }
+
+    public String getTranslationSourceId() {
+        return translationSourceId;
+    }
+
+    public void setTranslationSourceId(String translationSourceId) {
+        this.translationSourceId = translationSourceId;
+    }
+
+    public ZonedDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(ZonedDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public long getSizeInBytes() {
+        return sizeInBytes;
+    }
+
+    public void setSizeInBytes(long sizeInBytes) {
+        this.sizeInBytes = sizeInBytes;
     }
 }

@@ -159,19 +159,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         } finally {
             ContentUtils.release(input);
         }
-
     }
-
-    private void updateLastEditedProperties(String site, String relativePath, String user) {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ItemMetadata.PROP_MODIFIER, user);
-        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        if (!objectMetadataManager.metadataExist(site, relativePath)) {
-            objectMetadataManager.insertNewObjectMetadata(site, relativePath);
-        }
-        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
-	}
-
 
     /**
      * create new file to the given path. If the path is a file name, it will
@@ -204,9 +192,24 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 if (!objectMetadataManager.metadataExist(site, parentItem.getUri() + FILE_SEPARATOR + fileName)) {
                     objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
                 }
+
+                ContentItemTO contentItem =
+                        contentService.getContentItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
                 Map<String, Object> properties = new HashMap<>();
+
+                properties.put(ItemMetadata.PROP_LABEL, contentItem.getInternalName());
+                properties.put(ItemMetadata.PROP_CONTENT_TYPE_ID, contentItem.getContentType());
+                properties.put(ItemMetadata.PROP_PREVIEW_URL, contentItem.getBrowserUri());
+                properties.put(ItemMetadata.PROP_SYSTEM_TYPE,
+                        contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName));
+                properties.put(ItemMetadata.PROP_MIME_TYPE, contentItem.getMimeType());
+                properties.put(ItemMetadata.PROP_DISABLED, contentItem.isDisabled());
+                properties.put(ItemMetadata.PROP_LOCALE_CODE, "N/A");
+                properties.put(ItemMetadata.PROP_TRANSLATION_SOURCE_ID, contentItem.getPath());
+                properties.put(ItemMetadata.PROP_SIZE_IN_BYTES, -1);
+
                 properties.put(ItemMetadata.PROP_NAME, fileName);
-                properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+                properties.put(ItemMetadata.PROP_LAST_MODIFIED_DATE, ZonedDateTime.now(ZoneOffset.UTC));
                 properties.put(ItemMetadata.PROP_CREATOR, user);
                 properties.put(ItemMetadata.PROP_MODIFIER, user);
                 properties.put(ItemMetadata.PROP_OWNER, user);
@@ -259,8 +262,19 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
         if (success) {
             Map<String, Object> properties = new HashMap<>();
+
+            properties.put(ItemMetadata.PROP_LABEL, contentItem.getInternalName());
+            properties.put(ItemMetadata.PROP_CONTENT_TYPE_ID, contentItem.getContentType());
+            properties.put(ItemMetadata.PROP_PREVIEW_URL, contentItem.getBrowserUri());
+            properties.put(ItemMetadata.PROP_SYSTEM_TYPE, contentService.getContentTypeClass(site, path));
+            properties.put(ItemMetadata.PROP_MIME_TYPE, contentItem.getMimeType());
+            properties.put(ItemMetadata.PROP_DISABLED, contentItem.isDisabled());
+            properties.put(ItemMetadata.PROP_LOCALE_CODE, "N/A");
+            properties.put(ItemMetadata.PROP_TRANSLATION_SOURCE_ID, contentItem.getPath());
+            properties.put(ItemMetadata.PROP_SIZE_IN_BYTES, -1);
+
             properties.put(ItemMetadata.PROP_MODIFIER, user);
-            properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+            properties.put(ItemMetadata.PROP_LAST_MODIFIED_DATE, ZonedDateTime.now(ZoneOffset.UTC));
             if (unlock) {
                 properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
             } else {
