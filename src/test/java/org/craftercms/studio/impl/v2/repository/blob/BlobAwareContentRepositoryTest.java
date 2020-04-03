@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
@@ -316,6 +317,20 @@ public class BlobAwareContentRepositoryTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertEquals(result.get(0).getPath(), ORIGINAL_PATH);
+    }
+
+    @Test
+    public void getContentVersionHistoryTest() {
+        VersionTO version1 = new VersionTO();
+        VersionTO version2 = new VersionTO();
+
+        when(local.getContentVersionHistory(eq(SITE), eq(POINTER_PATH)))
+                .thenReturn(new VersionTO[] { version1, version2 });
+
+        VersionTO[] versions = proxy.getContentVersionHistory(SITE, ORIGINAL_PATH);
+
+        assertNotNull(versions);
+        assertEquals(versions.length, 2);
     }
 
 }
