@@ -240,8 +240,9 @@ public class SiteServiceImpl implements SiteService {
         }
 
         Map<String, Object> properties = new HashMap<>();
+
         properties.put(ItemMetadata.PROP_NAME, FilenameUtils.getName(path));
-        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+        properties.put(ItemMetadata.PROP_LAST_MODIFIED_DATE, ZonedDateTime.now(ZoneOffset.UTC));
         properties.put(ItemMetadata.PROP_MODIFIER, user);
         objectMetadataManager.setObjectMetadata(site, path, properties);
 
@@ -1339,7 +1340,7 @@ public class SiteServiceImpl implements SiteService {
                             properties.put(ItemMetadata.PROP_SITE, site);
                             properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
                             properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                            properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                            properties.put(ItemMetadata.PROP_LAST_MODIFIED_DATE, repoOperation.getDateTime());
                             properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
                             objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
                         }
@@ -1367,7 +1368,7 @@ public class SiteServiceImpl implements SiteService {
                             properties.put(ItemMetadata.PROP_SITE, site);
                             properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
                             properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                            properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                            properties.put(ItemMetadata.PROP_LAST_MODIFIED_DATE, repoOperation.getDateTime());
                             properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
                             objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
                         }
@@ -1424,7 +1425,7 @@ public class SiteServiceImpl implements SiteService {
                                     properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
                                     properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
                                     properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                                    properties.put(ItemMetadata.PROP_LAST_MODIFIED_DATE, repoOperation.getDateTime());
                                     objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(),
                                             properties);
                                 }

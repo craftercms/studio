@@ -210,8 +210,19 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 
         if (success) {
             Map<String, Object> properties = new HashMap<>();
+
+            properties.put(ItemMetadata.PROP_LABEL, contentItem.getInternalName());
+            properties.put(ItemMetadata.PROP_CONTENT_TYPE_ID, contentItem.getContentType());
+            properties.put(ItemMetadata.PROP_PREVIEW_URL, contentItem.getBrowserUri());
+            properties.put(ItemMetadata.PROP_SYSTEM_TYPE, contentService.getContentTypeClass(site, relativePath));
+            properties.put(ItemMetadata.PROP_MIME_TYPE, contentItem.getMimeType());
+            properties.put(ItemMetadata.PROP_DISABLED, contentItem.isDisabled());
+            properties.put(ItemMetadata.PROP_LOCALE_CODE, "N/A");
+            properties.put(ItemMetadata.PROP_TRANSLATION_SOURCE_ID, contentItem.getPath());
+            properties.put(ItemMetadata.PROP_SIZE_IN_BYTES, -1);
+
             properties.put(ItemMetadata.PROP_MODIFIER, user);
-            properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+            properties.put(ItemMetadata.PROP_LAST_MODIFIED_DATE, ZonedDateTime.now(ZoneOffset.UTC));
             if (unlock) {
                 properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
             } else {
