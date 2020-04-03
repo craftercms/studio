@@ -272,11 +272,19 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                 .toArray(new RepositoryItem[children.length]);
     }
 
-    // TODO: Add support for versioned files in blob store?
-
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
-        return localRepositoryV1.getContentVersionHistory(site, path);
+        logger.debug("Getting version history for {0} in site {1}", path, site);
+        try {
+            StudioBlobStore store = getBlobStore(site, path);
+            if (store != null) {
+                return localRepositoryV1.getContentVersionHistory(site, getPointerPath(path));
+            }
+            return localRepositoryV1.getContentVersionHistory(site, path);
+        } catch (Exception e) {
+            logger.error("Error getting version history for {0} in site {1}", e, path, site);
+            return null;
+        }
     }
 
     @Override
