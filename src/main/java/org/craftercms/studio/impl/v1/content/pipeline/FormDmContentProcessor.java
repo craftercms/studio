@@ -270,7 +270,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             properties.put(ItemMetadata.PROP_MIME_TYPE, contentItem.getMimeType());
             properties.put(ItemMetadata.PROP_DISABLED, contentItem.isDisabled());
             properties.put(ItemMetadata.PROP_LOCALE_CODE, "N/A");
-            properties.put(ItemMetadata.PROP_TRANSLATION_SOURCE_ID, contentItem.getPath());
+            properties.put(ItemMetadata.PROP_TRANSLATION_SOURCE_ID, -1);
             properties.put(ItemMetadata.PROP_SIZE_IN_BYTES, -1);
 
             properties.put(ItemMetadata.PROP_MODIFIER, user);
