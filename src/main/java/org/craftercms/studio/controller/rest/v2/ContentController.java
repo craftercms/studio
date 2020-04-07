@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LOCALE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
@@ -54,6 +55,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
@@ -137,6 +139,25 @@ public class ContentController {
                                                   defaultValue = "10") int limit) {
         GetChildrenResult result =
                 contentService.getChildrenByPath(siteId, path, locale, sortStrategy, order, offset, limit);
+        ResponseBody responseBody = new ResponseBody();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getChildrenById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+                                          @RequestParam(value = REQUEST_PARAM_ID, required = true) String id,
+                                          @RequestParam(value = REQUEST_PARAM_LOCALE, required = false) String locale,
+                                          @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
+                                                  String sortStrategy,
+                                          @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order,
+                                          @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
+                                                  defaultValue = "0") int offset,
+                                          @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
+                                                  defaultValue = "10") int limit) {
+        GetChildrenResult result =
+                contentService.getChildrenById(siteId, id, locale, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);

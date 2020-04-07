@@ -148,6 +148,13 @@ public class ContentServiceImpl implements ContentService {
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, sortStrategy, order, offset, limit);
     }
 
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public GetChildrenResult getChildrenById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String id,
+                                             String locale, String sortStrategy, String order, int offset, int limit) {
+        return contentServiceInternal.getChildrenById(siteId, id, locale, sortStrategy, order, offset, limit);
+    }
+
     public ContentServiceInternal getContentServiceInternal() {
         return contentServiceInternal;
     }

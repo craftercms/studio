@@ -38,4 +38,5 @@ public interface RequestMappingConstants {
     String GET_DELETE_PACKAGE = "/get_delete_package";
     String DELETE = "/delete";
     String GET_CHILDREN_BY_PATH = "/children_by_path";
+    String GET_CHILDREN_BY_ID = "/children_by_i";
 }
