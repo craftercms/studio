@@ -66,4 +66,20 @@ public interface ContentServiceInternal {
      * @return total number of children
      */
     int getChildrenByPathTotal(String siteId, String path, String locale);
+
+    /**
+     * Get list of children for given item id
+     *
+     * @param siteId site identifier
+     * @param id item id to get children for
+     * @param locale filter children by locale
+     * @param sortStrategy sort order
+     * @param order ascending or descending
+     * @param offset offset of the first child in the result
+     * @param limit number of children to return
+     *
+     * @return list of children
+     */
+    GetChildrenResult getChildrenById(String siteId, String id, String locale, String sortStrategy, String order,
+                                        int offset, int limit);
 }
