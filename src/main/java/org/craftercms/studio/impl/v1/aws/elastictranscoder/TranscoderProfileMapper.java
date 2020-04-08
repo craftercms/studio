@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v1.aws.elastictranscoder;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
+import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfileMapper;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderOutput;
@@ -67,8 +67,8 @@ public class TranscoderProfileMapper extends AbstractAwsProfileMapper<Transcoder
 
     public static final String SERVICE_NAME = "elasticTranscoder";
 
-    public TranscoderProfileMapper(final EncryptionAwareConfigurationReader configurationReader) {
-        super(SERVICE_NAME, configurationReader);
+    public TranscoderProfileMapper(final ConfigurationResolver resolver) {
+        super(SERVICE_NAME, resolver);
     }
 
     @Override

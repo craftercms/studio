@@ -16,6 +16,8 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.ConfigurationResolver;
+import org.craftercms.commons.config.ConfigurationResolverImpl;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.impl.NoOpTextEncryptor;
 import org.craftercms.commons.file.blob.BlobStore;
@@ -87,8 +89,12 @@ public class StudioBlobStoreResolverImplTest {
         when(applicationContext.getBean(BLOB_STORE_TYPE, BlobStore.class)).thenReturn(myBlobStore);
         when(applicationContext.getBean(ANOTHER_BLOB_STORE, BlobStore.class)).thenReturn(anotherBlobStore);
 
-        resolver.setConfigurationPath(CONFIG_PATH);
-        resolver.setConfigurationReader(new EncryptionAwareConfigurationReader(new NoOpTextEncryptor()));
+        ConfigurationResolver configResolver = new ConfigurationResolverImpl("default", "/config/{module}",
+                null, new EncryptionAwareConfigurationReader(new NoOpTextEncryptor()));
+
+        resolver.setConfigModule("studio");
+        resolver.setConfigPath("stores.xml");
+        resolver.setConfigurationResolver(configResolver);
     }
 
     @Test

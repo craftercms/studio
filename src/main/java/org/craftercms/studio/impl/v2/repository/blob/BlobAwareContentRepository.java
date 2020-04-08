@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository} and
@@ -101,7 +102,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     protected boolean isFolder(String path) {
-        return StringUtils.isEmpty(FilenameUtils.getExtension(path));
+        return isEmpty(FilenameUtils.getExtension(path));
     }
 
     protected String getOriginalPath(String path) {
@@ -118,9 +119,14 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected StudioBlobStore getBlobStore(String site, String... paths)
             throws ServiceLayerException, ConfigurationException, IOException {
+        if (isEmpty(site)) {
+            return null;
+        }
+
         if (ArrayUtils.isEmpty(paths)) {
             throw new IllegalArgumentException("At least one path needs to be provided");
         }
+
         return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
     }
 

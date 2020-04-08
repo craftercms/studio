@@ -16,13 +16,12 @@
 package org.craftercms.studio.api.v2.repository.blob;
 
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.BlobStoreResolver;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.function.Function;
 
 /**
  * Extension of {@link BlobStoreResolver} that adds site multi-tenancy
@@ -33,10 +32,9 @@ import java.util.function.Function;
 public interface StudioBlobStoreResolver extends BlobStoreResolver {
 
     @Override
-    default BlobStore getById(Function<String, InputStream> configGetter, String storeId)
+    default BlobStore getById(ConfigurationProvider provider, String storeId)
             throws IOException, ConfigurationException {
-        // not used by studio
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     /**
