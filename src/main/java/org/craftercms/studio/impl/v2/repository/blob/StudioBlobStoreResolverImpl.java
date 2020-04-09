@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -26,7 +27,6 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
@@ -48,17 +48,9 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
 
     @Override
     public BlobStore getByPaths(String site, String... paths)
-            throws ServiceLayerException, ConfigurationException, IOException {
+            throws ServiceLayerException, ConfigurationException {
         logger.debug("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
-        Function<String, InputStream> configGetter = path -> {
-            try {
-                return contentRepository.getContent(site, path);
-            } catch (Exception e) {
-                logger.error("Error reading blob stores configuration for site " + site, e);
-            }
-            return null;
-        };
-        HierarchicalConfiguration config = getConfiguration(configGetter);
+        HierarchicalConfiguration config = getConfiguration(new ConfigurationProviderImpl(site));
         if (config != null) {
             BlobStore blobStore = findStore(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
             // We have to compare each one to know if the exception should be thrown
@@ -68,6 +60,33 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             return blobStore;
         }
         return null;
+    }
+
+    /**
+     * Internal class to provide access to configuration files
+     */
+    private class ConfigurationProviderImpl implements ConfigurationProvider {
+
+        private String site;
+
+        public ConfigurationProviderImpl(String site) {
+            this.site = site;
+        }
+
+        @Override
+        public boolean configExists(String path) {
+            return StudioBlobStoreResolverImpl.this.contentRepository.contentExists(site, path);
+        }
+
+        @Override
+        public InputStream getConfig(String path) throws IOException {
+            try {
+                return StudioBlobStoreResolverImpl.this.contentRepository.getContent(site, path);
+            } catch (Exception e) {
+                throw new IOException("Error reading file", e);
+            }
+        }
+
     }
 
 }
