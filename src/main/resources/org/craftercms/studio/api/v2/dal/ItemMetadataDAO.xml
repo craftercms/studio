@@ -41,16 +41,20 @@
     </resultMap>
 
     <select id="getChildrenByPath" resultMap="SandboxItemMap">
-        select * from item_metadata where site = #{site} and path = #{parentPath}
+        select * from item_metadata where site = #{siteId} and path = #{parentPath}
         union
-        select * from item_metadata where site = #{site} and path = #{ldPath}
+        select * from item_metadata where site = #{siteId} and path = #{ldPath}
         union
-        (select * from item_metadata where site = #{site} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
+        (select * from item_metadata where site = #{siteId} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
         #{path} + '/[^/]+$') limit #{offset},#{limit})
     </select>
 
     <select id="getChildrenByPathTotal" resultType="Integer">
         select count(1) from item_metadata where site = #{site} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
         #{path} + '/[^/]+$')
+    </select>
+
+    <select id="getChildrenById" resultType="org.craftercms.studio.api.v2.dal.SandboxItem">
+        select
     </select>
 </mapper>

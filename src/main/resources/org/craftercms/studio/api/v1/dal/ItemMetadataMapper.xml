@@ -183,7 +183,9 @@
             locale_code=#{localeCode},
             translation_source_id=#{translationSourceId},
             created_date=#{createdDate},
-            size_in_bytes=#{sizeInBytes}
+            size_in_bytes=#{sizeInBytes},
+            item_id=#{itemId),
+            parent_id=#{parentId}
         WHERE id = #{id}
     </update>
 

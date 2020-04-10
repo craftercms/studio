@@ -24,6 +24,7 @@ public class SandboxItem {
 
     private String id;
     private String label;
+    private String parentId;
     private String contentTypeId;
     private String path;
     private String previewUrl;
@@ -47,6 +48,14 @@ public class SandboxItem {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
     }
 
     public String getLabel() {

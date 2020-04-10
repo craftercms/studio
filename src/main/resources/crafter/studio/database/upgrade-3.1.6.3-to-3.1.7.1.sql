@@ -18,13 +18,15 @@ call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'disabled', '
 
 call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'locale_code', 'VARCHAR(20) NULL') ;
 
-call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'translation_source_id', 'BIGINT(20) NULL') ;
+call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'translation_source_id', 'VARCHAR(255) NULL') ;
 
 call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'created_date', 'DATETIME NULL') ;
 
 call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'size_in_bytes', 'INT NULL') ;
 
 call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'item_id', 'VARCHAR(255) NULL') ;
+
+call addColumnIfNotExists('@crafter_schema_name', 'item_metadata', 'parent_id', 'VARCHAR(255) NULL') ;
 
 CREATE TABLE IF NOT EXISTS `item_translation` (
   `object_id` VARCHAR(255) NOT NULL,

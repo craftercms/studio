@@ -89,7 +89,26 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public int getChildrenByPathTotal(String siteId, String path, String locale) {
-        return itemMetadataDao.getChildrenByPathTotal(siteId, path, locale);
+        return itemMetadataDao.getChildrenByPathTotal(siteId, path, servicesConfig.getLevelDescriptorName(siteId),
+                locale);
+    }
+
+    @Override
+    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
+                                             String order,
+                                             int offset, int limit) {
+        List<SandboxItem> resultSet = itemMetadataDao.getChildrenById(siteId, parentId,
+                servicesConfig.getLevelDescriptorName(siteId), locale, sortStrategy, order, offset, limit);
+        GetChildrenResult toRet = processResultSet(siteId, resultSet);
+        toRet.setOffset(offset);
+        toRet.setTotal(getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId), locale));
+        return toRet;
+    }
+
+    @Override
+    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale) {
+        return itemMetadataDao.getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId),
+                locale);
     }
 
     public ContentRepository getContentRepository() {

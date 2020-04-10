@@ -273,10 +273,11 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
   `state`                   INT           NOT NULL DEFAULT 0,
   `disabled`                INT           NOT NULL DEFAULT 0,
   `locale_code`             VARCHAR(20)   NULL,
-  `translation_source_id`   BIGINT(20)    NULL,
+  `translation_source_id`   VARCHAR(255)  NULL,
   `created_date`            DATETIME      NULL,
   `size_in_bytes`           INT           NULL,
-  `item_id`                 VARCHAR(255)  NULL
+  `item_id`                 VARCHAR(255)  NULL,
+  `parent_id`               VARCHAR(255)  NULL
   PRIMARY KEY (`id`),
   UNIQUE `uq__im_site_path` (`site`, `path`(900))
 )

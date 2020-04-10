@@ -125,7 +125,11 @@ public abstract class QueryParameterNames {
 
     public static final String PARENT_PATH = "parentPath";
 
+    public static final String PARENT_ID = "parentId";
+
     public static final String LEVEL_DESCRIPTOR_PATH = "ldPath";
+
+    public static final String LEVEL_DESCRIPTOR_NAME = "ldName";
 
     private QueryParameterNames() { }
 }
