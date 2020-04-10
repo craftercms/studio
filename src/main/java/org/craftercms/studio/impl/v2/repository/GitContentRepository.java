@@ -459,6 +459,10 @@ public class GitContentRepository implements ContentRepository {
                 case ADD:
                     iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
                     latestCommit = iterable.iterator().next();
+                    if (latestCommit == null) {
+                        iterable = git.log().setMaxCount(1).call();
+                        latestCommit = iterable.iterator().next();
+                    }
                     commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
                     author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(CREATE, pathNew, commitTime, null,
@@ -467,6 +471,10 @@ public class GitContentRepository implements ContentRepository {
                 case MODIFY:
                     iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
                     latestCommit = iterable.iterator().next();
+                    if (latestCommit == null) {
+                        iterable = git.log().setMaxCount(1).call();
+                        latestCommit = iterable.iterator().next();
+                    }
                     commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
                     author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(UPDATE, pathNew, commitTime, null,
@@ -475,6 +483,10 @@ public class GitContentRepository implements ContentRepository {
                 case DELETE:
                     iterable = git.log().addPath(diffEntry.getOldPath()).setMaxCount(1).call();
                     latestCommit = iterable.iterator().next();
+                    if (latestCommit == null) {
+                        iterable = git.log().setMaxCount(1).call();
+                        latestCommit = iterable.iterator().next();
+                    }
                     commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
                     author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(DELETE, pathOld, commitTime, null,
@@ -483,6 +495,10 @@ public class GitContentRepository implements ContentRepository {
                 case RENAME:
                     iterable = git.log().addPath(diffEntry.getOldPath()).setMaxCount(1).call();
                     latestCommit = iterable.iterator().next();
+                    if (latestCommit == null) {
+                        iterable = git.log().setMaxCount(1).call();
+                        latestCommit = iterable.iterator().next();
+                    }
                     commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
                     author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(MOVE, pathOld, commitTime, pathNew, commitId.getName());
@@ -490,6 +506,10 @@ public class GitContentRepository implements ContentRepository {
                 case COPY:
                     iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
                     latestCommit = iterable.iterator().next();
+                    if (latestCommit == null) {
+                        iterable = git.log().setMaxCount(1).call();
+                        latestCommit = iterable.iterator().next();
+                    }
                     commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
                     author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(COPY, pathNew, commitTime, null, commitId.getName());
