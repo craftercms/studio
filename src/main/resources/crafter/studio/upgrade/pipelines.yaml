@@ -941,7 +941,7 @@ pipelines:
           basePath: '/config/engine'
           oldPath: '([^-]+)-(site-config|application-context|urlrewrite).(xml|conf)'
           newPath: 'env/$1/$2.$3'
-#        - type: versionFileUpgrader
+        - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
   blueprint:
