@@ -47,12 +47,13 @@ public interface MarketplaceServiceInternal {
      * Performs a search for all available plugins that match the given filters
      * @param type the type of plugins to search
      * @param keywords the keywords to filter plugins
+     * @param showIncompatible indicates if incompatible plugins should be returned
      * @param offset the offset for pagination
      * @param limit the limit for pagination
      * @return the result from the Marketplace
      * @throws MarketplaceException if there is any error performing the search
      */
-    Map<String, Object> searchPlugins(String type, String keywords, long offset, long limit)
+    Map<String, Object> searchPlugins(String type, String keywords, boolean showIncompatible, long offset, long limit)
         throws MarketplaceException;
 
     /**

@@ -151,8 +151,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
-    public Map<String, Object> searchPlugins(final String type, final String keywords, final long offset,
-                                             final long limit)
+    public Map<String, Object> searchPlugins(final String type, final String keywords, final boolean showIncompatible,
+                                             final long offset, final long limit)
         throws MarketplaceException {
 
         validate();
@@ -161,6 +161,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             .queryParam(Constants.PARAM_VERSION, version)
             .queryParam(Constants.PARAM_EDITION, edition)
             .queryParam(Constants.PARAM_SHOW_PENDING, showPending)
+            .queryParam(Constants.PARAM_SHOW_INCOMPATIBLE, showIncompatible)
             .queryParam(Constants.PARAM_OFFSET, offset)
             .queryParam(Constants.PARAM_LIMIT, limit);
 
