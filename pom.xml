@@ -637,7 +637,7 @@
                     </execution>
 
                     <execution>
-                        <id>yarn install react</id>
+                        <id>yarn install ui next</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -647,7 +647,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>yarn build react</id>
+                        <id>yarn build ui next</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
