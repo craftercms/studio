@@ -605,6 +605,7 @@
                     <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
+
                     <execution>
                         <id>install node and yarn</id>
                         <goals>
@@ -612,6 +613,7 @@
                         </goals>
                         <phase>prepare-package</phase>
                     </execution>
+
                     <execution>
                         <id>yarn install sass</id>
                         <goals>
@@ -633,8 +635,9 @@
                             <arguments>run build</arguments>
                         </configuration>
                     </execution>
+
                     <execution>
-                        <id>yarn install react</id>
+                        <id>yarn install ui next</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -644,7 +647,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>yarn build react</id>
+                        <id>yarn build ui next</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -673,6 +676,28 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>install guest deps</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build guest</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
                             <arguments>build</arguments>
                         </configuration>
                     </execution>
@@ -765,6 +790,7 @@
                         </overlay>
                     </overlays>
                     <webResources>
+
                         <!-- static-assets -->
                         <resource>
                             <directory>${studio.ui.path}static-assets</directory>
@@ -785,7 +811,6 @@
                             <filtering>false</filtering>
                             <targetPath>default-site/site</targetPath>
                         </resource>
-
 
                         <resource>
                             <directory>src/main/generated-resources/ftl</directory>
