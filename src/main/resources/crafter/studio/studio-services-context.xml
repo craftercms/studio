@@ -64,7 +64,7 @@
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="userService" ref="userService" />
-        <property name="contentRepositoryV2" ref="contentRepositoryV2" />
+        <property name="contentRepositoryV2" ref="contentRepository" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -121,7 +121,7 @@
         <property name="sitesServiceInternal" ref="sitesServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
-        <property name="contentRepositoryV2" ref="contentRepositoryV2" />
+        <property name="contentRepositoryV2" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -170,7 +170,7 @@
          <property name="studioConfiguration" ref="studioConfiguration" />
          <property name="publishRequestMapper" ref="publishRequestMapper" />
          <property name="auditServiceInternal" ref="auditServiceInternal" />
-         <property name="contentRepositoryV2" ref="contentRepositoryV2" />
+         <property name="contentRepositoryV2" ref="contentRepository" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -439,7 +439,7 @@
 
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-        <property name="contentRepository" ref="contentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"
@@ -471,6 +471,13 @@
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
+        <property name="contentRepository" ref="gitContentRepositoryV2" />
+    </bean>
+
+    <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="publishServiceInternal" ref="publishServiceInternal" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -746,7 +753,36 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
+
+    <bean id="crafter.environmentResolver" class="org.craftercms.commons.file.blob.impl.FixedEnvironmentResolver">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.blob.environment')}"/>
+    </bean>
+
+    <!-- Workaround for cyclic dependency issue (using the same bean name as core will mess the init order -->
+    <bean id="crafter.blobStoreResolver" class="org.craftercms.studio.impl.v2.repository.blob.NoopBlobStoreResolver"/>
+
+    <bean id="blobStoreResolver" class="org.craftercms.studio.impl.v2.repository.blob.StudioBlobStoreResolverImpl">
+        <property name="configModule" value="#{studioConfiguration.getProperty('studio.blob.config.module')}"/>
+        <property name="configPath" value="#{studioConfiguration.getProperty('studio.blob.config.path')}"/>
+        <property name="configurationResolver" ref="crafter.configurationResolver"/>
+        <property name="contentRepository" ref="gitContentRepository"/>
+    </bean>
+
+    <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
+        <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
+        <property name="clientFactory" ref="crafter.s3ClientFactory"/>
+        <property name="environmentResolver" ref="crafter.environmentResolver"/>
+    </bean>
+
     <bean id="contentRepository"
+          class="org.craftercms.studio.impl.v2.repository.blob.BlobAwareContentRepository">
+        <property name="fileExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
+        <property name="localRepositoryV1" ref="gitContentRepository"/>
+        <property name="localRepositoryV2" ref="gitContentRepositoryV2"/>
+        <property name="blobStoreResolver" ref="blobStoreResolver"/>
+    </bean>
+
+    <bean id="gitContentRepository" depends-on="databaseInitializer"
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
@@ -757,10 +793,11 @@
         <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
-    <bean id="contentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
+    <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="gitLogDao" ref="gitLogDao" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <!-- /////// -->
@@ -1041,36 +1078,49 @@
     <!-- ////////////////////////////////////// -->
     <!--         AWS                            -->
     <!-- ////////////////////////////////////// -->
+
+    <bean id="crafter.configurationResolver" class="org.craftercms.commons.config.ConfigurationResolverImpl">
+        <constructor-arg
+                value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}"/>
+        <constructor-arg
+                value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)}"/>
+        <constructor-arg
+                value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)}"/>
+        <constructor-arg ref="crafter.configurationReader"/>
+    </bean>
+
     <bean id="studioTranscoderProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesModule"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE)}"/>
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper">
-                <constructor-arg ref="crafter.configurationReader"/>
+                <constructor-arg ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <bean id="studioMediaConvertProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesModule"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE)}"/>
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertProfileMapper">
-                <constructor-arg ref="crafter.configurationReader"/>
+                <constructor-arg ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <bean id="studioS3ProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesModule"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE)}"/>
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
-        <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper">
-                <constructor-arg ref="crafter.configurationReader"/>
-            </bean>
-        </property>
+        <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
@@ -1118,11 +1168,13 @@
     <!--         BOX                            -->
     <!-- ////////////////////////////////////// -->
     <bean id="studioBoxProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesModule"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_MODULE)}"/>
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper">
-                <constructor-arg ref="crafter.configurationReader"/>
+                <constructor-arg ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
@@ -1136,11 +1188,13 @@
     <!--                 WEBDAV                 -->
     <!-- ////////////////////////////////////// -->
     <bean id="studioWebDavProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesModule"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_MODULE)}"/>
         <property name="profilesPath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMapper">
-                <constructor-arg ref="crafter.configurationReader"/>
+                <constructor-arg ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>

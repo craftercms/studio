@@ -611,16 +611,18 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private Set<String> getMandatoryParentsForPublishing(String site, List<String> paths) {
-        Set<String> possibleParents = calculatePossibleParents(paths);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ItemStateMapper.SITE_PARAM, site);
-        params.put(ItemStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
-        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
-        params.put(ItemStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
-        List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
         Set<String> toRet = new HashSet<String>();
-        toRet.addAll(result);
+        Set<String> possibleParents = calculatePossibleParents(paths);
+        if (!possibleParents.isEmpty()) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put(ItemStateMapper.SITE_PARAM, site);
+            params.put(ItemStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
+            Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
+            params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
+            params.put(ItemStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
+            List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
+            toRet.addAll(result);
+        }
         return toRet;
     }
 

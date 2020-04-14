@@ -106,7 +106,9 @@ public interface ContentRepository {
      * @param toPath   target path
      * @return Commit ID if successful, null otherwise
      */
-    Map<String, String> moveContent(String site, String fromPath, String toPath);
+    default Map<String, String> moveContent(String site, String fromPath, String toPath) {
+        return moveContent(site, fromPath, toPath, null);
+    }
 
     /**
      * move content from PathA to pathB

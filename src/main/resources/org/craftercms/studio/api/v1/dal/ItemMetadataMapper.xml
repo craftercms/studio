@@ -194,6 +194,67 @@
     </select>
 
     <select id="getSameCommitItems" parameterType="java.util.Map" resultType="String">
-        SELECT im1.path FROM item_metadata im1 INNER JOIN item_metadata im2 ON im1.commit_id = im2.commit_id WHERE im2.site=#{siteId} AND im2.path=#{path}
+        SELECT im1.path
+        FROM item_metadata im1
+        INNER JOIN item_metadata im2 ON im1.commit_id = im2.commit_id
+        WHERE im2.site=#{siteId} AND im2.path=#{path} AND im1.path NOT LIKE '${blobFilePattern}'
+    </select>
+
+    <select id="getContentDashboardTotal" parameterType="java.util.Map" resultType="int">
+        select count (1) from item_metadata where site=#{siteId}
+        <if test="path != null">
+            AND path = #{path}
+        </if>
+        <if test="modifier != null">
+            AND modifier = #{modifier}
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND modified BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND modified >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= modified
+            </when>
+        </choose>
+    </select>
+
+    <select id="getContentDashboard" parameterType="java.util.Map"
+            resultType="org.craftercms.studio.api.v1.dal.ItemMetadata">
+        select * from item_metadata where site=#{siteId}
+        <if test="path != null">
+            AND path RLIKE #{path}
+        </if>
+        <if test="modifier != null">
+            AND modifier = #{modifier}
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND modified BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND modified >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= modified
+            </when>
+        </choose>
+        <choose>
+            <when test="(sort != null and sort !=  '') and (order != null and order != '')">
+                ORDER BY ${sort} ${order}
+            </when>
+            <when test="(sort != null and sort !=  '') and (order == null or order == '')">
+                ORDER BY ${sort}
+            </when>
+            <when test="(sort == null or sort !=  '') and (order != null and order != '')">
+                ORDER BY modified ${order}
+            </when>
+            <otherwise>
+                ORDER BY modified DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{limit}
     </select>
 </mapper>

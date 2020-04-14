@@ -13,17 +13,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.impl.v2.repository.blob;
 
-import scripts.libs.CommonLifecycleApi;
+import org.craftercms.commons.config.ConfigurationProvider;
+import org.craftercms.commons.file.blob.BlobStore;
+import org.craftercms.commons.file.blob.BlobStoreResolver;
 
-def contentLifecycleParams =[:];
-contentLifecycleParams.site = site;
-contentLifecycleParams.path = path;
-contentLifecycleParams.user = user;
-contentLifecycleParams.contentType = contentType;
-contentLifecycleParams.contentLifecycleOperation = contentLifecycleOperation;
-contentLifecycleParams.contentLoader = contentLoader;
-contentLifecycleParams.applicationContext = applicationContext;
+/**
+ * Implementation of {@link BlobStoreResolver} that does nothing
+ *
+ * @author joseross
+ * @since 3.1.6
+ */
+public class NoopBlobStoreResolver implements BlobStoreResolver {
 
-def controller = new CommonLifecycleApi(contentLifecycleParams);
-controller.execute();
+    @Override
+    public BlobStore getById(ConfigurationProvider provider, String storeId) {
+        return null;
+    }
+
+}

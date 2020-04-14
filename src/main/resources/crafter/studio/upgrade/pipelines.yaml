@@ -748,6 +748,33 @@ pipelines:
             studio.security.publicUrls: >
               /static-assets/.+,
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.5.7
+      nextVersion: 3.1.6.1
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+              dest: configuration/samples/sample-blob-stores-config.xml
+          commitDetails: Add new sample file for blob stores
+        - type: dbVersionUpgrader
+    - currentVersion: 3.1.6.1
+      nextVersion: 3.1.6.2
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+              dest: configuration/samples/sample-blob-stores-config.xml
+          commitDetails: Update sample file for blob stores
+        - type: dbVersionUpgrader
+    - currentVersion: 3.1.6.2
+      nextVersion: 3.1.6.3
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-blob-stores-config.xml
+              dest: configuration/samples/sample-blob-stores-config.xml
+          commitDetails: Update sample file for blob stores
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -913,6 +940,16 @@ pipelines:
           commitDetails: Fix property for child-content datasources
           template: crafter/studio/upgrade/3.1.x/3.1.4.4/site/child-content-data-sources.xslt
           regex: config/studio/content-types/.+/form-definition\.xml
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.4.4
+      nextVersion: 3.1.7.1
+      operations:
+        - type: templateRenameUpgrader
+          commitDetails: Update structure for engine site config
+          basePath: '/config/engine'
+          oldPath: '([^-]+)-(site-config|application-context|urlrewrite).(xml|conf)'
+          newPath: 'env/$1/$2.$3'
         - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
@@ -1188,6 +1225,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 7
+        nextVersion: 8
+        operations:
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v8.xslt
+            commitDetails: Add new configuration file for blob stores
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
 
   site-config-tools:
     path: &site-config-tools '/config/studio/administration/site-config-tools.xml'
@@ -1278,6 +1325,16 @@ configurations:
             path: *site-config-tools
             template: crafter/studio/upgrade/3.1.x/config/site-config-tools/site-config-tools-v10.xslt
             commitDetails: Add internal-name control
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 10
+        nextVersion: 11
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.x/config/site-config-tools/site-config-tools-v11.xslt
+            commitDetails: Add transcoded-video-picker control
           - type: xsltFileUpgrader
             path: *site-config-tools
             template: crafter/studio/upgrade/update-version.xslt

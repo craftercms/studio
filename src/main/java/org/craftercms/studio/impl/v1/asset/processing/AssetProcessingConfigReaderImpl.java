@@ -83,7 +83,7 @@ public class AssetProcessingConfigReaderImpl implements AssetProcessingConfigRea
         throws AssetProcessingConfigurationException {
         ProcessorPipelineConfiguration mappedPipelineConfig = new ProcessorPipelineConfiguration();
         mappedPipelineConfig.setInputPathPattern(getRequiredStringProperty(pipelineConfig, INPUT_PATH_PATTERN_CONFIG_KEY));
-        mappedPipelineConfig.setKeepOriginal(pipelineConfig.getBoolean(KEEP_ORIGINAL_CONFIG_KEY));
+        mappedPipelineConfig.setKeepOriginal(pipelineConfig.getBoolean(KEEP_ORIGINAL_CONFIG_KEY, false));
 
         List<HierarchicalConfiguration> processorsConfig = getRequiredConfigurationsAt(pipelineConfig, PROCESSORS_CONFIG_KEY);
         List<ProcessorConfiguration> mappedProcessorsConfig = new ArrayList<>(processorsConfig.size());

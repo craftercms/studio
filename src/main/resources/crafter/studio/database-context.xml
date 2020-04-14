@@ -54,6 +54,11 @@
         <property name="dataSource" ref="dataSource"/>
         <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
         <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
+        <property name="configurationProperties">
+            <props>
+                <prop key="blobFilePattern">%.#{studioConfiguration.getProperty('studio.blob.file.extension')}</prop>
+            </props>
+        </property>
     </bean>
 
     <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">

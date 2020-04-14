@@ -76,6 +76,18 @@ studio.repo.pullFromRemote.conflict.notificationEnabled: false
 studio.repo.defaultIgnoreFile: crafter/studio/utils/default-gitignore
 
 ############################################################
+##                       Blob Store                       ##
+############################################################
+# Module of the blob store configuration file in the site
+studio.blob.config.module: studio
+# Location of the blob store configuration file in the site
+studio.blob.config.path: blob-stores-config.xml
+# Extension used for the blob files in the site
+studio.blob.file.extension: blob
+# Environment to use for all operations
+studio.blob.environment: preview
+
+############################################################
 ##                   Site Configuration                   ##
 ############################################################
 # Location where global configuration files are stored.
@@ -128,10 +140,16 @@ studio.configuration.default.dependencyResolver.configBasePath: /configuration/d
 studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
 # File name where dependency specific configuration is stored
 studio.configuration.site.dependencyResolver.configFileName: dependency/resolver-config.xml
+# Module of the AWS configuration
+studio.configuration.site.aws.configurationModule: studio
 # Repo path to read the AWS configuration
-studio.configuration.site.aws.configurationPath: /config/studio/aws/aws.xml
+studio.configuration.site.aws.configurationPath: aws/aws.xml
+# Module of the Box configuration
+studio.configuration.site.box.configurationModule: studio
 # Repo path to read the Box configuration
 studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
+# Module of the WebDAV configuration
+studio.configuration.site.webdav.configurationModule: studio
 # Repo path to read the WebDAV configuration
 studio.configuration.site.webdav.configurationPath: /config/studio/webdav/webdav.xml
 # Regex pattern for item specific dependencies
@@ -472,7 +490,7 @@ studio.db.testOnBorrow: true
 studio.db.validationQuery: SELECT 1
 # Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
 # Use a value less than or equal to 0 for no timeout.
-studio.db.validationInterval: 34000
+studio.db.validationInterval: 1
 # Base folder for the embedded database
 studio.db.basePath: ${sys:crafter.bin.dir}/dbms
 # Data folder for the embedded database
