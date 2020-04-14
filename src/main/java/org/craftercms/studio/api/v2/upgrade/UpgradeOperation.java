@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v2.upgrade;
 
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
@@ -33,7 +32,7 @@ public interface UpgradeOperation {
      * @param targetVersion the target version
      * @param config operation configuration
      */
-    void init(String sourceVersion, String targetVersion, HierarchicalConfiguration<ImmutableNode> config);
+    void init(String sourceVersion, String targetVersion, HierarchicalConfiguration<ImmutableNode> config) throws UpgradeException;
 
     /**
      * Performs a single upgrade operation.
