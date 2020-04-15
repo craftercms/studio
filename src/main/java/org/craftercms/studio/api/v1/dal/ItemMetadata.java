@@ -61,6 +61,8 @@ public class ItemMetadata implements Serializable {
     public static final String PROP_CREATED_DATE = "createdDate";
     public static final String PROP_LAST_MODIFIED_DATE = "lastModifiedDate";
     public static final String PROP_SIZE_IN_BYTES = "sizeInBytes";
+    public static final String PROP_ITEM_ID = "itemId";
+    public static final String PROP_PARENT_ID = "parentId";
 
 
     protected int id;
@@ -100,6 +102,8 @@ public class ItemMetadata implements Serializable {
     private String translationSourceId;
     private ZonedDateTime createdDate;
     private long sizeInBytes;
+    private String itemId;
+    private String parentId;
 
     public int getId() {
         return id;
@@ -397,5 +401,21 @@ public class ItemMetadata implements Serializable {
 
     public void setSizeInBytes(long sizeInBytes) {
         this.sizeInBytes = sizeInBytes;
+    }
+
+    public String getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
     }
 }

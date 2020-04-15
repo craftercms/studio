@@ -43,7 +43,6 @@
         <result property="sendEmail" column="sendemail"/>
         <result property="commitId" column="commit_id"/>
         <result property="submittedToEnvironment" column="submittedtoenvironment" />
-
         <result property="label" column="label" />
         <result property="contentTypeId" column="content_type_id" />
         <result property="previewUrl" column="preview_url"/>
@@ -55,6 +54,8 @@
         <result property="translationSourceId" column="translation_source_id" />
         <result property="createdDate" column="created_date" />
         <result property="sizeInBytes" column="size_in_bytes" />
+        <result property="itemId" column="item_id" />
+        <result property="parentId" column="parent_id" />
     </resultMap>
 
     <select id="getProperties" parameterType="java.util.Map" resultMap="ItemMetadataMap">
@@ -98,7 +99,9 @@
             <if test="localeCode != null">locale_code=#{localeCode},</if>
             <if test="translationSourceId != null">translation_source_id=#{translationSourceId},</if>
             <if test="createdDate != null">created_date=#{createdDate},</if>
-            <if test="sizeInBytes != null">size_in_bytes=#{sizeInBytes}</if>
+            <if test="sizeInBytes != null">size_in_bytes=#{sizeInBytes},</if>
+            <if test="itemId != null">item_id=#{itemId},</if>
+            <if test="parentId != null">parent_id=#{parentId}</if>
         </trim>
         WHERE site=#{site}
         AND path=#{path}
@@ -141,7 +144,9 @@
             <if test="localeCode != null">locale_code=#{localeCode},</if>
             <if test="translationSourceId != null">translation_source_id=#{translationSourceId},</if>
             <if test="createdDate != null">created_date=#{createdDate},</if>
-            <if test="sizeInBytes != null">size_in_bytes=#{sizeInBytes}</if>
+            <if test="sizeInBytes != null">size_in_bytes=#{sizeInBytes},</if>
+            <if test="itemId != null">item_id=#{itemId},</if>
+            <if test="parentId != null">parent_id=#{parent_id}</if>
         </trim>
         WHERE site=#{site}
         AND commit_id=#{commitId}
@@ -184,7 +189,7 @@
             translation_source_id=#{translationSourceId},
             created_date=#{createdDate},
             size_in_bytes=#{sizeInBytes},
-            item_id=#{itemId),
+            item_id=#{itemId},
             parent_id=#{parentId}
         WHERE id = #{id}
     </update>

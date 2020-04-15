@@ -41,6 +41,7 @@ public class SandboxItem {
     private ZonedDateTime lastModifiedDate;
     private String commitId;
     private long sizeInBytes;
+    private String itemId;
 
     public String getId() {
         return id;
@@ -202,5 +203,13 @@ public class SandboxItem {
 
     public void setSizeInBytes(long sizeInBytes) {
         this.sizeInBytes = sizeInBytes;
+    }
+
+    public String getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
     }
 }

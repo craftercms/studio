@@ -122,6 +122,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
+        <property name="itemMetadataServiceInternal" ref="itemMetadataServiceInternal" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -480,6 +481,11 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
+    </bean>
+
+    <bean id="itemMetadataServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.content.internal.ItemMetadataServiceInternalImpl">
+        <property name="itemMetadataDao" ref="itemMetadataDao" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -989,6 +995,7 @@
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="contentRepository" ref="contentRepository"/>
+        <property name="objectStateService" ref="cstudioObjectStateService" />
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

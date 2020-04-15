@@ -38,6 +38,8 @@
         <result property="lastModifiedDate" column="last_modified_date" />
         <result property="commitId" column="commit_id" />
         <result property="sizeInBytes" column="size_in_bytes" />
+        <result property="itemId" column="item_id" />
+        <result property="parentId" column="parent_id" />
     </resultMap>
 
     <select id="getChildrenByPath" resultMap="SandboxItemMap">
@@ -45,16 +47,29 @@
         union
         select * from item_metadata where site = #{siteId} and path = #{ldPath}
         union
-        (select * from item_metadata where site = #{siteId} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
-        #{path} + '/[^/]+$') limit #{offset},#{limit})
+        (select * from item_metadata where site = #{siteId} and path RLIKE ('${path}/[^/]+/index\.xml|' +
+        '${path}/(?!index\.xml)[^/]+$') and path not like '%/${ldName}' limit #{offset},#{limit})
     </select>
 
     <select id="getChildrenByPathTotal" resultType="Integer">
-        select count(1) from item_metadata where site = #{site} and path RLIKE (#{path} + '/[^/]+/index.xml|' +
-        #{path} + '/[^/]+$')
+        select count(1) from item_metadata where site = #{siteId} and path RLIKE ('${path}/[^/]+/index\.xml|' +
+        '${path}/(?!index\.xml)[^/]+$') and path not like '%/${ldName}'
     </select>
 
     <select id="getChildrenById" resultType="org.craftercms.studio.api.v2.dal.SandboxItem">
-        select
+        select * from item_metadata where site = #{siteId} and item_id = #{parentId}
+        union
+        select * from item_metadate where site = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
+        union
+        select * from item_metadata where site = #{site} and parent_id = #{parentId} and path not like '%/${ldName'
+    </select>
+
+    <select id="getChildrenByIdTotal" resultType="Integer">
+        select count(1) from item_metadata where site = #{siteId} and parent_id = #{parentId}
+        and path not like '%/${ldName}'
+    </select>
+
+    <select id="updateParentIdForSite" >
+        call update_parent_id(#{siteId})
     </select>
 </mapper>
