@@ -47,21 +47,19 @@
         union
         select * from item_metadata where site = #{siteId} and path = #{ldPath}
         union
-        (select * from item_metadata where site = #{siteId} and path RLIKE ('${path}/[^/]+/index\.xml|' +
-        '${path}/(?!index\.xml)[^/]+$') and path not like '%/${ldName}' limit #{offset},#{limit})
+        (select * from item_metadata where site = #{siteId} and path RLIKE ('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$') and path not like '%/${ldName}' limit #{offset},#{limit})
     </select>
 
     <select id="getChildrenByPathTotal" resultType="Integer">
-        select count(1) from item_metadata where site = #{siteId} and path RLIKE ('${path}/[^/]+/index\.xml|' +
-        '${path}/(?!index\.xml)[^/]+$') and path not like '%/${ldName}'
+        select count(1) from item_metadata where site = #{siteId} and path RLIKE ('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$') and path not like '%/${ldName}'
     </select>
 
     <select id="getChildrenById" resultType="org.craftercms.studio.api.v2.dal.SandboxItem">
         select * from item_metadata where site = #{siteId} and item_id = #{parentId}
         union
-        select * from item_metadate where site = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
+        select * from item_metadata where site = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
         union
-        select * from item_metadata where site = #{site} and parent_id = #{parentId} and path not like '%/${ldName'
+        select * from item_metadata where site = #{siteId} and parent_id = #{parentId} and path not like '%/${ldName}'
     </select>
 
     <select id="getChildrenByIdTotal" resultType="Integer">
