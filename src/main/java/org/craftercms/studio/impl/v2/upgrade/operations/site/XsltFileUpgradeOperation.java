@@ -16,23 +16,22 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeManagerImpl;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 /**
  * Implementation of {@link UpgradeOperation} that updates a single file using a XSLT template.
  *
  * <p>Supported YAML properties:
  * <ul>
- *     <li><strong>path</strong>: (required) the relative path to update in the repository</li>
+ *     <li><strong>path</strong>: (optional) the relative path to update in the repository</li>
  * </ul>
  * </p>
  *
@@ -58,8 +57,13 @@ public class XsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperation {
     @Override
     public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
         super.doInit(config);
-        if(StringUtils.isEmpty(path)) {
-            path = config.getString(CONFIG_KEY_PATH);
+        if (StringUtils.isEmpty(path)) {
+            String configPath = config.getString(CONFIG_KEY_PATH);
+            if (StringUtils.isNotEmpty(configPath)) {
+                path = configPath;
+            } else {
+                path = DefaultUpgradeManagerImpl.getCurrentFile();
+            }
         }
     }
 
