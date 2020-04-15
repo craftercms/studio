@@ -54,8 +54,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy,
                                                String order, int offset, int limit) {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
-        String ldPath = parentFolderPath + FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(siteId);
-        List<SandboxItem> resultSet = itemMetadataDao.getChildrenByPath(siteId, path, ldPath, parentFolderPath,
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
+        String ldPath = parentFolderPath + FILE_SEPARATOR + ldName;
+        List<SandboxItem> resultSet = itemMetadataDao.getChildrenByPath(siteId, path, ldPath, ldName, parentFolderPath,
                 locale, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);

@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.DmContentProcessor;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
+import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -31,6 +32,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -195,6 +197,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                 ContentItemTO contentItem =
                         contentService.getContentItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
+
+                ItemState parentItemState = objectStateService.getObjectState(site, parentItem.getUri());
                 Map<String, Object> properties = new HashMap<>();
 
                 properties.put(ItemMetadata.PROP_LABEL, contentItem.getInternalName());
@@ -213,6 +217,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 properties.put(ItemMetadata.PROP_CREATOR, user);
                 properties.put(ItemMetadata.PROP_MODIFIER, user);
                 properties.put(ItemMetadata.PROP_OWNER, user);
+                properties.put(ItemMetadata.PROP_PARENT_ID, parentItemState.getObjectId());
                 if (unlock) {
                     properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
                 } else {
@@ -402,6 +407,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ServicesConfig servicesConfig;
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
+    protected ObjectStateService objectStateService;
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
@@ -417,4 +423,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
+
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
 }

@@ -1,3 +1,19 @@
+CREATE PROCEDURE update_parent_id(IN siteId VARCHAR(50))
+BEGIN
+    DECLARE v_parent_id VARCHAR(255);
+    DECLARE v_parent_path VARCHAR(255);
+    DECLARE v_finished INTEGER DEFAULT 0;
+    DECLARE parent_cursor CURSOR FOR SELECT ist.object_id as parent_id, REPLACE(ist.path, '/index.xml', '') as parent_path FROM item_state ist WHERE ist.site = siteId;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
+    OPEN parent_cursor;
+    update_parent: LOOP
+        FETCH parent_cursor INTO v_parent_id, v_parent_path;
+        IF v_finished = 1 THEN LEAVE update_parent;
+        END IF;
+        UPDATE item_metadata SET parent_id = v_parent_id WHERE site = siteId and path RLIKE (concat(v_parent_path, '/[^/]+/index\.xml|', v_parent_path,'/(?!index\.xml)[^/]+$'));
+    end loop update_parent;
+end ;
+
 ALTER TABLE `item_metadata` CHANGE COLUMN `lockowner` `lock_owner` VARCHAR(255) ;
 
 ALTER TABLE `item_metadata` CHANGE COLUMN `modified` `last_modified_date` DATETIME ;

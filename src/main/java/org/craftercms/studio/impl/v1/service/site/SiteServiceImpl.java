@@ -111,6 +111,7 @@ import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.internal.ItemMetadataServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -195,6 +196,7 @@ public class SiteServiceImpl implements SiteService {
     protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
+    protected ItemMetadataServiceInternal itemMetadataServiceInternal;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -508,6 +510,7 @@ public class SiteServiceImpl implements SiteService {
                     }
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+                itemMetadataServiceInternal.calculateParentIdForSite(siteId);
 	        } catch(Exception e) {
 	            success = false;
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -577,88 +580,6 @@ public class SiteServiceImpl implements SiteService {
         InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
         contentRepository.writeContent(site, path, contentToWrite);
-    }
-
-	protected void createObjectStatesforNewSite(String site) {
-		createObjectStateNewSiteObjectFolder(site, FILE_SEPARATOR);
-	}
-
-	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
-		RepositoryItem[] children = contentRepository.getContentChildren(site, path);
-		for (RepositoryItem child : children) {
-			if (child.isFolder) {
-				createObjectStateNewSiteObjectFolder(site, child.path + FILE_SEPARATOR + child.name);
-			} else {
-				objectStateService.insertNewEntry(site, child.path + FILE_SEPARATOR + child.name);
-			}
-		}
-	}
-
-    protected void createObjectMetadataforNewSite(String site, String lastCommitId) {
-        createObjectMetadataNewSiteObjectFolder(site, FILE_SEPARATOR, lastCommitId);
-    }
-
-    protected void createObjectMetadataNewSiteObjectFolder(String site, String path, String lastCommitId) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
-        for (RepositoryItem child : children) {
-            if (child.isFolder) {
-                createObjectMetadataNewSiteObjectFolder(site, child.path + FILE_SEPARATOR + child.name,
-                        lastCommitId);
-            } else {
-                objectMetadataManager.insertNewObjectMetadata(site, child.path + FILE_SEPARATOR + child.name);
-                objectMetadataManager.updateCommitId(site, child.path + FILE_SEPARATOR + child.name,
-                        lastCommitId);
-            }
-        }
-    }
-
-	protected void extractDependenciesForNewSite(String site) {
-        Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-        extractDependenciesItemForNewSite(site, FILE_SEPARATOR, globalDeps);
-	}
-
-    private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, fullPath);
-        for (RepositoryItem child : children) {
-            if (child.isFolder) {
-                extractDependenciesItemForNewSite(site, child.path + FILE_SEPARATOR + child.name, globalDeps);
-            } else {
-                String childPath = child.path + FILE_SEPARATOR + child.name;
-
-                if (childPath.endsWith(DmConstants.XML_PATTERN)) {
-                    try {
-                        dependencyService.upsertDependencies(site, childPath);
-                    } catch (ContentNotFoundException e) {
-                        logger.error("Failed to extract dependencies for document: site " + site + " path " +
-                                childPath, e);
-                    } catch (ServiceLayerException e) {
-                        logger.error("Failed to extract dependencies for document: site " + site + " path " +
-                                childPath, e);
-                    }
-                } else {
-
-                    boolean isCss = childPath.endsWith(DmConstants.CSS_PATTERN);
-                    boolean isJs = childPath.endsWith(DmConstants.JS_PATTERN);
-                    List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-                    boolean isTemplate = false;
-                    for (String templatePattern : templatePatterns) {
-                        Pattern pattern = Pattern.compile(templatePattern);
-                        Matcher matcher = pattern.matcher(childPath);
-                        if (matcher.matches()) {
-                            isTemplate = true;
-                            break;
-                        }
-                    }
-                    try {
-                        if (isCss || isJs || isTemplate) {
-                            dependencyService.upsertDependencies(site, childPath);
-                        }
-                    } catch (ServiceLayerException e) {
-                        logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
-                    }
-                }
-            }
-        }
     }
 
     private void addDefaultGroupsForNewSite(String siteId) {
@@ -855,6 +776,7 @@ public class SiteServiceImpl implements SiteService {
                     }
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+                itemMetadataServiceInternal.calculateParentIdForSite(siteId);
             } catch(Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -1018,6 +940,7 @@ public class SiteServiceImpl implements SiteService {
                     }
 
                     objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+                    itemMetadataServiceInternal.calculateParentIdForSite(siteId);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -2103,5 +2026,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
+    }
+
+    public ItemMetadataServiceInternal getItemMetadataServiceInternal() {
+        return itemMetadataServiceInternal;
+    }
+
+    public void setItemMetadataServiceInternal(ItemMetadataServiceInternal itemMetadataServiceInternal) {
+        this.itemMetadataServiceInternal = itemMetadataServiceInternal;
     }
 }

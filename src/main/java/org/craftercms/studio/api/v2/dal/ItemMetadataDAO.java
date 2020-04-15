@@ -50,7 +50,8 @@ public interface ItemMetadataDAO {
      * @return list of items (parent, level descriptor, children)
      */
     List<SandboxItem> getChildrenByPath(@Param(SITE_ID) String siteId, @Param(PARENT_PATH) String parentPath,
-                                        @Param(LEVEL_DESCRIPTOR_PATH) String ldPath, @Param(PATH) String path,
+                                        @Param(LEVEL_DESCRIPTOR_PATH) String ldPath,
+                                        @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(PATH) String path,
                                         @Param(LOCALE_CODE) String localeCode, @Param(SORT) String sort,
                                         @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
@@ -95,4 +96,10 @@ public interface ItemMetadataDAO {
      */
     int getChildrenByIdTotal(@Param(SITE_ID) String siteId, @Param(PARENT_ID) String parentId,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode);
+
+    /**
+     * Update parent ID for site
+     * @param siteId site identifier
+     */
+    void updateParentIdForSite(@Param(SITE_ID) String siteId);
 }
