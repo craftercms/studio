@@ -1131,11 +1131,9 @@ configurations:
         nextVersion: 12
         operations:
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/3.1.x/3.1.7.1/site/permission-mappings-config.xslt
             commitDetails: Added get_children permission
           - type: xsltFileUpgrader
-            path: *permission-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
 
   role-mappings-config:
