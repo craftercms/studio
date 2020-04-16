@@ -605,7 +605,6 @@ studio.cors.credentials: true
 # Value for the Access-Control-Max-Age header
 studio.cors.maxage: -1
 
-
 ################################################################
 ##                           Search                           ##
 ################################################################
