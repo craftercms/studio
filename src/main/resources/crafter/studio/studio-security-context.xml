@@ -26,6 +26,21 @@
         http://www.springframework.org/schema/ldap
         http://www.springframework.org/schema/ldap/spring-ldap.xsd">
 
+    <security:http pattern=""
+                   entry-point-ref="loginUrlAuthenticationEntryPoint"
+                   authentication-manager-ref="studioAuthenticationManager"
+                   access-decision-manager-ref="studioAccessDecisionManager"
+                   create-session="stateless">
+        <security:access-denied-handler error-page="/login?redirect=test"/>
+        <security:intercept-url pattern="/" access="isAuthenticated()" />
+
+    </security:http>
+
+    <bean id="loginUrlAuthenticationEntryPoint"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioLoginUrlAuthentocationEntryPoint">
+        <constructor-arg name="loginFormUrl" value="/login" />
+    </bean>
+
     <security:http pattern="/**"
             entry-point-ref="studioAuthenticationEntryPoint"
             authentication-manager-ref="studioAuthenticationManager"
@@ -39,7 +54,10 @@
         <security:access-denied-handler ref="studioAccessDeniedHandler"/>
         <security:csrf disabled="true"/>
         <security:custom-filter ref="studioAuthenticationTokenProcessingFilter" position="PRE_AUTH_FILTER" />
+        <!--security:intercept-url pattern="/" access="isAuthenticated()" / -->
         <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
+        <security:form-login login-page="/login"
+                             authentication-success-handler-ref="studioRedirectAuthenticationSuccessHandler"/>
     </security:http>
 
     <bean id="studioAuthenticationTokenProcessingFilter"
@@ -85,7 +103,13 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
-    <bean id="studioAccessDeniedHandler" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDeniedHandler"/>
+    <bean id="studioAccessDeniedHandler" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDeniedHandler">
+    </bean>
+
+    <bean id="studioRedirectAuthenticationSuccessHandler"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioRedirectAuthenticationSuccessHandler">
+        <property name="targetUrlParameter" value="redirect"/>
+    </bean>
 
     <!-- CSRF -->
     <bean id="crafter.csrfTokenRepository" class="org.springframework.security.web.csrf.CookieCsrfTokenRepository">
