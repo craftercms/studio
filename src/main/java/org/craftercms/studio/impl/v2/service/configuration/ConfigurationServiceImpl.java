@@ -329,6 +329,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                             .replaceAll(PATTERN_MODULE, module)
                             .replaceAll(PATTERN_ENVIRONMENT, environment);
             configPath = Paths.get(configBasePath, path).toString();
+            if (!contentService.contentExists(siteId, configPath)) {
+                configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                        .replaceAll(PATTERN_MODULE, module);
+                configPath = Paths.get(configBasePath, path).toString();
+            }
         } else {
             String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                     .replaceAll(PATTERN_MODULE, module);
