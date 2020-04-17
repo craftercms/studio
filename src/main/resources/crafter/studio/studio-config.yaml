@@ -147,11 +147,11 @@ studio.configuration.site.aws.configurationPath: aws/aws.xml
 # Module of the Box configuration
 studio.configuration.site.box.configurationModule: studio
 # Repo path to read the Box configuration
-studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
+studio.configuration.site.box.configurationPath: box/box.xml
 # Module of the WebDAV configuration
 studio.configuration.site.webdav.configurationModule: studio
 # Repo path to read the WebDAV configuration
-studio.configuration.site.webdav.configurationPath: /config/studio/webdav/webdav.xml
+studio.configuration.site.webdav.configurationPath: webdav/webdav.xml
 # Regex pattern for item specific dependencies
 studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*,/site/components/item/.*,/static-assets/item/.*
 # Repo path to the asset processing config
