@@ -16,15 +16,19 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
-public class StudioLoginUrlAuthentocationEntryPoint extends LoginUrlAuthenticationEntryPoint {
+public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
     private static final String PARAM_REDIRECT = "redirect";
 
@@ -33,15 +37,32 @@ public class StudioLoginUrlAuthentocationEntryPoint extends LoginUrlAuthenticati
      *                     relative to the web-app context path (include a leading {@code /}) or an absolute
      *                     URL.
      */
-    public StudioLoginUrlAuthentocationEntryPoint(String loginFormUrl) {
+    public StudioLoginUrlAuthenticationEntryPoint(String loginFormUrl) {
         super(loginFormUrl);
     }
 
     @Override
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
 
-        String redirectParamValue = UrlUtils.buildRequestUrl(request);
+        String redirectParamValue = request.getContextPath() + UrlUtils.buildRequestUrl(request);
         String redirect = super.determineUrlToUseForThisRequest(request, response, exception);
         return UriComponentsBuilder.fromPath(redirect).queryParam(PARAM_REDIRECT, redirectParamValue).toUriString();
     }
+
+    @Override
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+        String requestUrl = UrlUtils.buildRequestUrl(request);
+        if (StringUtils.startsWith(requestUrl, "/api/")) {
+            // This is invoked when user tries to access a secured REST resource without supplying any credentials
+            // We should just send a 401 Unauthorized response because there is no 'login page' to redirect to
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        } else {
+            super.commence(request, response, authException);
+        }
+    }
+
+    protected SecurityService securityService;
+
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 }
