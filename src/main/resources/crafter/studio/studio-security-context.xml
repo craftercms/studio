@@ -71,10 +71,6 @@
 
     <bean id="studioAuthenticationProvider" class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationProvider"/>
 
-    <bean id="studioAuthenticationEntryPoint" class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationEntryPoint">
-        <property name="securityService" ref="cstudioSecurityService"/>
-    </bean>
-
     <bean id="studioUserDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl">
         <property name="userDAO" ref="userDAO"/>
     </bean>
