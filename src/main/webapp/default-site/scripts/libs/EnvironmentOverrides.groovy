@@ -69,7 +69,7 @@ class EnvironmentOverrides {
             result.language = language
 
             if(result.user == null){
-                response.sendRedirect("/studio/#/login")
+                response.sendRedirect("/studio/login")
             }else{
                 try{
                     def roles = SecurityServices.getUserRoles(context, result.site, result.user)
