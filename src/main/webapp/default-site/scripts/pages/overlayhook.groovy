@@ -20,3 +20,6 @@ import scripts.libs.EnvironmentOverrides
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
+
+response.setContentType('application/javascript')
+response.setCharacterEncoding('utf-8')
