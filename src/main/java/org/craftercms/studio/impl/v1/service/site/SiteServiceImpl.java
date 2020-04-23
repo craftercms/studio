@@ -1619,9 +1619,9 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Syncing database lastCommitId for site: " + site);
 
 	    // Update database
-        String lastCommitId = contentRepository.getRepoLastCommitId(site);
-        logger.debug("Update last commit id " + lastCommitId + " for site " + site);
-        updateLastCommitId(site, lastCommitId);
+        logger.debug("Update last commit id " + repoLastCommitId + " for site " + site);
+        updateLastCommitId(site, repoLastCommitId);
+        updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
         // Sync all preview deployers
         if (isPreviewSyncNeeded || diverged) {
             try {
@@ -1635,7 +1635,7 @@ public class SiteServiceImpl implements SiteService {
 	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " +
                 (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId) + " with a final result of: " +
                 toReturn);
-        logger.info("Last commit ID for site: " + site + " is " + lastCommitId);
+        logger.info("Last commit ID for site: " + site + " is " + repoLastCommitId);
 
         if (!toReturn) {
 	        // Some operations failed during sync database from repo
