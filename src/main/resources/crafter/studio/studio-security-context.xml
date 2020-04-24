@@ -26,8 +26,12 @@
         http://www.springframework.org/schema/ldap
         http://www.springframework.org/schema/ldap/spring-ldap.xsd">
 
+    <security:http pattern="/login" security="none" />
+
+    <security:http request-matcher-ref="publicUrlMatcher" security="none"/>
+
     <security:http pattern="/**"
-            entry-point-ref="studioAuthenticationEntryPoint"
+            entry-point-ref="studioLoginUrlAuthenticationEntryPoint"
             authentication-manager-ref="studioAuthenticationManager"
             access-decision-manager-ref="studioAccessDecisionManager"
             create-session="stateless">
@@ -39,8 +43,20 @@
         <security:access-denied-handler ref="studioAccessDeniedHandler"/>
         <security:csrf disabled="true"/>
         <security:custom-filter ref="studioAuthenticationTokenProcessingFilter" position="PRE_AUTH_FILTER" />
+        <security:intercept-url pattern="**" access="isAuthenticated()" />
         <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
+        <security:form-login login-page="/login"
+                             authentication-success-handler-ref="studioRedirectAuthenticationSuccessHandler"/>
     </security:http>
+
+    <bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">
+        <constructor-arg value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SECURITY_PUBLIC_URLS)}"/>
+    </bean>
+
+    <bean id="studioLoginUrlAuthenticationEntryPoint"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioLoginUrlAuthenticationEntryPoint">
+        <constructor-arg name="loginFormUrl" value="/login" />
+    </bean>
 
     <bean id="studioAuthenticationTokenProcessingFilter"
           class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationTokenProcessingFilter" init-method="init">
@@ -54,10 +70,6 @@
     </security:authentication-manager>
 
     <bean id="studioAuthenticationProvider" class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationProvider"/>
-
-    <bean id="studioAuthenticationEntryPoint" class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationEntryPoint">
-        <property name="securityService" ref="cstudioSecurityService"/>
-    </bean>
 
     <bean id="studioUserDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl">
         <property name="userDAO" ref="userDAO"/>
@@ -85,7 +97,13 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
-    <bean id="studioAccessDeniedHandler" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDeniedHandler"/>
+    <bean id="studioAccessDeniedHandler" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDeniedHandler">
+    </bean>
+
+    <bean id="studioRedirectAuthenticationSuccessHandler"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioRedirectAuthenticationSuccessHandler">
+        <property name="targetUrlParameter" value="redirect"/>
+    </bean>
 
     <!-- CSRF -->
     <bean id="crafter.csrfTokenRepository" class="org.springframework.security.web.csrf.CookieCsrfTokenRepository">
