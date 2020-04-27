@@ -186,4 +186,7 @@
     <bean id="batchXsltUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.site.BatchXsltFileUpgradeOperation"/>
 
+    <bean id="templateRenameUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.file.TemplateRenameUpgradeOperation"/>
+
 </beans>
