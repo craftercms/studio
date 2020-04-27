@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
@@ -57,6 +58,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository} and
@@ -100,7 +102,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     protected boolean isFolder(String path) {
-        return StringUtils.isEmpty(FilenameUtils.getExtension(path));
+        return isEmpty(FilenameUtils.getExtension(path));
     }
 
     protected String getOriginalPath(String path) {
@@ -117,9 +119,14 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected StudioBlobStore getBlobStore(String site, String... paths)
             throws ServiceLayerException, ConfigurationException, IOException {
+        if (isEmpty(site)) {
+            return null;
+        }
+
         if (ArrayUtils.isEmpty(paths)) {
             throw new IllegalArgumentException("At least one path needs to be provided");
         }
+
         return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
     }
 
@@ -175,20 +182,20 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public String writeContent(String site, String path, InputStream content) {
+    public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
         logger.debug("Writing {0} in site {1}", path, site);
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
                 store.writeContent(site, normalize(path), content);
-                Blob reference = store.getReference(site, normalize(path));
+                Blob reference = store.getReference(normalize(path));
                 return localRepositoryV1.writeContent(site, getPointerPath(path),
                         new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
             }
             return localRepositoryV1.writeContent(site, path, content);
         } catch (Exception e) {
             logger.error("Error writing content {0} in site {1}", e, path, site);
-            return null;
+            throw new ServiceLayerException(e);
         }
     }
 
@@ -271,11 +278,19 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                 .toArray(new RepositoryItem[children.length]);
     }
 
-    // TODO: Add support for versioned files in blob store?
-
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
-        return localRepositoryV1.getContentVersionHistory(site, path);
+        logger.debug("Getting version history for {0} in site {1}", path, site);
+        try {
+            StudioBlobStore store = getBlobStore(site, path);
+            if (store != null) {
+                return localRepositoryV1.getContentVersionHistory(site, getPointerPath(path));
+            }
+            return localRepositoryV1.getContentVersionHistory(site, path);
+        } catch (Exception e) {
+            logger.error("Error getting version history for {0} in site {1}", e, path, site);
+            return null;
+        }
     }
 
     @Override
@@ -328,8 +343,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                                                             ZonedDateTime fromDate, ZonedDateTime toDate,
                                                             DmFilterWrapper dmFilterWrapper, String filterType,
                                                             int numberOfItems) {
-        return localRepositoryV1.getDeploymentHistory(site, environmentNames, fromDate, toDate, dmFilterWrapper,
-                filterType, numberOfItems);
+        List<DeploymentSyncHistory> histories = localRepositoryV1.getDeploymentHistory(site, environmentNames,
+                fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
+
+        return histories.stream()
+                .peek(history -> history.setPath(getOriginalPath(history.getPath())))
+                .collect(toList());
     }
 
     @Override
@@ -550,4 +569,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                 .collect(toList());
     }
 
+    @Override
+    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
+                                                            String publisher, ZonedDateTime fromDate,
+                                                            ZonedDateTime toDate, int limit) {
+        return localRepositoryV2.getPublishingHistory(siteId, environment, path, publisher, fromDate, toDate, limit);
+    }
 }

@@ -16,11 +16,12 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.apache.commons.io.FilenameUtils;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
@@ -35,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.mockito.Mockito.*;
@@ -299,6 +301,36 @@ public class BlobAwareContentRepositoryTest {
 
         verify(local).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(localItem), "local file should have been published");
+    }
+
+    @Test
+    public void getDeploymentHistoryTest() {
+        DeploymentSyncHistory history = new DeploymentSyncHistory();
+        history.setPath(POINTER_PATH);
+
+        when(local.getDeploymentHistory(eq(SITE), any(), any(), any(), any(), any(), anyInt()))
+                .thenReturn(singletonList(history));
+
+        List<DeploymentSyncHistory> result =
+                proxy.getDeploymentHistory(SITE, singletonList(ENV), now(), now(), null, null, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(result.get(0).getPath(), ORIGINAL_PATH);
+    }
+
+    @Test
+    public void getContentVersionHistoryTest() {
+        VersionTO version1 = new VersionTO();
+        VersionTO version2 = new VersionTO();
+
+        when(local.getContentVersionHistory(eq(SITE), eq(POINTER_PATH)))
+                .thenReturn(new VersionTO[] { version1, version2 });
+
+        VersionTO[] versions = proxy.getContentVersionHistory(SITE, ORIGINAL_PATH);
+
+        assertNotNull(versions);
+        assertEquals(versions.length, 2);
     }
 
 }

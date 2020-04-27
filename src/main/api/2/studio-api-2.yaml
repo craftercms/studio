@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.6.4'
+  version: '3.1.7.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1691,6 +1691,18 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
                   auditLog:
                     type: array
                     items:
@@ -3041,6 +3053,11 @@ paths:
           description: number of children to return
           schema:
             type: integer
+        - name: keyword
+          in: query
+          description: filter children by keyword
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -3051,10 +3068,26 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  items:
+                  parent:
+                    $ref: '#/components/schemas/SandboxItem'
+                  levelDescriptor:
+                    $ref: '#/components/schemas/SandboxItem'
+                  children:
                     type: array
                     items:
                       $ref: '#/components/schemas/SandboxItem'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3117,6 +3150,11 @@ paths:
           description: number of children to return
           schema:
             type: integer
+        - name: keyword
+          in: query
+          description: filter children by keyword
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -3127,10 +3165,26 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  items:
+                  parent:
+                    $ref: '#/components/schemas/SandboxItem'
+                  levelDescriptor:
+                    $ref: '#/components/schemas/SandboxItem'
+                  children:
                     type: array
                     items:
                       $ref: '#/components/schemas/SandboxItem'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3330,6 +3384,18 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
                   items:
                     type: array
                     items:
@@ -3399,6 +3465,18 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
                   packages:
                     type: array
                     items:
@@ -3559,7 +3637,6 @@ paths:
               - modifier - user that last modified item
               - modifiedDate - data and time of last modification of an item
               - contentType - content type of an item
-          required: true
           schema:
             type: string
         - name: order
@@ -3568,11 +3645,6 @@ paths:
           schema:
             type: string
             format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -3583,26 +3655,39 @@ paths:
           description: number of results to return, default 10
           schema:
             type: integer
-        - name: filters
+        - name: filters.path
           in: query
-          description: >-
-            list of filters to apply on result set
-            Filter:
-              - path - filter items by regular expression applied on path
-              - modifier - filter items by username(s)
-              - modifiedDateFrom - filter items by modified date setting lower boundary for date range
-              - modifiedDateTo - filter items by modified date setting upper boundary for date range
-              - contentType - filter items by content types
-              - state - filter items by state (bitmap state values)
+          description: filter items by path regular expression
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
+            type: string
+        - name: filters.modifier
+          in: query
+          description: filter items by username that modified content
+          schema:
+            type: string
+        - name: filters.modifiedDateFrom
+          in: query
+          description: filter items by modified date setting lower boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.modifiedDateTo
+          in: query
+          description: filter items by modified date setting upper boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.contentType
+          in: query
+          description: filter items by contentTypes
+          schema:
+            type: string
+        - name: filters.state
+          in: query
+          description: filter items by state (bitmap state values)
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
@@ -3613,8 +3698,22 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/DashboardItem'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DashboardItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3651,7 +3750,6 @@ paths:
               - publishedDate - data and time when item was published
               - environment - environment where item was published
               - content type - content type of an item
-          required: true
           schema:
             type: string
         - name: order
@@ -3660,11 +3758,6 @@ paths:
           schema:
             type: string
             format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -3675,27 +3768,44 @@ paths:
           description: number of results to return, default 10
           schema:
             type: integer
-        - name: filters
+        - name: filters.path
           in: query
-          description: >-
-            list of filters to apply on result set
-            Filter:
-              - path - filter items by path
-              - publisher - filter items by username(s)
-              - publishedDateFrom - filter items by published date setting lower boundary for date range
-              - publishedDateTo - filter items by published date setting upper boundary for date range
-              - content type - filter items by content types
-              - environment - filter items by environment where published
-              - state - filter items by state (bitmap state values)
+          description: filter items by path regular expression
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                value:
-                  type: string
+            type: string
+        - name: filters.publisher
+          in: query
+          description: filter items by username that published content
+          schema:
+            type: string
+        - name: filters.publishedDateFrom
+          in: query
+          description: filter items by published date setting lower boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.publishedDateTo
+          in: query
+          description: filter items by published date setting upper boundary for date range
+          schema:
+            type: string
+            format: datetime
+        - name: filters.environment
+          in: query
+          description: filter items by environment where published
+          schema:
+            type: string
+        - name: filters.contentType
+          in: query
+          description: filter items by contentTypes
+          schema:
+            type: string
+        - name: filters.state
+          in: query
+          description: filter items by state (bitmap state values)
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
@@ -3706,8 +3816,22 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/DashboardItem'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishingDashboardItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3743,7 +3867,6 @@ paths:
               - operation - operation that was audited
               - operationTimestamp - timestamp when operation was executed
               - target - target upon which operation was executed
-          required: true
           schema:
             type: string
         - name: order
@@ -3752,11 +3875,6 @@ paths:
           schema:
             type: string
             format: ASC, DESC
-        - name: groupBy
-          in: query
-          description: group data by column
-          schema:
-            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -3806,8 +3924,22 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/AuditDashboardItem'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditDashboardItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3844,7 +3976,6 @@ paths:
 #              - scheduledDate - data and time item is scheduled
 #              - environment - environment where item is scheduled
 #              - contentType - content type of an item
-#          required: true
 #          schema:
 #            type: string
 #        - name: order
@@ -3853,11 +3984,6 @@ paths:
 #          schema:
 #            type: string
 #            format: ASC, DESC
-#        - name: groupBy
-#          in: query
-#          description: group data by column
-#          schema:
-#            type: string
 #        - name: offset
 #          in: query
 #          description: offset of the first result item, default 0
@@ -3899,8 +4025,22 @@ paths:
 #                properties:
 #                  response:
 #                    $ref: '#/components/schemas/ApiResponse'
-#                  item:
-#                    $ref: '#/components/schemas/DashboardItem'
+#                  total:
+#                    type: integer
+#                    format: int32
+#                    description: Total records in the system
+#                  offset:
+#                    type: integer
+#                    format: int32
+#                    description: Offset of first record in this response
+#                  limit:
+#                    type: integer
+#                    format: int32
+#                    description: Number of records returned in this response
+#                  items:
+#                    type: array
+#                    items:
+#                      $ref: '#/components/schemas/DashboardItem'
 #        '400':
 #          $ref: '#/components/responses/BadRequest'
 #        '401':
@@ -3975,6 +4115,18 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
                   items:
                     type: array
                     items:
@@ -4678,7 +4830,12 @@ components:
               description: The status of this version of the plugin (possible values are 'PENDING' approval and 'APPROVED')
               type: string
             source:
+              description: The source of the plugin
               type: string
+            compatible:
+              description: Indicates if the plugin is compatible
+              type: boolean
+
 
     MarketplaceRemotePlugin:
       allOf:
@@ -5573,6 +5730,29 @@ components:
         target:
           type: string
           description: target upon which operation was executed
+
+    PublishingDashboardItem:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site identifier
+        label:
+          type: string
+          description: user friendly name of item
+        path:
+          type: string
+          description: path of the item
+        publisher:
+          type: string
+          description: user that published item
+        publishedDate:
+          type: string
+          format: datetime
+          description: date and time when item was published
+        environment:
+          type: string
+          description: environment where item was published
 
     DashboardItem:
       type: object

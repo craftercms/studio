@@ -52,6 +52,7 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -276,7 +277,10 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                 mergeCommand.setCommit(true);
                 mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
                 mergeCommand.setStrategy(MergeStrategy.THEIRS);
-                mergeCommand.call();
+                MergeResult result = mergeCommand.call();
+                if (result.getMergeStatus().isSuccessful()) {
+                    deploymentService.syncAllContentToPreview(siteId, true);
+                }
             }
         }
 

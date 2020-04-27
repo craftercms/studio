@@ -18,12 +18,13 @@ package org.craftercms.studio.impl.v1.util.config.profiles;
 
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationMapper;
+import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.config.profiles.ConfigurationProfile;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.beans.factory.annotation.Required;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Reads a configuration profiles file for a specific site and loads a specific {@link ConfigurationProfile}.
@@ -32,9 +33,15 @@ import java.nio.charset.StandardCharsets;
  */
 public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
 
+    private String profilesModule;
     private String profilesPath;
     private ConfigurationMapper<T> profileMapper;
     private ContentService contentService;
+
+    @Required
+    public void setProfilesModule(String profilesModule) {
+        this.profilesModule = profilesModule;
+    }
 
     @Required
     public void setProfilesPath(String profilesPath) {
@@ -53,11 +60,39 @@ public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
 
     public T loadProfile(String site, String profileId) throws ConfigurationException {
         try (InputStream is = contentService.getContent(site, profilesPath)) {
-            return profileMapper.readConfig(is, StandardCharsets.UTF_8.name(), profileId);
+            return profileMapper.readConfig(new ConfigurationProviderImpl(site), profilesModule,
+                    profilesPath, null, profileId);
         } catch (Exception e) {
             throw new ConfigurationException("Error while loading profile " + profileId + " from configuration at " +
-                                             profileId, e);
+                                             profilesPath, e);
         }
+    }
+
+    /**
+     *  Internal class to provide access to configuration files
+     */
+    private class ConfigurationProviderImpl implements ConfigurationProvider {
+
+        private String site;
+
+        public ConfigurationProviderImpl(String site) {
+            this.site = site;
+        }
+
+        @Override
+        public boolean configExists(String path) {
+            return SiteAwareConfigProfileLoader.this.contentService.contentExists(site, path);
+        }
+
+        @Override
+        public InputStream getConfig(String path) throws IOException {
+            try {
+                return SiteAwareConfigProfileLoader.this.contentService.getContent(site, path);
+            } catch (Exception e) {
+                throw new IOException("Error reading file", e);
+            }
+        }
+
     }
 
 }

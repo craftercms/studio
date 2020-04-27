@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -27,9 +28,12 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.springframework.dao.DuplicateKeyException;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 
 public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
@@ -263,6 +267,60 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         return itemMetadataMapper.countAllItems();
     }
 
+    @Override
+    public int getContentDashboardTotal(String siteId, String path, String modifier, String contentType, long state,
+                                        ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("path", path);
+        params.put("modifier", modifier);
+        params.put("contentType", contentType);
+        params.put("dateFrom", dateFrom);
+        params.put("dateTo", dateTo);
+        return itemMetadataMapper.getContentDashboardTotal(params);
+    }
+
+    @Override
+    public List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
+                                                  long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                  String sortBy, String order, int offset, int limit) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("path", path);
+        params.put("modifier", modifier);
+        params.put("contentType", contentType);
+        params.put("dateFrom", dateFrom);
+        params.put("dateTo", dateTo);
+        if (StringUtils.isNotEmpty(sortBy)) {
+            String sortParam = "";
+            switch (sortBy) {
+                case "label":
+                    sortParam = "label";
+                    break;
+                case "path":
+                    sortParam = "path";
+                    break;
+                case "modifier":
+                    sortParam = "modifier";
+                    break;
+                case "modifiedDate":
+                    sortParam = "modified";
+                    break;
+                case "contentType":
+                    sortParam = "content_type";
+                    break;
+                default:
+                    break;
+            }
+            if (StringUtils.isNotEmpty(sortParam)) {
+                params.put(SORT, sortParam);
+            }
+        }
+        params.put("order", order);
+        params.put("offset", offset);
+        params.put("limit", limit);
+        return itemMetadataMapper.getContentDashboard(params);
+    }
 
     public ItemMetadataMapper getItemMetadataMapper() {
         return itemMetadataMapper;

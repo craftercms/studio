@@ -15,11 +15,9 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob;
 
+import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.BlobStoreResolver;
-
-import java.io.InputStream;
-import java.util.function.Function;
 
 /**
  * Implementation of {@link BlobStoreResolver} that does nothing
@@ -30,7 +28,7 @@ import java.util.function.Function;
 public class NoopBlobStoreResolver implements BlobStoreResolver {
 
     @Override
-    public BlobStore getById(Function<String, InputStream> configGetter, String storeId) {
+    public BlobStore getById(ConfigurationProvider provider, String storeId) {
         return null;
     }
 

@@ -26,8 +26,8 @@
         <pattern/>
         <mappings>
             <mapping>
-                <environment/>
-                <target/>
+                <publishingTarget/>
+                <storeTarget/>
                 <prefix/>
             </mapping>
         </mappings>
@@ -37,8 +37,8 @@
     id:	a unique id for the store
     type: the type of store to use
     pattern: the regex to match file paths
-    mappings.mapping.environment: the name of the environment (preview, staging, live)
-    mappings.mapping.target: the name of the target inside the store
+    mappings.mapping.publishingTarget: the name of the publishing storeTarget (preview, staging, live)
+    mappings.mapping.storeTarget: the name of the storeTarget inside the store
     mappings.mapping.prefix: the prefix to use for all paths (optional)
     configuration: configuration specific for the store type
 
@@ -66,23 +66,23 @@
       -->
 
     <blobStore>
-        <id>s3-default</id>
+        <id>s3-store</id>
         <type>s3BlobStore</type>
         <pattern>/static-assets/s3/.*</pattern>
         <mappings>
             <mapping>
-                <environment>preview</environment>
-                <target>my-authoring-bucket</target>
+                <publishingTarget>preview</publishingTarget>
+                <storeTarget>my-authoring-bucket</storeTarget>
                 <prefix>sandbox</prefix>
             </mapping>
             <mapping>
-                <environment>staging</environment>
-                <target>my-authoring-bucket</target>
+                <publishingTarget>staging</publishingTarget>
+                <storeTarget>my-authoring-bucket</storeTarget>
                 <prefix>staging</prefix>
             </mapping>
             <mapping>
-                <environment>live</environment>
-                <target>my-delivery-bucket</target>
+                <publishingTarget>live</publishingTarget>
+                <storeTarget>my-delivery-bucket</storeTarget>
             </mapping>
         </mappings>
         <configuration>

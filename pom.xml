@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.6-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -45,7 +45,7 @@
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
         <studio.ui.node.version>v13.6.0</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
+        <studio.ui.yarn.version>v1.22.4</studio.ui.yarn.version>
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
@@ -53,8 +53,8 @@
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.4.2.3</mariadb4j.version>
-        <jackson.version>2.9.10</jackson.version>
-        <jackson.databind.version>2.9.10.2</jackson.databind.version>
+        <jackson.version>2.10.3</jackson.version>
+        <jackson.databind.version>2.10.3</jackson.databind.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.9</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
@@ -605,6 +605,7 @@
                     <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
+
                     <execution>
                         <id>install node and yarn</id>
                         <goals>
@@ -612,6 +613,7 @@
                         </goals>
                         <phase>prepare-package</phase>
                     </execution>
+
                     <execution>
                         <id>yarn install sass</id>
                         <goals>
@@ -633,8 +635,9 @@
                             <arguments>run build</arguments>
                         </configuration>
                     </execution>
+
                     <execution>
-                        <id>yarn install react</id>
+                        <id>yarn install ui next</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -644,7 +647,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>yarn build react</id>
+                        <id>yarn build ui next</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -673,6 +676,28 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>install guest deps</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build guest</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
                             <arguments>build</arguments>
                         </configuration>
                     </execution>
@@ -765,6 +790,7 @@
                         </overlay>
                     </overlays>
                     <webResources>
+
                         <!-- static-assets -->
                         <resource>
                             <directory>${studio.ui.path}static-assets</directory>
@@ -785,7 +811,6 @@
                             <filtering>false</filtering>
                             <targetPath>default-site/site</targetPath>
                         </resource>
-
 
                         <resource>
                             <directory>src/main/generated-resources/ftl</directory>

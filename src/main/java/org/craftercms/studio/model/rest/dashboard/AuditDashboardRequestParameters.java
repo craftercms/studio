@@ -16,12 +16,14 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 public class AuditDashboardRequestParameters {
 
+    @NotEmpty
     private String siteId;
     private String sortBy;
     private String order;
-    private String groupBy;
     private int offset = 0;
     private int limit = 10;
     AuditDashboardFilters filters;
@@ -48,14 +50,6 @@ public class AuditDashboardRequestParameters {
 
     public void setOrder(String order) {
         this.order = order;
-    }
-
-    public String getGroupBy() {
-        return groupBy;
-    }
-
-    public void setGroupBy(String groupBy) {
-        this.groupBy = groupBy;
     }
 
     public int getOffset() {
