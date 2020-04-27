@@ -3369,6 +3369,11 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: showIncompatible
+          in: query
+          description: Include incompatible plugins (defaults to false)
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
