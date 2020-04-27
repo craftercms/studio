@@ -52,10 +52,11 @@ public class MarketplaceController {
     @GetMapping("/search")
     public ResponseBody searchPlugins(@RequestParam(required = false) String type,
                                       @RequestParam(required = false) String keywords,
+                                      @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
                                       @RequestParam(required = false, defaultValue = "0") long offset,
                                       @RequestParam(required = false, defaultValue = "10") long limit)
         throws MarketplaceException {
-        Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, offset, limit);
+        Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, showIncompatible, offset, limit);
 
         ResponseBody response = new ResponseBody();
         PaginatedResultList<Map<String, Object>> result = new PaginatedResultList<>();

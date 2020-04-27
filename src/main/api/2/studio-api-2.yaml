@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.6.6'
+  version: '3.1.7.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4825,7 +4825,12 @@ components:
               description: The status of this version of the plugin (possible values are 'PENDING' approval and 'APPROVED')
               type: string
             source:
+              description: The source of the plugin
               type: string
+            compatible:
+              description: Indicates if the plugin is compatible
+              type: boolean
+
 
     MarketplaceRemotePlugin:
       allOf:
