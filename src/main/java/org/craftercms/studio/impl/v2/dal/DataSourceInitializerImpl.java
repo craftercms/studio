@@ -77,7 +77,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             try {
                 Class.forName(studioConfiguration.getProperty(DB_DRIVER));
             } catch (Exception e) {
-                logger.error("Error connecting to database", e);
+                logger.error("Error loading JDBC driver", e);
             }
 
             try(Connection conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL))) {
