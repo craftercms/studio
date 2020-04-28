@@ -775,7 +775,7 @@
                         <!-- templates -->
                         <resource>
                             <directory>${studio.ui.path}templates</directory>
-                            <filtering>true</filtering>
+                            <filtering>false</filtering>
                             <targetPath>default-site/templates</targetPath>
                         </resource>
 
