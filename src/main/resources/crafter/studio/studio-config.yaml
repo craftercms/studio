@@ -228,7 +228,7 @@ studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-se
 studio.security.publicUrls: >
   /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
   /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
-  /static-assets/.+
+  /static-assets/.+,/studio/#/reset-password
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -248,7 +248,7 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 # Forgot password token time-out period in minutes
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
-studio.security.resetPassword.serviceUrl: "#/reset-password"
+studio.security.resetPassword.serviceUrl: "login"
 # Password requirements validation regular expression
 # The supported capture group keys are:
 #   hasNumbers
