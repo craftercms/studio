@@ -754,8 +754,8 @@
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
 
-    <bean id="crafter.environmentResolver" class="org.craftercms.commons.file.blob.impl.FixedEnvironmentResolver">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.blob.environment')}"/>
+    <bean id="crafter.targetResolver" class="org.craftercms.commons.config.FixedTargetResolver">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.blob.target')}"/>
     </bean>
 
     <!-- Workaround for cyclic dependency issue (using the same bean name as core will mess the init order -->
@@ -771,7 +771,7 @@
     <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
-        <property name="environmentResolver" ref="crafter.environmentResolver"/>
+        <property name="targetResolver" ref="crafter.targetResolver"/>
     </bean>
 
     <bean id="contentRepository"
