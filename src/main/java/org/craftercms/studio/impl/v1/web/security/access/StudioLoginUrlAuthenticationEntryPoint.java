@@ -17,20 +17,26 @@
 package org.craftercms.studio.impl.v1.web.security.access;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
     private static final String PARAM_REDIRECT = "redirect";
+    private static final Logger logger = LoggerFactory.getLogger(StudioLoginUrlAuthenticationEntryPoint.class);
 
     /**
      * @param loginFormUrl URL where the login page can be found. Should either be
@@ -45,6 +51,11 @@ public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
 
         String redirectParamValue = request.getContextPath() + UrlUtils.buildRequestUrl(request);
+        try {
+            redirectParamValue = UriUtils.encode(redirectParamValue, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            logger.debug("Unsupported encoding for redirect query param value. Sending param without encoding it");
+        }
         String redirect = super.determineUrlToUseForThisRequest(request, response, exception);
         return UriComponentsBuilder.fromPath(redirect).queryParam(PARAM_REDIRECT, redirectParamValue).toUriString();
     }
@@ -60,9 +71,4 @@ public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
             super.commence(request, response, authException);
         }
     }
-
-    protected SecurityService securityService;
-
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 }
