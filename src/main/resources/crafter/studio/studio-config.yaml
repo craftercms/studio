@@ -248,7 +248,7 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 # Forgot password token time-out period in minutes
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
-studio.security.resetPassword.serviceUrl: "#/reset-password"
+studio.security.resetPassword.serviceUrl: "login"
 # Password requirements validation regular expression
 # The supported capture group keys are:
 #   hasNumbers
