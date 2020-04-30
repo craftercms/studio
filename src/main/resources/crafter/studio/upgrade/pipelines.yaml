@@ -784,6 +784,11 @@ pipelines:
               dest: configuration/samples/sample-proxy-config.xml
           commitDetails: Add sample file for proxy-config.xml
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.7.1
+      nextVersion: 3.1.7.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.7.1-to-3.1.7.2.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -959,23 +964,6 @@ pipelines:
           basePath: '/config/engine'
           oldPath: '([^-]+)-(site-config|application-context|urlrewrite).(xml|conf)'
           newPath: 'env/$1/$2.$3'
-        - type: versionFileUpgrader
-    - currentVersion: 3.1.7.1
-      nextVersion: 3.1.7.2
-      operations:
-        - type: xsltFileUpgrader
-          commitDetails: Add new proxy-config.xml file
-          template: crafter/studio/upgrade/3.1.x/3.1.7.1/site/create-proxy-config.xslt
-          path: /config/studio/environment/environment-config.xml
-          target: /config/engine/proxy-config.xml
-        - type: deleteUpgrader
-          commitDetails: Remove environment-config.xml file
-          paths:
-            - /config/studio/environment/environment-config.xml
-        - type: xsltFileUpgrader
-          commitDetails: Add proxy-config.xml and remove environment-config.xml from the list
-          template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v9.xslt
-          path: /config/studio/administration/config-list.xml
         - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
