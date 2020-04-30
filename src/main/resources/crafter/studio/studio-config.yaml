@@ -85,7 +85,7 @@ studio.blob.config.path: blob-stores-config.xml
 # Extension used for the blob files in the site
 studio.blob.file.extension: blob
 # Target to use for all operations
-studio.blob.target: preview
+studio.blob.publishingTarget: preview
 
 ############################################################
 ##                   Site Configuration                   ##

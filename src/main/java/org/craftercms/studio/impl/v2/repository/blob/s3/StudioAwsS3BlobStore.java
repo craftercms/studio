@@ -52,7 +52,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public Blob getReference(String path) {
-        Mapping mapping = getMapping(targetResolver.getTarget());
+        Mapping mapping = getMapping(publishingTargetResolver.getPublishingTarget());
         ObjectMetadata metadata = getClient().getObjectMetadata(mapping.target, getKey(mapping, path));
         return new Blob(id, metadata.getETag());
     }
@@ -61,20 +61,20 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public boolean contentExists(String site, String path) {
-        Mapping mapping = getMapping(targetResolver.getTarget());
+        Mapping mapping = getMapping(publishingTargetResolver.getPublishingTarget());
         return getClient().doesObjectExist(mapping.target, getKey(mapping, path));
     }
 
     @Override
     public InputStream getContent(String site, String path) {
-        Mapping previewMapping = getMapping(targetResolver.getTarget());
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         S3Object object = getClient().getObject(previewMapping.target, getKey(previewMapping, path));
         return object.getObjectContent();
     }
 
     @Override
     public long getContentSize(String site, String path) {
-        Mapping previewMapping = getMapping(targetResolver.getTarget());
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         ObjectMetadata metadata =
                 getClient().getObjectMetadata(previewMapping.target, getKey(previewMapping, path));
         return metadata.getContentLength();
@@ -82,7 +82,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
-        Mapping previewMapping = getMapping(targetResolver.getTarget());
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         uploadStream(previewMapping.target,
                 getKey(previewMapping, path), getClient(), MIN_PART_SIZE, path, content);
         return OK;
@@ -96,7 +96,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public String deleteContent(String site, String path, String approver) {
-        Mapping previewMapping = getMapping(targetResolver.getTarget());
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         if (!isFolder(path)) {
             getClient().deleteObject(previewMapping.target, getKey(previewMapping, path));
         } else {
@@ -121,7 +121,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
-        Mapping previewMapping = getMapping(targetResolver.getTarget());
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         if (isEmpty(newName)) {
             if (isFolder(fromPath)) {
                 ListObjectsV2Request request = new ListObjectsV2Request()
@@ -158,7 +158,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public String copyContent(String site, String fromPath, String toPath) {
-        Mapping previewMapping = getMapping(targetResolver.getTarget());
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         if (isFolder(fromPath)) {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
@@ -189,7 +189,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) {
-        Mapping previewMapping = getMapping(targetResolver.getTarget());
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping envMapping = getMapping(environment);
         for(DeploymentItemTO item : deploymentItems) {
             if (item.isDelete()) {
