@@ -24,7 +24,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PA
 
 class EnvironmentOverrides {
   static USER_SERVICES_BEAN = "userService"
-  static logger = LoggerFactory.getLogger(ExtractMetadataApi.class)
+  static logger = LoggerFactory.getLogger(EnvironmentOverrides.class)
 
   static getValuesForSite(appContext, request, response) {
 

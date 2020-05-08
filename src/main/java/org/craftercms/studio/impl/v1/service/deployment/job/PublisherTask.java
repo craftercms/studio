@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -211,19 +210,9 @@ public class PublisherTask implements Runnable {
 
     private Set<String> getAllPublishingEnvironments(String site) {
         Set<String> environments = new HashSet<String>();
+        environments.add(servicesConfig.getLiveEnvironment(site));
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
-            environments.add(servicesConfig.getLiveEnvironment(site));
             environments.add(servicesConfig.getStagingEnvironment(site));
-        } else {
-            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-
-            if (publishingTargets != null && publishingTargets.size() > 0) {
-                for (PublishingTargetTO target : publishingTargets) {
-                    if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                        environments.add(target.getRepoBranchName());
-                    }
-                }
-            }
         }
         return environments;
     }
