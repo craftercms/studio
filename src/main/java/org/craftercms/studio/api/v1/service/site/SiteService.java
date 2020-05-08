@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBare
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.PublishStatus;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
@@ -87,8 +86,6 @@ public interface SiteService {
 	 * @return configuration as XML string
 	 */
 	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
-
-    List<PublishingTargetTO> getPublishingTargetsForSite(String site);
 
     Set<String> getAllAvailableSites();
 
@@ -167,18 +164,6 @@ public interface SiteService {
    	 * get a list of available blueprints
    	 */
    	SiteBlueprintTO[] getAvailableBlueprints();
-
-    String getPreviewServerUrl(String site);
-
-    String getPreviewEngineServerUrl(String site);
-
-    String getGraphqlServerUrl(String site);
-
-    String getLiveServerUrl(String site);
-
-    String getAuthoringServerUrl(String site);
-
-    String getAdminEmailAddress(String site);
 
     void reloadSiteConfigurations();
 

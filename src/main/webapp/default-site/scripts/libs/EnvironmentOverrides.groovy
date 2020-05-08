@@ -16,21 +16,20 @@
 
 package scripts.libs
 
-import scripts.api.SiteServices;
+import org.craftercms.studio.api.v1.log.LoggerFactory
 import scripts.api.SecurityServices
+import scripts.api.SiteServices
 
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_TYPE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX
 
 class EnvironmentOverrides {
-    static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
     static USER_SERVICES_BEAN = "userService"
+    static logger = LoggerFactory.getLogger(EnvironmentOverrides.class)
 
     static getValuesForSite(appContext, request, response) {
 
         def result = [:]
         def serverProperties = appContext.get("studio.crafter.properties")
-        def cookies = request.getCookies();
 
         def context = SiteServices.createContext(appContext, request)
         result.environment = serverProperties["environment"]
@@ -42,14 +41,8 @@ class EnvironmentOverrides {
         result.studioContext = contextPath
 
         try {
-            def siteServiceSB = context.applicationContext.get(SITE_SERVICES_BEAN)
             def userServiceSB = context.applicationContext.get(USER_SERVICES_BEAN)
             result.site = Cookies.getCookieValue("crafterSite", request)
-            result.authoringServer =  siteServiceSB.getAuthoringServerUrl(result.site)
-            result.previewServerUrl = siteServiceSB.getPreviewServerUrl(result.site)
-            result.previewEngineServerUrl = siteServiceSB.getPreviewEngineServerUrl(result.site)
-            result.graphqlServerUrl = siteServiceSB.getGraphqlServerUrl(result.site)
-
             result.user = SecurityServices.getCurrentUser(context)
 
             def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
@@ -63,44 +56,56 @@ class EnvironmentOverrides {
             result.passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
 
             def language = Cookies.getCookieValue("crafterStudioLanguage", request)
-            if(language == null || language == "" || language == "UNSET") {
+            if (language == null || language == "" || language == "UNSET") {
                 language = "en"
             }
+
             result.language = language
 
-            if(result.user == null){
+            if (result.user == null) {
                 response.sendRedirect("/studio/login")
-            }else{
-                try{
-                    def roles = SecurityServices.getUserRoles(context, result.site, result.user)
+            } else {
+                def sites = SiteServices.getSitesPerUser(context, result.user, 0, 25)
+                if (sites.isEmpty()) {
+                    response.sendRedirect("/studio/?noSites")
+                } else {
 
-                    if(roles!=null && roles.size() > 0) {
-                        if (roles.contains("admin")) {
-                            result.role = "admin"
+                    if (result.site == "UNSET") {
+                        result.site = sites[0].siteId
+                        Cookies.createCookie("crafterSite", sites[0].siteId, request.getServerName(), "/", response)
+                    }
+
+                    try {
+                        def roles = SecurityServices.getUserRoles(context, result.site, result.user)
+                        if (roles != null && roles.size() > 0) {
+                            if (roles.contains("admin")) {
+                                result.role = "admin"
+                            } else {
+                                result.role = roles[0]
+                            }
                         } else {
-                            result.role = roles[0]
+                            logger.info("[EnvironmentOverrides] Attempt to visit '${result.site}' site without the necessary roles")
+                            response.sendRedirect("/studio/?roles")
+                        }
+                    } catch (error) {
+                        logger.info("[EnvironmentOverrides] Error retrieving roles for site '${result.site}'")
+                        response.sendRedirect("/studio/?error")
+                    }
+
+                    result.siteTitle = result.site + sites.size;
+
+                    for (int j = 0; j < sites.size; j++) {
+                        def site = sites[j]
+                        if (site.siteId == result.site) {
+                            result.siteTitle = site.name
+                            result.activeSite = site
+                            break;
                         }
                     }
-                    else {
-                        response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
-                    }
-                }catch(error){
-                    response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
-                }
-                def sites = SiteServices.getSitesPerUser(context, result.user, 0, 25)
 
-                result.siteTitle = result.site +sites.size;
-
-                for(int j = 0; j < sites.size; j++) {
-                    def site = sites[j];
-                    if(site.siteId == result.site) {
-                        result.siteTitle = site.name;
-                        break;
-                    }
                 }
             }
-        }
-        catch(err) {
+        } catch (err) {
             result.err = err
             throw new Exception(err)
         }

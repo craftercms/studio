@@ -18,7 +18,11 @@ package org.craftercms.studio.impl.v2.upgrade;
 
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -45,8 +49,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static java.nio.file.Paths.get;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_CONFIGURATIONS;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_ENVIRONMENT;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_MODULE;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_PATH;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_0;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
 
 /**
  * Default implementation for {@link UpgradeManager}.
@@ -135,7 +145,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public void upgradeSiteConfiguration(final String site) throws UpgradeException {
         logger.info("Checking upgrades for configuration in site {0}", site);
 
-        String defaultEnvironment = studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT);
+        String defaultEnvironment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
         HierarchicalConfiguration config = loadUpgradeConfiguration();
         List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt(CONFIG_KEY_CONFIGURATIONS);
         String configPath = null;
@@ -229,7 +239,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         List<String> result = new LinkedList<>();
 
         // add the default env that will always exist
-        result.add(studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT));
+        result.add(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
 
         String basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN);
         String envPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);

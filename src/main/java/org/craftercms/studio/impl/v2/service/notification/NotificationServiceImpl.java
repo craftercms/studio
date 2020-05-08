@@ -237,9 +237,8 @@ public class NotificationServiceImpl implements NotificationService {
             if (emailTemplate != null) {
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("siteName", site);
-                templateModel.put("liveUrl", siteService.getLiveServerUrl(site));
-                templateModel.put("previewUrl", siteService.getPreviewServerUrl(site));
-                templateModel.put("authoringUrl", siteService.getAuthoringServerUrl(site));
+                templateModel.put("liveUrl", servicesConfig.getLiveUrl(site));
+                templateModel.put("authoringUrl", servicesConfig.getAuthoringUrl(site));
                 for (Pair<String, Object> param : params) {
                     templateModel.put(param.getKey(), param.getValue());
                 }
@@ -353,7 +352,7 @@ public class NotificationServiceImpl implements NotificationService {
                     }
                 }
             } else {
-                deploymentFailureNotifications.add(siteService.getAdminEmailAddress(site));
+                deploymentFailureNotifications.add(servicesConfig.getAdminEmailAddress(site));
             }
         } else {
             logger.error("Unable to read completed Messages (they don't exist)");

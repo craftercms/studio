@@ -44,7 +44,6 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
@@ -117,27 +116,6 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         } catch (DeploymentException e) {
             logger.error(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
         }
-    }
-
-    
-    /**
-     * Checks if there are any publishing channels configure
-     * @return true if there is at least one publishing channel config
-     */
-    @Override
-    @ValidateParams
-	public boolean hasChannelsConfigure(@ValidateStringParam(name = "site") String site,
-                                        MultiChannelPublishingContext mcpContext) {
-    	boolean toReturn = false;
-        if (mcpContext != null) {
-            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-            for (PublishingTargetTO target : publishingTargets) {
-                if (target.getDisplayLabel().equals(mcpContext.getPublishingChannelGroup())) {
-                    return false;
-                }
-            }
-        }
-    	return toReturn;
     }
 
     @Override
