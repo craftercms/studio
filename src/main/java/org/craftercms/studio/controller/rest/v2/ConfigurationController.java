@@ -47,15 +47,29 @@ public class ConfigurationController {
     private StudioConfiguration studioConfiguration;
 
     @GetMapping("/get_configuration")
-    public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
-                                         @RequestParam(name = "module", required = true) String module,
-                                         @RequestParam(name = "path", required = true) String path,
-                                         @RequestParam(name = "environment", required = false) String environment) {
+    public ResponseBody getConfiguration(
+            @RequestParam(name = "siteId", required = true) String siteId,
+            @RequestParam(name = "module", required = true) String module,
+            @RequestParam(name = "path", required = true) String path,
+            @RequestParam(name = "environment", required = false) String environment
+    ) {
         String content = StringUtils.EMPTY;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfiguration(path);
         } else {
-            content = configurationService.getConfigurationAsString(siteId, module, path, environment);
+            boolean hasExtension = path.endsWith(".xml") || path.endsWith(".json");
+            if (hasExtension) {
+                content = configurationService.getConfigurationAsString(siteId, module, path, environment);
+            } else {
+                // Start with XML as this is what's most common (to date)
+                // In a few releases we could switch around if JSON picks up nicely.
+                String finalPath = String.format("%s.xml", path);
+                content = configurationService.getConfigurationAsString(siteId, module, finalPath, environment);
+                if (content == null) {
+                    finalPath = String.format("%s.json", path);
+                    content = configurationService.getConfigurationAsString(siteId, module, finalPath, environment);
+                }
+            }
         }
         ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<String>();
