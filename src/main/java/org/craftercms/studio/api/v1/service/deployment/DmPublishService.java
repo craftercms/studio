@@ -32,8 +32,6 @@ public interface DmPublishService {
 
     void cancelScheduledItem(String site, String path);
 
-    boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
-
     /**
      * Start executing bulk publish for given site, path on given environment
      *

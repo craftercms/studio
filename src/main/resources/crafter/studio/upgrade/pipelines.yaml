@@ -783,12 +783,32 @@ pipelines:
             - src: repo-bootstrap/global/configuration/samples/sample-proxy-config.xml
               dest: configuration/samples/sample-proxy-config.xml
           commitDetails: Add sample file for proxy-config.xml
+        - type: xsltFileUpgrader
+          commitDetails: Update site-config.xml file with site urls properties
+          template: crafter/studio/upgrade/3.1.x/3.1.7.1/site/update-site-config.xslt
+          path: /config/studio/environment/environment-config.xml
+          target: /config/studio/site-config.xml
         - type: dbVersionUpgrader
     - currentVersion: 3.1.7.1
       nextVersion: 3.1.7.2
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.7.1-to-3.1.7.2.sql
+    - currentVersion: 3.1.7.2
+      nextVersion: 3.1.7.3
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-site-config.xml
+              dest: configuration/samples/sample-site-config.xml
+            - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+              dest: configuration/samples/sample-notification-config.xml
+          commitDetails: Update sample site config and notification config files
+        - type: deleteUpgrader
+          commitDetails: Remove environment-config.xml file
+          paths:
+            - /configuration/samples/sample-environment-config.xml
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -982,6 +1002,15 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v9.xslt
           path: /config/studio/administration/config-list.xml
         - type: versionFileUpgrader
+    - currentVersion: 3.1.7.2
+      nextVersion: 3.1.7.3
+      operations:
+        - type: findAndReplaceUpgrader
+          includedPaths:
+            - config/studio/workflow/notification-config.xml
+          pattern: previewUrl
+          replacement: authoringUrl
+        - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
   blueprint:
@@ -1061,6 +1090,14 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v6.xslt
             commitDetails: Add default encoding configuration
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 6
+        nextVersion: 7
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v7.xslt
+            commitDetails: Add site urls
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
 

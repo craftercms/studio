@@ -128,11 +128,6 @@
         <constructor-arg ref="encryptionService"/>
     </bean>
 
-    <bean id="proxyController" class="org.craftercms.studio.controller.rest.v2.ProxyController">
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
     <bean id="dashboardController" class="org.craftercms.studio.controller.rest.v2.DashboardController">
         <property name="dashboardService" ref="dashboardService" />
     </bean>
