@@ -120,10 +120,6 @@ studio.configuration.site.generalConfigFileName: site-config.xml
 studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
 # File name where configuration of user role mappings is stored for a site.
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
-# Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
-studio.configuration.site.environment: local
-# File name where environment specific configuration is stored
-studio.configuration.site.environment.configFileName: environment/environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created

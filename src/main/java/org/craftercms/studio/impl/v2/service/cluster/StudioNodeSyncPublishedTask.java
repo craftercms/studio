@@ -25,19 +25,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.FetchCommand;
@@ -180,19 +177,9 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
 
     private Set<String> getAllPublishingEnvironments(String site) {
         Set<String> environments = new HashSet<String>();
+        environments.add(servicesConfig.getLiveEnvironment(site));
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
-            environments.add(servicesConfig.getLiveEnvironment(site));
             environments.add(servicesConfig.getStagingEnvironment(site));
-        } else {
-            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-
-            if (publishingTargets != null && publishingTargets.size() > 0) {
-                for (PublishingTargetTO target : publishingTargets) {
-                    if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                        environments.add(target.getRepoBranchName());
-                    }
-                }
-            }
         }
         return environments;
     }

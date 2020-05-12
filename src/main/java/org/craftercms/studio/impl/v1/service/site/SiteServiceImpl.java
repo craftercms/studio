@@ -83,7 +83,6 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
@@ -98,9 +97,7 @@ import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
@@ -154,7 +151,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 
@@ -172,7 +168,6 @@ public class SiteServiceImpl implements SiteService {
     protected SiteServiceDAL _siteServiceDAL;
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
-    protected SiteEnvironmentConfig environmentConfig;
     protected ContentRepository contentRepository;
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
     protected ObjectStateService objectStateService;
@@ -358,34 +353,6 @@ public class SiteServiceImpl implements SiteService {
 		return map;
 	}
 
-
-	/***
-	 * load site environment specific info
-	 *
-	 * @param site
-	 * @param siteConfig
-	 */
-	protected void loadSiteEnvironmentConfig(String site, SiteTO siteConfig) {
-		// get environment specific configuration
-		logger.debug("Loading site environment configuration for " + site + "; Environemnt: " + getEnvironment());
-		EnvironmentConfigTO environmentConfigTO = environmentConfig.getEnvironmentConfig(site);
-		if (environmentConfigTO == null) {
-			logger.error("Environment configuration for site " + site + " does not exist.");
-			return;
-		}
-		siteConfig.setLiveUrl(environmentConfigTO.getLiveServerUrl());
-		siteConfig.setAuthoringUrl(environmentConfigTO.getAuthoringServerUrl());
-		siteConfig.setPreviewUrl(environmentConfigTO.getPreviewServerUrl());
-		siteConfig.setAdminEmail(environmentConfigTO.getAdminEmailAddress());
-		siteConfig.setOpenSiteDropdown(environmentConfigTO.getOpenDropdown());
-	}
-
-    @Override
-    @ValidateParams
-    public List<PublishingTargetTO> getPublishingTargetsForSite(@ValidateStringParam(name = "site") String site) {
-        return environmentConfig.getPublishingTargetsForSite(site);
-    }
-
     @Override
     public Set<String> getAllAvailableSites() {
         List<SiteFeed> sites = siteFeedMapper.getSites();
@@ -497,14 +464,11 @@ public class SiteServiceImpl implements SiteService {
 
                 // initial deployment
                 logger.info("Performing initial deployment");
-                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                if (publishingTargets != null && publishingTargets.size() > 0) {
-                    for (PublishingTargetTO target : publishingTargets) {
-                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityService.getCurrentUser(), "Create site.");
-                        }
-                    }
+                contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getLiveEnvironment(siteId),
+                        securityService.getCurrentUser(), "Create site.");
+                if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+                    contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getStagingEnvironment(siteId),
+                            securityService.getCurrentUser(), "Create site.");
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 	        } catch(Exception e) {
@@ -844,14 +808,11 @@ public class SiteServiceImpl implements SiteService {
 
                 // initial deployment
                 logger.info("Executing initial deployement for site " + siteId);
-                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                if (publishingTargets != null && publishingTargets.size() > 0) {
-                    for (PublishingTargetTO target : publishingTargets) {
-                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityService.getCurrentUser(), "Create site.");
-                        }
-                    }
+                contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getLiveEnvironment(siteId),
+                        securityService.getCurrentUser(), "Create site.");
+                if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+                    contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getStagingEnvironment(siteId),
+                            securityService.getCurrentUser(), "Create site.");
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
             } catch(Exception e) {
@@ -1006,14 +967,11 @@ public class SiteServiceImpl implements SiteService {
 
                     // initial deployment
                     logger.info("Executing initial deployement for site " + siteId);
-                    List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                    if (publishingTargets != null && publishingTargets.size() > 0) {
-                        for (PublishingTargetTO target : publishingTargets) {
-                            if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                                contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                        securityService.getCurrentUser(), "Create site.");
-                            }
-                        }
+                    contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getLiveEnvironment(siteId),
+                            securityService.getCurrentUser(), "Create site.");
+                    if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+                        contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getStagingEnvironment(siteId),
+                                securityService.getCurrentUser(), "Create site.");
                     }
 
                     objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
@@ -1169,43 +1127,6 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    @ValidateParams
-    public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
-        return environmentConfig.getPreviewServerUrl(site);
-    }
-
-    @Override
-    @ValidateParams
-    public String getPreviewEngineServerUrl(@ValidateStringParam(name = "site") String site) {
-        return environmentConfig.getPreviewEngineServerUrl(site);
-    }
-
-    @Override
-    @ValidateParams
-    public String getGraphqlServerUrl(@ValidateStringParam(name = "site") String site) {
-        return environmentConfig.getGraphqlServerUrl(site);
-    }
-
-    @Override
-    @ValidateParams
-    public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
-        return environmentConfig.getLiveServerUrl(site);
-    }
-
-    @Override
-    @ValidateParams
-    public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
-        return environmentConfig.getAuthoringServerUrl(site);
-    }
-
-    @Override
-    @ValidateParams
-    public String getAdminEmailAddress(@ValidateStringParam(name = "site") String site) {
-        return environmentConfig.getAdminEmailAddress(site);
-    }
-
-
-    @Override
     public void reloadSiteConfigurations() {
         reloadGlobalConfiguration();
         Set<String> sites = getAllAvailableSites();
@@ -1223,8 +1144,6 @@ public class SiteServiceImpl implements SiteService {
         siteConfig.setSite(site);
         siteConfig.setEnvironment(getEnvironment());
         servicesConfig.reloadConfiguration(site);
-        environmentConfig.reloadConfiguration(site);
-        loadSiteEnvironmentConfig(site, siteConfig);
 		notificationService.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
@@ -1897,7 +1816,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     public String getEnvironment() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT);
+        return studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
     }
 
     public List<String> getDefaultGroups() {
@@ -1929,13 +1848,6 @@ public class SiteServiceImpl implements SiteService {
 	}
 	public void setContentService(ContentService contentService) {
 	    this.contentService = contentService;
-	}
-
-	public SiteEnvironmentConfig getEnvironmentConfig() {
-	    return environmentConfig;
-	}
-	public void setEnvironmentConfig(SiteEnvironmentConfig environmentConfig) {
-	    this.environmentConfig = environmentConfig;
 	}
 
 	public ContentRepository getContenetRepository() {

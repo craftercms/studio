@@ -98,7 +98,6 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dependencyService" ref="studioDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
@@ -190,14 +189,6 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="configurationService" ref="configurationService" />
-    </bean>
-
-    <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl" >
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="configurationService" ref="configurationService" />
     </bean>
 
