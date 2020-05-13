@@ -21,6 +21,19 @@
     <xsl:output method="xml" indent="yes" />
     <xsl:strip-space elements="*"/>
 
+    <!-- copy all elements -->
+    <xsl:template match="node() | @*">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates select="node() | @*"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- insert line breaks before and after top level comments -->
+    <xsl:template match="/comment()">
+        <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
+    </xsl:template>
+
     <xsl:template match="site-config">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
@@ -30,18 +43,18 @@
                 <xsl:text>&#10;</xsl:text>
                 <xsl:element name="site-urls">
                     <xsl:element name="authoring-url">
-                            <xsl:apply-templates
-                                    select="document('/config/studio/environment/environment-config,xml')/environment-config/authoring-server-url"/>
+                        <xsl:apply-templates
+                                select="document('/config/studio/environment/environment-config.xml')/environment-config/authoring-server-url"/>
                     </xsl:element>
                     <xsl:text>&#10;</xsl:text>
                     <xsl:element name="staging-url">
                         <xsl:apply-templates
-                                select="document('/config/studio/environment/environment-config,xml')/environment-config/staging-server-url"/>
+                                select="document('/config/studio/environment/environment-config.xml')/environment-config/staging-server-url"/>
                     </xsl:element>
                     <xsl:text>&#10;</xsl:text>
                     <xsl:element name="live-url">
                         <xsl:apply-templates
-                                select="document('/config/studio/environment/environment-config,xml')/environment-config/live-server-url"/>
+                                select="document('/config/studio/environment/environment-config.xml')/environment-config/live-server-url"/>
                     </xsl:element>
                     <xsl:text>&#10;</xsl:text>
                 </xsl:element>
@@ -50,7 +63,7 @@
             <xsl:if test="not(admin-email-address)">
                 <xsl:element name="admin-email-address">
                     <xsl:apply-templates
-                            select="document('/config/studio/environment/environment-config,xml')/environment-config/admin-email-address"/>
+                            select="document('/config/studio/environment/environment-config.xml')/environment-config/admin-email-address"/>
                 </xsl:element>
             </xsl:if>
         </xsl:copy>

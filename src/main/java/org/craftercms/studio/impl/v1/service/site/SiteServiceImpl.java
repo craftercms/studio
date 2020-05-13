@@ -303,6 +303,7 @@ public class SiteServiceImpl implements SiteService {
 
 		Map<String, Object> toRet = null;
 		if (configContent != null) {
+            configContent = configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
 			configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
 			configContent = configContent.replaceAll("<!--(.*?)-->", "");
 			toRet = convertNodesFromXml(configContent);
