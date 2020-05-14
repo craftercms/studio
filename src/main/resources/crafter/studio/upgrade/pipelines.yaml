@@ -991,7 +991,7 @@ pipelines:
         - type: xsltFileUpgrader
           commitDetails: Update site-config.xml file with site urls properties
           template: crafter/studio/upgrade/3.1.x/3.1.7.1/site/update-site-config.xslt
-          path: /config/studio/environment/environment-config.xml
+          path: /config/studio/site-config.xml
           target: /config/studio/site-config.xml
         - type: deleteUpgrader
           commitDetails: Remove environment-config.xml file
