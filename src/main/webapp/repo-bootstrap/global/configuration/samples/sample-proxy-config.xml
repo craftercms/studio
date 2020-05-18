@@ -46,7 +46,7 @@
         <!-- Proxy all Crafter Engine API requests to this server -->
         <server>
             <id>engine</id>
-            <url>http://my-crafter-egine-server</url>
+            <url>http://my-crafter-engine-server</url>
             <patterns>
                 <pattern>/api/1/.*</pattern>
             </patterns>
