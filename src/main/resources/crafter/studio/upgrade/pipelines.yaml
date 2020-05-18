@@ -804,6 +804,15 @@ pipelines:
           paths:
             - /configuration/samples/sample-environment-config.xml
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.7.3
+      nextVersion: 3.1.7.4
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-proxy-config.xml
+              dest: configuration/samples/sample-proxy-config.xml
+          commitDetails: Update sample file for proxy-config.xml
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -997,11 +1006,6 @@ pipelines:
           commitDetails: Remove environment-config.xml file
           paths:
             - /config/studio/environment/environment-config.xml
-        - type: xsltFileUpgrader
-          commitDetails: Add proxy-config.xml and remove environment-config.xml from the list
-          template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v9.xslt
-          path: /config/studio/administration/config-list.xml
-        - type: versionFileUpgrader
     - currentVersion: 3.1.7.2
       nextVersion: 3.1.7.3
       operations:
@@ -1261,6 +1265,22 @@ configurations:
             commitDetails: Add new configuration file for blob stores
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 8
+        nextVersion: 9
+        operations:
+          - type: xsltFileUpgrader
+            commitDetails: Add proxy-config.xml and remove environment-config.xml from the list
+            template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v9.xslt
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 9
+        nextVersion: 10
+        operations:
+          - type: xsltFileUpgrader
+            commitDetails: Fix sample for proxy-config.xml
+            template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v10.xslt
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
 
   site-config-tools:
     module: studio
@@ -1447,5 +1467,18 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/config/engine-site-config/engine-site-config-v2.xslt
             commitDetails: Update security configuration
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+
+  proxy-config:
+    module: engine
+    path: proxy-config.xml
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/proxy-config/proxy-config-v2.xslt
+            commitDetails: Add proxy config for static-assets
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
