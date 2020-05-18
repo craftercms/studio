@@ -55,7 +55,7 @@
         <!-- Proxy all Crafter Engine static-assets requests to this server -->
         <server>
             <id>static-assets</id>
-            <url>http://my-crafter-egine-server</url>
+            <url>http://my-crafter-engine-server</url>
             <patterns>
                 <pattern>/static-assets/.*</pattern>
             </patterns>
