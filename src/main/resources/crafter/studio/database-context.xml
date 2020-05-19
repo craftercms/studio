@@ -170,6 +170,10 @@
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"  />
             <property name="defaultSocket"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}" />
+            <property name="securityDisabled" value="false" />
+            <property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}" />
+            <property name="driverClassName"
+                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}" />
         </bean>
     </beans>
 
