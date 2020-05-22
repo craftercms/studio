@@ -607,7 +607,6 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @Override
     public String getAuthoringUrl(String siteId) {
         SiteConfigTO config = getSiteConfig(siteId);
         if (Objects.nonNull(config)) {
