@@ -162,7 +162,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
                     values.put(CONFIG_KEY_ENVIRONMENT, env);
                     String basePath;
 
-                    if (env.equals(defaultEnvironment)) {
+                    if (StringUtils.isEmpty(env) || env.equals(defaultEnvironment)) {
                         basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN);
                     } else {
                         basePath = studioConfiguration.getProperty(
