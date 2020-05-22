@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_CONFIG_URL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_ADMIN_EMAIL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_AUTHORING_URL;
@@ -609,7 +610,11 @@ public class ServicesConfigImpl implements ServicesConfig {
     public String getAuthoringUrl(String siteId) {
         SiteConfigTO config = getSiteConfig(siteId);
         if (Objects.nonNull(config)) {
-            return config.getAuthoringUrl();
+            if (StringUtils.isEmpty(config.getAuthoringUrl())) {
+                return DEFAULT_CONFIG_URL;
+            } else {
+                return config.getAuthoringUrl();
+            }
         }
         return null;
     }
@@ -618,7 +623,11 @@ public class ServicesConfigImpl implements ServicesConfig {
     public String getStagingUrl(String siteId) {
         SiteConfigTO config = getSiteConfig(siteId);
         if (Objects.nonNull(config)) {
-            return config.getStagingUrl();
+            if (StringUtils.isEmpty(config.getStagingUrl())) {
+                return DEFAULT_CONFIG_URL;
+            } else {
+                return config.getStagingUrl();
+            }
         }
         return null;
     }
@@ -627,7 +636,11 @@ public class ServicesConfigImpl implements ServicesConfig {
     public String getLiveUrl(String siteId) {
         SiteConfigTO config = getSiteConfig(siteId);
         if (Objects.nonNull(config)) {
-            return config.getLiveUrl();
+            if (StringUtils.isEmpty(config.getLiveUrl())) {
+                return DEFAULT_CONFIG_URL;
+            } else {
+                return config.getLiveUrl();
+            }
         }
         return null;
     }

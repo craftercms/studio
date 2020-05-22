@@ -200,4 +200,6 @@ package org.craftercms.studio.api.v1.constant;
     /* Modules */
     String MODULE_STUDIO = "studio";
     String MODULE_ENGINE = "engine";
+
+    String DEFAULT_CONFIG_URL = "http://localhost:8080";
 }
