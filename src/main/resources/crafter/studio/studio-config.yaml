@@ -256,6 +256,8 @@ studio.security.resetPassword.serviceUrl: "login"
 #   maxLength
 #   minMaxLength
 studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[~|!`,;\/@#$%^&+=]))(?<minLength>.{8,})$
+# Delay set password API response in seconds
+studio.security.setPasswordDelay: 1
 # Studio authentication chain configuration
 studio.authentication.chain:
   # Authentication provider type

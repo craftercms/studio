@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.ResetPasswordRequest;
@@ -42,7 +43,6 @@ import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,14 +50,17 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SET_PASSWORD_DELAY;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
@@ -65,6 +68,19 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_USERNAME;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DISABLE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ENABLE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.FORGOT_PASSWORD;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LOGOUT_SSO_URL;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ME;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_SITE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESET_PASSWORD;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ROLES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SET_PASSWORD;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SITES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.USERS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CURRENT_USER;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_LOGOUT_URL;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ROLES;
@@ -74,8 +90,10 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
+@RequestMapping(API_2 + USERS)
 public class UsersController {
 
     private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
@@ -83,6 +101,7 @@ public class UsersController {
     private UserService userService;
     private GroupService groupService;
     private SiteService siteService;
+    private StudioConfiguration studioConfiguration;
 
     /**
      * Get all users API
@@ -93,7 +112,7 @@ public class UsersController {
      * @param sort Sort order
      * @return Response containing list of users
      */
-    @GetMapping("/api/2/users")
+    @GetMapping()
     public ResponseBody getAllUsers(
             @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
@@ -128,7 +147,7 @@ public class UsersController {
      * @return Response object
      */
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE)
     public ResponseBody createUser(@RequestBody User user)
             throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
         User newUser = userService.createUser(user);
@@ -147,7 +166,7 @@ public class UsersController {
      * @param user User to update
      * @return Response object
      */
-    @PatchMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "", consumes = APPLICATION_JSON_VALUE)
     public ResponseBody updateUser(@RequestBody User user)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         userService.updateUser(user);
@@ -167,7 +186,7 @@ public class UsersController {
      * @param usernames List of usernames
      * @return Response object
      */
-    @DeleteMapping("/api/2/users")
+    @DeleteMapping()
     public ResponseBody deleteUser(
             @RequestParam(value = REQUEST_PARAM_ID, required = false) List<Long> userIds,
             @RequestParam(value = REQUEST_PARAM_USERNAME, required = false) List<String> usernames)
@@ -190,7 +209,7 @@ public class UsersController {
      * @param userId User identifier
      * @return Response containing user
      */
-    @GetMapping("/api/2/users/{id}")
+    @GetMapping(PATH_PARAM_ID)
     public ResponseBody getUser(@PathVariable(REQUEST_PARAM_ID) String userId)
             throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
@@ -216,7 +235,7 @@ public class UsersController {
      * @param enableUsers Enable users request body (json representation)
      * @return Response object
      */
-    @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = ENABLE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         ValidationUtils.validateEnableUsers(enableUsers);
@@ -237,7 +256,7 @@ public class UsersController {
      * @param enableUsers Disable users request body (json representation)
      * @return Response object
      */
-    @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = DISABLE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         ValidationUtils.validateEnableUsers(enableUsers);
@@ -258,7 +277,7 @@ public class UsersController {
      * @param userId User identifier
      * @return Response containing list of sites
      */
-    @GetMapping("/api/2/users/{id}/sites")
+    @GetMapping(PATH_PARAM_ID + SITES)
     public ResponseBody getUserSites(
             @PathVariable(REQUEST_PARAM_ID) String userId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
@@ -296,7 +315,7 @@ public class UsersController {
      * @param site The site ID
      * @return Response containing list of roles
      */
-    @GetMapping("/api/2/users/{id}/sites/{site}/roles")
+    @GetMapping(PATH_PARAM_ID + SITES + PATH_PARAM_SITE + ROLES)
     public ResponseBody getUserSiteRoles(@PathVariable(REQUEST_PARAM_ID) String userId,
                                          @PathVariable(REQUEST_PARAM_SITE) String site)
             throws ServiceLayerException, UserNotFoundException {
@@ -325,7 +344,7 @@ public class UsersController {
      *
      * @return Response containing current authenticated user
      */
-    @GetMapping("/api/2/users/me")
+    @GetMapping(ME)
     public ResponseBody getCurrentUser() throws AuthenticationException, ServiceLayerException {
         AuthenticatedUser user = userService.getCurrentUser();
 
@@ -344,7 +363,7 @@ public class UsersController {
      *
      * @return Response containing current authenticated user sites
      */
-    @GetMapping("/api/2/users/me/sites")
+    @GetMapping(ME + SITES)
     public ResponseBody getCurrentUserSites(
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
@@ -370,7 +389,7 @@ public class UsersController {
      *
      * @return Response containing current authenticated user roles
      */
-    @GetMapping("/api/2/users/me/sites/{site}/roles")
+    @GetMapping(ME + SITES + PATH_PARAM_SITE + ROLES )
     public ResponseBody getCurrentUserSiteRoles(@PathVariable(REQUEST_PARAM_SITE) String site)
             throws AuthenticationException, ServiceLayerException {
         List<String> roles = userService.getCurrentUserSiteRoles(site);
@@ -392,7 +411,7 @@ public class UsersController {
      *
      * @return Response containing SSO logout URL for the current authenticated user
      */
-    @GetMapping("/api/2/users/me/logout/sso/url")
+    @GetMapping(ME + LOGOUT_SSO_URL)
     public ResponseBody getCurrentUserSsoLogoutUrl() throws ServiceLayerException, AuthenticationException {
         String logoutUrl = userService.getCurrentUserSsoLogoutUrl();
 
@@ -406,7 +425,7 @@ public class UsersController {
         return responseBody;
     }
 
-    @GetMapping("/api/2/users/forgot_password")
+    @GetMapping(FORGOT_PASSWORD)
     public ResponseBody forgotPassword(@RequestParam(value = REQUEST_PARAM_USERNAME, required = true) String username)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         userService.forgotPassword(username);
@@ -418,7 +437,7 @@ public class UsersController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/users/me/change_password")
+    @PostMapping(ME + FORGOT_PASSWORD)
     public ResponseBody changePassword(@RequestBody ChangePasswordRequest changePasswordRequest)
             throws PasswordDoesNotMatchException, ServiceLayerException, UserExternallyManagedException,
             AuthenticationException, UserNotFoundException {
@@ -433,9 +452,15 @@ public class UsersController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/users/set_password")
+    @PostMapping(ME + SET_PASSWORD)
     public ResponseBody setPassword(@RequestBody SetPasswordRequest setPasswordRequest)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
+        try {
+            TimeUnit.SECONDS.sleep(delay);
+        } catch (InterruptedException e) {
+            logger.debug("Interrupted while delaying request by " + delay + " seconds.", e);
+        }
         User user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
 
         ResponseBody responseBody = new ResponseBody();
@@ -446,7 +471,7 @@ public class UsersController {
         return responseBody;
     }
 
-    @PostMapping("/api/2/users/{id}/reset_password")
+    @PostMapping(PATH_PARAM_ID + RESET_PASSWORD)
     public ResponseBody resetPassword(@PathVariable(REQUEST_PARAM_ID) String userId,
                                       @RequestBody ResetPasswordRequest resetPasswordRequest)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
@@ -481,5 +506,13 @@ public class UsersController {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }
