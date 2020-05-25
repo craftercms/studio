@@ -31,4 +31,18 @@ public interface RequestMappingConstants {
     String AUDIT_DASHBOARD = "/audit";
     String PUBLISHING_DASHBOARD = "/publishing";
     String CONTENT_DASHBOARD = "/content";
+
+    /** Users controller */
+    String USERS = "/users";
+    String PATH_PARAM_ID = "/{id}";
+    String ENABLE = "/enable";
+    String DISABLE = "/disable";
+    String SITES = "/sites";
+    String PATH_PARAM_SITE = "/{site}";
+    String ROLES = "/roles";
+    String ME = "/me";
+    String LOGOUT_SSO_URL = "/logout/sso/url";
+    String FORGOT_PASSWORD = "/forgot_password";
+    String SET_PASSWORD = "/set_password";
+    String RESET_PASSWORD = "/reset_password";
 }
