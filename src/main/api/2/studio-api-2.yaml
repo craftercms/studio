@@ -1806,7 +1806,7 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  version:
+                  status:
                     $ref: '#/components/schemas/StatusItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1836,7 +1836,7 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  version:
+                  memory:
                     $ref: '#/components/schemas/MemoryItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
