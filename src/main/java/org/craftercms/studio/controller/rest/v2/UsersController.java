@@ -69,6 +69,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_USERNAME;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CHANGE_PASSWORD;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DISABLE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ENABLE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.FORGOT_PASSWORD;
@@ -437,7 +438,7 @@ public class UsersController {
         return responseBody;
     }
 
-    @PostMapping(ME + FORGOT_PASSWORD)
+    @PostMapping(ME + CHANGE_PASSWORD)
     public ResponseBody changePassword(@RequestBody ChangePasswordRequest changePasswordRequest)
             throws PasswordDoesNotMatchException, ServiceLayerException, UserExternallyManagedException,
             AuthenticationException, UserNotFoundException {
@@ -452,7 +453,7 @@ public class UsersController {
         return responseBody;
     }
 
-    @PostMapping(ME + SET_PASSWORD)
+    @PostMapping(SET_PASSWORD)
     public ResponseBody setPassword(@RequestBody SetPasswordRequest setPasswordRequest)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
