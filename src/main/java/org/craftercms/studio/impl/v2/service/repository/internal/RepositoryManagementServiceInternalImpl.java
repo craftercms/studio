@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.repository.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -212,22 +213,28 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch)
             throws ServiceLayerException, CryptoException {
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
+        Map<String, String> unreachableRemotes = new HashMap<String, String>();
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
                 List<RemoteConfig> resultRemotes = git.remoteList().call();
                 if (CollectionUtils.isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
-                        fetchRemote(siteId, git, conf);
+                        try {
+                            fetchRemote(siteId, git, conf);
+                        } catch (Exception e) {
+                            logger.warn("Failed to fetch from remote repository " + conf.getName());
+                            unreachableRemotes.put(conf.getName(), e.getMessage());
+                        }
                     }
                     Map<String, List<String>> remoteBranches = getRemoteBranches(git);
                     String sandboxBranchName = sandboxBranch;
                     if (StringUtils.isEmpty(sandboxBranchName)) {
                         sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
                     }
-                    res = getRemoteRepositoryInfo(resultRemotes, remoteBranches, sandboxBranchName);
+                    res = getRemoteRepositoryInfo(resultRemotes, remoteBranches, unreachableRemotes, sandboxBranchName);
                 }
-            } catch (GitAPIException | CryptoException | IOException e) {
+            } catch (   GitAPIException e) {
                 logger.error("Error getting remote repositories for site " + siteId, e);
             }
         }
@@ -281,11 +288,16 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     private List<RemoteRepositoryInfo> getRemoteRepositoryInfo(List<RemoteConfig> resultRemotes,
                                                                Map<String, List<String>> remoteBranches,
+                                                               Map<String, String> unreachableRemotes,
                                                                String sandboxBranchName) {
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
         for (RemoteConfig conf : resultRemotes) {
             RemoteRepositoryInfo rri = new RemoteRepositoryInfo();
             rri.setName(conf.getName());
+            if (MapUtils.isNotEmpty(unreachableRemotes) && unreachableRemotes.containsKey(conf.getName())) {
+                rri.setReachable(false);
+                rri.setUnreachableReason(unreachableRemotes.get(conf.getName()));
+            }
             List<String> branches = remoteBranches.get(rri.getName());
             if (CollectionUtils.isEmpty(branches)) {
                 branches = new ArrayList<String>();

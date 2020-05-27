@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.7.1'
+  version: '3.1.8.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -5283,6 +5283,12 @@ components:
           items:
             type: string
             description: remote repository branch name
+        reachable:
+          type: boolean
+          description: true if remote repository is reachable, otherwise false
+        unreachableReason:
+          type: string
+          description: reason why remote is unreachable
 
     QuickCreateItem:
       type: object
