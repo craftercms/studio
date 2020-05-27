@@ -58,6 +58,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.INTERNAL_SYSTEM_FAILURE;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping("/api/2/repository")
@@ -88,7 +89,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @GetMapping("/list_remotes")
+    @GetMapping(value = "/list_remotes", produces = APPLICATION_JSON_VALUE)
     public ResponseBody listRemotes(@RequestParam(name = "siteId", required = true) String siteId)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {

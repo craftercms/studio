@@ -28,19 +28,62 @@ public class RemoteRepositoryInfo implements Serializable {
     private String fetch;
     private String pushUrl;
     private List<String> branches;
+    private boolean reachable = true;
+    private String unreachableReason;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getFetch() { return fetch; }
-    public void setFetch(String fetch) { this.fetch = fetch; }
+    public String getUrl() {
+        return url;
+    }
 
-    public String getPushUrl() { return pushUrl; }
-    public void setPushUrl(String pushUrl) { this.pushUrl = pushUrl; }
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-    public List<String> getBranches() { return branches; }
-    public void setBranches(List<String> branches) { this.branches = branches; }
+    public String getFetch() {
+        return fetch;
+    }
+
+    public void setFetch(String fetch) {
+        this.fetch = fetch;
+    }
+
+    public String getPushUrl() {
+        return pushUrl;
+    }
+
+    public void setPushUrl(String pushUrl) {
+        this.pushUrl = pushUrl;
+    }
+
+    public List<String> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(List<String> branches) {
+        this.branches = branches;
+    }
+
+    public boolean isReachable() {
+        return reachable;
+    }
+
+    public void setReachable(boolean reachable) {
+        this.reachable = reachable;
+    }
+
+    public String getUnreachableReason() {
+        return unreachableReason;
+    }
+
+    public void setUnreachableReason(String unreachableReason) {
+        this.unreachableReason = unreachableReason;
+    }
 }
