@@ -51,6 +51,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
@@ -124,6 +125,7 @@ public class UserServiceImpl implements UserService {
     private ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
     private JavaMailSender emailService;
     private JavaMailSender emailServiceNoAuth;
+    private InstanceService instanceService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -441,8 +443,8 @@ public class UserServiceImpl implements UserService {
                     long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
                             Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
                     String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
-
-                    String token = username + "|" + timestamp + "|" + salt;
+                    String studioId = instanceService.getInstanceId();
+                    String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
                     String hashedToken = encryptToken(token);
                     logger.debug("Sending forgot password email to " + email);
                     try {
@@ -577,7 +579,7 @@ public class UserServiceImpl implements UserService {
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 3) {
+            if (tokenElements.countTokens() == 4) {
                 String username = tokenElements.nextToken();
                 User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (userProfile == null) {
@@ -587,11 +589,10 @@ public class UserServiceImpl implements UserService {
                     if (userProfile.isExternallyManaged()) {
                         throw new UserExternallyManagedException();
                     } else {
-                        long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-                        if (tokenTimestamp < System.currentTimeMillis()) {
-                            toRet = false;
-                        } else {
-                            toRet = true;
+                        String studioId = tokenElements.nextToken();
+                        if (StringUtils.equals(studioId, instanceService.getInstanceId())) {
+                            long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+                            toRet = tokenTimestamp >= System.currentTimeMillis();
                         }
                     }
                 }
@@ -605,7 +606,7 @@ public class UserServiceImpl implements UserService {
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 3) {
+            if (tokenElements.countTokens() == 4) {
                 toRet = tokenElements.nextToken();
             }
         }
@@ -713,5 +714,13 @@ public class UserServiceImpl implements UserService {
 
     public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
         this.emailServiceNoAuth = emailServiceNoAuth;
+    }
+
+    public InstanceService getInstanceService() {
+        return instanceService;
+    }
+
+    public void setInstanceService(InstanceService instanceService) {
+        this.instanceService = instanceService;
     }
 }
