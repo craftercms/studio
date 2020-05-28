@@ -323,6 +323,7 @@
         <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory" />
         <property name="emailService" ref="mailSender"/>
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
+        <property name="instanceService" ref="instanceService" />
     </bean>
 
     <bean id="userServiceInternal"
