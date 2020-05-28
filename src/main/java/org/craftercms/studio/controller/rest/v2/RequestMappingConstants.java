@@ -43,7 +43,7 @@ public interface RequestMappingConstants {
     String ME = "/me";
     String LOGOUT_SSO_URL = "/logout/sso/url";
     String FORGOT_PASSWORD = "/forgot_password";
-    String CHANGE_PASSWORD = "change_password";
+    String CHANGE_PASSWORD = "/change_password";
     String SET_PASSWORD = "/set_password";
     String RESET_PASSWORD = "/reset_password";
 }
