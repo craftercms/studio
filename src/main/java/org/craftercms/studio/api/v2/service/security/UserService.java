@@ -104,4 +104,13 @@ public interface UserService {
      */
     boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException;
+
+    /**
+     * Validate forgot password token
+     *
+     * @param token forgot password token to validate
+     * @return true if token is valid otherwise false
+     */
+    boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException,
+            ServiceLayerException;
 }

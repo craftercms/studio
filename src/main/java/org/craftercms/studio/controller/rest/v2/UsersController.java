@@ -55,6 +55,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -67,6 +68,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_USERNAME;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CHANGE_PASSWORD;
@@ -82,6 +84,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.R
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SET_PASSWORD;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SITES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.USERS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.VALIDATE_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CURRENT_USER;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_LOGOUT_URL;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ROLES;
@@ -91,6 +94,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.craftercms.studio.model.rest.ApiResponse.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -481,6 +485,23 @@ public class UsersController {
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = VALIDATE_TOKEN, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody validateToken(HttpServletResponse response,
+                                      @RequestParam(value = REQUEST_PARAM_TOKEN, required = true) String token)
+            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        boolean valid = userService.validateToken(token);
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        if (valid) {
+            result.setResponse(OK);
+        } else {
+            result.setResponse(UNAUTHORIZED);
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        }
         responseBody.setResult(result);
         return responseBody;
     }
