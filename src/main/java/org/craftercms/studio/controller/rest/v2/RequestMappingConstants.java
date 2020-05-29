@@ -46,4 +46,5 @@ public interface RequestMappingConstants {
     String CHANGE_PASSWORD = "/change_password";
     String SET_PASSWORD = "/set_password";
     String RESET_PASSWORD = "/reset_password";
+    String VALIDATE_TOKEN = "/validate_token";
 }
