@@ -493,6 +493,13 @@ public class UsersController {
     public ResponseBody validateToken(HttpServletResponse response,
                                       @RequestParam(value = REQUEST_PARAM_TOKEN, required = true) String token)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
+        try {
+            TimeUnit.SECONDS.sleep(delay);
+        } catch (InterruptedException e) {
+            logger.debug("Interrupted while delaying request by " + delay + " seconds.", e);
+        }
+        
         boolean valid = userService.validateToken(token);
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
