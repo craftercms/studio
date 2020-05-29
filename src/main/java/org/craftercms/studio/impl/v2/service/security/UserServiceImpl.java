@@ -21,6 +21,9 @@ import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -60,12 +63,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
@@ -73,9 +70,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -100,10 +94,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_ALGORITHM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_TYPE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
@@ -425,7 +417,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
+    public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException,
+            UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         boolean success = false;
@@ -464,31 +457,23 @@ public class UserServiceImpl implements UserService {
 
     private String encryptToken(String token) {
         try {
-            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
-            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
-            byte[] tokenBytes = token.getBytes(StandardCharsets.UTF_8);
-            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
-            byte[] encrypted = cipher.doFinal(tokenBytes);
-            return Base64.getEncoder().encodeToString(encrypted);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException |
-                IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            String hashedToken = encryptor.encrypt(token);
+            return Base64.getEncoder().encodeToString(hashedToken.getBytes(StandardCharsets.UTF_8));
+        } catch (CryptoException e) {
             logger.error("Error while encrypting forgot password token", e);
             return null;
         }
     }
 
-    private String decryptToken(String token) {
+    private String decryptToken(String hashedToken) {
         try {
-            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
-            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
-            byte[] tokenBytes = Base64.getDecoder().decode(token.getBytes(StandardCharsets.UTF_8));
-            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
-            byte[] decrypted = cipher.doFinal(tokenBytes);
-            return new String(decrypted, StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            byte[] hashedTokenBytes = Base64.getDecoder().decode(hashedToken.getBytes(StandardCharsets.UTF_8));
+            return encryptor.decrypt(new String(hashedTokenBytes, StandardCharsets.UTF_8));
+        } catch (CryptoException e) {
             logger.error("Error while decrypting forgot password token", e);
             return null;
         }
@@ -551,7 +536,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User setPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+    public User setPassword(String token, String newPassword) throws UserNotFoundException,
+            UserExternallyManagedException, ServiceLayerException {
         if (validateToken(token)) {
             String username = getUsernameFromToken(token);
             if (StringUtils.isNotEmpty(username)) {
@@ -573,7 +559,8 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-    private boolean validateToken(String token) throws UserNotFoundException,
+    @Override
+    public boolean validateToken(String token) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
         boolean toRet = false;
         String decryptedToken = decryptToken(token);
