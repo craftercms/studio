@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -68,9 +69,11 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.S
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REPOSITORY_STATUS;
+import static org.craftercms.studio.model.rest.ApiResponse.ADD_REMOTE_INVALID;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
-import static org.craftercms.studio.model.rest.ApiResponse.INTERNAL_SYSTEM_FAILURE;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.craftercms.studio.model.rest.ApiResponse.PUSH_TO_REMOTE_FAILED;
+import static org.craftercms.studio.model.rest.ApiResponse.REMOVE_REMOTE_FAILED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -82,7 +85,7 @@ public class RepositoryManagementController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(ADD_REMOTE)
-    public ResponseBody addRemote(@RequestBody RemoteRepository remoteRepository)
+    public ResponseBody addRemote(HttpServletResponse response, @RequestBody RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
 
         if (!siteService.exists(remoteRepository.getSiteId())) {
@@ -96,7 +99,8 @@ public class RepositoryManagementController {
         if (res) {
             result.setResponse(CREATED);
         } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+            result.setResponse(ADD_REMOTE_INVALID);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
         responseBody.setResult(result);
         return responseBody;
@@ -140,7 +144,7 @@ public class RepositoryManagementController {
     }
 
     @PostMapping(PUSH_TO_REMOTE)
-    public ResponseBody pushToRemote(@RequestBody PushToRemoteRequest pushToRemoteRequest)
+    public ResponseBody pushToRemote(HttpServletResponse response, @RequestBody PushToRemoteRequest pushToRemoteRequest)
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
         if (!siteService.exists(pushToRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(pushToRemoteRequest.getSiteId());
@@ -154,7 +158,8 @@ public class RepositoryManagementController {
         if (res) {
             result.setResponse(OK);
         } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            result.setResponse(PUSH_TO_REMOTE_FAILED);
         }
         responseBody.setResult(result);
         return responseBody;
@@ -176,7 +181,7 @@ public class RepositoryManagementController {
     }
 
     @PostMapping(REMOVE_REMOTE)
-    public ResponseBody removeRemote(@RequestBody RemoveRemoteRequest removeRemoteRequest)
+    public ResponseBody removeRemote(HttpServletResponse response, @RequestBody RemoveRemoteRequest removeRemoteRequest)
             throws CryptoException, SiteNotFoundException {
         if (!siteService.exists(removeRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(removeRemoteRequest.getSiteId());
@@ -189,7 +194,8 @@ public class RepositoryManagementController {
         if (res) {
             result.setResponse(OK);
         } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            result.setResponse(REMOVE_REMOTE_FAILED);
         }
         responseBody.setResult(result);
         return responseBody;
