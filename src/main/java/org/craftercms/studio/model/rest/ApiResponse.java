@@ -121,11 +121,11 @@ public class ApiResponse {
                     StringUtils.EMPTY);
 
     public static final ApiResponse PUSH_TO_REMOTE_FAILED =
-            new ApiResponse(12005, "Push to remote repository failed.", "Contact your system administrator.",
+            new ApiResponse(12005, "Push to remote repository failed.", "Check your repository settings or contact your system administrator.",
                     StringUtils.EMPTY);
 
     public static final ApiResponse MARKETPLACE_NOT_INITIALIZED = new ApiResponse(40000,
-        "Marketplace service is not initialized", "Contact your system administrator", StringUtils.EMPTY);
+        "Marketplace service is not initialized", "Contact your system administrator.", StringUtils.EMPTY);
 
     public static final ApiResponse MARKETPLACE_UNREACHABLE = new ApiResponse(40001,
         "Marketplace server is unreachable", "Check the configuration to make sure the Marketplace URL is correct",
