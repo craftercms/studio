@@ -234,7 +234,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     }
                     res = getRemoteRepositoryInfo(resultRemotes, remoteBranches, unreachableRemotes, sandboxBranchName);
                 }
-            } catch (   GitAPIException e) {
+            } catch (GitAPIException e) {
                 logger.error("Error getting remote repositories for site " + siteId, e);
             }
         }

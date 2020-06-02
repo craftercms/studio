@@ -47,4 +47,18 @@ public interface RequestMappingConstants {
     String SET_PASSWORD = "/set_password";
     String RESET_PASSWORD = "/reset_password";
     String VALIDATE_TOKEN = "/validate_token";
+
+    /** Repository Management controller **/
+    String REPOSITORY = "/repository";
+    String ADD_REMOTE = "/add_remote";
+    String LIST_REMOTES = "/list_remotes";
+    String PULL_FROM_REMOTE = "/pull_from_remote";
+    String PUSH_TO_REMOTE = "/push_to_remote";
+    String REBUILD_DATABASE = "/rebuild_database";
+    String REMOVE_REMOTE = "/remove_remote";
+    String STATUS = "/status";
+    String RESOLVE_CONFLICT = "/resolve_conflict";
+    String DIFF_CONFLICTED_FILE = "/diff_conflicted_file";
+    String COMMIT_RESOLUTION = "/commit_resolution";
+    String CANCEL_FAILED_PULL = "/cancel_failed_pull";
 }
