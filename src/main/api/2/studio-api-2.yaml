@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.8.1'
+  version: '3.1.8.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4923,6 +4923,9 @@ components:
         keywords:
           type: string
           description: The keywords to search in the files
+        path:
+          type: string
+          description: Regular expression to filter the paths
         offset:
           type: integer
           format: int64
@@ -4944,9 +4947,6 @@ components:
             Type":"text/css" or nested objects for range facets like "Width": { "min": 0, "max": 150 }. Both keys and
              values can be taken from the facets object of a previous search.
           additionalProperties: true
-      required:
-        - query
-        - keywords
 
     SearchResult:
       type: object

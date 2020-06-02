@@ -434,6 +434,10 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             query.must(keywordsQuery);
         }
 
+        if (StringUtils.isNotEmpty(params.getPath())) {
+            query.filter(QueryBuilders.regexpQuery(pathFieldName, params.getPath()));
+        }
+
         if(MapUtils.isNotEmpty(params.getFilters())) {
             updateFilters(query, params, siteFacets);
         }
