@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,9 +21,14 @@ import org.craftercms.studio.model.search.SearchParams
 
 class ContentMonitoring {
 
+	static SERVICES_CONFIG_BEAN = "cstudioServicesConfig"
+	static SITE_SERVICE_BEAN = "cstudioSiteServiceSimple"
+	static NOTIFICATION_SERVICE_BEAN = "cstudioNotificationService"
+	static SEARCH_SERVICE_BEAN = "searchServiceInternal"
+
 	static doMonitoringForAllSites(context, logger) {
 		def results = []
-		def siteService = context.get("cstudioSiteServiceSimple")
+		def siteService = context.get(SITE_SERVICE_BEAN)
 		def sites = siteService.getAllAvailableSites()
 
 		sites.each { site ->
@@ -48,9 +52,10 @@ class ContentMonitoring {
 
 		def results = [:]
 
-		def searchService = context.get("searchServiceInternal")
-		def notificationService = context.get("cstudioNotificationService")
-		def siteService = context.get("cstudioSiteServiceSimple")
+		def searchService = context.get(SEARCH_SERVICE_BEAN)
+		def notificationService = context.get(NOTIFICATION_SERVICE_BEAN)
+		def siteService = context.get(SITE_SERVICE_BEAN)
+		def servicesConfig = context.get(SERVICES_CONFIG_BEAN)
 
 		def config = siteService.getConfiguration(site, "site-config.xml", false);
 
@@ -61,7 +66,7 @@ class ContentMonitoring {
 			}
 
 			config.contentMonitoring.monitor.each { monitor ->
-				def authoringBaseUrl = siteService.getAuthoringServerUrl(site)
+				def authoringBaseUrl = servicesConfig.getAuthoringUrl(site)
 
 				logger.info("executing monitor: ${monitor.name}")
 

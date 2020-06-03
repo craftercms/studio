@@ -105,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.5.7', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.7.4', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -114,10 +114,10 @@ CREATE TABLE IF NOT EXISTS `audit` (
   `operation`                 VARCHAR(32)   NOT NULL,
   `operation_timestamp`       DATETIME      NOT NULL,
   `origin`                    VARCHAR(16)   NOT NULL,
-  `primary_target_id`         VARCHAR(256)  NOT NULL,
+  `primary_target_id`         VARCHAR(1024)  NOT NULL,
   `primary_target_type`       VARCHAR(32)   NOT NULL,
   `primary_target_subtype`    VARCHAR(32)   NULL,
-  `primary_target_value`      VARCHAR(512)  NOT NULL,
+  `primary_target_value`      VARCHAR(1024)  NOT NULL,
   `actor_id`                  VARCHAR(255)  NOT NULL,
   `actor_details`             VARCHAR(255)  NULL,
   `cluster_node_id`           VARCHAR(255)  NULL,
@@ -134,10 +134,10 @@ CREATE TABLE IF NOT EXISTS `audit` (
 CREATE TABLE IF NOT EXISTS `audit_parameters` (
   `id`                BIGINT(20) NOT NULL AUTO_INCREMENT,
   `audit_id`          BIGINT(20) NOT NULL,
-  `target_id`         VARCHAR(256)  NOT NULL,
+  `target_id`         VARCHAR(1024)  NOT NULL,
   `target_type`       VARCHAR(32)   NOT NULL,
   `target_subtype`    VARCHAR(32)   NULL,
-  `target_value`      VARCHAR(512)  NOT NULL,
+  `target_value`      VARCHAR(1024)  NOT NULL,
   PRIMARY KEY (`id`),
   KEY `audit_parameters_audit_id_idx` (`audit_id`),
   KEY `audit_parameters_target_id_idx` (`target_id`),

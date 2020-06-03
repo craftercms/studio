@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +16,6 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import org.apache.commons.collections.FastArrayList;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -57,7 +55,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -74,7 +71,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -163,8 +159,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         groupedPaths.put(PublishRequest.Action.MOVE, movedPaths);
         groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
 
-        environment = resolveEnvironment(site, environment);
-
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
                 submissionComment);
         for (PublishRequest item : items) {
@@ -184,18 +178,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
-    }
-
-    private String resolveEnvironment(String site, String environment) {
-        String toRet = environment;
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-        for (PublishingTargetTO target : publishingTargets) {
-            if (target.getDisplayLabel().equals(environment)) {
-                toRet = target.getRepoBranchName();
-                break;
-            }
-        }
-        return toRet;
     }
 
     protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow) {
@@ -297,7 +279,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
 
         }
-        Set<String> environments = getAllPublishingEnvironments(site);
+        Set<String> environments = getAllPublishedEnvironments(site);
         for (String environment : environments) {
             List<PublishRequest> items = createDeleteItems(site, environment, paths, approver, scheduledDate);
             for (PublishRequest item : items) {
@@ -312,19 +294,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
-    }
-
-    protected Set<String> getAllPublishingEnvironments(String site) {
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-        Set<String> environments = new HashSet<String>();
-        if (publishingTargets != null && publishingTargets.size() > 0) {
-            for (PublishingTargetTO target : publishingTargets) {
-                if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                    environments.add(target.getRepoBranchName());
-                }
-            }
-        }
-        return environments;
     }
 
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
@@ -530,23 +499,10 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private List<String> getEnvironmentNames(String siteId) {
         List<String> toRet = new ArrayList<String>();
+        toRet.add(servicesConfig.getLiveEnvironment(siteId));
         if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            List<PublishingChannelTO> channelsTO = getPublishedEnvironments(siteId);
-            if (CollectionUtils.isNotEmpty(channelsTO)) {
-                channelsTO.forEach(channel -> {
-                    toRet.add(channel.getName());
-                });
-            }
-        } else {
-            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(siteId);
-            if (CollectionUtils.isNotEmpty(publishingTargets)) {
-                publishingTargets.forEach(target -> {
-                    toRet.add(target.getRepoBranchName());
-                });
-            }
+            toRet.add(servicesConfig.getStagingEnvironment(siteId));
         }
-
-
         return toRet;
     }
 
@@ -730,21 +686,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
-        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(site) ?
-                getAvailablePublishingChannelGroupsForSite(site) : getPublishedEnvironments(site);
-        List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
-        List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
-        for (PublishingChannelTO channelTO : channelsTO) {
-            if (channelTO.isPublish()) {
-                publishChannels.add(channelTO);
-            }
-            if (channelTO.isUpdateStatus()) {
-                updateStatusChannels.add(channelTO);
-            }
-        }
+        List<PublishingChannelTO> channelsTO = getPublishedEnvironments(site);
+
         Map<String, List<PublishingChannelTO>> result = new HashMap<>();
-        result.put("availablePublishChannels", publishChannels);
-        result.put("availableUpdateStatusChannels", updateStatusChannels);
+        result.put("availablePublishChannels", channelsTO);
         return result;
     }
 
@@ -763,37 +708,11 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected Set<String> getAllPublishedEnvironments(String site) {
         Set<String> publishedEnvironments = new LinkedHashSet<String>();
-        publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
         publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
+        }
         return publishedEnvironments;
-    }
-
-    protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site) {
-        List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
-        List<String> channels = getPublishingChannels(site);
-        for (String ch : channels) {
-            PublishingChannelTO chTO = new PublishingChannelTO();
-            chTO.setName(ch);
-            chTO.setPublish(true);
-            chTO.setUpdateStatus(false);
-            channelTOs.add(chTO);
-        }
-        return channelTOs;
-    }
-
-    protected List<String> getPublishingChannels(String site) {
-        List<String> channels = new ArrayList<String>();
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-        Collections.sort(publishingTargets, new Comparator<PublishingTargetTO>() {
-            @Override
-            public int compare(PublishingTargetTO o1, PublishingTargetTO o2) {
-                return o1.getOrder() - o2.getOrder();
-            }
-        });
-        for (PublishingTargetTO target : publishingTargets) {
-            channels.add(target.getDisplayLabel());
-        }
-        return channels;
     }
 
     @Override
@@ -878,9 +797,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-        environment = resolveEnvironment(site, environment);
-        Set<String> environments = servicesConfig.isStagingEnvironmentEnabled(site) ?
-                getAllPublishedEnvironments(site) : getAllPublishingEnvironments(site);
+        Set<String> environments = getAllPublishedEnvironments(site);
         if (!environments.contains(environment)) {
             throw new EnvironmentNotFoundException();
         }
@@ -976,7 +893,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-        Set<String> environements = getAllPublishingEnvironments(site);
+        Set<String> environements = getAllPublishedEnvironments(site);
         if (!environements.contains(environment)) {
             throw new EnvironmentNotFoundException();
         }

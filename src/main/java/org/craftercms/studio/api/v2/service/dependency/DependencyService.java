@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -81,7 +80,7 @@ public interface DependencyService {
     /**
      * Get list of paths of content items that are dependant on given path
      *
-     * @param site site identifier
+     * @param siteId site identifier
      * @param path path to get dependent items for
      * @return list of paths dependent on given
      */
@@ -90,7 +89,7 @@ public interface DependencyService {
     /**
      * Get list of paths of content items that are dependant on given paths
      *
-     * @param site site identifier
+     * @param siteId site identifier
      * @param paths list of paths to get dependent items for
      * @return list of paths dependent on given paths
      */

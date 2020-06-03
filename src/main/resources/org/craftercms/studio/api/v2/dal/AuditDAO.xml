@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
   ~
   ~ This program is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,7 +35,31 @@
         <result property="actorDetails" column="actor_details" />
         <result property="clusterNodeId" column="cluster_node_id" />
 
-        <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParamter">
+        <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
+            <result property="targetId" column="target_id"/>
+            <result property="targetType" column="target_type" />
+            <result property="targetSubtype" column="target_subtype" />
+            <result property="targetValue" column="target_value"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="AuditDashboardMap" type="org.craftercms.studio.api.v2.dal.AuditLog">
+        <id property="id" column="id" />
+        <result property="organizationId" column="organization_id" />
+        <result property="siteId" column="site_id" />
+        <result property="siteName" column="site_name" />
+        <result property="operation" column="operation" />
+        <result property="operationTimestamp" column="operation_timestamp" />
+        <result property="origin" column="origin" />
+        <result property="primaryTargetId" column="primary_target_id" />
+        <result property="primaryTargetType" column="primary_target_type" />
+        <result property="primaryTargetSubtype" column="primary_target_subtype" />
+        <result property="primaryTargetValue" column="primary_target_value" />
+        <result property="actorId" column="actor_id" />
+        <result property="actorDetails" column="actor_details" />
+        <result property="clusterNodeId" column="cluster_node_id" />
+
+        <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
             <result property="targetId" column="target_id"/>
             <result property="targetType" column="target_type" />
             <result property="targetSubtype" column="target_subtype" />
@@ -286,5 +309,87 @@
             #{state}
         </foreach>
         order by act.operation_timestamp desc limit #{offset},#{limit}
+    </select>
+
+    <select id="getAuditDashboardTotal" parameterType="java.util.Map" resultType="int">
+        SELECT count(1)
+        FROM audit a INNER JOIN site s on a.site_id = s.id
+        WHERE 1 = 1
+        <if test="siteId != null and siteId !=  '' ">
+            AND s.name = #{siteId}
+        </if>
+        <if test="username != null and username !=  '' ">
+            AND a.actor_id = #{username}
+        </if>
+        <if test="operations != null">
+            and a.operation in
+            <foreach item="operation" index="index" collection="operations"
+                     open="(" separator="," close=")">
+                #{operation}
+            </foreach>
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND a.operation_timestamp BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND a.operation_timestamp >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= a.operation_timestamp
+            </when>
+        </choose>
+        <if test="target != null and target !=  '' ">
+            AND a.primary_target_value RLIKE #{target}
+        </if>
+    </select>
+
+    <select id="getAuditDashboard" parameterType="java.util.Map" resultMap="AuditLogMap">
+        <bind name="sortBy" value="'a.' + sort"/>
+        SELECT a.*, s.site_id as site_name
+        FROM audit a INNER JOIN site s on a.site_id = s.id
+        WHERE 1 = 1
+        <if test="siteId != null and siteId !=  '' ">
+            AND s.name = #{siteId}
+        </if>
+        <if test="username != null and username !=  '' ">
+            AND a.actor_id = #{username}
+        </if>
+        <if test="operations != null">
+            and a.operation in
+            <foreach item="operation" index="index" collection="operations"
+                     open="(" separator="," close=")">
+                #{operation}
+            </foreach>
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND a.operation_timestamp BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND a.operation_timestamp >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= a.operation_timestamp
+            </when>
+        </choose>
+        <if test="target != null and target !=  '' ">
+            AND a.primary_target_value RLIKE #{target}
+        </if>
+        <choose>
+            <when test="(sort != null and sort !=  '') and (order != null and order != '')">
+                ORDER BY ${sort} ${order}
+            </when>
+            <when test="(sort != null and sort !=  '') and (order == null or order == '')">
+                ORDER BY ${sort}
+            </when>
+            <when test="(sort == null or sort !=  '') and (order != null and order != '')">
+                ORDER BY a.operation_timestamp ${order}
+            </when>
+            <otherwise>
+                ORDER BY a.operation_timestamp DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{limit}
     </select>
 </mapper>

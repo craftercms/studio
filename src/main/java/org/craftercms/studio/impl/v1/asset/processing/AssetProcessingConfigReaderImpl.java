@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -84,7 +83,7 @@ public class AssetProcessingConfigReaderImpl implements AssetProcessingConfigRea
         throws AssetProcessingConfigurationException {
         ProcessorPipelineConfiguration mappedPipelineConfig = new ProcessorPipelineConfiguration();
         mappedPipelineConfig.setInputPathPattern(getRequiredStringProperty(pipelineConfig, INPUT_PATH_PATTERN_CONFIG_KEY));
-        mappedPipelineConfig.setKeepOriginal(pipelineConfig.getBoolean(KEEP_ORIGINAL_CONFIG_KEY));
+        mappedPipelineConfig.setKeepOriginal(pipelineConfig.getBoolean(KEEP_ORIGINAL_CONFIG_KEY, false));
 
         List<HierarchicalConfiguration> processorsConfig = getRequiredConfigurationsAt(pipelineConfig, PROCESSORS_CONFIG_KEY);
         List<ProcessorConfiguration> mappedProcessorsConfig = new ArrayList<>(processorsConfig.size());

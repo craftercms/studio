@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,19 +28,62 @@ public class RemoteRepositoryInfo implements Serializable {
     private String fetch;
     private String pushUrl;
     private List<String> branches;
+    private boolean reachable = true;
+    private String unreachableReason;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getFetch() { return fetch; }
-    public void setFetch(String fetch) { this.fetch = fetch; }
+    public String getUrl() {
+        return url;
+    }
 
-    public String getPushUrl() { return pushUrl; }
-    public void setPushUrl(String pushUrl) { this.pushUrl = pushUrl; }
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-    public List<String> getBranches() { return branches; }
-    public void setBranches(List<String> branches) { this.branches = branches; }
+    public String getFetch() {
+        return fetch;
+    }
+
+    public void setFetch(String fetch) {
+        this.fetch = fetch;
+    }
+
+    public String getPushUrl() {
+        return pushUrl;
+    }
+
+    public void setPushUrl(String pushUrl) {
+        this.pushUrl = pushUrl;
+    }
+
+    public List<String> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(List<String> branches) {
+        this.branches = branches;
+    }
+
+    public boolean isReachable() {
+        return reachable;
+    }
+
+    public void setReachable(boolean reachable) {
+        this.reachable = reachable;
+    }
+
+    public String getUnreachableReason() {
+        return unreachableReason;
+    }
+
+    public void setUnreachableReason(String unreachableReason) {
+        this.unreachableReason = unreachableReason;
+    }
 }

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -63,7 +62,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{schema}'";
     private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM {schema}";
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
-            "UPDATE user SET password = '{password}' WHERE username = 'admin'";
+            "UPDATE {schema}.user SET password = '{password}' WHERE username = 'admin'";
+    private final static String DB_QUERY_CHECK_ADMIN_PASSWORD_EMPTY =
+            "SELECT CASE WHEN ISNULL(password) > 0 THEN 1 WHEN CHAR_LENGTH(password) = 0 THEN 1 ELSE 0 END FROM " +
+                    "{schema}.user WHERE username = 'admin' ";
 
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
@@ -104,6 +106,17 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                         createSchema(conn);
                         createDatabaseTables(conn, statement);
                     }
+
+                    // Check for admin empty password
+                    try (ResultSet rs3 = statement.executeQuery(DB_QUERY_CHECK_ADMIN_PASSWORD_EMPTY.replace(SCHEMA,
+                                    studioConfiguration.getProperty(DB_SCHEMA)))) {
+                        if (rs3.next()) {
+                            if (rs3.getInt(1) > 0) {
+                                setRandomAdminPassword(conn, statement);
+                            }
+                        }
+                    }
+
                 } catch (SQLException | IOException e) {
                     logger.error("Error while initializing database", e);
                 }
@@ -131,18 +144,23 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             sr.runScript(reader);
 
             if (isRandomAdminPasswordEnabled()) {
-                String randomPassword = generateRandomPassword();
-                String hashedPassword = CryptoUtils.hashPassword(randomPassword);
-                String update = DB_QUERY_SET_ADMIN_PASSWORD.replace("{password}", hashedPassword);
-                statement.executeUpdate(update);
-                conn.commit();
-                logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
+                setRandomAdminPassword(conn, statement);
             }
 
             integrityValidator.store(conn);
         } catch (RuntimeSqlException e) {
             logger.error("Error while running create DB script", e);
         }
+    }
+
+    private void setRandomAdminPassword(Connection conn, Statement statement) throws SQLException {
+        String randomPassword = generateRandomPassword();
+        String hashedPassword = CryptoUtils.hashPassword(randomPassword);
+        String update = DB_QUERY_SET_ADMIN_PASSWORD.replace(SCHEMA,
+                studioConfiguration.getProperty(DB_SCHEMA)).replace("{password}", hashedPassword);
+        statement.executeUpdate(update);
+        conn.commit();
+        logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
     }
 
     private void createSchema(Connection conn) throws IOException {

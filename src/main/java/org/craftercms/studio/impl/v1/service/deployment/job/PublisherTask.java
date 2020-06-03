@@ -30,9 +30,8 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParamter;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -211,19 +210,9 @@ public class PublisherTask implements Runnable {
 
     private Set<String> getAllPublishingEnvironments(String site) {
         Set<String> environments = new HashSet<String>();
+        environments.add(servicesConfig.getLiveEnvironment(site));
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
-            environments.add(servicesConfig.getLiveEnvironment(site));
             environments.add(servicesConfig.getStagingEnvironment(site));
-        } else {
-            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-
-            if (publishingTargets != null && publishingTargets.size() > 0) {
-                for (PublishingTargetTO target : publishingTargets) {
-                    if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                        environments.add(target.getRepoBranchName());
-                    }
-                }
-            }
         }
         return environments;
     }
@@ -403,15 +392,15 @@ public class PublisherTask implements Runnable {
         auditLog.setPrimaryTargetId(site + ":" + environment);
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         auditLog.setPrimaryTargetValue(environment);
-        List<AuditLogParamter> auditLogParamters = new ArrayList<AuditLogParamter>();
+        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
         for (String packageId : packageIds) {
-            AuditLogParamter auditLogParamter = new AuditLogParamter();
-            auditLogParamter.setTargetId(site + ":" + environment);
-            auditLogParamter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParamter.setTargetValue(packageId);
-            auditLogParamters.add(auditLogParamter);
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(site + ":" + environment);
+            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLogParameter.setTargetValue(packageId);
+            auditLogParameters.add(auditLogParameter);
         }
-        auditLog.setParameters(auditLogParamters);
+        auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -58,9 +57,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @HasPermission(type = DefaultPermission.class, action = "create-site")
     public Map<String, Object> searchPlugins(@ValidateStringParam(name = "type") String type,
                                              @ValidateStringParam(name = "keywords") String keywords,
-                                             long offset, long limit)
+                                             boolean showIncompatible, long offset, long limit)
         throws MarketplaceException {
-        return marketplaceServiceInternal.searchPlugins(type, keywords, offset, limit);
+        return marketplaceServiceInternal.searchPlugins(type, keywords, showIncompatible, offset, limit);
     }
 
     @Override

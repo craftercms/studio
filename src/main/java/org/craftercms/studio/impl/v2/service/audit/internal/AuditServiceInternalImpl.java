@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -187,6 +186,91 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         }
         params.put(INCLUDE_PARAMETERS, includeParameters);
         return auditDao.getAuditLogTotal(params);
+    }
+
+    @Override
+    public int getAuditDashboardTotal(String siteId,String user, List<String> operations,ZonedDateTime dateFrom,
+                                      ZonedDateTime dateTo, String target) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        if (StringUtils.isNotEmpty(siteId)) {
+            params.put(SITE_ID, siteId);
+        }
+        if (StringUtils.isNotEmpty(user)) {
+            params.put(USERNAME, user);
+        }
+        if (CollectionUtils.isNotEmpty(operations)) {
+            params.put(OPERATIONS, operations);
+        }
+        if (dateFrom != null) {
+            params.put(DATE_FROM, dateFrom);
+        }
+        if (dateTo != null) {
+            params.put(DATE_TO, dateTo);
+        }
+        if (StringUtils.isNotEmpty(target)) {
+            params.put(TARGET, target);
+        }
+        return auditDao.getAuditDashboardTotal(params);
+    }
+
+    @Override
+    public List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
+                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort,
+                                            String order) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(OFFSET, offset);
+        params.put(LIMIT, limit);
+        if (StringUtils.isNotEmpty(siteId)) {
+            params.put(SITE_ID, siteId);
+        }
+        if (StringUtils.isNotEmpty(user)) {
+            params.put(USERNAME, user);
+        }
+        if (CollectionUtils.isNotEmpty(operations)) {
+            params.put(OPERATIONS, operations);
+        }
+        if (dateFrom != null) {
+            params.put(DATE_FROM, dateFrom);
+        }
+        if (dateTo != null) {
+            params.put(DATE_TO, dateTo);
+        }
+        if (StringUtils.isNotEmpty(target)) {
+            params.put(TARGET, target);
+        }
+        if (StringUtils.isNotEmpty(sort)) {
+            String sortParam = "";
+            switch (sort) {
+                case "site":
+                    sortParam = "site_name";
+                    break;
+                case "actor":
+                    sortParam = "actor_id";
+                    break;
+                case "operation":
+                    sortParam = "operation";
+                    break;
+                case "operationTimestamp":
+                    sortParam = "operation_timestamp";
+                    break;
+                case "target":
+                    sortParam = "primary_target_value";
+                    break;
+                default:
+                    break;
+            }
+            if (StringUtils.isNotEmpty(sortParam)) {
+                params.put(SORT, sortParam);
+            }
+        }
+        if (StringUtils.isNotEmpty(order)) {
+            if (StringUtils.equalsIgnoreCase("DESC", order)) {
+                params.put(ORDER, "DESC");
+            } else {
+                params.put(ORDER, "ASC");
+            }
+        }
+        return auditDao.getAuditDashboard(params);
     }
 
     @Override

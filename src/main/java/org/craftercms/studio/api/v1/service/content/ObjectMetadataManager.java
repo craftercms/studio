@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,6 +18,7 @@ package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -62,4 +62,38 @@ public interface ObjectMetadataManager {
 
     int countAllItems();
 
+    /**
+     * Get total number of records for content dashboard
+     *
+     * @param siteId site identifier
+     * @param path path regular expression to apply as filter for result set
+     * @param modifier filter results by user
+     * @param contentType filter results by content type
+     * @param state filter results by state
+     * @param dateFrom lower boundary for modified date
+     * @param dateTo upper boundary for modified date
+     * @return total number of records in result set
+     */
+    int getContentDashboardTotal(String siteId, String path, String modifier, String contentType,
+                                 long state, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+
+    /**
+     * Get result set for content dashboard
+     *
+     * @param siteId site identifier
+     * @param path path regular expression to apply as filter for result set
+     * @param modifier filter results by user
+     * @param contentType filter results by content type
+     * @param state filter results by state
+     * @param dateFrom lower boundary for modified date
+     * @param dateTo upper boundary for modified date
+     * @param sortBy sort results by column
+     * @param order order of results
+     * @param offset offset of the first record in result set
+     * @param limit number of records to return
+     * @return list of item metadata records
+     */
+    List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
+                                           long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                           String sortBy, String order, int offset, int limit);
 }

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.repository.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -213,22 +213,28 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch)
             throws ServiceLayerException, CryptoException {
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
+        Map<String, String> unreachableRemotes = new HashMap<String, String>();
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
                 List<RemoteConfig> resultRemotes = git.remoteList().call();
                 if (CollectionUtils.isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
-                        fetchRemote(siteId, git, conf);
+                            try {
+                                fetchRemote(siteId, git, conf);
+                            } catch (Exception e) {
+                                logger.warn("Failed to fetch from remote repository " + conf.getName());
+                                unreachableRemotes.put(conf.getName(), e.getMessage());
+                            }
                     }
                     Map<String, List<String>> remoteBranches = getRemoteBranches(git);
                     String sandboxBranchName = sandboxBranch;
                     if (StringUtils.isEmpty(sandboxBranchName)) {
                         sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
                     }
-                    res = getRemoteRepositoryInfo(resultRemotes, remoteBranches, sandboxBranchName);
+                    res = getRemoteRepositoryInfo(resultRemotes, remoteBranches, unreachableRemotes, sandboxBranchName);
                 }
-            } catch (GitAPIException | CryptoException | IOException e) {
+            } catch (GitAPIException e) {
                 logger.error("Error getting remote repositories for site " + siteId, e);
             }
         }
@@ -282,11 +288,16 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     private List<RemoteRepositoryInfo> getRemoteRepositoryInfo(List<RemoteConfig> resultRemotes,
                                                                Map<String, List<String>> remoteBranches,
+                                                               Map<String, String> unreachableRemotes,
                                                                String sandboxBranchName) {
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
         for (RemoteConfig conf : resultRemotes) {
             RemoteRepositoryInfo rri = new RemoteRepositoryInfo();
             rri.setName(conf.getName());
+            if (MapUtils.isNotEmpty(unreachableRemotes) && unreachableRemotes.containsKey(conf.getName())) {
+                rri.setReachable(false);
+                rri.setUnreachableReason(unreachableRemotes.get(conf.getName()));
+            }
             List<String> branches = remoteBranches.get(rri.getName());
             if (CollectionUtils.isEmpty(branches)) {
                 branches = new ArrayList<String>();

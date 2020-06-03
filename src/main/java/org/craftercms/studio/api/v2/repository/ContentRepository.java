@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,8 +17,10 @@
 package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface ContentRepository {
@@ -86,4 +87,20 @@ public interface ContentRepository {
      * @param processed processed
      */
     void insertGitLog(String siteId, String commitId, int processed);
+
+    /**
+     * Get publishing history
+     *
+     * @param siteId site identifier
+     * @param environment environment
+     * @param path path regular expression to use as filter
+     * @param publisher user to filter by
+     * @param fromDate lower boundary for published date
+     * @param toDate upper boundary for published date
+     * @param limit number of records to return
+     * @return
+     */
+    List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
+                                                     String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                     int limit);
 }

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +16,6 @@
 
 package org.craftercms.studio.api.v2.upgrade;
 
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
@@ -34,7 +32,7 @@ public interface UpgradeOperation {
      * @param targetVersion the target version
      * @param config operation configuration
      */
-    void init(String sourceVersion, String targetVersion, HierarchicalConfiguration<ImmutableNode> config);
+    void init(String sourceVersion, String targetVersion, HierarchicalConfiguration<ImmutableNode> config) throws UpgradeException;
 
     /**
      * Performs a single upgrade operation.

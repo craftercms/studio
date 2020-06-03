@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,12 +47,13 @@ public interface MarketplaceServiceInternal {
      * Performs a search for all available plugins that match the given filters
      * @param type the type of plugins to search
      * @param keywords the keywords to filter plugins
+     * @param showIncompatible indicates if incompatible plugins should be returned
      * @param offset the offset for pagination
      * @param limit the limit for pagination
      * @return the result from the Marketplace
      * @throws MarketplaceException if there is any error performing the search
      */
-    Map<String, Object> searchPlugins(String type, String keywords, long offset, long limit)
+    Map<String, Object> searchPlugins(String type, String keywords, boolean showIncompatible, long offset, long limit)
         throws MarketplaceException;
 
     /**

@@ -29,10 +29,10 @@ studio.repo.siteSandboxBranch: master
 studio.repo.defaultRemoteName: origin
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
-# If not using environment-config.xml, environments are configured here
-# Git repository branch for the `live` environment, default "live"
+# Git repository branch for publishing targets are configured here
+# Git repository branch for the `live` publishing target, default "live"
 studio.repo.published.live: live
-# Git repository branch for the `staging` environment, default "staging"
+# Git repository branch for the `staging` publishing target, default "staging"
 studio.repo.published.staging: staging
 # Blueprints folder name under global
 studio.repo.blueprintsPath: blueprints
@@ -76,6 +76,18 @@ studio.repo.pullFromRemote.conflict.notificationEnabled: false
 studio.repo.defaultIgnoreFile: crafter/studio/utils/default-gitignore
 
 ############################################################
+##                       Blob Store                       ##
+############################################################
+# Module of the blob store configuration file in the site
+studio.blob.config.module: studio
+# Location of the blob store configuration file in the site
+studio.blob.config.path: blob-stores-config.xml
+# Extension used for the blob files in the site
+studio.blob.file.extension: blob
+# Target to use for all operations
+studio.blob.publishingTarget: preview
+
+############################################################
 ##                   Site Configuration                   ##
 ############################################################
 # Location where global configuration files are stored.
@@ -108,10 +120,6 @@ studio.configuration.site.generalConfigFileName: site-config.xml
 studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
 # File name where configuration of user role mappings is stored for a site.
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
-# Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
-studio.configuration.site.environment: local
-# File name where environment specific configuration is stored
-studio.configuration.site.environment.configFileName: environment/environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
@@ -128,12 +136,18 @@ studio.configuration.default.dependencyResolver.configBasePath: /configuration/d
 studio.configuration.default.dependencyResolver.configFileName: resolver-config.xml
 # File name where dependency specific configuration is stored
 studio.configuration.site.dependencyResolver.configFileName: dependency/resolver-config.xml
+# Module of the AWS configuration
+studio.configuration.site.aws.configurationModule: studio
 # Repo path to read the AWS configuration
-studio.configuration.site.aws.configurationPath: /config/studio/aws/aws.xml
+studio.configuration.site.aws.configurationPath: aws/aws.xml
+# Module of the Box configuration
+studio.configuration.site.box.configurationModule: studio
 # Repo path to read the Box configuration
-studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
+studio.configuration.site.box.configurationPath: box/box.xml
+# Module of the WebDAV configuration
+studio.configuration.site.webdav.configurationModule: studio
 # Repo path to read the WebDAV configuration
-studio.configuration.site.webdav.configurationPath: /config/studio/webdav/webdav.xml
+studio.configuration.site.webdav.configurationPath: webdav/webdav.xml
 # Regex pattern for item specific dependencies
 studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*,/site/components/item/.*,/static-assets/item/.*
 # Repo path to the asset processing config
@@ -151,7 +165,7 @@ studio.configuration.management.authorizationToken: defaultManagementToken
 # Please update this per installation and provide this token to the status monitors.
 studio.configuration.management.previewAuthorizationToken: ${env:ENGINE_MANAGEMENT_TOKEN}
 # Protected URLs with preview engine management authorization token.
-# Coma separated list of preview engine urls
+# Comma separated list of preview engine urls
 studio.configuration.management.previewProtectedUrls: >-
   /api/1/monitoring/log.json,
   /api/1/monitoring/memory.json,
@@ -210,7 +224,7 @@ studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-se
 studio.security.publicUrls: >
   /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
   /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
-  /static-assets/.+
+  /static-assets/.+,/api/2/users/validate_token
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -230,7 +244,7 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 # Forgot password token time-out period in minutes
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
-studio.security.resetPassword.serviceUrl: "#/reset-password"
+studio.security.resetPassword.serviceUrl: "login"
 # Password requirements validation regular expression
 # The supported capture group keys are:
 #   hasNumbers
@@ -242,6 +256,8 @@ studio.security.resetPassword.serviceUrl: "#/reset-password"
 #   maxLength
 #   minMaxLength
 studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[~|!`,;\/@#$%^&+=]))(?<minLength>.{8,})$
+# Delay set password API response in seconds
+studio.security.setPasswordDelay: 1
 # Studio authentication chain configuration
 studio.authentication.chain:
   # Authentication provider type
@@ -251,7 +267,7 @@ studio.authentication.chain:
     # Authentication header for secure key
     secureKeyHeader: secure_key
     # Authentication headers secure key that is expected to match secure key value from headers
-    # Typically this is placed in the header by the authentication agent, e.g. Apache mod_mellon
+    # Typically this is placed in the header by the authentication agent
     secureKeyHeaderValue: secure
     # Authentication header for username
     usernameHeader: username
@@ -270,7 +286,7 @@ studio.authentication.chain:
     # If logout is enabled for headers authenticated users (SSO), set the endpoint of the SP or IdP logout, which should
     # be called after local logout. The {baseUrl} macro is provided so that the browser is redirected back to Studio
     # after logout (https://STUDIO_SERVER:STUDIO_PORT/studio)
-    logoutUrl: /mellon/logout?ReturnTo={baseUrl}
+    logoutUrl: /YOUR_DOMAIN/logout?ReturnTo={baseUrl}
   # Authentication provider type
   - provider: LDAP
     # Authentication via LDAP enabled
@@ -454,7 +470,7 @@ studio.db.pool.maxWaitTime: 10000
 # for any reason, initializer needs to be turned on.
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
-studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=${env:MARIADB_ROOT_PASSWD}
 # Create schema SQL script location
 studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
 # Create database SQL script location
@@ -472,7 +488,7 @@ studio.db.testOnBorrow: true
 studio.db.validationQuery: SELECT 1
 # Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
 # Use a value less than or equal to 0 for no timeout.
-studio.db.validationInterval: 34000
+studio.db.validationInterval: 1
 # Base folder for the embedded database
 studio.db.basePath: ${sys:crafter.bin.dir}/dbms
 # Data folder for the embedded database
@@ -586,7 +602,6 @@ studio.cors.methods: '*'
 studio.cors.credentials: true
 # Value for the Access-Control-Max-Age header
 studio.cors.maxage: -1
-
 
 ################################################################
 ##                           Search                           ##
@@ -788,3 +803,9 @@ studio.serverless.delivery.deployer.target.template.params:
 studio.marketplace.url: https://mp.craftercms.org
 # Indicates if the search should include plugins pending of approval
 studio.marketplace.search.pending: false
+
+##################################################
+##                    Cache                     ##
+##################################################
+# If Studio should cache its FreeMarker templates
+studio.cache.templates: true

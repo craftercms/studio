@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,6 +18,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import scripts.api.ContentServices
 
 def result = [:]
@@ -80,8 +80,18 @@ if(ServletFileUpload.isMultipartContent(request)) {
                 fileName = FilenameUtils.getName(fileName)
             }
             contentType = item.getContentType()
-            result = ContentServices.writeContentAsset(context, site, path, fileName, stream,
-                    isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+            try {
+                result = ContentServices.writeContentAsset(context, site, path, fileName, stream,
+                        isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+                if (result.message.isDeleted()) {
+                    response.setStatus(500)
+                    result.success = false
+                    result.message = "Failed to write asset"
+                }
+            } catch (ServiceLayerException e) {
+                response.setStatus(500)
+                result.setMessage = e.getMessage()
+            }
         }
     }
 } else {

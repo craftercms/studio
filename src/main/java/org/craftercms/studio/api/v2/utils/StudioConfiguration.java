@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -103,8 +102,6 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
     String CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.site.permissionMappingsFileName";
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
-    String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
-    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME = "studio.configuration.site.environment.configFileName";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
     String CONFIGURATION_DEFAULT_GROUPS = "studio.configuration.defaultGroups";
     String CONFIGURATION_DEFAULT_ADMIN_GROUP = "studio.configuration.defaultAdminGroup";
@@ -116,8 +113,11 @@ public interface StudioConfiguration {
             "studio.configuration.default.dependencyResolver.configBasePath";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME =
             "studio.configuration.site.dependencyResolver.configFileName";
+    String CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE = "studio.configuration.site.aws.configurationModule";
     String CONFIGURATION_SITE_AWS_CONFIGURATION_PATH = "studio.configuration.site.aws.configurationPath";
+    String CONFIGURATION_SITE_BOX_CONFIGURATION_MODULE = "studio.configuration.site.box.configurationModule";
     String CONFIGURATION_SITE_BOX_CONFIGURATION_PATH = "studio.configuration.site.box.configurationPath";
+    String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_MODULE = "studio.configuration.site.webdav.configurationModule";
     String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH = "studio.configuration.site.webdav.configurationPath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
     String CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH =
@@ -166,6 +166,7 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
     String SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX = "studio.security.passwordRequirements.validationRegex";
+    String SECURITY_SET_PASSWORD_DELAY = "studio.security.setPasswordDelay";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
@@ -320,6 +321,9 @@ public interface StudioConfiguration {
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL = "studio.serverless.delivery.deployer.target.remoteRepoUrl";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH = "studio.serverless.delivery.deployer.target.localRepoPath";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS = "studio.serverless.delivery.deployer.target.template.params";
+
+    /** Cache Configuration  **/
+    String CACHE_TEMPLATES = "studio.cache.templates";
 
     void loadConfig();
 

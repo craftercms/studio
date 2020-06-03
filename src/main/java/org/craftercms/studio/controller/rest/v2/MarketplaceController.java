@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -53,10 +52,11 @@ public class MarketplaceController {
     @GetMapping("/search")
     public ResponseBody searchPlugins(@RequestParam(required = false) String type,
                                       @RequestParam(required = false) String keywords,
+                                      @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
                                       @RequestParam(required = false, defaultValue = "0") long offset,
                                       @RequestParam(required = false, defaultValue = "10") long limit)
         throws MarketplaceException {
-        Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, offset, limit);
+        Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, showIncompatible, offset, limit);
 
         ResponseBody response = new ResponseBody();
         PaginatedResultList<Map<String, Object>> result = new PaginatedResultList<>();

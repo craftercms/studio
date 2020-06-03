@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,8 +21,8 @@ import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.aws.S3ClientCachingFactory;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
-import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -41,6 +40,9 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.stripStart;
+
 /**
  * Default implementation of {@link AwsS3Service}.
  *
@@ -49,6 +51,11 @@ import java.util.List;
 public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements AwsS3Service {
 
     public static final String ITEM_FILTER = "item";
+
+    /**
+     * The S3 client factory.
+     */
+    protected S3ClientCachingFactory clientFactory;
 
     /**
      * The part size used for S3 uploads
@@ -64,7 +71,12 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * The URL pattern for the generated files
      */
     protected String urlPattern;
-    
+
+    @Required
+    public void setClientFactory(S3ClientCachingFactory clientFactory) {
+        this.clientFactory = clientFactory;
+    }
+
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
     }
@@ -79,11 +91,8 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         this.urlPattern = urlPattern;
     }
 
-    /**
-    * Add withEndpointConfiguration() to direct requests to a S3 compatible storage service
-    */
     protected AmazonS3 getS3Client(S3Profile profile) {
-        return S3Utils.createClient(profile);
+        return clientFactory.getClient(profile);
     }
 
     /**
@@ -99,7 +108,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
-        String key = StringUtils.isNotEmpty(path)? StringUtils.appendIfMissing(path, delimiter) + filename : filename;
+        String key = StringUtils.isNotEmpty(path)? normalizePrefix(path) + filename : filename;
 
         AwsUtils.uploadStream(inputBucket, key, s3Client, partSize, filename, content);
 
@@ -123,7 +132,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         MimeType filerType =
             StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER)? MimeTypeUtils.ALL : new MimeType(type);
 
-        String prefix = StringUtils.isEmpty(path)? path : StringUtils.appendIfMissing(path, delimiter);
+        String prefix = StringUtils.isEmpty(path)? path : normalizePrefix(path);
 
         ListObjectsV2Request request = new ListObjectsV2Request()
                                             .withBucketName(profile.getBucketName())
@@ -153,6 +162,10 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
     protected String createUrl(String profileId, String key) {
         return String.format(urlPattern, profileId, key);
+    }
+
+    protected String normalizePrefix(String prefix) {
+        return stripStart(appendIfMissing(prefix, delimiter), delimiter);
     }
 
 }

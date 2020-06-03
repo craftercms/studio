@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,4 +38,18 @@ public interface AuditDAO {
     List<AuditLog> selectUserFeedEntriesHideLive(Map params);
 
     List<AuditLog> selectUserFeedEntries(Map params);
+
+    /**
+     * Get total number of records for audit dashboard
+     * @param params SQL query parameters
+     * @return total number of records
+     */
+    int getAuditDashboardTotal(Map params);
+
+    /**
+     * Get records for audit dashboard content
+     * @param params SQL query parameters
+     * @return records for audit dashboard
+     */
+    List<AuditLog> getAuditDashboard(Map params);
 }

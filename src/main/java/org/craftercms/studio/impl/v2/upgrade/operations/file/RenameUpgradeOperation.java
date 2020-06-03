@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,8 +26,8 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that renames/moves files and
@@ -60,33 +59,36 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
     @Override
     public void execute(final String site) throws UpgradeException {
         try {
+            Path repo = getRepositoryPath(site).getParent().toAbsolutePath();
+            Path from = repo.resolve(oldPath);
+            Path to = repo.resolve(newPath);
 
-            Path oldP = Paths.get(getRepositoryPath(site).getParent().toAbsolutePath().toString(), oldPath);
-            Path newP = Paths.get(getRepositoryPath(site).getParent().toAbsolutePath().toString(), newPath);
-
-            File oldF = oldP.toFile();
-            File newF = newP.toFile();
-            if (oldF.exists()) {
-                if (newF.exists()) {
-                    if (overwrite) {
-                        FileUtils.forceDelete(newF);
-                    } else {
-                        logger.info("Rename operation not executed beacuse target path " + newP.toString() + " already " +
-                                "exists.");
-                        return;
-                    }
-                }
-                if (oldF.isDirectory()) {
-                    FileUtils.moveDirectory(oldF, newF);
-                } else if (oldF.isFile()) {
-                    FileUtils.moveFile(oldF, newF);
-                }
-
-                commitAllChanges(site);
-            }
+            renamePath(from, to);
+            commitAllChanges(site);
         } catch (Exception e) {
             throw new UpgradeException("Error moving path " + oldPath + " to path " + newPath + " for repo " +
                     (StringUtils.isEmpty(site) ? "global" : site), e);
+        }
+    }
+
+    protected void renamePath(Path from, Path to) throws IOException {
+        File fromFile = from.toFile();
+        File toFile = to.toFile();
+        if (fromFile.exists()) {
+            if (toFile.exists()) {
+                if (overwrite) {
+                    FileUtils.forceDelete(toFile);
+                } else {
+                    logger.info("Rename operation not executed because target path {0} already exists.", to);
+                    return;
+                }
+            }
+            if (fromFile.isDirectory()) {
+                FileUtils.moveDirectory(fromFile, toFile);
+            } else if (fromFile.isFile()) {
+                FileUtils.moveFile(fromFile, toFile);
+            }
+
         }
     }
 

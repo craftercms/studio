@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,7 +36,9 @@ import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -50,13 +51,16 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.util.FS;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -350,7 +354,7 @@ public class GitRepositoryHelper {
     /**
      * Return the author identity as a jgit PersonIdent
      *
-     * @param author author
+     * @param user author
      * @return author user as a PersonIdent
      */
     public PersonIdent getAuthorIdent(User user) throws ServiceLayerException, UserNotFoundException {
@@ -383,5 +387,52 @@ public class GitRepositoryHelper {
             RevTree tree = commit.getTree();
             return tree;
         }
+    }
+
+    public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
+
+        List<String> files = new ArrayList<String>();
+        RevWalk rw = new RevWalk(repository);
+        try (Git git = new Git(repository)) {
+            if (commit.getParentCount() > 0) {
+                RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
+
+                ObjectId commitId = commit.getId();
+                ObjectId parentCommitId = parent.getId();
+
+                RevTree parentTree = getTreeForCommit(repository, parentCommitId.getName());
+                RevTree commitTree = getTreeForCommit(repository, commitId.getName());
+
+                if (parentTree != null && commitTree != null) {
+                    try (ObjectReader reader = repository.newObjectReader()) {
+                        CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                        CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                        prevCommitTreeParser.reset(reader, parentTree.getId());
+                        nextCommitTreeParser.reset(reader, commitTree.getId());
+
+                        // Diff the two commit Ids
+                        List<DiffEntry> diffEntries = git.diff()
+                                .setOldTree(prevCommitTreeParser)
+                                .setNewTree(nextCommitTreeParser)
+                                .call();
+                        for (DiffEntry diffEntry : diffEntries) {
+                            if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
+                                files.add(FILE_SEPARATOR + diffEntry.getOldPath());
+                            } else {
+                                files.add(FILE_SEPARATOR + diffEntry.getNewPath());
+                            }
+                        }
+                    } catch (IOException | GitAPIException e) {
+                        logger.error("Error while getting list of files in commit " + commit.getId().getName());
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error("Error while getting list of files in commit " + commit.getId().getName());
+        } finally {
+            rw.dispose();
+        }
+        return files;
     }
 }

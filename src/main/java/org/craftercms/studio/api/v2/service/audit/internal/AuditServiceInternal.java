@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -63,6 +62,39 @@ public interface AuditServiceInternal {
     int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
                                     boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                     String target, String origin, String clusterNodeId);
+
+    /**
+     * Get total number of records for audit dashboard filtered by parameters
+     *
+     * @param siteId site identifier
+     * @param user filter logs by user
+     * @param operations filter logs by action
+     * @param dateFrom lower boundary for operation timestamp
+     * @param dateTo upper boundary for operation timestamp
+     * @param target filter logs by target
+     * @return total number of records
+     */
+    int getAuditDashboardTotal(String siteId,String user, List<String> operations, ZonedDateTime dateFrom,
+                               ZonedDateTime dateTo, String target);
+
+    /**
+     * Get audit dashboard content filtered by parameters
+     *
+     * @param siteId site identifier
+     * @param offset offset of the first record
+     * @param limit number of records to return
+     * @param user filter logs by user
+     * @param operations filter logs by actions
+     * @param dateFrom lower boundary for operation timestamp
+     * @param dateTo upper boundary for operation timestamp
+     * @param target filter logs by target
+     * @param sort sort for records
+     * @param order order for records
+     * @return list of records for audit dashboard
+     */
+    List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
+                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort,
+                                     String order);
 
     /**
      * Get audit log entry by id

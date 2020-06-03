@@ -54,8 +54,14 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_CONFIG_URL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_ADMIN_EMAIL_ADDRESS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_AUTHORING_URL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_LIVE_URL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SITE_URLS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_STAGING_URL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
@@ -339,6 +345,12 @@ public class ServicesConfigImpl implements ServicesConfig {
                  liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
              }
              siteConfig.setLiveEnvironment(liveEnvironment);
+
+             loadSiteUrlsConfiguration(siteConfig, configNode.selectSingleNode(SITE_CONFIG_ELEMENT_SITE_URLS));
+
+             String adminEmailAddressValue = configNode.valueOf(SITE_CONFIG_ELEMENT_ADMIN_EMAIL_ADDRESS);
+             siteConfig.setAdminEmailAddress(adminEmailAddressValue);
+
              loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
              // set the last updated date
              siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
@@ -351,6 +363,19 @@ public class ServicesConfigImpl implements ServicesConfig {
          }
          return siteConfig;
      }
+
+    protected void loadSiteUrlsConfiguration(SiteConfigTO siteConfig, Node configNode) {
+        if (Objects.nonNull(configNode)) {
+            String authoringUrlValue = configNode.valueOf(SITE_CONFIG_ELEMENT_AUTHORING_URL);
+            siteConfig.setAuthoringUrl(authoringUrlValue);
+
+            String stagingUrlValue = configNode.valueOf(SITE_CONFIG_ELEMENT_STAGING_URL);
+            siteConfig.setStagingUrl(stagingUrlValue);
+
+            String liveUrlValue = configNode.valueOf(SITE_CONFIG_ELEMENT_LIVE_URL);
+            siteConfig.setLiveUrl(liveUrlValue);
+        }
+    }
 
     /**
      * Loads the search facets configurations
@@ -577,6 +602,54 @@ public class ServicesConfigImpl implements ServicesConfig {
         SiteConfigTO config = getSiteConfig(site);
         if(Objects.nonNull(config)) {
             return config.getFacets();
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthoringUrl(String siteId) {
+        SiteConfigTO config = getSiteConfig(siteId);
+        if (Objects.nonNull(config)) {
+            if (StringUtils.isEmpty(config.getAuthoringUrl())) {
+                return DEFAULT_CONFIG_URL;
+            } else {
+                return config.getAuthoringUrl();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getStagingUrl(String siteId) {
+        SiteConfigTO config = getSiteConfig(siteId);
+        if (Objects.nonNull(config)) {
+            if (StringUtils.isEmpty(config.getStagingUrl())) {
+                return DEFAULT_CONFIG_URL;
+            } else {
+                return config.getStagingUrl();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getLiveUrl(String siteId) {
+        SiteConfigTO config = getSiteConfig(siteId);
+        if (Objects.nonNull(config)) {
+            if (StringUtils.isEmpty(config.getLiveUrl())) {
+                return DEFAULT_CONFIG_URL;
+            } else {
+                return config.getLiveUrl();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getAdminEmailAddress(String siteId) {
+        SiteConfigTO config = getSiteConfig(siteId);
+        if (Objects.nonNull(config)) {
+            return config.getAdminEmailAddress();
         }
         return null;
     }

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,7 +34,7 @@ public class AuditLog {
     private String actorId;
     private String actorDetails;
     private String clusterNodeId;
-    private List<AuditLogParamter> parameters;
+    private List<AuditLogParameter> parameters;
 
     public long getId() {
         return id;
@@ -149,11 +148,11 @@ public class AuditLog {
         this.clusterNodeId = clusterNodeId;
     }
 
-    public List<AuditLogParamter> getParameters() {
+    public List<AuditLogParameter> getParameters() {
         return parameters;
     }
 
-    public void setParameters(List<AuditLogParamter> parameters) {
+    public void setParameters(List<AuditLogParameter> parameters) {
         this.parameters = parameters;
     }
 }

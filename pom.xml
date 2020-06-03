@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
   ~
   ~ This program is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.5</version><!-- craftercms version flag -->
+    <version>3.1.8-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -46,16 +45,16 @@
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>master</studio.ui.version><!-- craftercms ui version flag -->
         <studio.ui.node.version>v13.6.0</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.21.1</studio.ui.yarn.version>
+        <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
-        <mariadb4j.version>2.4.2.3</mariadb4j.version>
-        <jackson.version>2.9.10</jackson.version>
-        <jackson.databind.version>2.9.10.2</jackson.databind.version>
+        <mariadb4j.version>2.4.7</mariadb4j.version>
+        <jackson.version>2.10.3</jackson.version>
+        <jackson.databind.version>2.10.3</jackson.databind.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.9</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
@@ -546,7 +545,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.370</version>
+                <version>1.11.435</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -776,7 +775,7 @@
                         <!-- templates -->
                         <resource>
                             <directory>${studio.ui.path}templates</directory>
-                            <filtering>true</filtering>
+                            <filtering>false</filtering>
                             <targetPath>default-site/templates</targetPath>
                         </resource>
 

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -45,7 +44,6 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
@@ -118,27 +116,6 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         } catch (DeploymentException e) {
             logger.error(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
         }
-    }
-
-    
-    /**
-     * Checks if there are any publishing channels configure
-     * @return true if there is at least one publishing channel config
-     */
-    @Override
-    @ValidateParams
-	public boolean hasChannelsConfigure(@ValidateStringParam(name = "site") String site,
-                                        MultiChannelPublishingContext mcpContext) {
-    	boolean toReturn = false;
-        if (mcpContext != null) {
-            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-            for (PublishingTargetTO target : publishingTargets) {
-                if (target.getDisplayLabel().equals(mcpContext.getPublishingChannelGroup())) {
-                    return false;
-                }
-            }
-        }
-    	return toReturn;
     }
 
     @Override

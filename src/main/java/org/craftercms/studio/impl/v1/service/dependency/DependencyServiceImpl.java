@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -215,32 +214,8 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public List<String> getPublishingDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
-        Set<String> toRet = new HashSet<String>();
-        Set<String> pathsParams = new HashSet<String>();
-
-        logger.debug("Get all publishing dependencies");
-        pathsParams.addAll(paths);
-        boolean exitCondition = false;
-        do {
-            List<String> deps = getPublishingDependenciesForListFromDB(site, pathsParams);
-            exitCondition = !toRet.addAll(deps);
-            pathsParams.clear();
-            pathsParams.addAll(deps);
-        } while (!exitCondition);
-
+            throws ServiceLayerException {
         return dependencyService.getHardDependencies(site, paths);
-    }
-
-    private List<String> getPublishingDependenciesForListFromDB(String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(SITE_PARAM, site);
-        params.put(PATHS_PARAM, paths);
-        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
-        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(EDITED_STATES_PARAM, onlyEditStates);
-        params.put(NEW_STATES_PARAM, State.NEW_STATES);
-        return dependencyMapper.getPublishingDependenciesForList(params);
     }
 
     @Override
@@ -636,16 +611,18 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private Set<String> getMandatoryParentsForPublishing(String site, List<String> paths) {
-        Set<String> possibleParents = calculatePossibleParents(paths);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ItemStateMapper.SITE_PARAM, site);
-        params.put(ItemStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
-        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
-        params.put(ItemStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
-        List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
         Set<String> toRet = new HashSet<String>();
-        toRet.addAll(result);
+        Set<String> possibleParents = calculatePossibleParents(paths);
+        if (!possibleParents.isEmpty()) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put(ItemStateMapper.SITE_PARAM, site);
+            params.put(ItemStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
+            Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
+            params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
+            params.put(ItemStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
+            List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
+            toRet.addAll(result);
+        }
         return toRet;
     }
 

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
   ~
   ~ This program is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +25,7 @@
         <constructor-arg>
             <map key-type="java.lang.String" value-type="java.lang.String">
                 <entry key="environment"
-                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
+                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}}"/>
                 <entry key="previewUrl" value="${previewUrl}"/>
 
             </map>
@@ -51,6 +50,30 @@
         <property name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
         <property name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
         <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
+    </bean>
+
+    <!-- Declared with scope="prototype" so that a new one is created for every SiteContext -->
+    <bean id="crafter.freeMarkerConfig" class="org.craftercms.engine.freemarker.CrafterFreeMarkerConfigurer" scope="prototype" depends-on="studioConfiguration">
+        <property name="templateExceptionHandler" ref="crafter.crafterTemplateExceptionHandler"/>
+        <property name="templateLoaderPaths" value="WEB-INF"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+        <property name="freemarkerSettings">
+            <props>
+                <prop key="output_encoding">UTF-8</prop>
+                <prop key="localized_lookup">false</prop>
+                <prop key="object_wrapper">org.craftercms.engine.freemarker.CrafterObjectWrapper</prop>
+                <prop key="datetime_format">${crafter.engine.model.datetime.pattern}</prop>
+                <prop key="time_zone">${crafter.engine.model.datetime.timeZone}</prop>
+                <prop key="new_builtin_class_resolver">safer</prop>
+            </props>
+        </property>
+        <property name="freemarkerVariables" ref="crafter.freemarkerVariables"/>
+        <property name="preTemplateLoaders">
+            <array>
+                <ref bean="crafter.crafterFreeMarkerTemplateLoader"/>
+            </array>
+        </property>
+        <property name="cacheTemplates" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CACHE_TEMPLATES)}"/>
     </bean>
 
     <!-- ////////////////////////////////// -->
