@@ -127,9 +127,6 @@
                     <name>image-picker</name>
                     <icon>
                         <class>fa-picture-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
