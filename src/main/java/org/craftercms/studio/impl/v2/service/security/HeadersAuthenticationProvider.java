@@ -135,7 +135,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 user.setUsername(usernameHeaderValue);
                                 user.setPassword(UUID.randomUUID().toString());
                                 user.setFirstName(firstName);
-                                user.setLastName(firstName);
+                                user.setLastName(lastName);
                                 user.setEmail(email);
                                 user.setExternallyManaged(true);
                                 user.setEnabled(true);

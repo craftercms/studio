@@ -21,6 +21,8 @@ import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.User;
@@ -67,8 +69,9 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
             String userParam = request.getParameter("username");
             User currentUser = null;
             try {
-                currentUser = (User) authentication.getPrincipal();
-            } catch (ClassCastException e) {
+                String username = authentication.getPrincipal().toString();
+                currentUser = userServiceInternal.getUserByIdOrUsername(-1, username);
+            } catch (ClassCastException | UserNotFoundException | ServiceLayerException e) {
                 // anonymous user
                 if (!authentication.getPrincipal().toString().equals("anonymousUser")) {
                     logger.error("Error getting current user", e);
