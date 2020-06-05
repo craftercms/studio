@@ -35,6 +35,11 @@ public class SearchParams {
     protected String query;
 
     /**
+     * Regular expression to filter the paths
+     */
+    protected String path;
+
+    /**
      * The offset to paginate the results
      */
     protected int offset = 0;
@@ -73,6 +78,14 @@ public class SearchParams {
 
     public void setQuery(final String query) {
         this.query = query;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public int getOffset() {
