@@ -104,7 +104,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                 if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
 
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null,
+                            new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null,
                                     userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -131,7 +131,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                                 securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
                                 UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
                                 UsernamePasswordAuthenticationToken authentication =
-                                        new UsernamePasswordAuthenticationToken(userDetails, null,
+                                        new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null,
                                                 userDetails.getAuthorities());
                                 SecurityContextHolder.getContext().setAuthentication(authentication);
                                 break;

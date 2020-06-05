@@ -65,7 +65,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             "UPDATE {schema}.user SET password = '{password}' WHERE username = 'admin'";
     private final static String DB_QUERY_CHECK_ADMIN_PASSWORD_EMPTY =
             "SELECT CASE WHEN ISNULL(password) > 0 THEN 1 WHEN CHAR_LENGTH(password) = 0 THEN 1 ELSE 0 END FROM " +
-                    "{schema}.user WHERE username = 'admin' ";
+            "{schema}.user WHERE username = 'admin' ";
 
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
@@ -80,18 +80,17 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                 logger.error("Error loading JDBC driver", e);
             }
 
-            try(Connection conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL))) {
-
+            try (Connection conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL))) {
                 logger.debug("Check if database schema already exists");
                 try(Statement statement = conn.createStatement();
-                    ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS.replace(SCHEMA,
-                                    studioConfiguration.getProperty(DB_SCHEMA)))) {
+                    ResultSet rs = statement.executeQuery(
+                            DB_QUERY_CHECK_SCHEMA_EXISTS.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)))) {
 
                     if (rs.next()) {
                         logger.debug("Database schema exists. Check if it is empty.");
-                        try (ResultSet rs2 = statement.executeQuery(DB_QUERY_CHECK_TABLES.replace(SCHEMA,
-                                studioConfiguration.getProperty(DB_SCHEMA)))) {
-                            List<String> tableNames = new ArrayList<String>();
+                        try (ResultSet rs2 = statement.executeQuery(
+                                DB_QUERY_CHECK_TABLES.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)))) {
+                            List<String> tableNames = new ArrayList<>();
                             while (rs2.next()) {
                                 tableNames.add(rs2.getString(1));
                             }
@@ -108,8 +107,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     }
 
                     // Check for admin empty password
-                    try (ResultSet rs3 = statement.executeQuery(DB_QUERY_CHECK_ADMIN_PASSWORD_EMPTY.replace(SCHEMA,
-                                    studioConfiguration.getProperty(DB_SCHEMA)))) {
+                    try (ResultSet rs3 = statement.executeQuery(
+                            DB_QUERY_CHECK_ADMIN_PASSWORD_EMPTY.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)))) {
                         if (rs3.next()) {
                             if (rs3.getInt(1) > 0) {
                                 setRandomAdminPassword(conn, statement);
@@ -156,8 +155,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     private void setRandomAdminPassword(Connection conn, Statement statement) throws SQLException {
         String randomPassword = generateRandomPassword();
         String hashedPassword = CryptoUtils.hashPassword(randomPassword);
-        String update = DB_QUERY_SET_ADMIN_PASSWORD.replace(SCHEMA,
-                studioConfiguration.getProperty(DB_SCHEMA)).replace("{password}", hashedPassword);
+        String update = DB_QUERY_SET_ADMIN_PASSWORD.replace(
+                SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)).replace("{password}", hashedPassword);
         statement.executeUpdate(update);
         conn.commit();
         logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");

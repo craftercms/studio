@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.User;
@@ -50,8 +52,9 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
             String siteParam = request.getParameter("site_id");
             User currentUser = null;
             try {
-                currentUser = (User) authentication.getPrincipal();
-            } catch (ClassCastException e) {
+                String username = authentication.getPrincipal().toString();
+                currentUser = userServiceInternal.getUserByIdOrUsername(-1, username);
+            } catch (ClassCastException | UserNotFoundException | ServiceLayerException e) {
                 // anonymous user
                 if (!authentication.getPrincipal().toString().equals("anonymousUser")) {
                     logger.info("Error getting current user", e);
