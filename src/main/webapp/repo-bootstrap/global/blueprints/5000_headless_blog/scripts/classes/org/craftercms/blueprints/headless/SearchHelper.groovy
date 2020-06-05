@@ -84,7 +84,7 @@ class SearchHelper {
 	
 	def processResults(results) {
 		def res = [:]
-		res.total = results.hits.totalHits
+		res.total = results.hits.totalHits.value
 		res.items = results.hits.hits.collect { doc ->
 			processItem(doc.getSourceAsMap())
 		}
