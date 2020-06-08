@@ -942,41 +942,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
-                                           Map<String, String> params) {
-        boolean toReturn;
-
-        // create git repository for site content
-        toReturn = helper.createSiteGitRepo(site, sandboxBranch);
-
-        if (toReturn) {
-            // copy files from blueprint
-            toReturn = helper.copyContentFromBlueprint(blueprintLocation, site);
-        }
-
-        if (toReturn) {
-            // update site name variable inside config files
-            toReturn = helper.updateSitenameConfigVar(site);
-        }
-
-        if (toReturn) {
-            toReturn = helper.replaceParameters(site, params);
-        }
-
-        if (toReturn) {
-            toReturn = helper.addGitIgnoreFile(site);
-        }
-
-        if (toReturn) {
-            // commit everything so it is visible
-            toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
-                    sandboxBranch);
-        }
-
-        return toReturn;
-    }
-
-    @Override
     public boolean deleteSite(String site) {
         boolean toReturn;
 

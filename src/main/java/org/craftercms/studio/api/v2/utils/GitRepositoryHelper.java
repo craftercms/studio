@@ -37,10 +37,13 @@ import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -66,8 +69,21 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SANDBOX;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_FILE_MODE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_FILE_MODE_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
@@ -434,5 +450,126 @@ public class GitRepositoryHelper {
             rw.dispose();
         }
         return files;
+    }
+
+    /**
+     * Create a site git repository from scratch (Sandbox and Published)
+     * @param site site to create
+     * @param sandboxBranch sandbox branch name
+     * @return true if successful, false otherwise
+     */
+    public boolean createSiteGitRepo(String site, String sandboxBranch) {
+        boolean toReturn;
+        Repository sandboxRepo = null;
+
+        // Build a path for the site/sandbox
+        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
+
+        // Create Sandbox
+        sandboxRepo = createGitRepository(siteSandboxPath);
+
+        toReturn = (sandboxRepo != null);
+
+        if (toReturn) {
+            checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
+            sandboxes.put(site, sandboxRepo);
+        }
+
+        return toReturn;
+    }
+
+    public Repository createGitRepository(Path path) {
+        Repository toReturn;
+        path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
+        try {
+            toReturn = FileRepositoryBuilder.create(path.toFile());
+            toReturn.create();
+
+            toReturn = optimizeRepository(toReturn);
+            try (Git git = new Git(toReturn)) {
+                git.commit()
+                        .setAllowEmpty(true)
+                        .setMessage(getCommitMessage(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE))
+                        .call();
+            } catch (GitAPIException e) {
+                logger.error("Error while creating repository for site with path" + path.toString(), e);
+                toReturn = null;
+            }
+        } catch (IOException e) {
+            logger.error("Error while creating repository for site with path" + path.toString(), e);
+            toReturn = null;
+        }
+
+        return toReturn;
+    }
+
+    private Repository optimizeRepository(Repository repo) throws IOException {
+        // Get git configuration
+        StoredConfig config = repo.getConfig();
+        // Set compression level (core.compression)
+        config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION,
+                CONFIG_PARAMETER_COMPRESSION_DEFAULT);
+        // Set big file threshold (core.bigFileThreshold)
+        config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_BIG_FILE_THRESHOLD,
+                CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
+        // Set fileMode
+        config.setBoolean(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_FILE_MODE,
+                CONFIG_PARAMETER_FILE_MODE_DEFAULT);
+        // Save configuration changes
+        config.save();
+
+        return repo;
+    }
+
+    public String getCommitMessage(String commitMessageKey) {
+        String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
+        String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
+        String message = studioConfiguration.getProperty(commitMessageKey);
+
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(prologue)) {
+            sb.append(prologue).append("\n\n");
+        }
+        sb.append(message);
+        if (StringUtils.isNotEmpty(postscript)) {
+            sb.append("\n\n").append(postscript);
+        }
+        return sb.toString();
+    }
+
+    private boolean checkoutSandboxBranch(String site, Repository sandboxRepo, String sandboxBranch) {
+        String sandboxBranchName = sandboxBranch;
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
+        try (Git git = new Git(sandboxRepo)) {
+            if (!StringUtils.equals(sandboxRepo.getBranch(), sandboxBranchName)) {
+                List<Ref> branchList = git.branchList().call();
+                boolean createBranch = true;
+                for (Ref branch : branchList) {
+                    if (StringUtils.equals(branch.getName(), sandboxBranchName) ||
+                            StringUtils.equals(branch.getName(), Constants.R_HEADS + sandboxBranchName)) {
+                        createBranch = false;
+                        break;
+                    }
+                }
+                if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
+                    git.commit()
+                            .setAllowEmpty(true)
+                            .setMessage(getCommitMessage(REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE)
+                                    .replaceAll(PATTERN_SANDBOX, sandboxBranchName))
+                            .call();
+                }
+                git.checkout()
+                        .setCreateBranch(createBranch)
+                        .setName(sandboxBranchName)
+                        .setForce(false)
+                        .call();
+            }
+            return true;
+        } catch (GitAPIException | IOException e) {
+            logger.error("Error checking out sandbox branch " + sandboxBranchName + " for site " + site, e);
+            return false;
+        }
     }
 }

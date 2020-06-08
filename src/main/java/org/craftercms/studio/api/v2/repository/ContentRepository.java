@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface ContentRepository {
 
@@ -103,4 +104,16 @@ public interface ContentRepository {
     List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
                                                      String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
                                                      int limit);
+
+    /**
+     * Create a new site based on a blueprint
+     *
+     * @param blueprintLocation blueprint location
+     * @param siteId site identifier
+     * @param sandboxBranch sandbox branch name
+     * @param params site parameters
+     * @return true if successful, false otherwise
+     */
+    boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+                                    Map<String, String> params);
 }

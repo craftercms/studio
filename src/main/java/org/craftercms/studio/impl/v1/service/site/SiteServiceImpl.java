@@ -522,7 +522,9 @@ public class SiteServiceImpl implements SiteService {
         boolean success = true;
 
         // create site with git repo
-        contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
+        //contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
+
+        contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
 
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
