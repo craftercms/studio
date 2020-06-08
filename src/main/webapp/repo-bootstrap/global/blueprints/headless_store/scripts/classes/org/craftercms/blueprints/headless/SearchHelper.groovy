@@ -25,12 +25,12 @@ class SearchHelper {
 	protected def searchService
 	protected def siteItemService
 	protected def queryStr = "*:*"
-	protected def query
+	protected def queryObj
 	
 	def SearchHelper(searchService, siteItemService) {
 		this.searchService = searchService
 		this.siteItemService = siteItemService
-		query = searchService.createQuery()
+		queryObj = searchService.createQuery()
 	}
 	
 	def query(String q) {
@@ -39,29 +39,29 @@ class SearchHelper {
 	}
 	
 	def filter(String fq) {
-		query.addFilterQuery(fq)
+		queryObj.addFilterQuery(fq)
 		this
 	}
 	
 	def sortBy(String sort) {
-		query.addParam("sort", sort)
+		queryObj.addParam("sort", sort)
 		this
 	}
 	
 	def from(int start) {
-		query.setStart(start)
+		queryObj.setStart(start)
 		this
 	}
 	
 	def to(int rows) {
-		query.setRows(rows)
+		queryObj.setRows(rows)
 		this
 	}
 	
 	def getItems() {
-		query.setQuery(queryStr)
-		log.info("Running query: {}", query)
-		def results = searchService.search(query)
+		queryObj.setQuery(queryStr)
+		log.info("Running query: {}", queryObj)
+		def results = searchService.search(queryObj)
 		processResults(results)
 	}
 	
