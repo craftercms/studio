@@ -80,6 +80,7 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -651,6 +652,47 @@ public class GitContentRepository implements ContentRepository {
             e.printStackTrace();
         }
         return toRet;
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
+                                           Map<String, String> params) {
+        boolean toReturn;
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+
+            // create git repository for site content
+            toReturn = helper.createSiteGitRepo(site, sandboxBranch);
+
+            if (toReturn) {
+                // copy files from blueprint
+                toReturn = helper.copyContentFromBlueprint(blueprintLocation, site);
+            }
+
+            if (toReturn) {
+                // update site name variable inside config files
+                toReturn = helper.updateSitenameConfigVar(site);
+            }
+
+            if (toReturn) {
+                toReturn = helper.replaceParameters(site, params);
+            }
+
+            if (toReturn) {
+                toReturn = helper.addGitIgnoreFile(site);
+            }
+
+            if (toReturn) {
+                // commit everything so it is visible
+                toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
+                        sandboxBranch);
+            }
+        } catch (CryptoException e) {
+            logger.error("Error creating site from blueprint", e);
+            toReturn = false;
+        }
+
+        return toReturn;
     }
 
     public StudioConfiguration getStudioConfiguration() {

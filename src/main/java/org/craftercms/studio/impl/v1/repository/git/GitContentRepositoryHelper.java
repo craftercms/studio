@@ -307,31 +307,6 @@ public class GitContentRepositoryHelper {
         return path;
     }
 
-    /**
-     * Create a site git repository from scratch (Sandbox and Published)
-     * @param site
-     * @return true if successful, false otherwise
-     */
-    public boolean createSiteGitRepo(String site, String sandboxBranch) {
-        boolean toReturn;
-        Repository sandboxRepo = null;
-
-        // Build a path for the site/sandbox
-        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
-
-        // Create Sandbox
-        sandboxRepo = createGitRepository(siteSandboxPath);
-
-        toReturn = (sandboxRepo != null);
-
-        if (toReturn) {
-            checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
-            sandboxes.put(site, sandboxRepo);
-        }
-
-        return toReturn;
-    }
-
     private boolean checkoutSandboxBranch(String site, Repository sandboxRepo, String sandboxBranch) {
         String sandboxBranchName = sandboxBranch;
         if (StringUtils.isEmpty(sandboxBranchName)) {

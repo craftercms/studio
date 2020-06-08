@@ -228,18 +228,6 @@ public interface ContentRepository {
     void unLockItemForPublishing(String site, String path); // TODO: SJ: Change to have a return
 
     /**
-     * Create a new site based on a blueprint
-     *
-     * @param blueprintLocation blueprint location
-     * @param siteId site identifier
-     * @param sandboxBranch sandbox branch name
-     * @param params site parameters
-     * @return true if successful, false otherwise
-     */
-    boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-                                    Map<String, String> params);
-
-    /**
      * Deletes an existing site.
      *
      * @param siteId site to delete
