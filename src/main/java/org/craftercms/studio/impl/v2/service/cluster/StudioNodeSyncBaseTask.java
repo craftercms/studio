@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
@@ -25,17 +23,13 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CI
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -82,9 +76,6 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
     private static final String NON_SSH_GIT_URL_REGEX = "(file|https?|git)://.+";
 
-    protected static final List<String> createdSites = new ArrayList<String>();
-    protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
-
     protected String siteId;
     protected String siteUuid;
     protected String searchEngine;
@@ -103,9 +94,12 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 	protected abstract boolean createSiteInternal(String siteId, String siteUuid, String searchEngine);
 	protected abstract boolean lockSiteInternal(String siteId);
 	protected abstract void unlockSiteInternal(String siteId);
-	protected abstract boolean cloneSiteInternal(String siteId, GitRepositories repoType)
+	protected abstract boolean cloneSiteInternal(String siteId)
             throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
                    InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
+    protected abstract boolean checkIfSiteRepoExistsInternal();
+    protected abstract void addRemotesInternal()
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException;
 
     @Override
     public void run() {
@@ -129,7 +123,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
                 if (success) {
                     // Get the site's database last commit ID
-                    String siteDatabaseLastCommitId = getDatbaseLastCommitId(siteId);
+                    String siteDatabaseLastCommitId = getDatabaseLastCommitId(siteId);
                     
                     // Check if the site needs to be synced
                     boolean syncRequired = isSyncRequired(siteId, siteDatabaseLastCommitId);
@@ -178,7 +172,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 		return isSyncRequiredInternal(siteId, siteDatabaseLastCommitId);
 	}
 
-    protected String getDatbaseLastCommitId(String siteId) {
+    protected String getDatabaseLastCommitId(String siteId) {
         String siteDatabaseLastCommitId = StringUtils.EMPTY;
 
         try {
@@ -191,20 +185,21 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
         return siteDatabaseLastCommitId;
     }
 
-    protected boolean createSiteFromRemote()
+    protected boolean createSiteFromRemote(GitRepositories repoType)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException, CryptoException {
         ClusterMember remoteNode = clusterNodes.get(0);
-        logger.debug("Create site " + siteId + " from remote repository " + remoteNode.getLocalAddress());
-        boolean toRet = cloneRepository(remoteNode, SANDBOX) && cloneRepository(remoteNode, PUBLISHED);
+        logger.debug("Create " + repoType.name() + " repository for site " + siteId + " from remote repository " +
+                remoteNode.getLocalAddress());
+        boolean toRet = cloneRepository(remoteNode);
 
         return toRet;
     }
 
-    protected boolean cloneRepository(ClusterMember remoteNode, GitRepositories repoType)
+    protected boolean cloneRepository(ClusterMember remoteNode)
             throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-		return cloneSiteInternal(siteId, repoType);
+		return cloneSiteInternal(siteId);
     }
 
     protected Path buildRepoPath(GitRepositories repoType) {
@@ -226,74 +221,9 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
         return path;
 	}
-	
-    protected void addOriginRemote() throws IOException, InvalidRemoteUrlException, ServiceLayerException {
-        logger.debug("Add sandbox as origin to published repo");
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repo = builder
-                .setGitDir(buildRepoPath(PUBLISHED).resolve(GIT_ROOT).toFile())
-                .readEnvironment()
-                .findGitDir()
-                .build();
-        // Build a path for the site/sandbox
-        Path siteSandboxPath = buildRepoPath(SANDBOX);
-        // Built a path for the site/published
-        Path sitePublishedPath = buildRepoPath(PUBLISHED);
-        String remoteUrl = sitePublishedPath.relativize(siteSandboxPath).toString();
-        try (Git git = new Git(repo)) {
-
-            Config storedConfig = repo.getConfig();
-            Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
-
-            if (remotes.contains(DEFAULT_REMOTE_NAME)) {
-                return;
-            }
-
-            RemoteAddCommand remoteAddCommand = git.remoteAdd();
-            remoteAddCommand.setName(DEFAULT_REMOTE_NAME);
-            remoteAddCommand.setUri(new URIish(remoteUrl));
-            remoteAddCommand.call();
-        } catch (URISyntaxException e) {
-            logger.error("Remote URL is invalid " + remoteUrl, e);
-            throw new InvalidRemoteUrlException();
-        } catch (GitAPIException e) {
-            logger.error("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl + ") for site " +
-                    siteId, e);
-            throw new ServiceLayerException("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl +
-                    ") for site " + siteId, e);
-        }
-    }
 
     protected void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
-        Map<String, String> existingRemotes = remotesMap.get(siteId);
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-        logger.debug("Add cluster members as remotes to local sandbox repository");
-        for (ClusterMember member : clusterNodes) {
-            if (existingRemotes != null && existingRemotes.containsKey(member.getGitRemoteName())) {
-                continue;
-            }
-
-            try {
-                if (existingRemotes == null) {
-                    existingRemotes = new HashMap<String, String>();
-                    remotesMap.put(siteId, existingRemotes);
-                }
-
-                String remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
-                        studioConfiguration.getProperty(SANDBOX_PATH);
-                addRemoteRepository(member, remoteUrl, SANDBOX);
-
-                remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
-                        studioConfiguration.getProperty(PUBLISHED_PATH);
-                addRemoteRepository(member, remoteUrl, PUBLISHED);
-
-                existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
-
-            } catch (IOException e) {
-                logger.error("Failed to open repository", e);
-            }
-        }
+        addRemotesInternal();
     }
 
     protected void addRemoteRepository(ClusterMember member, String remoteUrl, GitRepositories repoType)
@@ -312,8 +242,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
 
             if (remotes.contains(member.getGitRemoteName())) {
-                logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
-                        "site " + siteId);
+                logger.debug("Remote " + member.getGitRemoteName() + " already exists for " + repoType.toString() +
+                        " repo for site " + siteId);
                 String storedRemoteUrl = storedConfig.getString(CONFIG_SECTION_REMOTE,
                         member.getGitRemoteName(), CONFIG_PARAMETER_URL);
                 if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
@@ -323,7 +253,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                     remoteSetUrlCommand.call();
                 }
             } else {
-                logger.debug("Add " + member.getLocalAddress() + " as remote to sandbox");
+                logger.debug("Add " + member.getLocalAddress() + " as remote to " + repoType.toString());
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(member.getGitRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteUrl));
@@ -459,17 +389,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     }
 
     protected boolean checkIfSiteRepoExists() {
-        boolean toRet = false;
-        if (createdSites.contains(siteId)) {
-            toRet = true;
-        } else {
-            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
-            if (!StringUtils.isEmpty(firstCommitId)) {
-                toRet = true;
-                createdSites.add(siteId);
-            }
-        }
-        return toRet;
+        return checkIfSiteRepoExistsInternal();
     }
 
     protected static class StrictHostCheckingOffSshSessionFactory extends JschConfigSessionFactory {
