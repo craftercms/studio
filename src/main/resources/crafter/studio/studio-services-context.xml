@@ -790,6 +790,8 @@
         <property name="gitLogDao" ref="gitLogDao" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
     </bean>
 
     <!-- /////// -->
