@@ -44,7 +44,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.event.EventService;
@@ -817,7 +817,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     private boolean checkCommitIds(String site, List<String> commitIds) {
         boolean toRet = true;
         for (String commitId : commitIds) {
-            toRet = toRet && contentRepository.commitIdExists(site, commitId);
+            toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
         }
         return toRet;
     }
