@@ -16,12 +16,20 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface ContentRepository {
 
@@ -103,4 +111,74 @@ public interface ContentRepository {
     List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
                                                      String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
                                                      int limit);
+
+    /**
+     * Create a new site based on a blueprint
+     *
+     * @param blueprintLocation blueprint location
+     * @param siteId site identifier
+     * @param sandboxBranch sandbox branch name
+     * @param params site parameters
+     * @return true if successful, false otherwise
+     */
+    boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+                                    Map<String, String> params);
+
+    /**
+     * Publish content to specified environment.
+     *
+     * @param siteId site identifier
+     * @param sandboxBranch sandbox branch name
+     * @param deploymentItems items to be published
+     * @param environment environment to publish to
+     * @param author author
+     * @param comment submission comment
+     */
+    void publish(String siteId, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+                 String author, String comment) throws DeploymentException;
+
+    /**
+     * Check if repository exists for  given site
+     *
+     * @param site     site id
+     * @return true if it repository exists, otherwise false
+     */
+    boolean repositoryExists(String site);
+
+    /**
+     * Check if given commit id exists
+     *
+     * @param site     site id
+     * @param commitId commit id to check
+     * @return true if it exists in site repository, otherwise false
+     */
+    boolean commitIdExists(String site, String commitId);
+
+    /**
+     * Create new site as a clone from remote repository
+     *
+     * @param siteId         site identifier
+     * @param remoteName     remote name
+     * @param remoteUrl      remote repository url
+     * @param remoteUsername remote username
+     * @param remotePassword remote password
+     * @param params         site parameters
+     * @param createAsOrphan create as orphan
+     * @return true if success
+     */
+    boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+                                  String remoteBranch, boolean singleBranch, String authenticationType,
+                                  String remoteUsername, String remotePassword, String remoteToken,
+                                  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException;
+
+    /**
+     * Remove remote with given name for site
+     *
+     * @param siteId     site identifier
+     * @param remoteName remote name
+     * @return true if operation was successful
+     */
+    boolean removeRemote(String siteId, String remoteName);
 }
