@@ -90,7 +90,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                         logger.debug("Database schema exists. Check if it is empty.");
                         try (ResultSet rs2 = statement.executeQuery(
                                 DB_QUERY_CHECK_TABLES.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)))) {
-                            List<String> tableNames = new ArrayList<>();
+                            List<String> tableNames = new ArrayList<String>();
                             while (rs2.next()) {
                                 tableNames.add(rs2.getString(1));
                             }
