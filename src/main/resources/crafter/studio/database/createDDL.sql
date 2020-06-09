@@ -98,6 +98,24 @@ BEGIN
     END IF;
 END ;
 
+CREATE PROCEDURE update_parent_id(IN siteId VARCHAR(50))
+BEGIN
+    DECLARE v_parent_id VARCHAR(255);
+    DECLARE v_parent_path VARCHAR(2000);
+    DECLARE v_parent_item_path VARCHAR(2000);
+    DECLARE v_finished INTEGER DEFAULT 0;
+    DECLARE parent_cursor CURSOR FOR SELECT ist.object_id as parent_id, REPLACE(ist.path, '/index.xml', '') AS parent_path, ist.path AS parent_item_path FROM item_state ist WHERE ist.site = siteId;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
+    OPEN parent_cursor;
+    update_parent: LOOP
+        FETCH parent_cursor INTO v_parent_id, v_parent_path;
+        IF v_finished = 1 THEN LEAVE update_parent;
+        END IF;
+        UPDATE item_metadata SET item_id = v_parent_id WHERE site = siteId and path = v_parent_item_path;
+        UPDATE item_metadata SET parent_id = v_parent_id WHERE site = siteId AND path RLIKE (concat(v_parent_path, '/[^/]+/index\.xml|', v_parent_path,'/(?!index\.xml)[^/]+$'));
+    END LOOP update_parent;
+END ;
+
 CREATE TABLE _meta (
   `version` VARCHAR(10) NOT NULL,
   `integrity` BIGINT(10),
@@ -265,6 +283,18 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
   `submittedtoenvironment`  VARCHAR(255)  NULL,
   PRIMARY KEY (`id`),
   UNIQUE `uq__im_site_path` (`site`, `path`(900))
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `item_translation` (
+  `object_id`             VARCHAR(255) NOT NULL,
+  `source_id`             BIGINT(20) NOT NULL,
+  `translation_id`        BIGINT(20) NOT NULL,
+  `locale_code`           VARCHAR(20) NOT NULL,
+  `date_translated`       DATETIME NOT NULL,
+  PRIMARY KEY (`object_id`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

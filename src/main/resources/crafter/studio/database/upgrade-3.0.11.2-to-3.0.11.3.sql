@@ -20,6 +20,6 @@ BEGIN
     END IF;
 END ;
 
-call addUniqueIfNotExists('crafter', 'remote_repository', 'uq_rr_site_remote_name', '(`site_id`, `remote_name`)') ;
+call addUniqueIfNotExists(@crafter_schema_name, 'remote_repository', 'uq_rr_site_remote_name', '(`site_id`, `remote_name`)') ;
 
 UPDATE _meta SET version = '3.0.11.3' ;
