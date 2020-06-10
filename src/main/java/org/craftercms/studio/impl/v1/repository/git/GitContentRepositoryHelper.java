@@ -16,23 +16,11 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
-import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -41,22 +29,12 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -64,53 +42,24 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.util.FS;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SANDBOX;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
@@ -118,7 +67,6 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_FILE_MODE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_FILE_MODE_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 /**
@@ -283,6 +231,7 @@ public class GitContentRepositoryHelper {
     public Path buildRepoPath(GitRepositories repoType) {
         return buildRepoPath(repoType, StringUtils.EMPTY);
     }
+
     public Path buildRepoPath(GitRepositories repoType, String site) {
         Path path;
         switch (repoType) {
@@ -307,69 +256,6 @@ public class GitContentRepositoryHelper {
         return path;
     }
 
-    /**
-     * Create a site git repository from scratch (Sandbox and Published)
-     * @param site
-     * @return true if successful, false otherwise
-     */
-    public boolean createSiteGitRepo(String site, String sandboxBranch) {
-        boolean toReturn;
-        Repository sandboxRepo = null;
-
-        // Build a path for the site/sandbox
-        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
-
-        // Create Sandbox
-        sandboxRepo = createGitRepository(siteSandboxPath);
-
-        toReturn = (sandboxRepo != null);
-
-        if (toReturn) {
-            checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
-            sandboxes.put(site, sandboxRepo);
-        }
-
-        return toReturn;
-    }
-
-    private boolean checkoutSandboxBranch(String site, Repository sandboxRepo, String sandboxBranch) {
-        String sandboxBranchName = sandboxBranch;
-        if (StringUtils.isEmpty(sandboxBranchName)) {
-            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
-        }
-        try (Git git = new Git(sandboxRepo)) {
-            if (!StringUtils.equals(sandboxRepo.getBranch(), sandboxBranchName)) {
-                List<Ref> branchList = git.branchList().call();
-                boolean createBranch = true;
-                for (Ref branch : branchList) {
-                    if (StringUtils.equals(branch.getName(), sandboxBranchName) ||
-                            StringUtils.equals(branch.getName(), Constants.R_HEADS + sandboxBranchName)) {
-                        createBranch = false;
-                        break;
-                    }
-                }
-                if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
-                    git.commit()
-                            .setAllowEmpty(true)
-                            .setMessage(getCommitMessage(REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE)
-                                    .replaceAll(PATTERN_SANDBOX, sandboxBranchName))
-                            .call();
-                }
-                git.checkout()
-                        .setCreateBranch(createBranch)
-                        .setName(sandboxBranchName)
-                        .setForce(false)
-                        .call();
-            }
-            return true;
-        } catch (GitAPIException | IOException e) {
-            logger.error("Error checking out sandbox branch " + sandboxBranchName + " for site " + site, e);
-            return false;
-        }
-    }
-
-
-
     public boolean createGlobalRepo() {
         boolean toReturn = false;
         Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
@@ -391,26 +277,6 @@ public class GitContentRepositoryHelper {
             }
         } else {
             logger.info("Detected existing global repository, will not create new one.");
-            toReturn = false;
-        }
-
-        return toReturn;
-    }
-
-    public boolean copyContentFromBlueprint(String blueprintLocation, String site) {
-        boolean toReturn = true;
-
-        // Build a path to the Sandbox repo we'll be copying to
-        Path siteRepoPath = buildRepoPath(GitRepositories.SANDBOX, site);
-        // Build a path to the blueprint
-        Path blueprintPath = Paths.get(blueprintLocation);
-        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-        // Let's copy!
-        TreeCopier tc = new TreeCopier(blueprintPath, siteRepoPath);
-        try {
-            Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
-        } catch (IOException err) {
-            logger.error("Error copping files from blueprint", err);
             toReturn = false;
         }
 
@@ -456,160 +322,6 @@ public class GitContentRepositoryHelper {
         return toReturn;
     }
 
-    public boolean updateSitenameConfigVar(String site) {
-        boolean toReturn = true;
-        String siteConfigFolder = "/config/studio";
-        if (!replaceSitenameVariable(site,
-                Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME)))) {
-            toReturn = false;
-        } else if (!replaceSitenameVariable(site,
-                Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME)))) {
-            toReturn = false;
-        } else if (!replaceSitenameVariable(site,
-                Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME)))) {
-            toReturn = false;
-        }
-        return toReturn;
-    }
-
-    protected boolean replaceSitenameVariable(String site, Path path) {
-        boolean toReturn = false;
-        Charset charset = StandardCharsets.UTF_8;
-        String content = null;
-        try {
-            content = new String(Files.readAllBytes(path), charset);
-            content = content.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
-            Files.write(path, content.getBytes(charset));
-            toReturn = true;
-        } catch (IOException e) {
-            logger.error("Error replacing sitename variable inside configuration file " + path.toString() +
-                    " for site " + site);
-            toReturn = false;
-        }
-        return toReturn;
-    }
-
-    public boolean replaceParameters(String siteId, Map<String, String> parameters) {
-        if (MapUtils.isEmpty(parameters)) {
-            logger.debug("Skipping parameter replacement for site {0}", siteId);
-            return true;
-        }
-        String configRootPath = FilenameUtils.getPath(
-            studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH));
-        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
-        Path configFolder = siteSandboxPath.resolve(configRootPath);
-        try {
-            Files.walkFileTree(configFolder, new StrSubstitutorVisitor(parameters));
-            return true;
-        } catch (IOException e) {
-            logger.error("Error looking for configuration files for site {0}", e, siteId);
-            return false;
-        }
-    }
-
-    public boolean addGitIgnoreFile(String siteId) {
-        String defaultFileLocation = studioConfiguration.getProperty(REPO_DEFAULT_IGNORE_FILE);
-        ClassPathResource defaultFile = new ClassPathResource(defaultFileLocation);
-        if (defaultFile.exists()) {
-            logger.debug("Adding ignore file for site {0}", siteId);
-            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
-            Path ignoreFile = siteSandboxPath.resolve(GitContentRepositoryConstants.IGNORE_FILE);
-            if (!Files.exists(ignoreFile)) {
-                try (OutputStream out = Files.newOutputStream(ignoreFile, StandardOpenOption.CREATE);
-                     InputStream in = defaultFile.getInputStream()) {
-                    IOUtils.copy(in, out);
-                } catch (IOException e) {
-                    logger.error("Error writing ignore file for site {0}", e, siteId);
-                    return false;
-                }
-            } else {
-                logger.debug("Repository already contains an ignore file for site {0}", siteId);
-            }
-        } else {
-            logger.warn("Could not find the default ignore file at {0}", defaultFileLocation);
-        }
-        return true;
-    }
-
-    public boolean bulkImport(String site /* , Map<String, String> filesCommitIds */) {
-        // TODO: SJ: Define this further and build it along with API & Content Service equivalent with business logic
-        // TODO: SJ: This could be in 2.6.1+ or 2.7.x
-        // write all files to disk
-        // commit all files
-        // return data structure of file name & commit id per file
-        // the caller will update the database
-        //
-        // considerations:
-        //   accept a zip file
-        //   accept a root folder or allow nesting
-        //   content service should call this and then update the database
-        //   find an efficient way to bulk write the files and then do a single commit across all
-        return false;
-    }
-
-    /**
-     * Perform an initial commit after large changes to a site. Will not work against the global config repo.
-     * @param site
-     * @param message
-     * @return true if successful, false otherwise
-     */
-    public boolean performInitialCommit(String site, String message, String sandboxBranch) {
-        boolean toReturn = true;
-
-        Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
-
-        try (Git git = new Git(repo)) {
-
-            Status status = git.status().call();
-
-            if (status.hasUncommittedChanges() || !status.isClean()) {
-                DirCache dirCache = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                CommitCommand commitCommand = git.commit()
-                        .setMessage(message);
-                String username = securityService.getCurrentUser();
-                if (StringUtils.isNotEmpty(username)) {
-                    commitCommand = commitCommand.setAuthor(getAuthorIdent(username));
-                }
-                RevCommit commit = commitCommand.call();
-                // TODO: SJ: Do we need the commit id?
-                // commitId = commit.getName();
-            }
-
-            checkoutSandboxBranch(site, repo, sandboxBranch);
-
-            // Create Published by cloning Sandbox
-
-            // Build a path for the site/sandbox
-            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
-            // Built a path for the site/published
-            Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, site);
-            try (Git publishedGit = Git.cloneRepository()
-                    .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
-                    .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
-                    .call()) {
-                Repository publishedRepo = publishedGit.getRepository();
-                publishedRepo = optimizeRepository(publishedRepo);
-                checkoutSandboxBranch(site, publishedRepo, sandboxBranch);
-                publishedRepo.close();
-                publishedGit.close();
-            } catch (GitAPIException | IOException e) {
-                logger.error("Error adding origin (sandbox) to published repository", e);
-            }
-            git.close();
-        } catch (GitAPIException | UserNotFoundException | ServiceLayerException err) {
-            logger.error("error creating initial commit for site:  " + site, err);
-            toReturn = false;
-        }
-
-        return toReturn;
-    }
-
     // SJ: Helper methods
 
     public Repository getRepository(String site, GitRepositories gitRepository) {
@@ -645,57 +357,6 @@ public class GitContentRepositoryHelper {
                         globalRepo = openRepository(globalConfigRepoPath);
                     } catch (IOException e) {
                         logger.error("Error getting the global repository.", e);
-                    }
-                }
-                repo = globalRepo;
-                break;
-            default:
-                repo = null;
-        }
-
-        if (repo != null) {
-            logger.debug("success in getting the repository for site: " + site);
-        } else {
-            logger.debug("failure in getting the repository for site: " + site);
-        }
-
-        return repo;
-    }
-
-    public Repository getRepository(String site, GitRepositories gitRepository, String sandboxBranch) {
-        Repository repo;
-
-        logger.debug("getRepository invoked with site" + site + "Repository Type: " + gitRepository.toString());
-
-        switch (gitRepository) {
-            case SANDBOX:
-                repo = sandboxes.get(site);
-                if (repo == null) {
-                    if (buildSiteRepo(site)) {
-                        repo = sandboxes.get(site);
-                        checkoutSandboxBranch(site, repo, sandboxBranch);
-                    } else {
-                        logger.error("error getting the sandbox repository for site: " + site);
-                    }
-                }
-                break;
-            case PUBLISHED:
-                repo = published.get(site);
-                if (repo == null) {
-                    if (buildSiteRepo(site)) {
-                        repo = published.get(site);
-                    } else {
-                        logger.error("error getting the published repository for site: " + site);
-                    }
-                }
-                break;
-            case GLOBAL:
-                if (globalRepo == null) {
-                    Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
-                    try {
-                        globalRepo = openRepository(globalConfigRepoPath);
-                    } catch (IOException e) {
-                        logger.error("error getting the global repository.", e);
                     }
                 }
                 repo = globalRepo;
@@ -868,269 +529,5 @@ public class GitContentRepositoryHelper {
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
 
         return currentUserIdent;
-    }
-
-    public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
-
-        List<String> files = new ArrayList<String>();
-        RevWalk rw = new RevWalk(repository);
-        try (Git git = new Git(repository)) {
-            if (commit.getParentCount() > 0) {
-                RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
-
-                ObjectId commitId = commit.getId();
-                ObjectId parentCommitId = parent.getId();
-
-                RevTree parentTree = getTreeForCommit(repository, parentCommitId.getName());
-                RevTree commitTree = getTreeForCommit(repository, commitId.getName());
-
-                if (parentTree != null && commitTree != null) {
-                    try (ObjectReader reader = repository.newObjectReader()) {
-                        CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-                        CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-                        prevCommitTreeParser.reset(reader, parentTree.getId());
-                        nextCommitTreeParser.reset(reader, commitTree.getId());
-
-                        // Diff the two commit Ids
-                        List<DiffEntry> diffEntries = git.diff()
-                                .setOldTree(prevCommitTreeParser)
-                                .setNewTree(nextCommitTreeParser)
-                                .call();
-                        for (DiffEntry diffEntry : diffEntries) {
-                            if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
-                                files.add(FILE_SEPARATOR + diffEntry.getOldPath());
-                            } else {
-                                files.add(FILE_SEPARATOR + diffEntry.getNewPath());
-                            }
-                        }
-                    } catch (IOException | GitAPIException e) {
-                        logger.error("Error while getting list of files in commit " + commit.getId().getName());
-                    }
-                }
-            }
-
-        } catch (IOException e) {
-            logger.error("Error while getting list of files in commit " + commit.getId().getName());
-        } finally {
-            rw.dispose();
-        }
-        return files;
-    }
-
-    public boolean createSiteCloneRemoteGitRepo(String siteId, String sandboxBranch, String remoteName,
-                                                String remoteUrl, String remoteBranch, boolean singleBranch,
-                                                String authenticationType, String remoteUsername, String remotePassword,
-                                                String remoteToken, String remotePrivateKey, boolean createAsOrphan)
-            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, ServiceLayerException {
-
-        boolean toRet = true;
-        // prepare a new folder for the cloned repository
-        Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
-        File localPath = siteSandboxPath.toFile();
-        localPath.delete();
-        logger.debug("Add user credentials if provided");
-        // then clone
-        logger.debug("Cloning from " + remoteUrl + " to " + localPath);
-        CloneCommand cloneCommand = Git.cloneRepository();
-        Git cloneResult = null;
-
-        try {
-            final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
-            switch (authenticationType) {
-                case RemoteRepository.AuthenticationType.NONE:
-                    logger.debug("No authentication");
-                    break;
-                case RemoteRepository.AuthenticationType.BASIC:
-                    logger.debug("Basic authentication");
-                    cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteUsername,
-                            remotePassword));
-                    break;
-                case RemoteRepository.AuthenticationType.TOKEN:
-                    logger.debug("Token based authentication");
-                    cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteToken,
-                            StringUtils.EMPTY));
-                    break;
-                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                    logger.debug("Private key authentication");
-                    tempKey.toFile().deleteOnExit();
-                    cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                        @Override
-                        public void configure(Transport transport) {
-                            SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(getSshSessionFactory(remotePrivateKey, tempKey));
-                        }
-                    });
-
-                    break;
-                default:
-                    throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
-            }
-            if (StringUtils.isNotEmpty(remoteBranch)) {
-                cloneCommand.setBranch(remoteBranch);
-            }
-
-            cloneResult = cloneCommand
-                    .setURI(remoteUrl)
-                    .setDirectory(localPath)
-                    .setRemote(remoteName)
-                    .setCloneAllBranches(!singleBranch)
-                    .call();
-            Files.deleteIfExists(tempKey);
-            Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
-
-            sandboxRepo = optimizeRepository(sandboxRepo);
-
-            // Make repository orphan if needed
-            if (createAsOrphan) {
-                makeRepoOrphan(sandboxRepo, siteId);
-            }
-
-            sandboxes.put(siteId, sandboxRepo);
-        } catch (InvalidRemoteException e) {
-            logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
-            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" +
-                    remoteUrl + ")");
-        } catch (TransportException e) {
-            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")",
-                        e);
-                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                        remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
-            } else {
-                logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
-                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
-                        remoteUrl + ")");
-            }
-        } catch (GitAPIException | IOException | UserNotFoundException e) {
-            logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
-            toRet = false;
-        } finally {
-            if (cloneResult != null) {
-                cloneResult.close();
-            }
-        }
-        return toRet;
-    }
-
-    private void makeRepoOrphan(Repository repository, String site) throws IOException, GitAPIException,
-            ServiceLayerException, UserNotFoundException {
-        logger.debug("Make repository orphan fir site " + site);
-        String sandboxBranchName = repository.getBranch();
-        if (StringUtils.isEmpty(sandboxBranchName)) {
-            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
-        }
-        String sandboxBranchOrphanName = sandboxBranchName + "_orphan";
-
-        logger.debug("Shallow clone is not implemented in JGit. Instead we are creating new orphan branch after " +
-                "cloning and renaming it to sandbox branch to replace fully cloned branch");
-        try (Git git = new Git(repository)) {
-            logger.debug("Create temporary orphan branch " + sandboxBranchOrphanName);
-            git.checkout()
-                    .setName(sandboxBranchOrphanName)
-                    .setStartPoint(sandboxBranchName)
-                    .setOrphan(true)
-                    .call();
-
-            // Reset everything to simulate first commit as created empty repo
-            logger.debug("Soft reset to commit empty repo");
-            git.reset().call();
-
-            logger.debug("Commit empty repo, because we need to have HEAD to delete old and rename new branch");
-            CommitCommand commitCommand = git.commit()
-                    .setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
-            String username = securityService.getCurrentUser();
-            if (StringUtils.isNotEmpty(username)) {
-                commitCommand = commitCommand.setAuthor(getAuthorIdent(username));
-            }
-            commitCommand.call();
-
-            logger.debug("Delete cloned branch " + sandboxBranchName);
-            git.branchDelete().setBranchNames(sandboxBranchName).setForce(true).call();
-
-            logger.debug("Rename temporary orphan branch to sandbox branch");
-            git.branchRename().setNewName(sandboxBranchName).setOldName(sandboxBranchOrphanName).call();
-        }
-    }
-
-    private SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
-        try {
-
-            Files.write(tempKey, remotePrivateKey.getBytes());
-            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-                @Override
-                protected void configure(OpenSshConfig.Host hc, Session session) {
-                    Properties config = new Properties();
-                    config.put("StrictHostKeyChecking", "no");
-                    session.setConfig(config);
-                }
-
-                @Override
-                protected JSch createDefaultJSch(FS fs) throws JSchException {
-                    JSch defaultJSch = super.createDefaultJSch(fs);
-                    defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
-                    return defaultJSch;
-                }
-            };
-            return sshSessionFactory;
-        } catch (IOException e) {
-            logger.error("Failed to create private key for SSH connection.", e);
-        }
-        return null;
-    }
-
-    /**
-     * Checks if the clone was executed ok (mostly check for null references and
-     * if the clone folder was created as a folder and current user has RW permissions.
-     * <b> Never returns null</b>
-     * @param cloneResult Clone Result to check.
-     * @param remoteName Name of the remote we clone.
-     * @param remoteUrl Clone URL
-     * @return A {@link Repository} if all checks pass , never returns null.
-     * @throws InvalidRemoteRepositoryException If a check does not pass.
-     */
-    private Repository checkIfCloneWasOk(Git cloneResult, String remoteName, String remoteUrl)
-            throws InvalidRemoteRepositoryException {
-        // Check if cloneResult is null , if so die.
-        if (cloneResult == null) {
-            String msg = "Remote Clone Error:: " + remoteName + " (" + remoteUrl + ")  cloneResult object null";
-            logger.error(msg);
-            throw new InvalidRemoteRepositoryException(msg);
-        }
-        Repository repository = cloneResult.getRepository();
-        // Check if cloneResult is null , if so die.
-        if (repository==null){
-            String msg = "Remote Clone Error:: " + remoteName + " (" + remoteUrl + ")  sandboxRepo object null";
-            logger.error(msg);
-            throw new InvalidRemoteRepositoryException(msg);
-        }
-        File repoDir = repository.getDirectory();
-        // Check if  sandbox repo,: exists, is a dir, we can RW to it.
-        if (!repoDir.exists() ||  !repoDir.isDirectory() || !repoDir.canRead() || !repoDir.canWrite() ){
-            String msg = "Remote Clone Error::  " + repository.getDirectory() + " doesn't exist, is not a dir or user" +
-                    " don't have RW permissions";
-            logger.error(msg);
-            throw new InvalidRemoteRepositoryException(msg);
-        }
-        return repository;
-    }
-
-    private void configureTransportAuthenticaion(final CloneCommand cloneCommand, final String remotePassword,
-                                                 final String remoteUsername, final String remoteUrl) {
-        // Check if this remote git repository has username/password provided
-        if (!StringUtils.isEmpty(remoteUsername)) {
-            if (StringUtils.isEmpty(remotePassword)) {
-                // Username was provided but password is empty
-                logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
-            }
-            // Studio should only support usr/pwd ssh repo.
-            // until we add per user + per server private key configuration.
-            if (remoteUrl.toLowerCase().contains("ssh://")) {
-                new SshUsernamePasswordAuthConfigurator(remotePassword).configureAuthentication(cloneCommand);
-            } else {
-                new BasicUsernamePasswordAuthConfigurator(remoteUsername, remotePassword)
-                        .configureAuthentication(cloneCommand);
-            }
-        }
     }
 }
