@@ -502,12 +502,12 @@ public class GitRepositoryHelper {
     }
 
     /**
-     * Create a site git repository from scratch (Sandbox and Published)
+     * Create a site sandbox git repository from scratch
      * @param site site to create
      * @param sandboxBranch sandbox branch name
      * @return true if successful, false otherwise
      */
-    public boolean createSiteGitRepo(String site, String sandboxBranch) {
+    public boolean createSandboxRepository(String site, String sandboxBranch) {
         boolean toReturn;
         Repository sandboxRepo = null;
 
@@ -527,7 +527,13 @@ public class GitRepositoryHelper {
         return toReturn;
     }
 
-    public boolean createPublishedRepo(String siteId, String sandboxBranch) {
+    /**
+     * Create a site published git repository from scratch
+     * @param siteId site to create
+     * @param sandboxBranch sandbox branch name
+     * @return true if successful, false otherwise
+     */
+    public boolean createPublishedRepository(String siteId, String sandboxBranch) {
         // Create Published by cloning Sandbox
         boolean toRet = false;
         // Build a path for the site/sandbox
@@ -665,20 +671,20 @@ public class GitRepositoryHelper {
         return toReturn;
     }
 
-    public boolean updateSitenameConfigVar(String site) {
+    public boolean updateSiteNameConfigVar(String site) {
         boolean toReturn = true;
         String siteConfigFolder = "/config/studio";
-        if (!replaceSitenameVariable(site,
+        if (!replaceSiteNameVariable(site,
                 Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
                         studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
                         studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME)))) {
             toReturn = false;
-        } else if (!replaceSitenameVariable(site,
+        } else if (!replaceSiteNameVariable(site,
                 Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
                         studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
                         studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME)))) {
             toReturn = false;
-        } else if (!replaceSitenameVariable(site,
+        } else if (!replaceSiteNameVariable(site,
                 Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
                         studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
                         studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME)))) {
@@ -687,7 +693,7 @@ public class GitRepositoryHelper {
         return toReturn;
     }
 
-    protected boolean replaceSitenameVariable(String site, Path path) {
+    protected boolean replaceSiteNameVariable(String site, Path path) {
         boolean toReturn = false;
         Charset charset = StandardCharsets.UTF_8;
         String content = null;
