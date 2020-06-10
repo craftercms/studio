@@ -707,7 +707,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal);
 
             // create git repository for site content
-            toReturn = helper.createSiteGitRepo(site, sandboxBranch);
+            toReturn = helper.createSandboxRepository(site, sandboxBranch);
 
             if (toReturn) {
                 // copy files from blueprint
@@ -716,7 +716,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
             if (toReturn) {
                 // update site name variable inside config files
-                toReturn = helper.updateSitenameConfigVar(site);
+                toReturn = helper.updateSiteNameConfigVar(site);
             }
 
             if (toReturn) {
@@ -843,7 +843,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal);
             Repository repo = helper.getRepository(site, PUBLISHED);
             if (Objects.isNull(repo)) {
-                helper.createPublishedRepo(site, sandboxBranch);
+                helper.createPublishedRepository(site, sandboxBranch);
                 repo = helper.getRepository(site, PUBLISHED);
             }
             String path = EMPTY;
@@ -1170,7 +1170,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 }
                 // update site name variable inside config files
                 logger.debug("Update site name configuration variables for site " + siteId);
-                toReturn = helper.updateSitenameConfigVar(siteId);
+                toReturn = helper.updateSiteNameConfigVar(siteId);
 
                 if (toReturn) {
                     toReturn = helper.replaceParameters(siteId, params);
