@@ -133,6 +133,10 @@
         <property name="dashboardService" ref="dashboardService" />
     </bean>
 
+    <bean id="translationController" class="org.craftercms.studio.controller.rest.v2.TranslationController">
+        <constructor-arg ref="translationService"/>
+    </bean>
+
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
     </bean>

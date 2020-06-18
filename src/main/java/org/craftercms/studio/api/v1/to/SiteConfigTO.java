@@ -100,6 +100,11 @@ public class SiteConfigTO implements Serializable {
     protected String adminEmailAddress;
 
     /**
+     * Translation configuration
+     */
+    protected TranslationConfigTo translationConfig;
+
+    /**
      * @return the WEM project
      */
     public String getWemProject() {
@@ -225,4 +230,13 @@ public class SiteConfigTO implements Serializable {
     public void setAdminEmailAddress(String adminEmailAddress) {
         this.adminEmailAddress = adminEmailAddress;
     }
+
+    public TranslationConfigTo getTranslationConfig() {
+        return translationConfig;
+    }
+
+    public void setTranslationConfig(TranslationConfigTo translationConfig) {
+        this.translationConfig = translationConfig;
+    }
+
 }

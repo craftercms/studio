@@ -65,6 +65,16 @@
         </ignore-postfix-fields>
     </form-engine>
 
+    <!-- Site Translation -->
+    <translation>
+        <!-- List of codes for the supported locales -->
+        <localeCodes>
+            <localeCode>en_us</localeCode>
+        </localeCodes>
+        <!-- The code of the default locale for all new content -->
+        <defaultLocaleCode>en_us</defaultLocaleCode>
+    </translation>
+
     <!--
         Pattern that Studio will use to load plugin from the site repository
         Required placeholders: ${type}, ${name}
