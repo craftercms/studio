@@ -21,14 +21,7 @@ import org.springframework.web.client.RestClientException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_CREATE_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_DELETE_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.deployment.Deployer} that interacts with the Serverless
@@ -43,11 +36,18 @@ public class ServerlessDeliveryDeployer extends AbstractDeployer {
     @Override
     public void createTargets(String site, String searchEngine) throws RestClientException {
         if (isServerlessDeliveryEnabled()) {
-            String localRepoPath = getRepoUrl(SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH, site);
-            String repoUrl = getRepoUrl(SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL, site);
+            String repoUrl = null;
+            String localRepoPath = null;
+
+            if (studioConfiguration.getProperty(SERVERLESS_DELIVERY_LOCAL_DEPLOYER, Boolean.class, true)) {
+                localRepoPath = getRepoUrl(SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPO_URL, site);
+            } else {
+                repoUrl = getRepoUrl(SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPO_URL, site);
+            }
+
             String template = studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE);
-            boolean replace = studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE,
-                                                              Boolean.class, false);
+            boolean replace = studioConfiguration.getProperty(
+                    SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE, Boolean.class, false);
             HierarchicalConfiguration<ImmutableNode> templateParams =
                     studioConfiguration.getSubConfig(SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS);
 
