@@ -16,6 +16,8 @@
 package org.craftercms.studio.api.v1.to;
 
 
+import org.craftercms.studio.model.config.TranslationConfiguration;
+
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -102,7 +104,7 @@ public class SiteConfigTO implements Serializable {
     /**
      * Translation configuration
      */
-    protected TranslationConfigTo translationConfig;
+    protected TranslationConfiguration translationConfig;
 
     /**
      * @return the WEM project
@@ -231,11 +233,11 @@ public class SiteConfigTO implements Serializable {
         this.adminEmailAddress = adminEmailAddress;
     }
 
-    public TranslationConfigTo getTranslationConfig() {
+    public TranslationConfiguration getTranslationConfig() {
         return translationConfig;
     }
 
-    public void setTranslationConfig(TranslationConfigTo translationConfig) {
+    public void setTranslationConfig(TranslationConfiguration translationConfig) {
         this.translationConfig = translationConfig;
     }
 

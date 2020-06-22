@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.to;
+package org.craftercms.studio.model.config;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ import java.util.List;
  * @author joseross
  * @since 3.2.0
  */
-public class TranslationConfigTo {
+public class TranslationConfiguration {
 
     /**
      * The code of the default locale for all new content

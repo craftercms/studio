@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -362,6 +363,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         contentService.writeContent(StringUtils.EMPTY, path, content);
         String currentUser = securityService.getCurrentUser();
         generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
+    }
+
+    @Override
+    public TranslationConfiguration getTranslationConfiguration(String siteId) {
+        return servicesConfig.getTranslationConfig(siteId);
     }
 
     @Required

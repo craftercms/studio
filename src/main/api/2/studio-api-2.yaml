@@ -2846,6 +2846,38 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /configuration/translation:
+    get:
+      tags:
+        - configuration
+      summary: Get translation configuration for a given site
+      operationId: getTranslationConfig
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  config:
+                    $ref: '#/components/schemas/TranslationConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /plugin/file:
     get:
       tags:
@@ -4084,39 +4116,6 @@ paths:
 #          $ref: '#/components/responses/NotFound'
 #        '500':
 #          $ref: '#/components/responses/InternalServerError'
-
-
-  /translation/config:
-    get:
-      tags:
-        - translation
-      summary: Get translation configuration for a given site
-      operationId: getTranslationConfig
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  config:
-                    $ref: '#/components/schemas/TranslationConfig'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
 
   /translation/list:
     get:

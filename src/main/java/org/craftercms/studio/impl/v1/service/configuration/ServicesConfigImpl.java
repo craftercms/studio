@@ -25,10 +25,18 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
+import org.craftercms.studio.api.v1.to.FacetRangeTO;
+import org.craftercms.studio.api.v1.to.FacetTO;
+import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
+import org.craftercms.studio.api.v1.to.SiteConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -99,7 +107,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	/* Translation Config */
     public static final String CONFIG_KEY_TRANSLATION = "translation";
     public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
-    public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
+    public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes/localeCode";
 
 	/**
 	 * content types configuration
@@ -170,7 +178,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     @Override
     @ValidateParams
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam(name = "site") String site,
-                                              @ValidateStringParam(name = "contentType") String contentType) {
+                                                                      @ValidateStringParam(name = "contentType") String contentType) {
         if (contentType == null ) {
              return Collections.emptyList();
         }
@@ -184,7 +192,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     @Override
     @ValidateParams
 	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam(name = "site") String site,
-                                                  @ValidateStringParam(name = "contentType") String contentType) {
+                                                                  @ValidateStringParam(name = "contentType") String contentType) {
         if (contentType == null ) {
              return Collections.emptyList();
         }
@@ -539,7 +547,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     protected void loadTranslationConfig(SiteConfigTO siteConfig, Node translationConfig) {
         if (translationConfig != null) {
-            TranslationConfigTo translationConfigTo = new TranslationConfigTo();
+            TranslationConfiguration translationConfigTo = new TranslationConfiguration();
             translationConfigTo.setDefaultLocaleCode(
                     XmlUtils.selectSingleNodeValue(translationConfig, CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE));
             translationConfigTo.setLocaleCodes(
@@ -666,7 +674,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    public TranslationConfigTo getTranslationConfig(String siteId) {
+    public TranslationConfiguration getTranslationConfig(String siteId) {
         SiteConfigTO config = getSiteConfig(siteId);
         if (Objects.nonNull(config)) {
             return config.getTranslationConfig();

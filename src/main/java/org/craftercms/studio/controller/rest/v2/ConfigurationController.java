@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONFIG;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -96,6 +98,18 @@ public class ConfigurationController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
+    }
+
+    @GetMapping("translation")
+    public ResponseBody getConfiguration(@RequestParam String siteId) {
+        ResultOne<TranslationConfiguration> result = new ResultOne<>();
+        result.setEntity(RESULT_KEY_CONFIG, configurationService.getTranslationConfiguration(siteId));
+        result.setResponse(OK);
+
+        ResponseBody body = new ResponseBody();
+        body.setResult(result);
+
+        return body;
     }
 
     public ConfigurationService getConfigurationService() {

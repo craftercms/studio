@@ -15,8 +15,12 @@
  */
 package org.craftercms.studio.api.v1.service.configuration;
 
-
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
+import org.craftercms.studio.api.v1.to.FacetTO;
+import org.craftercms.studio.model.config.TranslationConfiguration;
 
 import java.util.List;
 import java.util.Map;
@@ -217,6 +221,6 @@ public interface ServicesConfig {
 	/**
 	 * Returns the translation configuration for the given site
 	 */
-	TranslationConfigTo getTranslationConfig(String siteId);
+	TranslationConfiguration getTranslationConfig(String siteId);
 
 }
