@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import org.craftercms.studio.api.v2.dal.SandboxItem;
 import org.craftercms.studio.model.rest.Result;
 
 import java.util.List;

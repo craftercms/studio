@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v1.service.site;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -36,6 +38,8 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.amazonaws.services.s3.internal.Mimetypes;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -103,11 +107,13 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -190,6 +196,7 @@ public class SiteServiceImpl implements SiteService {
     protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -462,6 +469,8 @@ public class SiteServiceImpl implements SiteService {
 
                 logger.info("Syncing database with repository.");
                 syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
+
+                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 	        } catch(Exception e) {
@@ -1207,6 +1216,8 @@ public class SiteServiceImpl implements SiteService {
 	    GitLog current = null;
 	    SiteFeed siteFeed = getSite(site);
 	    boolean isPreviewSyncNeeded = !StringUtils.equals(repoLastCommitId, siteFeed.getLastCommitId());
+	    Item item = null;
+        Mimetypes mimetypes = Mimetypes.getInstance();
 
         for (RepoOperation repoOperation: repoOperationsDelta) {
                 Map<String, String> activityInfo = new HashMap<String, String>();
@@ -1247,6 +1258,28 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
+
+                        // Item
+                        item = new Item();
+                        item.setSiteId(siteFeed.getId());
+                        item.setPath(repoOperation.getPath());
+                        item.setPreviewUrl(repoOperation.getPath());
+                        item.setState(org.craftercms.studio.api.v2.dal.ItemState.NEW.value);
+                        item.setOwnedBy(1);
+                        item.setCreatedBy(1);
+                        item.setCreatedOn(repoOperation.getDateTime());
+                        item.setLastModifiedBy(1);
+                        item.setLastModifiedOn(repoOperation.getDateTime());
+                        item.setLabel("label");
+                        item.setContentTypeId(contentService.getContentTypeClass(site, repoOperation.getPath()));
+                        item.setSystemType("file");
+                        item.setMimeType(mimetypes.getMimetype(FilenameUtils.getName(repoOperation.getPath())));
+                        item.setDisabled(false);
+                        item.setLocaleCode(Locale.US.toString());
+                        //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
+                        item.setCommitId(repoOperation.getCommitId());
+                        itemServiceInternal.upsertEntry(site, item);
+
                         break;
 
                     case UPDATE:
@@ -1273,6 +1306,27 @@ public class SiteServiceImpl implements SiteService {
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+
+                        // Item
+                        item = itemServiceInternal.getItem(site, repoOperation.getPath());
+                        boolean exists = !Objects.isNull(item);
+                        item.setSiteId(siteFeed.getId());
+                        item.setPath(repoOperation.getPath());
+                        item.setPreviewUrl(repoOperation.getPath());
+                        item.setState(item.getState() & org.craftercms.studio.api.v2.dal.ItemState.MODIFIED.value);
+                        item.setLastModifiedBy(1);
+                        item.setLastModifiedOn(repoOperation.getDateTime());
+                        item.setLabel("label");
+                        item.setContentTypeId(contentService.getContentTypeClass(site, repoOperation.getPath()));
+                        item.setMimeType(mimetypes.getMimetype(FilenameUtils.getName(repoOperation.getPath())));
+                        item.setLocaleCode(Locale.US.toString());
+                        //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
+                        item.setCommitId(repoOperation.getCommitId());
+                        if (exists) {
+                            itemServiceInternal.updateItem(item);
+                        } else {
+                            itemServiceInternal.upsertEntry(site, item);
                         }
                         break;
 
@@ -1992,5 +2046,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

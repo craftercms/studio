@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.ItemDAO">
+    <resultMap id="ItemMap" type="org.craftercms.studio.api.v2.dal.Item">
+        <id property="id" column="id" />
+        <result property="siteId" column="site_id" />
+        <result property="siteName" column="site_name" />
+        <result property="path" column="path" />
+        <result property="previewUrl" column="preview_url" />
+        <result property="state" column="state" />
+        <result property="ownedBy" column="owned_by" />
+        <result property="owner" column="owner" />
+        <result property="createdBy" column="created_by" />
+        <result property="creator" column="creator" />
+        <result property="createdOn" column="created_on" />
+        <result property="lastModifiedBy" column="last_modified_by" />
+        <result property="modifier" column="modifier" />
+        <result property="lastModifiedOn" column="last_modified_on" />
+        <result property="label" column="label" />
+        <result property="contentTypeId" column="content_type_id" />
+        <result property="systemType" column="system_type" />
+        <result property="mimeType" column="mime_type" />
+        <result property="disabledAsInt" column="disabled" />
+        <result property="localeCode" column="locale_code" />
+        <result property="translationSourceId" column="translation_source_id" />
+        <result property="size" column="size" />
+        <result property="parentId" column="parent_id" />
+        <result property="commitId" column="commit_id" />
+    </resultMap>
+
+    <insert id="upsertEntries" parameterType="java.util.List">
+        INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, last_modified_by,
+        last_modified_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
+        translation_source_id, size, parent_id, commit_id) VALUES
+        <foreach collection="entries" item="entry" index="index" open="" separator=","  close="">
+            (#{entry.siteId}, #{entry.path}, #{entry.previewUrl}, #{entry.state}, #{entry.ownedBy},
+            #{entry.createdBy}, #{entry.lastModifiedBy}, #{entry.lastModifiedOn}, #{entry.label},
+            #{entry.contentTypeId}, #{entry.systemType}, #{entry.mimeType}, #{entry.disabledAsInt},
+            #{entry.localeCode}, #{entry.translationSourceId}, #{entry.size}, #{entry.parentId},  #{entry.commitId})
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+            site_id = VALUES(site_id),
+            path = VALUES(path),
+            preview_url = VALUES(preview_url),
+            state = VALUES(state),
+            owned_by = VALUES(owned_by),
+            last_modified_by = VALUES(last_modified_by),
+            last_modified_on = VALUES(last_modified_on),
+            label = VALUES(label),
+            content_type_id = VALUES(content_type_id),
+            system_type = VALUES(system_type),
+            mime_type = VALUES(mime_type),
+            disabled = VALUES(disabled),
+            locale_code = VALUES(locale_code),
+            translation_source_id = VALUES(translation_source_id),
+            size = VALUES(size),
+            parent_id = VALUES(parent_id),
+            commit_id = VALUES(commit_id)
+    </insert>
+
+    <select id="getChildrenByPath" resultMap="ItemMap">
+        select * from item where site_id = #{siteId} and path = #{parentPath}
+        union
+        select * from item where site_id = #{siteId} and path = #{ldPath}
+        union
+        (select * from item where site_id = #{siteId}
+                              and path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+                              and concat(path, '/index.xml') not in
+                                  (select i2.path from item i2 where i2.site_id = #{siteId}
+                                        and i2.path RLIKE('${path}/[^/]+/index\.xml'))
+                              and path not like '%/${ldName}'
+        limit #{offset},#{limit})
+    </select>
+
+    <select id="getChildrenByPathTotal" resultType="Integer">
+        select count(1) from item where site_id = #{siteId}
+                                    and path RLIKE ('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+                                    and path not like '%/${ldName}'
+    </select>
+
+    <select id="getChildrenById" resultMap="ItemMap">
+        select * from item where site_id = #{siteId} and id = #{parentId}
+        union
+        select * from item where site_id = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
+        union
+        select * from item where site_id = #{siteId} and parent_id = #{parentId} and path not like '%/${ldName}'
+    </select>
+
+    <select id="getChildrenByIdTotal" resultType="Integer">
+        select count(1) from item where site_id = #{siteId} and parent_id = #{parentId}
+                                             and path not like '%/${ldName}'
+    </select>
+
+    <select id="updateParentIdForSite" >
+        call update_parent_id(#{siteId}, #{rootPath})
+    </select>
+    
+    <select id="getItemById" resultMap="ItemMap">
+        select * from item where id = #{id}
+    </select>
+
+    <select id="getItemBySiteIdAndPath" resultMap="ItemMap">
+        select * from item where site_id = #{siteId} and path = #{path}
+    </select>
+
+    <update id="updateItem" parameterType="org.craftercms.studio.api.v2.dal.Item">
+        UPDATE item SET
+            site_id = #{siteId},
+            path = #{path},
+            preview_url = #{previewUrl},
+            state = #{state},
+            owned_by = #{ownedBy},
+            last_modified_by = #{lastModifiedBy},
+            last_modified_on = #{lastModifiedOn},
+            label = #{label},
+            content_type_id = #{contentTypeId},
+            system_type = #{systemType},
+            mime_type = #{mimeType},
+            disabled = #{disabled},
+            locale_code = #{localeCode},
+            translation_source_id = #{translationSourceId},
+            size = #{size},
+            parent_id = #{parentId},
+            commit_id = #{commitId},
+        WHERE id = #{id}
+    </update>
+</mapper>
