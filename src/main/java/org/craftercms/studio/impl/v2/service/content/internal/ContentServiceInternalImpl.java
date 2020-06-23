@@ -17,24 +17,31 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v2.dal.ItemMetadataDAO;
-import org.craftercms.studio.api.v2.dal.SandboxItem;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private ContentRepository contentRepository;
-    private ItemMetadataDAO itemMetadataDao;
+    private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
+    private SiteFeedMapper siteFeedMapper;
 
     @Override
     public List<String> getSubtreeItems(String siteId, String path) {
@@ -56,7 +63,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String ldPath = parentFolderPath + FILE_SEPARATOR + ldName;
-        List<SandboxItem> resultSet = itemMetadataDao.getChildrenByPath(siteId, path, ldPath, ldName, parentFolderPath,
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), path, ldPath, ldName, parentFolderPath,
                 locale, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
@@ -64,21 +74,21 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return toRet;
     }
 
-    private GetChildrenResult processResultSet(String siteId, List<SandboxItem> resultSet) {
+    private GetChildrenResult processResultSet(String siteId, List<Item> resultSet) {
         GetChildrenResult toRet = new GetChildrenResult();
         if (resultSet != null && resultSet.size() > 0) {
-            toRet.setParent(resultSet.get(0));
+            toRet.setParent(SandboxItem.getInstance(resultSet.get(0)));
             if (resultSet.size() > 1) {
                 int idx = 1;
-                SandboxItem item = resultSet.get(idx);
+                Item item = resultSet.get(idx);
                 if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
                         servicesConfig.getLevelDescriptorName(siteId))) {
-                    toRet.setLevelDescriptor(item);
+                    toRet.setLevelDescriptor(SandboxItem.getInstance(item));
                     idx++;
                 }
                 List<SandboxItem> children = new ArrayList<SandboxItem>();
                 while (idx < resultSet.size()) {
-                    children.add(resultSet.get(idx));
+                    children.add(SandboxItem.getInstance(resultSet.get(idx)));
                     idx++;
                 }
                 toRet.setChildren(children);
@@ -90,7 +100,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public int getChildrenByPathTotal(String siteId, String path, String locale) {
-        return itemMetadataDao.getChildrenByPathTotal(siteId, path, servicesConfig.getLevelDescriptorName(siteId),
+        return itemDao.getChildrenByPathTotal(siteId, path, servicesConfig.getLevelDescriptorName(siteId),
                 locale);
     }
 
@@ -98,7 +108,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
                                              String order,
                                              int offset, int limit) {
-        List<SandboxItem> resultSet = itemMetadataDao.getChildrenById(siteId, parentId,
+        List<Item> resultSet = itemDao.getChildrenById(siteId, parentId,
                 servicesConfig.getLevelDescriptorName(siteId), locale, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
@@ -108,7 +118,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale) {
-        return itemMetadataDao.getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId),
+        return itemDao.getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId),
                 locale);
     }
 
@@ -120,12 +130,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         this.contentRepository = contentRepository;
     }
 
-    public ItemMetadataDAO getItemMetadataDao() {
-        return itemMetadataDao;
+    public ItemDAO getItemDao() {
+        return itemDao;
     }
 
-    public void setItemMetadataDao(ItemMetadataDAO itemMetadataDao) {
-        this.itemMetadataDao = itemMetadataDao;
+    public void setItemDao(ItemDAO itemDao) {
+        this.itemDao = itemDao;
     }
 
     public ServicesConfig getServicesConfig() {
@@ -134,5 +144,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
     }
 }

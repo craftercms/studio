@@ -14,23 +14,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.craftercms.studio.api.v2.dal.Item;
 
 import java.time.ZonedDateTime;
 
 public class SandboxItem {
 
-    private String id;
+    private long id;
     private String label;
-    private String parentId;
+    private Long parentId;
     private String contentTypeId;
     private String path;
     private String previewUrl;
     private String systemType;
     private String mimeType;
-    private int state;
+    private long state;
     private String lockOwner;
     private boolean disabled;
     private String localeCode;
@@ -41,21 +42,20 @@ public class SandboxItem {
     private ZonedDateTime lastModifiedDate;
     private String commitId;
     private long sizeInBytes;
-    private String itemId;
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 
-    public String getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(String parentId) {
+    public void setParentId(Long parentId) {
         this.parentId = parentId;
     }
 
@@ -107,11 +107,11 @@ public class SandboxItem {
         this.mimeType = mimeType;
     }
 
-    public int getState() {
+    public long getState() {
         return state;
     }
 
-    public void setState(int state) {
+    public void setState(long state) {
         this.state = state;
     }
 
@@ -205,11 +205,29 @@ public class SandboxItem {
         this.sizeInBytes = sizeInBytes;
     }
 
-    public String getItemId() {
-        return itemId;
-    }
+    public static SandboxItem getInstance(Item item) {
+        SandboxItem instance = new SandboxItem();
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
+        instance.id = item.getId();
+        instance.label = item.getLabel();
+        instance.parentId = item.getParentId();
+        instance.contentTypeId = item.getContentTypeId();
+        instance.path = item.getPath();
+        instance.previewUrl = item.getPreviewUrl();
+        instance.systemType = item.getSystemType();
+        instance.mimeType = item.getMimeType();
+        instance.state = item.getState();
+        instance.lockOwner = item.getOwner();
+        instance.disabled = item.isDisabled();
+        instance.localeCode = item.getLocaleCode();
+        instance.translationSourceId = String.valueOf(item.getTranslationSourceId());
+        instance.creator = item.getCreator();
+        instance.createdDate = item.getCreatedOn();
+        instance.modifier = item.getModifier();
+        instance.lastModifiedDate = item.getLastModifiedOn();
+        instance.commitId = item.getCommitId();
+        instance.sizeInBytes = item.getSize();
+
+        return instance;
     }
 }

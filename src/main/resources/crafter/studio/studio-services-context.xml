@@ -121,6 +121,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -436,6 +437,9 @@
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
         <property name="contentRepository" ref="contentRepository" />
+        <property name="itemDao" ref="itemDao" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"
@@ -474,6 +478,16 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
+    </bean>
+
+    <bean id="iteService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">
+
+    </bean>
+
+    <bean id="itemServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.item.internal.ItemServiceInternalImpl">
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="itemDao" ref="itemDao" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

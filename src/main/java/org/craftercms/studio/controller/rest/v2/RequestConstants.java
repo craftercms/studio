@@ -83,4 +83,8 @@ public interface RequestConstants {
     String REQUEST_PARAM_FILTERS = "filters";
 
     String REQUEST_PARAM_TOKEN = "token";
+
+    String REQUEST_PARAM_SORT_STRATEGY = "sortStrategy";
+
+    String REQUEST_PARAM_LOCALE = "locale";
 }
