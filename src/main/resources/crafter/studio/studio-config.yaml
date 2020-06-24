@@ -325,7 +325,7 @@ studio.security.encryption.salt: default_encryption_salt
 # Amount of time (in seconds) to delay encryption response
 studio.security.encryption.delay: 1
 # Amount of characters to limit the encryption input
-studio.security.encryption.maxLength: 512
+studio.security.encryption.maxLength: 4096
 
 ###############################################################
 ##               Page Navigation Order Service               ##
