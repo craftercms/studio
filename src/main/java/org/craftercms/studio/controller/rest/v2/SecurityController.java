@@ -47,7 +47,7 @@ public class SecurityController {
 
     @PostMapping("/encrypt")
     public ResponseBody encryptText(@RequestBody EncryptRequest request) throws ServiceLayerException {
-        String encrypted = encryptionService.encrypt(request.getText());
+        String encrypted = encryptionService.encrypt(request.getSiteId(), request.getText());
 
         ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_ITEM, encrypted);
