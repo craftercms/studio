@@ -18,38 +18,48 @@
 <translation-config>
 
     <!-- List of codes for the supported locales -->
-    <!--<localeCodes>-->
-    <!--    <localeCode>en_us</localeCode>-->
-    <!--</localeCodes>-->
+    <!--
+    <localeCodes>
+        <localeCode>en_us</localeCode>
+    </localeCodes>
+    -->
 
     <!-- The code of the default locale for all new content -->
-    <!--<defaultLocaleCode>en_us</defaultLocaleCode>-->
+    <!--
+    <defaultLocaleCode>en_us</defaultLocaleCode>
+    -->
 
     <!-- Indicates if the default locale should be used when none of the resolvers can find a locale -->
-    <!--<fallbackToDefaultLocale>true</fallbackToDefaultLocale>-->
+    <!--
+    <fallbackToDefaultLocale>true</fallbackToDefaultLocale>
+    -->
 
     <!-- List of locale resolvers -->
-    <!--<localeResolvers>-->
+    <!--
+    <localeResolvers>
+    -->
         <!-- List of locale resolvers, will be executed in the same order until one returns a locale -->
-    <!--    <localeResolver>-->
-    <!--        <type>urlPattern</type>-->
-    <!--        <mappings>-->
-    <!--            <mapping>-->
-    <!--                <pattern>.+/en</pattern>-->
-    <!--                <localeCode>en_us</localeCode>-->
-    <!--            </mapping>-->
-    <!--        </mappings>-->
-    <!--    </localeResolver>-->
-    <!--    <localeResolver>-->
-    <!--        <type>cookie</type>-->
-    <!--    </localeResolver>-->
-    <!--    <localeResolver>-->
-    <!--        <type>header</type>-->
-    <!--    </localeResolver>-->
-    <!--    <localeResolver>-->
-    <!--        <type>groovy</type>-->
-    <!--        <script>/scripts/locale.groovy</script>-->
-    <!--    </localeResolver>-->
-    <!--</localeResolvers>-->
+        <!--
+        <localeResolver>
+            <type>urlPattern</type>
+            <mappings>
+                <mapping>
+                    <pattern>.+/en</pattern>
+                    <localeCode>en_us</localeCode>
+                </mapping>
+            </mappings>
+        </localeResolver>
+        <localeResolver>
+            <type>cookie</type>
+        </localeResolver>
+        <localeResolver>
+            <type>header</type>
+        </localeResolver>
+        <localeResolver>
+            <type>groovy</type>
+            <script>/scripts/locale.groovy</script>
+        </localeResolver>
+    </localeResolvers>
+    -->
 
 </translation-config>
