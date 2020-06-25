@@ -101,7 +101,7 @@ public class ConfigurationController {
     }
 
     @GetMapping("translation")
-    public ResponseBody getConfiguration(@RequestParam String siteId) {
+    public ResponseBody getConfiguration(@RequestParam String siteId) throws ServiceLayerException {
         ResultOne<TranslationConfiguration> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_CONFIG, configurationService.getTranslationConfiguration(siteId));
         result.setResponse(OK);

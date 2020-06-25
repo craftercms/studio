@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
-import org.craftercms.studio.model.config.TranslationConfiguration;
 
 import java.util.List;
 import java.util.Map;
@@ -217,10 +216,5 @@ public interface ServicesConfig {
 	 * @return admin email address
 	 */
 	String getAdminEmailAddress(String siteId);
-
-	/**
-	 * Returns the translation configuration for the given site
-	 */
-	TranslationConfiguration getTranslationConfig(String siteId);
 
 }

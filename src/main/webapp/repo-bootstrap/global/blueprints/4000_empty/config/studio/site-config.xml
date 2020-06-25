@@ -21,7 +21,7 @@
 
 -->
 <site-config>
-    <version>8</version>
+    <version>7</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
@@ -68,16 +68,6 @@
             <field>disabled</field>
         </ignore-postfix-fields>
     </form-engine>
-
-    <!-- Site Translation -->
-    <!--
-    <translation>
-        <localeCodes>
-            <localeCode>en_us</localeCode>
-        </localeCodes>
-        <defaultLocaleCode>en_us</defaultLocaleCode>
-    </translation>
-    -->
 
     <!--
         Pattern that Studio will use to load plugin from the site repository

@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v1.to.SiteConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
-import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -103,11 +102,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected static final String ATTR_PATH = "@path";
 	protected static final String ATTR_READ_DIRECT_CHILDREN = "@read-direct-children";
 	protected static final String ATTR_ATTACH_ROOT_PREFIX = "@attach-root-prefix";
-
-	/* Translation Config */
-    public static final String CONFIG_KEY_TRANSLATION = "translation";
-    public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
-    public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes/localeCode";
 
 	/**
 	 * content types configuration
@@ -364,8 +358,6 @@ public class ServicesConfigImpl implements ServicesConfig {
              loadFacetConfiguration(configNode, siteConfig);
 
              siteConfig.setPluginFolderPattern(configNode.valueOf(SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN));
-
-             loadTranslationConfig(siteConfig, configNode.selectSingleNode(CONFIG_KEY_TRANSLATION));
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
          }
@@ -545,17 +537,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         }
     }
 
-    protected void loadTranslationConfig(SiteConfigTO siteConfig, Node translationConfig) {
-        if (translationConfig != null) {
-            TranslationConfiguration translationConfigTo = new TranslationConfiguration();
-            translationConfigTo.setDefaultLocaleCode(
-                    XmlUtils.selectSingleNodeValue(translationConfig, CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE));
-            translationConfigTo.setLocaleCodes(
-                    XmlUtils.selectNodeValues(translationConfig, CONFIG_KEY_TRANSLATION_LOCALES));
-            siteConfig.setTranslationConfig(translationConfigTo);
-        }
-    }
-
     @Override
     @ValidateParams
     public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam(name = "site") String site) {
@@ -669,15 +650,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         SiteConfigTO config = getSiteConfig(siteId);
         if (Objects.nonNull(config)) {
             return config.getAdminEmailAddress();
-        }
-        return null;
-    }
-
-    @Override
-    public TranslationConfiguration getTranslationConfig(String siteId) {
-        SiteConfigTO config = getSiteConfig(siteId);
-        if (Objects.nonNull(config)) {
-            return config.getTranslationConfig();
         }
         return null;
     }

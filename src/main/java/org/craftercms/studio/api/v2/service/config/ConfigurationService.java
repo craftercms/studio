@@ -128,6 +128,6 @@ public interface ConfigurationService {
      * @param siteId the id of the site
      * @return the translation configuration
      */
-    TranslationConfiguration getTranslationConfiguration(String siteId);
+    TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
 
 }

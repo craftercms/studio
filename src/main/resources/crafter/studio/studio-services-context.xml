@@ -280,6 +280,8 @@
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
 
     <bean id="configurationService" class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
+        <constructor-arg ref="crafter.configurationReader"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
         <property name="contentService" ref="cstudioContentService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />

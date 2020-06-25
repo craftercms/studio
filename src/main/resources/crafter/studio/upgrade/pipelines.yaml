@@ -828,9 +828,9 @@ pipelines:
       operations:
         - type: globalRepoUpgrader
           files:
-            - src: repo-bootstrap/global/configuration/samples/sample-site-config.xml
-              dest: configuration/samples/sample-site-config.xml
-          commitDetails: Update sample file for site-config.xml
+            - src: repo-bootstrap/global/configuration/samples/sample-translation-config.xml
+              dest: configuration/samples/sample-translation-config.xml
+          commitDetails: Add sample file for translation-config.xml
         - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
@@ -1035,6 +1035,15 @@ pipelines:
           replacement: authoringUrl
         - type: versionFileUpgrader
 
+    - currentVersion: 3.1.7.3
+      nextVersion: 3.2.0
+      operations:
+        - type: addFileUpgrader
+          path: /config/studio/translation-config.xml
+          file: crafter/studio/upgrade/3.2.x/3.2.0/site/translation-config.xml
+          commitDetails: Add translation config
+        - type: versionFileUpgrader
+
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
@@ -1121,14 +1130,6 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/config/studio-site-config/site-config-v7.xslt
             commitDetails: Add site urls
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/update-version.xslt
-      - currentVersion: 7
-        nextVersion: 8
-        operations:
-          - type: xsltFileUpgrader
-            template: crafter/studio/upgrade/3.2.x/config/studio-site-config/site-config-v8.xslt
-            commitDetails: Add translation config
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
 
@@ -1314,6 +1315,14 @@ configurations:
           - type: xsltFileUpgrader
             commitDetails: Fix sample for proxy-config.xml
             template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v10.xslt
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 10
+        nextVersion: 11
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v11.xslt
+            commitDetails: Add translation config
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
 

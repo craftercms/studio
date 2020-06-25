@@ -15,9 +15,11 @@
  */
 package org.craftercms.studio.impl.v2.service.configuration;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -98,6 +100,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public static final String PLACEHOLDER_TYPE = "type";
     public static final String PLACEHOLDER_NAME = "name";
 
+    /* Translation Config */
+    public static final String CONFIG_KEY_TRANSLATION = "translation";
+    public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
+    public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
+
     private ContentService contentService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
@@ -107,6 +114,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ServicesConfig servicesConfig;
     private ObjectStateService objectStateService;
     private EventService eventService;
+    private EncryptionAwareConfigurationReader configurationReader;
+
+    private String translationConfig;
+
+    public ConfigurationServiceImpl(EncryptionAwareConfigurationReader configurationReader,
+                                    String translationConfig) {
+        this.configurationReader = configurationReader;
+        this.translationConfig = translationConfig;
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -366,8 +382,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public TranslationConfiguration getTranslationConfiguration(String siteId) {
-        return servicesConfig.getTranslationConfig(siteId);
+    @SuppressWarnings("rawtypes")
+    public TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException {
+        TranslationConfiguration translationConfiguration = new TranslationConfiguration();
+        if (contentService.contentExists(siteId, translationConfig)) {
+            try (InputStream is = contentService.getContent(siteId, translationConfig)) {
+                HierarchicalConfiguration config = configurationReader.readXmlConfiguration(is);
+                if (config != null) {
+                    translationConfiguration.setDefaultLocaleCode(
+                            config.getString(CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE));
+                    translationConfiguration.setLocaleCodes(
+                            config.getList(String.class, CONFIG_KEY_TRANSLATION_LOCALES));
+                }
+            } catch (Exception e) {
+                throw new ServiceLayerException("Error getting translation config for site " + siteId, e);
+            }
+        }
+        return translationConfiguration;
     }
 
     @Required
