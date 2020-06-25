@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>6</version>
+    <version>12</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -182,6 +182,7 @@
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
                 <permission>write_configuration</permission>
+                <permission>encryption_tool</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -194,6 +195,7 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>encryption_tool</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -228,6 +230,7 @@
                 <permission>site_diff_conflicted_file</permission>
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -250,6 +253,7 @@
                 <permission>site_diff_conflicted_file</permission>
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
