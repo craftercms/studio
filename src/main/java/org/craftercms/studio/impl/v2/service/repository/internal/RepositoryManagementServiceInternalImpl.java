@@ -378,6 +378,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     break;
             }
             pullResult = pullCommand.call();
+            String pullResultMessage = pullResult.toString();
+            if (StringUtils.isNotEmpty(pullResultMessage)) {
+                logger.info(pullResultMessage);
+            }
             Files.delete(tempKey);
             if (!pullResult.isSuccessful() && conflictNotificationEnabled()) {
                 List<String> conflictFiles = new ArrayList<String>();
@@ -429,6 +433,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
             boolean toRet = true;
             for (PushResult pushResult : pushResultIterable) {
+                String pushResultMessage = pushResult.getMessages();
+                if (StringUtils.isNotEmpty(pushResultMessage)) {
+                    logger.info(pushResultMessage);
+                }
                 Collection<RemoteRefUpdate> updates = pushResult.getRemoteUpdates();
                 for (RemoteRefUpdate remoteRefUpdate : updates) {
                     switch (remoteRefUpdate.getStatus()) {
