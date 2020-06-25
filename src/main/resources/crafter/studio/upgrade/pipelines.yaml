@@ -813,6 +813,15 @@ pipelines:
               dest: configuration/samples/sample-proxy-config.xml
           commitDetails: Update sample file for proxy-config.xml
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.7.4
+      nextVersion: 3.1.8.1
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+              dest: configuration/samples/sample-permission-mappings-config.xml
+          commitDetails: Update sample file for proxy-config.xml
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -1187,6 +1196,14 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/3.1.4.8/site/permission-mappings-config.xslt
             commitDetails: Added remote repository permissions for developer
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 11
+        nextVersion: 12
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/permission-mappings-config/permission-mappings-config-v12.xslt
+            commitDetails: Added encryption tool permissions for developer and admin
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
 
