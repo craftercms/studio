@@ -280,17 +280,17 @@
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
 
     <bean id="configurationService" class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
+        <constructor-arg ref="cstudioContentService" />
+        <constructor-arg ref="studioConfiguration" />
+        <constructor-arg ref="auditServiceInternal" />
+        <constructor-arg ref="cstudioSiteServiceSimple" />
+        <constructor-arg ref="cstudioSecurityService" />
+        <constructor-arg ref="cstudioObjectMetadataManager" />
+        <constructor-arg ref="cstudioServicesConfig" />
+        <constructor-arg ref="cstudioObjectStateService" />
+        <constructor-arg ref="studioEventService" />
         <constructor-arg ref="crafter.configurationReader"/>
         <constructor-arg value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
-        <property name="contentService" ref="cstudioContentService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="objectStateService" ref="cstudioObjectStateService" />
-        <property name="eventService" ref="studioEventService" />
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">

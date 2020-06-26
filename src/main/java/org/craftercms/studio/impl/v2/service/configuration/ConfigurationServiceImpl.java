@@ -53,7 +53,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
@@ -101,7 +100,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public static final String PLACEHOLDER_NAME = "name";
 
     /* Translation Config */
-    public static final String CONFIG_KEY_TRANSLATION = "translation";
     public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
     public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
 
@@ -118,8 +116,21 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String translationConfig;
 
-    public ConfigurationServiceImpl(EncryptionAwareConfigurationReader configurationReader,
+    public ConfigurationServiceImpl(ContentService contentService, StudioConfiguration studioConfiguration,
+                                    AuditServiceInternal auditServiceInternal, SiteService siteService,
+                                    SecurityService securityService, ObjectMetadataManager objectMetadataManager,
+                                    ServicesConfig servicesConfig, ObjectStateService objectStateService,
+                                    EventService eventService, EncryptionAwareConfigurationReader configurationReader,
                                     String translationConfig) {
+        this.contentService = contentService;
+        this.studioConfiguration = studioConfiguration;
+        this.auditServiceInternal = auditServiceInternal;
+        this.siteService = siteService;
+        this.securityService = securityService;
+        this.objectMetadataManager = objectMetadataManager;
+        this.servicesConfig = servicesConfig;
+        this.objectStateService = objectStateService;
+        this.eventService = eventService;
         this.configurationReader = configurationReader;
         this.translationConfig = translationConfig;
     }
@@ -399,65 +410,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
         }
         return translationConfiguration;
-    }
-
-    @Required
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
-
-    @Required
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    @Required
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
-    }
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
-    }
-
-    public void setEventService(final EventService eventService) {
-        this.eventService = eventService;
     }
 
 }
