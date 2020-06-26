@@ -77,4 +77,8 @@ public interface ResultConstants {
     /** Publish controller */
     String RESULT_KEY_PACKAGES = "packages";
     String RESULT_KEY_PACKAGE = "package";
+
+    /* Translation controller */
+    String RESULT_KEY_CONFIG = "config";
+
 }

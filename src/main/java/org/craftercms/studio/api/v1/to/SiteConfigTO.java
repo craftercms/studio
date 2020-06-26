@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v1.to;
 
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -225,4 +224,5 @@ public class SiteConfigTO implements Serializable {
     public void setAdminEmailAddress(String adminEmailAddress) {
         this.adminEmailAddress = adminEmailAddress;
     }
+
 }

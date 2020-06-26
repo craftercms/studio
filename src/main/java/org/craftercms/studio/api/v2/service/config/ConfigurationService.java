@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.config;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -121,4 +122,12 @@ public interface ConfigurationService {
      * @throws ServiceLayerException
      */
     void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
+
+    /**
+     * Get the translation configuration for a given site
+     * @param siteId the id of the site
+     * @return the translation configuration
+     */
+    TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
+
 }

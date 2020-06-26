@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v1.service.configuration;
 
-
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
@@ -217,4 +216,5 @@ public interface ServicesConfig {
 	 * @return admin email address
 	 */
 	String getAdminEmailAddress(String siteId);
+
 }

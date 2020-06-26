@@ -823,6 +823,16 @@ pipelines:
           commitDetails: Update sample file for proxy-config.xml
         - type: dbVersionUpgrader
 
+    - currentVersion: 3.1.8.1
+      nextVersion: 3.2.0.1
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-translation-config.xml
+              dest: configuration/samples/sample-translation-config.xml
+          commitDetails: Add sample file for translation-config.xml
+        - type: dbVersionUpgrader
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
@@ -1023,6 +1033,15 @@ pipelines:
             - config/studio/workflow/notification-config.xml
           pattern: previewUrl
           replacement: authoringUrl
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.7.3
+      nextVersion: 3.2.0
+      operations:
+        - type: addFileUpgrader
+          path: /config/studio/translation-config.xml
+          file: crafter/studio/upgrade/3.2.x/3.2.0/site/translation-config.xml
+          commitDetails: Add translation config
         - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
@@ -1296,6 +1315,14 @@ configurations:
           - type: xsltFileUpgrader
             commitDetails: Fix sample for proxy-config.xml
             template: crafter/studio/upgrade/3.1.x/config/config-list/config-list-v10.xslt
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 10
+        nextVersion: 11
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v11.xslt
+            commitDetails: Add translation config
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
 

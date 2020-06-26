@@ -37,7 +37,7 @@
     - samplePath: the path to a sample file to help the user update the file
 -->
 <config>
-    <version>10</version>
+    <version>11</version>
     <files>
         <file>
             <module>studio</module>
@@ -220,6 +220,13 @@
             <title>Proxy Config</title>
             <description>Proxy Config</description>
             <samplePath>sample-proxy-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>translation-config.xml</path>
+            <title>confTabTranslationConf</title>
+            <description>confTabTranslationConfDesc</description>
+            <samplePath>sample-translation-config.xml</samplePath>
         </file>
     </files>
 </config>

@@ -172,7 +172,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     @Override
     @ValidateParams
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam(name = "site") String site,
-                                              @ValidateStringParam(name = "contentType") String contentType) {
+                                                                      @ValidateStringParam(name = "contentType") String contentType) {
         if (contentType == null ) {
              return Collections.emptyList();
         }
@@ -186,7 +186,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     @Override
     @ValidateParams
 	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam(name = "site") String site,
-                                                  @ValidateStringParam(name = "contentType") String contentType) {
+                                                                  @ValidateStringParam(name = "contentType") String contentType) {
         if (contentType == null ) {
              return Collections.emptyList();
         }
