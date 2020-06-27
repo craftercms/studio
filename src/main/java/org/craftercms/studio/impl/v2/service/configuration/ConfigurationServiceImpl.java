@@ -116,25 +116,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String translationConfig;
 
-    public ConfigurationServiceImpl(ContentService contentService, StudioConfiguration studioConfiguration,
-                                    AuditServiceInternal auditServiceInternal, SiteService siteService,
-                                    SecurityService securityService, ObjectMetadataManager objectMetadataManager,
-                                    ServicesConfig servicesConfig, ObjectStateService objectStateService,
-                                    EventService eventService, EncryptionAwareConfigurationReader configurationReader,
-                                    String translationConfig) {
-        this.contentService = contentService;
-        this.studioConfiguration = studioConfiguration;
-        this.auditServiceInternal = auditServiceInternal;
-        this.siteService = siteService;
-        this.securityService = securityService;
-        this.objectMetadataManager = objectMetadataManager;
-        this.servicesConfig = servicesConfig;
-        this.objectStateService = objectStateService;
-        this.eventService = eventService;
-        this.configurationReader = configurationReader;
-        this.translationConfig = translationConfig;
-    }
-
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException {
@@ -410,6 +391,50 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
         }
         return translationConfiguration;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
+    public void setConfigurationReader(EncryptionAwareConfigurationReader configurationReader) {
+        this.configurationReader = configurationReader;
+    }
+
+    public void setTranslationConfig(String translationConfig) {
+        this.translationConfig = translationConfig;
     }
 
 }
