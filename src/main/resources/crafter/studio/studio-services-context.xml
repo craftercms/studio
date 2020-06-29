@@ -480,14 +480,14 @@
         <property name="publishServiceInternal" ref="publishServiceInternal" />
     </bean>
 
-    <bean id="iteService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">
+    <bean id="itemService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">
 
     </bean>
 
     <bean id="itemServiceInternal"
           class="org.craftercms.studio.impl.v2.service.item.internal.ItemServiceInternalImpl">
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
-        <property name="itemDao" ref="itemDao" />
+        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
+        <constructor-arg name="itemDao" ref="itemDao" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

@@ -65,4 +65,17 @@ public interface ItemServiceInternal {
      * @param item item to update
      */
     void updateItem(Item item);
+
+    /**
+     * Delete item
+     * @param itemId item id
+     */
+    void deleteItem(long itemId);
+
+    /**
+     * Delete item
+     * @param siteId siteIdentifier
+     * @param path path of item to be deleted
+     */
+    void deleteItem(String siteId, String path);
 }
