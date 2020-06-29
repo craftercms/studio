@@ -148,9 +148,6 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
                             @ValidateSecurePathParam(name = "path") String path,
                             @ValidateStringParam(name = "lockOwner") String lockOwner) {
         path = FilenameUtils.normalize(path, true);
-        if (!metadataExist(site, path)) {
-            insertNewObjectMetadata(site, path);
-        }
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
