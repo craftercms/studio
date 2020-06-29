@@ -1217,6 +1217,7 @@ public class SiteServiceImpl implements SiteService {
 	    SiteFeed siteFeed = getSite(site);
 	    boolean isPreviewSyncNeeded = !StringUtils.equals(repoLastCommitId, siteFeed.getLastCommitId());
 	    Item item = null;
+	    boolean exists = false;
         Mimetypes mimetypes = Mimetypes.getInstance();
 
         for (RepoOperation repoOperation: repoOperationsDelta) {
@@ -1310,7 +1311,7 @@ public class SiteServiceImpl implements SiteService {
 
                         // Item
                         item = itemServiceInternal.getItem(site, repoOperation.getPath());
-                        boolean exists = !Objects.isNull(item);
+                        exists = !Objects.isNull(item);
                         item.setSiteId(siteFeed.getId());
                         item.setPath(repoOperation.getPath());
                         item.setPreviewUrl(repoOperation.getPath());
@@ -1331,6 +1332,7 @@ public class SiteServiceImpl implements SiteService {
                         break;
 
                     case DELETE:
+                        itemServiceInternal.deleteItem(site, repoOperation.getPath());
                         logger.debug("Delete item state for site: " + site + " path: " + repoOperation.getPath());
                         objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
                         logger.debug("Delete item metadata for site: " + site + " path: " + repoOperation.getPath());
@@ -1409,6 +1411,27 @@ public class SiteServiceImpl implements SiteService {
                                 }
                                 objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
                             }
+                        }
+
+                        // Item
+                        item = itemServiceInternal.getItem(site, repoOperation.getPath());
+                        exists = !Objects.isNull(item);
+                        item.setSiteId(siteFeed.getId());
+                        item.setPath(repoOperation.getMoveToPath());
+                        item.setPreviewUrl(repoOperation.getMoveToPath());
+                        item.setState(item.getState() & org.craftercms.studio.api.v2.dal.ItemState.MODIFIED.value);
+                        item.setLastModifiedBy(1);
+                        item.setLastModifiedOn(repoOperation.getDateTime());
+                        item.setLabel("label");
+                        item.setContentTypeId(contentService.getContentTypeClass(site, repoOperation.getMoveToPath()));
+                        item.setMimeType(mimetypes.getMimetype(FilenameUtils.getName(repoOperation.getMoveToPath())));
+                        item.setLocaleCode(Locale.US.toString());
+                        //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
+                        item.setCommitId(repoOperation.getCommitId());
+                        if (exists) {
+                            itemServiceInternal.updateItem(item);
+                        } else {
+                            itemServiceInternal.upsertEntry(site, item);
                         }
 
                         logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());

@@ -143,4 +143,12 @@
             commit_id = #{commitId},
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM item WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteBySiteAndPath" >
+        DELETE FROM item WHERE site_id = #{siteId} and path = #{path}
+    </delete>
 </mapper>

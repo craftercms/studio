@@ -17,8 +17,6 @@
 package org.craftercms.studio.impl.v2.service.item.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -40,6 +38,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     SiteFeedMapper siteFeedMapper;
     ItemDAO itemDao;
+
+    public ItemServiceInternalImpl(SiteFeedMapper siteFeedMapper, ItemDAO itemDao) {
+        this.siteFeedMapper = siteFeedMapper;
+        this.itemDao = itemDao;
+    }
 
     @Override
     public void upsertEntry(String siteId, Item item) {
@@ -100,23 +103,20 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public void deleteItem(long itemId) {
+        itemDao.deleteById(itemId);
+    }
+
+    @Override
+    public void deleteItem(String siteId, String path) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        itemDao.deleteBySiteAndPath(siteFeed.getId(), path);
+    }
+
+    @Override
     public void updateItem(Item item) {
         itemDao.updateItem(item);
-    }
-
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
-    }
-
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
-    }
-
-    public ItemDAO getItemDao() {
-        return itemDao;
-    }
-
-    public void setItemDao(ItemDAO itemDao) {
-        this.itemDao = itemDao;
     }
 }

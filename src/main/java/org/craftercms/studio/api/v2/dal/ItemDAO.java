@@ -136,4 +136,17 @@ public interface ItemDAO {
      * @param item item to update
      */
     void updateItem(Item item);
+
+    /**
+     * Delete item
+     * @param id id of the item to delete
+     */
+    void deleteById(@Param(ID) long id);
+
+    /**
+     * Delete item
+     * @param siteId site identifier
+     * @param path path of item to delete
+     */
+    void deleteBySiteAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 }
