@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -1182,6 +1183,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
+                        if (Objects.isNull(commitId)) {
+                            logger.warn("Skipping file " + path + " because commit id is null");
+                            continue;
+                        }
                         logger.debug("Checking out file " + path + " from commit id " + commitId +
                                 " for site " + site);
 
