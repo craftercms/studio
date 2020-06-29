@@ -953,6 +953,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
+                        if (Objects.isNull(commitId)) {
+                            logger.warn("Skipping file " + path + " because commit id is null");
+                            continue;
+                        }
                         logger.debug("Checking out file " + path + " from commit id " + commitId +
                                 " for site " + site);
 
