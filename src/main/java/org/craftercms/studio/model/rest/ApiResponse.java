@@ -113,15 +113,15 @@ public class ApiResponse {
                     "Resolve conflicts before continuing work with repository", StringUtils.EMPTY);
 
     public static final ApiResponse ADD_REMOTE_INVALID =
-            new ApiResponse(12003, "Remote is invalid. Not added to remote repositories.",
+            new ApiResponse(12003, "Remote is invalid. Not added to remote repositories",
                     "Add new remote repository with valid parameters.", StringUtils.EMPTY);
 
     public static final ApiResponse REMOVE_REMOTE_FAILED =
-            new ApiResponse(12004, "Failed to remove remote repository.", "Contact your system administrator.",
+            new ApiResponse(12004, "Failed to remove remote repository", "Contact your system administrator.",
                     StringUtils.EMPTY);
 
     public static final ApiResponse PUSH_TO_REMOTE_FAILED =
-            new ApiResponse(12005, "Push to remote repository failed.", "Check your repository settings or contact your system administrator.",
+            new ApiResponse(12005, "Push to remote repository failed", "Check your repository settings or contact your system administrator.",
                     StringUtils.EMPTY);
 
     public static final ApiResponse MARKETPLACE_NOT_INITIALIZED = new ApiResponse(40000,
