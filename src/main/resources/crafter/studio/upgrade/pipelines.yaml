@@ -836,7 +836,7 @@ pipelines:
       operations:
         - type: globalRepoUpgrader
           files:
-            - src: repo-bootstrap/global/configuration/samples/sample-permission-mappongs-config.xml
+            - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
               dest: configuration/samples/sample-permission_mappings-config.xml
           commitDetails: Add sample file for translation-config.xml
         - type: dbScriptUpgrader
