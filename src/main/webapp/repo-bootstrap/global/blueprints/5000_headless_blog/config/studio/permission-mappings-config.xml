@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>12</version>
+    <version>13</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -88,6 +88,7 @@
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="/site/items|/site/items/.*">
@@ -100,6 +101,7 @@
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="/static-assets|/static-assets/.*">
@@ -112,6 +114,7 @@
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -135,6 +138,7 @@
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/site/(?!website/index\.xml)(.*)">
@@ -158,6 +162,7 @@
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
                 <permission>delete_content</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
@@ -204,6 +209,7 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -269,6 +275,7 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -313,6 +320,7 @@
                 <permission>Publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
@@ -333,6 +341,7 @@
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>Read</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
