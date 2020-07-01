@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.8-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.8</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -43,7 +43,7 @@
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
         <testng.version>6.9.10</testng.version>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>support/3.1.x</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.version>v3.1.8</studio.ui.version><!-- craftercms ui version flag -->
         <studio.ui.node.version>v13.6.0</studio.ui.node.version>
         <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
         <spring.version>4.3.18.RELEASE</spring.version>
