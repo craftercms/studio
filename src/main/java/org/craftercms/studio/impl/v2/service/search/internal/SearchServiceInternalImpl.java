@@ -384,7 +384,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      */
     protected SearchResult processResults(SearchResponse response, Map<String, FacetTO> siteFacets) {
         SearchResult result = new SearchResult();
-        result.setTotal(response.getHits().getTotalHits());
+        result.setTotal(response.getHits().getTotalHits().value);
 
         List<SearchResultItem> items = Stream.of(response.getHits().getHits())
             .map(hit -> processSearchHit(hit.getSourceAsMap(), hit.getHighlightFields()))
