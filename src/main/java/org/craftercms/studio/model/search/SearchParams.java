@@ -30,6 +30,12 @@ public class SearchParams {
     protected String keywords;
 
     /**
+     * ElasticSearch Query to search in the files.
+     * (Ex) `regexp:localId:/static-assets/.*`
+     */
+    protected String esQueries;
+
+    /**
      * Lucene query to execute.
      */
     protected String query;
@@ -70,6 +76,14 @@ public class SearchParams {
 
     public void setKeywords(final String keywords) {
         this.keywords = keywords;
+    }
+
+    public String getEsQueries() {
+        return esQueries;
+    }
+
+    public void setEsQueries() {
+        this.esQueries = esQueries;
     }
 
     public String getQuery() {

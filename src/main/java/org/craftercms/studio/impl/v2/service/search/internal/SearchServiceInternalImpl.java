@@ -434,6 +434,21 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             query.must(keywordsQuery);
         }
 
+        String esQueries = params.getEsQueries();
+        if (StringUtils.isNotEmpty(esQueries)) {
+            String[] keywords = esQueries.split(",");
+            if (ArrayUtils.isNotEmpty(keywords)) {
+                for (String keyword : keywords) {
+                    String[] queries = keyword.split(":");
+                    if (ArrayUtils.isNotEmpty(queries) && queries.length == 3) {
+                        if (queries[0].equals("regexp")) {
+                            query.must(QueryBuilders.regexpQuery(queries[1], queries[2]));
+                        }
+                    }
+                }
+            }
+        }
+
         if (StringUtils.isNotEmpty(params.getPath())) {
             query.filter(QueryBuilders.regexpQuery(pathFieldName, params.getPath()));
         }
