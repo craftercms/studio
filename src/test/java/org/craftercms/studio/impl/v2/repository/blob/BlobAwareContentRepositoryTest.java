@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
+import org.craftercms.studio.impl.v2.repository.GitContentRepository;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -70,7 +70,10 @@ public class BlobAwareContentRepositoryTest {
     private BlobAwareContentRepository proxy;
 
     @Mock
-    private GitContentRepository local;
+    private org.craftercms.studio.impl.v1.repository.git.GitContentRepository local;
+
+    @Mock
+    private GitContentRepository localV2;
 
     @Mock
     private StudioBlobStore store;
@@ -254,7 +257,7 @@ public class BlobAwareContentRepositoryTest {
         verify(store).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertEquals(itemsCaptor.getValue().get(0), item);
 
-        verify(local).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertEquals(itemsCaptor.getValue().get(0), pointerItem);
     }
 
@@ -272,7 +275,7 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store, never()).publish(any(), any(), any(), any(), any(), any());
 
-        verify(local).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertEquals(itemsCaptor.getValue().get(0), pointerItem);
     }
 
@@ -296,10 +299,10 @@ public class BlobAwareContentRepositoryTest {
         verify(store).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(remoteItem), "remote file should have been published");
 
-        verify(local).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(pointerItem), "pointer file should have been published");
 
-        verify(local).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
+        verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(localItem), "local file should have been published");
     }
 
@@ -308,7 +311,7 @@ public class BlobAwareContentRepositoryTest {
         DeploymentSyncHistory history = new DeploymentSyncHistory();
         history.setPath(POINTER_PATH);
 
-        when(local.getDeploymentHistory(eq(SITE), any(), any(), any(), any(), any(), anyInt()))
+        when(localV2.getDeploymentHistory(eq(SITE), any(), any(), any(), any(), any(), anyInt()))
                 .thenReturn(singletonList(history));
 
         List<DeploymentSyncHistory> result =
