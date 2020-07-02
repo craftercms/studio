@@ -183,8 +183,10 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                     destroySitePreviewContext(siteFeed.getName());
                     contentRepository.deleteSite(siteFeed.getName());
                 }
-                StudioNodeSyncBaseTask.createdSites.remove(siteFeed.getSiteId());
-                StudioNodeSyncBaseTask.remotesMap.remove(siteFeed.getSiteId());
+                StudioNodeSyncSandboxTask.createdSites.remove(siteFeed.getSiteId());
+                StudioNodeSyncSandboxTask.remotesMap.remove(siteFeed.getSiteId());
+                StudioNodeSyncPublishedTask.createdSites.remove(siteFeed.getSiteId());
+                StudioNodeSyncPublishedTask.remotesMap.remove(siteFeed.getSiteId());
                 deletedSitesMap.put(key, siteFeed.getName());
             }
         });

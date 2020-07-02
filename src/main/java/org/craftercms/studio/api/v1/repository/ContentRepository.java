@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v1.repository;
 
-
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -25,7 +24,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
@@ -228,18 +226,6 @@ public interface ContentRepository {
     void unLockItemForPublishing(String site, String path); // TODO: SJ: Change to have a return
 
     /**
-     * Create a new site based on a blueprint
-     *
-     * @param blueprintLocation blueprint location
-     * @param siteId site identifier
-     * @param sandboxBranch sandbox branch name
-     * @param params site parameters
-     * @return true if successful, false otherwise
-     */
-    boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-                                    Map<String, String> params);
-
-    /**
      * Deletes an existing site.
      *
      * @param siteId site to delete
@@ -258,17 +244,6 @@ public interface ContentRepository {
      */
     void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
             throws DeploymentException;
-
-    /**
-     * Publish content to specified environment.
-     *
-     * @param deploymentItems
-     * @param environment
-     * @param author
-     * @param comment
-     */
-    void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                 String author, String comment) throws DeploymentException;
 
     /**
      * Get last commit id from repository for given site.
@@ -298,17 +273,6 @@ public interface ContentRepository {
     List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo);
 
     /**
-     * Check if given commit id exists
-     *
-     * @param site     site id
-     * @param commitId commit id to check
-     * @return true if it exists in site repository, otherwise false
-     */
-    boolean commitIdExists(String site, String commitId);
-
-
-
-    /**
      * Insert Full Git Log
      *
      * @param siteId    site
@@ -322,25 +286,6 @@ public interface ContentRepository {
      * @param siteId site identifier
      */
     void deleteGitLogForSite(String siteId);
-
-    /**
-     * Create new site as a clone from remote repository
-     *
-     * @param siteId         site identifier
-     * @param remoteName     remote name
-     * @param remoteUrl      remote repository url
-     * @param remoteUsername remote username
-     * @param remotePassword remote password
-     * @param params         site parameters
-     * @param createAsOrphan create as orphan
-     * @return true if success
-     */
-    boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-                                  String remoteBranch, boolean singleBranch, String authenticationType,
-                                  String remoteUsername, String remotePassword, String remoteToken,
-                                  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
-            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException;
 
     /**
      * Push new site to remote repository
@@ -376,15 +321,6 @@ public interface ContentRepository {
                       String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
                       String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceLayerException;
-
-    /**
-     * Remove remote with given name for site
-     *
-     * @param siteId     site identifier
-     * @param remoteName remote name
-     * @return true if operation was successful
-     */
-    boolean removeRemote(String siteId, String remoteName);
 
     /**
      * Remove all remotes for given site
@@ -452,12 +388,4 @@ public interface ContentRepository {
      * @param siteId site identifier
      */
     void cleanupRepositories(String siteId);
-
-    /**
-     * Check if repository exists for  given site
-     *
-     * @param site     site id
-     * @return true if it repository exists, otherwise false
-     */
-    boolean repositoryExists(String site);
 }
