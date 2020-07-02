@@ -15,10 +15,13 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
+import com.amazonaws.services.s3.internal.Mimetypes;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -27,6 +30,8 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -35,7 +40,9 @@ import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -178,6 +185,32 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                         assetInfo.setSizeUnit(FILE_SIZE_KB);
                     }
                 }
+                // Item
+                Item item = itemServiceInternal.getItem(site, path + FILE_SEPARATOR + assetName);
+                exists = !Objects.isNull(item);
+                item.setPreviewUrl(path + FILE_SEPARATOR + assetName);
+                item.setState(item.getState() | org.craftercms.studio.api.v2.dal.ItemState.MODIFIED.value);
+                item.setLastModifiedBy(1);
+                item.setLastModifiedOn(ZonedDateTime.now());
+                item.setLabel("label");
+                item.setContentTypeId(
+                        contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName));
+                Mimetypes mimetypes = Mimetypes.getInstance();
+                item.setMimeType(mimetypes.getMimetype(assetName));
+                item.setLocaleCode(Locale.US.toString());
+                //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
+                item.setCommitId(result.getCommitId());
+                if (unlock) {
+                    item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
+                }
+                if (exists) {
+                    itemServiceInternal.updateItem(item);
+                } else {
+                    SiteFeed siteFeed = siteService.getSite(site);
+                    item.setSiteId(siteFeed.getId());
+                    item.setPath(path + FILE_SEPARATOR + assetName);
+                    itemServiceInternal.upsertEntry(site, item);
+                }
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
@@ -232,6 +265,34 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                         workflowService.updateWorkflowSandboxes(site, relativePath);
                     }
                 }
+            }
+
+            // Item
+            Item item = itemServiceInternal.getItem(site, relativePath);
+            boolean exists = !Objects.isNull(item);
+            item.setPreviewUrl(relativePath);
+            item.setState(item.getState() | ItemState.MODIFIED.value);
+            item.setLastModifiedBy(1);
+            item.setLastModifiedOn(ZonedDateTime.now());
+            item.setLabel("label");
+            item.setContentTypeId(
+                    contentService.getContentTypeClass(site, relativePath));
+            Mimetypes mimetypes = Mimetypes.getInstance();
+            item.setMimeType(mimetypes.getMimetype(FilenameUtils.getName(relativePath)));
+            item.setLocaleCode(Locale.US.toString());
+            //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
+            item.setCommitId(result.getCommitId());
+            if (unlock) {
+                item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
+            }
+            if (exists) {
+                itemServiceInternal.updateItem(item);
+            } else {
+                SiteFeed siteFeed = siteService.getSite(site);
+                item.setSiteId(siteFeed.getId());
+                item.setPath(relativePath);
+                item.setState(item.getState() | ItemState.NEW.value);
+                itemServiceInternal.upsertEntry(site, item);
             }
         }
         if (unlock) {

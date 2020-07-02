@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENTRIES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
@@ -31,9 +32,11 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ROOT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES_BIT_MAP;
 
 public interface ItemDAO {
 
@@ -149,4 +152,36 @@ public interface ItemDAO {
      * @param path path of item to delete
      */
     void deleteBySiteAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+
+    /**
+     * Set items state
+     * @param siteId site identifier
+     * @param paths paths of items
+     * @param statesBitMap states bit map to be set
+     */
+    void setStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths,
+                                    @Param(STATES_BIT_MAP) long statesBitMap);
+
+    /**
+     * Set items state
+     * @param itemIds ids of items
+     * @param statesBitMap states bit map to be set
+     */
+    void setStatesByIdBulk(@Param(ITEM_IDS) List<Long> itemIds, @Param(STATES_BIT_MAP) long statesBitMap);
+
+    /**
+     * Reset items state
+     * @param siteId site identifier
+     * @param paths paths of items
+     * @param statesBitMap states bit map to be reset
+     */
+    void resetStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths,
+                                    @Param(STATES_BIT_MAP) long statesBitMap);
+
+    /**
+     * Reset items state
+     * @param itemIds ids of items
+     * @param statesBitMap states bit map to be reset
+     */
+    void resetStatesByIdBulk(@Param(ITEM_IDS) List<Long> itemIds, @Param(STATES_BIT_MAP) long statesBitMap);
 }

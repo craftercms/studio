@@ -151,4 +151,36 @@
     <delete id="deleteBySiteAndPath" >
         DELETE FROM item WHERE site_id = #{siteId} and path = #{path}
     </delete>
+
+    <update id="setStatesBySiteAndPathBulk" >
+        UPDATE item SET state = state | #{statesBitMap}
+        WHERE site_id = #{siteId} AND path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator=","  close=")">
+            #{path}
+        </foreach>
+    </update>
+
+    <update id="setStatesByIdBulk" >
+        UPDATE item SET state = state | #{statesBitMap}
+        WHERE id IN
+        <foreach collection="itemIds" item="id" index="index" open="(" separator=","  close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="resetStatesBySiteAndPathBulk" >
+        UPDATE item SET state = state &amp; ~#{statesBitMap}
+        WHERE site_id = #{siteId} AND path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator=","  close=")">
+            #{path}
+        </foreach>
+    </update>
+
+    <update id="resetStatesByIdBulk" >
+        UPDATE item SET state = state &amp; ~#{statesBitMap}
+        WHERE id IN
+        <foreach collection="itemIds" item="id" index="index" open="(" separator=","  close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

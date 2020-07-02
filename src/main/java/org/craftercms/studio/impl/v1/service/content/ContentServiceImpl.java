@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,7 +85,9 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -166,6 +169,7 @@ public class ContentServiceImpl implements ContentService {
     protected EntitlementValidator entitlementValidator;
     protected AuditServiceInternal auditServiceInternal;
     protected UserService userService;
+    protected ItemServiceInternal itemServiceInternal;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -346,6 +350,7 @@ public class ContentServiceImpl implements ContentService {
                     }
 
                     objectStateService.setSystemProcessing(site, path, true);
+                    itemServiceInternal.setSystemProcessing(site, path, true);
                 }
                 else {
                     logger.error("the object state is still null even after attempting to create it for site {0} "
@@ -384,6 +389,7 @@ public class ContentServiceImpl implements ContentService {
 
             // Item has been processed and persisted, set system processing state to off
             objectStateService.setSystemProcessing(site, path, false);
+            itemServiceInternal.setSystemProcessing(site, path, false);
 
             // TODO: SJ: The path sent from the UI is inconsistent, hence the acrobatics below. Fix in 2.7.x
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
@@ -404,6 +410,7 @@ public class ContentServiceImpl implements ContentService {
                     objectStateService.transition(site, itemTo, SAVE_FOR_PREVIEW);
                 }
                 objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
+                itemServiceInternal.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
                 // TODO: SJ: the line below doesn't make any sense, itemTo == null => insert? Investigate and fix in
                 // TODO: SJ: 2.7.x
@@ -420,6 +427,8 @@ public class ContentServiceImpl implements ContentService {
             // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
             objectStateService.setSystemProcessing(site, relativePath, false);
             objectStateService.setSystemProcessing(site, path, false);
+            itemServiceInternal.setSystemProcessing(site, relativePath, false);
+            itemServiceInternal.setSystemProcessing(site, path, false);
             throw e;
         }
     }
@@ -522,6 +531,7 @@ public class ContentServiceImpl implements ContentService {
                         throw new RuntimeException(String.format("Content \"%s\" is being processed", assetName));
                     }
                     objectStateService.setSystemProcessing(site, path, true);
+                    itemServiceInternal.setSystemProcessing(site, path, true);
                 }
             }
 
@@ -565,6 +575,7 @@ public class ContentServiceImpl implements ContentService {
         } finally {
             if (item != null) {
                 objectStateService.setSystemProcessing(site, path, false);
+                itemServiceInternal.setSystemProcessing(site, path, false);
             }
         }
     }
@@ -831,6 +842,7 @@ public class ContentServiceImpl implements ContentService {
                             objectStateService.insertNewEntry(site, copyItem);
                             objectStateService.setSystemProcessing(site, copyPath, false);
                         }
+                        itemServiceInternal.setSystemProcessing(site, copyPath, false);
 
                         // copy was successful, return the new name
                         retNewFileName = copyPath;
@@ -2305,16 +2317,30 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Dejan to look into this
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
+
+        // Item
+        Item item = itemServiceInternal.getItem(site, path);
+        if (Objects.nonNull(item)) {
+            item.setState(item.getState() | org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED.value);
+            itemServiceInternal.updateItem(item);
+        }
     }
 
     @Override
     @ValidateParams
     public void unLockContent(@ValidateStringParam(name = "site") String site,
                               @ValidateSecurePathParam(name = "path") String path) {
-        ContentItemTO item = getContentItem(site, path, 0);
-        objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT); // this unlocks too
+        ContentItemTO itemTO = getContentItem(site, path, 0);
+        objectStateService.transition(site, itemTO, TransitionEvent.CANCEL_EDIT); // this unlocks too
         _contentRepository.unLockItem(site, path);
         objectMetadataManager.unLockContent(site, path);
+
+        // Item
+        Item item = itemServiceInternal.getItem(site, path);
+        if (Objects.nonNull(item)) {
+            item.setState(item.getState() & ~org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED.value);
+            itemServiceInternal.updateItem(item);
+        }
     }
 
     @Override
@@ -2679,5 +2705,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

@@ -78,4 +78,20 @@ public interface ItemServiceInternal {
      * @param path path of item to be deleted
      */
     void deleteItem(String siteId, String path);
+
+    /**
+     * Set system processing for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param isSystemProcessing true if item is being processed by system, otherwise false
+     */
+    void setSystemProcessing(String siteId, String path, boolean isSystemProcessing);
+
+    /**
+     * Set system processing for items
+     * @param siteId site identifier
+     * @param paths paths of items
+     * @param isSystemProcessing true if item is being processed by system, otherwise false
+     */
+    void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing);
 }

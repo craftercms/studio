@@ -30,6 +30,8 @@ public abstract class QueryParameterNames {
     public static final String ORDER = "order";
     // Path
     public static final String PATH = "path";
+    // Paths
+    public static final String PATHS = "paths";
 
     /* Organizations */
 
@@ -134,6 +136,10 @@ public abstract class QueryParameterNames {
     public static final String ENTRIES = "entries";
 
     public static final String ROOT_PATH = "rootPath";
+
+    public static final String STATES_BIT_MAP = "statesBitMap";
+
+    public static final String ITEM_IDS = "itemIds";
 
     private QueryParameterNames() { }
 }

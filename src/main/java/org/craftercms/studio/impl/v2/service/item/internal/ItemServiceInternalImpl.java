@@ -17,10 +17,12 @@
 package org.craftercms.studio.impl.v2.service.item.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 
 import java.nio.file.Path;
@@ -118,5 +120,43 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void updateItem(Item item) {
         itemDao.updateItem(item);
+    }
+
+    @Override
+    public void setSystemProcessing(String siteId, String path, boolean isSystemProcessing) {
+        List<String> paths = new ArrayList<String>();
+        paths.add(path);
+        setSystemProcessingBulk(siteId, paths, isSystemProcessing);
+    }
+
+    @Override
+    public void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing) {
+        if (isSystemProcessing) {
+            setStatesBySiteAndPathBulk(siteId, paths, ItemState.SYSTEM_PROCESSING.value);
+        } else {
+            resetStatesBySiteAndPathBulk(siteId, paths, ItemState.SYSTEM_PROCESSING.value);
+        }
+    }
+
+    private void setStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        itemDao.setStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+    }
+
+    private void setStatesByIdBulk(List<Long> itemIds, long statesBitMap) {
+        itemDao.setStatesByIdBulk(itemIds, statesBitMap);
+    }
+
+    private void resetStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        itemDao.resetStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+    }
+
+    private void resetStatesByIdBulk(List<Long> itemIds, long statesBitMap) {
+        itemDao.resetStatesByIdBulk(itemIds, statesBitMap);
     }
 }
