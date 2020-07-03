@@ -86,6 +86,9 @@ studio.blob.config.path: blob-stores-config.xml
 studio.blob.file.extension: blob
 # Target to use for all operations
 studio.blob.publishingTarget: preview
+# The patterns of urls that should be handled by blob stores
+studio.blob.intercepted.paths:
+  - /static-assets/.*
 
 ############################################################
 ##                   Site Configuration                   ##
