@@ -16,6 +16,7 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.apache.commons.io.FilenameUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
@@ -33,6 +34,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,10 +72,10 @@ public class BlobAwareContentRepositoryTest {
     private BlobAwareContentRepository proxy;
 
     @Mock
-    private org.craftercms.studio.impl.v1.repository.git.GitContentRepository local;
+    private GitContentRepository localV1;
 
     @Mock
-    private GitContentRepository localV2;
+    private org.craftercms.studio.impl.v2.repository.GitContentRepository localV2;
 
     @Mock
     private StudioBlobStore store;
@@ -95,10 +97,10 @@ public class BlobAwareContentRepositoryTest {
         when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
 
-        when(local.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
-        when(local.contentExists(SITE, POINTER_PATH)).thenReturn(true);
-        when(local.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
-        when(local.isFolder(SITE, PARENT_PATH)).thenReturn(true);
+        when(localV1.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
+        when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
+        when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
+        when(localV1.isFolder(SITE, PARENT_PATH)).thenReturn(true);
 
         when(store.contentExists(SITE, ORIGINAL_PATH)).thenReturn(true);
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
@@ -108,6 +110,14 @@ public class BlobAwareContentRepositoryTest {
         when(store.isFolder(SITE, ORIGINAL_PATH)).thenReturn(false);
 
         proxy.setFileExtension(BLOB_EXT);
+        proxy.setInterceptedPaths(new String[]{ "/static-assets/.*" });
+    }
+
+    @Test
+    public void configShouldNotBeIntercepted() throws ConfigurationException, IOException, ServiceLayerException {
+        proxy.contentExists(SITE, "/config/studio/site-config.xml");
+
+        verify(resolver, never()).getByPaths(any(), any());
     }
 
     @Test
@@ -130,7 +140,7 @@ public class BlobAwareContentRepositoryTest {
         proxy.writeContent(SITE, ORIGINAL_PATH, CONTENT);
 
         verify(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
-        verify(local).writeContent(eq(SITE), eq(POINTER_PATH), any());
+        verify(localV1).writeContent(eq(SITE), eq(POINTER_PATH), any());
     }
 
     @Test
@@ -144,7 +154,7 @@ public class BlobAwareContentRepositoryTest {
         }
 
         verify(store).writeContent(SITE, ORIGINAL_PATH, CONTENT);
-        verify(local, never()).writeContent(eq(SITE), eq(POINTER_PATH), any());
+        verify(localV1, never()).writeContent(eq(SITE), eq(POINTER_PATH), any());
     }
 
     @Test
@@ -154,7 +164,7 @@ public class BlobAwareContentRepositoryTest {
         proxy.deleteContent(SITE, ORIGINAL_PATH, USER);
 
         verify(store).deleteContent(SITE, ORIGINAL_PATH, USER);
-        verify(local).deleteContent(SITE, POINTER_PATH, USER);
+        verify(localV1).deleteContent(SITE, POINTER_PATH, USER);
     }
 
     @Test
@@ -162,7 +172,7 @@ public class BlobAwareContentRepositoryTest {
         proxy.deleteContent(SITE, FOLDER_PATH, USER);
 
         verify(store).deleteContent(SITE, FOLDER_PATH, USER);
-        verify(local).deleteContent(SITE, FOLDER_PATH, USER);
+        verify(localV1).deleteContent(SITE, FOLDER_PATH, USER);
     }
 
     @Test
@@ -171,7 +181,7 @@ public class BlobAwareContentRepositoryTest {
 
         proxy.deleteContent(SITE, ORIGINAL_PATH, USER);
 
-        verify(local, never()).deleteContent(SITE, POINTER_PATH, USER);
+        verify(localV1, never()).deleteContent(SITE, POINTER_PATH, USER);
     }
 
     @Test
@@ -179,7 +189,7 @@ public class BlobAwareContentRepositoryTest {
         proxy.moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
         verify(store).moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH, null);
-        verify(local).moveContent(SITE, POINTER_PATH, NEW_POINTER_PATH, null);
+        verify(localV1).moveContent(SITE, POINTER_PATH, NEW_POINTER_PATH, null);
     }
 
     @Test
@@ -187,7 +197,7 @@ public class BlobAwareContentRepositoryTest {
         proxy.moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
         verify(store).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, null);
-        verify(local).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, null);
+        verify(localV1).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, null);
     }
 
     @Test
@@ -197,7 +207,7 @@ public class BlobAwareContentRepositoryTest {
         proxy.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
         verify(store).copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
-        verify(local).copyContent(SITE, POINTER_PATH, NEW_POINTER_PATH);
+        verify(localV1).copyContent(SITE, POINTER_PATH, NEW_POINTER_PATH);
     }
 
     @Test
@@ -205,14 +215,14 @@ public class BlobAwareContentRepositoryTest {
         proxy.copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
         verify(store).copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
-        verify(local).copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
+        verify(localV1).copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
     }
 
     @Test
     public void getContentChildrenWithoutRemoteTest() {
         RepositoryItem item = new RepositoryItem();
         item.path = ORIGINAL_PATH;
-        when(local.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[] { item });
+        when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[] { item });
 
         RepositoryItem[] result = proxy.getContentChildren(SITE, PARENT_PATH);
 
@@ -226,7 +236,7 @@ public class BlobAwareContentRepositoryTest {
         RepositoryItem item = new RepositoryItem();
         item.path = PARENT_PATH;
         item.name = FilenameUtils.getName(POINTER_PATH);
-        when(local.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[] { item });
+        when(localV1.getContentChildren(SITE, PARENT_PATH)).thenReturn(new RepositoryItem[] { item });
 
         RepositoryItem[] result = proxy.getContentChildren(SITE, PARENT_PATH);
 
@@ -327,7 +337,7 @@ public class BlobAwareContentRepositoryTest {
         VersionTO version1 = new VersionTO();
         VersionTO version2 = new VersionTO();
 
-        when(local.getContentVersionHistory(eq(SITE), eq(POINTER_PATH)))
+        when(localV1.getContentVersionHistory(eq(SITE), eq(POINTER_PATH)))
                 .thenReturn(new VersionTO[] { version1, version2 });
 
         VersionTO[] versions = proxy.getContentVersionHistory(SITE, ORIGINAL_PATH);
