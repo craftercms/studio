@@ -702,6 +702,28 @@
                         </configuration>
                     </execution>
 
+                    <execution>
+                        <id>install monaco deps</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/monaco</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build monaco editor</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/monaco</workingDirectory>
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+
                 </executions>
             </plugin>
             <plugin>
