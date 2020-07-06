@@ -812,18 +812,20 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             GitRepositoryHelper helper =
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal);
             Repository publishedRepo = helper.getRepository(site, PUBLISHED);
-            try (Git git = new Git(publishedRepo)) {
-                Iterable<RevCommit> log = git.log()
-                        .all()
-                        .addPath(helper.getGitPath(path))
-                        .setMaxCount(1)
-                        .call();
-                Iterator<RevCommit> iter = log.iterator();
-                if (iter.hasNext()) {
-                    RevCommit commit = iter.next();
-                    toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(UTC);
+            if (Objects.nonNull(publishedRepo)) {
+                try (Git git = new Git(publishedRepo)) {
+                    Iterable<RevCommit> log = git.log()
+                            .all()
+                            .addPath(helper.getGitPath(path))
+                            .setMaxCount(1)
+                            .call();
+                    Iterator<RevCommit> iter = log.iterator();
+                    if (iter.hasNext()) {
+                        RevCommit commit = iter.next();
+                        toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(UTC);
+                    }
+                    git.close();
                 }
-                git.close();
             }
         } catch (CryptoException | IOException | GitAPIException e) {
             logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
