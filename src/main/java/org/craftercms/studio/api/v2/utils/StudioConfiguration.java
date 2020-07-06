@@ -333,6 +333,8 @@ public interface StudioConfiguration {
 
     <T> T getProperty(String key, Class<T> clazz, T defaultVal);
 
+    <T> T[] getArray(String key, Class<T> clazz);
+
     HierarchicalConfiguration<ImmutableNode> getSubConfig(String key);
 
     List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key);
