@@ -23,6 +23,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -77,6 +78,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
      */
     protected String fileExtension;
 
+    /**
+     * The patterns of urls that should be handled by blob stores
+     */
+    protected String[] interceptedPaths;
+
     protected GitContentRepository localRepositoryV1;
 
     protected org.craftercms.studio.impl.v2.repository.GitContentRepository localRepositoryV2;
@@ -99,6 +105,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
         this.blobStoreResolver = blobStoreResolver;
+    }
+
+    public void setInterceptedPaths(String[] interceptedPaths) {
+        this.interceptedPaths = interceptedPaths;
     }
 
     protected boolean isFolder(String path) {
@@ -125,6 +135,13 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
         if (ArrayUtils.isEmpty(paths)) {
             throw new IllegalArgumentException("At least one path needs to be provided");
+        }
+
+        for (String path : paths) {
+            if (!RegexUtils.matchesAny(path, interceptedPaths)) {
+                logger.debug("Path {0} should not be intercepted, will be skipped", path);
+                return null;
+            }
         }
 
         return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);

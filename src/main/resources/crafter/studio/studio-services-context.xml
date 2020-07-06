@@ -782,6 +782,7 @@
         <property name="configPath" value="#{studioConfiguration.getProperty('studio.blob.config.path')}"/>
         <property name="configurationResolver" ref="crafter.configurationResolver"/>
         <property name="contentRepository" ref="gitContentRepository"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
@@ -796,6 +797,8 @@
         <property name="localRepositoryV1" ref="gitContentRepository"/>
         <property name="localRepositoryV2" ref="gitContentRepositoryV2"/>
         <property name="blobStoreResolver" ref="blobStoreResolver"/>
+        <property name="interceptedPaths"
+                  value="#{studioConfiguration.getArray('studio.blob.intercepted.paths', T(java.lang.String))}"/>
     </bean>
 
     <bean id="gitContentRepository" depends-on="databaseInitializer"
