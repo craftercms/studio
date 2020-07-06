@@ -75,8 +75,8 @@ public class PermissionAwareSearchService extends AbstractElasticsearchWrapper {
      */
     public SearchResponse search(String siteId, List<String> allowedPaths, SearchRequest request,
                                  RequestOptions options) throws IOException {
-
-        request.indices(siteId + indexSuffix);
+        //TODO: Implement locale in Studio too? for now just query all existing aliases
+        request.indices(siteId + indexSuffix + "*");
 
         //TODO: Prevent running the search without allowedPaths
         if(CollectionUtils.isNotEmpty(allowedPaths)) {
