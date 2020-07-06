@@ -25,7 +25,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
+import org.craftercms.studio.impl.v2.repository.GitContentRepository;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -72,10 +72,10 @@ public class BlobAwareContentRepositoryTest {
     private BlobAwareContentRepository proxy;
 
     @Mock
-    private GitContentRepository localV1;
+    private org.craftercms.studio.impl.v1.repository.git.GitContentRepository localV1;
 
     @Mock
-    private org.craftercms.studio.impl.v2.repository.GitContentRepository localV2;
+    private GitContentRepository localV2;
 
     @Mock
     private StudioBlobStore store;
