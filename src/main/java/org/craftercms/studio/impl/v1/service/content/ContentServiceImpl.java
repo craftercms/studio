@@ -409,6 +409,7 @@ public class ContentServiceImpl implements ContentService {
                 } else {
                     objectStateService.transition(site, itemTo, SAVE_FOR_PREVIEW);
                 }
+
                 objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
                 itemServiceInternal.setSystemProcessing(site, itemTo.getUri(), false);
             } else {

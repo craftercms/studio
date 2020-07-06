@@ -94,4 +94,34 @@ public interface ItemServiceInternal {
      * @param isSystemProcessing true if item is being processed by system, otherwise false
      */
     void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing);
+
+    /**
+     * Update states bitmap for item by setting bits to 1
+     * @param siteId site identifier
+     * @param path path of item
+     * @param statesBitMask bit mask for states to be updated
+     */
+    void setStateBits(String siteId, String path, long statesBitMask);
+
+    /**
+     * Update states bitmap for item by setting bits to 0
+     * @param siteId site identifier
+     * @param path path of item
+     * @param statesBitMask bit mask for states to be updated
+     */
+    void resetStateBits(String siteId, String path, long statesBitMask);
+
+    /**
+     * Update states bitmap for item by setting bits to 1
+     * @param itemId item identifier
+     * @param statesBitMask bit mask for states to be updated
+     */
+    void setStateBits(long itemId, long statesBitMask);
+
+    /**
+     * Update states bitmap for item by setting bits to 0
+     * @param itemId item identifier
+     * @param statesBitMask bit mask for states to be updated
+     */
+    void resetStateBits(long itemId, long statesBitMask);
 }

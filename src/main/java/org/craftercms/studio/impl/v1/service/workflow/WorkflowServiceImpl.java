@@ -78,6 +78,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -153,6 +154,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected NotificationService notificationService;
     protected StudioConfiguration studioConfiguration;
     protected AuditServiceInternal auditServiceInternal;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Override
     @ValidateParams
@@ -175,6 +177,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (length > 0) {
                 for (int index = 0; index < length; index++) {
                     objectStateService.setSystemProcessing(site, items.optString(index), true);
+                    itemServiceInternal.setSystemProcessing(site, items.optString(index), true);
                 }
             }
             boolean isNow = (requestObject.containsKey(JSON_KEY_SCHEDULE)) ?
@@ -216,6 +219,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 for (DmDependencyTO goLiveItem : submittedItems) {
                     submittedPaths.add(goLiveItem.getUri());
                     objectStateService.setSystemProcessing(site, goLiveItem.getUri(), true);
+                    itemServiceInternal.setSystemProcessing(site, goLiveItem.getUri(), true);
                     DependencyRules rule = new DependencyRules(site);
                     rule.setObjectStateService(objectStateService);
                     rule.setContentService(contentService);
@@ -223,6 +227,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     for (DmDependencyTO dep : depSet) {
                         submittedPaths.add(dep.getUri());
                         objectStateService.setSystemProcessing(site, dep.getUri(), true);
+                        itemServiceInternal.setSystemProcessing(site, dep.getUri(), true);
                     }
                 }
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext,
@@ -243,6 +248,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 for (String relativePath : submittedPaths) {
                     objectStateService.setSystemProcessing(site, relativePath, false);
                 }
+                itemServiceInternal.setSystemProcessingBulk(site, submittedPaths, false);
             }
         } catch (Exception e) {
             result.setSuccess(false);
@@ -842,10 +848,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
                             renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
                             renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
                         //Set proper information of all renameItems before send them to GoLive
@@ -1021,10 +1029,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
                             renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
                             renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
                         //Set proper information of all renameItems before send them to GoLive
@@ -1187,10 +1197,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
                             renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
                             renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
                         //Set proper information of all renameItems before send them to GoLive
@@ -2248,6 +2260,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     auditLogParameters.add(auditLogParameter);
                 }
                 objectStateService.setSystemProcessingBulk(site, paths, true);
+                itemServiceInternal.setSystemProcessingBulk(site, paths, true);
                 Set<String> cancelPaths = new HashSet<String>();
                 cancelPaths.addAll(paths);
                 deploymentService.cancelWorkflowBulk(site, cancelPaths);
@@ -2263,6 +2276,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditLog.setParameters(auditLogParameters);
                 auditServiceInternal.insertAuditLog(auditLog);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
+                itemServiceInternal.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);
                 result.setStatus(200);
                 result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
@@ -2462,6 +2476,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

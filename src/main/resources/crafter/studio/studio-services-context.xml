@@ -133,6 +133,7 @@
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -151,6 +152,7 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -172,6 +174,7 @@
          <property name="publishRequestMapper" ref="publishRequestMapper" />
          <property name="auditServiceInternal" ref="auditServiceInternal" />
          <property name="contentRepositoryV2" ref="contentRepository" />
+         <property name="itemServiceInternal" ref="itemServiceInternal" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -433,6 +436,7 @@
         <property name="userService" ref="userService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="contentServiceInternal"
@@ -759,6 +763,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
