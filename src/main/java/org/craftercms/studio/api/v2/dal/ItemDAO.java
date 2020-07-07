@@ -28,6 +28,8 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIP
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ON_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_PATH;
@@ -184,4 +186,27 @@ public interface ItemDAO {
      * @param statesBitMap states bit map to be reset
      */
     void resetStatesByIdBulk(@Param(ITEM_IDS) List<Long> itemIds, @Param(STATES_BIT_MAP) long statesBitMap);
+
+    /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param siteId site identifier
+     * @param paths list of paths to update states for
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
+     */
+    void updateStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths,
+                                   @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                                   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+
+    /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param itemIds list of item identifiers
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
+     */
+    void updateStatesByIdBulk(@Param(ITEM_IDS) List<Long> itemIds,
+                                   @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                                   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 }

@@ -139,6 +139,10 @@ public abstract class QueryParameterNames {
 
     public static final String STATES_BIT_MAP = "statesBitMap";
 
+    public static final String ON_STATES_BIT_MAP = "onStatesBitMap";
+
+    public static final String OFF_STATES_BIT_MAP = "offStatesBitMap";
+
     public static final String ITEM_IDS = "itemIds";
 
     private QueryParameterNames() { }

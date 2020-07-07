@@ -183,4 +183,20 @@
             #{id}
         </foreach>
     </update>
+
+    <update id="updateStatesBySiteAndPathBulk">
+        UPDATE item set state = state | #{onStatesBitMap} & ~#{offStatesBitMap}
+        WHERE site_id = #{siteId} AND path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator=","  close=")">
+            #{path}
+        </foreach>
+    </update>
+    <update id="updateStatesByIdBulk" >
+        UPDATE item set state = state | #{onStatesBitMap} & ~#{offStatesBitMap}
+        WHERE id IN
+        <foreach collection="itemIds" item="id" index="index" open="(" separator=","  close=")">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

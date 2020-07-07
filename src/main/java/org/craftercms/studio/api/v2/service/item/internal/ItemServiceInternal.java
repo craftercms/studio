@@ -124,4 +124,42 @@ public interface ItemServiceInternal {
      * @param statesBitMask bit mask for states to be updated
      */
     void resetStateBits(long itemId, long statesBitMask);
+
+    /**
+     * Update states to flip on list off states and flip off another list of states for item
+     *
+     * @param siteId site identifier
+     * @param path path of item
+     * @param onStateBitMap states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Update states to flip on list off states and flip off another list of states for item
+     *
+     * @param itemId item identifier
+     * @param onStateBitMap states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBits(long itemId, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param siteId site identifier
+     * @param paths list of paths of items
+     * @param onStateBitMap states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBitsBulk(String siteId, List<String> paths, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param itemIds list of item ids
+     * @param onStateBitMap states bitmap to flip on
+     * @param offStateBitMap stats bitmap to flip off
+     */
+    void updateStateBitsBulk(List<Long> itemIds, long onStateBitMap, long offStateBitMap);
 }

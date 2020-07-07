@@ -159,4 +159,64 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private void resetStatesByIdBulk(List<Long> itemIds, long statesBitMap) {
         itemDao.resetStatesByIdBulk(itemIds, statesBitMap);
     }
+
+    @Override
+    public void setStateBits(String siteId, String path, long statesBitMask) {
+        List<String> paths = new ArrayList<String>();
+        paths.add(path);
+        setStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
+    }
+
+    @Override
+    public void resetStateBits(String siteId, String path, long statesBitMask) {
+        List<String> paths = new ArrayList<String>();
+        paths.add(path);
+        resetStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
+    }
+
+    @Override
+    public void setStateBits(long itemId, long statesBitMask) {
+        List<Long> ids = new ArrayList<Long>();
+        ids.add(itemId);
+        setStatesByIdBulk(ids, statesBitMask);
+    }
+
+    @Override
+    public void resetStateBits(long itemId, long statesBitMask) {
+        List<Long> ids = new ArrayList<Long>();
+        ids.add(itemId);
+        resetStatesByIdBulk(ids, statesBitMask);
+    }
+
+    @Override
+    public void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap) {
+        List<String> paths = new ArrayList<String>();
+        paths.add(path);
+        updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
+    }
+
+    @Override
+    public void updateStateBits(long itemId, long onStateBitMap, long offStateBitMap) {
+        List<Long> ids = new ArrayList<Long>();
+        ids.add(itemId);
+        updateStateBitsBulk(ids, onStateBitMap, offStateBitMap);
+    }
+
+    @Override
+    public void updateStateBitsBulk(String siteId, List<String> paths, long onStateBitMap, long offStateBitMap) {
+        updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
+    }
+
+    @Override
+    public void updateStateBitsBulk(List<Long> itemIds, long onStateBitMap, long offStateBitMap) {
+        itemDao.updateStatesByIdBulk(itemIds, onStateBitMap, offStateBitMap);
+    }
+
+    private void updateStatesBySiteAndPathBulk(String siteId, List<String> paths, long onStateBitMap,
+                                               long offStateBitMap) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, onStateBitMap, offStateBitMap);
+    }
 }
