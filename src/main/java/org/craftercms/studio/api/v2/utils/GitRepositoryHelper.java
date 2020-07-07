@@ -520,8 +520,10 @@ public class GitRepositoryHelper {
         toReturn = (sandboxRepo != null);
 
         if (toReturn) {
-            checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
-            sandboxes.put(site, sandboxRepo);
+            toReturn = checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
+            if (toReturn) {
+                sandboxes.put(site, sandboxRepo);
+            }
         }
 
         return toReturn;
