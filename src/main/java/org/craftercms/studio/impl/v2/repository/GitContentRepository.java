@@ -847,6 +847,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             if (Objects.isNull(repo)) {
                 helper.createPublishedRepository(site, sandboxBranch);
                 repo = helper.getRepository(site, PUBLISHED);
+                siteFeedMapper.setPublishedRepoCreated(site);
             }
             String path = EMPTY;
             String sandboxBranchName = sandboxBranch;
