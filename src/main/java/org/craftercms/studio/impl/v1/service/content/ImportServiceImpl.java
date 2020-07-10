@@ -58,6 +58,13 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSET_CHAIN_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSIGNEE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_XML_CHAIN_NAME;
@@ -442,7 +449,11 @@ public class ImportServiceImpl implements ImportService {
                             objectStateService.insertNewEntry(site, currentPath);
                         }
                     }
-                    itemServiceInternal.setSystemProcessing(site, currentPath, false);
+                    // Item
+                    long onStatesMask = MODIFIED.value;
+                    long offStatesMask = SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value +
+                            LIVE.value + USER_LOCKED.value;
+                    itemServiceInternal.updateStateBits(site, currentPath, onStatesMask, offStatesMask);
 
                     importedPaths.add(filePath);
                     importedFullPaths.add(fullPath);

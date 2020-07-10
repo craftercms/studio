@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import net.sf.json.JSONArray;
@@ -98,6 +99,13 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJEC
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 /**
@@ -356,6 +364,16 @@ public class WorkflowServiceImpl implements WorkflowService {
         } else {
             objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
         }
+
+        // Item
+        long onStatesMask = IN_WORKFLOW.value;
+        long offStatesMask = USER_LOCKED.value + SYSTEM_PROCESSING.value;
+        if (Objects.nonNull(scheduledDate)) {
+            onStatesMask += SCHEDULED.value;
+        } else {
+            onStatesMask += SCHEDULED.value;
+        }
+        itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), onStatesMask, offStatesMask);
     }
 
     @Override
@@ -2361,6 +2379,9 @@ public class WorkflowServiceImpl implements WorkflowService {
             objectMetadataManager.setObjectMetadata(site, dmDependencyTO.getUri(), newProps);
             ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
             objectStateService.transition(site, item, TransitionEvent.REJECT);
+
+            long offStatesMask = USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value;
+            itemServiceInternal.resetStateBits(site, dmDependencyTO.getUri(), offStatesMask);
         }
     }
 

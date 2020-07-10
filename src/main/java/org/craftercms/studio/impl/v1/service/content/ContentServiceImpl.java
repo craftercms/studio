@@ -134,6 +134,13 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
@@ -411,12 +418,22 @@ public class ContentServiceImpl implements ContentService {
                 }
 
                 objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
-                itemServiceInternal.setSystemProcessing(site, itemTo.getUri(), false);
+                //itemServiceInternal.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
                 // TODO: SJ: the line below doesn't make any sense, itemTo == null => insert? Investigate and fix in
                 // TODO: SJ: 2.7.x
                 objectStateService.insertNewEntry(site, itemTo);
             }
+
+            long onStatesMask = MODIFIED.value;
+            long offStatesMask =
+                    SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value;
+            if (isSaveAndClose) {
+                offStatesMask += USER_LOCKED.value;
+            } else {
+                onStatesMask += USER_LOCKED.value;
+            }
+            itemServiceInternal.updateStateBits(site, itemTo.getUri(), onStatesMask, offStatesMask);
 
             // Sync preview
             PreviewEventContext context = new PreviewEventContext();
@@ -557,6 +574,10 @@ public class ContentServiceImpl implements ContentService {
                     objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
                 }
             }
+            long onStatesMask = MODIFIED.value;
+            long offStatesMask = SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value +
+                    LIVE.value + USER_LOCKED.value;
+            itemServiceInternal.updateStateBits(site, path, onStatesMask, offStatesMask);
 
             PreviewEventContext context = new PreviewEventContext();
             context.setSite(site);
@@ -1008,6 +1029,16 @@ public class ContentServiceImpl implements ContentService {
 
             // change the path of this object in the object state database
             objectStateService.updateObjectPath(site, fromPath, movePath);
+
+            // Item update
+            Item item = itemServiceInternal.getItem(site, fromPath);
+            item.setPath(movePath);
+            long newState = item.getState() | MODIFIED.value &
+                    (SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
+                            USER_LOCKED.value);
+            item.setState(newState);
+            itemServiceInternal.updateItem(item);
+
             objectStateService.transition(site, renamedItem, SAVE);
             renamedItem = getContentItem(site, movePath, 0);
         }
@@ -2337,11 +2368,7 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.unLockContent(site, path);
 
         // Item
-        Item item = itemServiceInternal.getItem(site, path);
-        if (Objects.nonNull(item)) {
-            item.setState(item.getState() & ~org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED.value);
-            itemServiceInternal.updateItem(item);
-        }
+        itemServiceInternal.resetStateBits(site, path, USER_LOCKED.value);
     }
 
     @Override
