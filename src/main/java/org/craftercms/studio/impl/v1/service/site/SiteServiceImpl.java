@@ -190,8 +190,6 @@ public class SiteServiceImpl implements SiteService {
     protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
-
-    @Autowired
     protected SiteFeedMapper siteFeedMapper;
 
     protected EntitlementValidator entitlementValidator;
@@ -1989,5 +1987,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
     }
 }

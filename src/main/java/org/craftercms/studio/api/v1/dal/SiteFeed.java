@@ -32,6 +32,7 @@ public class SiteFeed {
     protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
     protected String searchEngine;
+    protected int publishedRepoCreated;
 
     public long getId() {
         return id;
@@ -148,5 +149,17 @@ public class SiteFeed {
 
     public boolean isSiteDeleted() {
         return deleted != 0;
+    }
+
+    public int getPublishedRepoCreated() {
+        return publishedRepoCreated;
+    }
+
+    public void setPublishedRepoCreated(int publishedRepoCreated) {
+        this.publishedRepoCreated = publishedRepoCreated;
+    }
+
+    public boolean isSitePublishedRepoCreated() {
+        return publishedRepoCreated > 0;
     }
 }
