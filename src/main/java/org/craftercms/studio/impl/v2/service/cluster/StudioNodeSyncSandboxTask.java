@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
@@ -46,6 +47,7 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -180,6 +182,10 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                     remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), lastCommitId);
                 }
             }
+
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(siteId);
+            eventService.publish(EVENT_PREVIEW_SYNC, context);
         } catch (GitAPIException e) {
             logger.error("Error while syncing cluster node content for site " + siteId);
         }

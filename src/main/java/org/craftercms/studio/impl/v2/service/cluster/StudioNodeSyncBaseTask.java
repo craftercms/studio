@@ -42,6 +42,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -86,6 +87,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     protected ServicesConfig servicesConfig;
     protected SiteService siteService;
     protected DeploymentService deploymentService;
+    protected EventService eventService;
 
 	// Abstract methods to be implemented by Sandbox/Published classes
 	protected abstract boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId);
@@ -481,5 +483,13 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
+    }
+
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
     }
 }

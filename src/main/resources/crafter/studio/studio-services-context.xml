@@ -582,6 +582,7 @@
         <property name="clusterDAO" ref="clusterDao" />
         <property name="repositoryType" value="SANDBOX" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="eventService" ref="studioEventService" />
     </bean>
 
     <bean id="studioClusterPublishedSyncJob"

@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -75,6 +76,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private ServicesConfig servicesConfig;
     private GitRepositories repositoryType;
     private DeploymentService deploymentService;
+    private EventService eventService;
 
     private ReentrantLock singleWorkerLock = new ReentrantLock();
     private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
@@ -139,6 +141,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodeSandobxSyncTask.setServicesConfig(servicesConfig);
                                                 nodeSandobxSyncTask.setClusterNodes(clusterMembers);
                                                 nodeSandobxSyncTask.setDeploymentService(deploymentService);
+                                                nodeSandobxSyncTask.setEventService(eventService);
                                                 taskExecutor.execute(nodeSandobxSyncTask);
                                                 break;
                                             case PUBLISHED:
@@ -313,5 +316,13 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
+    }
+
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
     }
 }
