@@ -920,6 +920,7 @@
                     </systemPropertyVariables>
                     <environmentVariables>
                         <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
+                        <MARIADB_ROOT_PASSWD>root</MARIADB_ROOT_PASSWD>
                     </environmentVariables>
                 </configuration>
             </plugin>
