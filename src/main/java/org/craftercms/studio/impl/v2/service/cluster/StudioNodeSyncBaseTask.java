@@ -18,8 +18,6 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -40,7 +38,6 @@ import com.jcraft.jsch.Session;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -88,6 +85,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     protected SiteService siteService;
     protected DeploymentService deploymentService;
     protected EventService eventService;
+    protected TextEncryptor encryptor;
 
 	// Abstract methods to be implemented by Sandbox/Published classes
 	protected abstract boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId);
@@ -280,8 +278,6 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 	protected <T extends TransportCommand> T configureAuthenticationForCommand(ClusterMember remoteNode, T gitCommand,
                                                                                final Path tempKey)
             throws CryptoException, IOException, ServiceLayerException {
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                                                          studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         boolean sshProtocol = !remoteNode.getGitUrl().matches(NON_SSH_GIT_URL_REGEX);
 
         switch (remoteNode.getGitAuthType()) {
@@ -492,4 +488,10 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     public void setEventService(EventService eventService) {
         this.eventService = eventService;
     }
+
+    //TODO: Check uses
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }

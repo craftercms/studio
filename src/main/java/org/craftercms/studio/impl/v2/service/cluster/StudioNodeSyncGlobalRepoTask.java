@@ -22,7 +22,6 @@ import com.jcraft.jsch.Session;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -71,8 +70,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -89,6 +86,7 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
     private List<ClusterMember> clusterNodes;
     private ContentRepository contentRepository;
     private StudioConfiguration studioConfiguration;
+    private TextEncryptor encryptor;
 
     @Override
     public void run() {
@@ -219,8 +217,6 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
     private <T extends TransportCommand> T configureAuthenticationForCommand(ClusterMember remoteNode, T gitCommand,
                                                                              final Path tempKey)
             throws CryptoException, IOException, ServiceLayerException {
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         boolean sshProtocol = !remoteNode.getGitUrl().matches(NON_SSH_GIT_URL_REGEX);
 
         switch (remoteNode.getGitAuthType()) {
@@ -317,8 +313,6 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
     }
 
     protected void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         logger.debug("Add cluster members as remotes to local sandbox repository");
         for (ClusterMember member : clusterNodes) {
             if (existingRemotes != null && existingRemotes.containsKey(member.getGitRemoteName())) {
@@ -459,6 +453,11 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    //TODO: Check uses
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
     }
 
     private static class StrictHostCheckingOffSshSessionFactory extends JschConfigSessionFactory {
