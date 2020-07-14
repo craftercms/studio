@@ -64,10 +64,10 @@ public interface UserServiceInternal {
             UserExternallyManagedException, ServiceLayerException;
 
     /**
-     * Get user by first name and last name.
+     * Get user by git name.
      * Special use case because git stores user as string of first and last name separated by ' '
-     * @param firstNameLastName first and last name separated with ' '
+     * @param gitName first and last name separated with ' '
      * @return user
      */
-    User getUserByFirstNameLastName(String firstNameLastName);
+    User getUserByGitName(String gitName);
 }

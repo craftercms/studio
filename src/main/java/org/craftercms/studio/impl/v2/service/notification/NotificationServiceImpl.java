@@ -284,7 +284,7 @@ public class NotificationServiceImpl implements NotificationService {
                 submitterUser = securityService.getUserProfile(submittedBy);
             } catch (ServiceLayerException | UserNotFoundException e) {
                 logger.debug("User not found by username " + submittedBy);
-                submitterUser = securityService.getUserProfileByFirstNameLastName(submittedBy);
+                submitterUser = securityService.getUserProfileByGitName(submittedBy);
             }
             if (Objects.nonNull(submitterUser) && !submitterUser.isEmpty()) {
                 Map<String, Object> templateModel = new HashMap<>();

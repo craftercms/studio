@@ -366,8 +366,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public User getUserByFirstNameLastName(String firstNameLastName) {
-        return userDao.getUserByFirstNameLastName(firstNameLastName);
+    public User getUserByGitName(String gitName) {
+        return userDao.getUserByGitName(gitName);
     }
 
     public UserDAO getUserDao() {
