@@ -58,6 +58,15 @@ public interface SecurityService {
 
     Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
+    /**
+     * Get user by first name and last name.
+     * Special use case because git stores user as string of first and last name separated by ' '
+     * @param firstNameLastName first and last name separated with ' '
+     * @return user
+     */
+    Map<String, Object> getUserProfileByFirstNameLastName(String firstNameLastName)
+            throws ServiceLayerException, UserNotFoundException;
+
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
     boolean validateTicket(String token);

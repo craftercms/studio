@@ -16,8 +16,12 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME_LAST_NAME;
 
 public interface UserDAO {
 
@@ -129,4 +133,12 @@ public interface UserDAO {
      * @return if true result > 0
      */
     Integer isUserMemberOfGroup(Map params);
+
+    /**
+     * Get user by first name and last name
+     *
+     * @param firstNameLastName SQL query parameter
+     * @return User or null if not found
+     */
+    User getUserByFirstNameLastName(@Param(FIRST_NAME_LAST_NAME) String firstNameLastName);
 }
