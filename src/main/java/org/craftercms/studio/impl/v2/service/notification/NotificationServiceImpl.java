@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -44,6 +45,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -88,6 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
     private Configuration configuration;
     protected StudioConfiguration studioConfiguration;
     protected ConfigurationService configurationService;
+
 
     public NotificationServiceImpl() {
         notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
@@ -276,15 +280,25 @@ public class NotificationServiceImpl implements NotificationService {
                                        @ValidateStringParam(name = "userThatRejects") final String userThatRejects,
                                        final Locale locale) {
         try {
-            final Map<String, Object> submitterUser = securityService.getUserProfile(submittedBy);
-            Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put("files", convertPathsToContent(site, rejectedItems));
-            templateModel.put("submitter", submitterUser);
-            templateModel.put("rejectionReason", rejectionReason);
-            templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
-                locale, templateModel);
-        } catch (Throwable ex) {
+            Map<String, Object> submitterUser;
+            try {
+                submitterUser = securityService.getUserProfile(submittedBy);
+            } catch (ServiceLayerException | UserNotFoundException e) {
+                logger.debug("User not found by username " + submittedBy);
+                submitterUser = securityService.getUserProfileByFirstNameLastName(submittedBy);
+            }
+            if (Objects.nonNull(submitterUser) && !submitterUser.isEmpty()) {
+                Map<String, Object> templateModel = new HashMap<>();
+                templateModel.put("files", convertPathsToContent(site, rejectedItems));
+                templateModel.put("submitter", submitterUser);
+                templateModel.put("rejectionReason", rejectionReason);
+                templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
+                notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
+                        locale, templateModel);
+            } else {
+                logger.info("Unable to notify content rejection. User " + submittedBy + " not found.");
+            }
+        } catch (Exception ex) {
             logger.error("Unable to notify content rejection", ex);
         }
     }

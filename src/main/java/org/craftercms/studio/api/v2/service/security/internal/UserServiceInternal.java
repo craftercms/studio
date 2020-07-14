@@ -62,4 +62,12 @@ public interface UserServiceInternal {
 
     boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException;
+
+    /**
+     * Get user by first name and last name.
+     * Special use case because git stores user as string of first and last name separated by ' '
+     * @param firstNameLastName first and last name separated with ' '
+     * @return user
+     */
+    User getUserByFirstNameLastName(String firstNameLastName);
 }
