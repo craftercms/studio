@@ -164,4 +164,9 @@
             AND g.group_name = #{groupName}
     </select>
 
+    <select id="getUserByGitName" resultMap="UserMap">
+        SELECT *
+        FROM `user`
+        WHERE CONCAT(first_name, ' ', last_name) = #{gitName}
+    </select>
 </mapper>
