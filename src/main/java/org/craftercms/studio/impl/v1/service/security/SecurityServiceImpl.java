@@ -231,11 +231,11 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String, Object> getUserProfileByFirstNameLastName(
-            @ValidateStringParam(name = "firstNameLastName") String firstNameLastName)
+    public Map<String, Object> getUserProfileByGitName(
+            @ValidateStringParam(name = "firstNameLastName") String gitName)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> toRet = new HashMap<String, Object>();
-        User u = userServiceInternal.getUserByFirstNameLastName(firstNameLastName);
+        User u = userServiceInternal.getUserByGitName(gitName);
         if (u != null) {
             toRet.put(KEY_USERNAME, u.getUsername());
             toRet.put(KEY_FIRSTNAME, u.getFirstName());
@@ -245,7 +245,7 @@ public class SecurityServiceImpl implements SecurityService {
             String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
             toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
         } else {
-            throw new UserNotFoundException("User " + firstNameLastName + " not found");
+            throw new UserNotFoundException("User " + gitName + " not found");
         }
         return toRet;
     }

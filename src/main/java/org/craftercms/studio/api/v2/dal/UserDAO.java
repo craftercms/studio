@@ -21,7 +21,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME_LAST_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GIT_NAME;
 
 public interface UserDAO {
 
@@ -135,10 +135,10 @@ public interface UserDAO {
     Integer isUserMemberOfGroup(Map params);
 
     /**
-     * Get user by first name and last name
+     * Get user by git name
      *
-     * @param firstNameLastName SQL query parameter
+     * @param gitName SQL query parameter
      * @return User or null if not found
      */
-    User getUserByFirstNameLastName(@Param(FIRST_NAME_LAST_NAME) String firstNameLastName);
+    User getUserByGitName(@Param(GIT_NAME) String gitName);
 }
