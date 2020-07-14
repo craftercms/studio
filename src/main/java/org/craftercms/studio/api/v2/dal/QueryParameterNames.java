@@ -78,6 +78,8 @@ public abstract class QueryParameterNames {
     public static final String EMAIL = "email";
     // Active
     public static final String ENABLED = "enabled";
+    // First name and Last name
+    public static final String GIT_NAME = "gitName";
 
     /* Cluster */
     // Local address

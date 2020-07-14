@@ -231,6 +231,26 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public Map<String, Object> getUserProfileByGitName(
+            @ValidateStringParam(name = "firstNameLastName") String gitName)
+            throws ServiceLayerException, UserNotFoundException {
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        User u = userServiceInternal.getUserByGitName(gitName);
+        if (u != null) {
+            toRet.put(KEY_USERNAME, u.getUsername());
+            toRet.put(KEY_FIRSTNAME, u.getFirstName());
+            toRet.put(KEY_LASTNAME, u.getLastName());
+            toRet.put(KEY_EMAIL, u.getEmail());
+            toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
+            String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
+            toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
+        } else {
+            throw new UserNotFoundException("User " + gitName + " not found");
+        }
+        return toRet;
+    }
+
+    @Override
     @ValidateParams
     public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site,
                                           @ValidateSecurePathParam(name = "path") String path,
