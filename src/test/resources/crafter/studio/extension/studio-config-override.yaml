@@ -3,4 +3,4 @@
 studio.db.port: 33307
 studio.db.socket: /tmp/MariaDB4j.33307.sock
 studio.db.url: jdbc:mariadb://127.0.0.1:33307/crafter?user=crafter&password=crafter
-studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33307?user=root&password=
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33307?user=root&password=${env:MARIADB_ROOT_PASSWD}

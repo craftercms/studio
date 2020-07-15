@@ -25,7 +25,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -109,8 +108,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
@@ -141,13 +138,13 @@ public class GitRepositoryHelper {
 
     public static GitRepositoryHelper getHelper(StudioConfiguration studioConfiguration,
                                                 SecurityService securityService,
-                                                UserServiceInternal userServiceInternal)
+                                                UserServiceInternal userServiceInternal,
+                                                TextEncryptor textEncryptor)
             throws CryptoException {
         if (instance == null) {
             instance = new GitRepositoryHelper();
             instance.studioConfiguration = studioConfiguration;
-            instance.encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            instance.encryptor = textEncryptor;
             instance.securityService = securityService;
             instance.userServiceInternal = userServiceInternal;
         }
