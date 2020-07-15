@@ -16,6 +16,7 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -199,13 +200,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
                 }
                 Document content = saxReader.read(is);
                 return content;
-            } catch (DocumentException e) {
-                logger.error("Error while reading content from site " + site + " path " + path, e);
-                if (is != null) {
-                    ContentUtils.release(is);
-                }
-                return null;
-            } catch (ContentNotFoundException e) {
+            } catch (DocumentException | ContentNotFoundException | CryptoException e) {
                 logger.error("Error while reading content from site " + site + " path " + path, e);
                 if (is != null) {
                     ContentUtils.release(is);

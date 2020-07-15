@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v1.service.site;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -303,7 +304,7 @@ public interface SiteService {
      * @return list of names of remote repositories
      * @throws SiteNotFoundException
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException;
 
     /**
      * Get deleted sites

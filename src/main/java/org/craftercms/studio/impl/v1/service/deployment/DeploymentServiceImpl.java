@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -448,7 +449,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                                  @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
                                  @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
                                  @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                 @ValidateStringParam(name = "filterType") String filterType) throws SiteNotFoundException {
+                                 @ValidateStringParam(name = "filterType") String filterType)
+            throws SiteNotFoundException {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
@@ -919,7 +921,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void resetStagingEnvironment(String siteId) throws ServiceLayerException {
+    public void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
