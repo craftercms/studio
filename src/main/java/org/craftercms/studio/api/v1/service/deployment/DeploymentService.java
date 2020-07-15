@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
@@ -138,5 +139,5 @@ public interface DeploymentService {
      *
      * @param siteId site id to use for resetting
      */
-    void resetStagingEnvironment(String siteId) throws ServiceLayerException;
+    void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException;
 }

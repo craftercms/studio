@@ -35,7 +35,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.eclipse.jgit.api.Git;
@@ -90,8 +90,8 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
     @Override
     public void execute(final String site) throws UpgradeException {
         try {
-            GitContentRepositoryHelper helper =
-                new GitContentRepositoryHelper(studioConfiguration, servicesConfig, userServiceInternal, securityService);
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal);
             Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
             Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                 studioConfiguration.getProperty(BLUE_PRINTS_PATH));

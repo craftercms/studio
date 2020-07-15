@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v1.repository;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -243,7 +244,7 @@ public interface ContentRepository {
      * @param comment
      */
     void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException;
+            throws DeploymentException, CryptoException;
 
     /**
      * Get last commit id from repository for given site.
@@ -336,7 +337,7 @@ public interface ContentRepository {
      * @param sandboxBranch sandbox branch name
      * @return list of names of remote repositories
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException, CryptoException;
 
     /**
      * Push content to remote repository
@@ -347,7 +348,7 @@ public interface ContentRepository {
      * @return true if operation was successful
      */
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException;
+            InvalidRemoteUrlException, CryptoException;
 
     /**
      * Pull from remote repository
@@ -358,7 +359,7 @@ public interface ContentRepository {
      * @return true if operation was successful
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException;
+            InvalidRemoteUrlException, CryptoException;
 
     /**
      * Check if content at given path is folder
@@ -374,7 +375,7 @@ public interface ContentRepository {
      *
      * @param siteId site identifier to use for resetting
      */
-    void resetStagingRepository(String siteId) throws ServiceLayerException;
+    void resetStagingRepository(String siteId) throws ServiceLayerException, CryptoException;
 
     /**
      * Reload repository for given site

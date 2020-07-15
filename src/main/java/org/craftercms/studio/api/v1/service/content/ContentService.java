@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -285,7 +286,7 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException;
+            InvalidRemoteUrlException, AuthenticationException, CryptoException;
 
     /**
      * Pull from remote repository
@@ -295,5 +296,5 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException;
+            InvalidRemoteUrlException, AuthenticationException, CryptoException;
 }

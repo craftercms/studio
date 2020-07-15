@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -918,7 +919,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void resetStagingEnvironment(String siteId) throws ServiceLayerException {
+    public void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }

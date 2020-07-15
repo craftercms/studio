@@ -33,6 +33,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -2503,7 +2504,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
@@ -2523,7 +2524,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }

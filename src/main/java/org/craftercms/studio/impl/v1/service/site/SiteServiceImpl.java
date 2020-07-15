@@ -46,6 +46,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -1759,7 +1760,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
