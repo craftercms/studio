@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -68,6 +69,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected SecurityService securityService;
     protected UserServiceInternal userServiceInternal;
     protected SiteService siteService;
+    protected TextEncryptor encryptor;
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
@@ -105,7 +107,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     public void execute(final String site) throws UpgradeException {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal);
+                    userServiceInternal, encryptor);
 
             Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
             String sandboxBranch = siteSandboxBranch;
@@ -191,5 +193,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public TextEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
     }
 }
