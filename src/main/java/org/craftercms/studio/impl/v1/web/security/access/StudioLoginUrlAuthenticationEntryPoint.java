@@ -51,11 +51,8 @@ public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
 
         String redirectParamValue = request.getContextPath() + UrlUtils.buildRequestUrl(request);
-        try {
-            redirectParamValue = UriUtils.encode(redirectParamValue, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException e) {
-            logger.debug("Unsupported encoding for redirect query param value. Sending param without encoding it");
-        }
+        redirectParamValue = UriUtils.encode(redirectParamValue, StandardCharsets.UTF_8.toString());
+
         String redirect = super.determineUrlToUseForThisRequest(request, response, exception);
         return UriComponentsBuilder.fromPath(redirect).queryParam(PARAM_REDIRECT, redirectParamValue).toUriString();
     }
