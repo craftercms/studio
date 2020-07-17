@@ -29,7 +29,7 @@ public interface EncryptionService {
      * @param siteId site identifier
      * @param text text to encrypt
      * @return encrypted text
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     String encrypt(String siteId, String text) throws ServiceLayerException;
 }

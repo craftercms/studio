@@ -31,12 +31,11 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 /**
  * Implementation of {@link UpgradeOperation} that updates a single file using a XSLT template.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>path</strong>: (optional) the relative path to update in the repository</li>
  *     <li><strong>target</strong>: (optional) the relative path in the repository to use as output</li>
  * </ul>
- * </p>
  *
  * @author joseross
  * @since 3.1.0

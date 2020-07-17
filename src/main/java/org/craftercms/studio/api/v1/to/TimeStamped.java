@@ -28,7 +28,7 @@ public interface TimeStamped {
 	/**
 	 * set the last updated date 
 	 * 
-	 * @param lastUpdated
+	 * @param lastUpdated last updated date
 	 */
 	void setLastUpdated(ZonedDateTime lastUpdated);
 	

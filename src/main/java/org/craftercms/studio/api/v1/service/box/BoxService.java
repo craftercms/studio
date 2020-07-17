@@ -28,16 +28,18 @@ public interface BoxService {
      * @param site the name of the site to search for the configuration file
      * @param profileId the name of the profile to search
      * @return the value of the access token
-     * @throws BoxException
+     * @throws BoxException box error
      */
     String getAccessToken(String site, String profileId) throws BoxException;
 
     /**
      * Builds a local URL for the given asset
+     * @param site site identifier
      * @param profileId the name of the profile to use
      * @param fileId the id of the file
      * @param filename the name of the file
      * @return the local URL for the file
+     * @throws BoxException box error
      */
     String getUrl(String site, String profileId, String fileId, String filename) throws BoxException;
 

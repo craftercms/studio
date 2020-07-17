@@ -26,6 +26,8 @@ public interface SitesServiceInternal {
 
     /**
      * Get list of available blueprints
+     *
+     * @return lost of blueprints
      */
     List<PluginDescriptor> getAvailableBlueprints();
 

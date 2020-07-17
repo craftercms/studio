@@ -39,6 +39,7 @@ public interface DependencyService {
 	 * 
 	 * @param site Site to operate on
 	 * @param path Path to item to scan
+	 * @return set of upserted dependencies
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
@@ -53,6 +54,7 @@ public interface DependencyService {
 	 * 
 	 * @param site Site to operate on
 	 * @param paths List of paths to items to scan
+	 * @return set of upserted dependencies
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException One or more paths doesn't exist
 	 *  (database won't be updated for any of the items)
@@ -102,6 +104,7 @@ public interface DependencyService {
 	 * @param site Site to operate on
 	 * @param path Path to items to retrieve deps for
 	 * @param depth Depth of tree to traverse. Depth of -1 disables depth limits
+	 * @return set of hard dependencies
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
@@ -115,6 +118,7 @@ public interface DependencyService {
 	 * @param site Site to operate on
 	 * @param path Path to items to retrieve deps for
 	 * @param depth Depth of tree to traverse. Depth of -1 disables depth limits
+	 * @return set of items that given item depends on
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
@@ -128,6 +132,7 @@ public interface DependencyService {
 	 * @param site Site to operate on
 	 * @param path Path to items to retrieve deps for
 	 * @param depth Depth of tree to traverse. Depth of -1 disables depth limits
+	 * @return set of items depending on given item path
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
@@ -141,6 +146,7 @@ public interface DependencyService {
 	 * @param site Site to operate on
 	 * @param oldPath Path to item to move
 	 * @param newPath Path the item moves to
+	 * @return set of updated dependencies
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
@@ -198,7 +204,7 @@ public interface DependencyService {
      * @param site Site to operate on
      * @param paths List of items to calculate dependencies for
      * @return Formatted result set
-     * @throws SiteNotFoundException site does not exist
+     * @throws ServiceLayerException general service error
      */
 	Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
             throws ServiceLayerException;
@@ -208,6 +214,8 @@ public interface DependencyService {
      * @param site site to use
      * @param paths list of items to calculate dependencies for
      * @return dependencies paths
+	 *
+	 * @throws ServiceLayerException general service error
      */
 	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException;
 }

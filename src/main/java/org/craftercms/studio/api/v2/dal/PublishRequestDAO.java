@@ -41,7 +41,7 @@ public interface PublishRequestDAO extends BaseDAO {
      * Get publishing packages for given search filters
      * @param siteId site identifier
      * @param environment environment
-     * @param state publishing state package
+     * @param states publishing states package
      * @param path regular expression for paths
      * @param offset offset for pagination
      * @param limit limit for pagination

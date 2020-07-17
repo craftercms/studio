@@ -245,7 +245,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Loads facets & type mapping from the global configuration
+     * Loads facets and type mapping from the global configuration
      */
     public void init() {
         loadTypesFromGlobalConfiguration();

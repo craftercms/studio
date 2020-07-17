@@ -37,7 +37,10 @@ public interface ClipboardService {
      *
      * @param site - the project ID
      * @param path - path of item to be cut
+     * @param session http session
      * @return true if item is properly placed on clipboard
+     *
+     * @throws ServiceLayerException general service error
      */
     boolean cut(String site, String path, HttpSession session) throws ServiceLayerException;
 
@@ -46,7 +49,10 @@ public interface ClipboardService {
      *
      * @param site - the project ID
      * @param path - path of item to be copied
+     * @param session http session
      * @return true if item is properly placed on clipboard
+     *
+     * @throws ServiceLayerException general service error
      */
     boolean copy(String site, String path, HttpSession session) throws ServiceLayerException;
 
@@ -55,7 +61,10 @@ public interface ClipboardService {
      *
      * @param site - the project ID
      * @param clipItem - item to be copied
+     * @param session http session
      * @return true if item is properly placed on clipboard
+     *
+     * @throws ServiceLayerException general service error
      */
     boolean copy(String site, ClipboardItem clipItem, HttpSession session) throws ServiceLayerException;
 
@@ -66,7 +75,7 @@ public interface ClipboardService {
      * @param destination
      *          the root folder of all items' destination
      * @return a list of pasted items (new paths)
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     Set<String> paste(String site, String destination, HttpSession session) throws ServiceLayerException;
 
@@ -74,7 +83,10 @@ public interface ClipboardService {
      * get the items on clipboard
      *
      * @param site - the project ID
+     * @param session http session
      * @return clipped item or null
+     *
+     * @throws ServiceLayerException general service error
      */
     ClipboardItem getItems(String site, HttpSession session) throws ServiceLayerException;
 

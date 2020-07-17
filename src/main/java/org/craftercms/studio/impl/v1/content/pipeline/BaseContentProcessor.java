@@ -77,9 +77,9 @@ public class BaseContentProcessor implements ContentProcessor {
 	/**
 	 * check if the mandatory value provided is not empty
 	 *
-	 * @param key
-	 * @param value
-	 * @throws ContentProcessorException
+	 * @param key key
+	 * @param value value
+	 * @throws ContentProcessException mandatory value is empty
 	 */
 	public void checkForMandatoryParam(String key, String value) throws ContentProcessException {
 		if (StringUtils.isEmpty(value)) {

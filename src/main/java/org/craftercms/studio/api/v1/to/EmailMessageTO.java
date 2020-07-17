@@ -65,7 +65,7 @@ public class EmailMessageTO implements Serializable {
 
 	/**
 	 * Starts from /site
-	 * @param browserUrl
+	 * @param browserUrl preview url
 	 */
 	public void setBrowserUrl(String browserUrl) {
 		this.browserUrl = browserUrl;		

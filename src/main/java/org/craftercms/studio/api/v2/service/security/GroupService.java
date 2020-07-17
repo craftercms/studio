@@ -37,6 +37,9 @@ public interface GroupService {
      * @param limit Result set limit
      * @param sort Sort order
      * @return List of groups
+     *
+     * @throws ServiceLayerException general service error
+     * @throws OrganizationNotFoundException organization not found
      */
     List<Group> getAllGroups(long orgId, int offset, int limit, String sort)
             throws ServiceLayerException, OrganizationNotFoundException;
@@ -46,6 +49,9 @@ public interface GroupService {
      *
      * @param orgId Organization identifier
      * @return Number of groups
+     *
+     * @throws ServiceLayerException general service error
+     * @throws OrganizationNotFoundException organization not found
      */
     int getAllGroupsTotal(long orgId) throws ServiceLayerException, OrganizationNotFoundException;
 
@@ -56,6 +62,10 @@ public interface GroupService {
      * @param groupName Group name
      * @param groupDescription Group description
      * @return the created group
+     *
+     * @throws GroupAlreadyExistsException group already exist error
+     * @throws ServiceLayerException general service error
+     * @throws AuthenticationException authentication error
      */
     Group createGroup(long orgId, String groupName, String groupDescription)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException;
@@ -66,6 +76,10 @@ public interface GroupService {
      * @param orgId Organization identifier
      * @param group Group to update
      * @return the updated group
+     *
+     * @throws ServiceLayerException general service error
+     * @throws GroupNotFoundException group not found error
+     * @throws AuthenticationException authentication error
      */
     Group updateGroup(long orgId, Group group)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException;
@@ -74,6 +88,10 @@ public interface GroupService {
      * Delete group(s)
      *
      * @param groupIds Group identifiers
+     *
+     * @throws ServiceLayerException general service error
+     * @throws GroupNotFoundException group not found
+     * @throws AuthenticationException authentication error
      */
     void deleteGroup(List<Long> groupIds)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException;
@@ -83,6 +101,9 @@ public interface GroupService {
      *
      * @param groupId Group identifier
      * @return Group
+     *
+     * @throws ServiceLayerException general service error
+     * @throws GroupNotFoundException group not found
      */
     Group getGroup(long groupId) throws ServiceLayerException, GroupNotFoundException;
 
@@ -94,6 +115,9 @@ public interface GroupService {
      * @param limit Result set limit
      * @param sort Sort order
      * @return List of users
+     *
+     * @throws ServiceLayerException general service error
+     * @throws GroupNotFoundException group not found
      */
     List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
             throws ServiceLayerException, GroupNotFoundException;
@@ -102,6 +126,9 @@ public interface GroupService {
      * Get total number of group members
      * @param groupId Group identifier
      * @return Number of members
+     *
+     * @throws ServiceLayerException general service error
+     * @throws GroupNotFoundException group not found
      */
     int getGroupMembersTotal(long groupId) throws ServiceLayerException, GroupNotFoundException;
 
@@ -112,6 +139,11 @@ public interface GroupService {
      * @param userIds List of user identifiers
      * @param usernames List of usernames
      * @return users added to the group
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     * @throws GroupNotFoundException group not found
+     * @throws AuthenticationException authentication error
      */
     List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException;
@@ -122,6 +154,11 @@ public interface GroupService {
      * @param groupId Group identifier
      * @param userIds List of user identifiers
      * @param usernames List of usernames
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     * @throws GroupNotFoundException group not found
+     * @throws AuthenticationException authentication error
      */
     void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException;

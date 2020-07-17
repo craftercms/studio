@@ -29,31 +29,19 @@ public class TranscoderProfile extends AbstractAwsProfile {
 
     private String pipelineId;
     private List<TranscoderOutput> outputs;
-
-    /**
-     * Returns the pipeline ID of the Elastic Transcoder.
-     */
+    
     public String getPipelineId() {
         return pipelineId;
     }
 
-    /**
-     * Sets the pipeline ID of the Elastic Transcoder.
-     */
     public void setPipelineId(String pipelineId) {
         this.pipelineId = pipelineId;
     }
 
-    /**
-     * Returns the transcoder outputs that should be generated.
-     */
     public List<TranscoderOutput> getOutputs() {
         return outputs;
     }
 
-    /**
-     * Sets the transcoder outputs that should be generated.
-     */
     public void setOutputs(List<TranscoderOutput> outputs) {
         this.outputs = outputs;
     }
