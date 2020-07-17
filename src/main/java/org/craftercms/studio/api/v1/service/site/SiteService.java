@@ -46,16 +46,25 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 public interface SiteService {
 
 	/**
-	 * write configuraiton content at the given path
+	 * write configuration content at the given path
 	 * (can be any kind of content)
-	 * @param path
+	 * @param site site identifier
+	 * @param path configuration file path
+	 * @param content configuration content
+	 * @return true if configuration was written, otherwise false
+	 *
+	 * @throws ServiceLayerException general service error
 	 */
     boolean writeConfiguration(String site, String path, InputStream content) throws ServiceLayerException;
 
 	/**
-	 * write configuraiton content at the given path
+	 * write configuration content at the given path
 	 * (can be any kind of content)
-	 * @param path
+	 * @param path configuration file path
+	 * @param content configuration content
+	 * @return true if configuration was written, otherwise false
+	 *
+	 * @throws ServiceLayerException general service error
 	 */
 	boolean writeConfiguration(String path, InputStream content) throws ServiceLayerException;
 
@@ -65,6 +74,8 @@ public interface SiteService {
 	 * are not made available through the site configuration object
 	 * @param site the name of the site
 	 * @return a Document containing the entire site configuration
+	 *
+	 * @throws SiteConfigNotFoundException site configuration not found
 	 */
 	Document getSiteConfiguration(String site) throws SiteConfigNotFoundException;
 
@@ -80,8 +91,8 @@ public interface SiteService {
 	/**
 	 * get configuraiton content as XML string at the given path
 	 *
-	 * @param site
-	 * @param path
+	 * @param site site identifier
+	 * @param path path of configuration file
 	 * @param applyEnv
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
@@ -97,9 +108,16 @@ public interface SiteService {
      * @param blueprintName blueprint name to create site
      * @param siteName site name
      * @param siteId site identifier
+	 * @param sandboxBranch sandbox branch name
      * @param desc description
      * @param params site parameters
      * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 *
+	 * @throws SiteAlreadyExistsException site already exists
+	 * @throws SiteCreationException error during site creation process
+	 * @throws DeployerTargetException error creating deployer targets
+	 * @throws BlueprintNotFoundException blueprint not found
+	 * @throws MissingPluginParameterException missing mandatory blueprint parameters
      */
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
                                  String desc, Map<String, String> params, boolean createAsOrphan)
@@ -125,6 +143,13 @@ public interface SiteService {
      * @param createOption remote repository username to use for authentication
      * @param params site parameters
      * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 *
+	 * @throws ServiceLayerException general service error
+	 * @throws InvalidRemoteRepositoryException invalid remote repository
+	 * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
+	 * @throws RemoteRepositoryNotFoundException remote repository not found
+	 * @throws RemoteRepositoryNotBareException remote repository is not bare
+	 * @throws InvalidRemoteUrlException invalid remote url
      */
     void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
                                     String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
@@ -136,6 +161,9 @@ public interface SiteService {
 
     /**
      * remove a site from the system
+	 * @param siteId site identifier
+	 *
+	 * @return true if successfully deleted, otherwise false
      */
    	boolean deleteSite(String siteId);
 
@@ -146,6 +174,8 @@ public interface SiteService {
 	 * @param siteId site to sync
 	 * @param fromCommitId commit ID to start at and sync up until current commit
 	 * @return true if successful, false otherwise
+	 *
+	 * @throws SiteNotFoundException site not found
 	 */
 	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws SiteNotFoundException;
 
@@ -157,12 +187,16 @@ public interface SiteService {
      * @param fromCommitId commit ID to start at and sync up until current commit
      * @param generateAuditLog if true add operations to audit log
      * @return true if successful, false otherwise
+	 *
+	 * @throws SiteNotFoundException site not found
      */
     boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog)
             throws SiteNotFoundException;
 
    	/**
    	 * get a list of available blueprints
+	 *
+	 * @return list of blueprints
    	 */
    	SiteBlueprintTO[] getAvailableBlueprints();
 
@@ -178,6 +212,8 @@ public interface SiteService {
      * Synchronize Database with repository
      *
      * @param site site id
+	 *
+	 * @throws SiteNotFoundException site not found
      */
     void syncRepository(String site) throws SiteNotFoundException;
 
@@ -219,7 +255,8 @@ public interface SiteService {
      *
      * @param username username
      * @return number of sites
-     * @throws UserNotFoundException
+     * @throws UserNotFoundException user not found
+	 * @throws ServiceLayerException general service error
      */
     int getSitesPerUserTotal(String username) throws UserNotFoundException, ServiceLayerException;
 
@@ -230,7 +267,8 @@ public interface SiteService {
      * @param start start position for pagination
      * @param number number of sites per page
      * @return number of sites
-     * @throws UserNotFoundException
+     * @throws UserNotFoundException user not found
+	 * @throws ServiceLayerException general service error
      */
     List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException,
 		ServiceLayerException;
@@ -239,6 +277,8 @@ public interface SiteService {
      * Get site details
      * @param siteId site id
      * @return site details
+	 *
+	 * @throws SiteNotFoundException site not found
      */
     SiteFeed getSite(String siteId) throws SiteNotFoundException;
 
@@ -253,6 +293,10 @@ public interface SiteService {
      * Enable/Disable publishing for given site
      * @param siteId site id
      * @param enabled true to enable publishing, false to disable publishing
+	 *
+	 * @return true if operation was successful, otherwise false
+	 *
+	 * @throws SiteNotFoundException site not found
      */
     boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException;
 
@@ -261,7 +305,7 @@ public interface SiteService {
      * @param siteId site id
      * @param message new publishing status message
      * @return true if publishing status message is successfully updated
-     * @throws SiteNotFoundException
+     * @throws SiteNotFoundException site not found
      */
     boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException;
 
@@ -269,6 +313,8 @@ public interface SiteService {
      * Get publish status for given site
      * @param site site id
      * @return publish status
+	 *
+	 * @throws SiteNotFoundException site not found
      */
     PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
 
@@ -283,6 +329,9 @@ public interface SiteService {
      * @param remoteToken remote token
      * @param remotePrivateKey remote private key
      * @return true if operation was successful
+	 *
+	 * @throws InvalidRemoteUrlException invalid remote url
+	 * @throws ServiceLayerException general service error
      */
     boolean addRemote(String siteId, String remoteName, String remoteUrl,
                       String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
@@ -294,6 +343,8 @@ public interface SiteService {
      * @param siteId site identifier
      * @param remoteName remote name
      * @return true if operation was successful
+	 *
+	 * @throws SiteNotFoundException site not found
      */
     boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
 
@@ -302,7 +353,8 @@ public interface SiteService {
      *
      * @param siteId site identifier
      * @return list of names of remote repositories
-     * @throws SiteNotFoundException
+     * @throws SiteNotFoundException site not found
+	 * @throws CryptoException git repository helper error
      */
     List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException;
 

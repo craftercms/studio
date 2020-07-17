@@ -49,11 +49,10 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
 /**
  * Base implementation of {@link UpgradeOperation} for all operations related to a XSLT template.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>template</strong>: (required) the path to the XSLT template to apply</li>
  * </ul>
- * </p>
  *
  * @author joseross
  * @since 3.1.1

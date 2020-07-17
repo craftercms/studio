@@ -26,9 +26,9 @@ public interface DependencyDiffService {
 
     /**
      * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
-     * @param diffRequest
+     * @param diffRequest diff request
      * @return Diff response object
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     DiffResponse diff(DiffRequest diffRequest) throws ServiceLayerException;
 

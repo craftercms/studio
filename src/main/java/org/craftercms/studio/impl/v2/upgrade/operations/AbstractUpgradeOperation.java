@@ -62,14 +62,13 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 /**
  * Provides access to system components for all upgrade operations.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>currentVersion</strong>: (required) the version number that will be upgraded</li>
  *     <li><strong>nextVersion</strong> (required) the version number to use after the upgrade</li>
  *     <li><strong>commitDetails</strong>(optional) any additional details to include in the commits if there are
  *     repository changes</li>
  * </ul>
- * </p>
  *
  * @author joseross
  */

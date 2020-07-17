@@ -298,7 +298,7 @@ public class GitRepositoryHelper {
      *
      * @param repositoryPath path to repository to open (including .git)
      * @return repository object if successful
-     * @throws IOException
+     * @throws IOException IO error
      */
     public Repository openRepository(Path repositoryPath) throws IOException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -425,7 +425,7 @@ public class GitRepositoryHelper {
      * @param user author
      * @return author user as a PersonIdent
      */
-    public PersonIdent getAuthorIdent(User user) throws ServiceLayerException, UserNotFoundException {
+    public PersonIdent getAuthorIdent(User user) {
         PersonIdent currentUserIdent =
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
 
@@ -759,8 +759,9 @@ public class GitRepositoryHelper {
 
     /**
      * Perform an initial commit after large changes to a site. Will not work against the global config repo.
-     * @param site
-     * @param message
+     * @param site site identifier
+     * @param message commit message
+     * @param sandboxBranch sandbox branch name
      * @return true if successful, false otherwise
      */
     public boolean performInitialCommit(String site, String message, String sandboxBranch) {
@@ -979,7 +980,7 @@ public class GitRepositoryHelper {
     /**
      * Build the global repository as part of system startup and caches it
      * @return true if successful, false otherwise
-     * @throws IOException
+     * @throws IOException IO error
      */
     // TODO: SJ: This should be redesigned to return the repository instead of setting it as a "side effect"
     public boolean buildGlobalRepo() throws IOException {
@@ -1149,6 +1150,9 @@ public class GitRepositoryHelper {
      * Return the current user identity as a jgit PersonIdent
      *
      * @return current user as a PersonIdent
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
      */
     public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
         String userName = securityService.getCurrentUser();
@@ -1160,6 +1164,9 @@ public class GitRepositoryHelper {
      *
      * @param author author
      * @return author user as a PersonIdent
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
      */
     public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, author);

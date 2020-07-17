@@ -62,8 +62,13 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path content to be deleted
      * @return true if success, otherwise false
+     *
+     * @throws ServiceLayerException general service error
+     * @throws AuthenticationException authentication error
+     * @throws DeploymentException deployment error caused by delete
      */
-    boolean deleteContent(String siteId, String path) throws ServiceLayerException, AuthenticationException, DeploymentException;
+    boolean deleteContent(String siteId, String path)
+            throws ServiceLayerException, AuthenticationException, DeploymentException;
 
     /**
      * Delete content for given paths. Following content will be deleted:
@@ -72,6 +77,11 @@ public interface ContentService {
      * @param siteId site identifier
      * @param paths content to be deleted
      * @return true if success, otherwise false
+     *
+     * @throws ServiceLayerException general service error
+     * @throws AuthenticationException authentication error
+     * @throws DeploymentException deployment error caused by delete
      */
-    boolean deleteContent(String siteId, List<String> paths) throws ServiceLayerException, AuthenticationException, DeploymentException;
+    boolean deleteContent(String siteId, List<String> paths)
+            throws ServiceLayerException, AuthenticationException, DeploymentException;
 }

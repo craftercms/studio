@@ -35,7 +35,7 @@ import org.springframework.core.io.Resource;
 /**
  * Implementation of {@link UpgradeOperation} that updates files on the global repository.
  *
- * <p>Suported YAML properties:
+ * <p>Suported YAML properties:</p>
  * <ul>
  *     <li>
  *         <strong>files</strong>: (required) list of paths to copy to the global repository. The format of each
@@ -46,7 +46,7 @@ import org.springframework.core.io.Resource;
  *         <strong>overwrite</strong>: (optional, defaults to true) Indicates if existing files should be overwritten.
  *     </li>
  * </ul>
- * </p>
+ *
  *
  * @author joseross
  */

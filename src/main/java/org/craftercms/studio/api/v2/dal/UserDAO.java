@@ -100,6 +100,7 @@ public interface UserDAO {
     /**
      * Get total number of users
      *
+     * @param params SQL query params
      * @return total number of users for site
      */
     int getAllUsersForSiteTotal(Map params);
@@ -122,7 +123,7 @@ public interface UserDAO {
     /**
      * Check if user exists
      *
-     * @param params
+     * @param params SQL query params
      * @return positive number if user exists, otherwise 0
      */
     Integer userExists(Map params);
@@ -130,7 +131,7 @@ public interface UserDAO {
     /**
      * Check if user is member of given group
      * @param params SQL query parameters
-     * @return if true result > 0
+     * @return if true result greater than 0
      */
     Integer isUserMemberOfGroup(Map params);
 

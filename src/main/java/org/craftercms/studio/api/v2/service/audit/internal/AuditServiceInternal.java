@@ -52,6 +52,20 @@ public interface AuditServiceInternal {
     /**
      * Get audit log filtered by parameters
      *
+     * @param siteId  site identifier
+     * @param siteName site name
+     * @param offset offset of first record in result set
+     * @param limit number of records to return as result set
+     * @param user filter by user
+     * @param operations filter by list of operations
+     * @param includeParameters include audit log parameters in result set
+     * @param dateFrom filter results by lower border for date
+     * @param dateTo filter results by upper border for date
+     * @param target filter results by target
+     * @param origin filter results by origin
+     * @param clusterNodeId filter results by cluster node
+     * @param sort sort strategy
+     * @param order order strategy
      * @return List of audit log entries
      */
     List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
