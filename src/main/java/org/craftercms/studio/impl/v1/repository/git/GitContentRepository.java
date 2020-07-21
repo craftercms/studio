@@ -80,7 +80,9 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
@@ -97,6 +99,7 @@ import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -1368,8 +1371,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 } finally {
                     if (!isValid) {
                         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
-                        remoteRemoveCommand.setName(remoteName);
+                        remoteRemoveCommand.setRemoteName(remoteName);
                         remoteRemoveCommand.call();
+
+                        List<Ref> resultRemoteBranches = git.branchList()
+                                .setListMode(ListBranchCommand.ListMode.REMOTE)
+                                .call();
+
+                        List<String> branchesToDelete = new ArrayList<String>();
+                        for (Ref remoteBranchRef : resultRemoteBranches) {
+                            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                                branchesToDelete.add(remoteBranchRef.getName());
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+                            DeleteBranchCommand delBranch = git.branchDelete();
+                            String[] array = new String[branchesToDelete.size()];
+                            delBranch.setBranchNames(branchesToDelete.toArray(array));
+                            delBranch.call();
+                        }
                     }
                 }
 
