@@ -1622,7 +1622,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.debug("Set remote " + remoteName);
             pushCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
-            pushCommand.setRefSpecs(new RefSpec(remoteBranch + ":" + remoteBranch));
+            RefSpec r = new RefSpec();
+            r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
+                    Constants.R_HEADS +  remoteBranch);
+            pushCommand.setRefSpecs(r);
             switch (remoteRepository.getAuthenticationType()) {
                 case NONE:
                     logger.debug("No authentication");
