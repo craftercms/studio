@@ -432,7 +432,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             logger.debug("Set remote " + remoteName);
             pushCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
-            pushCommand.setRefSpecs(new RefSpec(remoteBranch + ":" + remoteBranch));
+            RefSpec r = new RefSpec();
+            r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
+                    Constants.R_HEADS +  remoteBranch);
+            pushCommand.setRefSpecs(r);
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
             pushCommand = helper.setAuthenticationForCommand(pushCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
