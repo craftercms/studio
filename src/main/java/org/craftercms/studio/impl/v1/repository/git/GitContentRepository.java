@@ -712,8 +712,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor);
-            synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : PUBLISHED)) {
-                if (majorVersion) {
+            if (majorVersion) {
+                synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : PUBLISHED)) {
                     Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : PUBLISHED);
                     // Tag the repository with a date-time based version label
                     String gitPath = helper.getGitPath(path);
@@ -736,9 +736,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     } catch (GitAPIException | ServiceLayerException | UserNotFoundException err) {
                         logger.error("error creating new version for site:  " + site + " path: " + path, err);
                     }
-                } else {
-                    logger.info("request to create minor revision ignored for site: " + site + " path: " + path);
                 }
+            } else {
+                logger.info("request to create minor revision ignored for site: " + site + " path: " + path);
             }
         } catch (CryptoException e) {
             logger.error("Unexpected error creating new version for site:  " + site + " path: " + path, e);
