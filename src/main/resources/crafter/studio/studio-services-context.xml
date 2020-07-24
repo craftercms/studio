@@ -1345,9 +1345,13 @@
         <constructor-arg ref="encryptionServiceInternal"/>
     </bean>
 
-    <bean id="cloudfrontForwardedHeaderFilter" class="org.craftercms.commons.web.CloudfrontForwardedHeaderFilter"/>
+    <bean id="cloudfrontForwardedHeaderFilter" class="org.craftercms.commons.web.CloudfrontForwardedHeaderFilter">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
+    </bean>
 
-    <bean id="forwardedHeaderFilter" class="org.springframework.web.filter.ForwardedHeaderFilter"/>
+    <bean id="forwardedHeaderFilter" class="org.craftercms.commons.web.ForwardedHeaderFilter">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
+    </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>
