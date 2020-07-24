@@ -130,5 +130,11 @@ public interface ClusterDAO {
      */
     List<ClusterMember> getInactiveMembersWithStaleHeartbeat(Map params);
 
-
+    /**
+     * Get member by git remote repository name
+     *
+     * @param params Parameters for SQL query
+     * @return List members
+     */
+    List<ClusterMember> getMemberByRemoteName(Map params);
 }

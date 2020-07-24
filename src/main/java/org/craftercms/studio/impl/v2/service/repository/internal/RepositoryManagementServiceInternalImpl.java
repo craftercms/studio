@@ -25,11 +25,14 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
@@ -87,6 +90,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -95,6 +99,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 
 public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal {
 
@@ -110,6 +115,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private UserServiceInternal userServiceInternal;
     private ContentRepository contentRepository;
     private TextEncryptor encryptor;
+    private ClusterDAO clusterDao;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -489,7 +495,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    public boolean removeRemote(String siteId, String remoteName) throws CryptoException {
+    public boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException {
+        if (!isRemovableRemote(siteId, remoteName)) {
+            throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
+        }
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
         GitRepositoryHelper helper =
                 GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
@@ -527,6 +536,22 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         remoteRepositoryDao.deleteRemoteRepository(params);
 
         return true;
+    }
+
+    private boolean isRemovableRemote(String siteId, String remoteName) {
+        boolean toRet = true;
+        if (StringUtils.startsWith(remoteName, CLUSTER_NODE_REMOTE_NAME_PREFIX)) {
+            RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
+            List<ClusterMember> clusterMembers = getClusterMembersByRemoteName(remoteName);
+            toRet = !(Objects.isNull(remoteRepository) && CollectionUtils.isNotEmpty(clusterMembers));
+        }
+        return toRet;
+    }
+
+    private List<ClusterMember> getClusterMembersByRemoteName(String remoteName) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("remoteName", remoteName);
+        return clusterDao.getMemberByRemoteName(params);
     }
 
     @Override
@@ -758,4 +783,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.encryptor = encryptor;
     }
 
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
 }

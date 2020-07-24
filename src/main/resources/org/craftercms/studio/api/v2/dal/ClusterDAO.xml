@@ -106,4 +106,9 @@
         WHERE heartbeat &lt; (CURRENT_TIMESTAMP - INTERVAL #{inactivityLimit} MINUTE)
         AND state = #{inactiveState}
     </select>
+
+    <select id="getMemberByRemoteName" resultMap="ClusterMap" parameterType="java.util.Map">
+        SELECT * FROM cluster
+        WHERE git_remote_name = #{remoteName}
+    </select>
 </mapper>
