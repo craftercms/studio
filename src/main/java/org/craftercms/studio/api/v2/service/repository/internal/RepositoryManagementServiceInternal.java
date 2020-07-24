@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.repository.internal;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
@@ -40,7 +41,7 @@ public interface RepositoryManagementServiceInternal {
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
             throws CryptoException, ServiceLayerException, InvalidRemoteUrlException;
 
-    boolean removeRemote(String siteId, String remoteName) throws CryptoException;
+    boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException;
 
     RepositoryStatus getRepositoryStatus(String siteId) throws CryptoException, ServiceLayerException;
 
