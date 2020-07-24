@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -118,7 +119,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "remove_remote")
     public boolean removeRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName)
-            throws CryptoException, SiteNotFoundException {
+            throws CryptoException, SiteNotFoundException, RemoteNotRemovableException {
         boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
         insertAddRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
         return toRet;

@@ -45,6 +45,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_SYNC_URL_FORMAT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 
 public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
@@ -155,7 +156,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     private String getGitRemoteName(ClusterMember clusterMember) {
         // When the port is specified, replaces the colon since it's an invalid remote name character
-        return clusterMember.getLocalAddress().replace(":", "_");
+        return CLUSTER_NODE_REMOTE_NAME_PREFIX + clusterMember.getLocalAddress().replace(":", "_");
     }
 
     public ClusterDAO getClusterDao() {

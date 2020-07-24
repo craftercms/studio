@@ -419,6 +419,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao"/>
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
