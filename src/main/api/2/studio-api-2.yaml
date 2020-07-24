@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.8.2'
+  version: '3.1.9.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4452,6 +4452,7 @@ components:
           * `CODE:` 12003, `MESSAGE:` Remote is invalid. Not added to remote repositories, `REMEDIAL ACTION:` Add new remote repository with valid parameters.
           * `CODE:` 12004, `MESSAGE:` Failed to remove remote repository, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 12005, `MESSAGE:` Push to remote repository failed, `REMEDIAL ACTION:` Check your repository settings or contact your system administrator.
+          * `CODE:` 12006, `MESSAGE:` Remove remote repository failed, `REMEDIAL ACTION:` Remote repository is cluster node repository. Can't be removed.
           * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
@@ -5320,6 +5321,9 @@ components:
         unreachableReason:
           type: string
           description: reason why remote is unreachable
+        removable:
+          type: boolean
+          description: true if remote repository can be removed, otherwise false
 
     QuickCreateItem:
       type: object
