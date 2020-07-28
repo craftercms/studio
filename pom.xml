@@ -76,6 +76,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>jcl-over-slf4j</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava-collections</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -720,6 +724,10 @@
                                 <exclude>/WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-annotations-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-base-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-collections-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-primitives-r03.jar</exclude>
                                 <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                                 <!-- AWS -->
                                 <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
