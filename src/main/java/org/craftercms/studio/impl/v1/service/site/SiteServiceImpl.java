@@ -191,6 +191,7 @@ public class SiteServiceImpl implements SiteService {
     protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
+    @Autowired
     protected SiteFeedMapper siteFeedMapper;
 
     protected EntitlementValidator entitlementValidator;
