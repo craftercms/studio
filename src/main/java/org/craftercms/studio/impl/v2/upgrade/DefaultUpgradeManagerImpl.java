@@ -145,7 +145,6 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public void upgradeSiteConfiguration(final String site) throws UpgradeException {
         logger.info("Checking upgrades for configuration in site {0}", site);
 
-        String defaultEnvironment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
         HierarchicalConfiguration config = loadUpgradeConfiguration();
         List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt(CONFIG_KEY_CONFIGURATIONS);
         String configPath = null;
@@ -162,7 +161,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
                     values.put(CONFIG_KEY_ENVIRONMENT, env);
                     String basePath;
 
-                    if (StringUtils.isEmpty(env) || env.equals(defaultEnvironment)) {
+                    if (StringUtils.isEmpty(env)) {
                         basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN);
                     } else {
                         basePath = studioConfiguration.getProperty(
@@ -239,7 +238,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         List<String> result = new LinkedList<>();
 
         // add the default env that will always exist
-        result.add(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+        result.add(StringUtils.EMPTY);
 
         String basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN);
         String envPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);
