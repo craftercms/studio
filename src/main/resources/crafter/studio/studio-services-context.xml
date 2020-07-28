@@ -121,7 +121,6 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
