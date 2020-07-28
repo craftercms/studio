@@ -818,3 +818,9 @@ studio.marketplace.search.pending: false
 ##################################################
 # If Studio should cache its FreeMarker templates
 studio.cache.templates: true
+
+##################################################
+##             Forwarded Headers                ##
+##################################################
+# Indicates if forwarded headers should be used
+studio.forwarded.headers.enabled: false
