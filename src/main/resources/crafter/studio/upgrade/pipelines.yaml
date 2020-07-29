@@ -823,7 +823,11 @@ pipelines:
           commitDetails: Update sample file for proxy-config.xml
         - type: dbVersionUpgrader
 
-    - currentVersion: 3.1.8.1
+    # TODO: Add an operation that always fails if the version is 3.1.8.x?
+
+    # Direct upgrades from 3.1.8 or previous to 3.2.x are not supported, only from 3.1.9+
+    # Until we have 3.1.10 we need to make sure this always points to the latest 3.1.x version
+    - currentVersion: 3.1.9.2
       nextVersion: 3.2.0.1
       operations:
         - type: globalRepoUpgrader
@@ -1040,7 +1044,11 @@ pipelines:
           replacement: authoringUrl
         - type: versionFileUpgrader
 
-    - currentVersion: 3.1.7.3
+    # TODO: Add an operation that always fails if the version is 3.1.7.x?
+
+    # Direct upgrades from 3.1.8 or previous to 3.2.x are not supported, only from 3.1.9+
+    # Until we have 3.1.10 we need to make sure this always points to the latest 3.1.x version
+    - currentVersion: 3.1.9.0
       nextVersion: 3.2.0
       operations:
         - type: addFileUpgrader
