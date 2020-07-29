@@ -822,5 +822,6 @@ studio.cache.templates: true
 ##################################################
 ##             Forwarded Headers                ##
 ##################################################
-# Indicates if forwarded headers should be used
+# Indicates if Forwarded or X-Forwarded headers should be used when resolving the client-originated protocol and
+# address. Enable when Studio is behind a reverse proxy or load balancer that sends these
 studio.forwarded.headers.enabled: false
