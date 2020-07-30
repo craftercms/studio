@@ -1035,7 +1035,7 @@ pipelines:
           replacement: authoringUrl
         - type: versionFileUpgrader
     - currentVersion: 3.1.7.3
-      nextVersion: 3.1.9.0
+      nextVersion: 3.1.9
       operations:
         - type: configEncryptionUpgrader
           includedPaths:
