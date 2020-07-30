@@ -1296,7 +1296,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
                                 remoteUrl + ")");
                     }
-                } catch (ServiceLayerException | IOException e) {
+                } catch (ClassCastException e) {
+                    logger.error("Wrong protocol used to access repository: " + remoteName +
+                            " (" + remoteUrl + ")", e);
+                    throw new InvalidRemoteRepositoryCredentialsException("Wrong protocol used to access repository: " +
+                            remoteName + " (" + remoteUrl + ")", e);
+                } catch (ServiceLayerException | IOException  e) {
                     logger.error("Failed to push newly created site " + siteId + " to remote repository " +
                             remoteUrl, e);
                     throw new ServiceLayerException(e);
@@ -1364,9 +1369,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                 }
 
-            } catch (URISyntaxException e) {
+            } catch (URISyntaxException | ClassCastException e) {
                 logger.error("Remote URL is invalid " + remoteUrl, e);
-                throw new InvalidRemoteUrlException();
+                throw new InvalidRemoteUrlException("Remote URL is invalid " + remoteUrl, e);
             } catch (GitAPIException | IOException e) {
                 logger.error("Error while adding remote " + remoteName + " (url: " + remoteUrl + ") for site " +
                         siteId, e);
