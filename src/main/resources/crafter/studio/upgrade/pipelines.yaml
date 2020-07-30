@@ -832,6 +832,11 @@ pipelines:
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.8.1-to-3.1.9.1.sql
+    - currentVersion: 3.1.9.1
+      nextVersion: 3.1.9.2
+      operations:
+        - type: dbEncryptionUpgrader
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -1028,6 +1033,14 @@ pipelines:
             - config/studio/workflow/notification-config.xml
           pattern: previewUrl
           replacement: authoringUrl
+        - type: versionFileUpgrader
+    - currentVersion: 3.1.7.3
+      nextVersion: 3.1.9
+      operations:
+        - type: configEncryptionUpgrader
+          includedPaths:
+            - config/.*
+          commitDetails: Update all encrypted properties
         - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
