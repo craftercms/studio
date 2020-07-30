@@ -166,6 +166,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                             DeleteBranchCommand delBranch = git.branchDelete();
                             String[] array = new String[branchesToDelete.size()];
                             delBranch.setBranchNames(branchesToDelete.toArray(array));
+                            delBranch.setForce(true);
                             delBranch.call();
                         }
                     }
@@ -522,6 +523,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 DeleteBranchCommand delBranch = git.branchDelete();
                 String[] array = new String[branchesToDelete.size()];
                 delBranch.setBranchNames(branchesToDelete.toArray(array));
+                delBranch.setForce(true);
                 delBranch.call();
             }
         } catch (GitAPIException e) {

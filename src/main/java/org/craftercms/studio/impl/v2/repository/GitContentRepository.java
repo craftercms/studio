@@ -1226,6 +1226,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     DeleteBranchCommand delBranch = git.branchDelete();
                     String[] array = new String[branchesToDelete.size()];
                     delBranch.setBranchNames(branchesToDelete.toArray(array));
+                    delBranch.setForce(true);
                     delBranch.call();
                 }
 
