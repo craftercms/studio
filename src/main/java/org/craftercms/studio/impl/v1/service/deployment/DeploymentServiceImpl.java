@@ -274,7 +274,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     @ValidateParams
     public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
-                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate)
+                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate,
+                       String submissionComment)
             throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
@@ -282,7 +283,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         Set<String> environments = getAllPublishedEnvironments(site);
         for (String environment : environments) {
-            List<PublishRequest> items = createDeleteItems(site, environment, paths, approver, scheduledDate);
+            List<PublishRequest> items =
+                    createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
             for (PublishRequest item : items) {
                 publishRequestMapper.insertItemForDeployment(item);
             }
@@ -298,7 +300,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
-                                                   String approver, ZonedDateTime scheduledDate)
+                                                   String approver, ZonedDateTime scheduledDate,
+                                                   String submissionComment)
             throws SiteNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         String packageId = UUID.randomUUID().toString();
@@ -331,6 +334,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                     item.setContentTypeClass(contentTypeClass);
                     item.setUser(approver);
                     item.setPackageId(packageId);
+                    item.setSubmissionComment(submissionComment);
                     newItems.add(item);
 
                     if (contentService.contentExists(site, path)) {
@@ -350,7 +354,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                     for (RepositoryItem child : children) {
                         childPaths.add(child.path + FILE_SEPARATOR + child.name);
                     }
-                    newItems.addAll(createDeleteItems(site, environment, childPaths, approver, scheduledDate));
+                    newItems.addAll(createDeleteItems(site, environment, childPaths, approver, scheduledDate,
+                            submissionComment));
                     deleteFolder(site, path, approver);
                 }
             }
