@@ -24,11 +24,12 @@ import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that upgrades encrypted values in
@@ -41,15 +42,16 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(DbEncryptionUpgradeOperation.class);
 
-    protected String REMOTE_REPOSITORIES_QUERY = "select id, remote_password, remote_token, remote_private_key, " +
-            "authentication_type from remote_repository where authentication_type != ?";
-    protected String REMOTE_REPOSITORIES_UPDATE = "update remote_repository set remote_password = ?, " +
-            "remote_token = ?, remote_private_key = ? where id = ?";
+    protected final String REMOTE_REPOSITORIES_QUERY = "select id, remote_password, remote_token, " +
+            "remote_private_key, authentication_type from remote_repository where authentication_type != '" +
+            RemoteRepository.AuthenticationType.NONE + "'";
+    protected final String REMOTE_REPOSITORIES_UPDATE = "update remote_repository set remote_password = " +
+            ":remotePassword, remote_token = :remoteToken, remote_private_key = :remotePrivateKey where id = :id";
 
-    protected String CLUSTER_MEMBERS_QUERY = "select id, git_password, git_token, git_private_key, git_auth_type " +
-            "from cluster where git_auth_type != ?";
-    protected String CLUSTER_MEMBERS_UPDATE = "update cluster set git_password = ?, git_token = ?, " +
-            "git_private_key = ? where id = ?";
+    protected final String CLUSTER_MEMBERS_QUERY = "select id, git_password, git_token, git_private_key, " +
+            "git_auth_type from cluster where git_auth_type != '" + RemoteRepository.AuthenticationType.NONE + "'";
+    protected final String CLUSTER_MEMBERS_UPDATE = "update cluster set git_password = :gitPassword, git_token = " +
+            ":gitToken, git_private_key = :gitPrivateKey where id = :id";
 
     protected TextEncryptor textEncryptor;
 
@@ -60,7 +62,7 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
     @Override
     public void execute(String site) throws UpgradeException {
         try {
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+            NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
             upgradeRemoteRepositories(jdbcTemplate);
             upgradeClusterMembers(jdbcTemplate);
         } catch (Exception e) {
@@ -72,12 +74,15 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         return textEncryptor.encrypt(textEncryptor.decrypt(encrypted));
     }
 
-    protected void upgradeRemoteRepositories(JdbcTemplate jdbcTemplate) throws CryptoException {
+    protected void upgradeRemoteRepositories(NamedParameterJdbcTemplate jdbcTemplate) throws CryptoException {
         logger.debug("Looking for remote repositories to upgrade");
-        List<RemoteRepository> remotes = jdbcTemplate.query(REMOTE_REPOSITORIES_QUERY,
-                new Object[] { RemoteRepository.AuthenticationType.NONE },
-                new BeanPropertyRowMapper<>(RemoteRepository.class));
+        List<RemoteRepository> remotes =
+                jdbcTemplate.query(REMOTE_REPOSITORIES_QUERY, new BeanPropertyRowMapper<>(RemoteRepository.class));
         logger.debug("Found {0} remote repositories", remotes.size());
+
+        if (isEmpty(remotes)) {
+            return;
+        }
 
         for (RemoteRepository remote : remotes) {
             logger.debug("Upgrading remote repository with id: {0}", remote.getId());
@@ -98,23 +103,22 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         }
 
         jdbcTemplate.batchUpdate(REMOTE_REPOSITORIES_UPDATE, remotes.stream()
-                .map(remote ->
-                        new Object[] {
-                                remote.getRemotePassword(), remote.getRemoteToken(), remote.getRemotePrivateKey(),
-                                remote.getId()
-                })
-                .collect(toList()));
+                .map(BeanPropertySqlParameterSource::new)
+                .toArray(BeanPropertySqlParameterSource[]::new));
     }
 
-    protected void upgradeClusterMembers(JdbcTemplate jdbcTemplate) throws CryptoException {
+    protected void upgradeClusterMembers(NamedParameterJdbcTemplate jdbcTemplate) throws CryptoException {
         logger.debug("Looking for cluster members to upgrade");
-        List<ClusterMember> members = jdbcTemplate.query(CLUSTER_MEMBERS_QUERY,
-                new Object[] { RemoteRepository.AuthenticationType.NONE },
-                new BeanPropertyRowMapper<>(ClusterMember.class));
+        List<ClusterMember> members =
+                jdbcTemplate.query(CLUSTER_MEMBERS_QUERY, new BeanPropertyRowMapper<>(ClusterMember.class));
         logger.debug("Found {0} cluster members", members.size());
 
+        if (isEmpty(members)) {
+            return;
+        }
+
         for (ClusterMember member : members) {
-            logger.debug("Upgrading remote repository with id: {0}", member.getId());
+            logger.debug("Upgrading cluster member with id: {0}", member.getId());
             switch (member.getGitAuthType()) {
                 case RemoteRepository.AuthenticationType.BASIC:
                     member.setGitPassword(upgradeValue(member.getGitPassword()));
@@ -132,12 +136,8 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         }
 
         jdbcTemplate.batchUpdate(CLUSTER_MEMBERS_UPDATE, members.stream()
-                .map(member ->
-                        new Object[] {
-                                member.getGitPassword(), member.getGitToken(), member.getGitPrivateKey(),
-                                member.getId()
-                })
-                .collect(toList()));
+                .map(BeanPropertySqlParameterSource::new)
+                .toArray(BeanPropertySqlParameterSource[]::new));
     }
 
 }
