@@ -101,7 +101,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             scheduleDate = ZonedDateTime.now(ZoneOffset.UTC);
         }
         try {
-            deploymentService.delete(site, paths, approver, scheduleDate);
+            deploymentService.delete(site, paths, approver, scheduleDate, null);
         } catch (DeploymentException | SiteNotFoundException ex) {
             logger.error("Unable to delete files due a error ",ex);
         }
