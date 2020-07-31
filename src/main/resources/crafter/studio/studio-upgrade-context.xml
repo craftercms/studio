@@ -192,4 +192,14 @@
     <bean id="templateRenameUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.file.TemplateRenameUpgradeOperation"/>
 
+    <bean id="configEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.ConfigEncryptionUpgradeOperation">
+        <constructor-arg ref="crafter.textEncryptor"/>
+    </bean>
+
+    <bean id="dbEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbEncryptionUpgradeOperation">
+        <constructor-arg ref="internalTextEncryptor"/>
+    </bean>
+
 </beans>
