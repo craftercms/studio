@@ -88,28 +88,33 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path)
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
+                                 String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.add(path);
         contentToDelete.addAll(getChildItems(siteId, path));
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(), ZonedDateTime.now(ZoneOffset.UTC));
+        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
     }
 
     @Override
-    public boolean deleteContent(String siteId, List<String> paths)
+    @HasPermission(type = DefaultPermission.class, action = "delete_content")
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId, List<String> paths,
+                                 String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.addAll(paths);
         contentToDelete.addAll(getChildItems(siteId, paths));
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(), ZonedDateTime.now(ZoneOffset.UTC));
+        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;

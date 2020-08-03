@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.9.1'
+  version: '3.1.9.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3048,6 +3048,12 @@ paths:
             type: array
             items:
               type: string
+        - name: submissionComment
+          in: query
+          description: Submission comment
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Deleted
