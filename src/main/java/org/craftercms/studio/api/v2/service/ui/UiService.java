@@ -43,6 +43,8 @@ public interface UiService {
      * Returns the active environment.
      *
      * @return active environment
+     *
+     * @throws AuthenticationException authentication error
      */
     String getActiveEnvironment() throws AuthenticationException;
 

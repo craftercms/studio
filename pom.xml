@@ -15,112 +15,49 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<project
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.craftercms</groupId>
     <artifactId>crafter-studio</artifactId>
+    <version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
+
     <name>Crafter Studio</name>
     <description>Crafter Content Authoring Application</description>
     <url>https://github.com/craftercms/studio</url>
 
-    <packaging>war</packaging>
-    <version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
-    <organization>
-        <name>CrafterCMS</name>
-        <url>http://craftercms.org</url>
-    </organization>
-
-    <properties>
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tika.version>1.5</tika.version>
-        <mockito.version>1.9.5</mockito.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
-        <testng.version>6.9.10</testng.version>
-        <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
-        <studio.ui.node.version>v13.6.0</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.22.4</studio.ui.yarn.version>
-        <spring.version>4.3.18.RELEASE</spring.version>
-        <spring.security.version>4.2.13.RELEASE</spring.security.version>
-        <spring.data.version>2.0.9.RELEASE</spring.data.version>
-        <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
-        <box.sdk.version>2.25.1</box.sdk.version>
-        <tinify.version>1.5.1</tinify.version>
-        <mariadb4j.version>2.4.7</mariadb4j.version>
-        <jackson.version>2.10.3</jackson.version>
-        <jackson.databind.version>2.10.3</jackson.databind.version>
-        <bouncycastle.version>1.60</bouncycastle.version>
-        <sardine.version>5.9</sardine.version>
-        <saxon.version>9.8.0-14</saxon.version>
-        <apache.cxf.version>3.1.18</apache.cxf.version>
-        <nekohtml.version>1.9.22</nekohtml.version>
-        <xerces.version>2.12.0</xerces.version>
-    </properties>
-
-    <licenses>
-        <license>
-            <name>GNU GENERAL PUBLIC LICENSE, Version 3</name>
-            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <developers>
-        <developer>
-            <id>sumerjabri</id>
-            <name>Sumer Jabri</name>
-            <email>sumer.jabri@craftercms.org</email>
-        </developer>
-        <developer>
-            <name>Russ Danner</name>
-            <email>russ.danner@craftercms.org</email>
-        </developer>
-        <developer>
-            <id>dejanbrkic</id>
-            <name>Dejan Brkic</name>
-            <email>dejan.brkic@craftercms.org</email>
-        </developer>
-    </developers>
     <scm>
         <connection>scm:git:git://github.com/craftercms/studio</connection>
         <developerConnection>scm:git:git://github.com/craftercms/studio</developerConnection>
         <url>scm:git:git://github.com/craftercms/studio</url>
     </scm>
 
+    <packaging>war</packaging>
 
-    <repositories>
-        <repository>
-            <id>sonatype-snapshots</id>
-            <name>sonatype Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-        </repository>
+    <parent>
+        <groupId>org.craftercms</groupId>
+        <artifactId>craftercms</artifactId>
+        <version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
+    </parent>
 
-        <repository>
-            <id>jgit-snapshot-repository</id>
-            <url>https://repo.eclipse.org/content/groups/jgit/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+    <properties>
+        <!-- Overrides are listed here -->
+        <exec.maven.version>1.5.0</exec.maven.version>
+        <frontend.maven.version>1.7.6</frontend.maven.version>
+
+        <studio.ui.path>target/ui/</studio.ui.path>
+        <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.node.version>v13.6.0</studio.ui.node.version>
+        <studio.ui.yarn.version>v1.22.4</studio.ui.yarn.version>
+    </properties>
 
     <dependencies>
         <!-- Servlet -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
+            <version>${servlet.api.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -138,6 +75,10 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava-collections</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -172,19 +113,21 @@
         <dependency>
             <groupId>org.apache.ibatis</groupId>
             <artifactId>ibatis-sqlmap</artifactId>
-            <version>2.3.0</version>
+            <version>${ibatis.sqlmap.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis-spring</artifactId>
-            <version>1.3.1</version>
+            <version>${mybatis.spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
-            <version>3.4.5</version>
+            <version>${mybatis.version}</version>
         </dependency>
+
+        <!-- Spring -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
@@ -251,21 +194,24 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
-            <version>1.1</version>
-        </dependency>
+
+        <!-- Commons -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>
-            <version>2.1.1</version>
+            <version>${commons.dbcp2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>${commons.fileupload.version}</version>
         </dependency>
 
         <dependency>
             <groupId>net.sf.json-lib</groupId>
             <artifactId>json-lib</artifactId>
-            <version>2.4</version>
+            <version>${json.lib.version}</version>
             <classifier>jdk15</classifier>
             <exclusions>
                 <exclusion>
@@ -279,24 +225,30 @@
             </exclusions>
         </dependency>
 
-        <!-- collections -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
+
+        <!-- Other -->
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>${jta.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.23</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>1.3.3</version>
+            <version>${freemarker.version}</version>
         </dependency>
 
         <!-- JGit -->
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>5.8.0.202006091008-r</version>
+            <version>${jgit.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
@@ -308,7 +260,7 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit.ssh.jsch</artifactId>
-            <version>5.8.0.202006091008-r</version>
+            <version>${jgit.version}</version>
         </dependency>
 
         <!-- testing -->
@@ -325,19 +277,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.4</version>
-        </dependency>
-        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.17</version>
+            <version>${snakeyaml.version}</version>
         </dependency>
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>2.4.1</version>
+            <version>${rest.assured.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -358,19 +305,19 @@
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <version>1.5.8</version>
+            <version>${mariadb.java.client.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.23</version>
+            <version>${jcl.over.slf4j.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.23</version>
+            <version>${slf4j.api.version}</version>
         </dependency>
 
         <!-- LDAP -->
@@ -545,39 +492,15 @@
         </dependency>
     </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- AWS SDK -->
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.435</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <build>
         <finalName>studio</finalName>
+        <!-- Overrides are listed here -->
         <plugins>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>overlays/</directory>
-                            <followSymlinks>false</followSymlinks>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <inherited>false</inherited> <!-- only execute these in the parent -->
-                <version>1.5.0</version>
+                <version>${exec.maven.version}</version>
                 <executions>
                     <execution>
                         <id>git get ui</id>
@@ -603,7 +526,7 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.7.6</version>
+                <version>${frontend.maven.version}</version>
                 <configuration>
                     <nodeVersion>${studio.ui.node.version}</nodeVersion>
                     <yarnVersion>${studio.ui.yarn.version}</yarnVersion>
@@ -611,7 +534,6 @@
                     <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
-
                     <execution>
                         <id>install node and yarn</id>
                         <goals>
@@ -630,6 +552,7 @@
                             <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>yarn build sass</id>
                         <goals>
@@ -652,6 +575,7 @@
                             <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>yarn build ui next</id>
                         <goals>
@@ -674,6 +598,7 @@
                             <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>build legacy hybrid files</id>
                         <goals>
@@ -696,6 +621,7 @@
                             <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>build guest</id>
                         <goals>
@@ -718,6 +644,7 @@
                             <workingDirectory>${studio.ui.path}/ui/monaco</workingDirectory>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>build monaco editor</id>
                         <goals>
@@ -729,13 +656,12 @@
                             <arguments>build</arguments>
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.2</version>
+                <version>${buildnumber.maven.version}</version>
                 <executions>
                     <execution>
                         <id>Java Code</id>
@@ -769,18 +695,8 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.4</version>
+                <version>${maven.war.version}</version>
                 <configuration>
                     <attachClasses>true</attachClasses>
                     <warSourceExcludes>**/crafterTemplateRepository/</warSourceExcludes>
@@ -808,6 +724,10 @@
                                 <exclude>/WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-annotations-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-base-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-collections-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-primitives-r03.jar</exclude>
                                 <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                                 <!-- AWS -->
                                 <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
@@ -880,50 +800,6 @@
                     </webResources>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <application.logs>target/test-logs</application.logs>
-                        <crafter.engine.extension.base>classpath*:crafter/studio/extension</crafter.engine.extension.base>
-                        <crafter.bin.dir>target/test-resources/bin</crafter.bin.dir>
-                    </systemPropertyVariables>
-                    <environmentVariables>
-                        <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
-                    </environmentVariables>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 
@@ -934,76 +810,17 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
         </profile>
-        <profile>
-            <id>JDK8</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.4</version>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                                <configuration>
-                                    <additionalparam>-Xdoclint:none</additionalparam>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <version>2.7</version>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.4</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
+    <repositories>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>sonatype-snapshots</id>
+            <name>sonatype Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
         </repository>
-    </distributionManagement>
-
+    </repositories>
 </project>

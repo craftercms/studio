@@ -42,13 +42,12 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 /**
  * Implementation of {@link UpgradeOperation} that executes a database script.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>filename</strong>: (required) the name of the db script file</li>
  *     <li><strong>updateIntegrity</strong>: (optional) indicates if the db integrity should be updated, defaults to
  *     true</li>
  * </ul>
- * </p>
  *
  * @author joseross
  */

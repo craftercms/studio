@@ -49,7 +49,7 @@ import com.google.common.cache.CacheBuilder;
 /**
  * Base implementation of {@link UpgradeOperation} for all content-type related upgrades
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>includedContentTypes</strong>: (optional) list of content-types that can be handled by this
  *     operation, if left unset all content-types will be included</li>
@@ -59,7 +59,6 @@ import com.google.common.cache.CacheBuilder;
  *     performance tuning in case an upgrade needs to parse too many files in the repository. Defaults to 200
  *     </li>
  * </ul>
- * </p>
  *
  * @author joseross
  */

@@ -30,7 +30,7 @@ public class ComponentFilter extends AbstractFilter {
      * filtering for components. compared with contentType and
      * contentType for pages is /cstudio-com/component/....
      *
-     * @param item
+     * @param item item
      * @return true/false
      */
 

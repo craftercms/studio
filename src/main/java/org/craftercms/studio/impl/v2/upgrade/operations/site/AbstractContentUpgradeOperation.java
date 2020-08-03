@@ -41,11 +41,10 @@ import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation
 /**
  * Base implementation of {@link UpgradeOperation} for all site content upgrades
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>includedPaths</strong>: (required) list of patterns to check for files in the repository</li>
  * </ul>
- * </p>
  *
  * @author joseross
  */

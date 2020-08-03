@@ -20,12 +20,12 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -60,6 +60,7 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -76,9 +77,13 @@ import org.eclipse.jgit.util.FS;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
@@ -109,8 +114,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
@@ -141,13 +144,13 @@ public class GitRepositoryHelper {
 
     public static GitRepositoryHelper getHelper(StudioConfiguration studioConfiguration,
                                                 SecurityService securityService,
-                                                UserServiceInternal userServiceInternal)
+                                                UserServiceInternal userServiceInternal,
+                                                TextEncryptor textEncryptor)
             throws CryptoException {
         if (instance == null) {
             instance = new GitRepositoryHelper();
             instance.studioConfiguration = studioConfiguration;
-            instance.encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            instance.encryptor = textEncryptor;
             instance.securityService = securityService;
             instance.userServiceInternal = userServiceInternal;
         }
@@ -295,7 +298,7 @@ public class GitRepositoryHelper {
      *
      * @param repositoryPath path to repository to open (including .git)
      * @return repository object if successful
-     * @throws IOException
+     * @throws IOException IO error
      */
     public Repository openRepository(Path repositoryPath) throws IOException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -422,7 +425,7 @@ public class GitRepositoryHelper {
      * @param user author
      * @return author user as a PersonIdent
      */
-    public PersonIdent getAuthorIdent(User user) throws ServiceLayerException, UserNotFoundException {
+    public PersonIdent getAuthorIdent(User user) {
         PersonIdent currentUserIdent =
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
 
@@ -756,8 +759,9 @@ public class GitRepositoryHelper {
 
     /**
      * Perform an initial commit after large changes to a site. Will not work against the global config repo.
-     * @param site
-     * @param message
+     * @param site site identifier
+     * @param message commit message
+     * @param sandboxBranch sandbox branch name
      * @return true if successful, false otherwise
      */
     public boolean performInitialCommit(String site, String message, String sandboxBranch) {
@@ -965,5 +969,210 @@ public class GitRepositoryHelper {
             logger.debug("Rename temporary orphan branch to sandbox branch");
             git.branchRename().setNewName(sandboxBranchName).setOldName(sandboxBranchOrphanName).call();
         }
+    }
+
+    public void removeSandbox(String siteId) {
+        sandboxes.remove(siteId);
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // TODO: Refactor this because it is just copy from V1
+    /**
+     * Build the global repository as part of system startup and caches it
+     * @return true if successful, false otherwise
+     * @throws IOException IO error
+     */
+    // TODO: SJ: This should be redesigned to return the repository instead of setting it as a "side effect"
+    public boolean buildGlobalRepo() throws IOException {
+        boolean toReturn = false;
+        Path siteRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+
+        if (Files.exists(siteRepoPath)) {
+            globalRepo = openRepository(siteRepoPath);
+            toReturn = true;
+        }
+
+        return toReturn;
+    }
+
+    public boolean createGlobalRepo() {
+        boolean toReturn = false;
+        Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+
+        if (!Files.exists(globalConfigRepoPath)) {
+            // Git repository doesn't exist for global, but the folder might be present, let's delete if exists
+            Path globalConfigPath = globalConfigRepoPath.getParent();
+
+            // Create the global repository folder
+            try {
+                Files.deleteIfExists(globalConfigPath);
+                logger.info("Bootstrapping repository...");
+                Files.createDirectories(globalConfigPath);
+                globalRepo = createGitRepository(globalConfigPath);
+                toReturn = true;
+            } catch (IOException e) {
+                // Something very wrong has happened
+                logger.error("Bootstrapping repository failed", e);
+            }
+        } else {
+            logger.info("Detected existing global repository, will not create new one.");
+            toReturn = false;
+        }
+
+        return toReturn;
+    }
+
+    public boolean deleteSiteGitRepo(String site) {
+        boolean toReturn;
+
+        // Get the Sandbox Path
+        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
+        // Get parent of that (since every site has two repos: Sandbox and Published)
+        Path sitePath = siteSandboxPath.getParent();
+        // Get a file handle to the parent and delete it
+        File siteFolder = sitePath.toFile();
+
+        try {
+            Repository sboxRepo = sandboxes.get(site);
+            if (sboxRepo != null) {
+                sboxRepo.close();
+                sandboxes.remove(site);
+                RepositoryCache.close(sboxRepo);
+                sboxRepo = null;
+            }
+            Repository pubRepo = published.get(site);
+            if (pubRepo != null) {
+                pubRepo.close();
+                published.remove(site);
+                RepositoryCache.close(pubRepo);
+                pubRepo = null;
+            }
+            FileUtils.deleteDirectory(siteFolder);
+
+            toReturn = true;
+
+            logger.debug("Deleted site: " + site + " at path: " + sitePath);
+        } catch (IOException e) {
+            logger.error("Failed to delete site: " + site + " at path: " + sitePath + " exception " +
+                    e.toString());
+            toReturn = false;
+        }
+
+        return toReturn;
+    }
+
+    public boolean writeFile(Repository repo, String site, String path, InputStream content) {
+        boolean result = true;
+
+        try {
+            // Create basic file
+            File file = new File(repo.getDirectory().getParent(), path);
+
+            // Create parent folders
+            File folder = file.getParentFile();
+            if (folder != null) {
+                if (!folder.exists()) {
+                    folder.mkdirs();
+                }
+            }
+
+            // Create the file if it doesn't exist already
+            if (!file.exists()) {
+                try {
+                    if (!file.createNewFile()) {
+                        logger.error("error creating file: site: " + site + " path: " + path);
+                        result = false;
+                    }
+                } catch (IOException e) {
+                    logger.error("error creating file: site: " + site + " path: " + path, e);
+                    result = false;
+                }
+            }
+
+            if (result) {
+                // Write the bits
+                try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
+                    logger.debug("created the file output channel");
+                    ReadableByteChannel inChannel = Channels.newChannel(content);
+                    logger.debug("created the file input channel");
+                    long amount = 1024 * 1024; // 1MB at a time
+                    long count;
+                    long offset = 0;
+                    while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
+                        logger.debug("writing the bits: offset = " + offset + " count: " + count);
+                        offset += count;
+                    }
+                }
+
+                // Add the file to git
+                try (Git git = new Git(repo)) {
+                    git.add().addFilepattern(getGitPath(path)).call();
+
+                    git.close();
+                    result = true;
+                } catch (GitAPIException e) {
+                    logger.error("error adding file to git: site: " + site + " path: " + path, e);
+                    result = false;
+                }
+            }
+        } catch (IOException e) {
+            logger.error("error writing file: site: " + site + " path: " + path, e);
+            result = false;
+        }
+
+        return result;
+    }
+
+    public String commitFile(Repository repo, String site, String path, String comment, PersonIdent user) {
+        String commitId = null;
+        String gitPath = getGitPath(path);
+        Status status;
+
+        try (Git git = new Git(repo)) {
+            status = git.status().addPath(gitPath).call();
+
+            // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
+            if (status.hasUncommittedChanges() || !status.isClean()) {
+                RevCommit commit;
+                commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
+                commitId = commit.getName();
+            }
+
+            git.close();
+        } catch (GitAPIException e) {
+            logger.error("error adding and committing file to git: site: " + site + " path: " + path, e);
+        }
+
+        return commitId;
+    }
+
+    /**
+     * Return the current user identity as a jgit PersonIdent
+     *
+     * @return current user as a PersonIdent
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     */
+    public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
+        String userName = securityService.getCurrentUser();
+        return getAuthorIdent(userName);
+    }
+
+    /**
+     * Return the author identity as a jgit PersonIdent
+     *
+     * @param author author
+     * @return author user as a PersonIdent
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
+     */
+    public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
+        User user = userServiceInternal.getUserByIdOrUsername(-1, author);
+        PersonIdent currentUserIdent =
+                new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
+
+        return currentUserIdent;
     }
 }

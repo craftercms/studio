@@ -16,8 +16,12 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GIT_NAME;
 
 public interface UserDAO {
 
@@ -96,6 +100,7 @@ public interface UserDAO {
     /**
      * Get total number of users
      *
+     * @param params SQL query params
      * @return total number of users for site
      */
     int getAllUsersForSiteTotal(Map params);
@@ -118,7 +123,7 @@ public interface UserDAO {
     /**
      * Check if user exists
      *
-     * @param params
+     * @param params SQL query params
      * @return positive number if user exists, otherwise 0
      */
     Integer userExists(Map params);
@@ -126,7 +131,15 @@ public interface UserDAO {
     /**
      * Check if user is member of given group
      * @param params SQL query parameters
-     * @return if true result > 0
+     * @return if true result greater than 0
      */
     Integer isUserMemberOfGroup(Map params);
+
+    /**
+     * Get user by git name
+     *
+     * @param gitName SQL query parameter
+     * @return User or null if not found
+     */
+    User getUserByGitName(@Param(GIT_NAME) String gitName);
 }

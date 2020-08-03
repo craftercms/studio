@@ -750,10 +750,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param user username of actor
      * @return call result
-     * @throws ServiceLayerException
      */
     @Override
     @ValidateParams
@@ -765,10 +765,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param operation operation
      * @return call result
-     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approve(String site, String request, Operation operation) {
@@ -923,10 +923,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param operation operation
      * @return call result
-     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approve_new(String site, String request, Operation operation) {
@@ -1102,13 +1102,9 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
                     .CompleteMessages, responseMessageKey, Locale.ENGLISH));
 
-        } catch (JSONException e) {
+        } catch (JSONException | ServiceLayerException e) {
             logger.error("error performing operation " + operation + " " + e);
 
-            result.setSuccess(false);
-            result.setMessage(e.getMessage());
-        } catch (ServiceLayerException e) {
-            logger.error("error performing operation " + operation + " " + e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1118,10 +1114,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param operation operation
      * @return call result
-     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approveWithoutDependencies(String site, String request, Operation operation) {

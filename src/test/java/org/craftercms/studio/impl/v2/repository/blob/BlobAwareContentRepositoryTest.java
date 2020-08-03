@@ -72,10 +72,10 @@ public class BlobAwareContentRepositoryTest {
     private BlobAwareContentRepository proxy;
 
     @Mock
-    private GitContentRepository localV1;
+    private org.craftercms.studio.impl.v1.repository.git.GitContentRepository localV1;
 
     @Mock
-    private org.craftercms.studio.impl.v2.repository.GitContentRepository localV2;
+    private GitContentRepository localV2;
 
     @Mock
     private StudioBlobStore store;

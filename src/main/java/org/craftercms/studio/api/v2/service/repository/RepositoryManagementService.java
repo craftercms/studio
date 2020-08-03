@@ -20,6 +20,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
@@ -42,7 +43,8 @@ public interface RepositoryManagementService {
 
     void rebuildDatabase(String siteId);
 
-    boolean removeRemote(String siteId, String remoteName) throws CryptoException, SiteNotFoundException;
+    boolean removeRemote(String siteId, String remoteName)
+            throws CryptoException, SiteNotFoundException, RemoteNotRemovableException;
 
     RepositoryStatus getRepositoryStatus(String siteId) throws CryptoException, ServiceLayerException;
 

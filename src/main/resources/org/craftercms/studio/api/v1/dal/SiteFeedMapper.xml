@@ -34,6 +34,7 @@
         <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
         <result property="searchEngine" column="search_engine" />
+        <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -140,4 +141,8 @@
     <select id="getDeletedSites" resultMap="SiteFeedMap">
         SELECT * FROM site WHERE deleted = 1 AND system = 0
     </select>
+
+    <update id="setPublishedRepoCreated">
+        UPDATE site SET published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
+    </update>
 </mapper>

@@ -37,8 +37,8 @@ public abstract class ContentComparatorBase<T> implements Comparator<T> {
 	/**
 	 * constructor
 	 * 
-	 * @param sort
-	 * @param ascending
+	 * @param sort sort strategy
+	 * @param ascending order
 	 */
 	public ContentComparatorBase(final String sort, final boolean ascending) {
 		this._ascending = ascending;
@@ -48,9 +48,9 @@ public abstract class ContentComparatorBase<T> implements Comparator<T> {
 	/**
 	 * compare dates
 	 * 
-	 * @param value1
-	 * @param value2
-	 * @param ascending
+	 * @param value1 value 1
+	 * @param value2 value 2
+	 * @param ascending ascending
 	 * @return sorting result
 	 */
 	protected int compareDates(ZonedDateTime value1, ZonedDateTime value2, boolean ascending) {
@@ -70,9 +70,9 @@ public abstract class ContentComparatorBase<T> implements Comparator<T> {
 	/**
 	 * compare dates
 	 * 
-	 * @param value1
-	 * @param value2
-	 * @param ascending
+	 * @param value1 value 1
+	 * @param value2 value 2
+	 * @param ascending ascending
 	 * @return sorting result
 	 */
 	protected int compareStrings(String value1, String value2, boolean ascending) {

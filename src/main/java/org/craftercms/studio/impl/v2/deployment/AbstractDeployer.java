@@ -53,7 +53,7 @@ public abstract class AbstractDeployer implements Deployer {
     public AbstractDeployer() {
         restTemplate = new RestTemplate();
         restTemplate.setErrorResponseType(Map.class);
-        restTemplate.init();
+        restTemplate.afterPropertiesSet();
     }
 
     @Required

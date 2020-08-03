@@ -57,6 +57,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.G
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -113,9 +114,10 @@ public class ContentController {
     @DeleteMapping(DELETE)
     public ResponseBody delete(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths)
+            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths,
+            @RequestParam(value = REQUEST_PARAM_SUBMISSION_COMMENT, required = false) String submissionComment)
             throws DeploymentException, AuthenticationException, ServiceLayerException {
-        contentService.deleteContent(siteId, paths);
+        contentService.deleteContent(siteId, paths, submissionComment);
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();

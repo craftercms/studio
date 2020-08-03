@@ -30,6 +30,9 @@ public interface DependencyServiceInternal {
      *
      * @param site Site to operate on
      * @param path Paths to item to retrieve deps for
+     *
+     * @return list of soft dependencies
+     *
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
@@ -43,6 +46,9 @@ public interface DependencyServiceInternal {
      *
      * @param site Site to operate on
      * @param paths List of paths to items to retrieve deps for
+     *
+     * @return list of soft dependencies
+     *
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
@@ -57,6 +63,9 @@ public interface DependencyServiceInternal {
      *
      * @param site Site to operate on
      * @param path Paths to item to retrieve deps for
+     *
+     * @return list of hard dependencies
+     *
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
@@ -71,6 +80,9 @@ public interface DependencyServiceInternal {
      *
      * @param site Site to operate on
      * @param paths List of paths to items to retrieve deps for
+     *
+     * @return list of hard dependencies
+     *
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ServiceLayerException Internal error, see exception details
      */
@@ -82,6 +94,7 @@ public interface DependencyServiceInternal {
      *
      * @param siteId site identifier
      * @param path path to get dependent items for
+     *
      * @return list of paths dependent on given
      */
     List<String> getDependentItems(String siteId, String path);

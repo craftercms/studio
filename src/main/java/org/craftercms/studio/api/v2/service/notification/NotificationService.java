@@ -80,7 +80,7 @@ public interface NotificationService {
      * @param submitterUser User that submit the content to approval.
      * @param itemsSubmitted List of Item paths that where approve (can be null)
      * @param approver User that approve the content.
-     * @param scheduleDate
+     * @param scheduleDate scheduled date
      * @param locale Language of the notification ,if null defaults to English.
      */
     void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted,
@@ -109,6 +109,7 @@ public interface NotificationService {
      * @param scheduleDate When the content should go live (null if now (or as soon is approve)).
      * @param locale Language of the message ,if null defaults to English.
      * @param isADelete Is this submission a delete one.
+     * @param submissionComments submission comments
      */
     void notifyApprovesContentSubmission(final String site, final List<String> usersToNotify, final List<String>
         itemsSubmitted, final String submitter, final ZonedDateTime scheduleDate,final boolean isADelete,final String

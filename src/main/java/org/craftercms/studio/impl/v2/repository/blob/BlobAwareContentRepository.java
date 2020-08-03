@@ -22,6 +22,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
@@ -364,7 +365,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException {
+            throws DeploymentException, CryptoException {
         localRepositoryV1.initialPublish(site, sandboxBranch, environment, author, comment);
     }
 
@@ -429,24 +430,25 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch)
+            throws ServiceLayerException, CryptoException {
         return localRepositoryV1.listRemote(siteId, sandboxBranch);
     }
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException {
+            InvalidRemoteUrlException, CryptoException {
         return localRepositoryV1.pushToRemote(siteId, remoteName, remoteBranch);
     }
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException {
+            InvalidRemoteUrlException, CryptoException {
         return localRepositoryV1.pullFromRemote(siteId, remoteName, remoteBranch);
     }
 
     @Override
-    public void resetStagingRepository(String siteId) throws ServiceLayerException {
+    public void resetStagingRepository(String siteId) throws ServiceLayerException, CryptoException {
         localRepositoryV1.resetStagingRepository(siteId);
     }
 

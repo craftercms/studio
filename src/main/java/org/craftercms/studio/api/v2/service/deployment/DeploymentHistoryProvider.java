@@ -31,9 +31,10 @@ public interface DeploymentHistoryProvider {
      * @param environmentNames list of environment names
      * @param fromDate date from
      * @param toDate date to
-     * @param dmFilterWrapper
-     *@param filterType filter items by type
-     * @param numberOfItems number of items in result set   @return
+     * @param dmFilterWrapper filter wrapper
+     * @param filterType filter items by type
+     * @param numberOfItems number of items in result set
+     * @return deployment history
      */
     List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames, ZonedDateTime fromDate,
                                                      ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper,

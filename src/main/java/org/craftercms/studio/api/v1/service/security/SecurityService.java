@@ -37,13 +37,17 @@ public interface SecurityService {
 
 	/**
 	 * authenticate a user. returns ticket
-	 * @param username
-	 * @param password
+	 * @param username username
+	 * @param password password
+     *
+     * @return session token
 	 */
 	String authenticate(String username, String password) throws Exception;
 
 	/**
 	 * Returns the username of the current user OR NULL if no user is authenticated
+     *
+     * @return  current user
 	 */
 	String getCurrentUser();
 
@@ -51,12 +55,26 @@ public interface SecurityService {
 
     /**
      * Returns the {@link Authentication} for the current user or null if not user is authenticated.
+     *
+     * @return authentication
      */
     Authentication getAuthentication();
 
     Set<String> getUserRoles(String site, String user);
 
     Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Get user by git name.
+     * Special use case because git stores user as string of first and last name separated by ' '
+     * @param gitName first and last name separated with ' '
+     * @return user
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     */
+    Map<String, Object> getUserProfileByGitName(String gitName)
+            throws ServiceLayerException, UserNotFoundException;
 
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
@@ -73,6 +91,8 @@ public interface SecurityService {
      *
      * @param username username
      * @return true if user exists
+     *
+     * @throws ServiceLayerException general service error
      */
     boolean userExists(String username) throws ServiceLayerException;
 
@@ -81,6 +101,8 @@ public interface SecurityService {
      * Get all users
      *
      * @return number of all users
+     *
+     * @throws ServiceLayerException general service error
      */
     int getAllUsersTotal() throws ServiceLayerException;
 
@@ -89,6 +111,10 @@ public interface SecurityService {
      *
      * @param token token
      * @return true if given token is valid
+     *
+     * @throws UserNotFoundException user ont found
+     * @throws UserExternallyManagedException user is externally managed
+     * @throws ServiceLayerException general service error
      */
     boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException,
         ServiceLayerException;
@@ -100,6 +126,11 @@ public interface SecurityService {
      * @param current current password
      * @param newPassword new password
      * @return true if user's password is successfully changed
+     *
+     * @throws UserNotFoundException user not found
+     * @throws UserExternallyManagedException user is externally managed
+     * @throws PasswordDoesNotMatchException password does not match stored password
+     * @throws ServiceLayerException general service error
      */
     boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException,
         PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
@@ -110,6 +141,10 @@ public interface SecurityService {
      * @param token forgot password token
      * @param newPassword new password
      * @return true if uses's password is successfully set
+     *
+     * @throws UserNotFoundException user not found
+     * @throws UserExternallyManagedException user is externally managed
+     * @throws ServiceLayerException general service error
      */
     Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException,
         UserExternallyManagedException, ServiceLayerException;
@@ -120,6 +155,10 @@ public interface SecurityService {
      * @param username username
      * @param newPassword new password
      * @return true if user's password is successfully reset
+     *
+     * @throws UserNotFoundException user not found
+     * @throws UserExternallyManagedException user externally managed
+     * @throws ServiceLayerException general service error
      */
     boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
         UserExternallyManagedException, ServiceLayerException;
@@ -127,8 +166,9 @@ public interface SecurityService {
     /**
      * Validate user's active session
      *
-     * @param request
+     * @param request http request
      * @return true if user session is valid
+     * @throws ServiceLayerException general service error
      */
     boolean validateSession(HttpServletRequest request) throws ServiceLayerException;
 

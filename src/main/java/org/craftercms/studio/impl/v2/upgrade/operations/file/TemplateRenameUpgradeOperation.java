@@ -36,11 +36,10 @@ import static org.apache.commons.lang3.StringUtils.removeStart;
 /**
  * Extension of {@link RenameUpgradeOperation} that can rename multiple files based on path patterns
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>basePath</strong>: (optional) relative path to search matches in the site</li>
  * </ul>
- * </p>
  *
  * @author joseross
  * @since 3.1.7

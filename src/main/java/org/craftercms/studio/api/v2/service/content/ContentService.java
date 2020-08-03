@@ -62,9 +62,15 @@ public interface ContentService {
      *  - child items for given path
      * @param siteId site identifier
      * @param path content to be deleted
+     * @param submissionComment  submission comment
      * @return true if success, otherwise false
+     *
+     * @throws ServiceLayerException general service error
+     * @throws AuthenticationException authentication error
+     * @throws DeploymentException deployment error caused by delete
      */
-    boolean deleteContent(String siteId, String path) throws ServiceLayerException, AuthenticationException, DeploymentException;
+    boolean deleteContent(String siteId, String path, String submissionComment)
+            throws ServiceLayerException, AuthenticationException, DeploymentException;
 
     /**
      * Delete content for given paths. Following content will be deleted:
@@ -72,9 +78,15 @@ public interface ContentService {
      *  - child items for given paths
      * @param siteId site identifier
      * @param paths content to be deleted
+     * @param submissionComment submission comment
      * @return true if success, otherwise false
+     *
+     * @throws ServiceLayerException general service error
+     * @throws AuthenticationException authentication error
+     * @throws DeploymentException deployment error caused by delete
      */
-    boolean deleteContent(String siteId, List<String> paths) throws ServiceLayerException, AuthenticationException, DeploymentException;
+    boolean deleteContent(String siteId, List<String> paths, String submissionComment)
+            throws ServiceLayerException, AuthenticationException, DeploymentException;
 
     /**
      * Get list of children for given path

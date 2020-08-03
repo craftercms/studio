@@ -25,6 +25,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -33,6 +34,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -75,6 +77,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private ServicesConfig servicesConfig;
     private GitRepositories repositoryType;
     private DeploymentService deploymentService;
+    private EventService eventService;
+    private TextEncryptor encryptor;
 
     private ReentrantLock singleWorkerLock = new ReentrantLock();
     private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
@@ -111,6 +115,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                 nodeGlobalRepoSyncTask.setClusterNodes(clusterMembers);
                                 nodeGlobalRepoSyncTask.setContentRepository(contentRepository);
                                 nodeGlobalRepoSyncTask.setStudioConfiguration(studioConfiguration);
+                                nodeGlobalRepoSyncTask.setEncryptor(encryptor);
                                 taskExecutor.execute(nodeGlobalRepoSyncTask);
                             } else {
                                 cleanupDeletedSites();
@@ -139,6 +144,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodeSandobxSyncTask.setServicesConfig(servicesConfig);
                                                 nodeSandobxSyncTask.setClusterNodes(clusterMembers);
                                                 nodeSandobxSyncTask.setDeploymentService(deploymentService);
+                                                nodeSandobxSyncTask.setEventService(eventService);
+                                                nodeSandobxSyncTask.setEncryptor(encryptor);
                                                 taskExecutor.execute(nodeSandobxSyncTask);
                                                 break;
                                             case PUBLISHED:
@@ -153,6 +160,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodePublishedSyncTask.setServicesConfig(servicesConfig);
                                                 nodePublishedSyncTask.setClusterNodes(clusterMembers);
                                                 nodePublishedSyncTask.setDeploymentService(deploymentService);
+                                                nodePublishedSyncTask.setEncryptor(encryptor);
                                                 taskExecutor.execute(nodePublishedSyncTask);
                                                 break;
                                         }
@@ -314,4 +322,17 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
     }
+
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }

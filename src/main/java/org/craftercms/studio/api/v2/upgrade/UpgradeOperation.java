@@ -31,8 +31,11 @@ public interface UpgradeOperation {
      * @param sourceVersion the starting version
      * @param targetVersion the target version
      * @param config operation configuration
+     *
+     * @throws UpgradeException general upgrade error
      */
-    void init(String sourceVersion, String targetVersion, HierarchicalConfiguration<ImmutableNode> config) throws UpgradeException;
+    void init(String sourceVersion, String targetVersion, HierarchicalConfiguration<ImmutableNode> config)
+            throws UpgradeException;
 
     /**
      * Performs a single upgrade operation.

@@ -92,7 +92,8 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path)
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
+                                 String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.add(path);
@@ -101,7 +102,8 @@ public class ContentServiceImpl implements ContentService {
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
 
         AuthenticatedUser currentUser = userService.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(), ZonedDateTime.now(ZoneOffset.UTC));
+        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
@@ -109,7 +111,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean deleteContent(String siteId, List<String> paths)
+    @HasPermission(type = DefaultPermission.class, action = "delete_content")
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId, List<String> paths,
+                                 String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.addAll(paths);
@@ -117,7 +121,8 @@ public class ContentServiceImpl implements ContentService {
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(), ZonedDateTime.now(ZoneOffset.UTC));
+        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);

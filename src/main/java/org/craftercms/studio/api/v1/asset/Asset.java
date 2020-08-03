@@ -32,16 +32,10 @@ public class Asset {
         this.filePath = filePath;
     }
 
-    /**
-     * Returns the repo path for the asset.
-     */
     public String getRepoPath() {
         return repoPath;
     }
 
-    /**
-     * Sets the file path where the asset is temporarily being stored.
-     */
     public Path getFilePath() {
         return filePath;
     }

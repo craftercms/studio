@@ -23,7 +23,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -94,7 +93,6 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
@@ -118,6 +116,7 @@ public class UserServiceImpl implements UserService {
     private JavaMailSender emailService;
     private JavaMailSender emailServiceNoAuth;
     private InstanceService instanceService;
+    private TextEncryptor encryptor;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -457,8 +456,6 @@ public class UserServiceImpl implements UserService {
 
     private String encryptToken(String token) {
         try {
-            TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
             String hashedToken = encryptor.encrypt(token);
             return Base64.getEncoder().encodeToString(hashedToken.getBytes(StandardCharsets.UTF_8));
         } catch (CryptoException e) {
@@ -469,8 +466,6 @@ public class UserServiceImpl implements UserService {
 
     private String decryptToken(String hashedToken) {
         try {
-            TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
             byte[] hashedTokenBytes = Base64.getDecoder().decode(hashedToken.getBytes(StandardCharsets.UTF_8));
             return encryptor.decrypt(new String(hashedTokenBytes, StandardCharsets.UTF_8));
         } catch (CryptoException e) {
@@ -710,4 +705,9 @@ public class UserServiceImpl implements UserService {
     public void setInstanceService(InstanceService instanceService) {
         this.instanceService = instanceService;
     }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }

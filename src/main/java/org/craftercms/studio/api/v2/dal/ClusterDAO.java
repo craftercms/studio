@@ -31,6 +31,7 @@ public interface ClusterDAO {
     /**
      * Get number of active cluster members from database
      *
+     * @param params SQL query params
      * @return number of active cluster members
      */
     int countActiveMembers(Map params);
@@ -38,6 +39,7 @@ public interface ClusterDAO {
     /**
      * Get other cluster members from database - different from member executing query
      *
+     * @param params SQL query params
      * @return List of cluster members
      */
     List<ClusterMember> getOtherMembers(Map params);
@@ -128,5 +130,11 @@ public interface ClusterDAO {
      */
     List<ClusterMember> getInactiveMembersWithStaleHeartbeat(Map params);
 
-
+    /**
+     * Get member by git remote repository name
+     *
+     * @param params Parameters for SQL query
+     * @return List members
+     */
+    List<ClusterMember> getMemberByRemoteName(Map params);
 }

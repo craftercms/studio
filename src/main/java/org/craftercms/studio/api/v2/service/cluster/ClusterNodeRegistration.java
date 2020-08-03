@@ -37,7 +37,7 @@ public interface ClusterNodeRegistration {
      *
      * @return true if registration was successful
      *
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     boolean registerClusterNode(ClusterMember clusterMember) throws ServiceLayerException;
 

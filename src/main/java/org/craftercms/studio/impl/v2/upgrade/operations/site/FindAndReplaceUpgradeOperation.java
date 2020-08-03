@@ -29,13 +29,12 @@ import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 /**
  * Implementation of {@link UpgradeOperation} that replaces text in the content repository.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>pattern</strong>: (required) the pattern to search in the files, can be a regular expression</li>
  *     <li><strong>replacement</strong>: (required) the expression to replace in the files, can use matched groups
  *     from the regular expression in the pattern</li>
  * </ul>
- * </p>
  *
  * @author joseross
  */

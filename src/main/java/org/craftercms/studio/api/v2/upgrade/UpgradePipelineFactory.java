@@ -26,7 +26,7 @@ public interface UpgradePipelineFactory {
 
     /**
      * Retrieves the needed upgrade operations based on the given version.
-     * @param versionProvider
+     * @param versionProvider version provider
      * @return the upgrade pipeline
      * @throws UpgradeException if there is any error retrieving the operations
      */

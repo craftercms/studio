@@ -822,7 +822,12 @@ pipelines:
               dest: configuration/samples/sample-permission-mappings-config.xml
           commitDetails: Update sample file for proxy-config.xml
         - type: dbVersionUpgrader
-    - currentVersion: 3.1.8.1
+
+    # TODO: Add an operation that always fails if the version is 3.1.8.x?
+
+    # Direct upgrades from 3.1.8 or previous to 3.2.x are not supported, only from 3.1.9+
+    # Until we have 3.1.10 we need to make sure this always points to the latest 3.1.x version
+    - currentVersion: 3.1.9.2
       nextVersion: 3.2.0.1
       operations:
         - type: globalRepoUpgrader
@@ -834,13 +839,18 @@ pipelines:
     - currentVersion: 3.2.0.1
       nextVersion: 3.2.0.2
       operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.2.0.1-to-3.2.0.2.sql
+    - currentVersion: 3.2.0.2
+      nextVersion: 3.2.0.3
+      operations:
         - type: globalRepoUpgrader
           files:
             - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
               dest: configuration/samples/sample-permission_mappings-config.xml
           commitDetails: Add sample file for translation-config.xml
         - type: dbScriptUpgrader
-          filename: upgrade-3.2.0.1-to-3.2.0.2.sql
+          filename: upgrade-3.2.0.2-to-3.2.0.3.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -1044,7 +1054,11 @@ pipelines:
           replacement: authoringUrl
         - type: versionFileUpgrader
 
-    - currentVersion: 3.1.7.3
+    # TODO: Add an operation that always fails if the version is 3.1.7.x?
+
+    # Direct upgrades from 3.1.8 or previous to 3.2.x are not supported, only from 3.1.9+
+    # Until we have 3.1.10 we need to make sure this always points to the latest 3.1.x version
+    - currentVersion: 3.1.9.0
       nextVersion: 3.2.0
       operations:
         - type: addFileUpgrader

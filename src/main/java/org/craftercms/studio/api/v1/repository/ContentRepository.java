@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v1.repository;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -43,7 +44,7 @@ public interface ContentRepository {
      * Determine if content exists in the repository at a given path
      *
      * @param site site id where the operation will be executed
-     * @param path
+     * @param path path to check if content exists
      * @return true if site has content object at path
      */
     boolean contentExists(String site, String path);
@@ -52,8 +53,10 @@ public interface ContentRepository {
      * get document from wcm content
      *
      * @param site site id where the operation will be executed
-     * @param path
+     * @param path path of the content
      * @return document
+     *
+     * @throws ContentNotFoundException content not found at given path
      */
     InputStream getContent(String site, String path) throws ContentNotFoundException;
 
@@ -73,6 +76,8 @@ public interface ContentRepository {
      * @param path    path to content
      * @param content stream of content to write
      * @return Commit Id if successful, null otherwise
+     *
+     * @throws ServiceLayerException if error happens during write
      */
     String writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
@@ -175,6 +180,8 @@ public interface ContentRepository {
      * @param site    site id where the operation will be executed
      * @param path    - the path of the item to "revert"
      * @param version - old version ID to base to version on
+     * @param major flag if it is major version
+     * @param comment add comment when committing content
      * @return Commit ID if successful, empty string otherwise
      */
     String revertContent(String site, String path, String version, boolean major, String comment);
@@ -186,6 +193,8 @@ public interface ContentRepository {
      * @param path    path of the content
      * @param version version to return
      * @return input stream
+     *
+     * @throws ContentNotFoundException content not found for given path and version
      */
     InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
 
@@ -194,7 +203,7 @@ public interface ContentRepository {
      * NOTE: site will be removed from this interface
      *
      * @param site site id where the operation will be executed
-     * @param path
+     * @param path path of the item
      */
     void lockItem(String site, String path); // TODO: SJ: Change to have a return
 
@@ -203,7 +212,7 @@ public interface ContentRepository {
      * NOTE: site will be removed from this interface
      *
      * @param site site id where the operation will be executed
-     * @param path
+     * @param path path of the item
      */
     void lockItemForPublishing(String site, String path); // TODO: SJ: Change to have a return
 
@@ -212,7 +221,7 @@ public interface ContentRepository {
      * NOTE: site will be removed from this interface
      *
      * @param site site id where the operation will be executed
-     * @param path
+     * @param path path of the item
      */
     void unLockItem(String site, String path); // TODO: SJ: Change to have a return
 
@@ -221,7 +230,7 @@ public interface ContentRepository {
      * NOTE: site will be removed from this interface
      *
      * @param site site id where the operation will be executed
-     * @param path
+     * @param path path of the item
      */
     void unLockItemForPublishing(String site, String path); // TODO: SJ: Change to have a return
 
@@ -236,14 +245,17 @@ public interface ContentRepository {
     /**
      * Initial publish to specified environment.
      *
-     * @param site
-     * @param sandboxBranch
-     * @param environment
-     * @param author
-     * @param comment
+     * @param site site identifier
+     * @param sandboxBranch sandbox branch name
+     * @param environment environment to publish
+     * @param author author
+     * @param comment comment
+     *
+     * @throws DeploymentException deployment error
+     * @throws CryptoException git repository helper error
      */
     void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException;
+            throws DeploymentException, CryptoException;
 
     /**
      * Get last commit id from repository for given site.
@@ -293,10 +305,19 @@ public interface ContentRepository {
      * @param siteId         site identifier
      * @param remoteName     remote name
      * @param remoteUrl      remote repository url
+     * @param authenticationType type of authentication to use to connect to remote repository
      * @param remoteUsername remote username
      * @param remotePassword remote password
+     * @param remoteToken    remote token
+     * @param remotePrivateKey remote private key
      * @param createAsOrphan create as orphan
      * @return true if success
+     *
+     * @throws InvalidRemoteRepositoryException invalid remote repository
+     * @throws InvalidRemoteRepositoryCredentialsException invalid credentials to access remote repository
+     * @throws RemoteRepositoryNotFoundException remote repository not found
+     * @throws RemoteRepositoryNotBareException remote repository is not bare
+     * @throws ServiceLayerException general service error creating site and pushing to remote
      */
     boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
                                    String remoteUsername, String remotePassword, String remoteToken,
@@ -316,6 +337,9 @@ public interface ContentRepository {
      * @param remoteToken        remote token
      * @param remotePrivateKey   remote private key
      * @return true if operation was successful
+     *
+     * @throws InvalidRemoteUrlException invalid url for remote repository
+     * @throws ServiceLayerException general service error
      */
     boolean addRemote(String siteId, String remoteName, String remoteUrl,
                       String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
@@ -335,8 +359,12 @@ public interface ContentRepository {
      * @param siteId site identifier
      * @param sandboxBranch sandbox branch name
      * @return list of names of remote repositories
+     *
+     * @throws ServiceLayerException general service error
+     * @throws CryptoException git repository helper error
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch)
+            throws ServiceLayerException, CryptoException;
 
     /**
      * Push content to remote repository
@@ -345,9 +373,13 @@ public interface ContentRepository {
      * @param remoteName   remote name
      * @param remoteBranch remote branch
      * @return true if operation was successful
+     *
+     * @throws ServiceLayerException general service error
+     * @throws InvalidRemoteUrlException invalid url for remote repository
+     * @throws CryptoException git repository helper error
      */
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException;
+            InvalidRemoteUrlException, CryptoException;
 
     /**
      * Pull from remote repository
@@ -356,9 +388,13 @@ public interface ContentRepository {
      * @param remoteName   remote name
      * @param remoteBranch remote branch
      * @return true if operation was successful
+     *
+     * @throws ServiceLayerException general service error
+     * @throws InvalidRemoteUrlException invalid url for remote repository
+     * @throws CryptoException git repository helper error
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException;
+            InvalidRemoteUrlException, CryptoException;
 
     /**
      * Check if content at given path is folder
@@ -373,8 +409,11 @@ public interface ContentRepository {
      * Reset staging repository to live for given site
      *
      * @param siteId site identifier to use for resetting
+     *
+     * @throws ServiceLayerException general service error
+     * @throws CryptoException git repository helper error
      */
-    void resetStagingRepository(String siteId) throws ServiceLayerException;
+    void resetStagingRepository(String siteId) throws ServiceLayerException, CryptoException;
 
     /**
      * Reload repository for given site

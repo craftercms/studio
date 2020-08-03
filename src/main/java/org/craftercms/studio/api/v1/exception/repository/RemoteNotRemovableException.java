@@ -14,22 +14,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.security;
+package org.craftercms.studio.api.v1.exception.repository;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+public class RemoteNotRemovableException extends Exception {
 
-/**
- * @author joseross
- */
-public interface EncryptionService {
+    private static final long serialVersionUID = 6683185301012812522L;
 
-    /**
-     * Encrypt text
-     *
-     * @param siteId site identifier
-     * @param text text to encrypt
-     * @return encrypted text
-     * @throws ServiceLayerException general service error
-     */
-    String encrypt(String siteId, String text) throws ServiceLayerException;
+    public RemoteNotRemovableException() {
+    }
+
+    public RemoteNotRemovableException(String s) {
+        super(s);
+    }
+
+    public RemoteNotRemovableException(String s, Throwable throwable) {
+        super(s, throwable);
+    }
+
+    public RemoteNotRemovableException(Throwable throwable) {
+        super(throwable);
+    }
+
+    public RemoteNotRemovableException(String s, Throwable throwable, boolean b, boolean b1) {
+        super(s, throwable, b, b1);
+    }
 }

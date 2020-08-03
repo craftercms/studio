@@ -42,7 +42,7 @@ public class DmOrderTO implements Comparable<DmOrderTO>, Serializable {
 	/**
 	 * copy constructor
 	 * 
-	 * @param order
+	 * @param order order
 	 */
 	public DmOrderTO(DmOrderTO order) {
 		this._id = order._id;

@@ -33,11 +33,10 @@ import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 /**
  * Implementation of {@link UpgradeOperation} that updates multiple files using a XSLT template.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>regex</strong>: (required) the regex used to find files to update</li>
  * </ul>
- * </p>
  *
  * @author joseross
  * @since 3.1.1

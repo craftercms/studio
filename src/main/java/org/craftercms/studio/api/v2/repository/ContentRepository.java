@@ -106,7 +106,7 @@ public interface ContentRepository {
      * @param fromDate lower boundary for published date
      * @param toDate upper boundary for published date
      * @param limit number of records to return
-     * @return
+     * @return publishing history
      */
     List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
                                                      String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
@@ -133,6 +133,7 @@ public interface ContentRepository {
      * @param environment environment to publish to
      * @param author author
      * @param comment submission comment
+     * @throws DeploymentException deployment error
      */
     void publish(String siteId, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                  String author, String comment) throws DeploymentException;
@@ -158,13 +159,26 @@ public interface ContentRepository {
      * Create new site as a clone from remote repository
      *
      * @param siteId         site identifier
+     * @param sandboxBranch  sandbox branch name
      * @param remoteName     remote name
      * @param remoteUrl      remote repository url
+     * @param remoteBranch   remote branch name
+     * @param singleBranch   flag to signal if clone single branch or full repository
+     * @param authenticationType type of authentication to use to connect remote repository
      * @param remoteUsername remote username
      * @param remotePassword remote password
+     * @param remoteToken    remote token
+     * @param remotePrivateKey remote private key
      * @param params         site parameters
      * @param createAsOrphan create as orphan
+     *
      * @return true if success
+     *
+     * @throws InvalidRemoteRepositoryException invalid remote repository
+     * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
+     * @throws RemoteRepositoryNotFoundException remote repository not found
+     * @throws InvalidRemoteUrlException invalid url for remote repository
+     * @throws ServiceLayerException general service error
      */
     boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                   String remoteBranch, boolean singleBranch, String authenticationType,

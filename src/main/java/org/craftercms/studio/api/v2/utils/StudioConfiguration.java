@@ -314,12 +314,12 @@ public interface StudioConfiguration {
 
     /** Serverless Delivery Configuration **/
     String SERVERLESS_DELIVERY_ENABLED = "studio.serverless.delivery.enabled";
-    String SERVERLESS_DELIVERY_LOCAL_DEPLOYER = "studio.serverless.delivery.deployer.local";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_CREATE_URL = "studio.serverless.delivery.deployer.target.createUrl";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_DELETE_URL = "studio.serverless.delivery.deployer.target.deleteUrl";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE = "studio.serverless.delivery.deployer.target.template";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE = "studio.serverless.delivery.deployer.target.replace";
-    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPO_URL = "studio.serverless.delivery.deployer.target.repoUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL = "studio.serverless.delivery.deployer.target.remoteRepoUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH = "studio.serverless.delivery.deployer.target.localRepoPath";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS = "studio.serverless.delivery.deployer.target.template.params";
 
     /** Cache Configuration  **/

@@ -41,7 +41,7 @@ import static java.util.Collections.singletonMap;
 /**
  * Implementation of {@link UpgradeOperation} to update item descriptors that use the Box File Upload control
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>fieldNameXpath</strong>: (required) XPath selector to find the name of the field that uses the Box
  *     control</li>
@@ -54,7 +54,6 @@ import static java.util.Collections.singletonMap;
  *     <li><strong>urlElementName</strong>: (required) Name for the new XML tag to add to the field</li>
  *     <li><strong>urlTemplate</strong>: (required) URL template to generate the new value for the Box file</li>
  * </ul>
- * </p>
  *
  * @author joseross
  */

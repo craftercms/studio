@@ -21,7 +21,6 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -45,9 +44,8 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_SYNC_URL_FORMAT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 
 public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
@@ -56,6 +54,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     private ClusterDAO clusterDao;
     private MetaDAO metaDao;
     private StudioConfiguration studioConfiguration;
+    private TextEncryptor encryptor;
 
     public void init() {
         logger.debug("Autoregister cluster if cluster node is configured");
@@ -87,9 +86,6 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                     clusterMember.setGitRemoteName(getGitRemoteName(clusterMember));
                     clusterMember.setGitAuthType(authenticationType.toLowerCase());
                     clusterMember.setGitUsername(username);
-                    TextEncryptor encryptor = null;
-                    encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                                                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                     if (StringUtils.isEmpty(password)) {
                         clusterMember.setGitPassword(password);
                     } else {
@@ -160,7 +156,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     private String getGitRemoteName(ClusterMember clusterMember) {
         // When the port is specified, replaces the colon since it's an invalid remote name character
-        return clusterMember.getLocalAddress().replace(":", "_");
+        return CLUSTER_NODE_REMOTE_NAME_PREFIX + clusterMember.getLocalAddress().replace(":", "_");
     }
 
     public ClusterDAO getClusterDao() {
@@ -186,4 +182,9 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }
