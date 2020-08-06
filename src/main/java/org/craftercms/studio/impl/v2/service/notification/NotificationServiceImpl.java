@@ -321,7 +321,7 @@ public class NotificationServiceImpl implements NotificationService {
                 }
                 for (Node node : nodes) {
                     if (node.getNodeType() == Node.ELEMENT_NODE) {
-                        Element language = (Element)node;
+                        Element language = (Element) node;
                         String messagesLang = language.attributeValue("name");
                         if (StringUtils.isNotBlank(messagesLang)) {
                             if (!siteNotificationConfig.containsKey(messagesLang)) {
