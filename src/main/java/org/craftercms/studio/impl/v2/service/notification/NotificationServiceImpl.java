@@ -314,35 +314,39 @@ public class NotificationServiceImpl implements NotificationService {
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             if (document != null) {
                 Element root = document.getRootElement();
-                final List<Element> languages = root.selectNodes("//lang");
-                if (languages.isEmpty()) {
+                final List<Node> nodes = root.selectNodes("//lang");
+                if (nodes.isEmpty()) {
                     throw new ConfigurationException("Notification Configuration is a invalid xml file, missing " +
-                        "at " + "least one lang");
-
+                        "at least one lang");
                 }
-                for (Element language : languages) {
-                    String messagesLang = language.attributeValue("name");
-                    if (StringUtils.isNotBlank(messagesLang)) {
-                        if (!siteNotificationConfig.containsKey(messagesLang)) {
-                            siteNotificationConfig.put(messagesLang, new NotificationConfigTO(site));
+                for (Node node : nodes) {
+                    if (node.getNodeType() == Node.ELEMENT_NODE) {
+                        Element language = (Element)node;
+                        String messagesLang = language.attributeValue("name");
+                        if (StringUtils.isNotBlank(messagesLang)) {
+                            if (!siteNotificationConfig.containsKey(messagesLang)) {
+                                siteNotificationConfig.put(messagesLang, new NotificationConfigTO(site));
+                            }
+                            NotificationConfigTO configForLang = siteNotificationConfig.get(messagesLang);
+                            loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
+                                .getMessages());
+                            loadGenericMessage((Element)language.selectSingleNode("//completeMessages"), configForLang
+                                .getCompleteMessages());
+                            loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
+                                .getEmailMessageTemplates());
+                            loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
+                                .getCannedMessages());
+                            loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification"),
+                                configForLang.getDeploymentFailureNotifications());
+                            loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
+                                .getApproverEmails());
+                            loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
+                                    configForLang.getRepositoryMergeConflictNotifications());
+                        } else {
+                            logger.error("A lang section does not have the 'name' attribute, ignoring");
                         }
-                        NotificationConfigTO configForLang = siteNotificationConfig.get(messagesLang);
-                        loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
-                            .getMessages());
-                        loadGenericMessage((Element)language.selectSingleNode("//completeMessages"), configForLang
-                            .getCompleteMessages());
-                        loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
-                            .getEmailMessageTemplates());
-                        loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
-                            .getCannedMessages());
-                        loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification"),
-                            configForLang.getDeploymentFailureNotifications());
-                        loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
-                            .getApproverEmails());
-                        loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
-                                configForLang.getRepositoryMergeConflictNotifications());
                     } else {
-                        logger.error("A lang section does not have the 'name' attribute, ignoring");
+                        logger.info("Unable to execute against a non-XML-element: " + node.getUniquePath());
                     }
                 }
             }
