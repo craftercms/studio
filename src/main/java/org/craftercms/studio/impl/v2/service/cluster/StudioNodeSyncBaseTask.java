@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -27,6 +28,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -35,6 +37,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -57,15 +60,24 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 
 public abstract class StudioNodeSyncBaseTask implements Runnable {
@@ -241,6 +253,15 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             Config storedConfig = repo.getConfig();
             Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
 
+            if (remotes.contains(member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""))) {
+
+                try {
+                    removeRemote(git, member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""));
+                } catch (GitAPIException e) {
+                    logger.debug("Error while cleaning up remote repository", e);
+                }
+            }
+
             if (remotes.contains(member.getGitRemoteName())) {
                 logger.debug("Remote " + member.getGitRemoteName() + " already exists for " + repoType.toString() +
                         " repo for site " + siteId);
@@ -268,6 +289,30 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                          ") for site " + siteId, e);
             throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() +
                                             " (url: " + remoteUrl + ") for site " + siteId, e);
+        }
+    }
+
+    private void removeRemote(Git git, String remoteName) throws GitAPIException {
+        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+        remoteRemoveCommand.setRemoteName(remoteName);
+        remoteRemoveCommand.call();
+
+        List<Ref> resultRemoteBranches = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE)
+                .call();
+
+        List<String> branchesToDelete = new ArrayList<String>();
+        for (Ref remoteBranchRef : resultRemoteBranches) {
+            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                branchesToDelete.add(remoteBranchRef.getName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+            DeleteBranchCommand delBranch = git.branchDelete();
+            String[] array = new String[branchesToDelete.size()];
+            delBranch.setBranchNames(branchesToDelete.toArray(array));
+            delBranch.setForce(true);
+            delBranch.call();
         }
     }
 
@@ -493,5 +538,4 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
     }
-
 }
