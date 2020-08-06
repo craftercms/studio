@@ -151,6 +151,14 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
@@ -247,6 +255,12 @@ public class SiteServiceImpl implements SiteService {
         properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
         properties.put(ItemMetadata.PROP_MODIFIER, user);
         objectMetadataManager.setObjectMetadata(site, path, properties);
+
+        long onStatesMask = MODIFIED.value;
+        long offStatesMask =
+                SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
+                        USER_LOCKED.value;
+        itemServiceInternal.updateStateBits(site, path, onStatesMask, offStatesMask);
 
         if (commitId != null) {
             objectMetadataManager.updateCommitId(site, path, commitId);
@@ -1277,6 +1291,7 @@ public class SiteServiceImpl implements SiteService {
                         item.setLocaleCode(Locale.US.toString());
                         //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
                         item.setCommitId(repoOperation.getCommitId());
+                        item.setState(NEW.value);
                         itemServiceInternal.upsertEntry(site, item);
 
                         break;
@@ -1310,6 +1325,9 @@ public class SiteServiceImpl implements SiteService {
                         // Item
                         item = itemServiceInternal.getItem(site, repoOperation.getPath());
                         exists = !Objects.isNull(item);
+                        if (!exists) {
+                            item = new Item();
+                        }
                         item.setSiteId(siteFeed.getId());
                         item.setPath(repoOperation.getPath());
                         item.setPreviewUrl(repoOperation.getPath());
@@ -1322,6 +1340,11 @@ public class SiteServiceImpl implements SiteService {
                         item.setLocaleCode(Locale.US.toString());
                         //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
                         item.setCommitId(repoOperation.getCommitId());
+                        long onStatesMask = MODIFIED.value + (exists ? 0 : NEW.value);
+                        long offStatesMask =
+                                SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value +
+                                        LIVE.value;
+                        item.setState(item.getState() & offStatesMask | onStatesMask);
                         if (exists) {
                             itemServiceInternal.updateItem(item);
                         } else {
