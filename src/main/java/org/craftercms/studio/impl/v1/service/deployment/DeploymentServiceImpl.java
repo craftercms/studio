@@ -147,6 +147,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, SUBMIT_WITHOUT_WORKFLOW_SCHEDULED,
                     NEW_SUBMITTED_NO_WF_SCHEDULED);
+            itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();

@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
@@ -81,6 +82,13 @@ import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
@@ -113,6 +121,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ObjectStateService objectStateService;
     private EventService eventService;
     private EncryptionAwareConfigurationReader configurationReader;
+    private ItemServiceInternal itemServiceInternal;
 
     private String translationConfig;
 
@@ -313,6 +322,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             objectMetadataManager.insertNewObjectMetadata(siteId, path);
         }
         objectMetadataManager.setObjectMetadata(siteId, path, properties);
+
+        long onStatesMask = MODIFIED.value;
+        long offStatesMask =
+                SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
+                        USER_LOCKED.value;
+        itemServiceInternal.updateStateBits(siteId, path, onStatesMask, offStatesMask);
     }
 
     private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
@@ -437,4 +452,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         this.translationConfig = translationConfig;
     }
 
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
 }

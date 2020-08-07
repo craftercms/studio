@@ -1971,6 +1971,13 @@ public class ContentServiceImpl implements ContentService {
             }
             // Update the database with the commitId for the target item
             objectStateService.transition(site, path, REVERT);
+
+            long onStatesMask = MODIFIED.value;
+            long offStatesMask =
+                    SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
+                            USER_LOCKED.value;
+            itemServiceInternal.updateStateBits(site, path, onStatesMask, offStatesMask);
+
             objectMetadataManager.updateCommitId(site, path, commitId);
             contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);

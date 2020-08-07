@@ -371,7 +371,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (Objects.nonNull(scheduledDate)) {
             onStatesMask += SCHEDULED.value;
         } else {
-            onStatesMask += SCHEDULED.value;
+            offStatesMask += SCHEDULED.value;
         }
         itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), onStatesMask, offStatesMask);
     }
@@ -680,6 +680,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         objectStateService.transitionBulk(site, paths,
                 org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT,
                 State.NEW_UNPUBLISHED_UNLOCKED);
+
+        long onStatesMask = MODIFIED.value;
+        long offStatesMask =
+                SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + USER_LOCKED.value;
+        itemServiceInternal.updateStateBitsBulk(site, paths, onStatesMask, offStatesMask);
     }
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceLayerException {

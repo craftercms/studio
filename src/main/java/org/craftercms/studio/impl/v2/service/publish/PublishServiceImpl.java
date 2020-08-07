@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
@@ -46,6 +47,11 @@ import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.R
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_CANCEL_PUBLISH;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_GET_PUBLISHING_QUEUE;
@@ -58,6 +64,7 @@ public class PublishServiceImpl implements PublishService {
     private ObjectMetadataManager objectMetadataManager;
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
+    private ItemServiceInternal itemServiceInternal;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
@@ -122,6 +129,12 @@ public class PublishServiceImpl implements PublishService {
                 auditLogParameters.add(auditLogParameter);
             }
             objectStateService.transitionBulk(siteId, paths, REJECT, NEW_UNPUBLISHED_UNLOCKED);
+
+            long onStatesMask = MODIFIED.value;
+            long offStatesMask =
+                    SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + USER_LOCKED.value;
+            itemServiceInternal.updateStateBitsBulk(siteId, paths, onStatesMask, offStatesMask);
+
             createAuditLogEntry(siteId, auditLogParameters);
         }
     }
@@ -220,5 +233,13 @@ public class PublishServiceImpl implements PublishService {
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

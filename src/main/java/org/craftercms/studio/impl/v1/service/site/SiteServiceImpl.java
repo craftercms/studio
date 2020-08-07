@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v1.service.site;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -39,7 +38,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.amazonaws.services.s3.internal.Mimetypes;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -1237,6 +1235,8 @@ public class SiteServiceImpl implements SiteService {
                 String contentClass;
                 Map<String, Object> properties;
                 ItemMetadata metadata;
+                long onStatesMask;
+                long offStatesMask;
                 switch (repoOperation.getAction()) {
                     case CREATE:
                     case COPY:
@@ -1277,7 +1277,7 @@ public class SiteServiceImpl implements SiteService {
                         item.setSiteId(siteFeed.getId());
                         item.setPath(repoOperation.getPath());
                         item.setPreviewUrl(repoOperation.getPath());
-                        item.setState(org.craftercms.studio.api.v2.dal.ItemState.NEW.value);
+                        item.setState(NEW.value);
                         item.setOwnedBy(1);
                         item.setCreatedBy(1);
                         item.setCreatedOn(repoOperation.getDateTime());
@@ -1331,7 +1331,6 @@ public class SiteServiceImpl implements SiteService {
                         item.setSiteId(siteFeed.getId());
                         item.setPath(repoOperation.getPath());
                         item.setPreviewUrl(repoOperation.getPath());
-                        item.setState(item.getState() & org.craftercms.studio.api.v2.dal.ItemState.MODIFIED.value);
                         item.setLastModifiedBy(1);
                         item.setLastModifiedOn(repoOperation.getDateTime());
                         item.setLabel("label");
@@ -1340,11 +1339,11 @@ public class SiteServiceImpl implements SiteService {
                         item.setLocaleCode(Locale.US.toString());
                         //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
                         item.setCommitId(repoOperation.getCommitId());
-                        long onStatesMask = MODIFIED.value + (exists ? 0 : NEW.value);
-                        long offStatesMask =
+                        onStatesMask = MODIFIED.value + (exists ? 0 : NEW.value);
+                        offStatesMask =
                                 SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value +
-                                        LIVE.value;
-                        item.setState(item.getState() & offStatesMask | onStatesMask);
+                                        LIVE.value + USER_LOCKED.value;
+                        item.setState(item.getState() & ~offStatesMask | onStatesMask);
                         if (exists) {
                             itemServiceInternal.updateItem(item);
                         } else {
@@ -1449,6 +1448,11 @@ public class SiteServiceImpl implements SiteService {
                         item.setLocaleCode(Locale.US.toString());
                         //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
                         item.setCommitId(repoOperation.getCommitId());
+                        onStatesMask = MODIFIED.value;
+                        offStatesMask =
+                                SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value +
+                                        LIVE.value + USER_LOCKED.value;
+                        item.setState(item.getState() & ~offStatesMask | onStatesMask);
                         if (exists) {
                             itemServiceInternal.updateItem(item);
                         } else {
