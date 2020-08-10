@@ -837,6 +837,15 @@ pipelines:
       operations:
         - type: dbEncryptionUpgrader
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.9.2
+      nextVersion: 3.1.9.3
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-proxy-config.xml
+              dest: configuration/samples/sample-proxy-config.xml
+          commitDetails: Update sample file for proxy-config.xml
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
