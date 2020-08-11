@@ -30,7 +30,7 @@
      </server>
 -->
 <proxy-config>
-   <version>2</version>
+   <version>3</version>
    <servers>
       <server>
          <id>static-assets</id>
