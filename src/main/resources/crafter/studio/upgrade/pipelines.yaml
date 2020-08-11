@@ -1526,3 +1526,11 @@ configurations:
             commitDetails: Add proxy config for static-assets
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/proxy-config/proxy-config-v3.xslt
+            commitDetails: Update default values for urls
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
