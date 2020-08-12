@@ -827,7 +827,7 @@ pipelines:
 
     # Direct upgrades from 3.1.8 or previous to 3.2.x are not supported, only from 3.1.9+
     # Until we have 3.1.10 we need to make sure this always points to the latest 3.1.x version
-    - currentVersion: 3.1.9.2
+    - currentVersion: 3.1.9.3
       nextVersion: 3.2.0.1
       operations:
         - type: globalRepoUpgrader
@@ -1555,5 +1555,13 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/config/proxy-config/proxy-config-v2.xslt
             commitDetails: Add proxy config for static-assets
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/proxy-config/proxy-config-v3.xslt
+            commitDetails: Update default values for urls
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt

@@ -38,7 +38,7 @@ class ContentMonitoring {
 			results.add(result)
 		}
 
-		return results;
+		return results
 	}
 
 	/**
@@ -65,6 +65,7 @@ class ContentMonitoring {
 				config.contentMonitoring.monitor = [ config.contentMonitoring.monitor ]
 			}
 
+			results.monitors = []
 			config.contentMonitoring.monitor.each { monitor ->
 				def authoringBaseUrl = servicesConfig.getAuthoringUrl(site)
 
@@ -76,7 +77,6 @@ class ContentMonitoring {
 						monitor.paths.path = [ monitor.paths.path ]
 					}
 
-					results.monitors = []
 					def queryStatement = monitor.query
 
                     def searchParams = new SearchParams()
