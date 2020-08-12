@@ -21,7 +21,7 @@ import java.time.ZonedDateTime;
 public class Item {
     private long id;
     private long siteId;
-    private long siteName;
+    private String siteName;
     private String path;
     private String previewUrl;
     private long state;
@@ -61,11 +61,11 @@ public class Item {
         this.siteId = siteId;
     }
 
-    public long getSiteName() {
+    public String getSiteName() {
         return siteName;
     }
 
-    public void setSiteName(long siteName) {
+    public void setSiteName(String siteName) {
         this.siteName = siteName;
     }
 
