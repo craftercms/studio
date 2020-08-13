@@ -65,51 +65,52 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                 logger.debug("Collect and populate data for cluster node registration");
                 clusterMember.setLocalAddress(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
                 if (!isRegistered(clusterMember.getLocalAddress())) {
-                    Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                                          studioConfiguration.getProperty(SITES_REPOS_PATH));
-                    String authenticationType = registrationData.getString(CLUSTER_MEMBER_AUTHENTICATION_TYPE);
-                    String username = registrationData.getString(CLUSTER_MEMBER_USERNAME);
-                    String password = registrationData.getString(CLUSTER_MEMBER_PASSWORD);
-                    String token = registrationData.getString(CLUSTER_MEMBER_TOKEN);
-                    String privateKey = registrationData.getString(CLUSTER_MEMBER_PRIVATE_KEY);
-                    String gitUrl = studioConfiguration.getProperty(CLUSTERING_SYNC_URL_FORMAT);
-                    if (StringUtils.isEmpty(username)) {
-                        gitUrl = gitUrl.replace("{username}@", "");
-                    } else {
-                        gitUrl = gitUrl.replace("{username}", username);
-                    }
-                    gitUrl = gitUrl.replace("{localAddress}", clusterMember.getLocalAddress())
-                                   .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
-                             + "/{siteId}";
-                    clusterMember.setGitUrl(gitUrl);
-                    clusterMember.setState(ClusterMember.State.ACTIVE);
-                    clusterMember.setGitRemoteName(getGitRemoteName(clusterMember));
-                    clusterMember.setGitAuthType(authenticationType.toLowerCase());
-                    clusterMember.setGitUsername(username);
-                    if (StringUtils.isEmpty(password)) {
-                        clusterMember.setGitPassword(password);
-                    } else {
-                        String hashedPassword = encryptor.encrypt(password);
-                        clusterMember.setGitPassword(hashedPassword);
-                    }
-
-                    if (StringUtils.isEmpty(token)) {
-                        clusterMember.setGitToken(token);
-                    } else {
-                        String hashedToken = encryptor.encrypt(token);
-                        clusterMember.setGitToken(hashedToken);
-                    }
-
-                    if (StringUtils.isEmpty(privateKey)) {
-                        clusterMember.setGitPrivateKey(privateKey);
-                    } else {
-                        String hashedPrivateKey = encryptor.encrypt(privateKey);
-                        clusterMember.setGitPrivateKey(hashedPrivateKey);
-                    }
-
-                    logger.debug("Register cluster member");
-                    registerClusterNode(clusterMember);
+                    removeClusterNode(clusterMember.getLocalAddress());
                 }
+                Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                                      studioConfiguration.getProperty(SITES_REPOS_PATH));
+                String authenticationType = registrationData.getString(CLUSTER_MEMBER_AUTHENTICATION_TYPE);
+                String username = registrationData.getString(CLUSTER_MEMBER_USERNAME);
+                String password = registrationData.getString(CLUSTER_MEMBER_PASSWORD);
+                String token = registrationData.getString(CLUSTER_MEMBER_TOKEN);
+                String privateKey = registrationData.getString(CLUSTER_MEMBER_PRIVATE_KEY);
+                String gitUrl = studioConfiguration.getProperty(CLUSTERING_SYNC_URL_FORMAT);
+                if (StringUtils.isEmpty(username)) {
+                    gitUrl = gitUrl.replace("{username}@", "");
+                } else {
+                    gitUrl = gitUrl.replace("{username}", username);
+                }
+                gitUrl = gitUrl.replace("{localAddress}", clusterMember.getLocalAddress())
+                               .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
+                         + "/{siteId}";
+                clusterMember.setGitUrl(gitUrl);
+                clusterMember.setState(ClusterMember.State.ACTIVE);
+                clusterMember.setGitRemoteName(getGitRemoteName(clusterMember));
+                clusterMember.setGitAuthType(authenticationType.toLowerCase());
+                clusterMember.setGitUsername(username);
+                if (StringUtils.isEmpty(password)) {
+                    clusterMember.setGitPassword(password);
+                } else {
+                    String hashedPassword = encryptor.encrypt(password);
+                    clusterMember.setGitPassword(hashedPassword);
+                }
+
+                if (StringUtils.isEmpty(token)) {
+                    clusterMember.setGitToken(token);
+                } else {
+                    String hashedToken = encryptor.encrypt(token);
+                    clusterMember.setGitToken(hashedToken);
+                }
+
+                if (StringUtils.isEmpty(privateKey)) {
+                    clusterMember.setGitPrivateKey(privateKey);
+                } else {
+                    String hashedPrivateKey = encryptor.encrypt(privateKey);
+                    clusterMember.setGitPrivateKey(hashedPrivateKey);
+                }
+
+                logger.debug("Register cluster member");
+                registerClusterNode(clusterMember);
             } catch (CryptoException e) {
                 logger.error("Failed to register cluster member");
             }
