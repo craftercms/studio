@@ -22,7 +22,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -32,7 +34,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -77,6 +79,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
      */
     protected String fileExtension;
 
+    /**
+     * The patterns of urls that should be handled by blob stores
+     */
+    protected String[] interceptedPaths;
+
     protected GitContentRepository localRepositoryV1;
 
     protected org.craftercms.studio.impl.v2.repository.GitContentRepository localRepositoryV2;
@@ -99,6 +106,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
         this.blobStoreResolver = blobStoreResolver;
+    }
+
+    public void setInterceptedPaths(String[] interceptedPaths) {
+        this.interceptedPaths = interceptedPaths;
     }
 
     protected boolean isFolder(String path) {
@@ -125,6 +136,13 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
         if (ArrayUtils.isEmpty(paths)) {
             throw new IllegalArgumentException("At least one path needs to be provided");
+        }
+
+        for (String path : paths) {
+            if (!RegexUtils.matchesAny(path, interceptedPaths)) {
+                logger.debug("Path {0} should not be intercepted, will be skipped", path);
+                return null;
+            }
         }
 
         return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
@@ -338,31 +356,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         return localRepositoryV1.isFolder(siteId, path);
     }
 
-    @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames,
-                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
-                                                            DmFilterWrapper dmFilterWrapper, String filterType,
-                                                            int numberOfItems) {
-        List<DeploymentSyncHistory> histories = localRepositoryV1.getDeploymentHistory(site, environmentNames,
-                fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
-
-        return histories.stream()
-                .peek(history -> history.setPath(getOriginalPath(history.getPath())))
-                .collect(toList());
-    }
-
-    @Override
-    public ZonedDateTime getLastDeploymentDate(String site, String path) {
-        return localRepositoryV1.getLastDeploymentDate(site, path);
-    }
-
     // TODO: Remove when the API is split
-
-    @Override
-    public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-                                           Map<String, String> params) {
-        return localRepositoryV1.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
-    }
 
     @Override
     public boolean deleteSite(String siteId) {
@@ -371,39 +365,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException {
+            throws DeploymentException, CryptoException {
         localRepositoryV1.initialPublish(site, sandboxBranch, environment, author, comment);
-    }
-
-    @Override
-    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
-                        String author, String comment) throws DeploymentException {
-        logger.debug("Publishing items {0} to environment {1} in site {2}", deploymentItems, environment, site);
-        Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
-        MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
-        List<DeploymentItemTO> localItems = new LinkedList<>();
-        try {
-            for (DeploymentItemTO item : deploymentItems) {
-                StudioBlobStore store = getBlobStore(site, item.getPath());
-                if (store != null) {
-                    stores.putIfAbsent(store.getId(), store);
-                    items.add(store.getId(), item);
-                    localItems.add(mapDeploymentItem(item));
-                } else {
-                    localItems.add(item);
-                }
-            }
-            for (String storeId : stores.keySet()) {
-                logger.debug("Publishing blobs to environment {0} using store {1} for site {2}",
-                        environment, storeId, site);
-                stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment);
-            }
-            logger.debug("Publishing local files to environment {0} for site {1}", environment, site);
-            localRepositoryV1.publish(site, sandboxBranch, localItems, environment, author, comment);
-        } catch (Exception e) {
-            throw new DeploymentException("Error during deployment to environment " +
-                    environment + " for site " + site, e);
-        }
     }
 
     protected DeploymentItemTO mapDeploymentItem(DeploymentItemTO item) {
@@ -434,11 +397,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public boolean commitIdExists(String site, String commitId) {
-        return localRepositoryV1.commitIdExists(site, commitId);
-    }
-
-    @Override
     public void insertFullGitLog(String siteId, int processed) {
         localRepositoryV1.insertFullGitLog(siteId, processed);
     }
@@ -446,18 +404,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public void deleteGitLogForSite(String siteId) {
         localRepositoryV1.deleteGitLogForSite(siteId);
-    }
-
-    @Override
-    public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-                                         String remoteBranch, boolean singleBranch, String authenticationType,
-                                         String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
-            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, ServiceLayerException {
-        return localRepositoryV1.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
-                singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                params, createAsOrphan);
     }
 
     @Override
@@ -479,34 +425,29 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public boolean removeRemote(String siteId, String remoteName) {
-        return localRepositoryV1.removeRemote(siteId, remoteName);
-    }
-
-    @Override
     public void removeRemoteRepositoriesForSite(String siteId) {
         localRepositoryV1.removeRemoteRepositoriesForSite(siteId);
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException, CryptoException {
         return localRepositoryV1.listRemote(siteId, sandboxBranch);
     }
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException {
+            InvalidRemoteUrlException, CryptoException {
         return localRepositoryV1.pushToRemote(siteId, remoteName, remoteBranch);
     }
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException {
+            InvalidRemoteUrlException, CryptoException {
         return localRepositoryV1.pullFromRemote(siteId, remoteName, remoteBranch);
     }
 
     @Override
-    public void resetStagingRepository(String siteId) throws ServiceLayerException {
+    public void resetStagingRepository(String siteId) throws ServiceLayerException, CryptoException {
         localRepositoryV1.resetStagingRepository(siteId);
     }
 
@@ -520,12 +461,88 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         localRepositoryV1.cleanupRepositories(siteId);
     }
 
+    // Start API 2
     @Override
-    public boolean repositoryExists(String site) {
-        return localRepositoryV1.repositoryExists(site);
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames,
+                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                            DmFilterWrapper dmFilterWrapper, String filterType,
+                                                            int numberOfItems) {
+        List<DeploymentSyncHistory> histories = localRepositoryV2.getDeploymentHistory(site, environmentNames,
+                fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
+
+        return histories.stream()
+                .peek(history -> history.setPath(getOriginalPath(history.getPath())))
+                .collect(toList());
     }
 
-    // Start API 2
+    @Override
+    public ZonedDateTime getLastDeploymentDate(String site, String path) {
+        return localRepositoryV2.getLastDeploymentDate(site, path);
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+                                           Map<String, String> params) {
+        return localRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
+    }
+
+    @Override
+    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+                        String author, String comment) throws DeploymentException {
+        logger.debug("Publishing items {0} to environment {1} in site {2}", deploymentItems, environment, site);
+        Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
+        MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
+        List<DeploymentItemTO> localItems = new LinkedList<>();
+        try {
+            for (DeploymentItemTO item : deploymentItems) {
+                StudioBlobStore store = getBlobStore(site, item.getPath());
+                if (store != null) {
+                    stores.putIfAbsent(store.getId(), store);
+                    items.add(store.getId(), item);
+                    localItems.add(mapDeploymentItem(item));
+                } else {
+                    localItems.add(item);
+                }
+            }
+            for (String storeId : stores.keySet()) {
+                logger.debug("Publishing blobs to environment {0} using store {1} for site {2}",
+                        environment, storeId, site);
+                stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment);
+            }
+            logger.debug("Publishing local files to environment {0} for site {1}", environment, site);
+            localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
+        } catch (Exception e) {
+            throw new DeploymentException("Error during deployment to environment " +
+                    environment + " for site " + site, e);
+        }
+    }
+
+    @Override
+    public boolean commitIdExists(String site, String commitId) {
+        return localRepositoryV2.commitIdExists(site, commitId);
+    }
+
+    @Override
+    public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+                                         String remoteBranch, boolean singleBranch, String authenticationType,
+                                         String remoteUsername, String remotePassword, String remoteToken,
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, ServiceLayerException {
+        return localRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+                singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+                params, createAsOrphan);
+    }
+
+    @Override
+    public boolean removeRemote(String siteId, String remoteName) {
+        return localRepositoryV2.removeRemote(siteId, remoteName);
+    }
+
+    @Override
+    public boolean repositoryExists(String site) {
+        return localRepositoryV2.repositoryExists(site);
+    }
 
     @Override
     public GitLog getGitLog(String siteId, String commitId) {

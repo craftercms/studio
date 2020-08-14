@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -49,7 +50,7 @@ public interface ContentService {
      * @param path
      * @return document
      */
-    InputStream getContent(String site, String path) throws ContentNotFoundException;
+    InputStream getContent(String site, String path) throws ContentNotFoundException, CryptoException;
 
     /**
      * get file size
@@ -127,7 +128,8 @@ public interface ContentService {
      */
     boolean deleteContent(String site, String path, String approver) throws SiteNotFoundException;
 
-    boolean deleteContent(String site, String path, boolean generateActivity, String approver) throws SiteNotFoundException;
+    boolean deleteContent(String site, String path, boolean generateActivity, String approver)
+            throws SiteNotFoundException;
 
     /**
      * copy content fromPath to toPath
@@ -189,7 +191,8 @@ public interface ContentService {
      * @param path    - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    boolean revertContentItem(String site, String path, String version, boolean major, String comment) throws SiteNotFoundException;
+    boolean revertContentItem(String site, String path, String version, boolean major, String comment)
+            throws SiteNotFoundException;
 
 	/**
      * return the content for a given version
@@ -285,7 +288,7 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException;
+            InvalidRemoteUrlException, AuthenticationException, CryptoException;
 
     /**
      * Pull from remote repository
@@ -295,5 +298,5 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException;
+            InvalidRemoteUrlException, AuthenticationException, CryptoException;
 }

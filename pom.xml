@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.8-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.9-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -138,6 +138,10 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava-collections</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -296,13 +300,19 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>5.4.0.201906121030-r</version>
+            <version>5.8.0.202006091008-r</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
                     <artifactId>bcprov-jdk15on</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit.ssh.jsch</artifactId>
+            <version>5.8.0.202006091008-r</version>
         </dependency>
 
         <!-- testing -->
@@ -755,6 +765,10 @@
                                 <exclude>/WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-annotations-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-base-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-collections-r03.jar</exclude>
+                                <exclude>/WEB-INF/lib/guava-primitives-r03.jar</exclude>
                                 <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                                 <!-- AWS -->
                                 <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
@@ -867,6 +881,7 @@
                     </systemPropertyVariables>
                     <environmentVariables>
                         <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
+                        <MARIADB_ROOT_PASSWD>root</MARIADB_ROOT_PASSWD>
                     </environmentVariables>
                 </configuration>
             </plugin>

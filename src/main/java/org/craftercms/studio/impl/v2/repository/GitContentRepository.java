@@ -16,30 +16,51 @@
 
 package org.craftercms.studio.impl.v2.repository;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -55,16 +76,21 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.springframework.dao.DuplicateKeyException;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,20 +101,31 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.IN_PROGRESS_BRANCH_NAME_SUFFIX;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.COPY;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
+import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
+import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
+import static org.eclipse.jgit.lib.Constants.DOT_GIT_IGNORE;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.MASTER;
 import static org.eclipse.jgit.lib.Constants.OBJ_TREE;
 import static org.eclipse.jgit.lib.Constants.R_HEADS;
+import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 
-public class GitContentRepository implements ContentRepository {
+public class GitContentRepository implements ContentRepository, DeploymentHistoryProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
@@ -96,6 +133,9 @@ public class GitContentRepository implements ContentRepository {
     private GitLogDAO gitLogDao;
     private SiteFeedMapper siteFeedMapper;
     private UserServiceInternal userServiceInternal;
+    private SecurityService securityService;
+    private RemoteRepositoryDAO remoteRepositoryDAO;
+    private TextEncryptor encryptor;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -108,7 +148,8 @@ public class GitContentRepository implements ContentRepository {
             rootPath = path;
         }
         try {
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -168,7 +209,8 @@ public class GitContentRepository implements ContentRepository {
     public List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo) {
         List<RepoOperation> operations = new ArrayList<>();
         try {
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
@@ -312,7 +354,8 @@ public class GitContentRepository implements ContentRepository {
     public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         List<RepoOperation> operations = new ArrayList<>();
         try {
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
@@ -412,7 +455,8 @@ public class GitContentRepository implements ContentRepository {
     public String getRepoFirstCommitId(final String site) {
         String toReturn = EMPTY;
         try {
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 synchronized (repository) {
@@ -576,7 +620,8 @@ public class GitContentRepository implements ContentRepository {
                                                             ZonedDateTime toDate, int limit) {
         List<PublishingHistoryItem> toRet = new ArrayList<PublishingHistoryItem>();
         try {
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration);
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Repository publishedRepo = helper.getRepository(siteId, PUBLISHED);
             if (publishedRepo != null) {
                 int counter = 0;
@@ -653,6 +698,593 @@ public class GitContentRepository implements ContentRepository {
         return toRet;
     }
 
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
+                                           Map<String, String> params) {
+        boolean toReturn;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+
+            // create git repository for site content
+            toReturn = helper.createSandboxRepository(site, sandboxBranch);
+
+            if (toReturn) {
+                // copy files from blueprint
+                toReturn = helper.copyContentFromBlueprint(blueprintLocation, site);
+            }
+
+            if (toReturn) {
+                // update site name variable inside config files
+                toReturn = helper.updateSiteNameConfigVar(site);
+            }
+
+            if (toReturn) {
+                toReturn = helper.replaceParameters(site, params);
+            }
+
+            if (toReturn) {
+                toReturn = helper.addGitIgnoreFile(site);
+            }
+
+            if (toReturn) {
+                // commit everything so it is visible
+                toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
+                        sandboxBranch);
+            }
+        } catch (CryptoException e) {
+            logger.error("Error creating site from blueprint", e);
+            toReturn = false;
+        }
+
+        return toReturn;
+    }
+
+    @Override
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames,
+                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                            DmFilterWrapper dmFilterWrapper,
+                                                            String filterType, int numberOfItems) {
+        List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository publishedRepo = helper.getRepository(site, PUBLISHED);
+            if (Objects.nonNull(publishedRepo)) {
+                int counter = 0;
+                try (Git git = new Git(publishedRepo)) {
+                    // List all environments
+                    List<Ref> environments = git.branchList().call();
+                    for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
+                        Ref env = environments.get(i);
+                        String environment = env.getName();
+                        environment = environment.replace(R_HEADS, "");
+                        if (environmentNames.contains(environment)) {
+                            List<RevFilter> filters = new ArrayList<RevFilter>();
+                            filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
+                            filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
+                            filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
+
+                            Iterable<RevCommit> branchLog = git.log()
+                                    .add(env.getObjectId())
+                                    .setRevFilter(AndRevFilter.create(filters))
+                                    .call();
+
+                            Iterator<RevCommit> iterator = branchLog.iterator();
+                            while (iterator.hasNext() && counter < numberOfItems) {
+                                RevCommit revCommit = iterator.next();
+                                List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
+                                for (int j = 0; j < files.size() && counter < numberOfItems; j++) {
+                                    String file = files.get(j);
+                                    Path path = Paths.get(file);
+                                    String fileName = path.getFileName().toString();
+                                    if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                                        if (dmFilterWrapper.accept(site, file, filterType)) {
+                                            DeploymentSyncHistory dsh = new DeploymentSyncHistory();
+                                            dsh.setSite(site);
+                                            dsh.setPath(file);
+                                            dsh.setSyncDate(
+                                                    Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
+                                            dsh.setUser(revCommit.getAuthorIdent().getName());
+                                            dsh.setEnvironment(environment.replace(R_HEADS, ""));
+                                            toRet.add(dsh);
+                                            counter++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    git.close();
+                    toRet.sort((o1, o2) -> o2.getSyncDate().compareTo(o1.getSyncDate()));
+                }
+            }
+        } catch (CryptoException | IOException | GitAPIException e) {
+            logger.error("Error while getting deployment history for site " + site, e);
+        }
+        return toRet;
+    }
+
+    @Override
+    public ZonedDateTime getLastDeploymentDate(String site, String path) {
+        ZonedDateTime toRet = null;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository publishedRepo = helper.getRepository(site, PUBLISHED);
+            if (Objects.nonNull(publishedRepo)) {
+                try (Git git = new Git(publishedRepo)) {
+                    Iterable<RevCommit> log = git.log()
+                            .all()
+                            .addPath(helper.getGitPath(path))
+                            .setMaxCount(1)
+                            .call();
+                    Iterator<RevCommit> iter = log.iterator();
+                    if (iter.hasNext()) {
+                        RevCommit commit = iter.next();
+                        toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(UTC);
+                    }
+                    git.close();
+                }
+            }
+        } catch (CryptoException | IOException | GitAPIException e) {
+            logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
+        }
+        return toRet;
+    }
+
+    @Override
+    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+                        String author, String comment) throws DeploymentException {
+        if (CollectionUtils.isEmpty(deploymentItems)) {
+            return;
+        }
+        String commitId = EMPTY;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository repo = helper.getRepository(site, PUBLISHED);
+            if (Objects.isNull(repo)) {
+                helper.createPublishedRepository(site, sandboxBranch);
+                repo = helper.getRepository(site, PUBLISHED);
+                siteFeedMapper.setPublishedRepoCreated(site);
+            }
+            String path = EMPTY;
+            String sandboxBranchName = sandboxBranch;
+            if (StringUtils.isEmpty(sandboxBranchName)) {
+                sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+            }
+            synchronized (repo) {
+                try (Git git = new Git(repo)) {
+
+                    String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+
+                    // fetch "origin/master"
+                    logger.debug("Fetch from sandbox for site " + site);
+                    git.fetch().call();
+
+                    // checkout master and pull from sandbox
+                    logger.debug("Checkout published/master branch for site " + site);
+                    try {
+                        // First delete it in case it already exists (ignored if does not exist)
+                        String currentBranch = repo.getBranch();
+                        if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFFIX)) {
+                            git.reset()
+                                    .setMode(HARD)
+                                    .call();
+                        }
+
+                        Ref ref = repo.exactRef(R_HEADS + sandboxBranchName);
+                        boolean createBranch = (ref == null);
+
+                        git.checkout()
+                                .setName(sandboxBranchName)
+                                .setCreateBranch(createBranch)
+                                .call();
+
+                        logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
+                        git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+
+                        git.pull().
+                                setRemote(DEFAULT_REMOTE_NAME)
+                                .setRemoteBranchName(sandboxBranchName)
+                                .setStrategy(THEIRS)
+                                .call();
+                    } catch (RefNotFoundException e) {
+                        logger.error("Failed to checkout published master and to pull content from sandbox for site "
+                                + site, e);
+                        throw new DeploymentException("Failed to checkout published master and to pull content from " +
+                                "sandbox for site " + site);
+                    }
+
+                    // checkout environment branch
+                    logger.debug("Checkout environment branch " + environment + " for site " + site);
+                    try {
+                        git.checkout()
+                                .setName(environment)
+                                .call();
+                    } catch (RefNotFoundException e) {
+                        logger.info("Not able to find branch " + environment + " for site " + site +
+                                ". Creating new branch");
+                        // create new environment branch
+                        // it will start as empty orphan branch
+                        git.checkout()
+                                .setOrphan(true)
+                                .setForce(true)
+                                .setStartPoint(sandboxBranchName)
+                                .setUpstreamMode(TRACK)
+                                .setName(environment)
+                                .call();
+
+                        // remove any content to create empty branch
+                        RmCommand rmcmd = git.rm();
+                        File[] toDelete = repo.getWorkTree().listFiles();
+                        for (File toDel : toDelete) {
+                            if (!repo.getDirectory().equals(toDel) &&
+                                    !StringUtils.equals(toDel.getName(), DOT_GIT_IGNORE)) {
+                                rmcmd.addFilepattern(toDel.getName());
+                            }
+                        }
+                        rmcmd.call();
+                        git.commit()
+                                .setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE))
+                                .setAllowEmpty(true)
+                                .call();
+                    }
+
+                    // Create in progress branch
+                    try {
+
+                        // Create in progress branch
+                        logger.debug("Create in-progress branch for site " + site);
+                        git.checkout()
+                                .setCreateBranch(true)
+                                .setForce(true)
+                                .setStartPoint(environment)
+                                .setUpstreamMode(TRACK)
+                                .setName(inProgressBranchName)
+                                .call();
+                    } catch (GitAPIException e) {
+                        // TODO: DB: Error ?
+                        logger.error("Failed to create in-progress published branch for site " + site);
+                    }
+
+                    Set<String> deployedCommits = new HashSet<String>();
+                    Set<String> deployedPackages = new HashSet<String>();
+                    logger.debug("Checkout deployed files started.");
+                    AddCommand addCommand = git.add();
+                    for (DeploymentItemTO deploymentItem : deploymentItems) {
+                        commitId = deploymentItem.getCommitId();
+                        path = helper.getGitPath(deploymentItem.getPath());
+                        if (Objects.isNull(commitId)) {
+                            logger.warn("Skipping file " + path + " because commit id is null");
+                            continue;
+                        }
+                        logger.debug("Checking out file " + path + " from commit id " + commitId +
+                                " for site " + site);
+
+                        ObjectId objCommitId = repo.resolve(commitId);
+                        RevWalk rw = new RevWalk(repo);
+                        RevCommit rc = rw.parseCommit(objCommitId);
+
+                        CheckoutCommand checkout = git.checkout();
+                        checkout.setStartPoint(commitId).addPath(path).call();
+
+                        if (deploymentItem.isMove()) {
+                            String oldPath = helper.getGitPath(deploymentItem.getOldPath());
+                            git.rm().addFilepattern(oldPath).setCached(false).call();
+                            cleanUpMoveFolders(git, oldPath);
+                        }
+
+                        if (deploymentItem.isDelete()) {
+                            String deletePath = helper.getGitPath(deploymentItem.getPath());
+                            git.rm().addFilepattern(deletePath).setCached(false).call();
+                            Path parentToDelete = Paths.get(path).getParent();
+                            deleteParentFolder(git, parentToDelete);
+                        }
+                        deployedCommits.add(commitId);
+                        String packageId = deploymentItem.getPackageId();
+                        if (StringUtils.isNotEmpty(packageId)) {
+                            deployedPackages.add(deploymentItem.getPackageId());
+                        }
+
+                        addCommand.addFilepattern(path);
+                    }
+                    logger.debug("Checkout deployed files completed.");
+
+                    // commit all deployed files
+                    String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
+
+                    logger.debug("Get Author Ident started.");
+                    User user = userServiceInternal.getUserByIdOrUsername(-1, author);
+                    PersonIdent authorIdent = helper.getAuthorIdent(user);
+                    logger.debug("Get Author Ident completed.");
+
+                    logger.debug("Git add all published items started.");
+                    addCommand.call();
+                    logger.debug("Git add all published items completed.");
+
+                    commitMessage = commitMessage.replace("{username}", author);
+                    commitMessage =
+                            commitMessage.replace("{datetime}",
+                                    ZonedDateTime.now(UTC).format(
+                                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
+                    commitMessage = commitMessage.replace("{source}", "UI");
+                    commitMessage = commitMessage.replace("{message}", comment);
+                    StringBuilder sb = new StringBuilder();
+                    for (String c : deployedCommits) {
+                        sb.append(c).append(" ");
+                    }
+                    StringBuilder sbPackage = new StringBuilder();
+                    for (String p : deployedPackages) {
+                        sbPackage.append(p).append(" ");
+                    }
+                    commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
+                    commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
+                    logger.debug("Git commit all published items started.");
+                    String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
+                    String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
+                    StringBuilder sbCommitMessage = new StringBuilder();
+                    if (StringUtils.isNotEmpty(prologue)) {
+                        sbCommitMessage.append(prologue).append("\n\n");
+                    }
+                    sbCommitMessage.append(commitMessage);
+                    if (StringUtils.isNotEmpty(postscript)) {
+                        sbCommitMessage.append("\n\n").append(postscript);
+                    }
+                    RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent)
+                            .call();
+                    logger.debug("Git commit all published items completed.");
+                    int commitTime = revCommit.getCommitTime();
+
+                    // tag
+                    ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(UTC);
+                    ZonedDateTime publishDate = ZonedDateTime.now(UTC);
+                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
+                            "_published_on_" + publishDate.format(
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    logger.debug("Get Author Ident started.");
+                    PersonIdent authorIdent2 = helper.getAuthorIdent(user);
+                    logger.debug("Get Author Ident completed.");
+
+                    logger.debug("Git tag started.");
+                    git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
+                    logger.debug("Git tag completed.");
+
+                    // checkout environment
+                    logger.debug("Checkout environment " + environment + " branch for site " + site);
+                    git.checkout()
+                            .setName(environment)
+                            .call();
+
+                    Ref branchRef = repo.findRef(inProgressBranchName);
+
+                    // merge in-progress branch
+                    logger.debug("Merge in-progress branch into environment " + environment + " for site " +
+                            site);
+                    git.merge().setCommit(true).include(branchRef).call();
+
+                    // clean up
+                    logger.debug("Delete in-progress branch (clean up) for site " + site);
+                    git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+                    git.close();
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error when publishing site " + site + " to environment " + environment, e);
+            throw new DeploymentException("Error when publishing site " + site + " to environment " +
+                    environment + " [commit ID = " + commitId + "]");
+        }
+    }
+
+    private void cleanUpMoveFolders(Git git, String path) throws GitAPIException {
+        Path parentToDelete = Paths.get(path).getParent();
+        deleteParentFolder(git, parentToDelete);
+        Path testDelete = Paths.get(git.getRepository().getDirectory().getParent(), parentToDelete.toString());
+        File testDeleteFile = testDelete.toFile();
+        if (!testDeleteFile.exists()) {
+            cleanUpMoveFolders(git, parentToDelete.toString());
+        }
+    }
+
+    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException {
+        String parent = parentFolder.toString();
+        String toRet = parent;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            String folderToDelete = helper.getGitPath(parent);
+            Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
+            String[] children = toDelete.toFile().list();
+            if (children != null && children.length < 2) {
+                if (children.length == 1 || children[0].equals(".keep")) {
+                    Path ancestor = parentFolder.getParent();
+                    git.rm()
+                            .addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep"))
+                            .setCached(false)
+                            .call();
+                } else {
+                    Path ancestor = parentFolder.getParent();
+                    git.rm()
+                            .addFilepattern(helper.getGitPath(parentFolder.toString()))
+                            .setCached(false)
+                            .call();
+                }
+            }
+        } catch (CryptoException e) {
+            logger.error("Error deleting parent folder " + parentFolder.toString(), e);
+        }
+        return toRet;
+    }
+
+    @Override
+    public boolean repositoryExists(String site) {
+        return commitIdExists(site, HEAD);
+    }
+
+    @Override
+    public boolean commitIdExists(String site, String commitId) {
+        boolean toRet = false;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            try (Repository repo = helper.getRepository(site, SANDBOX)) {
+                if (repo != null) {
+                    ObjectId objCommitId = repo.resolve(commitId);
+                    if (objCommitId != null) {
+                        RevCommit revCommit = repo.parseCommit(objCommitId);
+                        if (revCommit != null) {
+                            toRet = true;
+                        }
+                    }
+                }
+            }
+        } catch (CryptoException | IOException e) {
+            logger.info("Commit ID " + commitId + " does not exist in sandbox for site " + site);
+        }
+        return toRet;
+    }
+
+    @Override
+    public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+                                         String remoteBranch, boolean singleBranch, String authenticationType,
+                                         String remoteUsername, String remotePassword, String remoteToken,
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, ServiceLayerException {
+        boolean toReturn = false;
+
+        // clone remote git repository for site content
+        logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
+                " (" + remoteUrl + ").");
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+                    singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+                    createAsOrphan);
+
+            if (toReturn) {
+                try {
+                    if (createAsOrphan) {
+                        removeRemote(siteId, remoteName);
+                    } else {
+                        insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                                remoteToken, remotePrivateKey);
+                    }
+                } catch (CryptoException e) {
+                    throw new ServiceLayerException(e);
+                }
+                // update site name variable inside config files
+                logger.debug("Update site name configuration variables for site " + siteId);
+                toReturn = helper.updateSiteNameConfigVar(siteId);
+
+                if (toReturn) {
+                    toReturn = helper.replaceParameters(siteId, params);
+                }
+
+                if (toReturn) {
+                    // commit everything so it is visible
+                    logger.debug("Perform initial commit for site " + siteId);
+                    toReturn = helper.performInitialCommit(siteId,
+                            helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
+                }
+            } else {
+                logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
+                        " (" + remoteUrl + ").");
+            }
+        } catch (CryptoException e) {
+            logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
+                    " (" + remoteUrl + ").", e);
+        }
+        return toReturn;
+    }
+
+    @Override
+    public boolean removeRemote(String siteId, String remoteName) {
+        logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository repo = helper.getRepository(siteId, SANDBOX);
+            try (Git git = new Git(repo)) {
+                RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+                remoteRemoveCommand.setRemoteName(remoteName);
+                remoteRemoveCommand.call();
+
+                List<Ref> resultRemoteBranches = git.branchList()
+                        .setListMode(ListBranchCommand.ListMode.REMOTE)
+                        .call();
+
+                List<String> branchesToDelete = new ArrayList<String>();
+                for (Ref remoteBranchRef : resultRemoteBranches) {
+                    if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                        branchesToDelete.add(remoteBranchRef.getName());
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+                    DeleteBranchCommand delBranch = git.branchDelete();
+                    String[] array = new String[branchesToDelete.size()];
+                    delBranch.setBranchNames(branchesToDelete.toArray(array));
+                    delBranch.setForce(true);
+                    delBranch.call();
+                }
+
+            } catch (GitAPIException e) {
+                logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
+                return false;
+            }
+
+            logger.debug("Remove remote record from database for remote " + remoteName + " and site " + siteId);
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("siteId", siteId);
+            params.put("remoteName", remoteName);
+            remoteRepositoryDAO.deleteRemoteRepository(params);
+
+            return true;
+        } catch (CryptoException e) {
+            logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
+            return false;
+        }
+    }
+
+    private void insertRemoteToDb(String siteId, String remoteName, String remoteUrl,
+                                  String authenticationType, String remoteUsername, String remotePassword,
+                                  String remoteToken, String remotePrivateKey) throws CryptoException {
+        logger.debug("Inserting remote " + remoteName + " for site " + siteId + " into database.");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        params.put("remoteUrl", remoteUrl);
+        params.put("authenticationType", authenticationType);
+        params.put("remoteUsername", remoteUsername);
+
+        if (StringUtils.isNotEmpty(remotePassword)) {
+            logger.debug("Encrypt password before inserting to database");
+            String hashedPassword = encryptor.encrypt(remotePassword);
+            params.put("remotePassword", hashedPassword);
+        } else {
+            params.put("remotePassword", remotePassword);
+        }
+        if (StringUtils.isNotEmpty(remoteToken)) {
+            logger.debug("Encrypt token before inserting to database");
+            String hashedToken = encryptor.encrypt(remoteToken);
+            params.put("remoteToken", hashedToken);
+        } else {
+            params.put("remoteToken", remoteToken);
+        }
+        if (StringUtils.isNotEmpty(remotePrivateKey)) {
+            logger.debug("Encrypt private key before inserting to database");
+            String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
+            params.put("remotePrivateKey", hashedPrivateKey);
+        } else {
+            params.put("remotePrivateKey", remotePrivateKey);
+        }
+
+        logger.debug("Insert site remote record into database");
+        remoteRepositoryDAO.insertRemoteRepository(params);
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -684,4 +1316,25 @@ public class GitContentRepository implements ContentRepository {
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public RemoteRepositoryDAO getRemoteRepositoryDAO() {
+        return remoteRepositoryDAO;
+    }
+
+    public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
+        this.remoteRepositoryDAO = remoteRepositoryDAO;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }

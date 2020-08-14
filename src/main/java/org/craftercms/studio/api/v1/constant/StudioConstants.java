@@ -91,6 +91,7 @@ package org.craftercms.studio.api.v1.constant;
 	String BOOTSTRAP_REPO_GLOBAL_PATH = "global";		// Path to the global repository inside the bootstrap repo
     String CONFIG_SITENAME_VARIABLE = "\\{siteName\\}";
     String CONFIG_SITEENV_VARIABLE = "\\{siteEnv\\}";
+    String IN_PROGRESS_BRANCH_NAME_SUFFIX = "_in_progress";
 
     /**
      * Site Constants

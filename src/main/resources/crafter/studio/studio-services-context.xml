@@ -324,6 +324,7 @@
         <property name="emailService" ref="mailSender"/>
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
         <property name="instanceService" ref="instanceService" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <bean id="userServiceInternal"
@@ -416,6 +417,8 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="contentRepository" ref="contentRepository" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao"/>
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -581,6 +584,8 @@
         <property name="clusterDAO" ref="clusterDao" />
         <property name="repositoryType" value="SANDBOX" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="eventService" ref="studioEventService" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <bean id="studioClusterPublishedSyncJob"
@@ -594,6 +599,7 @@
         <property name="clusterDAO" ref="clusterDao" />
         <property name="repositoryType" value="PUBLISHED" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <bean id="studioClusterGlobalRepoSyncJob"
@@ -607,6 +613,7 @@
         <property name="clusterDAO" ref="clusterDao" />
         <property name="repositoryType" value="GLOBAL" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <bean id="studioClusterNodeHeartbeatJob"
@@ -758,6 +765,7 @@
         <property name="configPath" value="#{studioConfiguration.getProperty('studio.blob.config.path')}"/>
         <property name="configurationResolver" ref="crafter.configurationResolver"/>
         <property name="contentRepository" ref="gitContentRepository"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
@@ -772,6 +780,8 @@
         <property name="localRepositoryV1" ref="gitContentRepository"/>
         <property name="localRepositoryV2" ref="gitContentRepositoryV2"/>
         <property name="blobStoreResolver" ref="blobStoreResolver"/>
+        <property name="interceptedPaths"
+                  value="#{studioConfiguration.getArray('studio.blob.intercepted.paths', T(java.lang.String))}"/>
     </bean>
 
     <bean id="gitContentRepository" depends-on="databaseInitializer"
@@ -783,6 +793,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -790,6 +801,9 @@
         <property name="gitLogDao" ref="gitLogDao" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <!-- /////// -->
@@ -801,6 +815,7 @@
         <property name="clusterDao" ref="clusterDao" />
         <property name="metaDao" ref="metaDAO" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1307,6 +1322,12 @@
     <!-- ////////////////////////////////////// -->
     <!--              Encryption                -->
     <!-- ////////////////////////////////////// -->
+
+    <bean id="internalTextEncryptor" class="org.craftercms.commons.crypto.impl.PbkAesTextEncryptor">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.cipher.salt')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.cipher.key')}"/>
+    </bean>
+
     <bean id="crafter.textEncryptor" class="org.craftercms.commons.crypto.impl.PbkAesTextEncryptor">
         <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.key')}"/>
         <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.salt')}"/>
@@ -1321,6 +1342,14 @@
 
     <bean id="encryptionService" class="org.craftercms.studio.impl.v2.service.security.EncryptionServiceImpl">
         <constructor-arg ref="encryptionServiceInternal"/>
+    </bean>
+
+    <bean id="cloudfrontForwardedHeaderFilter" class="org.craftercms.commons.web.CloudfrontForwardedHeaderFilter">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
+    </bean>
+
+    <bean id="forwardedHeaderFilter" class="org.craftercms.commons.web.ForwardedHeaderFilter">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

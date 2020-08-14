@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
@@ -326,6 +327,13 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseBody handleBeanPropertyBindingResult(HttpServletRequest request, BindException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(RemoteNotRemovableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleRemoteNotRemovableException(HttpServletRequest request, RemoteNotRemovableException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_REMOVABLE);
         return handleExceptionInternal(request, e, response);
     }
 

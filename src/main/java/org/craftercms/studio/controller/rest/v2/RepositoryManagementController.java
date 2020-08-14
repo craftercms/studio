@@ -20,6 +20,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -182,7 +183,7 @@ public class RepositoryManagementController {
 
     @PostMapping(REMOVE_REMOTE)
     public ResponseBody removeRemote(HttpServletResponse response, @RequestBody RemoveRemoteRequest removeRemoteRequest)
-            throws CryptoException, SiteNotFoundException {
+            throws CryptoException, SiteNotFoundException, RemoteNotRemovableException {
         if (!siteService.exists(removeRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(removeRemoteRequest.getSiteId());
         }

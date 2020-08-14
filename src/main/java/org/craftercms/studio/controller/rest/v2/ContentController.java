@@ -43,6 +43,7 @@ import java.util.Map;
 
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATHS;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -98,9 +99,10 @@ public class ContentController {
     @DeleteMapping("/delete")
     public ResponseBody delete(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths)
+            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths,
+            @RequestParam(value = REQUEST_PARAM_SUBMISSION_COMMENT, required = false) String submissionComment)
             throws DeploymentException, AuthenticationException, ServiceLayerException {
-        contentService.deleteContent(siteId, paths);
+        contentService.deleteContent(siteId, paths, submissionComment);
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();

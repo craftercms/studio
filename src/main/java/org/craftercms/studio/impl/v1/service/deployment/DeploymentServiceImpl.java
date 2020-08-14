@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -44,7 +45,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.event.EventService;
@@ -273,7 +274,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     @ValidateParams
     public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
-                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate)
+                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate,
+                       String submissionComment)
             throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
@@ -281,7 +283,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         Set<String> environments = getAllPublishedEnvironments(site);
         for (String environment : environments) {
-            List<PublishRequest> items = createDeleteItems(site, environment, paths, approver, scheduledDate);
+            List<PublishRequest> items =
+                    createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
             for (PublishRequest item : items) {
                 publishRequestMapper.insertItemForDeployment(item);
             }
@@ -297,7 +300,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
-                                                   String approver, ZonedDateTime scheduledDate)
+                                                   String approver, ZonedDateTime scheduledDate,
+                                                   String submissionComment)
             throws SiteNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         String packageId = UUID.randomUUID().toString();
@@ -330,6 +334,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                     item.setContentTypeClass(contentTypeClass);
                     item.setUser(approver);
                     item.setPackageId(packageId);
+                    item.setSubmissionComment(submissionComment);
                     newItems.add(item);
 
                     if (contentService.contentExists(site, path)) {
@@ -349,7 +354,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                     for (RepositoryItem child : children) {
                         childPaths.add(child.path + FILE_SEPARATOR + child.name);
                     }
-                    newItems.addAll(createDeleteItems(site, environment, childPaths, approver, scheduledDate));
+                    newItems.addAll(createDeleteItems(site, environment, childPaths, approver, scheduledDate,
+                            submissionComment));
                     deleteFolder(site, path, approver);
                 }
             }
@@ -448,7 +454,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                                  @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
                                  @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
                                  @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                 @ValidateStringParam(name = "filterType") String filterType) throws SiteNotFoundException {
+                                 @ValidateStringParam(name = "filterType") String filterType)
+            throws SiteNotFoundException {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
@@ -817,7 +824,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     private boolean checkCommitIds(String site, List<String> commitIds) {
         boolean toRet = true;
         for (String commitId : commitIds) {
-            toRet = toRet && contentRepository.commitIdExists(site, commitId);
+            toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
         }
         return toRet;
     }
@@ -919,7 +926,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void resetStagingEnvironment(String siteId) throws ServiceLayerException {
+    public void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }

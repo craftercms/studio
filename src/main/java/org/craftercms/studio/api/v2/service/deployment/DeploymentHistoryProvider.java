@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.deployment;
+package org.craftercms.studio.api.v2.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;

@@ -16,8 +16,12 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface SiteFeedMapper {
 
@@ -54,4 +58,10 @@ public interface SiteFeedMapper {
     void updateLastVerifiedGitlogCommitId(Map params);
 
     List<SiteFeed> getDeletedSites();
+
+    /**
+     * Set published repo created flag
+     * @param siteId site identifier
+     */
+    void setPublishedRepoCreated(@Param(SITE_ID) String siteId);
 }
