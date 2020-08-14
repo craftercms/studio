@@ -40,4 +40,6 @@ public interface GitContentRepositoryConstants {
     String CONFIG_PARAMETER_FETCH_DEFAULT = "+refs/heads/*:refs/remotes/origin/*";
 
     String PREVIOUS_COMMIT_SUFFIX = "~1";
+
+    String CLUSTER_NODE_REMOTE_NAME_PREFIX = "cluster_node_";
 }

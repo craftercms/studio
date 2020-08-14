@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ApiResponse {
 
+    // 1 - 1000
     public static final ApiResponse OK =
             new ApiResponse(0, "OK", StringUtils.EMPTY, StringUtils.EMPTY);
     public static final ApiResponse CREATED =
@@ -33,126 +34,124 @@ public class ApiResponse {
     public static final ApiResponse DELETED =
             new ApiResponse(2, "Deleted", StringUtils.EMPTY, StringUtils.EMPTY);
 
+    // 1000 - 2000
     public static final ApiResponse INTERNAL_SYSTEM_FAILURE =
             new ApiResponse(1000, "Internal system failure", "Contact support", StringUtils.EMPTY);
-    public static final ApiResponse INVALID_PARAMS =
-            new ApiResponse(1001, "Invalid parameter(s)", "Check API and make sure you're sending the correct " +
-                                                          "parameters", StringUtils.EMPTY);
+    public static final ApiResponse INVALID_PARAMS = new ApiResponse(1001, "Invalid parameter(s)",
+            "Check API and make sure you're sending the correct parameters", StringUtils.EMPTY);
 
+    // 2000 - 3000
     public static final ApiResponse UNAUTHENTICATED =
             new ApiResponse(2000, "Unauthenticated", "Please login first", StringUtils.EMPTY);
-    public static final ApiResponse UNAUTHORIZED =
-            new ApiResponse(2001, "Unauthorized", "You don't have permission to perform this task, please contact " +
-                                                  "your administrator", StringUtils.EMPTY);
+    public static final ApiResponse UNAUTHORIZED = new ApiResponse(2001, "Unauthorized",
+            "You don't have permission to perform this task, please contact your administrator", StringUtils.EMPTY);
 
-    public static final ApiResponse ORG_NOT_FOUND =
-            new ApiResponse(3000, "Organization not found", "Check if you sent in the right Org Id", StringUtils.EMPTY);
-    public static final ApiResponse ORG_ALREADY_EXISTS =
-            new ApiResponse(3001, "Organization already exists", "Try a different organization name",
-                            StringUtils.EMPTY);
+    // 3000 - 4000
+    public static final ApiResponse ORG_NOT_FOUND = new ApiResponse(3000, "Organization not found",
+            "Check if you sent in the right Org Id", StringUtils.EMPTY);
+    public static final ApiResponse ORG_ALREADY_EXISTS = new ApiResponse(3001, "Organization already exists",
+            "Try a different organization name", StringUtils.EMPTY);
 
-    public static final ApiResponse GROUP_NOT_FOUND =
-            new ApiResponse(4000, "Group not found", "Check if you sent in the right Group Id", StringUtils.EMPTY);
-    public static final ApiResponse GROUP_ALREADY_EXISTS =
-            new ApiResponse(4001, "Group already exists", "Try a different group name", StringUtils.EMPTY);
+    // 4000 - 5000
+    public static final ApiResponse GROUP_NOT_FOUND = new ApiResponse(4000, "Group not found",
+            "Check if you sent in the right Group Id", StringUtils.EMPTY);
+    public static final ApiResponse GROUP_ALREADY_EXISTS = new ApiResponse(4001, "Group already exists",
+            "Try a different group name", StringUtils.EMPTY);
 
-    public static final ApiResponse PROJECT_NOT_FOUND =
-            new ApiResponse(5000, "Project not found", "Check if you sent in the right Project Id", StringUtils.EMPTY);
-    public static final ApiResponse PROJECT_ALREADY_EXISTS =
-            new ApiResponse(5001, "Project already exists", "Try a different project name", StringUtils.EMPTY);
+    // 5000 - 6000
+    public static final ApiResponse PROJECT_NOT_FOUND = new ApiResponse(5000, "Project not found",
+            "Check if you sent in the right Project Id", StringUtils.EMPTY);
+    public static final ApiResponse PROJECT_ALREADY_EXISTS = new ApiResponse(5001, "Project already exists",
+            "Try a different project name", StringUtils.EMPTY);
 
-    public static final ApiResponse USER_NOT_FOUND =
-            new ApiResponse(6000, "User not found", "Check if you're using the correct User ID", StringUtils.EMPTY);
-    public static final ApiResponse USER_ALREADY_EXISTS =
-            new ApiResponse(6001, "User already exists" , "Try a different username", StringUtils.EMPTY);
-    public static final ApiResponse USER_EXTERNALLY_MANAGED =
-            new ApiResponse(6002, "User is externally managed", "Update the user in the main identity system " +
-                                                                "(e.g. LDAP)", StringUtils.EMPTY);
+    // 6000 - 7000
+    public static final ApiResponse USER_NOT_FOUND = new ApiResponse(6000, "User not found",
+            "Check if you're using the correct User ID", StringUtils.EMPTY);
+    public static final ApiResponse USER_ALREADY_EXISTS = new ApiResponse(6001, "User already exists" ,
+            "Try a different username", StringUtils.EMPTY);
+    public static final ApiResponse USER_EXTERNALLY_MANAGED = new ApiResponse(6002, "User is externally managed",
+            "Update the user in the main identity system (e.g. LDAP)", StringUtils.EMPTY);
     public static final ApiResponse USER_PASSWORD_REQUIREMENTS_FAILED =
             new ApiResponse(6003, "User password does not fulfill requirements",
                     "Use password that will fulfill password requirements", StringUtils.EMPTY);
-
     public static final ApiResponse USER_PASSWORD_DOES_NOT_MATCH =
             new ApiResponse(6004, "User current password does not match",
                     "Use correct current password", StringUtils.EMPTY);
 
-    public static final ApiResponse CONTENT_NOT_FOUND =
-            new ApiResponse(7000, "Content not found", "Check if you sent in the right Content Id", StringUtils.EMPTY);
-    public static final ApiResponse CONTENT_ALREADY_EXISTS =
-            new ApiResponse(7001, "Content already exists", "Advise the user that the content already exists",
-                            StringUtils.EMPTY);
+    // 7000 - 8000
+    public static final ApiResponse CONTENT_NOT_FOUND = new ApiResponse(7000, "Content not found",
+            "Check if you sent in the right Content Id", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_ALREADY_EXISTS = new ApiResponse(7001, "Content already exists",
+            "Advise the user that the content already exists", StringUtils.EMPTY);
 
-    public static final ApiResponse PUBLISHING_DISABLED =
-            new ApiResponse(8000, "Publishing is disabled", "Advise the user to enable publishing", StringUtils.EMPTY);
+    // 8000 - 9000
+    public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
+            "Advise the user to enable publishing", StringUtils.EMPTY);
 
-    public static final ApiResponse SEARCH_UNREACHABLE =
-            new ApiResponse(9000, "Search is unreachable", "Advise the user that the search engine is not " +
-                                                           "reachable", StringUtils.EMPTY);
+    // 9000 - 10000
+    public static final ApiResponse SEARCH_UNREACHABLE = new ApiResponse(9000, "Search is unreachable",
+            "Advise the user that the search engine is not reachable", StringUtils.EMPTY);
 
-    public static final ApiResponse LOV_NOT_FOUND =
-            new ApiResponse(10000, "LoV not found", "Check if you sent in the right LoV Id", StringUtils.EMPTY);
+    // 10000 - 11000
+    public static final ApiResponse LOV_NOT_FOUND = new ApiResponse(10000, "LoV not found",
+            "Check if you sent in the right LoV Id", StringUtils.EMPTY);
 
-    public static final ApiResponse CLUSTER_MEMBER_NOT_FOUND =
-            new ApiResponse(11000, "Cluster member not found", "Check if you sent in the right Cluster Member Id",
-                    StringUtils.EMPTY);
-
+    // 11000 - 12000
+    public static final ApiResponse CLUSTER_MEMBER_NOT_FOUND = new ApiResponse(11000, "Cluster member not found",
+            "Check if you sent in the right Cluster Member Id", StringUtils.EMPTY);
     public static final ApiResponse CLUSTER_MEMBER_ALREADY_EXISTS =
-            new ApiResponse(11001, "Cluster member already exists", "Get the list of cluster members to validate",
-                    StringUtils.EMPTY);
+            new ApiResponse(11001, "Cluster member already exists",
+                    "Get the list of cluster members to validate", StringUtils.EMPTY);
 
-    public static final ApiResponse REMOTE_REPOSITORY_NOT_FOUND =
-            new ApiResponse(12000, "Remote repository not found",
+    // 12000 - 13000
+    public static final ApiResponse REMOTE_REPOSITORY_NOT_FOUND = new ApiResponse(12000, "Remote repository not found",
                     "Check if you sent in the right remote repository name", StringUtils.EMPTY);
-
     public static final ApiResponse REMOTE_REPOSITORY_ALREADY_EXISTS =
             new ApiResponse(12001, "Remote repository already exists",
                     "Get the list of remote repositories to validate", StringUtils.EMPTY);
-
     public static final ApiResponse PULL_FROM_REMOTE_REPOSITORY_CONFLICT =
             new ApiResponse(12002, "Pull from remote repository resulted in conflict",
                     "Resolve conflicts before continuing work with repository", StringUtils.EMPTY);
-
     public static final ApiResponse ADD_REMOTE_INVALID =
             new ApiResponse(12003, "Remote is invalid. Not added to remote repositories",
                     "Add new remote repository with valid parameters.", StringUtils.EMPTY);
-
     public static final ApiResponse REMOVE_REMOTE_FAILED =
-            new ApiResponse(12004, "Failed to remove remote repository", "Contact your system administrator.",
-                    StringUtils.EMPTY);
-
+            new ApiResponse(12004, "Failed to remove remote repository",
+                    "Contact your system administrator.", StringUtils.EMPTY);
     public static final ApiResponse PUSH_TO_REMOTE_FAILED =
-            new ApiResponse(12005, "Push to remote repository failed", "Check your repository settings or contact your system administrator.",
-                    StringUtils.EMPTY);
+            new ApiResponse(12005, "Push to remote repository failed",
+                    "Check your repository settings or contact your system administrator.", StringUtils.EMPTY);
+    public static final ApiResponse REMOTE_REPOSITORY_NOT_REMOVABLE =
+            new ApiResponse(12006, "Failed to remove remote repository",
+                    "Remote repository is cluster node repository. Can't be removed.", StringUtils.EMPTY);
 
-    public static final ApiResponse MARKETPLACE_NOT_INITIALIZED = new ApiResponse(40000,
-        "Marketplace service is not initialized", "Contact your system administrator.", StringUtils.EMPTY);
+    // 40000 - 41000
+    public static final ApiResponse MARKETPLACE_NOT_INITIALIZED =
+            new ApiResponse(40000, "Marketplace service is not initialized",
+                    "Contact your system administrator.", StringUtils.EMPTY);
 
-    public static final ApiResponse MARKETPLACE_UNREACHABLE = new ApiResponse(40001,
-        "Marketplace server is unreachable", "Check the configuration to make sure the Marketplace URL is correct",
-        StringUtils.EMPTY);
+    public static final ApiResponse MARKETPLACE_UNREACHABLE =
+            new ApiResponse(40001, "Marketplace server is unreachable",
+                    "Check the configuration to make sure the Marketplace URL is correct", StringUtils.EMPTY);
 
-    public static final ApiResponse CMIS_UNREACHABLE =
-            new ApiResponse(50000, "CMIS server is unreachable", "Advise the user that the CMIS server is not " +
-                                                                 "reachable", StringUtils.EMPTY);
-
-    public static final ApiResponse CMIS_TIMEOUT =
-            new ApiResponse(50001, "Request to CMIS server timed out", "Advise the user that the request to CMIS " +
-                    "server timed out", StringUtils.EMPTY);
-
-    public static final ApiResponse CMIS_NOT_FOUND =
-            new ApiResponse(50002, "CMIS server was not found", "Advise the user that the CMIS server was not " +
-                    "found", StringUtils.EMPTY);
-
+    // 50000 - 51000
+    public static final ApiResponse CMIS_UNREACHABLE = new ApiResponse(50000, "CMIS server is unreachable",
+            "Advise the user that the CMIS server is not reachable", StringUtils.EMPTY);
+    public static final ApiResponse CMIS_TIMEOUT = new ApiResponse(50001, "Request to CMIS server timed out",
+            "Advise the user that the request to CMIS server timed out", StringUtils.EMPTY);
+    public static final ApiResponse CMIS_NOT_FOUND = new ApiResponse(50002, "CMIS server was not found",
+            "Advise the user that the CMIS server was not found", StringUtils.EMPTY);
     public static final ApiResponse CMIS_STUDIO_PATH_NOT_FOUND =
             new ApiResponse(50003, "Target path does not exist in site repository",
                     "Check if you sent in the right Studio Path", StringUtils.EMPTY);
 
-    public static final ApiResponse BOX_UNREACHABLE =
-            new ApiResponse(51000, "Box is unreachable", "Advise the user that Box is not reachable", StringUtils.EMPTY);
+    // 51000 - 52000
+    public static final ApiResponse BOX_UNREACHABLE = new ApiResponse(51000, "Box is unreachable",
+            "Advise the user that Box is not reachable", StringUtils.EMPTY);
 
-    public static final ApiResponse AWS_UNREACHABLE =
-            new ApiResponse(52000, "AWS is unreachable", "Advise the user that AWS engine is not reachable",
-                            StringUtils.EMPTY);
+    // 52000 - 53000
+    public static final ApiResponse AWS_UNREACHABLE = new ApiResponse(52000, "AWS is unreachable",
+            "Advise the user that AWS engine is not reachable", StringUtils.EMPTY);
 
     private int code;
     private String message;

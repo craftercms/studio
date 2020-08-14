@@ -95,6 +95,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.craftercms.studio.model.rest.ApiResponse.UNAUTHORIZED;
+import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -214,7 +215,7 @@ public class UsersController {
      * @param userId User identifier
      * @return Response containing user
      */
-    @GetMapping(PATH_PARAM_ID)
+    @GetMapping(value = PATH_PARAM_ID, consumes = ALL_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getUser(@PathVariable(REQUEST_PARAM_ID) String userId)
             throws ServiceLayerException, UserNotFoundException {
         int uId = -1;

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.FilenameUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.core.io.AbstractResource;
@@ -84,7 +85,7 @@ public class ContentResource extends AbstractResource {
     public InputStream getInputStream() throws IOException {
         try {
             return contentService.getContent(site, path);
-        } catch (ContentNotFoundException e) {
+        } catch (ContentNotFoundException | CryptoException e) {
             throw new FileNotFoundException("No content found for '" + path + "' in site: " + site);
         }
     }

@@ -16,16 +16,12 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -33,9 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -43,11 +37,12 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -65,15 +60,24 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 
 public abstract class StudioNodeSyncBaseTask implements Runnable {
@@ -81,9 +85,6 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncBaseTask.class);
 
     private static final String NON_SSH_GIT_URL_REGEX = "(file|https?|git)://.+";
-
-    protected static final List<String> createdSites = new ArrayList<String>();
-    protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
     protected String siteId;
     protected String siteUuid;
@@ -95,6 +96,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     protected ServicesConfig servicesConfig;
     protected SiteService siteService;
     protected DeploymentService deploymentService;
+    protected EventService eventService;
+    protected TextEncryptor encryptor;
 
 	// Abstract methods to be implemented by Sandbox/Published classes
 	protected abstract boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId);
@@ -103,9 +106,12 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 	protected abstract boolean createSiteInternal(String siteId, String siteUuid, String searchEngine);
 	protected abstract boolean lockSiteInternal(String siteId);
 	protected abstract void unlockSiteInternal(String siteId);
-	protected abstract boolean cloneSiteInternal(String siteId, GitRepositories repoType)
+	protected abstract boolean cloneSiteInternal(String siteId)
             throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
                    InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
+    protected abstract boolean checkIfSiteRepoExistsInternal();
+    protected abstract void addRemotesInternal()
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException;
 
     @Override
     public void run() {
@@ -129,7 +135,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
                 if (success) {
                     // Get the site's database last commit ID
-                    String siteDatabaseLastCommitId = getDatbaseLastCommitId(siteId);
+                    String siteDatabaseLastCommitId = getDatabaseLastCommitId(siteId);
                     
                     // Check if the site needs to be synced
                     boolean syncRequired = isSyncRequired(siteId, siteDatabaseLastCommitId);
@@ -178,7 +184,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 		return isSyncRequiredInternal(siteId, siteDatabaseLastCommitId);
 	}
 
-    protected String getDatbaseLastCommitId(String siteId) {
+    protected String getDatabaseLastCommitId(String siteId) {
         String siteDatabaseLastCommitId = StringUtils.EMPTY;
 
         try {
@@ -191,20 +197,21 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
         return siteDatabaseLastCommitId;
     }
 
-    protected boolean createSiteFromRemote()
+    protected boolean createSiteFromRemote(GitRepositories repoType)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException, CryptoException {
         ClusterMember remoteNode = clusterNodes.get(0);
-        logger.debug("Create site " + siteId + " from remote repository " + remoteNode.getLocalAddress());
-        boolean toRet = cloneRepository(remoteNode, SANDBOX) && cloneRepository(remoteNode, PUBLISHED);
+        logger.debug("Create " + repoType.name() + " repository for site " + siteId + " from remote repository " +
+                remoteNode.getLocalAddress());
+        boolean toRet = cloneRepository(remoteNode);
 
         return toRet;
     }
 
-    protected boolean cloneRepository(ClusterMember remoteNode, GitRepositories repoType)
+    protected boolean cloneRepository(ClusterMember remoteNode)
             throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-		return cloneSiteInternal(siteId, repoType);
+		return cloneSiteInternal(siteId);
     }
 
     protected Path buildRepoPath(GitRepositories repoType) {
@@ -226,74 +233,9 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
         return path;
 	}
-	
-    protected void addOriginRemote() throws IOException, InvalidRemoteUrlException, ServiceLayerException {
-        logger.debug("Add sandbox as origin to published repo");
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repo = builder
-                .setGitDir(buildRepoPath(PUBLISHED).resolve(GIT_ROOT).toFile())
-                .readEnvironment()
-                .findGitDir()
-                .build();
-        // Build a path for the site/sandbox
-        Path siteSandboxPath = buildRepoPath(SANDBOX);
-        // Built a path for the site/published
-        Path sitePublishedPath = buildRepoPath(PUBLISHED);
-        String remoteUrl = sitePublishedPath.relativize(siteSandboxPath).toString();
-        try (Git git = new Git(repo)) {
-
-            Config storedConfig = repo.getConfig();
-            Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
-
-            if (remotes.contains(DEFAULT_REMOTE_NAME)) {
-                return;
-            }
-
-            RemoteAddCommand remoteAddCommand = git.remoteAdd();
-            remoteAddCommand.setName(DEFAULT_REMOTE_NAME);
-            remoteAddCommand.setUri(new URIish(remoteUrl));
-            remoteAddCommand.call();
-        } catch (URISyntaxException e) {
-            logger.error("Remote URL is invalid " + remoteUrl, e);
-            throw new InvalidRemoteUrlException();
-        } catch (GitAPIException e) {
-            logger.error("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl + ") for site " +
-                    siteId, e);
-            throw new ServiceLayerException("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl +
-                    ") for site " + siteId, e);
-        }
-    }
 
     protected void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
-        Map<String, String> existingRemotes = remotesMap.get(siteId);
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-        logger.debug("Add cluster members as remotes to local sandbox repository");
-        for (ClusterMember member : clusterNodes) {
-            if (existingRemotes != null && existingRemotes.containsKey(member.getGitRemoteName())) {
-                continue;
-            }
-
-            try {
-                if (existingRemotes == null) {
-                    existingRemotes = new HashMap<String, String>();
-                    remotesMap.put(siteId, existingRemotes);
-                }
-
-                String remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
-                        studioConfiguration.getProperty(SANDBOX_PATH);
-                addRemoteRepository(member, remoteUrl, SANDBOX);
-
-                remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
-                        studioConfiguration.getProperty(PUBLISHED_PATH);
-                addRemoteRepository(member, remoteUrl, PUBLISHED);
-
-                existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
-
-            } catch (IOException e) {
-                logger.error("Failed to open repository", e);
-            }
-        }
+        addRemotesInternal();
     }
 
     protected void addRemoteRepository(ClusterMember member, String remoteUrl, GitRepositories repoType)
@@ -311,9 +253,18 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             Config storedConfig = repo.getConfig();
             Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
 
+            if (remotes.contains(member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""))) {
+
+                try {
+                    removeRemote(git, member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""));
+                } catch (GitAPIException e) {
+                    logger.debug("Error while cleaning up remote repository", e);
+                }
+            }
+
             if (remotes.contains(member.getGitRemoteName())) {
-                logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
-                        "site " + siteId);
+                logger.debug("Remote " + member.getGitRemoteName() + " already exists for " + repoType.toString() +
+                        " repo for site " + siteId);
                 String storedRemoteUrl = storedConfig.getString(CONFIG_SECTION_REMOTE,
                         member.getGitRemoteName(), CONFIG_PARAMETER_URL);
                 if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
@@ -323,7 +274,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                     remoteSetUrlCommand.call();
                 }
             } else {
-                logger.debug("Add " + member.getLocalAddress() + " as remote to sandbox");
+                logger.debug("Add " + member.getLocalAddress() + " as remote to " + repoType.toString());
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(member.getGitRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteUrl));
@@ -341,6 +292,30 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
         }
     }
 
+    private void removeRemote(Git git, String remoteName) throws GitAPIException {
+        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+        remoteRemoveCommand.setRemoteName(remoteName);
+        remoteRemoveCommand.call();
+
+        List<Ref> resultRemoteBranches = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE)
+                .call();
+
+        List<String> branchesToDelete = new ArrayList<String>();
+        for (Ref remoteBranchRef : resultRemoteBranches) {
+            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                branchesToDelete.add(remoteBranchRef.getName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+            DeleteBranchCommand delBranch = git.branchDelete();
+            String[] array = new String[branchesToDelete.size()];
+            delBranch.setBranchNames(branchesToDelete.toArray(array));
+            delBranch.setForce(true);
+            delBranch.call();
+        }
+    }
+
     protected void updateContent(String lastCommitId) throws IOException, CryptoException, ServiceLayerException {
 		updateContentInternal(siteId, lastCommitId);
     }
@@ -348,8 +323,6 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 	protected <T extends TransportCommand> T configureAuthenticationForCommand(ClusterMember remoteNode, T gitCommand,
                                                                                final Path tempKey)
             throws CryptoException, IOException, ServiceLayerException {
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                                                          studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         boolean sshProtocol = !remoteNode.getGitUrl().matches(NON_SSH_GIT_URL_REGEX);
 
         switch (remoteNode.getGitAuthType()) {
@@ -459,17 +432,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     }
 
     protected boolean checkIfSiteRepoExists() {
-        boolean toRet = false;
-        if (createdSites.contains(siteId)) {
-            toRet = true;
-        } else {
-            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
-            if (!StringUtils.isEmpty(firstCommitId)) {
-                toRet = true;
-                createdSites.add(siteId);
-            }
-        }
-        return toRet;
+        return checkIfSiteRepoExistsInternal();
     }
 
     protected static class StrictHostCheckingOffSshSessionFactory extends JschConfigSessionFactory {
@@ -561,5 +524,18 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
+    }
+
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
+    //TODO: Check uses
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
     }
 }

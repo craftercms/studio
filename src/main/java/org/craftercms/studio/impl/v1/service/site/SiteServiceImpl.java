@@ -46,6 +46,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -190,7 +191,6 @@ public class SiteServiceImpl implements SiteService {
     protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
-
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
 
@@ -463,15 +463,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.info("Syncing database with repository.");
                 syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
-                // initial deployment
-                logger.info("Performing initial deployment");
-                contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getLiveEnvironment(siteId),
-                        securityService.getCurrentUser(), "Create site.");
-                if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-                    contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getStagingEnvironment(siteId),
-                            securityService.getCurrentUser(), "Create site.");
-                }
-                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+                objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 	        } catch(Exception e) {
 	            success = false;
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -522,8 +514,7 @@ public class SiteServiceImpl implements SiteService {
         boolean success = true;
 
         // create site with git repo
-        contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
-
+        success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
@@ -716,7 +707,7 @@ public class SiteServiceImpl implements SiteService {
             // create site by cloning remote git repo
             logger.info("Creating site " + siteId + " by cloning remote repository " + remoteName +
                 " (" + remoteUrl + ")");
-            success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
+            success = contentRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                 remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                 remotePrivateKey, params, createAsOrphan);
 
@@ -761,7 +752,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
                              " remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back...", e);
 
-                contentRepository.removeRemote(siteId, remoteName);
+                contentRepositoryV2.removeRemote(siteId, remoteName);
                 boolean deleted = contentRepository.deleteSite(siteId);
 
                 if (!deleted) {
@@ -807,15 +798,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.info("Sync database with repository for site " + siteId);
                 syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
-                // initial deployment
-                logger.info("Executing initial deployement for site " + siteId);
-                contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getLiveEnvironment(siteId),
-                        securityService.getCurrentUser(), "Create site.");
-                if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-                    contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getStagingEnvironment(siteId),
-                            securityService.getCurrentUser(), "Create site.");
-                }
-                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+                objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
             } catch(Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -947,7 +930,7 @@ public class SiteServiceImpl implements SiteService {
                         InvalidRemoteUrlException | ServiceLayerException e) {
                     logger.error("Error while pushing site: " + siteId + " ID: " + siteId + " to remote repository "
                             + remoteName + " (" + remoteUrl + ")", e);
-                    contentRepository.removeRemote(siteId, remoteName);
+                    contentRepositoryV2.removeRemote(siteId, remoteName);
                 }
 
             try {
@@ -966,15 +949,7 @@ public class SiteServiceImpl implements SiteService {
                     logger.info("Sync database with repository for site " + siteId);
                     syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
-                    // initial deployment
-                    logger.info("Executing initial deployement for site " + siteId);
-                    contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getLiveEnvironment(siteId),
-                            securityService.getCurrentUser(), "Create site.");
-                    if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-                        contentRepository.initialPublish(siteId, sandboxBranch, servicesConfig.getStagingEnvironment(siteId),
-                                securityService.getCurrentUser(), "Create site.");
-                    }
-                    objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+                    objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -1767,7 +1742,7 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        boolean toRet = contentRepository.removeRemote(siteId, remoteName);
+        boolean toRet = contentRepositoryV2.removeRemote(siteId, remoteName);
         insertRemoveRemoteAuditLog(siteId, remoteName);
         return toRet;
     }
@@ -1786,7 +1761,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }

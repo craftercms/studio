@@ -365,6 +365,11 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         return studioConfiguration.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX);
     }
 
+    @Override
+    public User getUserByGitName(String gitName) {
+        return userDao.getUserByGitName(gitName);
+    }
+
     public UserDAO getUserDao() {
         return userDao;
     }

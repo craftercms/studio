@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
@@ -40,8 +41,17 @@ public interface DeploymentService {
     void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver,
                 String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
 
-    // document
-    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate)
+    /**
+     * Delete content
+     * @param site site identifier
+     * @param paths list of paths to delete
+     * @param approver user that approved deletion
+     * @param scheduledDate scheduled date to execute deletion
+     * @param submissionComment submission comment
+     * @throws DeploymentException general deployment error
+     * @throws SiteNotFoundException if site does not exist
+     */
+    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate, String submissionComment)
             throws DeploymentException, SiteNotFoundException;
 
     List<PublishRequest> getScheduledItems(String site);
@@ -138,5 +148,5 @@ public interface DeploymentService {
      *
      * @param siteId site id to use for resetting
      */
-    void resetStagingEnvironment(String siteId) throws ServiceLayerException;
+    void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException;
 }

@@ -33,6 +33,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -185,7 +186,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public InputStream getContent(@ValidateStringParam(name = "site") String site,
                                   @ValidateSecurePathParam(name = "path") String path)
-            throws ContentNotFoundException {
+            throws ContentNotFoundException, CryptoException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         if (StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             return this._contentRepository.getContent(StringUtils.EMPTY, path);
@@ -242,7 +243,7 @@ public class ContentServiceImpl implements ContentService {
         InputStream is = null;
         try {
             is = this.getContent(site, path);
-        } catch (ContentNotFoundException e) {
+        } catch (ContentNotFoundException | CryptoException e) {
             logger.debug("Content not found for path {0}", e, path);
         }
 
@@ -602,6 +603,9 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
+            contentRepository.insertGitLog(site, commitId, 1);
+            siteService.updateLastCommitId(site, commitId);
+
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
@@ -843,6 +847,9 @@ public class ContentServiceImpl implements ContentService {
                     } catch (DocumentException eParseException) {
                         logger.error("General Error while copying content for site {0} from {1} to {2}," +
                                 " new name is {3}", eParseException, site, fromPath, toPath, copyPath);
+                    } catch (CryptoException e) {
+                        logger.error("Unexpected Error while copying content for site {0} from {1} to {2}," +
+                                " new name is {3}", e, site, fromPath, toPath, copyPath);
                     } finally {
                         IOUtils.closeQuietly(copyContent);
                     }
@@ -851,8 +858,7 @@ public class ContentServiceImpl implements ContentService {
                 // no need to process
                 retNewFileName = copyPath;
             }
-        }
-        catch(ServiceLayerException eServiceLayerException) {
+        } catch(ServiceLayerException eServiceLayerException) {
             logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
                 eServiceLayerException, site, fromPath, toPath, copyPath);
         }
@@ -2266,7 +2272,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath,
-                                                                   List<String> dependencies) throws ServiceLayerException {
+                                                                   List<String> dependencies)
+            throws ServiceLayerException {
         List<String> matchingDep = new ArrayList<String>();
         if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
             List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
@@ -2284,7 +2291,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath,
-                                                                    boolean isInLiveRepo) throws ServiceLayerException {
+                                                                    boolean isInLiveRepo)
+            throws ServiceLayerException {
         List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<DeleteDependencyConfigTO>();
         ContentItemTO dependencyItem = getContentItem(site, relativePath, 0);
         String contentType = dependencyItem.getContentType();
@@ -2503,7 +2511,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
@@ -2523,7 +2531,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
