@@ -35,6 +35,7 @@
         <security:csrf disabled="true"/>
         <security:custom-filter ref="studioAuthenticationTokenProcessingFilter" position="PRE_AUTH_FILTER" />
         <security:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
+        <security:intercept-url pattern="/login" access="permitAll()"/>
         <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
         <security:intercept-url pattern="**" access="isAuthenticated()" />
         <security:form-login login-page="/login"
