@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import com.amazonaws.services.s3.internal.Mimetypes;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,11 +22,11 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.DmContentProcessor;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -39,8 +38,10 @@ import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -51,11 +52,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
@@ -70,6 +73,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
     protected SiteService siteService;
+    protected UserServiceInternal userServiceInternal;
 
     /**
      * default constructor
@@ -227,31 +231,23 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         fileName).getCommitId());
 
                 // Item
-                Item item = itemServiceInternal.getItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
-                boolean exists = !Objects.isNull(item);
-                item.setPreviewUrl(parentItem.getUri() + FILE_SEPARATOR + fileName);
-                item.setState(item.getState() | org.craftercms.studio.api.v2.dal.ItemState.MODIFIED.value);
-                item.setLastModifiedBy(1);
-                item.setLastModifiedOn(ZonedDateTime.now());
-                item.setLabel("label");
-                item.setContentTypeId(
-                        contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName));
-                Mimetypes mimetypes = Mimetypes.getInstance();
-                item.setMimeType(mimetypes.getMimetype(fileName));
-                item.setLocaleCode(Locale.US.toString());
-                //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
-                item.setCommitId(result.getCommitId());
+                User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
+                Item item = itemServiceInternal.instantiateItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName)
+                        .withPreviewUrl(parentItem.getUri() + FILE_SEPARATOR + fileName)
+                        .withLastModifiedBy(userObj.getId())
+                        .withLastModifiedOn(ZonedDateTime.now())
+                        .withLabel(fileName)
+                        .withContentTypeId(contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName))
+                        .withMimeType(StudioUtils.getMimeType(fileName))
+                        // TODO: get local code with API 2
+                        .withLocaleCode(Locale.US.toString())
+                        .withCommitId(result.getCommitId())
+                        .build();
+                item.setState(item.getState() | MODIFIED.value);
                 if (unlock) {
-                    item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
+                    item.setState(item.getState() & ~USER_LOCKED.value);
                 }
-                if (exists) {
-                    itemServiceInternal.updateItem(item);
-                } else {
-                    SiteFeed siteFeed = siteService.getSite(site);
-                    item.setSiteId(siteFeed.getId());
-                    item.setPath(parentItem.getUri() + FILE_SEPARATOR + fileName);
-                    itemServiceInternal.upsertEntry(site, item);
-                }
+                itemServiceInternal.upsertEntry(site, item);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -262,6 +258,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             if (unlock) {
                 contentRepository.unLockItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
             } else {
+                contentRepository.lockItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
             }
 
             fileItem = contentService.getContentItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName, 0);
@@ -284,7 +281,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      */
     protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user,
                               boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
 
         boolean success = false;
         try {
@@ -320,32 +317,24 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             }
 
             // Item
-            Item item = itemServiceInternal.getItem(site, path);
-            boolean exists = !Objects.isNull(item);
-            item.setPreviewUrl(path);
-            item.setState(item.getState() | ItemState.MODIFIED.value);
-            item.setLastModifiedBy(1);
-            item.setLastModifiedOn(ZonedDateTime.now());
-            item.setLabel("label");
-            item.setContentTypeId(
-                    contentService.getContentTypeClass(site, path));
-            Mimetypes mimetypes = Mimetypes.getInstance();
-            item.setMimeType(mimetypes.getMimetype(FilenameUtils.getName(path)));
-            item.setLocaleCode(Locale.US.toString());
-            //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
-            item.setCommitId(result.getCommitId());
+            User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
+            Item item = itemServiceInternal.instantiateItem(site, path)
+                    .withPreviewUrl(path)
+                    .withLastModifiedBy(userObj.getId())
+                    .withLastModifiedOn(ZonedDateTime.now())
+                    .withLabel(contentItem.getInternalName())
+                    .withContentTypeId(contentService.getContentTypeClass(site, path))
+                    .withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
+                    // TODO: get local code with API 2
+                    .withLocaleCode(Locale.US.toString())
+                    .withCommitId(result.getCommitId())
+                    .build();
+
+            item.setState(item.getState() | MODIFIED.value);
             if (unlock) {
-                item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
+                item.setState(item.getState() & ~USER_LOCKED.value);
             }
-            if (exists) {
-                itemServiceInternal.updateItem(item);
-            } else {
-                SiteFeed siteFeed = siteService.getSite(site);
-                item.setSiteId(siteFeed.getId());
-                item.setPath(path);
-                item.setState(item.getState() | ItemState.NEW.value);
-                itemServiceInternal.upsertEntry(site, item);
-            }
+            itemServiceInternal.upsertEntry(site, item);
         }
 
         // unlock the content upon save if the flag is true
@@ -477,5 +466,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }

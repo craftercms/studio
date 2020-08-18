@@ -6,14 +6,16 @@ BEGIN
     DECLARE v_parent_path VARCHAR(2000);
     DECLARE v_parent_item_path VARCHAR(2000);
     DECLARE v_finished INTEGER DEFAULT 0;
-    DECLARE parent_cursor CURSOR FOR SELECT i.id as parent_id, REPLACE(i.path, '/index.xml','') AS parent_path, i.path AS parent_item_path FROM item i WHERE i.site_id = siteId AND (path = rootPath OR path LIKE concat(rootPath, '/%'));
+    DECLARE parent_cursor CURSOR FOR SELECT i.id as parent_id, REPLACE(i.path, '/index.xml','') AS parent_path, i.path
+        AS parent_item_path FROM item i WHERE i.site_id = siteId AND (path = rootPath OR path LIKE concat(rootPath, '/%'));
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
     OPEN parent_cursor;
     update_parent: LOOP
         FETCH parent_cursor INTO v_parent_id, v_parent_path, v_parent_item_path;
         IF v_finished = 1 THEN LEAVE update_parent;
         END IF;
-        UPDATE item SET parent_id = v_parent_id WHERE site_id = siteId AND path RLIKE (concat(v_parent_path, '/[^/]+/index\.xml|', v_parent_path,'/(?!index\.xml)[^/]+$'));
+        UPDATE item SET parent_id = v_parent_id WHERE site_id = siteId
+            AND path RLIKE (concat(v_parent_path, '/[^/]+/index\.xml|', v_parent_path,'/(?!index\.xml)[^/]+$'));
     END LOOP update_parent;
 END ;
 

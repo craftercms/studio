@@ -14,27 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.api.v2.utils;
 
-public enum ItemState {
+import com.amazonaws.services.s3.internal.Mimetypes;
 
-    NEW(0),
-    MODIFIED(1),
-    DELETED(2),
-    USER_LOCKED(3),
-    SYSTEM_PROCESSING(4),
-    IN_WORKFLOW(5),
-    SCHEDULED(6),
-    PUBLISHING(7),
-    STAGED(8),
-    LIVE(9),
-    TRANSLATION_UP_TO_DATE(10),
-    TRANSLATION_PENDING(11),
-    TRANSLATION_IN_PROGRESS(12);
+import java.nio.file.Files;
 
-    public final long value;
+public abstract class StudioUtils {
 
-    ItemState(long exponent) {
-        this.value = 2 ^ exponent;
+    public static String getMimeType(String filename) {
+        Mimetypes mimetypes = Mimetypes.getInstance();
+        return mimetypes.getMimetype(filename);
     }
 }

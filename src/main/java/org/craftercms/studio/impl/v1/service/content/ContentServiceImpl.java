@@ -419,7 +419,6 @@ public class ContentServiceImpl implements ContentService {
                 }
 
                 objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
-                //itemServiceInternal.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
                 // TODO: SJ: the line below doesn't make any sense, itemTo == null => insert? Investigate and fix in
                 // TODO: SJ: 2.7.x
@@ -1038,7 +1037,7 @@ public class ContentServiceImpl implements ContentService {
             Item item = itemServiceInternal.getItem(site, fromPath);
             item.setPath(movePath);
             long newState = item.getState() | MODIFIED.value &
-                    (SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
+                    ~(SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
                             USER_LOCKED.value);
             item.setState(newState);
             itemServiceInternal.updateItem(item);
@@ -2364,7 +2363,7 @@ public class ContentServiceImpl implements ContentService {
         // Item
         Item item = itemServiceInternal.getItem(site, path);
         if (Objects.nonNull(item)) {
-            item.setState(item.getState() | org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED.value);
+            item.setState(item.getState() | USER_LOCKED.value);
             itemServiceInternal.updateItem(item);
         }
     }

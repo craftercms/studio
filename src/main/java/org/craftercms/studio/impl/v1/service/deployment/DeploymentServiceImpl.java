@@ -103,7 +103,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
 import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
 import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_IN_PROGRESS;
 import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_PENDING;
-import static org.craftercms.studio.api.v2.dal.ItemState.UP_TO_DATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_UP_TO_DATE;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
@@ -299,7 +299,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             long onStatesMask = DELETED.value;
             long offStatesMask =
                     NEW.value + MODIFIED.value + USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value +
-                            SCHEDULED.value + STAGED.value + LIVE.value + UP_TO_DATE.value + TRANSLATION_PENDING.value +
+                            SCHEDULED.value + STAGED.value + LIVE.value + TRANSLATION_UP_TO_DATE.value + TRANSLATION_PENDING.value +
                             TRANSLATION_IN_PROGRESS.value;
             itemServiceInternal.updateStateBitsBulk(site, paths, onStatesMask, offStatesMask);
         }

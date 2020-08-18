@@ -88,5 +88,5 @@ public interface RequestConstants {
 
     String REQUEST_PARAM_SORT_STRATEGY = "sortStrategy";
 
-    String REQUEST_PARAM_LOCALE = "locale";
+    String REQUEST_PARAM_LOCALE_CODE = "localeCode";
 }

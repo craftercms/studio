@@ -17,7 +17,7 @@
 package org.craftercms.studio.impl.v2.service.item.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.ibatis.annotations.Param;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -27,14 +27,17 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
 
@@ -54,20 +57,19 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         upsertEntries(siteId, items);
     }
 
+    // Create items representing all ancestors until repository root
+    // In order to insert item into DB we need to insert all ancestors to establish parent-child relationship
     private List<Item> getAncestors(Item item) {
         List<Item> ancestors = new ArrayList<Item>();
         String itemPath = item.getPath();
         Path p = Paths.get(itemPath);
         List<Path> parts = new LinkedList<>();
         p.getParent().iterator().forEachRemaining(parts::add);
-        Item i = Item.cloneItem(item);
-        i.setPath("");
+        Item i = Item.Builder.buildFromClone(item).withPath(StringUtils.EMPTY).build();
         if (CollectionUtils.isNotEmpty(parts)) {
             for (Path ancestor : parts) {
-                i = Item.cloneItem(i);
-                i.setPath(i.getPath() + FILE_SEPARATOR + ancestor.toString());
-                i.setPreviewUrl(i.getPath());
-                i.setSystemType("folder");
+                i = Item.Builder.buildFromClone(i).withPath(i.getPath() + FILE_SEPARATOR + ancestor.toString())
+                        .withPreviewUrl(i.getPath()).withSystemType("folder").build();
                 ancestors.add(i);
             }
         } else {
@@ -218,5 +220,39 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, onStateBitMap, offStateBitMap);
+    }
+
+    @Override
+    public Item.Builder instantiateItem(String siteName, String path) {
+        Item item = getItem(siteName, path);
+        if (Objects.isNull(item))  {
+            item = new Item();
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(SITE_ID, siteName);
+            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+            item.setSiteId(siteFeed.getId());
+            item.setSiteName(siteName);
+            item.setPath(path);
+            item.setState(NEW.value);
+        }
+        return Item.Builder.buildFromClone(item);
+    }
+
+    @Override
+    public Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, long ownedBy,
+                                String owner, long createdBy, String creator, ZonedDateTime createdOn,
+                                long lastModifiedBy, String modifier, ZonedDateTime lastModifiedOn, String label,
+                                String contentTypeId, String systemType, String mimeType, int disabledAsInt,
+                                boolean disabled, String localeCode, long translationSourceId, long size, long parentId,
+                                String commitId) {
+
+        return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withOwnedBy(ownedBy)
+                .withOwner(owner).withCreatedBy(createdBy).withCreator(creator).withCreatedOn(createdOn)
+                .withLastModifiedBy(lastModifiedBy).withModifier(modifier).withLastModifiedOn(lastModifiedOn)
+                .withLabel(label).withContentTypeId(contentTypeId).withSystemType(systemType).withMimeType(mimeType)
+                .withDisabledAsInt(disabledAsInt).withDisabled(disabled).withLocaleCode(localeCode)
+                .withTranslationSourceId(translationSourceId).withSize(size).withParentId(parentId)
+                .withCommitId(commitId).build();
+
     }
 }

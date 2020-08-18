@@ -997,6 +997,7 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="cstudioExtractAssetDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractAssetDependencyProcessor">
@@ -1024,6 +1025,7 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

@@ -15,15 +15,14 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import com.amazonaws.services.s3.internal.Mimetypes;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -32,7 +31,9 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -42,11 +43,11 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
 
@@ -103,7 +104,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             } else {
                 result.setItem(assetInfo);
             }
-        } catch (ServiceLayerException e) {
+        } catch (ServiceLayerException | UserNotFoundException e) {
             throw new ContentProcessException("Failed to write " + content.getId()+", "+e, e);
         } finally {
             content.closeContentStream();
@@ -132,7 +133,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                                                    String assetName, InputStream in, int width, int height,
                                                    boolean createFolders, boolean isPreview, boolean unlock,
                                                    boolean isSystemAsset, ResultTO result)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         logger.debug("Writing content asset: [site: " + site + ", path: " + path + ", assetName: "
                 + assetName + ", createFolders: " + createFolders);
 
@@ -186,31 +187,25 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                     }
                 }
                 // Item
-                Item item = itemServiceInternal.getItem(site, path + FILE_SEPARATOR + assetName);
-                exists = !Objects.isNull(item);
-                item.setPreviewUrl(path + FILE_SEPARATOR + assetName);
-                item.setState(item.getState() | org.craftercms.studio.api.v2.dal.ItemState.MODIFIED.value);
-                item.setLastModifiedBy(1);
-                item.setLastModifiedOn(ZonedDateTime.now());
-                item.setLabel("label");
-                item.setContentTypeId(
-                        contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName));
-                Mimetypes mimetypes = Mimetypes.getInstance();
-                item.setMimeType(mimetypes.getMimetype(assetName));
-                item.setLocaleCode(Locale.US.toString());
-                //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
-                item.setCommitId(result.getCommitId());
+                User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
+                String contenTypeId = contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName);
+                Item item = itemServiceInternal.instantiateItem(site, path)
+                        .withPreviewUrl(path + FILE_SEPARATOR + assetName)
+                        .withLastModifiedBy(userObj.getId())
+                        .withLastModifiedOn(ZonedDateTime.now())
+                        .withLabel(assetName)
+                        .withContentTypeId(contenTypeId)
+                        .withMimeType(StudioUtils.getMimeType(assetName))
+                // TODO: get local code with API 2
+                        .withLocaleCode(Locale.US.toString())
+                        .withCommitId(result.getCommitId())
+                        .build();
+
                 if (unlock) {
                     item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
                 }
-                if (exists) {
-                    itemServiceInternal.updateItem(item);
-                } else {
-                    SiteFeed siteFeed = siteService.getSite(site);
-                    item.setSiteId(siteFeed.getId());
-                    item.setPath(path + FILE_SEPARATOR + assetName);
-                    itemServiceInternal.upsertEntry(site, item);
-                }
+                itemServiceInternal.upsertEntry(site, item);
+
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
@@ -233,7 +228,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      */
     protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input,
                               String user, boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         boolean success = false;
         try {
             success = contentService.writeContent(site, relativePath, input);
@@ -268,38 +263,28 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
 
             // Item
-            Item item = itemServiceInternal.getItem(site, relativePath);
-            boolean exists = !Objects.isNull(item);
-            item.setPreviewUrl(relativePath);
-            item.setState(item.getState() | ItemState.MODIFIED.value);
-            item.setLastModifiedBy(1);
-            item.setLastModifiedOn(ZonedDateTime.now());
-            item.setLabel("label");
-            item.setContentTypeId(
-                    contentService.getContentTypeClass(site, relativePath));
-            Mimetypes mimetypes = Mimetypes.getInstance();
-            item.setMimeType(mimetypes.getMimetype(FilenameUtils.getName(relativePath)));
-            item.setLocaleCode(Locale.US.toString());
-            //item.setSize(FileUtils.sizeOf(repoOperation.getPath()));
-            item.setCommitId(result.getCommitId());
+            User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
+            Item item = itemServiceInternal.instantiateItem(site, relativePath)
+                    .withPreviewUrl(relativePath)
+                    .withLastModifiedBy(userObj.getId())
+                    .withLastModifiedOn(ZonedDateTime.now())
+                    .withContentTypeId(contentService.getContentTypeClass(site, relativePath))
+                    .withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(relativePath)))
+            // TODO: get local code with API 2
+                    .withLocaleCode(Locale.US.toString())
+                    .withCommitId(result.getCommitId())
+                    .build();
+            item.setState(item.getState() | MODIFIED.value);
             if (unlock) {
                 item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
             }
-            if (exists) {
-                itemServiceInternal.updateItem(item);
-            } else {
-                SiteFeed siteFeed = siteService.getSite(site);
-                item.setSiteId(siteFeed.getId());
-                item.setPath(relativePath);
-                item.setState(item.getState() | ItemState.NEW.value);
-                itemServiceInternal.upsertEntry(site, item);
-            }
+            itemServiceInternal.upsertEntry(site, item);
         }
         if (unlock) {
-            contentService.unLockContent(site, relativePath);
+            contentRepository.unLockItem(site, relativePath);
             logger.debug("Unlocked the content site " + site + " path " + relativePath);
         } else {
-            contentService.lockContent(site, relativePath);
+            contentRepository.lockItem(site, relativePath);
         }
     }
 

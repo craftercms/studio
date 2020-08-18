@@ -61,6 +61,7 @@ public interface ItemDAO {
      * @param siteId site identifier
      * @param parentPath parent path
      * @param ldPath level descriptor path
+     * @param ldName level descriptor name
      * @param path path to get children for
      * @param localeCode locale code
      * @param sortStrategy sort strategy

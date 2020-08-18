@@ -18,7 +18,9 @@ package org.craftercms.studio.api.v2.service.item.internal;
 
 import org.craftercms.studio.api.v2.dal.Item;
 
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Properties;
 
 public interface ItemServiceInternal {
 
@@ -162,4 +164,41 @@ public interface ItemServiceInternal {
      * @param offStateBitMap stats bitmap to flip off
      */
     void updateStateBitsBulk(List<Long> itemIds, long onStateBitMap, long offStateBitMap);
+
+    Item.Builder instantiateItem(String siteName, String path);
+
+    /**
+     * Instantiate item by getting it from DB and setting properties to values
+     * @param siteId
+     * @param siteName
+     * @param path
+     * @param previewUrl
+     * @param state
+     * @param ownedBy
+     * @param owner
+     * @param createdBy
+     * @param creator
+     * @param createdOn
+     * @param lastModifiedBy
+     * @param modifier
+     * @param lastModifiedOn
+     * @param label
+     * @param contentTypeId
+     * @param systemType
+     * @param mimeType
+     * @param disabledAsInt
+     * @param disabled
+     * @param localeCode
+     * @param translationSourceId
+     * @param size
+     * @param parentId
+     * @param commitId
+     * @return
+     */
+    Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, long ownedBy,
+                         String owner, long createdBy, String creator, ZonedDateTime createdOn, long lastModifiedBy,
+                         String modifier, ZonedDateTime lastModifiedOn, String label, String contentTypeId,
+                         String systemType, String mimeType, int disabledAsInt,  boolean disabled, String localeCode,
+                         long translationSourceId, long size, long parentId, String commitId);
+
 }
