@@ -19,11 +19,10 @@ import org.apache.commons.text.StringEscapeUtils
 import scripts.libs.EnvironmentOverrides
 
 import static java.nio.charset.StandardCharsets.UTF_8
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
-response.setContentType(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+response.setContentType(APPLICATION_JSON_VALUE)
 response.setCharacterEncoding(UTF_8.name())
