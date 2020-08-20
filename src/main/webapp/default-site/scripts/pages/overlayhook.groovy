@@ -18,8 +18,10 @@
 import org.apache.commons.text.StringEscapeUtils
 import scripts.libs.EnvironmentOverrides
 
+import static java.nio.charset.StandardCharsets.UTF_8
+
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
-response.setContentType('application/javascript')
-response.setCharacterEncoding('utf-8')
+response.setContentType("text/javascript")
+response.setCharacterEncoding(UTF_8.name())
