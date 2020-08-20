@@ -47,7 +47,6 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
 
@@ -188,13 +187,13 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 }
                 // Item
                 User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
-                String contenTypeId = contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName);
+                String contentTypeId = contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName);
                 Item item = itemServiceInternal.instantiateItem(site, path)
                         .withPreviewUrl(path + FILE_SEPARATOR + assetName)
                         .withLastModifiedBy(userObj.getId())
                         .withLastModifiedOn(ZonedDateTime.now())
                         .withLabel(assetName)
-                        .withContentTypeId(contenTypeId)
+                        .withContentTypeId(contentTypeId)
                         .withMimeType(StudioUtils.getMimeType(assetName))
                 // TODO: get local code with API 2
                         .withLocaleCode(Locale.US.toString())
@@ -202,7 +201,9 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                         .build();
 
                 if (unlock) {
-                    item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
+                    item.setState(ItemState.savedAndClosed(item.getState()));
+                } else {
+                    item.setState(ItemState.savedAndNotClosed(item.getState()));
                 }
                 itemServiceInternal.upsertEntry(site, item);
 
@@ -274,9 +275,10 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                     .withLocaleCode(Locale.US.toString())
                     .withCommitId(result.getCommitId())
                     .build();
-            item.setState(item.getState() | MODIFIED.value);
             if (unlock) {
-                item.setState(item.getState() & ~ItemState.USER_LOCKED.value);
+                item.setState(ItemState.savedAndClosed(item.getState()));
+            } else {
+                item.setState(ItemState.savedAndNotClosed(item.getState()));
             }
             itemServiceInternal.upsertEntry(site, item);
         }

@@ -93,18 +93,9 @@ import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.S
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
-import static org.craftercms.studio.api.v2.dal.ItemState.DELETED;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
-import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_IN_PROGRESS;
-import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_PENDING;
-import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_UP_TO_DATE;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
@@ -296,12 +287,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
-            long onStatesMask = DELETED.value;
-            long offStatesMask =
-                    NEW.value + MODIFIED.value + USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value +
-                            SCHEDULED.value + STAGED.value + LIVE.value + TRANSLATION_UP_TO_DATE.value + TRANSLATION_PENDING.value +
-                            TRANSLATION_IN_PROGRESS.value;
-            itemServiceInternal.updateStateBitsBulk(site, paths, onStatesMask, offStatesMask);
+            itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
         Set<String> environments = getAllPublishedEnvironments(site);
         for (String environment : environments) {

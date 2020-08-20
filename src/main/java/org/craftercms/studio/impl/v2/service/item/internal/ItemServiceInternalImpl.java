@@ -170,9 +170,19 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public void setStateBitsBulk(String siteId, List<String> paths, long statesBitMask) {
+        setStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
+    }
+
+    @Override
     public void resetStateBits(String siteId, String path, long statesBitMask) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
+        resetStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
+    }
+
+    @Override
+    public void resetStateBitsBulk(String siteId, List<String> paths, long statesBitMask) {
         resetStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
     }
 

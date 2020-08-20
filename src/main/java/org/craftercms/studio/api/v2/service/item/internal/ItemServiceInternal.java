@@ -106,12 +106,29 @@ public interface ItemServiceInternal {
     void setStateBits(String siteId, String path, long statesBitMask);
 
     /**
+     * Update states bitmap for list of items by setting bits to 1
+     * @param siteId site identifier
+     * @param paths paths of items
+     * @param statesBitMask bit mask for states to be updated
+     */
+    void setStateBitsBulk(String siteId, List<String> paths, long statesBitMask);
+
+    /**
      * Update states bitmap for item by setting bits to 0
      * @param siteId site identifier
      * @param path path of item
      * @param statesBitMask bit mask for states to be updated
      */
     void resetStateBits(String siteId, String path, long statesBitMask);
+
+    /**
+     * Update states bitmap for list of items by setting bits to 0
+     * @param siteId site identifier
+     * @param paths paths of items
+     * @param statesBitMask bit mask for states to be updated
+     */
+    void resetStateBitsBulk(String siteId, List<String> paths, long statesBitMask);
+
 
     /**
      * Update states bitmap for item by setting bits to 1

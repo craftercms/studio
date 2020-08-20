@@ -47,11 +47,8 @@ import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.R
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_CANCEL_PUBLISH;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_GET_PUBLISHING_QUEUE;
@@ -130,10 +127,8 @@ public class PublishServiceImpl implements PublishService {
             }
             objectStateService.transitionBulk(siteId, paths, REJECT, NEW_UNPUBLISHED_UNLOCKED);
 
-            long onStatesMask = MODIFIED.value;
-            long offStatesMask =
-                    SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + USER_LOCKED.value;
-            itemServiceInternal.updateStateBitsBulk(siteId, paths, onStatesMask, offStatesMask);
+            itemServiceInternal.updateStateBitsBulk(siteId, paths, CANCEL_PUBLISHING_PACKAGE_ON_MASK,
+                    CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
 
             createAuditLogEntry(siteId, auditLogParameters);
         }

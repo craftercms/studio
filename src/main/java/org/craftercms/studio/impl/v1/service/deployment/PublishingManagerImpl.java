@@ -57,14 +57,10 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
-import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
@@ -238,13 +234,12 @@ public class PublishingManagerImpl implements PublishingManager {
                 itemMetadata.setLaunchDate(null);
                 objectMetadataManager.updateObjectMetadata(itemMetadata);
 
-                long onStatesMask = STAGED.value;
-                long offStatesMask = NEW.value + USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value +
-                        SCHEDULED.value;
                 if (isLive) {
-                    onStatesMask += LIVE.value;
+                    itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                            PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+                } else {
+                    itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
                 }
-                itemServiceInternal.updateStateBits(site, path, onStatesMask, offStatesMask);
             }
         }
         return deploymentItem;

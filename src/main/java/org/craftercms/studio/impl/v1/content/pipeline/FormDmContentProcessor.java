@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -56,9 +57,6 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
@@ -243,9 +241,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         .withLocaleCode(Locale.US.toString())
                         .withCommitId(result.getCommitId())
                         .build();
-                item.setState(item.getState() | MODIFIED.value);
                 if (unlock) {
-                    item.setState(item.getState() & ~USER_LOCKED.value);
+                    item.setState(ItemState.savedAndClosed(item.getState()));
+                } else {
+                    item.setState(ItemState.savedAndNotClosed(item.getState()));
                 }
                 itemServiceInternal.upsertEntry(site, item);
             } catch (Exception e) {
@@ -330,9 +329,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     .withCommitId(result.getCommitId())
                     .build();
 
-            item.setState(item.getState() | MODIFIED.value);
             if (unlock) {
-                item.setState(item.getState() & ~USER_LOCKED.value);
+                item.setState(ItemState.savedAndClosed(item.getState()));
+            } else {
+                item.setState(ItemState.savedAndNotClosed(item.getState()));
             }
             itemServiceInternal.upsertEntry(site, item);
         }

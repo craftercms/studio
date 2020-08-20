@@ -58,13 +58,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSET_CHAIN_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSIGNEE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_XML_CHAIN_NAME;
@@ -450,10 +445,8 @@ public class ImportServiceImpl implements ImportService {
                         }
                     }
                     // Item
-                    long onStatesMask = MODIFIED.value;
-                    long offStatesMask = SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value +
-                            LIVE.value + USER_LOCKED.value;
-                    itemServiceInternal.updateStateBits(site, currentPath, onStatesMask, offStatesMask);
+                    itemServiceInternal.updateStateBits(site, currentPath, SAVE_AND_CLOSE_ON_MASK,
+                            SAVE_AND_CLOSE_OFF_MASK);
 
                     importedPaths.add(filePath);
                     importedFullPaths.add(fullPath);

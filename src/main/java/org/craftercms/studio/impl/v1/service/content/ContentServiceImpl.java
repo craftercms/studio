@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,7 +44,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -87,6 +85,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -135,12 +134,10 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
@@ -338,7 +335,7 @@ public class ContentServiceImpl implements ContentService {
             boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
 
             if (contentExists) {
-                ItemState itemState = objectStateService.getObjectState(site, path);
+                org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, path);
                 if (itemState == null) {
                     // This file is either new or someone created it outside of our system, we must create a state
                     // for it
@@ -425,15 +422,14 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.insertNewEntry(site, itemTo);
             }
 
-            long onStatesMask = MODIFIED.value;
-            long offStatesMask =
-                    SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value;
             if (isSaveAndClose) {
-                offStatesMask += USER_LOCKED.value;
+                itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_CLOSE_ON_MASK,
+                        SAVE_AND_CLOSE_OFF_MASK);
             } else {
-                onStatesMask += USER_LOCKED.value;
+                itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
+                        SAVE_AND_NOT_CLOSE_OFF_MASK);
             }
-            itemServiceInternal.updateStateBits(site, itemTo.getUri(), onStatesMask, offStatesMask);
+
 
             // Sync preview
             PreviewEventContext context = new PreviewEventContext();
@@ -541,7 +537,7 @@ public class ContentServiceImpl implements ContentService {
             item = getContentItem(site, path);
 
             if (item != null) {
-                ItemState itemState = objectStateService.getObjectState(site, path);
+                org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, path);
                 if (itemState != null) {
                     if (itemState.getSystemProcessing() != 0) {
                         logger.error(String.format("Error Content %s is being processed " +
@@ -574,10 +570,7 @@ public class ContentServiceImpl implements ContentService {
                     objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
                 }
             }
-            long onStatesMask = MODIFIED.value;
-            long offStatesMask = SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value +
-                    LIVE.value + USER_LOCKED.value;
-            itemServiceInternal.updateStateBits(site, path, onStatesMask, offStatesMask);
+            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
             PreviewEventContext context = new PreviewEventContext();
             context.setSite(site);
@@ -860,7 +853,7 @@ public class ContentServiceImpl implements ContentService {
                         }
 
 
-                        ItemState itemState = objectStateService.getObjectState(site, copyPath);
+                        org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, copyPath);
 
                         if (itemState == null) {
                             ContentItemTO copyItem = getContentItem(site, copyPath, 0);
@@ -1034,13 +1027,11 @@ public class ContentServiceImpl implements ContentService {
             objectStateService.updateObjectPath(site, fromPath, movePath);
 
             // Item update
-            Item item = itemServiceInternal.getItem(site, fromPath);
-            item.setPath(movePath);
-            long newState = item.getState() | MODIFIED.value &
-                    ~(SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
-                            USER_LOCKED.value);
-            item.setState(newState);
-            itemServiceInternal.updateItem(item);
+            Item item = itemServiceInternal.instantiateItem(site, fromPath)
+                    .withPath(movePath)
+                    .build();
+            item.setState(ItemState.savedAndClosed(item.getState()));
+            itemServiceInternal.upsertEntry(site, item);
 
             objectStateService.transition(site, renamedItem, SAVE);
             renamedItem = getContentItem(site, movePath, 0);
@@ -1813,7 +1804,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
-        ItemState state = objectStateService.getObjectState(site, item.getUri(), false);
+        org.craftercms.studio.api.v1.dal.ItemState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
             if (item.isFolder()) {
                 boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
@@ -1971,11 +1962,7 @@ public class ContentServiceImpl implements ContentService {
             // Update the database with the commitId for the target item
             objectStateService.transition(site, path, REVERT);
 
-            long onStatesMask = MODIFIED.value;
-            long offStatesMask =
-                    SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + STAGED.value + LIVE.value +
-                            USER_LOCKED.value;
-            itemServiceInternal.updateStateBits(site, path, onStatesMask, offStatesMask);
+            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
             objectMetadataManager.updateCommitId(site, path, commitId);
             contentRepository.insertGitLog(site, commitId, 1);
@@ -2359,13 +2346,7 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Dejan to look into this
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
-
-        // Item
-        Item item = itemServiceInternal.getItem(site, path);
-        if (Objects.nonNull(item)) {
-            item.setState(item.getState() | USER_LOCKED.value);
-            itemServiceInternal.updateItem(item);
-        }
+        itemServiceInternal.setStateBits(site, path, USER_LOCKED.value);
     }
 
     @Override

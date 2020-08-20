@@ -99,13 +99,13 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJEC
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.REJECT_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 /**
@@ -366,14 +366,14 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
 
         // Item
-        long onStatesMask = IN_WORKFLOW.value;
-        long offStatesMask = USER_LOCKED.value + SYSTEM_PROCESSING.value;
+
         if (Objects.nonNull(scheduledDate)) {
-            onStatesMask += SCHEDULED.value;
+            itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
+                    SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK);
         } else {
-            offStatesMask += SCHEDULED.value;
+            itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_ON_MASK,
+                    SUBMIT_TO_WORKFLOW_OFF_MASK);
         }
-        itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), onStatesMask, offStatesMask);
     }
 
     @Override
@@ -681,10 +681,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT,
                 State.NEW_UNPUBLISHED_UNLOCKED);
 
-        long onStatesMask = MODIFIED.value;
-        long offStatesMask =
-                SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + USER_LOCKED.value;
-        itemServiceInternal.updateStateBitsBulk(site, paths, onStatesMask, offStatesMask);
+        itemServiceInternal.updateStateBitsBulk(site, paths, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
     }
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceLayerException {
@@ -2381,8 +2378,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
             objectStateService.transition(site, item, TransitionEvent.REJECT);
 
-            long offStatesMask = USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value;
-            itemServiceInternal.resetStateBits(site, dmDependencyTO.getUri(), offStatesMask);
+            itemServiceInternal.resetStateBits(site, dmDependencyTO.getUri(), REJECT_OFF_MASK);
         }
     }
 
