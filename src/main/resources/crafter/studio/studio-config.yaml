@@ -331,6 +331,8 @@ studio.security.encryption.salt: default_encryption_salt
 studio.security.encryption.delay: 1
 # Amount of characters to limit the encryption input
 studio.security.encryption.maxLength: 4096
+# If the secure headers should be written for every request
+studio.security.headers.enabled: true
 
 ###############################################################
 ##               Page Navigation Order Service               ##
