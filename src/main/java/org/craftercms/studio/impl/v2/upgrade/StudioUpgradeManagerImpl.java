@@ -16,6 +16,28 @@
 
 package org.craftercms.studio.impl.v2.upgrade;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.YamlConfiguration;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
+import org.craftercms.commons.upgrade.UpgradePipeline;
+import org.craftercms.commons.upgrade.UpgradePipelineFactory;
+import org.craftercms.commons.upgrade.VersionProvider;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
+import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.springframework.core.io.Resource;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -23,126 +45,117 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.sql.DataSource;
-
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
-import org.craftercms.commons.config.YamlConfiguration;
-import org.craftercms.commons.entitlements.exception.EntitlementException;
-import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
-import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
-import org.craftercms.studio.api.v2.upgrade.UpgradePipelineFactory;
-import org.craftercms.studio.api.v2.upgrade.VersionProvider;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import static java.nio.file.Paths.get;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.text.StringSubstitutor.replace;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_CONFIGURATIONS;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_ENVIRONMENT;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_MODULE;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_PATH;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_0;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
 
 /**
- * Default implementation for {@link UpgradeManager}.
+ * Default implementation for {@link StudioUpgradeManager}.
  * @author joseross
  */
 @SuppressWarnings("unchecked, rawtypes")
-public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationContextAware {
+public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> implements StudioUpgradeManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultUpgradeManagerImpl.class);
-
-    private static final ThreadLocal<String> currentFile = new InheritableThreadLocal<>();
+    private static final Logger logger = LoggerFactory.getLogger(StudioUpgradeManagerImpl.class);
 
     public static final String SQL_QUERY_SITES_3_0_0 = "select site_id from cstudio_site where system = 0";
     public static final String SQL_QUERY_SITES = "select site_id from site where system = 0";
 
-    public static final String CONFIG_PIPELINE_SUFFIX = ".pipeline";
-
-    /**
-     * The git path of the version file.
-     */
-    protected String siteVersionFilePath;
-
     protected VersionProvider dbVersionProvider;
-    protected UpgradePipelineFactory dbPipelineFactory;
+    protected UpgradePipelineFactory<String> dbPipelineFactory;
 
-    protected UpgradePipelineFactory bpPipelineFactory;
+    protected UpgradePipelineFactory<String> bpPipelineFactory;
 
     protected Resource configurationFile;
 
     protected DataSource dataSource;
-    protected ApplicationContext appContext;
     protected DbIntegrityValidator integrityValidator;
     protected ContentRepository contentRepository;
     protected StudioConfiguration studioConfiguration;
 
-    public static String getCurrentFile() {
-        return currentFile.get();
+    public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
+                                    UpgradePipelineFactory<String> dbPipelineFactory,
+                                    UpgradePipelineFactory<String> bpPipelineFactory, Resource configurationFile,
+                                    DataSource dataSource, DbIntegrityValidator integrityValidator,
+                                    ContentRepository contentRepository, StudioConfiguration studioConfiguration) {
+        this.dbVersionProvider = dbVersionProvider;
+        this.dbPipelineFactory = dbPipelineFactory;
+        this.bpPipelineFactory = bpPipelineFactory;
+        this.configurationFile = configurationFile;
+        this.dataSource = dataSource;
+        this.integrityValidator = integrityValidator;
+        this.contentRepository = contentRepository;
+        this.studioConfiguration = studioConfiguration;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void upgradeDatabaseAndConfiguration() throws UpgradeException {
+    public void upgradeDatabaseAndConfiguration() throws UpgradeException, ConfigurationException {
         logger.info("Checking upgrades for the database and configuration");
 
-        UpgradePipeline pipeline = dbPipelineFactory.getPipeline(dbVersionProvider);
-        pipeline.execute();
+        var context = createUpgradeContext(StringUtils.EMPTY);
+        var pipeline = dbPipelineFactory.getPipeline(context);
+        pipeline.execute(context);
 
     }
 
     protected VersionProvider getVersionProvider(String name, Object... args) {
-        return (VersionProvider) appContext.getBean(name, args);
+        return (VersionProvider) applicationContext.getBean(name, args);
     }
 
-    protected UpgradePipeline getPipeline(VersionProvider versionProvider, String factoryName, Object... args)
-        throws UpgradeException {
-        UpgradePipelineFactory pipelineFactory =
-            (UpgradePipelineFactory) appContext.getBean(factoryName, args);
-        return pipelineFactory.getPipeline(versionProvider);
+    protected UpgradePipelineFactory<String> getPipelineFactory(String factoryName) {
+        return (UpgradePipelineFactory<String>) applicationContext.getBean(factoryName);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void upgradeSite(final String site) {
-        logger.info("Checking upgrades for site {0}", site);
+    public void doUpgrade(final UpgradeContext<String> context) throws UpgradeException, ConfigurationException {
+        logger.info("Checking upgrades for site {0}", context.getTarget());
 
-        try {
-            VersionProvider versionProvider = getVersionProvider("siteVersionProvider", site, siteVersionFilePath);
-            UpgradePipeline pipeline = getPipeline(versionProvider, "sitePipelineFactory");
+        UpgradePipeline pipeline = getPipelineFactory("sitePipelineFactory").getPipeline(context);
+        pipeline.execute(context);
 
-            pipeline.execute(site);
+        upgradeSiteConfiguration((StudioUpgradeContext) context);
+    }
 
-            upgradeSiteConfiguration(site);
-        } catch (UpgradeException e) {
-            logger.error("Error during upgrade for site " + site, e);
+    @Override
+    protected List<String> doGetTargets() throws Exception {
+        String currentDbVersion = dbVersionProvider.getVersion(createUpgradeContext(StringUtils.EMPTY));
+
+        List<String> sites;
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        if(currentDbVersion.equals(VERSION_3_0_0)) {
+            sites = jdbcTemplate.queryForList(SQL_QUERY_SITES_3_0_0, String.class);
+        } else {
+            sites = jdbcTemplate.queryForList(SQL_QUERY_SITES, String.class);
         }
+
+        return sites.stream().filter(this::checkIfSiteRepoExists).collect(toList());
+    }
+
+    @Override
+    protected UpgradeContext<String> createUpgradeContext(String site) {
+        return new StudioUpgradeContext(site, studioConfiguration, dataSource);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void upgradeSiteConfiguration(final String site) throws UpgradeException {
+    public void upgradeSiteConfiguration(StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
         logger.info("Checking upgrades for configuration in site {0}", site);
 
         HierarchicalConfiguration config = loadUpgradeConfiguration();
@@ -167,21 +180,19 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
                         basePath = studioConfiguration.getProperty(
                                 CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);
                     }
-                    configPath = get(StrSubstitutor.replace(basePath, values, "{", "}"), file).toString();
+                    configPath = get(replace(basePath, values, "{", "}"), file).toString();
                     logger.info("Checking upgrades for file {0}", configPath);
-                    currentFile.set(configPath);
+                    context.setCurrentConfigName(configFile.getRootElementName());
+                    context.setCurrentConfigPath(configPath);
 
-                    VersionProvider versionProvider = getVersionProvider("fileVersionProvider", site, configPath);
-                    UpgradePipeline pipeline = getPipeline(versionProvider, "filePipelineFactory",
-                            configFile.getRootElementName() + CONFIG_PIPELINE_SUFFIX);
-
-                    pipeline.execute(site);
+                    var pipeline = getPipelineFactory("configurationPipelineFactory").getPipeline(context);
+                    pipeline.execute(context);
                 }
             }
         } catch (Exception e) {
             logger.error("Error upgrading configuration file {0}", e, configPath);
         } finally {
-            currentFile.remove();
+            context.clearCurrentConfig();
         }
     }
 
@@ -190,21 +201,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
      */
     @Override
     public void upgradeExistingSites() throws UpgradeException {
-        String currentDbVersion = dbVersionProvider.getCurrentVersion();
-
-        List<String> sites;
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        if(currentDbVersion.equals(VERSION_3_0_0)) {
-            sites = jdbcTemplate.queryForList(SQL_QUERY_SITES_3_0_0, String.class);
-        } else {
-            sites = jdbcTemplate.queryForList(SQL_QUERY_SITES, String.class);
-        }
-
-        for(String site : sites) {
-            if (checkIfSiteRepoExists(site)) {
-                upgradeSite(site);
-            }
-        }
+        upgrade();
     }
 
     protected boolean checkIfSiteRepoExists(String site) {
@@ -220,13 +217,12 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
      * {@inheritDoc}
      */
     @Override
-    public void upgradeBlueprints() throws UpgradeException {
+    public void upgradeBlueprints() throws UpgradeException, ConfigurationException {
         logger.info("Checking upgrades for the blueprints");
 
-        // The version is fixed for now so bp are always updates, in the future this should be replaced with a proper
-        // version provider
-        UpgradePipeline pipeline = bpPipelineFactory.getPipeline(() -> VERSION_3_0_0);
-        pipeline.execute();
+        var context = createUpgradeContext(StringUtils.EMPTY);
+        UpgradePipeline pipeline = bpPipelineFactory.getPipeline(context);
+        pipeline.execute(context);
     }
 
     /**
@@ -244,7 +240,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         String envPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);
 
         RepositoryItem[] modules = contentRepository.getContentChildren(site,
-                StrSubstitutor.replace(basePath, Collections.singletonMap(CONFIG_KEY_MODULE, StringUtils.EMPTY), "{", "}"));
+                replace(basePath, Collections.singletonMap(CONFIG_KEY_MODULE, StringUtils.EMPTY), "{", "}"));
 
         for (RepositoryItem module : modules) {
             logger.debug("Looking for existing environments for module {0} in site {1}", module.name, site);
@@ -254,7 +250,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
             values.put(CONFIG_KEY_ENVIRONMENT, StringUtils.EMPTY);
 
             RepositoryItem[] environments =
-                    contentRepository.getContentChildren(site, StrSubstitutor.replace(envPath, values, "{", "}"));
+                    contentRepository.getContentChildren(site, replace(envPath, values, "{", "}"));
 
             for (RepositoryItem env : environments) {
                 logger.debug("Adding environment {0}", env.name);
@@ -270,7 +266,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
      * @throws UpgradeException if there is any error in the upgrade process
      * @throws EntitlementException if there is any validation error after the upgrade process
      */
-    public void init() throws UpgradeException, EntitlementException {
+    public void init() throws UpgradeException, EntitlementException, ConfigurationException {
 
         upgradeBlueprints();
         upgradeDatabaseAndConfiguration();
@@ -292,56 +288,6 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
             throw  new UpgradeException("Error reading configuration file", e);
         }
         return configuration;
-    }
-
-    @Override
-    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
-        this.appContext = applicationContext;
-    }
-
-    @Required
-    public void setDataSource(final DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    @Required
-    public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
-        this.integrityValidator = integrityValidator;
-    }
-
-    @Required
-    public void setContentRepository(final ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    @Required
-    public void setDbPipelineFactory(final UpgradePipelineFactory dbPipelineFactory) {
-        this.dbPipelineFactory = dbPipelineFactory;
-    }
-
-    @Required
-    public void setDbVersionProvider(final VersionProvider dbVersionProvider) {
-        this.dbVersionProvider = dbVersionProvider;
-    }
-
-    @Required
-    public void setConfigurationFile(final Resource configurationFile) {
-        this.configurationFile = configurationFile;
-    }
-
-    @Required
-    public void setSiteVersionFilePath(final String siteVersionFilePath) {
-        this.siteVersionFilePath = siteVersionFilePath;
-    }
-
-    @Required
-    public void setBpPipelineFactory(final UpgradePipelineFactory bpPipelineFactory) {
-        this.bpPipelineFactory = bpPipelineFactory;
-    }
-
-    @Required
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
     }
 
 }

@@ -16,38 +16,30 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.URIResolver;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.URIResolver;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_SITE;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VERSION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.GLOBAL_REPO_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
 /**
- * Base implementation of {@link UpgradeOperation} for all operations related to a XSLT template.
+ * Base implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} for all operations related to a XSLT template.
  *
  * <p>Supported YAML properties:</p>
  * <ul>
@@ -70,30 +62,37 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
      */
     protected Resource template;
 
+    public AbstractXsltFileUpgradeOperation(StudioConfiguration studioConfiguration) {
+        super(studioConfiguration);
+    }
+
     public void setTemplate(final Resource template) {
         this.template = template;
     }
 
     @Override
-    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    protected void doInit(final HierarchicalConfiguration config) {
         if(template == null) {
             template = new ClassPathResource(config.getString(CONFIG_KEY_TEMPLATE));
         }
     }
 
-    protected void executeTemplate(String site, String path, OutputStream os) throws UpgradeException {
-        if(contentRepository.contentExists(site, path)) {
+    protected void executeTemplate(StudioUpgradeContext context, String path, OutputStream os) throws UpgradeException {
+        var site = context.getTarget();
+        var file = context.getFile(path);
+        if(Files.exists(file)) {
             try(InputStream templateIs = template.getInputStream()) {
                 // Saxon is used to support XSLT 2.0
                 Transformer transformer =
                     TransformerFactory.newInstance(SAXON_CLASS, null)
                         .newTransformer(new StreamSource(templateIs));
                 logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
-                try(InputStream sourceIs = contentRepository.getContent(site, path)) {
+                try(InputStream sourceIs = Files.newInputStream(file)) {
                     transformer.setParameter(PARAM_KEY_SITE, site);
                     transformer.setParameter(PARAM_KEY_VERSION, nextVersion);
-                    transformer.setURIResolver(getURIResolver(site));
+                    transformer.setURIResolver(getURIResolver(context));
                     transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
+                    trackChanges(path);
                 }
             } catch (Exception e) {
                 throw new UpgradeException("Error processing file", e);
@@ -103,34 +102,15 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
         }
     }
 
-    protected URIResolver getURIResolver(String siteId) {
-        return new URIResolver() {
-            @Override
-            public Source resolve(String href, String base) throws TransformerException {
-                try {
-                    Path resolverPath = null;
-                    if (StringUtils.isEmpty(siteId)) {
-                        resolverPath = Paths.get(
-                                studioConfiguration.getProperty(REPO_BASE_PATH),
-                                studioConfiguration.getProperty(GLOBAL_REPO_PATH),
-                                href
-                        );
-                    } else {
-                        resolverPath = Paths.get(
-                                studioConfiguration.getProperty(REPO_BASE_PATH),
-                                studioConfiguration.getProperty(SITES_REPOS_PATH),
-                                siteId,
-                                studioConfiguration.getProperty(SANDBOX_PATH),
-                                href
-                        );
-                    }
-                    return new StreamSource(resolverPath.toAbsolutePath().toFile());
-                } catch (Exception e) {
-                    logger.info("Error creating resolver for referencing documents inside xslt forms", e);
-                    return  null;
-                }
-
+    protected URIResolver getURIResolver(StudioUpgradeContext context) {
+        return (href, base) -> {
+            try {
+                return new StreamSource(context.getRepositoryPath().resolve(href).toFile());
+            } catch (Exception e) {
+                logger.info("Error creating resolver for referencing documents inside xslt forms", e);
+                return  null;
             }
+
         };
     }
 }

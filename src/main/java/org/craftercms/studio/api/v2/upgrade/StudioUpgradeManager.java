@@ -16,35 +16,32 @@
 
 package org.craftercms.studio.api.v2.upgrade;
 
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.upgrade.UpgradeManager;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
 import java.util.List;
 
 /**
- * Manages the current version and applies the required upgrades.
+ * Extension of {@link UpgradeManager} that adds Studio specific operations.
  * @author joseross
+ * @since 3.1.0
  */
-public interface UpgradeManager {
+public interface StudioUpgradeManager extends UpgradeManager<String> {
 
     /**
      * Executes all required upgrades for the system.
      * @throws UpgradeException if any of the upgrades fails
      */
-    void upgradeDatabaseAndConfiguration() throws UpgradeException;
-
-    /**
-     * Executes all required upgrades for the given site.
-     * @param site name of the site
-     * @throws UpgradeException if any of the upgrades fails
-     */
-    void upgradeSite(String site) throws UpgradeException;
+    void upgradeDatabaseAndConfiguration() throws UpgradeException, ConfigurationException;
 
     /**
      * Executes the upgrades for all managed configurations in the given site.
-     * @param site name of the site
+     * @param context the context for the upgrades
      * @throws UpgradeException if any of the upgrades fails
      */
-    void upgradeSiteConfiguration(String site) throws UpgradeException;
+    void upgradeSiteConfiguration(StudioUpgradeContext context) throws UpgradeException;
 
     /**
      * Executes the upgrades for all existing sites.
@@ -56,7 +53,7 @@ public interface UpgradeManager {
      * Executes all required upgrades for the blueprints.
      * @throws UpgradeException if any of the upgrades fails
      */
-    void upgradeBlueprints() throws UpgradeException;
+    void upgradeBlueprints() throws UpgradeException, ConfigurationException;
 
     /**
      * Returns all existing environments for the given site

@@ -18,24 +18,28 @@ package org.craftercms.studio.impl.v2.upgrade.operations.global;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.core.io.Resource;
 
 /**
- * Implementation of {@link UpgradeOperation} that updates files on the global repository.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates files on the global repository.
  *
- * <p>Suported YAML properties:</p>
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li>
  *         <strong>files</strong>: (required) list of paths to copy to the global repository. The format of each
@@ -62,22 +66,23 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
     /**
      * List of paths to update.
      */
-    protected Map<Resource, String> files;
+    protected Map<Resource, String> files = new HashMap<>();
 
     /**
      * Indicates if existing files should be overwritten
      */
     protected boolean overwrite;
 
-    public GlobalRepoUpgradeOperation() {
-        files = new HashMap<>();
+    public GlobalRepoUpgradeOperation(StudioConfiguration studioConfiguration) {
+        super(studioConfiguration);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    @SuppressWarnings("unchecked")
+    public void doInit(final HierarchicalConfiguration config) {
         overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, true);
         List<HierarchicalConfiguration<ImmutableNode>> fileMappings = config.configurationsAt(CONFIG_KEY_FILES);
         for (HierarchicalConfiguration<ImmutableNode> fileMapping : fileMappings) {
@@ -99,21 +104,24 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void execute(final String site) throws UpgradeException {
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         logger.debug("Upgrading global repo files");
 
         for(Map.Entry<Resource, String> entry : files.entrySet()) {
-            if (overwrite || !contentRepository.contentExists(site, entry.getValue())) {
-                logger.debug("Upgrading global repo file: {0}", entry.getValue());
-                try (InputStream is = entry.getKey().getInputStream()) {
-                    writeToRepo(site, entry.getValue(), is);
+            var path = entry.getValue();
+            var file = context.getFile(path);
+            if (overwrite || !Files.exists(file)) {
+                logger.debug("Upgrading global repo file: {0}", path);
+                try (InputStream in = entry.getKey().getInputStream();
+                     OutputStream out = Files.newOutputStream(file)) {
+                    IOUtils.copy(in, out);
+                    trackChanges(path);
                 } catch (IOException e) {
-                    throw new UpgradeException("Error while upgrading global repo file " + entry.getValue(), e);
+                    throw new UpgradeException("Error while upgrading global repo file " + path, e);
                 }
             } else {
-                logger.debug("File {0} already exists in global repo, it will not be changed", entry.getValue());
+                logger.debug("File {0} already exists in global repo, it will not be changed", path);
             }
         }
-
     }
 }

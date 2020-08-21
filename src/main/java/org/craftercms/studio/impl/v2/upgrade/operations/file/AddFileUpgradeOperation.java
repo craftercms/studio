@@ -18,18 +18,22 @@ package org.craftercms.studio.impl.v2.upgrade.operations.file;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.io.IOUtils;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that adds a new file to
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that adds a new file to
  * a repository.
  *
  * <p>Supported YAML properties:</p>
@@ -57,11 +61,15 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
      */
     protected Resource file;
 
+    public AddFileUpgradeOperation(StudioConfiguration studioConfiguration) {
+        super(studioConfiguration);
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    public void doInit(final HierarchicalConfiguration config) {
         path = config.getString(CONFIG_KEY_PATH);
         file = new ClassPathResource(config.getString(CONFIG_KEY_FILE));
     }
@@ -70,15 +78,19 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void execute(final String site) throws UpgradeException {
-        try(InputStream is = file.getInputStream()) {
-            if(contentRepository.contentExists(site, path)) {
-                logger.info("File {0} already exist in site {1}, it will not be changed", path, site);
-            } else {
-                writeToRepo(site, path, is);
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
+        var newFile = context.getFile(path);
+        if(Files.exists(newFile)) {
+            logger.info("File {0} already exist in site {1}, it will not be changed", path, site);
+        } else {
+            try(InputStream in = file.getInputStream();
+                OutputStream out = Files.newOutputStream(newFile)) {
+                IOUtils.copy(in, out);
+                trackChanges(path);
+            } catch (IOException e) {
+                throw new UpgradeException("Error upgrading file " + path + " for site " + site, e);
             }
-        } catch (IOException e) {
-            throw new UpgradeException("Error upgrading file " + path + " for site " + site, e);
         }
     }
 
