@@ -35,7 +35,7 @@ public enum ItemState {
     public final long value;
 
     ItemState(long exponent) {
-        this.value = 2 ^ exponent;
+        this.value = Math.round(Math.pow(2, exponent));
     }
 
     // Masks
