@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.service.item.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 
 import java.time.ZonedDateTime;
@@ -218,4 +220,7 @@ public interface ItemServiceInternal {
                          String systemType, String mimeType, int disabledAsInt,  boolean disabled, String localeCode,
                          long translationSourceId, long size, long parentId, String commitId);
 
+    Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
+                                   String label, String contentTypeId, String locale, String commitId)
+            throws ServiceLayerException, UserNotFoundException;
 }

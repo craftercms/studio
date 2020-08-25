@@ -31,9 +31,7 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
-import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -186,19 +184,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                     }
                 }
                 // Item
-                User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
-                String contentTypeId = contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName);
-                Item item = itemServiceInternal.instantiateItem(site, path)
-                        .withPreviewUrl(path + FILE_SEPARATOR + assetName)
-                        .withLastModifiedBy(userObj.getId())
-                        .withLastModifiedOn(ZonedDateTime.now())
-                        .withLabel(assetName)
-                        .withContentTypeId(contentTypeId)
-                        .withMimeType(StudioUtils.getMimeType(assetName))
                 // TODO: get local code with API 2
-                        .withLocaleCode(Locale.US.toString())
-                        .withCommitId(result.getCommitId())
-                        .build();
+                Item item = itemServiceInternal.instantiateItemAfterWrite(site, path + FILE_SEPARATOR + assetName,
+                        user, ZonedDateTime.now(), assetName,
+                        contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName),
+                        Locale.US.toString(), result.getCommitId());
 
                 if (unlock) {
                     item.setState(ItemState.savedAndClosed(item.getState()));
@@ -264,17 +254,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
 
             // Item
-            User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
-            Item item = itemServiceInternal.instantiateItem(site, relativePath)
-                    .withPreviewUrl(relativePath)
-                    .withLastModifiedBy(userObj.getId())
-                    .withLastModifiedOn(ZonedDateTime.now())
-                    .withContentTypeId(contentService.getContentTypeClass(site, relativePath))
-                    .withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(relativePath)))
+            String assetName = FilenameUtils.getName(relativePath);
             // TODO: get local code with API 2
-                    .withLocaleCode(Locale.US.toString())
-                    .withCommitId(result.getCommitId())
-                    .build();
+            Item item = itemServiceInternal.instantiateItemAfterWrite(site, relativePath, user, ZonedDateTime.now(),
+                    assetName, contentService.getContentTypeClass(site, relativePath), Locale.US.toString(),
+                    result.getCommitId());
             if (unlock) {
                 item.setState(ItemState.savedAndClosed(item.getState()));
             } else {

@@ -17,13 +17,12 @@
 package org.craftercms.studio.api.v2.utils;
 
 import com.amazonaws.services.s3.internal.Mimetypes;
-
-import java.nio.file.Files;
+import org.apache.commons.io.FilenameUtils;
 
 public abstract class StudioUtils {
 
     public static String getMimeType(String filename) {
         Mimetypes mimetypes = Mimetypes.getInstance();
-        return mimetypes.getMimetype(filename);
+        return mimetypes.getMimetype(FilenameUtils.getName(filename));
     }
 }

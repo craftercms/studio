@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -39,10 +38,8 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
-import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -229,18 +226,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         fileName).getCommitId());
 
                 // Item
-                User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
-                Item item = itemServiceInternal.instantiateItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName)
-                        .withPreviewUrl(parentItem.getUri() + FILE_SEPARATOR + fileName)
-                        .withLastModifiedBy(userObj.getId())
-                        .withLastModifiedOn(ZonedDateTime.now())
-                        .withLabel(fileName)
-                        .withContentTypeId(contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName))
-                        .withMimeType(StudioUtils.getMimeType(fileName))
-                        // TODO: get local code with API 2
-                        .withLocaleCode(Locale.US.toString())
-                        .withCommitId(result.getCommitId())
-                        .build();
+                // TODO: get local code with API 2
+                Item item = itemServiceInternal.instantiateItemAfterWrite(site,
+                        parentItem.getUri() + FILE_SEPARATOR + fileName, user, ZonedDateTime.now(), fileName,
+                        contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
+                        Locale.US.toString(), result.getCommitId());
                 if (unlock) {
                     item.setState(ItemState.savedAndClosed(item.getState()));
                 } else {
@@ -316,18 +306,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             }
 
             // Item
-            User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
-            Item item = itemServiceInternal.instantiateItem(site, path)
-                    .withPreviewUrl(path)
-                    .withLastModifiedBy(userObj.getId())
-                    .withLastModifiedOn(ZonedDateTime.now())
-                    .withLabel(contentItem.getInternalName())
-                    .withContentTypeId(contentService.getContentTypeClass(site, path))
-                    .withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
-                    // TODO: get local code with API 2
-                    .withLocaleCode(Locale.US.toString())
-                    .withCommitId(result.getCommitId())
-                    .build();
+            // TODO: get local code with API 2
+            Item item = itemServiceInternal.instantiateItemAfterWrite(site, path, user, ZonedDateTime.now(),
+                    contentItem.getInternalName(), contentService.getContentTypeClass(site, path), Locale.US.toString(),
+                    result.getCommitId());
 
             if (unlock) {
                 item.setState(ItemState.savedAndClosed(item.getState()));

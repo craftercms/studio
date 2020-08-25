@@ -20,10 +20,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -41,12 +47,15 @@ import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
 
-    SiteFeedMapper siteFeedMapper;
-    ItemDAO itemDao;
+    private UserServiceInternal userServiceInternal;
+    private SiteFeedMapper siteFeedMapper;
+    private ItemDAO itemDao;
 
-    public ItemServiceInternalImpl(SiteFeedMapper siteFeedMapper, ItemDAO itemDao) {
+    public ItemServiceInternalImpl(SiteFeedMapper siteFeedMapper, ItemDAO itemDao,
+                                   UserServiceInternal userServiceInternal) {
         this.siteFeedMapper = siteFeedMapper;
         this.itemDao = itemDao;
+        this.userServiceInternal = userServiceInternal;
     }
 
     @Override
@@ -264,5 +273,22 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withTranslationSourceId(translationSourceId).withSize(size).withParentId(parentId)
                 .withCommitId(commitId).build();
 
+    }
+
+    @Override
+    public Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
+                                          String label, String contentTypeId, String locale, String commitId)
+            throws ServiceLayerException, UserNotFoundException {
+        User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+        return instantiateItem(siteId, path)
+                .withPreviewUrl(path)
+                .withLastModifiedBy(userObj.getId())
+                .withLastModifiedOn(lastModifiedOn)
+                .withLabel(label)
+                .withContentTypeId(contentTypeId)
+                .withMimeType(StudioUtils.getMimeType(path))
+                .withLocaleCode(locale)
+                .withCommitId(commitId)
+                .build();
     }
 }

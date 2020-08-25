@@ -498,6 +498,7 @@
           class="org.craftercms.studio.impl.v2.service.item.internal.ItemServiceInternalImpl">
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
         <constructor-arg name="itemDao" ref="itemDao" />
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

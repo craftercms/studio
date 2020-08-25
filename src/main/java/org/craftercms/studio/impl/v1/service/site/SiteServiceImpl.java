@@ -1189,7 +1189,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         return syncDatabaseWithRepo(site, fromCommitId, true);
     }
 
@@ -1197,7 +1197,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId,
-                                        boolean generateAuditLog) throws SiteNotFoundException {
+                                        boolean generateAuditLog) throws ServiceLayerException, UserNotFoundException {
         boolean toReturn = true;
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
@@ -1266,24 +1266,14 @@ public class SiteServiceImpl implements SiteService {
                     }
 
                     // Item
-
-                    item = itemServiceInternal.instantiateItem(site, repoOperation.getPath())
-                            .withPreviewUrl(repoOperation.getPath())
-                            .withState(NEW.value)
-                            .withOwnedBy(userObj.getId())
-                            .withCreatedBy(userObj.getId())
-                            .withCreatedOn(repoOperation.getDateTime())
-                            .withLastModifiedBy(userObj.getId())
-                            .withLastModifiedOn(repoOperation.getDateTime())
-                            .withLabel(FilenameUtils.getName(repoOperation.getPath()))
-                            .withContentTypeId(contentService.getContentTypeClass(site, repoOperation.getPath()))
-                            .withSystemType("file")
-                            .withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())))
-                            .withDisabled(false)
-                            // TODO: Replace this with API 2
-                            .withLocaleCode(Locale.US.toString())
-                            .withCommitId(repoOperation.getMoveToPath())
-                            .build();
+                    item = itemServiceInternal.instantiateItem(getSite(site).getId(), site, repoOperation.getPath(),
+                            repoOperation.getPath(), NEW.value, userObj.getId(), userObj.getUsername(),
+                            userObj.getId(), userObj.getUsername(), repoOperation.getDateTime(), userObj.getId(),
+                            userObj.getUsername(), repoOperation.getDateTime(),
+                            FilenameUtils.getName(repoOperation.getPath()), contentService.getContentTypeClass(site,
+                                    repoOperation.getPath()), "file",
+                            StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, false,
+                            Locale.US.toString(), -1, 0, -1, repoOperation.getCommitId());
                     itemServiceInternal.upsertEntry(site, item);
 
                     break;
@@ -1315,17 +1305,12 @@ public class SiteServiceImpl implements SiteService {
                     }
 
                     // Item
-                    item = itemServiceInternal.instantiateItem(site, repoOperation.getPath())
-                            .withPreviewUrl(repoOperation.getPath())
-                            .withLastModifiedBy(userObj.getId())
-                            .withLastModifiedOn(repoOperation.getDateTime())
-                            .withLabel(FilenameUtils.getName(repoOperation.getPath()))
-                            .withContentTypeId(contentService.getContentTypeClass(site, repoOperation.getPath()))
-                            .withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())))
-                            // TODO: Replace with API 2
-                            .withLocaleCode(Locale.US.toString())
-                            .withCommitId(repoOperation.getCommitId())
-                            .build();
+                    // TODO: Replace with API 2
+                    item = itemServiceInternal.instantiateItemAfterWrite(site, repoOperation.getPath(),
+                            userObj.getUsername(), repoOperation.getDateTime(),
+                            FilenameUtils.getName(repoOperation.getPath()),
+                            contentService.getContentTypeClass(site, repoOperation.getPath()), Locale.US.toString(),
+                            repoOperation.getCommitId());
 
                     item.setState(ItemState.savedAndClosed(item.getState()));
                     itemServiceInternal.upsertEntry(site, item);
@@ -1415,18 +1400,13 @@ public class SiteServiceImpl implements SiteService {
                     }
 
                     // Item
-                    item = itemServiceInternal.instantiateItem(site, repoOperation.getPath())
-                            .withPath(repoOperation.getMoveToPath())
-                            .withPreviewUrl(repoOperation.getMoveToPath())
-                            .withLastModifiedBy(userObj.getId())
-                            .withLastModifiedOn(repoOperation.getDateTime())
-                            .withLabel(FilenameUtils.getName(repoOperation.getMoveToPath()))
-                            .withContentTypeId(contentService.getContentTypeClass(site, repoOperation.getMoveToPath()))
-                            .withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getMoveToPath())))
-                            // TODO: API 2 goes here
-                            .withLocaleCode(Locale.US.toString())
-                            .withCommitId(repoOperation.getCommitId())
-                            .build();
+                    // TODO: API 2 goes here
+                    item = itemServiceInternal.instantiateItemAfterWrite(site, repoOperation.getPath(),
+                            userObj.getUsername(), repoOperation.getDateTime(),
+                            contentService.getContentTypeClass(site, repoOperation.getMoveToPath()),
+                            repoOperation.getMoveToPath(), Locale.US.toString(), repoOperation.getCommitId());
+                    item.setPath(repoOperation.getMoveToPath());
+                    item.setPreviewUrl(repoOperation.getMoveToPath());
                     item.setState(ItemState.savedAndClosed(item.getState()));
                     itemServiceInternal.upsertEntry(site, item);
 
