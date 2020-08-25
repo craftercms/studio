@@ -113,7 +113,7 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
-import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
+import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
@@ -127,6 +127,7 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -186,7 +187,7 @@ public class SiteServiceImpl implements SiteService {
     protected EventService eventService;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
-    protected UpgradeManager upgradeManager;
+    protected StudioUpgradeManager upgradeManager;
     protected StudioConfiguration studioConfiguration;
     protected SitesServiceInternal sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
@@ -448,7 +449,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeedMapper.createSite(siteFeed);
 
                 logger.info("Upgrading site.");
-                upgradeManager.upgradeSite(siteId);
+                upgradeManager.upgrade(siteId);
 
                 logger.debug("Adding audit log");
                 insertCreateSiteAuditLog(siteId, siteName);
@@ -525,11 +526,11 @@ public class SiteServiceImpl implements SiteService {
 
     protected void replaceFileContentGit(String site, String path, String find, String replace) throws Exception {
         InputStream content = contentRepository.getContent(site, path);
-        String contentAsString = IOUtils.toString(content);
+        String contentAsString = IOUtils.toString(content, UTF_8);
 
         contentAsString = contentAsString.replaceAll(find, replace);
 
-        InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
+        InputStream contentToWrite = IOUtils.toInputStream(contentAsString, UTF_8);
 
         contentRepository.writeContent(site, path, contentToWrite);
     }
@@ -784,7 +785,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
-                upgradeManager.upgradeSite(siteId);
+                upgradeManager.upgrade(siteId);
 
                 insertCreateSiteAuditLog(siteId, siteId);
 
@@ -896,7 +897,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeedMapper.createSite(siteFeed);
 
                 logger.info("Upgrading site");
-                upgradeManager.upgradeSite(siteId);
+                upgradeManager.upgrade(siteId);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -1955,7 +1956,7 @@ public class SiteServiceImpl implements SiteService {
         this.userServiceInternal = userServiceInternal;
     }
 
-	public void setUpgradeManager(final UpgradeManager upgradeManager) {
+	public void setUpgradeManager(final StudioUpgradeManager upgradeManager) {
 		this.upgradeManager = upgradeManager;
 	}
 

@@ -16,11 +16,13 @@
 package org.craftercms.studio.impl.v2.upgrade.operations.file;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,8 +57,12 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
      */
     protected String basePath;
 
+    public TemplateRenameUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+        super(studioConfiguration);
+    }
+
     @Override
-    public void doInit(HierarchicalConfiguration<ImmutableNode> config) {
+    public void doInit(HierarchicalConfiguration config) {
         super.doInit(config);
 
         basePath = config.getString(CONFIG_KEY_BASE_PATH);
@@ -65,8 +71,9 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
     }
 
     @Override
-    public void execute(String site) throws UpgradeException {
-        Path repo = getRepositoryPath(site).getParent();
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
+        Path repo = context.getRepositoryPath();
         Path base;
 
         if (isNotEmpty(basePath)) {
@@ -94,10 +101,9 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
                     }
                     logger.debug("Renaming file {0} to {1} in site {2}", matchedPath, actualPath, site);
                     renamePath(base.resolve(matchedPath), base.resolve(actualPath));
+                    trackChanges(matchedPath.toString(), actualPath);
                 }
             }
-
-            commitAllChanges(site);
         } catch (IOException e) {
             throw new UpgradeException("Error renaming files " + oldPath + " to " + newPath + " in site " + site, e);
         }

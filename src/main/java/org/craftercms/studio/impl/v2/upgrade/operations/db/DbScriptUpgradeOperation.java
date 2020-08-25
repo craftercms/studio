@@ -22,21 +22,20 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
- * Implementation of {@link UpgradeOperation} that executes a database script.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that executes a database script.
  *
  * <p>Supported YAML properties:</p>
  * <ul>
@@ -75,17 +74,10 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
      */
     protected DbIntegrityValidator integrityValidator;
 
-    public void setUpdateIntegrity(final boolean updateIntegrity) {
-        this.updateIntegrity = updateIntegrity;
-    }
-
-    @Required
-    public void setScriptFolder(final String scriptFolder) {
+    public DbScriptUpgradeOperation(StudioConfiguration studioConfiguration, String scriptFolder,
+                                    DbIntegrityValidator integrityValidator) {
+        super(studioConfiguration);
         this.scriptFolder = scriptFolder;
-    }
-
-    @Required
-    public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
         this.integrityValidator = integrityValidator;
     }
 
@@ -93,7 +85,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    public void doInit(final HierarchicalConfiguration config) {
         fileName = config.getString(CONFIG_KEY_FILENAME);
         updateIntegrity = config.getBoolean(CONFIG_KEY_INTEGRITY, true);
     }
@@ -102,9 +94,9 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void execute(final String site) throws UpgradeException {
-        try {
-            integrityValidator.validate(getConnection());
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        try (Connection connection = context.getConnection()) {
+            integrityValidator.validate(connection);
         } catch (SQLException e) {
             // for backwards compatibility
             logger.warn("Could not validate database integrity", e);
@@ -113,8 +105,8 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
         }
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
         logger.info("Executing db script {0}", scriptFile.getFilename());
-        try (Reader reader = new InputStreamReader(scriptFile.getInputStream())) {
-            Connection connection = getConnection();
+        try (Reader reader = new InputStreamReader(scriptFile.getInputStream());
+             Connection connection = context.getConnection()) {
             ScriptRunner scriptRunner = new ScriptRunner(connection);
             scriptRunner.setDelimiter(SQL_DELIMITER);
             scriptRunner.setStopOnError(true);

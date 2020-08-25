@@ -16,8 +16,11 @@
 package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
+import javax.sql.DataSource;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,22 +35,23 @@ public class ConfigEncryptionUpgradeOperation extends AbstractContentUpgradeOper
 
     protected static String DEFAULT_ENCRYPTED_PATTERN = "\\$\\{enc:([^}#]+)}";
 
-    protected Pattern encryptedPattern;
+    protected Pattern encryptedPattern = Pattern.compile(DEFAULT_ENCRYPTED_PATTERN);
 
     protected TextEncryptor textEncryptor;
 
-    public ConfigEncryptionUpgradeOperation(TextEncryptor textEncryptor) {
-        this.encryptedPattern = Pattern.compile(DEFAULT_ENCRYPTED_PATTERN);
+    public ConfigEncryptionUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource,
+                                            TextEncryptor textEncryptor) {
+        super(studioConfiguration);
         this.textEncryptor = textEncryptor;
     }
 
     @Override
-    protected boolean shouldBeUpdated(String site, Path file) {
+    protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
         return true;
     }
 
     @Override
-    protected void updateFile(String site, Path path) throws UpgradeException {
+    protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
         try {
             // read the whole file
             String content = readFile(path);
@@ -72,7 +76,7 @@ public class ConfigEncryptionUpgradeOperation extends AbstractContentUpgradeOper
                 writeFile(path, content);
             }
         } catch (Exception e) {
-            throw new UpgradeException("Error updating file " + path + " for site " + site, e);
+            throw new UpgradeException("Error updating file " + path + " for site " + context, e);
         }
     }
 

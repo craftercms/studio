@@ -16,14 +16,13 @@
 
 package org.craftercms.studio.api.v2.exception;
 
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+
 /**
  * Thrown when the current version of the system can't be upgraded automatically.
  * @author joseross
  */
 public class UpgradeNotSupportedException extends UpgradeException {
-
-    public UpgradeNotSupportedException() {
-    }
 
     public UpgradeNotSupportedException(String message) {
         super(message);
@@ -31,10 +30,6 @@ public class UpgradeNotSupportedException extends UpgradeException {
 
     public UpgradeNotSupportedException(String message, Exception cause) {
         super(message, cause);
-    }
-
-    public UpgradeNotSupportedException(Throwable cause) {
-        super(cause);
     }
 
 }
