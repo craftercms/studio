@@ -229,7 +229,7 @@ studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-se
 studio.security.publicUrls: >
   /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
   /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
-  /static-assets/.+,/api/2/users/validate_token
+  /static-assets/.+,/api/2/users/validate_token,/api/1/services/api/1/security/login.json,/api/2/users/forgot_password.*
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -331,6 +331,8 @@ studio.security.encryption.salt: default_encryption_salt
 studio.security.encryption.delay: 1
 # Amount of characters to limit the encryption input
 studio.security.encryption.maxLength: 4096
+# If the secure headers should be written for every request
+studio.security.headers.enabled: true
 
 ###############################################################
 ##               Page Navigation Order Service               ##
