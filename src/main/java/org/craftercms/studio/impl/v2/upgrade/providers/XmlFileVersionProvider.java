@@ -16,36 +16,31 @@
 
 package org.craftercms.studio.impl.v2.upgrade.providers;
 
-import java.io.InputStream;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.craftercms.commons.upgrade.impl.providers.AbstractVersionProvider;
+import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
-import org.craftercms.studio.api.v2.upgrade.VersionProvider;
-import org.springframework.beans.factory.annotation.Required;
-import org.w3c.dom.Document;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+import org.dom4j.Document;
+import org.dom4j.Node;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
+
+import java.io.InputStream;
+import java.io.Writer;
+import java.nio.file.Files;
+
 
 /**
- * Implementation of {@inheritDoc} for XML files.
+ * Implementation of {@link org.craftercms.commons.upgrade.VersionProvider} for XML files.
+ *
  * @author joseross
  */
-public class XmlFileVersionProvider implements VersionProvider {
-
-    private static final Logger logger = LoggerFactory.getLogger(XmlFileVersionProvider.class);
-
-    /**
-     * Name of the site.
-     */
-    protected String site;
+public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
 
     /**
      * Path of the file containing the version.
@@ -69,71 +64,82 @@ public class XmlFileVersionProvider implements VersionProvider {
 
     protected ContentRepository contentRepository;
 
-    public XmlFileVersionProvider(final String site, final String path) {
-        this.site = site;
+    public XmlFileVersionProvider(String path, String xpath, String defaultVersion,
+                                  ContentRepository contentRepository) {
         this.path = path;
-    }
-
-    @Required
-    public void setContentRepository(final ContentRepository contentRepository) {
+        this.xpath = xpath;
+        this.defaultVersion = defaultVersion;
         this.contentRepository = contentRepository;
-    }
-
-    public void setSite(final String site) {
-        this.site = site;
     }
 
     public void setPath(final String path) {
         this.path = path;
     }
 
-    @Required
-    public void setXpath(final String xpath) {
-        this.xpath = xpath;
-    }
-
-    @Required
-    public void setDefaultVersion(final String defaultVersion) {
-        this.defaultVersion = defaultVersion;
-    }
-
     public void setSkipIfMissing(final boolean skipIfMissing) {
         this.skipIfMissing = skipIfMissing;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    protected String getFilePath(StudioUpgradeContext context) {
+        return context.isConfigPresent()? context.getCurrentConfigPath() : path;
+    }
+
     @Override
-    public String getCurrentVersion() throws UpgradeException {
+    protected String doGetVersion(UpgradeContext<String> context) throws Exception {
+        String site = context.getTarget();
+        String filePath = getFilePath((StudioUpgradeContext) context);
         String currentVersion = defaultVersion;
         if(!contentRepository.contentExists(site, "/config/studio")) {
             String firstCommit = contentRepository.getRepoFirstCommitId(site);
             if (StringUtils.isNotEmpty(firstCommit)) {
                 throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
             }
-        } else if(!contentRepository.contentExists(site, path)) {
-            logger.debug("Missing file {0} in site {1}", path, site);
+        } else if(!contentRepository.contentExists(site, filePath)) {
+            logger.debug("Missing file {} in site {}", filePath, site);
             if (skipIfMissing) {
                 return SKIP;
             } else {
                 return defaultVersion;
             }
         } else {
-            try(InputStream is = contentRepository.getContent(site, path)) {
-                DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = builderFactory.newDocumentBuilder();
-                Document xmlDocument = builder.parse(is);
-                XPath xPath = XPathFactory.newInstance().newXPath();
-                String fileVersion = (String) xPath.compile(xpath).evaluate(xmlDocument, XPathConstants.STRING);
+            try(InputStream is = contentRepository.getContent(site, filePath)) {
+                SAXReader reader = new SAXReader();
+                Document document = reader.read(is);
+
+                String fileVersion = XmlUtils.selectSingleNodeValue(document, xpath);
                 if(StringUtils.isNotEmpty(fileVersion)) {
                     currentVersion = fileVersion;
                 }
             } catch (Exception e) {
-                throw new UpgradeException("Error reading version from file " + path + " in site " + site, e);
+                throw new UpgradeException("Error reading version from file " + filePath + " in site " + site, e);
             }
         }
         return currentVersion;
+    }
+
+    @Override
+    protected void doSetVersion(UpgradeContext<String> context, String newVersion) throws Exception {
+        var studioContext = (StudioUpgradeContext) context;
+        var actualPath = getFilePath(studioContext);
+        var file = studioContext.getFile(actualPath);
+
+        Document document;
+        try(InputStream is = Files.newInputStream(file)) {
+            SAXReader reader = new SAXReader();
+            document = reader.read(is);
+        }
+
+        if (document != null) {
+            Node versionNode = document.selectSingleNode(xpath);
+            versionNode.setText(newVersion);
+
+            try(Writer writer = Files.newBufferedWriter(file)) {
+                XMLWriter xmlWriter = new XMLWriter(writer, OutputFormat.createPrettyPrint());
+                xmlWriter.write(document);
+            }
+
+            studioContext.commitChanges("Upgrade Manager: Update version", actualPath);
+        }
     }
 
 }

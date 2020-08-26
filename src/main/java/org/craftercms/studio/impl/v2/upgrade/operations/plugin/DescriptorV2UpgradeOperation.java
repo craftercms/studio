@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.upgrade.operations.plugin;
 
 import java.util.Arrays;
 
+import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.model.Asset;
 import org.craftercms.commons.plugin.model.BlueprintDescriptor;
 import org.craftercms.commons.plugin.model.Build;
@@ -29,6 +30,9 @@ import org.craftercms.commons.plugin.model.Media;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+
+import javax.sql.DataSource;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
@@ -40,6 +44,11 @@ import static org.craftercms.commons.plugin.model.PluginTypes.BLUEPRINT;
  * @author joseross
  */
 public class DescriptorV2UpgradeOperation extends AbstractPluginDescriptorUpgradeOperation {
+
+    public DescriptorV2UpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource,
+                                        PluginDescriptorReader descriptorReader) {
+        super(studioConfiguration, descriptorReader);
+    }
 
     @Override
     @SuppressWarnings("deprecation")
