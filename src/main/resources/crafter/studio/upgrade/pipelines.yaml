@@ -820,6 +820,12 @@ pipelines:
         - type: dbScriptUpgrader
           filename: upgrade-3.2.0.3-to-3.2.0.4.sql
           updateIntegrity: true
+    - currentVersion: 3.2.0.4
+      nextVersion: 3.2.0.5
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.2.0.4-to-3.2.0.5.sql
+          updateIntegrity: true
 
   # Pipeline to upgrade site repositories
   site:
