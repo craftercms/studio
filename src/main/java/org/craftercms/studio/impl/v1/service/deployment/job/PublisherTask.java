@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -177,7 +178,7 @@ public class PublisherTask implements Runnable {
         }
     }
 
-    private void syncRepository(String site) throws SiteNotFoundException {
+    private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
         logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {

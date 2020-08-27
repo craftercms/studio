@@ -15,18 +15,22 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -35,7 +39,9 @@ import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -96,7 +102,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             } else {
                 result.setItem(assetInfo);
             }
-        } catch (ServiceLayerException e) {
+        } catch (ServiceLayerException | UserNotFoundException e) {
             throw new ContentProcessException("Failed to write " + content.getId()+", "+e, e);
         } finally {
             content.closeContentStream();
@@ -125,7 +131,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                                                    String assetName, InputStream in, int width, int height,
                                                    boolean createFolders, boolean isPreview, boolean unlock,
                                                    boolean isSystemAsset, ResultTO result)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         logger.debug("Writing content asset: [site: " + site + ", path: " + path + ", assetName: "
                 + assetName + ", createFolders: " + createFolders);
 
@@ -178,6 +184,14 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                         assetInfo.setSizeUnit(FILE_SIZE_KB);
                     }
                 }
+                // Item
+                // TODO: get local code with API 2
+                Item item = itemServiceInternal.instantiateItemAfterWrite(site, path + FILE_SEPARATOR + assetName,
+                        user, ZonedDateTime.now(), assetName,
+                        contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName),
+                        Locale.US.toString(), result.getCommitId(), Optional.of(unlock));
+                itemServiceInternal.upsertEntry(site, item);
+
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
@@ -200,7 +214,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      */
     protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input,
                               String user, boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         boolean success = false;
         try {
             success = contentService.writeContent(site, relativePath, input);
@@ -233,12 +247,20 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                     }
                 }
             }
+
+            // Item
+            String assetName = FilenameUtils.getName(relativePath);
+            // TODO: get local code with API 2
+            Item item = itemServiceInternal.instantiateItemAfterWrite(site, relativePath, user, ZonedDateTime.now(),
+                    assetName, contentService.getContentTypeClass(site, relativePath), Locale.US.toString(),
+                    result.getCommitId(), Optional.of(unlock));
+            itemServiceInternal.upsertEntry(site, item);
         }
         if (unlock) {
-            contentService.unLockContent(site, relativePath);
+            contentRepository.unLockItem(site, relativePath);
             logger.debug("Unlocked the content site " + site + " path " + relativePath);
         } else {
-            contentService.lockContent(site, relativePath);
+            contentRepository.lockItem(site, relativePath);
         }
     }
 

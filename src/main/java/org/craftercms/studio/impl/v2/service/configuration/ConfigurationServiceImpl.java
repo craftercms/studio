@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
@@ -81,6 +82,8 @@ import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
@@ -113,6 +116,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ObjectStateService objectStateService;
     private EventService eventService;
     private EncryptionAwareConfigurationReader configurationReader;
+    private ItemServiceInternal itemServiceInternal;
 
     private String translationConfig;
 
@@ -313,6 +317,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             objectMetadataManager.insertNewObjectMetadata(siteId, path);
         }
         objectMetadataManager.setObjectMetadata(siteId, path, properties);
+
+        itemServiceInternal.updateStateBits(siteId, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
     }
 
     private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
@@ -437,4 +443,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         this.translationConfig = translationConfig;
     }
 
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
 }

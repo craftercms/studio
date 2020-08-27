@@ -804,6 +804,16 @@ pipelines:
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.2.0.1-to-3.2.0.2.sql
+    - currentVersion: 3.2.0.2
+      nextVersion: 3.2.0.3
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+              dest: configuration/samples/sample-permission_mappings-config.xml
+          commitDetails: Add sample file for translation-config.xml
+        - type: dbScriptUpgrader
+          filename: upgrade-3.2.0.2-to-3.2.0.3.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -1150,6 +1160,12 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/config/permission-mappings-config/permission-mappings-config-v12.xslt
             commitDetails: Added encryption tool permissions for developer and admin
+      - currentVersion: 12
+        nextVersion: 13
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/permission-mappings-config/permission-mappings-config-v12.xslt
+            commitDetails: Added get_children permission
 
   role-mappings-config:
     module: studio

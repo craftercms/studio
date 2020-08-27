@@ -20,7 +20,7 @@ CREATE PROCEDURE addColumnIfNotExists(
     END IF;
   END ;
 
-call addColumnIfNotExists('crafter', '_meta', 'integrity', 'BIGINT(10) NULL') ;
+call addColumnIfNotExists(@crafter_schema_name, '_meta', 'integrity', 'BIGINT(10) NULL') ;
 
 ALTER TABLE `group`
   DROP FOREIGN KEY `group_site_fk`,

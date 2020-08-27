@@ -20,6 +20,6 @@ CREATE PROCEDURE addColumnIfNotExists(
     END IF;
   END ;
 
-call addColumnIfNotExists('crafter', 'site', 'sandbox_branch', 'VARCHAR(255) NOT NULL DEFAULT ''master'' ') ;
+call addColumnIfNotExists(@crafter_schema_name, 'site', 'sandbox_branch', 'VARCHAR(255) NOT NULL DEFAULT ''master'' ') ;
 
 UPDATE _meta SET version = '3.0.15.1' ;

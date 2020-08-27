@@ -26,8 +26,12 @@ public abstract class QueryParameterNames {
     public static final String LIMIT = "limit";
     // Sort
     public static final String SORT = "sort";
-
+    // Order
     public static final String ORDER = "order";
+    // Path
+    public static final String PATH = "path";
+    // Paths
+    public static final String PATHS = "paths";
 
     /* Organizations */
 
@@ -119,6 +123,29 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_NODE_ID = "clusterNodeId";
 
     public static final String INCLUDE_PARAMETERS = "includeParameters";
+
+    /* Item */
+    public static final String LOCALE_CODE = "localeCode";
+
+    public static final String PARENT_PATH = "parentPath";
+
+    public static final String PARENT_ID = "parentId";
+
+    public static final String LEVEL_DESCRIPTOR_PATH = "ldPath";
+
+    public static final String LEVEL_DESCRIPTOR_NAME = "ldName";
+
+    public static final String ENTRIES = "entries";
+
+    public static final String ROOT_PATH = "rootPath";
+
+    public static final String STATES_BIT_MAP = "statesBitMap";
+
+    public static final String ON_STATES_BIT_MAP = "onStatesBitMap";
+
+    public static final String OFF_STATES_BIT_MAP = "offStatesBitMap";
+
+    public static final String ITEM_IDS = "itemIds";
 
     private QueryParameterNames() { }
 }

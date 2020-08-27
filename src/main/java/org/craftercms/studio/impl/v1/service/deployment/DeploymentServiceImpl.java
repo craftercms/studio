@@ -61,6 +61,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
@@ -92,6 +93,9 @@ import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.S
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
@@ -121,6 +125,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected PublishRequestMapper publishRequestMapper;
     protected AuditServiceInternal auditServiceInternal;
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Override
     @ValidateParams
@@ -133,6 +138,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, SUBMIT_WITHOUT_WORKFLOW_SCHEDULED,
                     NEW_SUBMITTED_NO_WF_SCHEDULED);
+            itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();
@@ -166,6 +172,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             publishRequestMapper.insertItemForDeployment(item);
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
+
         // We need to pick up this on Inserting , not on execution!
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
@@ -279,7 +287,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
-
+            itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
         Set<String> environments = getAllPublishedEnvironments(site);
         for (String environment : environments) {
@@ -290,6 +298,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
         String statusMessage = studioConfiguration
                 .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
         try {
@@ -1054,5 +1063,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

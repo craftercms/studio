@@ -18,10 +18,12 @@ package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
@@ -33,6 +35,8 @@ import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that executes a database script.
@@ -53,6 +57,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
     public static final String CONFIG_KEY_FILENAME = "filename";
     public static final String CONFIG_KEY_INTEGRITY = "updateIntegrity";
     public static final String SQL_DELIMITER = " ;";
+    private final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
 
     /**
      * Path of the folder to search the script file.
@@ -105,16 +110,20 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
         }
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
         logger.info("Executing db script {0}", scriptFile.getFilename());
-        try (Reader reader = new InputStreamReader(scriptFile.getInputStream());
-             Connection connection = context.getConnection()) {
-            ScriptRunner scriptRunner = new ScriptRunner(connection);
-            scriptRunner.setDelimiter(SQL_DELIMITER);
-            scriptRunner.setStopOnError(true);
-            scriptRunner.setLogWriter(null);
-            scriptRunner.runScript(reader);
-            connection.commit();
-            if(updateIntegrity) {
-                integrityValidator.store(connection);
+        try {
+            String scriptContent = IOUtils.toString(scriptFile.getInputStream());
+            try (Reader reader = new StringReader(scriptContent.replaceAll(CRAFTER_SCHEMA_NAME,
+                    studioConfiguration.getProperty(DB_SCHEMA)));
+                 Connection connection = context.getConnection()) {
+                ScriptRunner scriptRunner = new ScriptRunner(connection);
+                scriptRunner.setDelimiter(SQL_DELIMITER);
+                scriptRunner.setStopOnError(true);
+                scriptRunner.setLogWriter(null);
+                scriptRunner.runScript(reader);
+                connection.commit();
+                if (updateIntegrity) {
+                    integrityValidator.store(connection);
+                }
             }
         } catch (Exception e) {
             logger.error("Error executing db script", e);

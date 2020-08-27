@@ -35,8 +35,10 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -46,6 +48,7 @@ import java.util.List;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class ContentServiceImpl implements ContentService {
@@ -58,6 +61,7 @@ public class ContentServiceImpl implements ContentService {
     private UserService userService;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
+    private ItemServiceInternal itemServiceInternal;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -95,10 +99,13 @@ public class ContentServiceImpl implements ContentService {
         contentToDelete.add(path);
         contentToDelete.addAll(getChildItems(siteId, path));
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
+
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
                 ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
     }
@@ -112,10 +119,12 @@ public class ContentServiceImpl implements ContentService {
         contentToDelete.addAll(paths);
         contentToDelete.addAll(getChildItems(siteId, paths));
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
                 ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
     }
@@ -140,6 +149,22 @@ public class ContentServiceImpl implements ContentService {
         }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                               @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
+                                               String sortStrategy,
+                                               String order, int offset, int limit) {
+        return contentServiceInternal.getChildrenByPath(siteId, path, locale, sortStrategy, order, offset, limit);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public GetChildrenResult getChildrenById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String id,
+                                             String locale, String sortStrategy, String order, int offset, int limit) {
+        return contentServiceInternal.getChildrenById(siteId, id, locale, sortStrategy, order, offset, limit);
     }
 
     public ContentServiceInternal getContentServiceInternal() {
@@ -204,5 +229,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

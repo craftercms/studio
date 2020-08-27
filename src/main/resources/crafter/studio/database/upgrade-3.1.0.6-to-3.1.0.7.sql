@@ -20,11 +20,11 @@ CREATE PROCEDURE addColumnIfNotExists(
     END IF;
   END ;
 
-call addColumnIfNotExists('crafter', 'cluster', 'git_remote_name', 'VARCHAR(50) NOT NULL') ;
+call addColumnIfNotExists(@crafter_schema_name, 'cluster', 'git_remote_name', 'VARCHAR(50) NOT NULL') ;
 
-call addColumnIfNotExists('crafter', 'cluster', 'local_ip', 'VARCHAR(40) NOT NULL') ;
+call addColumnIfNotExists(@crafter_schema_name, 'cluster', 'local_ip', 'VARCHAR(40) NOT NULL') ;
 
-call addColumnIfNotExists('crafter', 'cluster', 'state', 'VARCHAR(50) NOT NULL') ;
+call addColumnIfNotExists(@crafter_schema_name, 'cluster', 'state', 'VARCHAR(50) NOT NULL') ;
 
 DROP PROCEDURE IF EXISTS addUniqueIfNotExists ;
 
@@ -48,6 +48,6 @@ BEGIN
     END IF;
 END ;
 
-call addUniqueIfNotExists('crafter', 'cluster', 'uq_cl_git_remote_name', '(`git_remote_name`)') ;
+call addUniqueIfNotExists(@crafter_schema_name, 'cluster', 'uq_cl_git_remote_name', '(`git_remote_name`)') ;
 
 UPDATE _meta SET version = '3.1.0.7' ;

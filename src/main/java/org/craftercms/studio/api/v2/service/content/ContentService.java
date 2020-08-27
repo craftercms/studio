@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.util.List;
 
@@ -86,4 +87,34 @@ public interface ContentService {
      */
     boolean deleteContent(String siteId, List<String> paths, String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException;
+
+    /**
+     * Get list of children for given path
+     *
+     * @param siteId site identifier
+     * @param path item path to children for
+     * @param locale filter children by locale
+     * @param sortStrategy sort order
+     * @param order ascending or descending
+     * @param offset offset of the first child in the result
+     * @param limit number of children to return
+     * @return list of children
+     */
+    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy, String order,
+                                        int offset, int limit);
+
+    /**
+     * Get list of children for given item id
+     *
+     * @param siteId site identifier
+     * @param id item id to get children for
+     * @param locale filter children by locale
+     * @param sortStrategy sort order
+     * @param order ascending or descending
+     * @param offset offset of the first child in the result
+     * @param limit number of children to return
+     * @return list of children
+     */
+    GetChildrenResult getChildrenById(String siteId, String id, String locale, String sortStrategy, String order,
+                                        int offset, int limit);
 }

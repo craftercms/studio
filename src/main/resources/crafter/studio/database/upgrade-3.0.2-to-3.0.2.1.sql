@@ -41,10 +41,10 @@ CREATE PROCEDURE dropColumnIfExists(
     END IF;
   END ;
 
-call dropColumnIfExists('crafter', 'gitlog', 'verified') ;
+call dropColumnIfExists(@crafter_schema_name, 'gitlog', 'verified') ;
 
-call dropColumnIfExists('crafter', 'gitlog', 'commit_date') ;
+call dropColumnIfExists(@crafter_schema_name, 'gitlog', 'commit_date') ;
 
-call addColumnIfNotExists('crafter', 'gitlog', 'last_verified_gitlog_commit_id', 'VARCHAR(50) NULL') ;
+call addColumnIfNotExists(@crafter_schema_name, 'gitlog', 'last_verified_gitlog_commit_id', 'VARCHAR(50) NULL') ;
 
 UPDATE _meta SET version = '3.0.2.1' ;

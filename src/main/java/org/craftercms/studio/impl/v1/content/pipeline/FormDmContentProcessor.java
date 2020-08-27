@@ -25,15 +25,21 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -42,7 +48,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -54,6 +62,14 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public static final String NAME = "WriteContentToDmProcessor";
 
+    protected ContentService contentService;
+    protected WorkflowService workflowService;
+    protected ServicesConfig servicesConfig;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ContentRepository contentRepository;
+    protected ItemServiceInternal itemServiceInternal;
+    protected SiteService siteService;
+    protected UserServiceInternal userServiceInternal;
 
     /**
      * default constructor
@@ -143,7 +159,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         }
                         return;
                     } else {
-                        ContentItemTO newFileItem = createNewFile(site, parentItem, fileName, contentType, input, user, unlock, result);
+                        ContentItemTO newFileItem =
+                                createNewFile(site, parentItem, fileName, contentType, input, user, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
                         return;
                     }
@@ -161,17 +178,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
 
     }
-
-    private void updateLastEditedProperties(String site, String relativePath, String user) {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ItemMetadata.PROP_MODIFIER, user);
-        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        if (!objectMetadataManager.metadataExist(site, relativePath)) {
-            objectMetadataManager.insertNewObjectMetadata(site, relativePath);
-        }
-        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
-	}
-
 
     /**
      * create new file to the given path. If the path is a file name, it will
@@ -191,8 +197,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      *            current user
      * @throws ContentNotFoundException
      */
-    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input,
-    		String user, boolean unlock, ResultTO result)
+    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType,
+                                          InputStream input, String user, boolean unlock, ResultTO result)
             throws ContentNotFoundException, SiteNotFoundException {
         ContentItemTO fileItem = null;
 
@@ -215,8 +221,18 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 } else {
                     properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
                 }
-                objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName, properties);
-                result.setCommitId(objectMetadataManager.getProperties(site, parentItem.getUri() + FILE_SEPARATOR + fileName).getCommitId());
+                objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName,
+                        properties);
+                result.setCommitId(objectMetadataManager.getProperties(site, parentItem.getUri() + FILE_SEPARATOR +
+                        fileName).getCommitId());
+
+                // Item
+                // TODO: get local code with API 2
+                Item item = itemServiceInternal.instantiateItemAfterWrite(site,
+                        parentItem.getUri() + FILE_SEPARATOR + fileName, user, ZonedDateTime.now(), fileName,
+                        contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
+                        Locale.US.toString(), result.getCommitId(), Optional.of(unlock));
+                itemServiceInternal.upsertEntry(site, item);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -227,6 +243,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             if (unlock) {
                 contentRepository.unLockItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
             } else {
+                contentRepository.lockItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
             }
 
             fileItem = contentService.getContentItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName, 0);
@@ -247,8 +264,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      * 			unlock the content upon update?
      * @throws ServiceLayerException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user, boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceLayerException {
+    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user,
+                              boolean isPreview, boolean unlock, ResultTO result)
+            throws ServiceLayerException, UserNotFoundException {
 
         boolean success = false;
         try {
@@ -282,6 +300,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     }
                 }
             }
+
+            // Item
+            // TODO: get local code with API 2
+            Item item = itemServiceInternal.instantiateItemAfterWrite(site, path, user, ZonedDateTime.now(),
+                    contentItem.getInternalName(), contentService.getContentTypeClass(site, path), Locale.US.toString(),
+                    result.getCommitId(), Optional.of(unlock));
+            itemServiceInternal.upsertEntry(site, item);
         }
 
         // unlock the content upon save if the flag is true
@@ -339,7 +364,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     }
 
     @Override
-    public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) throws SiteNotFoundException {
+    public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
+            throws SiteNotFoundException {
         // create parent folders if missing
         String [] levels = path.split(FILE_SEPARATOR);
         String parentPath = "";
@@ -383,12 +409,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
     }
 
-    protected ContentService contentService;
-    protected WorkflowService workflowService;
-    protected ServicesConfig servicesConfig;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ContentRepository contentRepository;
-
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
@@ -403,4 +423,28 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
 }

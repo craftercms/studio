@@ -50,12 +50,17 @@ import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
@@ -81,6 +86,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected PublishRequestMapper publishRequestMapper;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Override
     @ValidateParams
@@ -227,6 +233,13 @@ public class PublishingManagerImpl implements PublishingManager {
                 itemMetadata.setSubmittedToEnvironment(StringUtils.EMPTY);
                 itemMetadata.setLaunchDate(null);
                 objectMetadataManager.updateObjectMetadata(itemMetadata);
+
+                if (isLive) {
+                    itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                            PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+                } else {
+                    itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
+                }
             }
         }
         return deploymentItem;
@@ -521,5 +534,13 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

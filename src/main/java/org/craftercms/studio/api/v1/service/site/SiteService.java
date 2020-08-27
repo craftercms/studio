@@ -177,7 +177,7 @@ public interface SiteService {
 	 *
 	 * @throws SiteNotFoundException site not found
 	 */
-	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws SiteNotFoundException;
+	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
@@ -191,7 +191,7 @@ public interface SiteService {
 	 * @throws SiteNotFoundException site not found
      */
     boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog)
-            throws SiteNotFoundException;
+            throws ServiceLayerException, UserNotFoundException;
 
    	/**
    	 * get a list of available blueprints

@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -57,6 +58,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSET_CHAIN_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_ASSIGNEE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.IMPORT_XML_CHAIN_NAME;
@@ -72,6 +75,7 @@ public class ImportServiceImpl implements ImportService {
     protected ObjectStateService objectStateService;
     protected DmPublishService dmPublishService;
     protected StudioConfiguration studioConfiguration;
+    protected ItemServiceInternal itemServiceInternal;
 
     /**
      * is import in progress?
@@ -426,6 +430,7 @@ public class ImportServiceImpl implements ImportService {
                 if (!contentExists || overWrite) {
                     String fullPath = targetRoot + filePath;
                     objectStateService.setSystemProcessing(site, currentPath, true);
+                    itemServiceInternal.setSystemProcessing(site, currentPath, true);
                     // write the content
                     contentService.processContent(id, in, isXml, params, processChain);
                     ContentItemTO item = contentService.getContentItem(site, currentPath);
@@ -439,6 +444,9 @@ public class ImportServiceImpl implements ImportService {
                             objectStateService.insertNewEntry(site, currentPath);
                         }
                     }
+                    // Item
+                    itemServiceInternal.updateStateBits(site, currentPath, SAVE_AND_CLOSE_ON_MASK,
+                            SAVE_AND_CLOSE_OFF_MASK);
 
                     importedPaths.add(filePath);
                     importedFullPaths.add(fullPath);
@@ -654,6 +662,14 @@ public class ImportServiceImpl implements ImportService {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 
     public String getAssignee() {

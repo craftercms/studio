@@ -3093,9 +3093,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: locale
+        - name: localeCode
           in: query
-          description: filter children by locale, or show source items (not translation) if translatation to specified locale does not exist
+          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
           schema:
             type: string
         - name: sortStrategy
@@ -3190,9 +3190,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: locale
+        - name: localeCode
           in: query
-          description: filter children by locale, or show source items (not translation) if translatation to specified locale does not exist
+          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
           schema:
             type: string
         - name: sortStrategy
@@ -5517,11 +5517,16 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         contentTypeId:
           type: string
           description: content type of content item
@@ -5608,11 +5613,16 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          formta: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         contentTypeId:
           type: string
           description: content type of content item
@@ -5736,11 +5746,16 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         path:
           type: string
           description: path where content item is stored inside repository (with filename)
