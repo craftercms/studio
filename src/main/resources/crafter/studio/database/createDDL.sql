@@ -319,6 +319,11 @@ INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_na
 VALUES (1, CURRENT_TIMESTAMP, 'admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
         'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1, 0) ;
 
+INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
+                           externally_managed, timezone, locale, email, enabled, deleted)
+VALUES (2, CURRENT_TIMESTAMP, 'git_repo_user', '',
+           'Git Repo', 'User', 0, 'EST5EDT', 'en/US', 'evalgit@example.com', 1, 0) ;
+
 CREATE TABLE IF NOT EXISTS `organization`
 (
   `id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,

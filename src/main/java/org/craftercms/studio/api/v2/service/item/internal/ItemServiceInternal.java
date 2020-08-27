@@ -220,7 +220,7 @@ public interface ItemServiceInternal {
                          String owner, long createdBy, String creator, ZonedDateTime createdOn, long lastModifiedBy,
                          String modifier, ZonedDateTime lastModifiedOn, String label, String contentTypeId,
                          String systemType, String mimeType, int disabledAsInt,  boolean disabled, String localeCode,
-                         long translationSourceId, long size, long parentId, String commitId);
+                         long translationSourceId, long size, Long parentId, String commitId);
 
     /**
      * Instantiate item after write or update

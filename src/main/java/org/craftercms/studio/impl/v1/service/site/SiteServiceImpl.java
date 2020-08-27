@@ -1275,7 +1275,7 @@ public class SiteServiceImpl implements SiteService {
                             FilenameUtils.getName(repoOperation.getPath()), contentService.getContentTypeClass(site,
                                     repoOperation.getPath()), "file",
                             StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, false,
-                            Locale.US.toString(), -1, 0, -1, repoOperation.getCommitId());
+                            Locale.US.toString(), -1, 0, null, repoOperation.getCommitId());
                     itemServiceInternal.upsertEntry(site, item);
 
                     break;

@@ -814,6 +814,12 @@ pipelines:
           commitDetails: Add sample file for translation-config.xml
         - type: dbScriptUpgrader
           filename: upgrade-3.2.0.2-to-3.2.0.3.sql
+    - currentVersion: 3.2.0.3
+      nextVersion: 3.2.0.4
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.2.0.3-to-3.2.0.4.sql
+          updateIntegrity: true
 
   # Pipeline to upgrade site repositories
   site:
