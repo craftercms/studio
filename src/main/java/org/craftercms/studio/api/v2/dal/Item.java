@@ -163,11 +163,11 @@ public class Item {
         this.state = state;
     }
 
-    public long getOwnedBy() {
+    public Long getOwnedBy() {
         return ownedBy;
     }
 
-    public void setOwnedBy(long ownedBy) {
+    public void setOwnedBy(Long ownedBy) {
         this.ownedBy = ownedBy;
     }
 
@@ -179,11 +179,11 @@ public class Item {
         this.owner = owner;
     }
 
-    public long getCreatedBy() {
+    public Long getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(long createdBy) {
+    public void setCreatedBy(Long createdBy) {
         this.createdBy = createdBy;
     }
 
@@ -203,11 +203,11 @@ public class Item {
         this.createdOn = createdOn;
     }
 
-    public long getLastModifiedBy() {
+    public Long getLastModifiedBy() {
         return lastModifiedBy;
     }
 
-    public void setLastModifiedBy(long lastModifiedBy) {
+    public void setLastModifiedBy(Long lastModifiedBy) {
         this.lastModifiedBy = lastModifiedBy;
     }
 
@@ -285,11 +285,11 @@ public class Item {
         this.localeCode = localeCode;
     }
 
-    public long getTranslationSourceId() {
+    public Long getTranslationSourceId() {
         return translationSourceId;
     }
 
-    public void setTranslationSourceId(long translationSourceId) {
+    public void setTranslationSourceId(Long translationSourceId) {
         this.translationSourceId = translationSourceId;
     }
 
@@ -420,12 +420,12 @@ public class Item {
         private String path;
         private String previewUrl;
         private long state;
-        private long ownedBy;
+        private Long ownedBy;
         private String owner;
-        private long createdBy;
+        private Long createdBy;
         private String creator;
         private ZonedDateTime createdOn;
-        private long lastModifiedBy;
+        private Long lastModifiedBy;
         private String modifier;
         private ZonedDateTime lastModifiedOn;
         private String label;
@@ -435,7 +435,7 @@ public class Item {
         private int disabledAsInt;
         private boolean disabled;
         private String localeCode;
-        private long translationSourceId;
+        private Long translationSourceId;
         private long size;
         private Long parentId = null;
         private String commitId;
@@ -501,7 +501,7 @@ public class Item {
             return this;
         }
 
-        public Builder withOwnedBy (long ownedBy) {
+        public Builder withOwnedBy (Long ownedBy) {
             this.ownedBy = ownedBy;
             return this;
         }
@@ -511,7 +511,7 @@ public class Item {
             return this;
         }
 
-        public Builder withCreatedBy(long createdBy) {
+        public Builder withCreatedBy(Long createdBy) {
             this.createdBy = createdBy;
             return this;
         }
@@ -526,7 +526,7 @@ public class Item {
             return this;
         }
 
-        public Builder withLastModifiedBy(long lastModifiedBy) {
+        public Builder withLastModifiedBy(Long lastModifiedBy) {
             this.lastModifiedBy = lastModifiedBy;
             return this;
         }
@@ -578,7 +578,7 @@ public class Item {
             return this;
         }
 
-        public Builder withTranslationSourceId(long translationSourceId) {
+        public Builder withTranslationSourceId(Long translationSourceId) {
             this.translationSourceId = translationSourceId;
             return this;
         }
