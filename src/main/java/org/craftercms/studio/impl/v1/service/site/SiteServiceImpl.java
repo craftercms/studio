@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -1311,9 +1312,7 @@ public class SiteServiceImpl implements SiteService {
                             userObj.getUsername(), repoOperation.getDateTime(),
                             FilenameUtils.getName(repoOperation.getPath()),
                             contentService.getContentTypeClass(site, repoOperation.getPath()), Locale.US.toString(),
-                            repoOperation.getCommitId());
-
-                    item.setState(ItemState.savedAndClosed(item.getState()));
+                            repoOperation.getCommitId(), Optional.empty());
                     itemServiceInternal.upsertEntry(site, item);
                     break;
 
@@ -1405,10 +1404,10 @@ public class SiteServiceImpl implements SiteService {
                     item = itemServiceInternal.instantiateItemAfterWrite(site, repoOperation.getPath(),
                             userObj.getUsername(), repoOperation.getDateTime(),
                             contentService.getContentTypeClass(site, repoOperation.getMoveToPath()),
-                            repoOperation.getMoveToPath(), Locale.US.toString(), repoOperation.getCommitId());
+                            repoOperation.getMoveToPath(), Locale.US.toString(), repoOperation.getCommitId(),
+                            Optional.empty());
                     item.setPath(repoOperation.getMoveToPath());
                     item.setPreviewUrl(repoOperation.getMoveToPath());
-                    item.setState(ItemState.savedAndClosed(item.getState()));
                     itemServiceInternal.upsertEntry(site, item);
 
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());

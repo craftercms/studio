@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 public interface ItemServiceInternal {
@@ -188,31 +189,32 @@ public interface ItemServiceInternal {
 
     /**
      * Instantiate item by getting it from DB and setting properties to values
-     * @param siteId
-     * @param siteName
-     * @param path
-     * @param previewUrl
-     * @param state
-     * @param ownedBy
-     * @param owner
-     * @param createdBy
-     * @param creator
-     * @param createdOn
-     * @param lastModifiedBy
-     * @param modifier
-     * @param lastModifiedOn
-     * @param label
-     * @param contentTypeId
-     * @param systemType
-     * @param mimeType
-     * @param disabledAsInt
-     * @param disabled
-     * @param localeCode
-     * @param translationSourceId
-     * @param size
-     * @param parentId
-     * @param commitId
-     * @return
+     *
+     * @param siteId site identifier
+     * @param siteName site name
+     * @param path path of the item
+     * @param previewUrl preview URL
+     * @param state state of the item (bitmap)
+     * @param ownedBy owner id
+     * @param owner owner username
+     * @param createdBy creator id
+     * @param creator creator username
+     * @param createdOn created date
+     * @param lastModifiedBy modifier id
+     * @param modifier modifier username
+     * @param lastModifiedOn modified date
+     * @param label label for the item
+     * @param contentTypeId content type id
+     * @param systemType system type
+     * @param mimeType mime type
+     * @param disabledAsInt disabled as integer 0 = enabled, 1 = disabled
+     * @param disabled disabled as boolean
+     * @param localeCode locale code
+     * @param translationSourceId translation source item id
+     * @param size size of the file
+     * @param parentId parent id
+     * @param commitId commit id
+     * @return Item object
      */
     Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, long ownedBy,
                          String owner, long createdBy, String creator, ZonedDateTime createdOn, long lastModifiedBy,
@@ -220,7 +222,24 @@ public interface ItemServiceInternal {
                          String systemType, String mimeType, int disabledAsInt,  boolean disabled, String localeCode,
                          long translationSourceId, long size, long parentId, String commitId);
 
+    /**
+     * Instantiate item after write or update
+     *
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param username user name of modifier
+     * @param lastModifiedOn modified date
+     * @param label label for the item
+     * @param contentTypeId content type id
+     * @param localeCode locale code
+     * @param commitId commit id obtained with write operation
+     * @param unlock Optional unlocking of item, if true unlock, otherwise lock. If not present item will be unlocked
+     * @return item object
+     * @throws ServiceLayerException General service error
+     * @throws UserNotFoundException If given username does not exist
+     */
     Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
-                                   String label, String contentTypeId, String locale, String commitId)
+                                   String label, String contentTypeId, String localeCode, String commitId,
+                                   Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException;
 }

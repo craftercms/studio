@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -230,12 +231,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 Item item = itemServiceInternal.instantiateItemAfterWrite(site,
                         parentItem.getUri() + FILE_SEPARATOR + fileName, user, ZonedDateTime.now(), fileName,
                         contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
-                        Locale.US.toString(), result.getCommitId());
-                if (unlock) {
-                    item.setState(ItemState.savedAndClosed(item.getState()));
-                } else {
-                    item.setState(ItemState.savedAndNotClosed(item.getState()));
-                }
+                        Locale.US.toString(), result.getCommitId(), Optional.of(unlock));
                 itemServiceInternal.upsertEntry(site, item);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
@@ -309,13 +305,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // TODO: get local code with API 2
             Item item = itemServiceInternal.instantiateItemAfterWrite(site, path, user, ZonedDateTime.now(),
                     contentItem.getInternalName(), contentService.getContentTypeClass(site, path), Locale.US.toString(),
-                    result.getCommitId());
-
-            if (unlock) {
-                item.setState(ItemState.savedAndClosed(item.getState()));
-            } else {
-                item.setState(ItemState.savedAndNotClosed(item.getState()));
-            }
+                    result.getCommitId(), Optional.of(unlock));
             itemServiceInternal.upsertEntry(site, item);
         }
 

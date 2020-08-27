@@ -41,6 +41,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -188,13 +189,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 Item item = itemServiceInternal.instantiateItemAfterWrite(site, path + FILE_SEPARATOR + assetName,
                         user, ZonedDateTime.now(), assetName,
                         contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName),
-                        Locale.US.toString(), result.getCommitId());
-
-                if (unlock) {
-                    item.setState(ItemState.savedAndClosed(item.getState()));
-                } else {
-                    item.setState(ItemState.savedAndNotClosed(item.getState()));
-                }
+                        Locale.US.toString(), result.getCommitId(), Optional.of(unlock));
                 itemServiceInternal.upsertEntry(site, item);
 
                 assetInfo.setFileExtension(ext);
@@ -258,12 +253,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             // TODO: get local code with API 2
             Item item = itemServiceInternal.instantiateItemAfterWrite(site, relativePath, user, ZonedDateTime.now(),
                     assetName, contentService.getContentTypeClass(site, relativePath), Locale.US.toString(),
-                    result.getCommitId());
-            if (unlock) {
-                item.setState(ItemState.savedAndClosed(item.getState()));
-            } else {
-                item.setState(ItemState.savedAndNotClosed(item.getState()));
-            }
+                    result.getCommitId(), Optional.of(unlock));
             itemServiceInternal.upsertEntry(site, item);
         }
         if (unlock) {

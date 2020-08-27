@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
@@ -277,10 +278,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
-                                          String label, String contentTypeId, String locale, String commitId)
+                                          String label, String contentTypeId, String locale, String commitId,
+                                          Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-        return instantiateItem(siteId, path)
+        Item item = instantiateItem(siteId, path)
                 .withPreviewUrl(path)
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(lastModifiedOn)
@@ -290,5 +292,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withLocaleCode(locale)
                 .withCommitId(commitId)
                 .build();
+        if (unlock.isPresent() && !unlock.get()) {
+            item.setState(ItemState.savedAndNotClosed(item.getState()));
+        } else {
+            item.setState(ItemState.savedAndClosed(item.getState()));
+        }
+        return item;
     }
 }
