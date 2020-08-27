@@ -372,11 +372,11 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public User getUserByGitName(String gitName) {
+    public User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException {
         User user =  userDao.getUserByGitName(gitName);
         if (Objects.isNull(user)) {
             logger.info("Git user " + gitName + " not found in DB.");
-            userDao.getUserByGitName(GIT_REPO_USER_USERNAME);
+            user = getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
         }
         return user;
     }
