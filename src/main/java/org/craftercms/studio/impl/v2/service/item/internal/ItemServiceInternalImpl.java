@@ -263,7 +263,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                                 String owner, long createdBy, String creator, ZonedDateTime createdOn,
                                 long lastModifiedBy, String modifier, ZonedDateTime lastModifiedOn, String label,
                                 String contentTypeId, String systemType, String mimeType, int disabledAsInt,
-                                boolean disabled, String localeCode, long translationSourceId, long size, long parentId,
+                                boolean disabled, String localeCode, long translationSourceId, long size, Long parentId,
                                 String commitId) {
 
         return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withOwnedBy(ownedBy)
