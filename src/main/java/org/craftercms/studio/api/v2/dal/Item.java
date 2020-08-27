@@ -65,12 +65,12 @@ public class Item {
     private String path;
     private String previewUrl;
     private long state;
-    private long ownedBy;
+    private Long ownedBy;
     private String owner;
-    private long createdBy;
+    private Long createdBy = null;
     private String creator;
     private ZonedDateTime createdOn;
-    private long lastModifiedBy;
+    private Long lastModifiedBy = null;
     private String modifier;
     private ZonedDateTime lastModifiedOn;
     private String label;
@@ -80,7 +80,7 @@ public class Item {
     private int disabledAsInt;
     private boolean disabled;
     private String localeCode;
-    private long translationSourceId;
+    private Long translationSourceId = null;
     private long size;
     private Long parentId = null;
     private String commitId;

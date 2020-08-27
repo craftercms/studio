@@ -259,11 +259,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, long ownedBy,
-                                String owner, long createdBy, String creator, ZonedDateTime createdOn,
-                                long lastModifiedBy, String modifier, ZonedDateTime lastModifiedOn, String label,
+    public Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, Long ownedBy,
+                                String owner, Long createdBy, String creator, ZonedDateTime createdOn,
+                                Long lastModifiedBy, String modifier, ZonedDateTime lastModifiedOn, String label,
                                 String contentTypeId, String systemType, String mimeType, int disabledAsInt,
-                                boolean disabled, String localeCode, long translationSourceId, long size, Long parentId,
+                                boolean disabled, String localeCode, Long translationSourceId, long size, Long parentId,
                                 String commitId) {
 
         return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withOwnedBy(ownedBy)
