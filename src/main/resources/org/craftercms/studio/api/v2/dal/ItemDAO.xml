@@ -199,4 +199,21 @@
         </foreach>
     </update>
 
+    <delete id="deleteItemsForSite">
+        DELETE FROM item WHERE site_id = #{siteId}
+    </delete>
+
+    <delete id="deleteItemsById">
+        DELETE FROM item WHERE id IN
+        <foreach collection="itemIds" item="id" index="index" open="(" separator=","  close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteItemsForSiteAndPath">
+        DELETE FROM item WHERE site_id = #{siteId} AND path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator=","  close=")">
+            #{path}
+        </foreach>
+    </delete>
 </mapper>

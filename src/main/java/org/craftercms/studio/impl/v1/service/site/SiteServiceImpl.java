@@ -1043,6 +1043,7 @@ public class SiteServiceImpl implements SiteService {
             siteFeedMapper.deleteSite(siteId);
             dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
+            itemServiceInternal.deleteItemsForSite(siteFeed.getId());
             objectStateService.deleteObjectStatesForSite(siteId);
             objectMetadataManager.deleteObjectMetadataForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);

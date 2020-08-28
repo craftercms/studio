@@ -491,6 +491,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         }
                     } else {
                         _cancelWorkflow(site, state.getPath());
+                        itemServiceInternal.deleteItem(site, state.getPath());
                         objectStateService.deleteObjectStateForPath(site, state.getPath());
                         objectMetadataManager.deleteObjectMetadata(site, state.getPath());
                     }
@@ -518,6 +519,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
         } else {
+            itemServiceInternal.deleteItem(itemState.getSite(), itemState.getPath());
             objectStateService.deleteObjectState(itemState.getObjectId());
         }
     }
