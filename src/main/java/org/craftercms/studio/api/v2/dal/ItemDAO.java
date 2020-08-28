@@ -210,4 +210,23 @@ public interface ItemDAO {
     void updateStatesByIdBulk(@Param(ITEM_IDS) List<Long> itemIds,
                                    @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
                                    @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+
+    /**
+     * Delete all items for site
+     * @param siteId site id
+     */
+    void deleteItemsForSite(@Param(SITE_ID) long siteId);
+
+    /**
+     * Delete items by id
+     * @param itemIds item ids
+     */
+    void deleteItemsById(@Param(ITEM_IDS) List<Long> itemIds);
+
+    /**
+     * Delete items for site and paths
+     * @param siteId site id
+     * @param paths paths of the items
+     */
+    void deleteItemsForSiteAndPath(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths);
 }

@@ -299,4 +299,19 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         }
         return item;
     }
+
+    @Override
+    public void deleteItemsForSite(long siteId) {
+        itemDao.deleteItemsForSite(siteId);
+    }
+
+    @Override
+    public void deleteItemsById(List<Long> itemIds) {
+        itemDao.deleteItemsById(itemIds);
+    }
+
+    @Override
+    public void deleteItemsForSiteAndPaths(long siteId, List<String> paths) {
+        itemDao.deleteItemsForSiteAndPath(siteId, paths);
+    }
 }

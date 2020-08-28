@@ -242,4 +242,23 @@ public interface ItemServiceInternal {
                                    String label, String contentTypeId, String localeCode, String commitId,
                                    Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Delete all items for site
+     * @param siteId site id
+     */
+    void deleteItemsForSite(long siteId);
+
+    /**
+     * Delete items by ids
+     * @param itemIds ids of items to delete
+     */
+    void deleteItemsById(List<Long> itemIds);
+
+    /**
+     * Delete items for site and paths
+     * @param siteId site id
+     * @param paths list of item paths to delete
+     */
+    void deleteItemsForSiteAndPaths(long siteId, List<String> paths);
 }

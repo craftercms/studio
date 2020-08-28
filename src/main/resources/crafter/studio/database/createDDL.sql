@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.5', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.6', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -436,7 +436,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   FOREIGN KEY item_ix_last_modified_by(`last_modified_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_owned_by(`owned_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_site_id(`site_id`) REFERENCES `site` (`id`),
-  FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ,
+  FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ON DELETE CASCADE ,
   UNIQUE uq_i_site_path (`site_id`, `path`(900))
 )
     ENGINE = InnoDB
