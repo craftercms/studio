@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -92,7 +91,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void upsertEntries(String siteId, List<Item> items) {
-        itemDao.upsertEntries(items);
+        if (CollectionUtils.isNotEmpty(items)) {
+            itemDao.upsertEntries(items);
+        }
     }
 
     @Override
@@ -151,25 +152,33 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     private void setStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        itemDao.setStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+        if (CollectionUtils.isNotEmpty(paths)) {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(SITE_ID, siteId);
+            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+            itemDao.setStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+        }
     }
 
     private void setStatesByIdBulk(List<Long> itemIds, long statesBitMap) {
-        itemDao.setStatesByIdBulk(itemIds, statesBitMap);
+        if (CollectionUtils.isNotEmpty(itemIds)) {
+            itemDao.setStatesByIdBulk(itemIds, statesBitMap);
+        }
     }
 
     private void resetStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        itemDao.resetStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+        if (CollectionUtils.isNotEmpty(paths)) {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(SITE_ID, siteId);
+            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+            itemDao.resetStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+        }
     }
 
     private void resetStatesByIdBulk(List<Long> itemIds, long statesBitMap) {
-        itemDao.resetStatesByIdBulk(itemIds, statesBitMap);
+        if (CollectionUtils.isNotEmpty(itemIds)) {
+            itemDao.resetStatesByIdBulk(itemIds, statesBitMap);
+        }
     }
 
     @Override
@@ -231,15 +240,19 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateStateBitsBulk(List<Long> itemIds, long onStateBitMap, long offStateBitMap) {
-        itemDao.updateStatesByIdBulk(itemIds, onStateBitMap, offStateBitMap);
+        if (CollectionUtils.isNotEmpty(itemIds)) {
+            itemDao.updateStatesByIdBulk(itemIds, onStateBitMap, offStateBitMap);
+        }
     }
 
     private void updateStatesBySiteAndPathBulk(String siteId, List<String> paths, long onStateBitMap,
                                                long offStateBitMap) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, onStateBitMap, offStateBitMap);
+        if (CollectionUtils.isNotEmpty(paths)) {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(SITE_ID, siteId);
+            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+            itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, onStateBitMap, offStateBitMap);
+        }
     }
 
     @Override
@@ -307,11 +320,15 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void deleteItemsById(List<Long> itemIds) {
-        itemDao.deleteItemsById(itemIds);
+        if (CollectionUtils.isNotEmpty(itemIds)) {
+            itemDao.deleteItemsById(itemIds);
+        }
     }
 
     @Override
     public void deleteItemsForSiteAndPaths(long siteId, List<String> paths) {
-        itemDao.deleteItemsForSiteAndPath(siteId, paths);
+        if (CollectionUtils.isNotEmpty(paths)) {
+            itemDao.deleteItemsForSiteAndPath(siteId, paths);
+        }
     }
 }
