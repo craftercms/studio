@@ -52,7 +52,7 @@ public interface ItemDAO {
      *
      * @return total number of children
      */
-    int getChildrenByPathTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+    int getChildrenByPathTotal(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode);
 
     /**
