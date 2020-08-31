@@ -70,6 +70,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 locale, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
+        toRet.setLimit(limit);
         toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale));
         return toRet;
     }
@@ -92,7 +93,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                     idx++;
                 }
                 toRet.setChildren(children);
-                toRet.setLimit(children.size());
             }
         }
         return toRet;
