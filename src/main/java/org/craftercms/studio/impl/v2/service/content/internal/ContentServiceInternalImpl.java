@@ -70,7 +70,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 locale, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
-        toRet.setTotal(getChildrenByPathTotal(siteId, path, locale));
+        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale));
         return toRet;
     }
 
@@ -100,8 +100,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public int getChildrenByPathTotal(String siteId, String path, String locale) {
-        return itemDao.getChildrenByPathTotal(siteId, path, servicesConfig.getLevelDescriptorName(siteId),
-                locale);
+        String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        return itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath,
+                servicesConfig.getLevelDescriptorName(siteId), locale);
     }
 
     @Override

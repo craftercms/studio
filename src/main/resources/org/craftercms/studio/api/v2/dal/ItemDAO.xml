@@ -93,7 +93,10 @@
 
     <select id="getChildrenByPathTotal" resultType="Integer">
         select count(1) from item where site_id = #{siteId}
-                                    and path RLIKE ('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+                                    and path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+                                    and concat(path, '/index.xml') not in
+                                        (select i2.path from item i2 where i2.site_id = #{siteId}
+                                                                       and i2.path RLIKE('${path}/[^/]+/index\.xml'))
                                     and path not like '%/${ldName}'
     </select>
 
