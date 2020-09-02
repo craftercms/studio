@@ -78,6 +78,7 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -93,6 +94,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -1077,7 +1079,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private void cleanUpMoveFolders(Git git, String path) throws GitAPIException {
+    private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
         Path parentToDelete = Paths.get(path).getParent();
         deleteParentFolder(git, parentToDelete);
         Path testDelete = Paths.get(git.getRepository().getDirectory().getParent(), parentToDelete.toString());
@@ -1087,7 +1089,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException {
+    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException, IOException {
         String parent = parentFolder.toString();
         String toRet = parent;
         try {
@@ -1095,20 +1097,28 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             String folderToDelete = helper.getGitPath(parent);
             Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-            String[] children = toDelete.toFile().list();
-            if (children != null && children.length < 2) {
-                if (children.length == 1 || children[0].equals(".keep")) {
-                    Path ancestor = parentFolder.getParent();
+            List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(dirs)) {
+                for (String child : dirs) {
+                    Path childToDelete = Paths.get(folderToDelete, child);
+                    deleteParentFolder(git, childToDelete);
                     git.rm()
-                            .addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep"))
+                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
                             .setCached(false)
                             .call();
-                } else {
-                    Path ancestor = parentFolder.getParent();
+
+                }
+            }
+            List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
+                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(files)) {
+                for (String child : files) {
                     git.rm()
-                            .addFilepattern(helper.getGitPath(parentFolder.toString()))
+                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
                             .setCached(false)
                             .call();
+
                 }
             }
         } catch (CryptoException e) {
