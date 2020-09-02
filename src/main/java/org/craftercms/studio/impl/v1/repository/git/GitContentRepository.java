@@ -42,6 +42,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 
 import com.jcraft.jsch.JSch;
@@ -395,7 +396,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     .replaceAll(PATTERN_PATH, path),
                             StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
-                } catch (GitAPIException | UserNotFoundException e) {
+                } catch (GitAPIException | UserNotFoundException | IOException e) {
                     logger.error("Error while deleting content for site: " + site + " path: " + path, e);
                 } catch (ServiceLayerException e) {
                     logger.error("Unknown service error during delete for site: " + site + " path: " + path, e);
@@ -408,27 +409,35 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return commitId;
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException, CryptoException {
+    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException, CryptoException, IOException {
         String parent = parentFolder.toString();
         String toRet = parent;
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor);
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-        String[] children = toDelete.toFile().list();
-        if (children != null && children.length < 2) {
-            if (children.length == 1 || children[0].equals(".keep")) {
-                Path ancestor = parentFolder.getParent();
+        List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(dirs)) {
+            for (String child : dirs) {
+                Path childToDelete = Paths.get(folderToDelete, child);
+                deleteParentFolder(git, childToDelete);
                 git.rm()
-                        .addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep"))
+                        .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
                         .setCached(false)
                         .call();
-            } else {
-                Path ancestor = parentFolder.getParent();
+
+            }
+        }
+        List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
+                .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(files)) {
+            for (String child : files) {
                 git.rm()
-                        .addFilepattern(helper.getGitPath(parentFolder.toString()))
+                        .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
                         .setCached(false)
                         .call();
+
             }
         }
         return toRet;
