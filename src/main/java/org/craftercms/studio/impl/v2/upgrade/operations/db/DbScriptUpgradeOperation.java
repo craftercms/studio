@@ -57,7 +57,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
     public static final String CONFIG_KEY_FILENAME = "filename";
     public static final String CONFIG_KEY_INTEGRITY = "updateIntegrity";
     public static final String SQL_DELIMITER = " ;";
-    private final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
+    protected final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
 
     /**
      * Path of the folder to search the script file.
