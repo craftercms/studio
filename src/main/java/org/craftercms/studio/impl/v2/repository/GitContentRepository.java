@@ -1097,28 +1097,30 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             String folderToDelete = helper.getGitPath(parent);
             Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-            List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
-                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(dirs)) {
-                for (String child : dirs) {
-                    Path childToDelete = Paths.get(folderToDelete, child);
-                    deleteParentFolder(git, childToDelete);
-                    git.rm()
-                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                            .setCached(false)
-                            .call();
+            if (Files.exists(toDelete)) {
+                List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                        .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(dirs)) {
+                    for (String child : dirs) {
+                        Path childToDelete = Paths.get(folderToDelete, child);
+                        deleteParentFolder(git, childToDelete);
+                        git.rm()
+                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                                .setCached(false)
+                                .call();
 
+                    }
                 }
-            }
-            List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
-                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(files)) {
-                for (String child : files) {
-                    git.rm()
-                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
-                            .setCached(false)
-                            .call();
+                List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
+                        .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(files)) {
+                    for (String child : files) {
+                        git.rm()
+                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                                .setCached(false)
+                                .call();
 
+                    }
                 }
             }
         } catch (CryptoException e) {
