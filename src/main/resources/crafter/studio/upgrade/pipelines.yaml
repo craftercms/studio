@@ -850,7 +850,7 @@ pipelines:
       nextVersion: 3.1.10.1
       operations:
         - type: dbScriptUpgrader
-          filename: upgrade-3.1.8.1-to-3.1.9.1.sql
+          filename: upgrade-3.1.9.3-to-3.1.10.1.sql
 
   # Pipeline to upgrade site repositories
   site:

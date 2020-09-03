@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface SiteFeedMapper {
@@ -64,4 +65,17 @@ public interface SiteFeedMapper {
      * @param siteId site identifier
      */
     void setPublishedRepoCreated(@Param(SITE_ID) String siteId);
+
+    /**
+     * Lock publisher task for site
+     * @param siteId site identifier
+     * @param lockOwnerId lock owner identifier
+     */
+    void lockPublishingForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId);
+
+    /**
+     * unlock publisher task for site
+     * @param siteId site identifier
+     */
+    void unlockPublishingForSite(@Param(SITE_ID) String siteId);
 }

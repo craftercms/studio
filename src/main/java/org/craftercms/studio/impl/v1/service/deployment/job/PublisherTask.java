@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
@@ -37,6 +39,8 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,19 +54,23 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
@@ -116,56 +124,70 @@ public class PublisherTask implements Runnable {
                     logger.error("Failed to sync database from repository for site " + site, e);
                     siteService.enablePublishing(site, false);
                 }
-                if (contentRepository.repositoryExists(site) && siteService.isPublishingEnabled(site)) {
-                    if (!publishingManager.isPublishingBlocked(site)) {
-                        try {
-                            Set<String> environments = getAllPublishingEnvironments(site);
-                            for (String environment : environments) {
-                                env = environment;
-                                logger.debug("Processing content ready for deployment for site \"{0}\"", site);
-                                List<PublishRequest> itemsToDeploy =
-                                        publishingManager.getItemsReadyForDeployment(site, environment);
 
-                                if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
-                                    publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
-                                    List<String> commitIds = itemsToDeploy.stream()
-                                            .map(PublishRequest::getCommitId)
-                                            .distinct().collect(Collectors.toList());
+                // Check publishing lock status
+                SiteFeed siteFeed = siteService.getSite(site);
+                String lockId = getLockOwnerId();
+                if (StringUtils.isEmpty(siteFeed.getPublishingLockOwner()) ||
+                        StringUtils.equals(lockId, siteFeed.getPublishingLockOwner()) ||
+                        ZonedDateTime.now().isAfter(
+                                siteFeed.getPublishingLockHeartbeat().plusMinutes(getLockTTL()))) {
+                    siteService.lockPublishingForSite(site, lockId);
+                    if (contentRepository.repositoryExists(site) && siteService.isPublishingEnabled(site)) {
+                        if (!publishingManager.isPublishingBlocked(site)) {
+                            try {
+                                Set<String> environments = getAllPublishingEnvironments(site);
+                                for (String environment : environments) {
+                                    env = environment;
+                                    logger.debug("Processing content ready for deployment for site \"{0}\"", site);
+                                    List<PublishRequest> itemsToDeploy =
+                                            publishingManager.getItemsReadyForDeployment(site, environment);
 
-                                    boolean allCommitsPresent = true;
-                                    for (String commit : commitIds) {
-                                        boolean commitPresent = contentRepository.commitIdExists(site, commit);
-                                        if (!commitPresent) {
-                                            logger.debug("Commit with ID: " + commit + " is not present in local repo" +
-                                                    " for site " + site + ". Publisher task will skip this cycle.");
-                                            allCommitsPresent = false;
+                                    if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
+                                        publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
+                                        List<String> commitIds = itemsToDeploy.stream()
+                                                .map(PublishRequest::getCommitId)
+                                                .distinct().collect(Collectors.toList());
+
+                                        boolean allCommitsPresent = true;
+                                        for (String commit : commitIds) {
+                                            boolean commitPresent = contentRepository.commitIdExists(site, commit);
+                                            if (!commitPresent) {
+                                                logger.debug("Commit with ID: " + commit + " is not present in local repo" +
+                                                        " for site " + site + ". Publisher task will skip this cycle.");
+                                                allCommitsPresent = false;
+                                            }
+                                        }
+
+                                        if (allCommitsPresent) {
+                                            logger.info("Starting publishing on environment " + environment +
+                                                    " for site " + site);
+                                            logger.debug("Site \"{0}\" has {1} items ready for deployment",
+                                                    site, itemsToDeploy.size());
+
+                                            doPublishing(itemsToDeploy, environment);
+                                        } else {
+                                            publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                         }
                                     }
-
-                                    if (allCommitsPresent) {
-                                        logger.info("Starting publishing on environment " + environment +
-                                                " for site " + site);
-                                        logger.debug("Site \"{0}\" has {1} items ready for deployment",
-                                                site, itemsToDeploy.size());
-
-                                        doPublishing(itemsToDeploy, environment);
-                                    } else {
-                                        publishingManager.markItemsReady(site, environment, itemsToDeploy);
-                                    }
                                 }
+                            } catch (Exception err) {
+                                logger.error("Error while executing deployment to environment store for site: "
+                                        + site, err);
+                                publishingManager.resetProcessingQueue(site, env);
+                                notificationService.notifyDeploymentError(site, err);
+                                logger.info("Continue executing deployment for other sites.");
                             }
-                        } catch (Exception err) {
-                            logger.error("Error while executing deployment to environment store for site: "
-                                    + site, err);
-                            publishingManager.resetProcessingQueue(site, env);
-                            notificationService.notifyDeploymentError(site, err);
-                            logger.info("Continue executing deployment for other sites.");
+                        } else {
+                            logger.info("Publishing is blocked for site " + site);
                         }
                     } else {
-                        logger.info("Publishing is blocked for site " + site);
+                        logger.info("Publishing is disabled for site " + site);
                     }
-                } else {
-                    logger.info("Publishing is disabled for site " + site);
+                }
+                // Unlock publishing if queue does not have packages ready for publishing
+                if (!publishingManager.hasPublishingQueuePackagesReady(site) || !siteService.isPublishingEnabled(site)) {
+                    siteService.unlockPublishingForSite(site);
                 }
             } catch (Exception err) {
                 logger.error("Error while executing deployment to environment store", err);
@@ -409,4 +431,25 @@ public class PublisherTask implements Runnable {
                 JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
         return toReturn;
     }
+    private String getLockOwnerId() {
+        HierarchicalConfiguration<ImmutableNode> clusterConfig =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        String clusterNodeId = StringUtils.EMPTY;
+        if (Objects.nonNull(clusterConfig)) {
+            clusterNodeId = clusterConfig.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+        }
+        if  (StringUtils.isEmpty(clusterNodeId)) {
+            try {
+                clusterNodeId = InetAddress.getLocalHost().toString();
+            } catch (UnknownHostException e) {
+                clusterNodeId = String.valueOf(studioConfiguration.hashCode());
+            }
+        }
+        return clusterNodeId;
+    }
+
+    private int getLockTTL() {
+        return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
+    }
+
 }
