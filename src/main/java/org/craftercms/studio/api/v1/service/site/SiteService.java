@@ -364,4 +364,19 @@ public interface SiteService {
      * @return List of deleted sites from DB
      */
     List<SiteFeed> getDeletedSites();
+
+	/**
+	 * Lock publishing for site
+	 * @param siteId site identifier
+	 * @param lockOwnerId lock owner identifier
+	 * @return true if locking was successful
+	 */
+	boolean lockPublishingForSite(String siteId, String lockOwnerId);
+
+	/**
+	 * Unlock publishing for site
+	 * @param siteId site identifier
+	 * @return true if unlocking was successful
+	 */
+    boolean unlockPublishingForSite(String siteId);
 }

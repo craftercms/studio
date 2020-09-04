@@ -400,6 +400,17 @@ public class PublishingManagerImpl implements PublishingManager {
 
     @Override
     @ValidateParams
+    public boolean hasPublishingQueuePackagesReady(@ValidateStringParam(name = "site") String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("state", READY_FOR_LIVE);
+        Integer result = publishRequestMapper.isPublishingBlocked(params);
+        return result > 0;
+    }
+
+    @Override
+    @ValidateParams
     public String getPublishingStatus(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);

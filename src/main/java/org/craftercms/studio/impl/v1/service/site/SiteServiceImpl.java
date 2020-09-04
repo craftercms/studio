@@ -1839,6 +1839,20 @@ public class SiteServiceImpl implements SiteService {
         Files.write(path, toWrite.getBytes());
     }
 
+    @Override
+    public boolean lockPublishingForSite(String siteId, String lockOwnerId) {
+        logger.debug("Locking publishing for site " + siteId + " with lock owner " + lockOwnerId);
+	    siteFeedMapper.lockPublishingForSite(siteId, lockOwnerId);
+        return true;
+    }
+
+    @Override
+    public boolean unlockPublishingForSite(String siteId) {
+        logger.debug("Unlocking publishing for site " + siteId);
+	    siteFeedMapper.unlockPublishingForSite(siteId);
+        return true;
+    }
+
     public String getGlobalConfigRoot() {
         return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
     }

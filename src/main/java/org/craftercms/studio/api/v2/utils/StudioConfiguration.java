@@ -273,6 +273,7 @@ public interface StudioConfiguration {
     String PUBLISHING_THREAD_POOL_NAME_PREFIX = "studio.publishing.threadPool.namePrefix";
     String PUBLISHING_THREAD_POOL_CORE_POOL_SIZE = "studio.publishing.threadPool.corePoolSize";
     String PUBLISHING_THREAD_POOL_MAX_POOL_SIZE = "studio.publishing.threadPool.maxPoolSize";
+    String PUBLISHING_SITE_LOCK_TTL = "studio.publishing.siteLock.ttl";
 
     /** Clustering **/
     String CLUSTERING_SYNC_URL_FORMAT = "studio.clustering.sync.urlFormat";

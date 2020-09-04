@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -49,6 +51,9 @@ public interface PublishingManager {
             throws DeploymentException, ServiceLayerException;
 
     boolean isPublishingBlocked(String site);
+
+    @ValidateParams
+    boolean hasPublishingQueuePackagesReady(@ValidateStringParam(name = "site") String site);
 
     String getPublishingStatus(String site);
 
