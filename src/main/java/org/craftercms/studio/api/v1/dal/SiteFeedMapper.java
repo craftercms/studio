@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TTL;
 
 public interface SiteFeedMapper {
 
@@ -70,12 +71,21 @@ public interface SiteFeedMapper {
      * Lock publisher task for site
      * @param siteId site identifier
      * @param lockOwnerId lock owner identifier
+     * @param ttl TTL for lock
+     * @return 1 if publishing was locked, otherwise 0
      */
-    void lockPublishingForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId);
+    int tryLockPublishingForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId,
+                                 @Param(TTL) int ttl);
 
     /**
      * unlock publisher task for site
      * @param siteId site identifier
      */
     void unlockPublishingForSite(@Param(SITE_ID) String siteId);
+
+    /**
+     * update publishing lock heartbeat for site
+     * @param siteId site identifier
+     */
+    void updatePublishingLockHeartbeatForSite(@Param(SITE_ID) String siteId);
 }
