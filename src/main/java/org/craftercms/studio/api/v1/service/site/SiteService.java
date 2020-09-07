@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v1.service.site;
 
+import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.*;
@@ -36,6 +37,8 @@ import java.util.Set;
 import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 /**
  * Note: consider renaming
@@ -369,9 +372,10 @@ public interface SiteService {
 	 * Lock publishing for site
 	 * @param siteId site identifier
 	 * @param lockOwnerId lock owner identifier
+	 * @param ttl TTL for lock
 	 * @return true if locking was successful
 	 */
-	boolean lockPublishingForSite(String siteId, String lockOwnerId);
+	boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl);
 
 	/**
 	 * Unlock publishing for site
@@ -379,4 +383,10 @@ public interface SiteService {
 	 * @return true if unlocking was successful
 	 */
     boolean unlockPublishingForSite(String siteId);
+
+	/**
+	 * update publishing lock heartbeat for site
+	 * @param siteId site identifier
+	 */
+	void updatePublishingLockHeartbeatForSite(String siteId);
 }
