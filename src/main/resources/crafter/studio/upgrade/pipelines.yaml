@@ -846,6 +846,16 @@ pipelines:
               dest: configuration/samples/sample-proxy-config.xml
           commitDetails: Update sample file for proxy-config.xml
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.9.3
+      nextVersion: 3.1.10.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.9.3-to-3.1.10.1.sql
+    - currentVersion: 3.1.10.1
+      nextVersion: 3.1.10.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.10.1-to-3.1.10.2.sql
 
   # Pipeline to upgrade site repositories
   site:

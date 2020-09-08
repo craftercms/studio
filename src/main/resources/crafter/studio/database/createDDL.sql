@@ -98,6 +98,25 @@ BEGIN
     END IF;
 END ;
 
+CREATE PROCEDURE tryLockPublishingForSite(
+    IN siteId VARCHAR(50),
+    IN lockOwnerId VARCHAR(255),
+    IN ttl INT,
+    OUT locked INT)
+BEGIN
+    DECLARE v_lock_owner_id VARCHAR(255);
+    DECLARE v_lock_heartbeat DATETIME;
+    SELECT publishing_lock_owner, publishing_lock_heartbeat INTO  v_lock_owner_id, v_lock_heartbeat FROM site
+    WHERE site_id = siteId;
+    SET locked = 0;
+    IF (v_lock_owner_id IS NULL OR v_lock_owner_id = '' OR v_lock_owner_id = lockOwnerId OR DATE_ADD(v_lock_heartbeat, INTERVAL ttl MINUTE) < CURRENT_TIMESTAMP)
+    THEN
+        UPDATE site SET publishing_lock_owner = lockOwnerId, publishing_lock_heartbeat = CURRENT_TIMESTAMP WHERE site_id = siteId;
+        SET locked = 1;
+    END IF;
+    SELECT locked;
+END ;
+
 CREATE TABLE _meta (
   `version` VARCHAR(10) NOT NULL,
   `integrity` BIGINT(10),
@@ -105,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.9.3', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.10.2', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -228,6 +247,8 @@ CREATE TABLE IF NOT EXISTS `site` (
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
   `search_engine`                   VARCHAR(20)   NOT NULL DEFAULT 'Elasticsearch',
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
+  `publishing_lock_owner`           VARCHAR(255)  NULL,
+  `publishing_lock_heartbeat`       DATETIME      NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),

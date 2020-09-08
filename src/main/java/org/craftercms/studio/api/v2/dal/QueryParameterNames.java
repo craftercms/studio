@@ -39,6 +39,10 @@ public abstract class QueryParameterNames {
 
     public static final String SITE = "site";
 
+    public static final String LOCK_OWNER_ID = "lockOwnerId";
+
+    public static final String TTL = "ttl";
+
     /* Groups */
 
     // Group ID
