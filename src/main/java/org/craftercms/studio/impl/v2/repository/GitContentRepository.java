@@ -1098,7 +1098,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             String folderToDelete = helper.getGitPath(parent);
             Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
             if (Files.exists(toDelete)) {
-                List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
                         .map(y -> y.getFileName().toString()).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(dirs)) {
                     for (String child : dirs) {
