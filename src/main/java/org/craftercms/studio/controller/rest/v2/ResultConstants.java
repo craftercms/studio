@@ -73,6 +73,7 @@ public interface ResultConstants {
     /* Content controller */
     String RESULT_KEY_CHILD_ITEMS = "childItems";
     String RESULT_KEY_DEPENDENT_ITEMS = "dependentItems";
+    String RESULT_KEY_XML = "xml";
 
     /** Publish controller */
     String RESULT_KEY_PACKAGES = "packages";

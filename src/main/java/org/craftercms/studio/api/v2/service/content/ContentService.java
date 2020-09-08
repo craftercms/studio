@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -117,4 +118,8 @@ public interface ContentService {
      */
     GetChildrenResult getChildrenById(String siteId, String id, String locale, String sortStrategy, String order,
                                         int offset, int limit);
+
+
+    Item getItem(String siteId, String path);
+
 }

@@ -55,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -187,6 +188,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected UserServiceInternal userServiceInternal;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
+    protected ContextManager contextManager;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -999,6 +1001,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean deleteSite(String site) {
         boolean toReturn;
         try {
+            contextManager.destroyContext(site);
+
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor);
             Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
@@ -1978,6 +1982,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
+    }
+
+    public void setContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
     }
 
 }

@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -56,11 +57,13 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.D
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_XML;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -162,6 +165,25 @@ public class ContentController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
+    }
+
+    @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getDescriptor(@RequestParam String siteId, @RequestParam String path) throws
+            ContentNotFoundException {
+        var item = contentService.getItem(siteId, path);
+        var descriptor = item.getDescriptorDom();
+        if (descriptor == null) {
+            throw new ContentNotFoundException(path, siteId, "No descriptor found for " + path + " in site " + siteId);
+        }
+
+        var result = new ResultOne<String>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_XML, descriptor.asXML());
+
+        var response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
     }
 
     public ContentService getContentService() {

@@ -19,6 +19,8 @@ package org.craftercms.studio.impl.v2.service.content;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -165,6 +167,12 @@ public class ContentServiceImpl implements ContentService {
     public GetChildrenResult getChildrenById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String id,
                                              String locale, String sortStrategy, String order, int offset, int limit) {
         return contentServiceInternal.getChildrenById(siteId, id, locale, sortStrategy, order, offset, limit);
+    }
+
+    @Override
+    public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                        @ValidateSecurePathParam String path) {
+        return contentServiceInternal.getItem(siteId, path);
     }
 
     public ContentServiceInternal getContentServiceInternal() {
