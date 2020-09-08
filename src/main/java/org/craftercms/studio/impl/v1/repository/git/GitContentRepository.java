@@ -382,11 +382,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 try (Git git = new Git(repo)) {
                     String pathToDelete = helper.getGitPath(path);
                     Path toDelete = Paths.get(repo.getDirectory().getParent(), pathToDelete);
+                    boolean isFile = toDelete.toFile().isFile();
                     Path parentToDelete = Paths.get(pathToDelete).getParent();
                     git.rm().addFilepattern(pathToDelete).setCached(false).call();
 
                     String pathToCommit = pathToDelete;
-                    if (toDelete.toFile().isFile()) {
+                    if (isFile) {
                         pathToCommit = deleteParentFolder(git, parentToDelete);
                     }
 
@@ -416,7 +417,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 userServiceInternal, encryptor);
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-        List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+        List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
                 .map(y -> y.getFileName().toString()).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dirs)) {
             for (String child : dirs) {
