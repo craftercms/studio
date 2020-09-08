@@ -96,8 +96,8 @@ public class ContentServiceImpl implements ContentService {
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
-        contentToDelete.add(path);
         contentToDelete.addAll(getChildItems(siteId, path));
+        contentToDelete.add(path);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
 
