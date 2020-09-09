@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.content.internal;
 
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.util.List;
@@ -93,4 +94,7 @@ public interface ContentServiceInternal {
      * @return total number of children
      */
     int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale);
+
+    Item getItem(String siteId, String path);
+
 }

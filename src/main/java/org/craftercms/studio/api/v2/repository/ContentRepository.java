@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -195,4 +196,7 @@ public interface ContentRepository {
      * @return true if operation was successful
      */
     boolean removeRemote(String siteId, String remoteName);
+
+    Item getItem(String siteId, String path);
+
 }

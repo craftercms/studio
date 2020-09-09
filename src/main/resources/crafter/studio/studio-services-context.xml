@@ -24,6 +24,7 @@
     <import resource="classpath:crafter/studio/database-context.xml"/>
     <import resource="classpath:crafter/studio/studio-upgrade-context.xml"/>
     <import resource="classpath:crafter/studio/studio-search-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-store-context.xml"/>
 
 
       <!-- ////////////////////////////////////// -->
@@ -821,6 +822,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="contextManager" ref="contextManager"/>
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -831,6 +833,8 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="contextManager" ref="contextManager"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
 
     <!-- /////// -->

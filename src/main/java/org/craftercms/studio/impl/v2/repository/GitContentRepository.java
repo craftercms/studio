@@ -22,6 +22,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.core.service.ContentStoreService;
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -35,6 +37,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
@@ -138,6 +141,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private SecurityService securityService;
     private RemoteRepositoryDAO remoteRepositoryDAO;
     private TextEncryptor encryptor;
+    private ContextManager contextManager;
+    private ContentStoreService contentStoreService;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -1297,6 +1302,12 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         remoteRepositoryDAO.insertRemoteRepository(params);
     }
 
+    @Override
+    public Item getItem(String siteId, String path) {
+        var context = contextManager.getContext(siteId);
+        return contentStoreService.getItem(context, null, path, null, true);
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -1347,6 +1358,14 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
+    }
+
+    public void setContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
+    }
+
+    public void setContentStoreService(ContentStoreService contentStoreService) {
+        this.contentStoreService = contentStoreService;
     }
 
 }
