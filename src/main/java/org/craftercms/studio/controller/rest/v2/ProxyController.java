@@ -43,6 +43,9 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ALL_SUB_URLS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PROXY_ENGINE;
 
+/**
+ * Controller to proxy request to preview & add the management token if needed
+ */
 @RestController
 public class ProxyController {
 
@@ -96,14 +99,23 @@ public class ProxyController {
         }
     }
 
+    /**
+     * Returns the full authoring url used for preview
+     */
     protected String getAuthoringUrl(String siteId) {
         return servicesConfig.getAuthoringUrl(siteId);
     }
 
+    /**
+     * Returns the management token for preview
+     */
     protected String getEngineManagementTokenValue() {
         return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_AUTHORIZATION_TOKEN);
     }
 
+    /**
+     * Returns the list of preview URLs that require the management token
+     */
     protected List<String> getEngineProtectedUrls() {
         return Arrays.asList(
                 studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS).split(","));
