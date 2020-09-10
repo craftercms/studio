@@ -254,6 +254,7 @@ public class PublisherTask implements Runnable {
                 for (PublishRequest item : itemsToDeploy) {
                     processPublishingRequest(site, environment, item,
                             completeDeploymentItemList, processedPaths);
+                    /** TODO: Commented out to test performance 
                     if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
                         currentPackageId = item.getPackageId();
                         statusMessage = studioConfiguration.getProperty
@@ -263,7 +264,7 @@ public class PublisherTask implements Runnable {
                                         .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
                                                 .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                         siteService.updatePublishingStatusMessage(site, statusMessage);
-                    }
+                    } */
                     if (packageIds.add(item.getPackageId())) {
                         sbComment.append(item.getSubmissionComment()).append("\n");
                     }
