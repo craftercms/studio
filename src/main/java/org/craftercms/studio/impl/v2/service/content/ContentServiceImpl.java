@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -50,8 +51,10 @@ import java.util.List;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissions.ACTION_DELETE_CONTENT;
 
 public class ContentServiceImpl implements ContentService {
 
@@ -71,8 +74,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path) {
+    @HasPermission(type = DefaultPermission.class, action = ACTION_DELETE_CONTENT)
+    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, path);
         List<String> childItems = new ArrayList<String>();
         childItems.addAll(subtreeItems);
@@ -82,8 +86,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> paths) {
+    @HasPermission(type = CompositePermission.class, action = ACTION_DELETE_CONTENT)
+    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
         List<String> childItems = new ArrayList<String>();
         childItems.addAll(subtreeItems);
@@ -93,8 +98,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
+    @HasPermission(type = DefaultPermission.class, action = ACTION_DELETE_CONTENT)
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
@@ -113,8 +119,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId, List<String> paths,
+    @HasPermission(type = CompositePermission.class, action = ACTION_DELETE_CONTENT)
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
+                                 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
