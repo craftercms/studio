@@ -126,11 +126,11 @@ BEGIN
     DECLARE v_lock_owner_id VARCHAR(255);
     DECLARE v_lock_heartbeat DATETIME;
     SELECT publishing_lock_owner, publishing_lock_heartbeat INTO  v_lock_owner_id, v_lock_heartbeat FROM site
-    WHERE site_id = siteId;
+    WHERE site_id = siteId AND deleted = 0;
     SET locked = 0;
     IF (v_lock_owner_id IS NULL OR v_lock_owner_id = '' OR v_lock_owner_id = lockOwnerId OR DATE_ADD(v_lock_heartbeat, INTERVAL ttl MINUTE) < CURRENT_TIMESTAMP)
     THEN
-        UPDATE site SET publishing_lock_owner = lockOwnerId, publishing_lock_heartbeat = CURRENT_TIMESTAMP WHERE site_id = siteId;
+        UPDATE site SET publishing_lock_owner = lockOwnerId, publishing_lock_heartbeat = CURRENT_TIMESTAMP WHERE site_id = siteId AND deleted = 0;
         SET locked = 1;
     END IF;
     SELECT locked;
@@ -143,7 +143,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.8', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.9', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
