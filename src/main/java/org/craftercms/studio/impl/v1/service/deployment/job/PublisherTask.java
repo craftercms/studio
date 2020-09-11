@@ -120,15 +120,16 @@ public class PublisherTask implements Runnable {
         String env = null;
         if (singleWorkerLock.tryLock()) {
             try {
-                try {
-                    syncRepository(site);
-                } catch (Exception e) {
-                    logger.error("Failed to sync database from repository for site " + site, e);
-                    siteService.enablePublishing(site, false);
-                }
-
                 // Check publishing lock status
                 if (siteService.tryLockPublishingForSite(site, getLockOwnerId(), getLockTTL())) {
+                    try {
+                        syncRepository(site);
+                    } catch (Exception e) {
+                        logger.error("Failed to sync database from repository for site " + site, e);
+                        siteService.enablePublishing(site, false);
+                    }
+
+
                     if (contentRepository.repositoryExists(site) && siteService.isPublishingEnabled(site)) {
                         if (!publishingManager.isPublishingBlocked(site)) {
                             try {
