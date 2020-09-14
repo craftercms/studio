@@ -118,6 +118,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIA
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -985,9 +986,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                         if (deploymentItem.isDelete()) {
                             String deletePath = helper.getGitPath(deploymentItem.getPath());
+                            boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
                             git.rm().addFilepattern(deletePath).setCached(false).call();
                             Path parentToDelete = Paths.get(path).getParent();
-                            deleteParentFolder(git, parentToDelete);
+                            deleteParentFolder(git, parentToDelete, isPage);
                         }
                         deployedCommits.add(commitId);
                         String packageId = deploymentItem.getPackageId();
@@ -1086,7 +1088,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
         Path parentToDelete = Paths.get(path).getParent();
-        deleteParentFolder(git, parentToDelete);
+        boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+        deleteParentFolder(git, parentToDelete, isPage);
         Path testDelete = Paths.get(git.getRepository().getDirectory().getParent(), parentToDelete.toString());
         File testDeleteFile = testDelete.toFile();
         if (!testDeleteFile.exists()) {
@@ -1094,7 +1097,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException, IOException {
+    private String deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
         String parent = parentFolder.toString();
         String toRet = parent;
         try {
@@ -1105,27 +1108,33 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             if (Files.exists(toDelete)) {
                 List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
                         .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(dirs)) {
-                    for (String child : dirs) {
-                        Path childToDelete = Paths.get(folderToDelete, child);
-                        deleteParentFolder(git, childToDelete);
-                        git.rm()
-                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                                .setCached(false)
-                                .call();
-
-                    }
-                }
                 List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
                         .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(files)) {
-                    for (String child : files) {
-                        git.rm()
-                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
-                                .setCached(false)
-                                .call();
+                if (wasPage ||
+                        (CollectionUtils.isEmpty(dirs) &&
+                                (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+                    if (CollectionUtils.isNotEmpty(dirs)) {
+                        for (String child : dirs) {
+                            Path childToDelete = Paths.get(folderToDelete, child);
+                            deleteParentFolder(git, childToDelete, false);
+                            git.rm()
+                                    .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                                    .setCached(false)
+                                    .call();
 
+                        }
                     }
+                    if (CollectionUtils.isNotEmpty(files)) {
+                        for (String child : files) {
+                            git.rm()
+                                    .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                                    .setCached(false)
+                                    .call();
+
+                        }
+                    }
+                    Path ancestor = parentFolder.getParent();
+                    toRet = deleteParentFolder(git, ancestor, false);
                 }
             }
         } catch (CryptoException e) {
