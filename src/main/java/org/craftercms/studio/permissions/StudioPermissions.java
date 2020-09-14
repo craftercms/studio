@@ -8,4 +8,7 @@ public interface StudioPermissions {
 
     /** Encryption service */
     String ACTION_ENCRYPTION_TOOL = "encryption_tool";
+
+    /** Content Service */
+    String ACTION_DELETE_CONTENT = "delete_content";
 }
