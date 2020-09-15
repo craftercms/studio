@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v2.repository.blob;
 
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -285,4 +286,11 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    default Item getItem(String siteId, String path) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
 }

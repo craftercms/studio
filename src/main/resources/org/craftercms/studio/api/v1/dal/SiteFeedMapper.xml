@@ -35,6 +35,8 @@
         <result property="sandboxBranch" column="sandbox_branch"/>
         <result property="searchEngine" column="search_engine" />
         <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
+        <result property="publishingLockOwner" column="publishing_lock_owner" />
+        <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat" />
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -51,6 +53,9 @@
         <parameter property="lastVerifiedGitlogCommitId" jdbcType="VARCHAR" />
         <parameter property="sandboxBranch" jdbcType="VARCHAR"/>
         <parameter property="searchEngine" jdbcType="VARCHAR"/>
+        <parameter property="publishedRepoCreated" jdbcType="INTEGER" />
+        <parameter property="publishingLockOwner" jdbcType="VARCHAR" />
+        <parameter property="publishingLockHeartbeat" jdbcType="TIMESTAMP" />
     </parameterMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
@@ -144,5 +149,19 @@
 
     <update id="setPublishedRepoCreated">
         UPDATE site SET published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
+    </update>
+
+    <select id="tryLockPublishingForSite" statementType="CALLABLE" resultType="int">
+        call tryLockPublishingForSite(#{siteId}, #{lockOwnerId}, #{ttl},#{locked, jdbcType=INTEGER,mode=OUT,javaType=Integer})
+    </select>
+
+    <update id="unlockPublishingForSite">
+        UPDATE site SET publishing_lock_owner = NULL, publishing_lock_heartbeat = NULL
+        WHERE site_id = #{siteId} AND deleted = 0;
+    </update>
+
+    <update id="updatePublishingLockHeartbeatForSite">
+        UPDATE site SET publishing_lock_heartbeat = CURRENT_TIMESTAMP
+        WHERE site_id = #{siteId} AND deleted = 0;
     </update>
 </mapper>

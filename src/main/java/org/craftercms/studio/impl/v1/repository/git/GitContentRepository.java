@@ -55,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -135,6 +136,7 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_FROM_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
@@ -187,6 +189,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected UserServiceInternal userServiceInternal;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
+    protected ContextManager contextManager;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -373,6 +376,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String deleteContent(String site, String path, String approver) {
         String commitId = null;
+        boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor);
@@ -382,12 +386,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 try (Git git = new Git(repo)) {
                     String pathToDelete = helper.getGitPath(path);
                     Path toDelete = Paths.get(repo.getDirectory().getParent(), pathToDelete);
+                    boolean isFile = toDelete.toFile().isFile();
                     Path parentToDelete = Paths.get(pathToDelete).getParent();
                     git.rm().addFilepattern(pathToDelete).setCached(false).call();
 
                     String pathToCommit = pathToDelete;
-                    if (toDelete.toFile().isFile()) {
-                        pathToCommit = deleteParentFolder(git, parentToDelete);
+                    if (isFile) {
+                        pathToCommit = deleteParentFolder(git, parentToDelete, isPage);
                     }
 
                     // TODO: SJ: we need to define messages in a string table of sorts
@@ -409,36 +414,45 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return commitId;
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException, CryptoException, IOException {
+    private String deleteParentFolder(Git git, Path parentFolder, boolean wasPage)
+            throws GitAPIException, CryptoException, IOException {
         String parent = parentFolder.toString();
         String toRet = parent;
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor);
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-        List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+        List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
                 .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(dirs)) {
-            for (String child : dirs) {
-                Path childToDelete = Paths.get(folderToDelete, child);
-                deleteParentFolder(git, childToDelete);
-                git.rm()
-                        .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                        .setCached(false)
-                        .call();
-
-            }
-        }
         List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
                 .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(files)) {
-            for (String child : files) {
-                git.rm()
-                        .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
-                        .setCached(false)
-                        .call();
+        if (wasPage ||
+                (CollectionUtils.isEmpty(dirs) &&
+                        (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+            if (CollectionUtils.isNotEmpty(dirs)) {
+                for (String child : dirs) {
+                    Path childToDelete = Paths.get(folderToDelete, child);
+                    deleteParentFolder(git, childToDelete, false);
+                    git.rm()
+                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                            .setCached(false)
+                            .call();
 
+                }
             }
+
+            if (CollectionUtils.isNotEmpty(files)) {
+                for (String child : files) {
+                    git.rm()
+                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                            .setCached(false)
+                            .call();
+
+                }
+            }
+
+            Path ancestor = parentFolder.getParent();
+            toRet = deleteParentFolder(git, ancestor, false);
         }
         return toRet;
     }
@@ -999,6 +1013,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean deleteSite(String site) {
         boolean toReturn;
         try {
+            contextManager.destroyContext(site);
+
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor);
             Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
@@ -1978,6 +1994,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
+    }
+
+    public void setContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
     }
 
 }

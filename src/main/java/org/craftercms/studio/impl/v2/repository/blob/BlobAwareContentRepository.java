@@ -25,6 +25,7 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.lang.RegexUtils;
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -593,4 +594,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                                                             ZonedDateTime toDate, int limit) {
         return localRepositoryV2.getPublishingHistory(siteId, environment, path, publisher, fromDate, toDate, limit);
     }
+
+    @Override
+    public Item getItem(String siteId, String path) {
+        return localRepositoryV2.getItem(siteId, path);
+    }
+
 }

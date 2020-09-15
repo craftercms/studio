@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.0'
+  version: '3.2.0.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3353,6 +3353,48 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/descriptor:
+    get:
+      tags:
+        - content
+      summary: Get the XML descriptor for a given path
+      operationId: getDescriptor
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: item path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  xml:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dependency/dependencies:
     get:
       tags:
@@ -5311,7 +5353,7 @@ components:
           description: >-
             Authentication type to use to access remote repository
 
-            Posible values:
+            Possible values:
 
               - none: no authentication
 
@@ -5614,7 +5656,7 @@ components:
       properties:
         id:
           type: integer
-          formta: int64
+          format: int64
           description: content item ID
         label:
           type: string

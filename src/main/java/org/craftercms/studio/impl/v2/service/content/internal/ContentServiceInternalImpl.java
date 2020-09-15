@@ -126,6 +126,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 locale);
     }
 
+    @Override
+    public org.craftercms.core.service.Item getItem(String siteId, String path) {
+        return contentRepository.getItem(siteId, path);
+    }
+
     public ContentRepository getContentRepository() {
         return contentRepository;
     }

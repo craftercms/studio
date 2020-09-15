@@ -556,6 +556,8 @@ studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
 studio.publishing.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.publishing.threadPool.maxPoolSize: 20
+# Publishing lock TTL in minutes
+studio.publishing.siteLock.ttl: 180
 
 ##################################################
 ##                 Clustering                   ##

@@ -22,6 +22,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.core.service.ContentStoreService;
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -35,6 +37,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
@@ -115,6 +118,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIA
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -138,6 +142,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private SecurityService securityService;
     private RemoteRepositoryDAO remoteRepositoryDAO;
     private TextEncryptor encryptor;
+    private ContextManager contextManager;
+    private ContentStoreService contentStoreService;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -980,9 +986,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                         if (deploymentItem.isDelete()) {
                             String deletePath = helper.getGitPath(deploymentItem.getPath());
+                            boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
                             git.rm().addFilepattern(deletePath).setCached(false).call();
                             Path parentToDelete = Paths.get(path).getParent();
-                            deleteParentFolder(git, parentToDelete);
+                            deleteParentFolder(git, parentToDelete, isPage);
                         }
                         deployedCommits.add(commitId);
                         String packageId = deploymentItem.getPackageId();
@@ -1081,7 +1088,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
         Path parentToDelete = Paths.get(path).getParent();
-        deleteParentFolder(git, parentToDelete);
+        boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+        deleteParentFolder(git, parentToDelete, isPage);
         Path testDelete = Paths.get(git.getRepository().getDirectory().getParent(), parentToDelete.toString());
         File testDeleteFile = testDelete.toFile();
         if (!testDeleteFile.exists()) {
@@ -1089,7 +1097,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException, IOException {
+    private String deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
         String parent = parentFolder.toString();
         String toRet = parent;
         try {
@@ -1098,29 +1106,35 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             String folderToDelete = helper.getGitPath(parent);
             Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
             if (Files.exists(toDelete)) {
-                List<String> dirs = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
                         .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(dirs)) {
-                    for (String child : dirs) {
-                        Path childToDelete = Paths.get(folderToDelete, child);
-                        deleteParentFolder(git, childToDelete);
-                        git.rm()
-                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                                .setCached(false)
-                                .call();
-
-                    }
-                }
                 List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
                         .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(files)) {
-                    for (String child : files) {
-                        git.rm()
-                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
-                                .setCached(false)
-                                .call();
+                if (wasPage ||
+                        (CollectionUtils.isEmpty(dirs) &&
+                                (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+                    if (CollectionUtils.isNotEmpty(dirs)) {
+                        for (String child : dirs) {
+                            Path childToDelete = Paths.get(folderToDelete, child);
+                            deleteParentFolder(git, childToDelete, false);
+                            git.rm()
+                                    .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                                    .setCached(false)
+                                    .call();
 
+                        }
                     }
+                    if (CollectionUtils.isNotEmpty(files)) {
+                        for (String child : files) {
+                            git.rm()
+                                    .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                                    .setCached(false)
+                                    .call();
+
+                        }
+                    }
+                    Path ancestor = parentFolder.getParent();
+                    toRet = deleteParentFolder(git, ancestor, false);
                 }
             }
         } catch (CryptoException e) {
@@ -1297,6 +1311,12 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         remoteRepositoryDAO.insertRemoteRepository(params);
     }
 
+    @Override
+    public Item getItem(String siteId, String path) {
+        var context = contextManager.getContext(siteId);
+        return contentStoreService.getItem(context, null, path, null, true);
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -1347,6 +1367,14 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
+    }
+
+    public void setContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
+    }
+
+    public void setContentStoreService(ContentStoreService contentStoreService) {
+        this.contentStoreService = contentStoreService;
     }
 
 }

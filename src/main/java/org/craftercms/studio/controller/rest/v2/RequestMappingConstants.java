@@ -39,6 +39,7 @@ public interface RequestMappingConstants {
     String DELETE = "/delete";
     String GET_CHILDREN_BY_PATH = "/children_by_path";
     String GET_CHILDREN_BY_ID = "/children_by_id";
+    String GET_DESCRIPTOR = "/descriptor";
 
     /** Users controller */
     String USERS = "/users";
