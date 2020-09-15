@@ -107,7 +107,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         // check if data exists
         try (Connection connection = context.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(QUERY_CHECK_DATA_EXISTS.replace(CRAFTER_SCHEMA_NAME, crafterSchemaName)
-                    .replace(QUERY_PARAM_SITE_ID, String.valueOf(siteId))) {
+                    .replace(QUERY_PARAM_SITE_ID, String.valueOf(siteId)))) {
                 ResultSet rs = statement.executeQuery();
                 if (!rs.next() || rs.getInt(1) < 1 || clearExistingData) {
                     populateDataFromDB(context, siteId);
