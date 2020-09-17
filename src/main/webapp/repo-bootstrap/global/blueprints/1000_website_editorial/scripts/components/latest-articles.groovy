@@ -17,7 +17,7 @@
 import org.craftercms.sites.editorial.SearchHelper
 import org.craftercms.sites.editorial.ProfileUtils
 
-def segment = ProfileUtils.getSegment(profile, siteItemService)
+def segment = ProfileUtils.getSegment(authToken.principal, siteItemService)
 def searchHelper = new SearchHelper(elasticsearch, urlTransformationService)
 def articles = searchHelper.searchArticles(false, null, segment, 0, 3)
 
