@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
@@ -581,6 +582,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return gitLogDao.getGitLog(params);
     }
 
+    @RetryingOperation
     @Override
     public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -590,6 +592,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         gitLogDao.markGitLogProcessed(params);
     }
 
+    @RetryingOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -1221,6 +1224,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toReturn;
     }
 
+    @RetryingOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) {
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);

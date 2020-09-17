@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -164,6 +165,7 @@ public class DependencyServiceImpl implements DependencyService {
         return toRet;
     }
 
+    @RetryingOperation
     private void deleteAllSourceDependencies(String site, String path) {
         logger.debug("Delete all source dependencies for site: " + site + " path: " + path);
         Map<String, String> params = new HashMap<String, String>();
@@ -360,6 +362,7 @@ public class DependencyServiceImpl implements DependencyService {
         return dependencyMapper.getItemsDependingOn(params);
     }
 
+    @RetryingOperation
     @Override
     public Set<String> moveDependencies(String site, String oldPath, String newPath)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
@@ -382,6 +385,7 @@ public class DependencyServiceImpl implements DependencyService {
         return getItemDependencies(site, newPath, 1);
     }
 
+    @RetryingOperation
     @Override
     public void deleteItemDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
@@ -396,6 +400,7 @@ public class DependencyServiceImpl implements DependencyService {
         dependencyMapper.deleteDependenciesForSiteAndPath(params);
     }
 
+    @RetryingOperation
     @Override
     public void deleteSiteDependencies(String site) throws ServiceLayerException {
         logger.debug("Delete all dependencies for site: " + site);

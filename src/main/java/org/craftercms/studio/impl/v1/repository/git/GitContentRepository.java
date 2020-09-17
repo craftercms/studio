@@ -56,6 +56,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -1229,6 +1230,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
 
+    @RetryingOperation
     @Override
     public void deleteGitLogForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -1489,6 +1491,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         remoteRepositoryDAO.insertRemoteRepository(params);
     }
 
+    @RetryingOperation
     @Override
     public void removeRemoteRepositoriesForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();

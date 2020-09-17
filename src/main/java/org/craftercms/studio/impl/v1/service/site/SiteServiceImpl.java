@@ -102,6 +102,7 @@ import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
@@ -125,6 +126,7 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DeadlockLoserDataAccessException;
 import org.xml.sax.SAXException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
@@ -1152,6 +1154,7 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
@@ -1162,6 +1165,7 @@ public class SiteServiceImpl implements SiteService {
         siteFeedMapper.updateLastCommitId(params);
     }
 
+    @RetryingOperation
     private void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
@@ -1651,6 +1655,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled)
@@ -1666,6 +1671,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId,
@@ -1782,6 +1788,7 @@ public class SiteServiceImpl implements SiteService {
         Files.write(path, toWrite.getBytes());
     }
 
+    @RetryingOperation
     @Override
     public boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl) {
         logger.debug("Locking publishing for site " + siteId + " with lock owner " + lockOwnerId);
@@ -1794,6 +1801,7 @@ public class SiteServiceImpl implements SiteService {
         return result == 1;
     }
 
+    @RetryingOperation
     @Override
     public boolean unlockPublishingForSite(String siteId) {
         logger.debug("Unlocking publishing for site " + siteId);
@@ -1801,6 +1809,7 @@ public class SiteServiceImpl implements SiteService {
         return true;
     }
 
+    @RetryingOperation
     @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
         logger.debug("Update publishing lock heartbeat for site " + siteId);

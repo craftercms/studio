@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
@@ -202,6 +203,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
         long userId = user.getId();
@@ -224,6 +226,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public void deleteUsers(List<Long> userIds,
                             List<String> usernames) throws UserNotFoundException, ServiceLayerException {
@@ -239,6 +242,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public List<User> enableUsers(List<Long> userIds, List<String> usernames,
                                   boolean enabled) throws ServiceLayerException, UserNotFoundException {
@@ -293,6 +297,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
@@ -324,6 +329,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
