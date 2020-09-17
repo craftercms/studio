@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
@@ -100,13 +101,19 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                 for (String site : siteNames) {
                     PublisherTask publisherTask = new PublisherTask(site, studioConfiguration, siteService,
                             publishingManager, servicesConfig, contentRepository, notificationService, auditServiceInternal);
+                    logger.error("$$$$$$$$ Publisher task status (OURS)" + publisherTask.getStatus());
                     taskExecutor.execute(publisherTask);
+                    logger.error("$$$$$$$$ Publisher task completed");
+                    logger.error("$$$$$$$$ Publisher task status (OURS)" + publisherTask.getStatus());
                 }
             }
         } catch (Exception err) {
             logger.error("Error while executing deployment to environment store", err);
             notificationService.notifyDeploymentError("UNKNOWN", err);
         }
+        ThreadPoolTaskExecutor tpte = (ThreadPoolTaskExecutor)taskExecutor;
+        tpte.getThreadPoolExecutor().purge();
+        logger.error("^^^^^^ Active task count " + tpte.getActiveCount());
     }
 
     public boolean isMasterPublishingNode() {

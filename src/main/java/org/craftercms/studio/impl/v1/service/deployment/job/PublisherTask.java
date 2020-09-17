@@ -76,9 +76,11 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
-public class PublisherTask implements Runnable {
+public class PublisherTask extends Thread {
 
     private static final Logger logger = LoggerFactory.getLogger(PublisherTask.class);
+
+    private static long counter = 0;
 
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
 
@@ -90,6 +92,16 @@ public class PublisherTask implements Runnable {
     private ContentRepository contentRepository;
     private NotificationService notificationService;
     private AuditServiceInternal auditServiceInternal;
+
+    private String status;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public PublisherTask(String site,
                          StudioConfiguration studioConfiguration,
@@ -107,10 +119,20 @@ public class PublisherTask implements Runnable {
         this.contentRepository = contentRepository;
         this.notificationService = notificationService;
         this.auditServiceInternal = auditServiceInternal;
+
+        this.status = "CREATED";
+        logger.error("******* Created Task counter " + ++counter);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        logger.error("******* Destroy Task counter is " + --counter);
+        super.finalize();
     }
 
     @Override
     public void run() {
+        this.status = "RUNNING";
         logger.debug("Running Publisher Task for site " + site);
         ReentrantLock singleWorkerLock = singleWorkerLockMap.get(site);
         if (singleWorkerLock == null) {
@@ -118,7 +140,10 @@ public class PublisherTask implements Runnable {
             singleWorkerLockMap.put(site, singleWorkerLock);
         }
         String env = null;
+        logger.error("!!!!! Task counter " + counter);
+        logger.error("!!!!! Lock object " + singleWorkerLock);
         if (singleWorkerLock.tryLock()) {
+            logger.error("!!!!! Locked " + singleWorkerLock.getHoldCount());
             try {
                 // Check publishing lock status
                 if (siteService.tryLockPublishingForSite(site, getLockOwnerId(), getLockTTL())) {
@@ -194,8 +219,14 @@ public class PublisherTask implements Runnable {
                 // Unlock publishing if queue does not have packages ready for publishing
                 siteService.unlockPublishingForSite(site);
                 singleWorkerLock.unlock();
+                logger.error("!!!!! Unlocked " + singleWorkerLock.getHoldCount());
             }
+        } else {
+            logger.error("!!!!! Another task running " + singleWorkerLock.getHoldCount());
         }
+
+        logger.error("%%%%%%%% Publisher Task completed for counter " + counter);
+        this.status = "FINISHED";
     }
 
     private void syncRepository(String site) throws SiteNotFoundException {

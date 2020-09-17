@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
@@ -495,6 +496,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         }
     }
 
+    @RetryingOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException {
         if (!isRemovableRemote(siteId, remoteName)) {

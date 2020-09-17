@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.core.task.TaskExecutor;
 
@@ -93,6 +94,7 @@ public class RebuildRepositoryMetadata {
         }
     }
 
+    @RetryingOperation
     protected boolean cleanOldMetadata(String site) {
         logger.debug("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();

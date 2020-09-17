@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -70,6 +71,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
         }
     }
 
+    @RetryingOperation
     private void setStaleMembersInactive(List<ClusterMember> staleMembers) {
         staleMembers.forEach(member -> {
             member.setState(INACTIVE);
@@ -92,6 +94,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
         return clusterDao.getInactiveMembersWithStaleHeartbeat(params);
     }
 
+    @RetryingOperation
     private void removeInactiveMembers(List<ClusterMember> inactiveMembersToRemove) {
         List<Long> idsToRemove = inactiveMembersToRemove.stream()
                 .map(ClusterMember::getId)

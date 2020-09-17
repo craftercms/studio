@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
@@ -387,6 +388,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
@@ -423,6 +425,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return publishRequestMapper.getScheduledItems(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
@@ -436,6 +439,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         publishRequestMapper.cancelWorkflow(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
