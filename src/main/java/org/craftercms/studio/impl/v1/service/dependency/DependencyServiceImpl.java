@@ -166,7 +166,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @RetryingOperation
-    private void deleteAllSourceDependencies(String site, String path) {
+    public void deleteAllSourceDependencies(String site, String path) {
         logger.debug("Delete all source dependencies for site: " + site + " path: " + path);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_PARAM, site);

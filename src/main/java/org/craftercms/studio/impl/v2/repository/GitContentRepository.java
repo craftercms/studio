@@ -839,6 +839,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toRet;
     }
 
+    @RetryingOperation
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {

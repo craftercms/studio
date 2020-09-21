@@ -63,6 +63,8 @@ public class StudioNodeActivityCheckJob implements Runnable{
                 if (CollectionUtils.isNotEmpty(inactiveMembersToRemove)) {
                     removeInactiveMembers(inactiveMembersToRemove);
                 }
+            } catch (Exception error) {
+                logger.error("Error while executing node activity check job", error);
             } finally {
                 singleWorkerLock.unlock();
             }
@@ -72,7 +74,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
     }
 
     @RetryingOperation
-    private void setStaleMembersInactive(List<ClusterMember> staleMembers) {
+    public void setStaleMembersInactive(List<ClusterMember> staleMembers) {
         staleMembers.forEach(member -> {
             member.setState(INACTIVE);
             clusterDao.updateMember(member);
@@ -95,7 +97,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
     }
 
     @RetryingOperation
-    private void removeInactiveMembers(List<ClusterMember> inactiveMembersToRemove) {
+    public void removeInactiveMembers(List<ClusterMember> inactiveMembersToRemove) {
         List<Long> idsToRemove = inactiveMembersToRemove.stream()
                 .map(ClusterMember::getId)
                 .collect(Collectors.toList());
