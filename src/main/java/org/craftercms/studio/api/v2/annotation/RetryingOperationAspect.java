@@ -53,8 +53,7 @@ public class RetryingOperationAspect {
         this.maxSleep = maxSleep;
     }
 
-    @Around("(execution(public * *(..)) || execution(protected * *(..)) || execution(private * *(..))) " +
-            "&& @within(org.craftercms.studio.api.v2.annotation.RetryingOperation) ||" +
+    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingOperation) ||" +
             " @annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         logger.error("DO RETRYING OPERATION");
