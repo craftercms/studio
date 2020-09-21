@@ -129,7 +129,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @RetryingOperation
-    private void setSystemProcessingBulkPartial(String site, List<String> paths, boolean isSystemProcessing) {
+    public void setSystemProcessingBulkPartial(String site, List<String> paths, boolean isSystemProcessing) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);

@@ -95,7 +95,7 @@ public class RebuildRepositoryMetadata {
     }
 
     @RetryingOperation
-    protected boolean cleanOldMetadata(String site) {
+    public boolean cleanOldMetadata(String site) {
         logger.debug("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);

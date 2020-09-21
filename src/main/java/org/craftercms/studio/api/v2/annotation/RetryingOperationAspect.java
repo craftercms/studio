@@ -28,9 +28,9 @@ import org.springframework.dao.DeadlockLoserDataAccessException;
 import java.lang.reflect.Method;
 
 @Aspect
-public class RetyingOperationAspect {
+public class RetryingOperationAspect {
 
-    private static final Logger logger = LoggerFactory.getLogger(RetyingOperationAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(RetryingOperationAspect.class);
 
     private static final int DEFAULT_MAX_RETRIES = 50;
 

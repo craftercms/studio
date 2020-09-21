@@ -48,6 +48,8 @@ public class StudioNodeHeartbeatJob implements Runnable {
         if (singleWorkerLock.tryLock()) {
             try {
                 updateHeartbeat();
+            } catch (Exception error) {
+                logger.error("Error during execution of node heartbeat job", error);
             } finally {
                 singleWorkerLock.unlock();
             }
@@ -57,7 +59,7 @@ public class StudioNodeHeartbeatJob implements Runnable {
     }
 
     @RetryingOperation
-    private void updateHeartbeat() {
+    public void updateHeartbeat() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
