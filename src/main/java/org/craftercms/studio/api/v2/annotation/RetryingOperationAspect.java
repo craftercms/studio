@@ -19,13 +19,11 @@ package org.craftercms.studio.api.v2.annotation;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.craftercms.commons.aop.AopUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
 import org.springframework.dao.DeadlockLoserDataAccessException;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
 
@@ -55,8 +53,9 @@ public class RetyingOperationAspect {
         this.maxSleep = maxSleep;
     }
 
-    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingOperation) || " +
-            "@annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
+    @Around("(execution(public * *(..)) || execution(protected * *(..)) || execution(private * *(..))) " +
+            "&& @within(org.craftercms.studio.api.v2.annotation.RetryingOperation) ||" +
+            " @annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         logger.error("DO RETRYING OPERATION");
         RetryingOperation retryingOperation = getRetryingOperationAnnotation(pjp);
