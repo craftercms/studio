@@ -1133,8 +1133,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                         }
                     }
-                    Path ancestor = parentFolder.getParent();
-                    toRet = deleteParentFolder(git, ancestor, false);
                 }
             }
         } catch (CryptoException e) {
