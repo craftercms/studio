@@ -126,7 +126,6 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DeadlockLoserDataAccessException;
 import org.xml.sax.SAXException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
@@ -536,10 +535,6 @@ public class SiteServiceImpl implements SiteService {
         contentRepository.writeContent(site, path, contentToWrite);
     }
 
-	protected void createObjectStatesforNewSite(String site) {
-		createObjectStateNewSiteObjectFolder(site, FILE_SEPARATOR);
-	}
-
 	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
 		RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 		for (RepositoryItem child : children) {
@@ -551,10 +546,6 @@ public class SiteServiceImpl implements SiteService {
 		}
 	}
 
-    protected void createObjectMetadataforNewSite(String site, String lastCommitId) {
-        createObjectMetadataNewSiteObjectFolder(site, FILE_SEPARATOR, lastCommitId);
-    }
-
     protected void createObjectMetadataNewSiteObjectFolder(String site, String path, String lastCommitId) {
         RepositoryItem[] children = contentRepository.getContentChildren(site, path);
         for (RepositoryItem child : children) {
@@ -565,55 +556,6 @@ public class SiteServiceImpl implements SiteService {
                 objectMetadataManager.insertNewObjectMetadata(site, child.path + FILE_SEPARATOR + child.name);
                 objectMetadataManager.updateCommitId(site, child.path + FILE_SEPARATOR + child.name,
                         lastCommitId);
-            }
-        }
-    }
-
-	protected void extractDependenciesForNewSite(String site) {
-        Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-        extractDependenciesItemForNewSite(site, FILE_SEPARATOR, globalDeps);
-	}
-
-    private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, fullPath);
-        for (RepositoryItem child : children) {
-            if (child.isFolder) {
-                extractDependenciesItemForNewSite(site, child.path + FILE_SEPARATOR + child.name, globalDeps);
-            } else {
-                String childPath = child.path + FILE_SEPARATOR + child.name;
-
-                if (childPath.endsWith(DmConstants.XML_PATTERN)) {
-                    try {
-                        dependencyService.upsertDependencies(site, childPath);
-                    } catch (ContentNotFoundException e) {
-                        logger.error("Failed to extract dependencies for document: site " + site + " path " +
-                                childPath, e);
-                    } catch (ServiceLayerException e) {
-                        logger.error("Failed to extract dependencies for document: site " + site + " path " +
-                                childPath, e);
-                    }
-                } else {
-
-                    boolean isCss = childPath.endsWith(DmConstants.CSS_PATTERN);
-                    boolean isJs = childPath.endsWith(DmConstants.JS_PATTERN);
-                    List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-                    boolean isTemplate = false;
-                    for (String templatePattern : templatePatterns) {
-                        Pattern pattern = Pattern.compile(templatePattern);
-                        Matcher matcher = pattern.matcher(childPath);
-                        if (matcher.matches()) {
-                            isTemplate = true;
-                            break;
-                        }
-                    }
-                    try {
-                        if (isCss || isJs || isTemplate) {
-                            dependencyService.upsertDependencies(site, childPath);
-                        }
-                    } catch (ServiceLayerException e) {
-                        logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
-                    }
-                }
             }
         }
     }
@@ -1803,9 +1745,9 @@ public class SiteServiceImpl implements SiteService {
 
     @RetryingOperation
     @Override
-    public boolean unlockPublishingForSite(String siteId) {
-        logger.debug("Unlocking publishing for site " + siteId);
-	    siteFeedMapper.unlockPublishingForSite(siteId);
+    public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
+        logger.debug("Unlocking publishing for site " + siteId + " lock owner " + lockOwnerId);
+	    siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId);
         return true;
     }
 
@@ -1830,10 +1772,6 @@ public class SiteServiceImpl implements SiteService {
 
     public List<String> getDefaultGroups() {
         return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_GROUPS).split(","));
-    }
-
-    public String getDefaultAdminGroup() {
-	    return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
     }
 
     /** getter site service dal */
