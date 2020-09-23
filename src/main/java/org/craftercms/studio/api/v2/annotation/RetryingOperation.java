@@ -25,7 +25,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RetryingOperation {
 
-    int numReties() default 50;
-
-    int maxSleep() default 1000;
 }

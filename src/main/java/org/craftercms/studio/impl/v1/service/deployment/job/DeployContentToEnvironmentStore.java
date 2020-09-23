@@ -15,16 +15,9 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -38,12 +31,7 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
 
@@ -101,19 +89,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                 for (String site : siteNames) {
                     PublisherTask publisherTask = new PublisherTask(site, studioConfiguration, siteService,
                             publishingManager, servicesConfig, contentRepository, notificationService, auditServiceInternal);
-                    logger.error("$$$$$$$$ Publisher task status (OURS)" + publisherTask.getStatus());
                     taskExecutor.execute(publisherTask);
-                    logger.error("$$$$$$$$ Publisher task completed");
-                    logger.error("$$$$$$$$ Publisher task status (OURS)" + publisherTask.getStatus());
                 }
             }
         } catch (Exception err) {
             logger.error("Error while executing deployment to environment store", err);
             notificationService.notifyDeploymentError("UNKNOWN", err);
         }
-        ThreadPoolTaskExecutor tpte = (ThreadPoolTaskExecutor)taskExecutor;
-        tpte.getThreadPoolExecutor().purge();
-        logger.error("^^^^^^ Active task count " + tpte.getActiveCount());
     }
 
     public boolean isMasterPublishingNode() {
