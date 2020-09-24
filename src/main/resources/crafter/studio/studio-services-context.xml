@@ -641,6 +641,7 @@
         <property name="repositoryType" value="GLOBAL" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <bean id="studioClusterNodeHeartbeatJob"
@@ -823,6 +824,7 @@
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -835,6 +837,7 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <!-- /////// -->
@@ -847,6 +850,7 @@
         <property name="metaDao" ref="metaDAO" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
