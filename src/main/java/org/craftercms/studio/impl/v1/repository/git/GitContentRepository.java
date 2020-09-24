@@ -49,14 +49,17 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -136,6 +139,7 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_FROM_PATH;
@@ -150,6 +154,7 @@ import static org.craftercms.studio.api.v2.dal.RemoteRepository.AuthenticationTy
 import static org.craftercms.studio.api.v2.dal.RemoteRepository.AuthenticationType.TOKEN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COPY_CONTENT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_FOLDER_COMMIT_MESSAGE;
@@ -190,6 +195,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected UserServiceInternal userServiceInternal;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
+    protected ClusterDAO clusterDao;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -1484,6 +1490,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         logger.debug("Insert site remote record into database");
         remoteRepositoryDAO.insertRemoteRepository(params);
+        params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
+        if (remoteRepository != null) {
+            insertClusterRemoteRepository(remoteRepository);
+        }
+    }
+
+    private void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
+        HierarchicalConfiguration<ImmutableNode> registrationData =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        if (registrationData != null && !registrationData.isEmpty()) {
+            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+            ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
+            if (member != null) {
+                clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+            }
+        }
     }
 
     @RetryingOperation
@@ -1961,4 +1986,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.encryptor = encryptor;
     }
 
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
 }

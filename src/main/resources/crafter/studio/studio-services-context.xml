@@ -796,6 +796,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -806,6 +807,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <!-- /////// -->

@@ -43,6 +43,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.event.EventService;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -98,6 +99,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     protected DeploymentService deploymentService;
     protected EventService eventService;
     protected TextEncryptor encryptor;
+    protected ClusterDAO clusterDao;
+    protected String localAddress;
 
 	// Abstract methods to be implemented by Sandbox/Published classes
 	protected abstract boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId);
@@ -112,6 +115,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     protected abstract boolean checkIfSiteRepoExistsInternal();
     protected abstract void addRemotesInternal()
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException;
+    protected abstract void syncRemoteRepositoriesInternal();
 
     @Override
     public void run() {
@@ -134,6 +138,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                 }
 
                 if (success) {
+                    syncRemoteRepositories();
+
                     // Get the site's database last commit ID
                     String siteDatabaseLastCommitId = getDatabaseLastCommitId(siteId);
                     
@@ -292,6 +298,36 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
         }
     }
 
+    protected void addRemoteRepository(RemoteRepository remoteRepository, GitRepositories repoType)
+            throws IOException, InvalidRemoteUrlException, ServiceLayerException {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+
+        Repository repo = builder
+                .setGitDir(buildRepoPath(repoType).resolve(GIT_ROOT).toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+
+        try (Git git = new Git(repo)) {
+
+            logger.debug("Add " + remoteRepository.getRemoteName() + " as remote to " + repoType.toString());
+            RemoteAddCommand remoteAddCommand = git.remoteAdd();
+            remoteAddCommand.setName(remoteRepository.getRemoteName());
+            remoteAddCommand.setUri(new URIish(remoteRepository.getRemoteUrl()));
+            remoteAddCommand.call();
+
+
+        } catch (URISyntaxException e) {
+            logger.error("Remote URL is invalid " + remoteRepository.getRemoteUrl(), e);
+            throw new InvalidRemoteUrlException();
+        } catch (GitAPIException e) {
+            logger.error("Error while adding remote " + remoteRepository.getRemoteName() +
+                    " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
+            throw new ServiceLayerException("Error while adding remote " + remoteRepository.getRemoteName() +
+                    " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
+        }
+    }
+
     private void removeRemote(Git git, String remoteName) throws GitAPIException {
         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
         remoteRemoveCommand.setRemoteName(remoteName);
@@ -446,6 +482,10 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
     }
 
+    protected void syncRemoteRepositories() {
+        syncRemoteRepositoriesInternal();
+    }
+
     public String getSiteId() {
         return siteId;
     }
@@ -537,5 +577,21 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     //TODO: Check uses
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public String getLocalAddress() {
+        return localAddress;
+    }
+
+    public void setLocalAddress(String localAddress) {
+        this.localAddress = localAddress;
     }
 }
