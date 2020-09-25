@@ -28,26 +28,44 @@ public class ProcessorPipelineConfiguration {
     private boolean keepOriginal;
     private List<ProcessorConfiguration> processorsConfig;
 
+    /**
+     * Returns the input path pattern. This pattern will be used to check in an asset needs to be processed by the pipeline.
+     */
     public String getInputPathPattern() {
         return inputPathPattern;
     }
 
+    /**
+     * Sets the input path pattern.
+     */
     public void setInputPathPattern(String inputPathPattern) {
         this.inputPathPattern = inputPathPattern;
     }
 
+    /**
+     * Returns true if the original asset (without being processed) should be saved.
+     */
     public boolean isKeepOriginal() {
         return keepOriginal;
     }
 
+    /**
+     * Sets if the original asset (without being processed) should be saved.
+     */
     public void setKeepOriginal(boolean keepOriginal) {
         this.keepOriginal = keepOriginal;
     }
 
+    /**
+     * Returns the list of configurations for the processors of this pipeline.
+     */
     public List<ProcessorConfiguration> getProcessorsConfig() {
         return processorsConfig;
     }
 
+    /**
+     * Sets the list of configurations for the processors of this pipeline.
+     */
     public void setProcessorsConfig(List<ProcessorConfiguration> processorsConfig) {
         this.processorsConfig = processorsConfig;
     }

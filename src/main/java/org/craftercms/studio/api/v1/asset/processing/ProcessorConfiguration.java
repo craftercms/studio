@@ -28,18 +28,30 @@ public class ProcessorConfiguration {
     private Map<String, String> params;
     private String outputPathFormat;
 
+    /**
+     * Returns the processor type.
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Sets the processor type.
+     */
     public void setType(String type) {
         this.type = type;
     }
 
+    /**
+     * Returns the processor parameters.
+     */
     public Map<String, String> getParams() {
         return params;
     }
 
+    /**
+     * Sets the processor parameters.
+     */
     public void setParams(Map<String, String> params) {
         this.params = params;
     }
@@ -56,6 +68,9 @@ public class ProcessorConfiguration {
         return outputPathFormat;
     }
 
+    /**
+     * Sets the output path format.
+     */
     public void setOutputPathFormat(String outputPathFormat) {
         this.outputPathFormat = outputPathFormat;
     }

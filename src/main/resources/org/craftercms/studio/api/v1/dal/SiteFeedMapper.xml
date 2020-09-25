@@ -157,7 +157,7 @@
 
     <update id="unlockPublishingForSite">
         UPDATE site SET publishing_lock_owner = NULL, publishing_lock_heartbeat = NULL
-        WHERE site_id = #{siteId} AND deleted = 0;
+        WHERE site_id = #{siteId} AND deleted = 0 AND publishing_lock_owner = #{lockOwnerId};
     </update>
 
     <update id="updatePublishingLockHeartbeatForSite">

@@ -27,10 +27,16 @@ public class TranscoderOutput {
     private String outputKeySuffix;
     private String thumbnailSuffixFormat;
 
+    /**
+     * Returns the ID of the preset with the transcoding configuration.
+     */
     public String getPresetId() {
         return presetId;
     }
 
+    /**
+     * Sets the ID of the preset with the transcoding configuration.
+     */
     public void setPresetId(String presetId) {
         this.presetId = presetId;
     }
