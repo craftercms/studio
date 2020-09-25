@@ -882,8 +882,7 @@ public class ContentServiceImpl implements ContentService {
                 // no need to process
                 retNewFileName = copyPath;
             }
-        }
-        catch(ServiceLayerException eServiceLayerException) {
+        } catch(ServiceLayerException eServiceLayerException) {
             logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
                 eServiceLayerException, site, fromPath, toPath, copyPath);
         }

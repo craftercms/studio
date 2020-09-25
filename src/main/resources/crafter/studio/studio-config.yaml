@@ -504,6 +504,10 @@ studio.db.dataPath: ${env:CRAFTER_DATA_DIR}/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+# Max number of retries for retrying operation
+studio.db.retryingOperation.maxAttempts: 50
+# Max sleep time in milliseconds between retries
+studio.db.retryingOperation.maxSleep: 1000
 
 ##########################################################
 ##                   Asset Processing                   ##

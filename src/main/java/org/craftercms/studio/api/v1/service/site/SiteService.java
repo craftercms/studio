@@ -16,10 +16,14 @@
 
 package org.craftercms.studio.api.v1.service.site;
 
-import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.DeployerTargetException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteCreationException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -380,9 +384,10 @@ public interface SiteService {
 	/**
 	 * Unlock publishing for site
 	 * @param siteId site identifier
+	 * @param lockOwnerId lock owner identifier
 	 * @return true if unlocking was successful
 	 */
-    boolean unlockPublishingForSite(String siteId);
+    boolean unlockPublishingForSite(String siteId, String lockOwnerId);
 
 	/**
 	 * update publishing lock heartbeat for site
