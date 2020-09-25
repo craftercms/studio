@@ -80,8 +80,9 @@ public interface SiteFeedMapper {
     /**
      * unlock publisher task for site
      * @param siteId site identifier
+     * @param lockOwnerId lock owner identifier
      */
-    void unlockPublishingForSite(@Param(SITE_ID) String siteId);
+    void unlockPublishingForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId);
 
     /**
      * update publishing lock heartbeat for site

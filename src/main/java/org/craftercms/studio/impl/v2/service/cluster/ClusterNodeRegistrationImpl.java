@@ -23,6 +23,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.MetaDAO;
@@ -64,7 +65,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
             try {
                 logger.debug("Collect and populate data for cluster node registration");
                 clusterMember.setLocalAddress(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
-                if (!isRegistered(clusterMember.getLocalAddress())) {
+                if (isRegistered(clusterMember.getLocalAddress())) {
                     removeClusterNode(clusterMember.getLocalAddress());
                 }
                 Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
@@ -146,6 +147,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         return result > 0;
     }
 
+    @RetryingOperation
     @Override
     public boolean removeClusterNode(String localAddress) {
         logger.error("Remove cluster node " + localAddress);

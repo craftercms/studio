@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.dal.ItemMetadataMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.time.ZonedDateTime;
@@ -57,6 +58,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void setObjectMetadata(@ValidateStringParam(name = "site") String site,
@@ -70,6 +72,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.setProperties(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void setObjectMetadataForCommitId(@ValidateStringParam(name = "site") String site,
@@ -82,6 +85,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.setPropertiesForCommit(params);
     }
 
+    @RetryingOperation
     @Override
     public void updateObjectMetadata(ItemMetadata itemMetadata) {
         itemMetadataMapper.updateObjectMetadata(itemMetadata);
@@ -142,6 +146,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void lockContent(@ValidateStringParam(name = "site") String site,
@@ -155,6 +160,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.setLockOwner(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void unLockContent(@ValidateStringParam(name = "site") String site,
@@ -170,6 +176,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.setLockOwner(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteObjectMetadataForSite(@ValidateStringParam(name = "site") String site) {
@@ -178,6 +185,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.deleteObjectMetadataForSite(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteObjectMetadata(@ValidateStringParam(name = "site") String site,
@@ -189,6 +197,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.deleteEntry(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteObjectMetadataForFolder(@ValidateStringParam(name = "site") String site,
@@ -200,6 +209,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.deleteFolder(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void updateObjectPath(@ValidateStringParam(name = "site") String site,
@@ -225,6 +235,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         setObjectMetadata(site, path, params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void updateCommitId(@ValidateStringParam(name = "site") String site,
@@ -238,6 +249,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         itemMetadataMapper.updateCommitId(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public boolean movedPathExists(@ValidateStringParam(name = "site") String site,
