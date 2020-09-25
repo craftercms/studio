@@ -386,4 +386,9 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
             }
         }
     }
+
+    @Override
+    public void syncRemoteRepositoriesInternal() {
+
+    }
 }

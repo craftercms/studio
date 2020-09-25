@@ -16,10 +16,8 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
@@ -39,6 +37,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -50,7 +49,9 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
@@ -326,6 +327,25 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
 
             } catch (IOException e) {
                 logger.error("Failed to open repository", e);
+            }
+        }
+    }
+
+    @RetryingOperation
+    @Override
+    public void syncRemoteRepositoriesInternal() {
+        List<RemoteRepository> remoteRepositories =
+                clusterDao.getMissingClusterNodeRemoteRepositories(localAddress, siteId);
+        if (CollectionUtils.isNotEmpty(remoteRepositories)) {
+            ClusterMember currentNode = clusterDao.getMemberByLocalAddress(localAddress);
+            for (RemoteRepository remoteRepository : remoteRepositories) {
+                try {
+                    addRemoteRepository(remoteRepository, SANDBOX);
+                    clusterDao.addClusterRemoteRepository(currentNode.getId(), remoteRepository.getId());
+                } catch (IOException | InvalidRemoteUrlException | ServiceLayerException e) {
+                    logger.error("Error while adding remote " + remoteRepository.getRemoteName() +
+                            " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
+                }
             }
         }
     }

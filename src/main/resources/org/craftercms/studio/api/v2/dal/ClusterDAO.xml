@@ -34,6 +34,18 @@
         <result property="gitPrivateKey" column="git_private_key" />
     </resultMap>
 
+    <resultMap id="RemoteRepositoryMap" type="org.craftercms.studio.api.v2.dal.RemoteRepository">
+        <id property="id" column="id"/>
+        <result property="siteId" column="site_id"/>
+        <result property="remoteName" column="remote_name"/>
+        <result property="remoteUrl" column="remote_url"/>
+        <result property="authenticationType" column="authentication_type"/>
+        <result property="remoteUsername" column="remote_username"/>
+        <result property="remotePassword" column="remote_password"/>
+        <result property="remoteToken" column="remote_token"/>
+        <result property="remotePrivateKey" column="remote_private_key"/>
+    </resultMap>
+
     <select id="getAllMembers" resultMap="ClusterMap">
         SELECT * FROM cluster
     </select>
@@ -110,5 +122,23 @@
     <select id="getMemberByRemoteName" resultMap="ClusterMap" parameterType="java.util.Map">
         SELECT * FROM cluster
         WHERE git_remote_name = #{remoteName}
+    </select>
+
+    <select id="getMissingClusterNodeRemoteRepositories" resultMap="RemoteRepositoryMap" >
+        SELECT rr.* FROM
+        (SELECT * FROM cluster c INNER JOIN cluster_remote_repository crr ON c.id = crr.cluster_id WHERE
+        c.local_address = #{localAddress}) as c2 RIGHT JOIN remote_repository rr ON rr.id = c2.remote_repository_id
+        WHERE rr.site_id = #{siteId} AND c2.id IS NULL
+    </select>
+
+    <insert id="addClusterRemoteRepository">
+        INSERT INTO cluster_remote_repository (cluster_id, remote_repository_id)
+        VALUES (#{clusterId}, #{remoteRepositoryId})
+    </insert>
+
+    <select id="getMemberByLocalAddress" resultMap="ClusterMap" parameterType="java.util.Map">
+        SELECT * FROM cluster
+        WHERE local_address = #{localAddress}
+        LIMIT 1
     </select>
 </mapper>

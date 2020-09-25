@@ -16,8 +16,15 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.REMOTE_REPOSITORY_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface ClusterDAO {
 
@@ -135,4 +142,29 @@ public interface ClusterDAO {
      * @return List members
      */
     List<ClusterMember> getMemberByRemoteName(Map params);
+
+    /**
+     * Get remote repositories that are missing on given cluster node
+     *
+     * @param localAddress cluster node address
+     * @param siteId site identifier
+     * @return list of remote repositories
+     */
+    List<RemoteRepository> getMissingClusterNodeRemoteRepositories(@Param(CLUSTER_LOCAL_ADDRESS) String localAddress,
+                                                                   @Param(SITE_ID) String siteId);
+
+    /**
+     * Add given remote repository for given cluster node
+     * @param clusterId cluster node identifier
+     * @param remoteRepositoryId remote repository identifier
+     */
+    void addClusterRemoteRepository(@Param(CLUSTER_ID) long clusterId,
+                                    @Param(REMOTE_REPOSITORY_ID) long remoteRepositoryId);
+
+    /**
+     * Get member by local address
+     * @param localAddress local address
+     * @return cluster member
+     */
+    ClusterMember getMemberByLocalAddress(@Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
 }
