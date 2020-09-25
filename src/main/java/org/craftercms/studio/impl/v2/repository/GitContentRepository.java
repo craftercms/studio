@@ -964,8 +964,12 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
                         if (Objects.isNull(commitId)) {
-                            logger.warn("Skipping file " + path + " because commit id is null");
-                            continue;
+                            if (contentExists(site, path)) {
+                                commitId = getRepoLastCommitId(site);
+                            } else {
+                                logger.warn("Skipping file " + path + " because commit id is null");
+                                continue;
+                            }
                         }
                         logger.debug("Checking out file " + path + " from commit id " + commitId +
                                 " for site " + site);
@@ -1307,6 +1311,60 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
         logger.debug("Insert site remote record into database");
         remoteRepositoryDAO.insertRemoteRepository(params);
+    }
+    @Override
+    public boolean contentExists(String site, String path) {
+        boolean toReturn = false;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            if (repo != null ) {
+
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                    // Check if the array of items is not null, and since we have an absolute path to the item,
+                    // pick the first item in the list
+                    if (tw != null && tw.getObjectId(0) != null) {
+                        toReturn = true;
+                        tw.close();
+                    } else if (tw == null) {
+                        String gitPath = helper.getGitPath(path);
+                        if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                            toReturn = true;
+                        }
+                    }
+                } catch (IOException e) {
+                    logger.info("Content not found for site: " + site + " path: " + path, e);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
+        }
+        return toReturn;
+    }
+
+    @Override
+    public String getRepoLastCommitId(final String site) {
+        String toReturn = EMPTY;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository repository =
+                    helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            if (repository != null) {
+                synchronized (repository) {
+                    Repository repo = helper.getRepository(site, SANDBOX);
+                    ObjectId commitId = repo.resolve(HEAD);
+                    if (commitId != null) {
+                        toReturn = commitId.getName();
+                    }
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error getting last commit ID for site " + site, e);
+        }
+        return toReturn;
     }
 
     public StudioConfiguration getStudioConfiguration() {
