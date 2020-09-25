@@ -115,7 +115,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     protected abstract boolean checkIfSiteRepoExistsInternal();
     protected abstract void addRemotesInternal()
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException;
-    protected abstract void syncRemoteRepositoriesInternal();
+    public abstract void syncRemoteRepositoriesInternal();
 
     @Override
     public void run() {
