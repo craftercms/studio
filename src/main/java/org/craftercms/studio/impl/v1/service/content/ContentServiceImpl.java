@@ -182,6 +182,12 @@ public class ContentServiceImpl implements ContentService {
     public final static Pattern COPY_FILE_PATTERN = Pattern.compile("(.+)-([0-9]+)\\.(.+)");
     public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-([0-9]+)");
 
+    public final static Pattern COPY_FILE_MODIFIER_PATTERN = Pattern.compile(".+(-copy-([\\d]+))(.+)?(\\..*)?");
+    public final static String COPY_FILE_MODIFIER_FORMAT = "%s-copy-%s%s";
+
+    public final static String INTERNAL_NAME_MODIFIER_PATTERN = "\\s\\(Copy \\d+\\)";
+    public final static String INTERNAL_NAME_MODIFIER_FORMAT = "%s (Copy %s)";
+
     @Override
     @ValidateParams
     public boolean contentExists(@ValidateStringParam(name = "site") String site,
@@ -1249,42 +1255,55 @@ public class ContentServiceImpl implements ContentService {
         if(adjustOnCollide && contentExists) {
             logger.debug("File already found at path {0}, creating new name", proposedDestPath);
             try {
-                Map<String,String> ids = contentItemIdGenerator.getIds();
-                String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
+                var siblings = contentRepository.getSubtreeItems(site, newPathOnly);
+                var modifier = 1;
+                var collisionFound = true;
+                while (collisionFound) {
+                    var matcher = COPY_FILE_MODIFIER_PATTERN.matcher(proposedDestPath);
+                    // check if the file already has a modifier (it is a copy of something)
+                    if (matcher.matches()) {
+                        // extract the values from the path
+                        var existingModifier = matcher.group(1); // the full modifier
+                        var modifierVersion = matcher.group(2); // the number of the modifier
+                        // remove the existing modifier
+                        proposedDestPath = proposedDestPath.replaceFirst(existingModifier, "");
+                        // calculate the new modifier
+                        modifier = Integer.parseInt(modifierVersion) + 1;
+                    }
+                    if (proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) == -1) {
+                        int pdpli = proposedDestPath.lastIndexOf(".");
+                        if (pdpli == -1) pdpli = proposedDestPath.length();
+                        proposedDestPath = String.format(COPY_FILE_MODIFIER_FORMAT,
+                                proposedDestPath.substring(0, pdpli), modifier, proposedDestPath.substring(pdpli));
 
-                if(proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) == -1) {
-                    int pdpli = proposedDestPath.lastIndexOf(".");
-                    if (pdpli == -1) pdpli = proposedDestPath.length();
-                    proposedDestPath =
-                            proposedDestPath.substring(0, pdpli) + "-" + id +
-                                    proposedDestPath.substring(pdpli);
+                        // a regex would be better
+                        proposedDestPath_filename =
+                                proposedDestPath.substring(proposedDestPath.lastIndexOf(FILE_SEPARATOR) + 1);
+                        proposedDestPath_folder =
+                                proposedDestPath.substring(0, proposedDestPath.lastIndexOf(FILE_SEPARATOR));
+                        proposedDestPath_folder =
+                                proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
+                    } else {
+                        proposedDestPath = String.format(COPY_FILE_MODIFIER_FORMAT,
+                                proposedDestPath.substring(0,
+                                        proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)),
+                                modifier,
+                                proposedDestPath.substring(
+                                        proposedDestPath.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)));
 
-                    // a regex would be better
-                    proposedDestPath_filename =
-                            proposedDestPath.substring(proposedDestPath.lastIndexOf(FILE_SEPARATOR)+1);
-                    proposedDestPath_folder =
-                            proposedDestPath.substring(0, proposedDestPath.lastIndexOf(FILE_SEPARATOR));
-                    proposedDestPath_folder =
-                            proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR)+1);
-                }
-                else {
-                    proposedDestPath =
-                            proposedDestPath.substring(0,
-                                    proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)) + "-" + id +
-                                    proposedDestPath.substring(
-                                            proposedDestPath.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE));
-
-                    proposedDestPath_filename = DmConstants.INDEX_FILE;
-                    proposedDestPath_folder =
-                            proposedDestPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE,"");
-                    proposedDestPath_folder =
-                            proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR)+1);
+                        proposedDestPath_filename = DmConstants.INDEX_FILE;
+                        proposedDestPath_folder =
+                                proposedDestPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+                        proposedDestPath_folder =
+                                proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
+                    }
+                    collisionFound = siblings.contains(proposedDestPath);
                 }
 
                 result.put("FILE_PATH", proposedDestPath);
                 result.put("FILE_NAME", proposedDestPath_filename);
                 result.put("FILE_FOLDER", proposedDestPath_folder);
-                result.put("MODIFIER", id);
+                result.put("MODIFIER", Integer.toString(modifier));
                 result.put("ALT_NAME", "true");
             }
             catch(Exception altPathGenErr) {
@@ -1384,8 +1403,8 @@ public class ContentServiceImpl implements ContentService {
         if(modifier != null) {
             Node internalNameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_INTERNAL_NAME);
             if (internalNameNode != null) {
-                String internalNameValue = internalNameNode.getText();
-                internalNameNode.setText(internalNameValue + " " + modifier);
+                String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
+                internalNameNode.setText(String.format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
             }
         }
 
