@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
@@ -586,6 +587,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return gitLogDao.getGitLog(params);
     }
 
+    @RetryingOperation
     @Override
     public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -595,6 +597,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         gitLogDao.markGitLogProcessed(params);
     }
 
+    @RetryingOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -841,6 +844,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toRet;
     }
 
+    @RetryingOperation
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
@@ -1133,8 +1137,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                         }
                     }
-                    Path ancestor = parentFolder.getParent();
-                    toRet = deleteParentFolder(git, ancestor, false);
                 }
             }
         } catch (CryptoException e) {
@@ -1226,6 +1228,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toReturn;
     }
 
+    @RetryingOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) {
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);

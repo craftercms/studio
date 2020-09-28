@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -276,7 +277,8 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
 
     }
 
-    private void updatePublishedBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException,
+    @RetryingOperation
+    public void updatePublishedBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException,
             GitAPIException, IOException, ServiceLayerException {
         logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalAddress() +
                 " for site " + siteId);

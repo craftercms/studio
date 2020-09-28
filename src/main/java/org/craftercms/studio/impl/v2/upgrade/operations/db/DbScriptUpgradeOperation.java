@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Connection;
@@ -27,15 +26,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
 /**
@@ -111,7 +111,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
         logger.info("Executing db script {0}", scriptFile.getFilename());
         try {
-            String scriptContent = IOUtils.toString(scriptFile.getInputStream());
+            String scriptContent = IOUtils.toString(scriptFile.getInputStream(), UTF_8);
             try (Reader reader = new StringReader(scriptContent.replaceAll(CRAFTER_SCHEMA_NAME,
                     studioConfiguration.getProperty(DB_SCHEMA)));
                  Connection connection = context.getConnection()) {

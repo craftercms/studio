@@ -73,6 +73,13 @@
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean -->
 
+    <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingOperationAspect" >
+        <property name="maxRetries"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
+        <property name="maxSleep"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_SLEEP)}" />
+    </bean>
+
     <!-- MyBatis Mappers -->
     <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.DependencyMapper" />

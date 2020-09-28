@@ -216,5 +216,4 @@ public interface ServicesConfig {
 	 * @return admin email address
 	 */
 	String getAdminEmailAddress(String siteId);
-
 }

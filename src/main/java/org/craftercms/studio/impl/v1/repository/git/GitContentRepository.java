@@ -385,14 +385,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 try (Git git = new Git(repo)) {
                     String pathToDelete = helper.getGitPath(path);
-                    Path toDelete = Paths.get(repo.getDirectory().getParent(), pathToDelete);
-                    boolean isFile = toDelete.toFile().isFile();
                     Path parentToDelete = Paths.get(pathToDelete).getParent();
                     git.rm().addFilepattern(pathToDelete).setCached(false).call();
 
                     String pathToCommit = pathToDelete;
-                    if (isFile) {
-                        pathToCommit = deleteParentFolder(git, parentToDelete, isPage);
+                    if (isPage) {
+                        pathToCommit = deleteParentFolder(git, parentToDelete, true);
                     }
 
                     // TODO: SJ: we need to define messages in a string table of sorts
@@ -450,9 +448,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 }
             }
-
-            Path ancestor = parentFolder.getParent();
-            toRet = deleteParentFolder(git, ancestor, false);
         }
         return toRet;
     }

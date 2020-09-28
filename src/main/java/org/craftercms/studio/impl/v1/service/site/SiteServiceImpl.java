@@ -103,6 +103,7 @@ import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -567,10 +568,6 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    protected void createObjectMetadataforNewSite(String site, String lastCommitId) {
-        createObjectMetadataNewSiteObjectFolder(site, FILE_SEPARATOR, lastCommitId);
-    }
-
     protected void createObjectMetadataNewSiteObjectFolder(String site, String path, String lastCommitId) {
         RepositoryItem[] children = contentRepository.getContentChildren(site, path);
         for (RepositoryItem child : children) {
@@ -581,55 +578,6 @@ public class SiteServiceImpl implements SiteService {
                 objectMetadataManager.insertNewObjectMetadata(site, child.path + FILE_SEPARATOR + child.name);
                 objectMetadataManager.updateCommitId(site, child.path + FILE_SEPARATOR + child.name,
                         lastCommitId);
-            }
-        }
-    }
-
-    protected void extractDependenciesForNewSite(String site) {
-        Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-        extractDependenciesItemForNewSite(site, FILE_SEPARATOR, globalDeps);
-    }
-
-    private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, fullPath);
-        for (RepositoryItem child : children) {
-            if (child.isFolder) {
-                extractDependenciesItemForNewSite(site, child.path + FILE_SEPARATOR + child.name, globalDeps);
-            } else {
-                String childPath = child.path + FILE_SEPARATOR + child.name;
-
-                if (childPath.endsWith(DmConstants.XML_PATTERN)) {
-                    try {
-                        dependencyService.upsertDependencies(site, childPath);
-                    } catch (ContentNotFoundException e) {
-                        logger.error("Failed to extract dependencies for document: site " + site + " path " +
-                                childPath, e);
-                    } catch (ServiceLayerException e) {
-                        logger.error("Failed to extract dependencies for document: site " + site + " path " +
-                                childPath, e);
-                    }
-                } else {
-
-                    boolean isCss = childPath.endsWith(DmConstants.CSS_PATTERN);
-                    boolean isJs = childPath.endsWith(DmConstants.JS_PATTERN);
-                    List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-                    boolean isTemplate = false;
-                    for (String templatePattern : templatePatterns) {
-                        Pattern pattern = Pattern.compile(templatePattern);
-                        Matcher matcher = pattern.matcher(childPath);
-                        if (matcher.matches()) {
-                            isTemplate = true;
-                            break;
-                        }
-                    }
-                    try {
-                        if (isCss || isJs || isTemplate) {
-                            dependencyService.upsertDependencies(site, childPath);
-                        }
-                    } catch (ServiceLayerException e) {
-                        logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
-                    }
-                }
             }
         }
     }
@@ -1171,6 +1119,7 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
@@ -1181,7 +1130,8 @@ public class SiteServiceImpl implements SiteService {
         siteFeedMapper.updateLastCommitId(params);
     }
 
-    private void updateLastVerifiedGitlogCommitId(String site, String commitId) {
+    @RetryingOperation
+    public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("commitId", commitId);
@@ -1708,6 +1658,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled)
@@ -1723,6 +1674,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId,
@@ -1851,13 +1803,15 @@ public class SiteServiceImpl implements SiteService {
         return result == 1;
     }
 
+    @RetryingOperation
     @Override
-    public boolean unlockPublishingForSite(String siteId) {
+    public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
         logger.debug("Unlocking publishing for site " + siteId);
-	    siteFeedMapper.unlockPublishingForSite(siteId);
+	    siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId);
         return true;
     }
 
+    @RetryingOperation
     @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
         logger.debug("Update publishing lock heartbeat for site " + siteId);

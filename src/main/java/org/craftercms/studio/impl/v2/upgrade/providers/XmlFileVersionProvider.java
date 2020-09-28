@@ -18,11 +18,11 @@ package org.craftercms.studio.impl.v2.upgrade.providers;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.providers.AbstractVersionProvider;
 import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
 import org.dom4j.Node;
