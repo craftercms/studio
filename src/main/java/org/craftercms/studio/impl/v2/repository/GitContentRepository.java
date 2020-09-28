@@ -1330,7 +1330,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
+    @RetryingOperation
+    public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
         HierarchicalConfiguration<ImmutableNode> registrationData =
                 studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
         if (registrationData != null && !registrationData.isEmpty()) {

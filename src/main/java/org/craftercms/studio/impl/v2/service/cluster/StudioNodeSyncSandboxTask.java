@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.eclipse.jgit.api.CloneCommand;
@@ -330,8 +331,9 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         }
     }
 
+    @RetryingOperation
     @Override
-    protected void syncRemoteRepositoriesInternal() {
+    public void syncRemoteRepositoriesInternal() {
         List<RemoteRepository> remoteRepositories =
                 clusterDao.getMissingClusterNodeRemoteRepositories(localAddress, siteId);
         if (CollectionUtils.isNotEmpty(remoteRepositories)) {

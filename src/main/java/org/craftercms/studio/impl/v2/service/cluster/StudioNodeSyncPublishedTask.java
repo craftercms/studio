@@ -387,8 +387,9 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
         }
     }
 
+    @RetryingOperation
     @Override
-    protected void syncRemoteRepositoriesInternal() {
+    public void syncRemoteRepositoriesInternal() {
 
     }
 }

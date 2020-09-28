@@ -57,6 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -1531,7 +1532,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    private void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
+    @RetryingOperation
+    public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
         HierarchicalConfiguration<ImmutableNode> registrationData =
                 studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
         if (registrationData != null && !registrationData.isEmpty()) {
