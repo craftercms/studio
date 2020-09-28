@@ -181,4 +181,21 @@ public interface ContentRepository {
      * @return true if operation was successful
      */
     boolean removeRemote(String siteId, String remoteName);
+
+    /**
+     * Determine if content exists in the repository at a given path
+     *
+     * @param site site id where the operation will be executed
+     * @param path
+     * @return true if site has content object at path
+     */
+    boolean contentExists(String site, String path);
+
+    /**
+     * Get last commit id from repository for given site.
+     *
+     * @param site site id
+     * @return last commit id (current HEAD)
+     */
+    String getRepoLastCommitId(String site);
 }
