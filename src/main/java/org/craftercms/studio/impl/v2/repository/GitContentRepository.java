@@ -18,6 +18,8 @@ package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -39,9 +41,12 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
@@ -105,6 +110,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.IN_PROGRESS_BRANCH_NAME_SUFFIX;
@@ -113,6 +119,7 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
@@ -145,6 +152,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private TextEncryptor encryptor;
     private ContextManager contextManager;
     private ContentStoreService contentStoreService;
+    private ClusterDAO clusterDao;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -1312,6 +1320,27 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
         logger.debug("Insert site remote record into database");
         remoteRepositoryDAO.insertRemoteRepository(params);
+
+        params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
+        if (remoteRepository != null) {
+            insertClusterRemoteRepository(remoteRepository);
+        }
+    }
+
+    @RetryingOperation
+    public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
+        HierarchicalConfiguration<ImmutableNode> registrationData =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        if (registrationData != null && !registrationData.isEmpty()) {
+            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+            ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
+            if (member != null) {
+                clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+            }
+        }
     }
 
     @Override
@@ -1380,4 +1409,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         this.contentStoreService = contentStoreService;
     }
 
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
 }

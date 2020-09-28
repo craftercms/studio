@@ -146,6 +146,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodeSandobxSyncTask.setDeploymentService(deploymentService);
                                                 nodeSandobxSyncTask.setEventService(eventService);
                                                 nodeSandobxSyncTask.setEncryptor(encryptor);
+                                                nodeSandobxSyncTask.setClusterDao(clusterDAO);
+                                                nodeSandobxSyncTask.setLocalAddress(localAddress);
                                                 taskExecutor.execute(nodeSandobxSyncTask);
                                                 break;
                                             case PUBLISHED:
