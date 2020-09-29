@@ -102,6 +102,10 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_INACTIVE_STATE = "inactiveState";
     // Stale heartbeat limit
     public static final String CLUSTER_HEARTBEAT_STALE_LIMIT = "heartbeatStaleLimit";
+    // cluster id
+    public static final String CLUSTER_ID = "clusterId";
+    // remote repository id
+    public static final String REMOTE_REPOSITORY_ID = "remoteRepositoryId";
 
     /* Publish request */
     // Environment

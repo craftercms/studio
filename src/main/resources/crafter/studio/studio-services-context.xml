@@ -610,7 +610,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="clusterDAO" ref="clusterDao" />
+        <property name="clusterDao" ref="clusterDao" />
         <property name="repositoryType" value="SANDBOX" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
         <property name="eventService" ref="studioEventService" />
@@ -625,7 +625,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="clusterDAO" ref="clusterDao" />
+        <property name="clusterDao" ref="clusterDao" />
         <property name="repositoryType" value="PUBLISHED" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
@@ -639,7 +639,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="clusterDAO" ref="clusterDao" />
+        <property name="clusterDao" ref="clusterDao" />
         <property name="repositoryType" value="GLOBAL" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
@@ -825,6 +825,7 @@
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -837,6 +838,7 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <!-- /////// -->

@@ -73,7 +73,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private Deployer deployer;
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
-    private ClusterDAO clusterDAO;
+    private ClusterDAO clusterDao;
     private ServicesConfig servicesConfig;
     private GitRepositories repositoryType;
     private DeploymentService deploymentService;
@@ -92,7 +92,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 if (registrationData != null && !registrationData.isEmpty()) {
                     String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
                     logger.debug("Cluster is configured.");
-                    List<ClusterMember> cm = clusterDAO.getAllMembers();
+                    List<ClusterMember> cm = clusterDao.getAllMembers();
                     boolean memberRemoved =
                             !cm.stream().anyMatch(clusterMember -> {
                                 return clusterMember.getLocalAddress().equals(localAddress);
@@ -107,7 +107,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                             Map<String, String> params = new HashMap<String, String>();
                             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
                             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
-                            List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
+                            List<ClusterMember> clusterMembers = clusterDao.getOtherMembers(params);
 
                             if (repositoryType.equals(GitRepositories.GLOBAL)) {
                                 StudioNodeSyncGlobalRepoTask nodeGlobalRepoSyncTask =
@@ -124,7 +124,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
 
                                 if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                                    int numActiveMembers = clusterDAO.countActiveMembers(params);
+                                    int numActiveMembers = clusterDao.countActiveMembers(params);
                                     logger.debug("Number of active cluster members: " + numActiveMembers);
                                 }
                                 if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
@@ -146,6 +146,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodeSandobxSyncTask.setDeploymentService(deploymentService);
                                                 nodeSandobxSyncTask.setEventService(eventService);
                                                 nodeSandobxSyncTask.setEncryptor(encryptor);
+                                                nodeSandobxSyncTask.setClusterDao(clusterDao);
+                                                nodeSandobxSyncTask.setLocalAddress(localAddress);
                                                 taskExecutor.execute(nodeSandobxSyncTask);
                                                 break;
                                             case PUBLISHED:
@@ -293,12 +295,12 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         this.contentRepository = contentRepository;
     }
 
-    public ClusterDAO getClusterDAO() {
-        return clusterDAO;
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
     }
 
-    public void setClusterDAO(ClusterDAO clusterDAO) {
-        this.clusterDAO = clusterDAO;
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
     }
 
     public ServicesConfig getServicesConfig() {

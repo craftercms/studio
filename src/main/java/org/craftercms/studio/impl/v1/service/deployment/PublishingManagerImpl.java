@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -221,7 +222,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
 
                     // check if commit id from workflow and from object state match
-                    if (itemMetadata.getCommitId() != null && itemMetadata.getCommitId().equals(item.getCommitId())) {
+                    if (Objects.isNull(itemMetadata.getCommitId()) || itemMetadata.getCommitId().equals(item.getCommitId())) {
                         objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                     }
                 } else {
@@ -382,7 +383,12 @@ public class PublishingManagerImpl implements PublishingManager {
                 missingItem.setOldPath(oldPath);
                 missingItem.setAction(PublishRequest.Action.MOVE);
             }
-            missingItem.setCommitId(metadata.getCommitId());
+            String commitId = metadata.getCommitId();
+            if (StringUtils.isNotEmpty(commitId)) {
+                missingItem.setCommitId(commitId);
+            } else {
+                missingItem.setCommitId(contentRepository.getRepoLastCommitId(site));
+            }
         }
         String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);

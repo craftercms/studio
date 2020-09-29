@@ -136,6 +136,41 @@ BEGIN
     SELECT locked;
 END ;
 
+CREATE PROCEDURE populateItemTable(
+    IN siteId VARCHAR(50))
+BEGIN
+    DECLARE v_site_id BIGINT;
+    SELECT id INTO v_site_id FROM site WHERE site_id = siteId AND deleted = 0;
+    DECLARE v_path VARCHAR(2048);
+    DECLARE v_preview_url VARCHAR(2048);
+    DECLARE v_state BIGINT;
+    DECLARE v_owned_by BIGINT;
+    DECLARE v_created_by BIGINT;
+    DECLARE v_created_on TIMESTAMP;
+    DECLARE v_last_modified_by BIGINT;
+    DECLARE v_last_modified_on TIMESTAMP;
+    DECLARE v_label VARCHAR(256);
+    DECLARE v_content_type_id VARCHAR(256);
+    DECLARE v_system_type VARCHAR(64);
+    DECLARE v_mime_type VARCHAR(64);
+    DECLARE v_disabled INT;
+    DECLARE v_locale_code VARCHAR(16);
+    DECLARE v_translation_source_id BIGINT;
+    DECLARE v_size INT;
+    DECLARE v_parent_id BIGINT;
+    DECLARE v_ commit_id VARCHAR(128);
+    DECLARE item_cursor CURSOR FOR SELECT * FROM item_state ist LEFT OUTER JOIN item_metadata im ON ist.site = im
+        .site AND ist.path = im.path WHERE ist.site = siteId UNION SELECT * FROM item_state ist RIGHT OUTER JOIN
+                                                                                 item_metadata im ON ist.site = im.site AND ist.path = im.path WHERE ist.site = siteId;
+    OPEN item_cursor;
+    insert_item: LOOP
+        FETCH item_cursor INTO v_group_id;
+        IF v_finished = 1 THEN LEAVE update_group_name;
+        END IF;
+        UPDATE `group` LEFT JOIN `site` ON `group`.site_id = `site`.id SET `group`.name = TRIM(CONCAT(CONCAT(TRIM(`site`.name), '_'), TRIM(`group`.name))) WHERE `group`.id = v_group_id;
+    end loop insert_item;
+END ;
+
 CREATE TABLE _meta (
   `version` VARCHAR(10) NOT NULL,
   `integrity` BIGINT(10),
@@ -143,7 +178,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.10', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.11', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -528,6 +563,21 @@ CREATE TABLE IF NOT EXISTS cluster
   PRIMARY KEY (`id`),
   UNIQUE `uq_cl_git_url` (`git_url`),
   UNIQUE `uq_cl_git_remote_name` (`git_remote_name`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS cluster_remote_repository
+(
+  `cluster_id`                  BIGINT(20)    NOT NULL,
+  `remote_repository_id`        BIGINT(20)    NOT NULL,
+  `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cluster_id`, `remote_repository_id`),
+  FOREIGN KEY cluster_remote_ix_cluster_id(`cluster_id`) REFERENCES `cluster` (`id`)
+    ON DELETE CASCADE,
+  FOREIGN KEY cluster_remote_ix_remote_id(`remote_repository_id`) REFERENCES `remote_repository` (`id`)
+    ON DELETE CASCADE
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
