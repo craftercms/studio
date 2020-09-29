@@ -86,6 +86,9 @@ import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.exception.validation.FilenameTooLongException;
+import org.craftercms.studio.api.v2.exception.validation.PathTooLongException;
+import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -320,6 +323,9 @@ public class ContentServiceImpl implements ContentService {
                 + "system administrator.");
         }
 
+        //TODO: Replace with a call to the site policy validator when implemented
+        validateContent(path, fileName);
+
         Map<String, String> params = new HashMap<String, String>();
         params.put(DmConstants.KEY_SITE, site);
         params.put(DmConstants.KEY_PATH, path);
@@ -474,6 +480,9 @@ public class ContentServiceImpl implements ContentService {
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
+        //TODO: Replace with a call to the site policy validator when implemented
+        validateContent(targetPath, fileName);
+
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             moveContent(site, path, targetPath);
@@ -516,6 +525,9 @@ public class ContentServiceImpl implements ContentService {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
         }
+
+        //TODO: Replace with a call to thes site policy validator when implemented
+        validateContent(path, assetName);
 
         boolean isSystemAsset = Boolean.valueOf(systemAsset);
 
@@ -631,7 +643,11 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean createFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name) throws SiteNotFoundException {
+                                @ValidateStringParam(name = "name") String name)
+            throws SiteNotFoundException, ServiceLayerException {
+        //TODO: Replace with a call to the site policy validator when implemented
+        validateContent(path, name);
+
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
@@ -745,7 +761,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public String copyContent(@ValidateStringParam(name = "site") String site,
                               @ValidateSecurePathParam(name = "fromPath") String fromPath,
-                              @ValidateSecurePathParam(name = "toPath") String toPath) {
+                              @ValidateSecurePathParam(name = "toPath") String toPath) throws ServiceLayerException {
         return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
 
@@ -753,7 +769,7 @@ public class ContentServiceImpl implements ContentService {
      * internal method copy that handles
      * Get dependencies is already recursive
      */
-    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) {
+    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) throws ServiceLayerException {
         String retNewFileName = null;
 
         String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
@@ -892,6 +908,7 @@ public class ContentServiceImpl implements ContentService {
         } catch(ServiceLayerException eServiceLayerException) {
             logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
                 eServiceLayerException, site, fromPath, toPath, copyPath);
+            throw eServiceLayerException;
         }
 
         return retNewFileName;
@@ -2605,6 +2622,18 @@ public class ContentServiceImpl implements ContentService {
         auditServiceInternal.insertAuditLog(auditLog);
         
         return toRet;
+    }
+
+    //TODO: Move this to a fixed always-on site policy when implemented
+    protected void validateContent(String path, String filename) throws ServiceLayerException {
+        if (filename.length() >= 255) {
+            throw new FilenameTooLongException(filename);
+        }
+
+        var fullPath = FilenameUtils.concat(path, filename);
+        if (fullPath.length() >= 1024) {
+            throw new PathTooLongException(fullPath);
+        }
     }
 
     public ContentRepository getContentRepository() {
