@@ -24,6 +24,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -871,7 +872,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             }
             synchronized (repo) {
                 try (Git git = new Git(repo)) {
-
                     String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFFIX;
 
                     // fetch "origin/master"
@@ -971,8 +971,16 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
-                        if (Objects.isNull(commitId)) {
+                        if (Objects.isNull(commitId) || !commitIdExists(site, PUBLISHED, commitId)) {
                             if (contentExists(site, path)) {
+                                if (Objects.isNull(commitId)) {
+                                    logger.warn("Commit ID is NULL for content " + path +
+                                            ". Was the git repo reset at some point?" );
+                                } else {
+                                    logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                            ". Was the git repo reset at some point?" );
+                                }
+                                logger.info("Publishing content from HEAD for " + path);
                                 commitId = getRepoLastCommitId(site);
                             } else {
                                 logger.warn("Skipping file " + path + " because commit id is null");
@@ -1159,11 +1167,16 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     @Override
     public boolean commitIdExists(String site, String commitId) {
+        return commitIdExists(site, SANDBOX, commitId);
+    }
+
+    @Override
+    public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
         boolean toRet = false;
         try {
             GitRepositoryHelper helper =
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
-            try (Repository repo = helper.getRepository(site, SANDBOX)) {
+            try (Repository repo = helper.getRepository(site, repoType)) {
                 if (repo != null) {
                     ObjectId objCommitId = repo.resolve(commitId);
                     if (objCommitId != null) {
@@ -1175,7 +1188,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 }
             }
         } catch (CryptoException | IOException e) {
-            logger.info("Commit ID " + commitId + " does not exist in sandbox for site " + site);
+            logger.info("Commit ID " + commitId + " does not exist in " + repoType + " for site " + site);
         }
         return toRet;
     }

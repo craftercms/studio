@@ -153,12 +153,14 @@ public class PublisherTask extends Thread {
 
                                         boolean allCommitsPresent = true;
                                         for (String commit : commitIds) {
-                                            boolean commitPresent = contentRepository.commitIdExists(site, commit);
-                                            if (!commitPresent) {
-                                                logger.debug("Commit with ID: " + commit + " is not present in " +
-                                                        "local repo for site " + site + ". " +
-                                                        "Publisher task will skip this cycle.");
-                                                allCommitsPresent = false;
+                                            if (StringUtils.isNotEmpty(commit)) {
+                                                boolean commitPresent = contentRepository.commitIdExists(site, commit);
+                                                if (!commitPresent) {
+                                                    logger.debug("Commit with ID: " + commit + " is not present in " +
+                                                            "local repo for site " + site + ". " +
+                                                            "Publisher task will skip this cycle.");
+                                                    allCommitsPresent = false;
+                                                }
                                             }
                                         }
 
