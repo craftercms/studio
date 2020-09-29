@@ -253,9 +253,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                             item.setOldPath(oldPath);
                         }
                         String commitId = metadata.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId)) {
+                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
+                            if (StringUtils.isNotEmpty(commitId)) {
+                                logger.warn("Commit ID is NULL for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            } else {
+                                logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            }
+                            logger.info("Publishing content from HEAD for " + path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
 
@@ -334,9 +342,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                             item.setOldPath(oldPath);
                         }
                         String commitId = metadata.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId)) {
+                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
+                            if (StringUtils.isNotEmpty(commitId)) {
+                                logger.warn("Commit ID is NULL for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            } else {
+                                logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            }
+                            logger.info("Publishing content from HEAD for " + path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
                     }
@@ -836,7 +852,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     private boolean checkCommitIds(String site, List<String> commitIds) {
         boolean toRet = true;
         for (String commitId : commitIds) {
-            toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
+            if (StringUtils.isNotEmpty(commitId)) {
+                toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
+            }
         }
         return toRet;
     }
