@@ -21,9 +21,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.core.io.ClassPathResource;
@@ -36,9 +36,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
@@ -111,6 +109,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 ResultSet rs = statement.executeQuery();
                 if (!rs.next() || rs.getInt(1) < 1 || clearExistingData) {
                     populateDataFromDB(context, siteId);
+                    populateDataFromRepo(context, site);
                 }
 
             } catch (SQLException e) {
@@ -121,16 +120,6 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         } catch (SQLException throwables) {
             logger.error("Error while getting db connection");
         }
-
-
-        // yes
-        // call sp
-        // populate from repo
-        // no
-        // continue next site
-        // no
-        // call sp
-        // populate from repo
     }
 
     private void populateDataFromDB(final StudioUpgradeContext context, long siteId) throws UpgradeException {
