@@ -42,8 +42,6 @@ import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-
 /**
  * Note: consider renaming
  * A site in Crafter Studio is currently the name for a WEM project being managed.
@@ -150,6 +148,7 @@ public interface SiteService {
      * @param createOption remote repository username to use for authentication
      * @param params site parameters
      * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 * @param siteName the name of the site
 	 *
 	 * @throws ServiceLayerException general service error
 	 * @throws InvalidRemoteRepositoryException invalid remote repository
@@ -162,7 +161,7 @@ public interface SiteService {
                                     String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                     String authenticationType, String remoteUsername, String remotePassword,
                                     String remoteToken, String remotePrivateKey, String createOption,
-                                    Map<String, String> params, boolean createAsOrphan)
+                                    Map<String, String> params, boolean createAsOrphan, String siteName)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 

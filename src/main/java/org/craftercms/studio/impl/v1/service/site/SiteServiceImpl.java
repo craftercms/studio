@@ -610,7 +610,8 @@ public class SiteServiceImpl implements SiteService {
                                            String remoteUsername, String remotePassword, String remoteToken,
                                            String remotePrivateKey,
                                            @ValidateStringParam(name = "createOption") String createOption,
-                                           Map<String, String> params, boolean createAsOrphan)
+                                           Map<String, String> params, boolean createAsOrphan,
+                                           String siteName)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -630,14 +631,14 @@ public class SiteServiceImpl implements SiteService {
                 logger.info("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
                         singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                        params, createAsOrphan);
+                        params, createAsOrphan, siteName);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.info("Push to remote repository create option selected");
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey, params, createAsOrphan);
+                        remotePrivateKey, params, createAsOrphan, siteName);
                 break;
 
             default:
@@ -653,7 +654,7 @@ public class SiteServiceImpl implements SiteService {
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
                                        String remoteToken, String remotePrivateKey, Map<String, String> params,
-                                       boolean createAsOrphan)
+                                       boolean createAsOrphan, String siteName)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -736,7 +737,7 @@ public class SiteServiceImpl implements SiteService {
                 // insert database records
                 logger.info("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
-                siteFeed.setName(siteId);
+                siteFeed.setName(siteName);
                 siteFeed.setSiteId(siteId);
                 siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);
@@ -796,7 +797,7 @@ public class SiteServiceImpl implements SiteService {
                                         String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
                                         String remoteToken, String remotePrivateKey, Map<String, String> params,
-                                        boolean createAsOrphan)
+                                        boolean createAsOrphan, String siteName)
             throws ServiceLayerException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
@@ -847,7 +848,7 @@ public class SiteServiceImpl implements SiteService {
                 // insert database records
                 logger.info("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
-                siteFeed.setName(siteId);
+                siteFeed.setName(siteName);
                 siteFeed.setSiteId(siteId);
                 siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);

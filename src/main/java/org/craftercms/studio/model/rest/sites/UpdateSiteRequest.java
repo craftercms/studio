@@ -13,22 +13,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.model.rest.sites;
 
-package org.craftercms.studio.model;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public class Site implements Entity {
+import javax.validation.constraints.NotEmpty;
 
-    private String siteId;
+/**
+ * Holds the data required to update a site
+ *
+ * @author joseross
+ * @since 3.2.0
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class UpdateSiteRequest {
+
+    /**
+     * The name of the site
+     */
+    @NotEmpty
     private String name;
-    private String desc;
 
-    public String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+    /**
+     * The description of the site
+     */
+    private String description;
 
     public String getName() {
         return name;
@@ -38,12 +47,12 @@ public class Site implements Entity {
         this.name = name;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getDescription() {
+        return description;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

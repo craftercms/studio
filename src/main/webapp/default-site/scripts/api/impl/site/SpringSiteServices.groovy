@@ -68,11 +68,11 @@ class SpringSiteServices {
 
     def createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl, remoteBranch,
                                    singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                                   remotePrivateKey, createOption, params, createAsOrphan) {
+                                   remotePrivateKey, createOption, params, createAsOrphan, siteName) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
                 remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption, params, createAsOrphan)
+                remotePrivateKey, createOption, params, createAsOrphan, siteName)
     }
 
     def deleteSite(siteId) {

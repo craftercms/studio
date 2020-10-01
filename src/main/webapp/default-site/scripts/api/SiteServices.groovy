@@ -69,11 +69,11 @@ class SiteServices {
 
     static createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl,
                                       remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                                      remoteToken, remotePrivateKey, createOption, params, createAsOrphan) {
+                                      remoteToken, remotePrivateKey, createOption, params, createAsOrphan, name) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
                 remoteUrl, remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption, params, createAsOrphan)
+                remotePrivateKey, createOption, params, createAsOrphan, name)
     }
 
     static deleteSite(context, siteId) {

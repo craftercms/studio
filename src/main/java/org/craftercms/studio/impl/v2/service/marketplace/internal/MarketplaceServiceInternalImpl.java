@@ -238,6 +238,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             result.get(PLUGIN_URL).toString(), result.get(PLUGIN_REF).toString(), false,
             RemoteRepository.AuthenticationType.NONE, null, null, null,
             null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
-            true);
+            true, request.getName());
     }
 }

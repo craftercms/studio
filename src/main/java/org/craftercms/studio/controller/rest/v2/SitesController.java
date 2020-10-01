@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -30,7 +31,9 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,6 +80,20 @@ public class SitesController {
         result.setResponse(ApiResponse.CREATED);
 
         ResponseBody response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
+    }
+
+    @PostMapping("/{siteId}")
+    public ResponseBody updateSite(@PathVariable String siteId, @Valid @RequestBody UpdateSiteRequest request)
+            throws SiteNotFoundException {
+        sitesService.updateSite(siteId, request.getName(), request.getDescription());
+
+        var result = new Result();
+        result.setResponse(ApiResponse.OK);
+
+        var response = new ResponseBody();
         response.setResult(result);
 
         return response;

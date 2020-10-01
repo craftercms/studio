@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.craftercms.commons.plugin.model.Version;
-import org.hibernate.validator.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -45,6 +45,8 @@ public class CreateSiteRequest {
     private String siteId;
 
     private String description;
+
+    private String name;
 
     private Map<String, String> siteParams = new HashMap<>();
 
@@ -82,6 +84,14 @@ public class CreateSiteRequest {
 
     public void setDescription(final String description) {
         this.description = description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Map<String, String> getSiteParams() {

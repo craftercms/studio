@@ -82,6 +82,7 @@
                 <permission>write_global_configuration</permission>
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
+                <permission>edit_site</permission>
             </allowed-permissions>
         </rule>
     </role>

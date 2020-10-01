@@ -17,6 +17,9 @@
 package org.craftercms.studio.impl.v2.service.site;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 
@@ -44,6 +47,13 @@ public class SitesServiceImpl implements SitesService {
     @Override
     public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
         return sitesServiceInternal.getSiteBlueprintDescriptor(id);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "edit_site")
+    public void updateSite(String siteId, String name, String description)
+            throws SiteNotFoundException {
+        sitesServiceInternal.updateSite(siteId, name, description);
     }
 
     public SitesServiceInternal getSitesServiceInternal() {
