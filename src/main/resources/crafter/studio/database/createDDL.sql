@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.10.4', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.10.5', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -361,7 +361,7 @@ CREATE TABLE IF NOT EXISTS `group`
   `id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
   `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `org_id`              BIGINT(20)  NOT NULL,
-  `group_name`          VARCHAR(32) NOT NULL,
+  `group_name`          VARCHAR(512) NOT NULL,
   `group_description`   TEXT,
   PRIMARY KEY (`id`),
   INDEX `group_ix_record_last_updated` (`record_last_updated` DESC),
