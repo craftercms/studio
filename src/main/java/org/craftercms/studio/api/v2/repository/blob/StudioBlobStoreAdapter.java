@@ -16,6 +16,7 @@
 package org.craftercms.studio.api.v2.repository.blob;
 
 import org.craftercms.core.service.Item;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -145,6 +146,12 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default boolean commitIdExists(String site, String commitId) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
