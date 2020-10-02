@@ -113,6 +113,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_LEVEL_DESCRIPTOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
@@ -2122,10 +2123,11 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public String getContentTypeClass(@ValidateStringParam(name = "site") String site, String uri) {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
-        if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
+        if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+            return CONTENT_TYPE_LEVEL_DESCRIPTOR;
+        } else if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
             return CONTENT_TYPE_PAGE;
-        } else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) ||
-                uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+        } else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
             return CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
             return CONTENT_TYPE_DOCUMENT;
