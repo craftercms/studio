@@ -22,6 +22,8 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -46,6 +48,8 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
+
+    private static final Logger logger = LoggerFactory.getLogger(ItemServiceInternalImpl.class);
 
     private UserServiceInternal userServiceInternal;
     private SiteFeedMapper siteFeedMapper;
@@ -73,18 +77,20 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         String itemPath = item.getPath();
         Path p = Paths.get(itemPath);
         List<Path> parts = new LinkedList<>();
-        p.getParent().iterator().forEachRemaining(parts::add);
+        if (Objects.nonNull(p.getParent())) {
+            p.getParent().iterator().forEachRemaining(parts::add);
+        }
         Item i = Item.Builder.buildFromClone(item).withPath(StringUtils.EMPTY).build();
         if (CollectionUtils.isNotEmpty(parts)) {
             for (Path ancestor : parts) {
-                i = Item.Builder.buildFromClone(i).withPath(i.getPath() + FILE_SEPARATOR + ancestor.toString())
-                        .withPreviewUrl(i.getPath()).withSystemType("folder").build();
-                ancestors.add(i);
+                if (StringUtils.isNotEmpty(ancestor.toString())) {
+                    i = instantiateItem(item.getSiteName(), i.getPath() + FILE_SEPARATOR + ancestor.toString())
+                            .withPreviewUrl(i.getPath()).withSystemType("folder").build();
+                    if (i.getId() < 1) {
+                        ancestors.add(i);
+                    }
+                }
             }
-        } else {
-            i.setPreviewUrl(i.getPath());
-            i.setSystemType("folder");
-            ancestors.add(i);
         }
         return ancestors;
     }
@@ -114,7 +120,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        return itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path);
+        Item item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path);
+        if (Objects.nonNull(item)) {
+            item.setSiteName(siteId);
+        }
+        return item;
     }
 
     @Override

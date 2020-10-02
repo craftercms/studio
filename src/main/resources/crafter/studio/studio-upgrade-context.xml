@@ -133,6 +133,18 @@
         <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
 
+    <bean id="populateItemTableUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.db.PopulateItemTableUpgradeOperation" >
+        <constructor-arg name="scriptFolder"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
+        <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
+        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
+        <constructor-arg name="contentService" ref="cstudioContentService" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
+        <constructor-arg name="encryptor" ref="internalTextEncryptor" />
+    </bean>
+
     <bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.global.GlobalRepoUpgradeOperation"/>
 

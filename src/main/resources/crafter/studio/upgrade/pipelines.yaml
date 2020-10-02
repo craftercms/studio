@@ -65,6 +65,13 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.2.0.9-to-3.2.0.10.sql
+      - currentVersion: 3.2.0.10
+        nextVersion: 3.2.0.11
+        operations:
+          - type: populateItemTableUpgrader
+            filename: upgrade-3.2.0.10-to-3.2.0.11.sql
+            spName: populateItemTable
+            clearExistingData: true
 
   # Pipeline to upgrade site repositories
   site:
