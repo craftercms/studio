@@ -278,7 +278,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             item.setPath(path);
             item.setState(NEW.value);
         }
-        return Item.Builder.buildFromClone(item);
+        return Item.Builder.buildFromClone(item).withId(item.getId());
     }
 
     @Override
@@ -301,7 +301,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
-                                          String label, String contentTypeId, String locale, String commitId,
+                                          String label, String contentTypeId, String locale, String commitId, long size,
                                           Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
@@ -314,6 +314,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withMimeType(StudioUtils.getMimeType(path))
                 .withLocaleCode(locale)
                 .withCommitId(commitId)
+                .withSize(size)
                 .build();
         if (unlock.isPresent() && !unlock.get()) {
             item.setState(ItemState.savedAndNotClosed(item.getState()));

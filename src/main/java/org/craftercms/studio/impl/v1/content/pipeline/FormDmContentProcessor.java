@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -231,7 +230,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 Item item = itemServiceInternal.instantiateItemAfterWrite(site,
                         parentItem.getUri() + FILE_SEPARATOR + fileName, user, ZonedDateTime.now(), fileName,
                         contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
-                        Locale.US.toString(), result.getCommitId(), Optional.of(unlock));
+                        Locale.US.toString(), result.getCommitId(),
+                        contentRepository.getContentSize(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
+                        Optional.of(unlock));
                 itemServiceInternal.upsertEntry(site, item);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
@@ -305,7 +306,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // TODO: get local code with API 2
             Item item = itemServiceInternal.instantiateItemAfterWrite(site, path, user, ZonedDateTime.now(),
                     contentItem.getInternalName(), contentService.getContentTypeClass(site, path), Locale.US.toString(),
-                    result.getCommitId(), Optional.of(unlock));
+                    result.getCommitId(), contentRepository.getContentSize(site, path), Optional.of(unlock));
             itemServiceInternal.upsertEntry(site, item);
         }
 

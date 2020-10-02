@@ -35,8 +35,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -66,7 +64,6 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.DeployerTargetException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
@@ -107,7 +104,6 @@ import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -1226,7 +1222,9 @@ public class SiteServiceImpl implements SiteService {
                             FilenameUtils.getName(repoOperation.getPath()), contentService.getContentTypeClass(site,
                                     repoOperation.getPath()), "file",
                             StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, false,
-                            Locale.US.toString(), null, 0, null, repoOperation.getCommitId());
+                            Locale.US.toString(), null,
+                            contentRepository.getContentSize(site, repoOperation.getPath()), null,
+                            repoOperation.getCommitId());
                     itemServiceInternal.upsertEntry(site, item);
 
                     break;
@@ -1263,7 +1261,8 @@ public class SiteServiceImpl implements SiteService {
                             userObj.getUsername(), repoOperation.getDateTime(),
                             FilenameUtils.getName(repoOperation.getPath()),
                             contentService.getContentTypeClass(site, repoOperation.getPath()), Locale.US.toString(),
-                            repoOperation.getCommitId(), Optional.empty());
+                            repoOperation.getCommitId(),
+                            contentRepository.getContentSize(site, repoOperation.getPath()), Optional.empty());
                     itemServiceInternal.upsertEntry(site, item);
                     break;
 
@@ -1356,7 +1355,7 @@ public class SiteServiceImpl implements SiteService {
                             userObj.getUsername(), repoOperation.getDateTime(),
                             contentService.getContentTypeClass(site, repoOperation.getMoveToPath()),
                             repoOperation.getMoveToPath(), Locale.US.toString(), repoOperation.getCommitId(),
-                            Optional.empty());
+                            contentRepository.getContentSize(site,repoOperation.getMoveToPath()), Optional.empty());
                     item.setPath(repoOperation.getMoveToPath());
                     item.setPreviewUrl(repoOperation.getMoveToPath());
                     itemServiceInternal.upsertEntry(site, item);

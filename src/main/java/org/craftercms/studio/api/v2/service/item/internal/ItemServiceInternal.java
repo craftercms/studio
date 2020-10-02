@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v2.dal.Item;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 
 public interface ItemServiceInternal {
 
@@ -233,13 +232,14 @@ public interface ItemServiceInternal {
      * @param contentTypeId content type id
      * @param localeCode locale code
      * @param commitId commit id obtained with write operation
+     * @param size file size in bytes
      * @param unlock Optional unlocking of item, if true unlock, otherwise lock. If not present item will be unlocked
      * @return item object
      * @throws ServiceLayerException General service error
      * @throws UserNotFoundException If given username does not exist
      */
     Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
-                                   String label, String contentTypeId, String localeCode, String commitId,
+                                   String label, String contentTypeId, String localeCode, String commitId, long size,
                                    Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException;
 

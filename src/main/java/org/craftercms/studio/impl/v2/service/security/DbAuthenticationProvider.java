@@ -44,7 +44,8 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
-                                  AuthenticationChain authenticationChain, String username, String password) throws AuthenticationSystemException, BadCredentialsException {
+                                  AuthenticationChain authenticationChain, String username, String password)
+            throws AuthenticationSystemException, BadCredentialsException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
@@ -56,7 +57,7 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
             logger.debug("Unknown database error", e);
             throw new AuthenticationSystemException("Unknown database error", e);
         }
-        if (user != null && user.isDeleted() && user.isEnabled() &&
+        if (user != null && !user.isDeleted() && user.isEnabled() &&
                 CryptoUtils.matchPassword(user.getPassword(), password)) {
             String token = createToken(user, authenticationChain);
 

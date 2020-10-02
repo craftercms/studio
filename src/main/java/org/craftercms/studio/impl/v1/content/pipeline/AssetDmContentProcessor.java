@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -189,7 +188,9 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 Item item = itemServiceInternal.instantiateItemAfterWrite(site, path + FILE_SEPARATOR + assetName,
                         user, ZonedDateTime.now(), assetName,
                         contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName),
-                        Locale.US.toString(), result.getCommitId(), Optional.of(unlock));
+                        Locale.US.toString(), result.getCommitId(),
+                        contentRepository.getContentSize(site, path + FILE_SEPARATOR + assetName),
+                        Optional.of(unlock));
                 itemServiceInternal.upsertEntry(site, item);
 
                 assetInfo.setFileExtension(ext);
@@ -253,7 +254,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             // TODO: get local code with API 2
             Item item = itemServiceInternal.instantiateItemAfterWrite(site, relativePath, user, ZonedDateTime.now(),
                     assetName, contentService.getContentTypeClass(site, relativePath), Locale.US.toString(),
-                    result.getCommitId(), Optional.of(unlock));
+                    result.getCommitId(), contentService.getContentSize(site, relativePath), Optional.of(unlock));
             itemServiceInternal.upsertEntry(site, item);
         }
         if (unlock) {
