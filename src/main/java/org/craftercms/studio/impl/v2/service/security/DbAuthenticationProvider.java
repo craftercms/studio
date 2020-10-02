@@ -56,7 +56,7 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
             logger.debug("Unknown database error", e);
             throw new AuthenticationSystemException("Unknown database error", e);
         }
-        if (user != null && user.isDeleted() && user.isEnabled() &&
+        if (user != null && !user.isDeleted() && user.isEnabled() &&
                 CryptoUtils.matchPassword(user.getPassword(), password)) {
             String token = createToken(user, authenticationChain);
 
