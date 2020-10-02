@@ -136,39 +136,77 @@ BEGIN
     SELECT locked;
 END ;
 
-CREATE PROCEDURE populateItemTable(
-    IN siteId VARCHAR(50))
+CREATE PROCEDURE populateItemTable(IN siteId VARCHAR(50))
 BEGIN
     DECLARE v_site_id BIGINT;
-    SELECT id INTO v_site_id FROM site WHERE site_id = siteId AND deleted = 0;
     DECLARE v_path VARCHAR(2048);
-    DECLARE v_preview_url VARCHAR(2048);
+    DECLARE v_state_str VARCHAR(255);
+    DECLARE v_sys_process INT;
     DECLARE v_state BIGINT;
+    DECLARE v_owner VARCHAR(255);
     DECLARE v_owned_by BIGINT;
+    DECLARE v_creator VARCHAR(255);
     DECLARE v_created_by BIGINT;
     DECLARE v_created_on TIMESTAMP;
+    DECLARE v_modifier VARCHAR(255);
     DECLARE v_last_modified_by BIGINT;
     DECLARE v_last_modified_on TIMESTAMP;
-    DECLARE v_label VARCHAR(256);
-    DECLARE v_content_type_id VARCHAR(256);
-    DECLARE v_system_type VARCHAR(64);
-    DECLARE v_mime_type VARCHAR(64);
-    DECLARE v_disabled INT;
-    DECLARE v_locale_code VARCHAR(16);
-    DECLARE v_translation_source_id BIGINT;
-    DECLARE v_size INT;
-    DECLARE v_parent_id BIGINT;
-    DECLARE v_ commit_id VARCHAR(128);
-    DECLARE item_cursor CURSOR FOR SELECT * FROM item_state ist LEFT OUTER JOIN item_metadata im ON ist.site = im
-        .site AND ist.path = im.path WHERE ist.site = siteId UNION SELECT * FROM item_state ist RIGHT OUTER JOIN
-                                                                                 item_metadata im ON ist.site = im.site AND ist.path = im.path WHERE ist.site = siteId;
+    DECLARE v_commit_id VARCHAR(128);
+    DECLARE v_finished INTEGER DEFAULT 0;
+    DECLARE item_cursor CURSOR FOR
+        SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
+               im.owner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+               im.modified as item_modified, im.commit_id as item_commit_id
+        FROM item_state ist LEFT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
+        WHERE ist.site = siteId
+        UNION
+        SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
+               im.owner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+               im.modified as item_modified, im.commit_id as item_commit_id
+        FROM item_state ist RIGHT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
+        WHERE ist.site = siteId;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
+    SELECT id INTO v_site_id FROM site WHERE site_id = siteId AND deleted = 0;
+    DELETE FROM item WHERE site_id = v_site_id;
     OPEN item_cursor;
     insert_item: LOOP
-        FETCH item_cursor INTO v_group_id;
-        IF v_finished = 1 THEN LEAVE update_group_name;
+        FETCH item_cursor INTO v_path, v_state_str, v_sys_process, v_owner, v_creator, v_modifier, v_last_modified_on, v_commit_id;
+        IF v_finished = 1 THEN LEAVE insert_item;
         END IF;
-        UPDATE `group` LEFT JOIN `site` ON `group`.site_id = `site`.id SET `group`.name = TRIM(CONCAT(CONCAT(TRIM(`site`.name), '_'), TRIM(`group`.name))) WHERE `group`.id = v_group_id;
+        CASE
+            WHEN v_state = 'NEW_UNPUBLISHED_LOCKED' THEN SELECT 11 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_UNPUBLISHED_UNLOCKED' THEN SELECT 3 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_SCHEDULED' THEN SELECT 99 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN SELECT 107 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED' THEN SELECT 35 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN SELECT 43 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_SUBMITTED_NO_WF_SCHEDULED' THEN SELECT 67 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN SELECT 75 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_SUBMITTED_NO_WF_UNSCHEDULED' THEN SELECT 3 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_PUBLISHING_FAILED' THEN SELECT 131 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'NEW_DELETED' THEN SELECT 5 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_UNEDITED_LOCKED' THEN SELECT 520 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_UNEDITED_UNLOCKED' THEN SELECT 512 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_EDITED_LOCKED' THEN SELECT 10 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_EDITED_UNLOCKED' THEN SELECT 2 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED' THEN SELECT 98 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN SELECT 106 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED' THEN SELECT 34 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN SELECT 42 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED' THEN SELECT 66 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN SELECT 74 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_SUBMITTED_NO_WF_UNSCHEDULED' THEN SELECT 2 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_PUBLISHING_FAILED' THEN SELECT 130 + 16 * v_sys_process INTO v_state;
+            WHEN v_state = 'EXISTING_DELETED' THEN SELECT 4 + 16 * v_sys_process INTO v_state;
+            ELSE SELECT 0 INTO v_state;
+            END CASE;
+        SELECT a.id INTO v_owned_by FROM (SELECT id FROM user WHERE username = v_owner UNION SELECT id from user WHERE username = v_owner LIMIT 1) as a;
+        SELECT a.id INTO v_created_by FROM (SELECT id FROM user WHERE username = v_creator UNION SELECT id from user WHERE username = v_creator LIMIT 1) as a;
+        SELECT a.id INTO v_last_modified_by FROM (SELECT id FROM user WHERE username = v_modifier UNION SELECT id from user WHERE username = v_modifier LIMIT 1) as a;
+        INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, commit_id)
+        VALUES (v_site_id, v_path, v_path, v_state, v_owned_by, v_created_by, v_created_on, v_last_modified_by, v_last_modified_on, v_commit_id);
     end loop insert_item;
+    SELECT COUNT(1) FROM item WHERE site_id = v_site_id;
 END ;
 
 CREATE TABLE _meta (
@@ -420,7 +458,7 @@ CREATE TABLE IF NOT EXISTS `group`
   `id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
   `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `org_id`              BIGINT(20)  NOT NULL,
-  `group_name`          VARCHAR(32) NOT NULL,
+  `group_name`          VARCHAR(512) NOT NULL,
   `group_description`   TEXT,
   PRIMARY KEY (`id`),
   INDEX `group_ix_record_last_updated` (`record_last_updated` DESC),
@@ -507,8 +545,8 @@ CREATE TABLE IF NOT EXISTS `item_translation` (
   `locale_code`             VARCHAR(16)     NOT NULL,
   `date_translated`         TIMESTAMP       NOT NULL,
   PRIMARY KEY (`id`),
-  FOREIGN KEY `item_translation_ix_source`(`source_id`) REFERENCES `item` (`id`),
-  FOREIGN KEY `item_translation_ix_translation`(`translation_id`) REFERENCES `item` (`id`)
+  FOREIGN KEY `item_translation_ix_source`(`source_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY `item_translation_ix_translation`(`translation_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
