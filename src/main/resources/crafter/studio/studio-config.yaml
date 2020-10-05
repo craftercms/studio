@@ -90,6 +90,14 @@ studio.blob.publishingTarget: preview
 studio.blob.intercepted.paths:
   - /static-assets/.*
 
+##################################################
+##                Content Service               ##
+##################################################
+# The max length for filenames (depends on the platform & filesystem used)
+studio.content.filename.maxSize: 255
+# The max length for the full path of files (this needs to be in sync the the db schema)
+studio.content.fullPath.maxSize: 1024
+
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################

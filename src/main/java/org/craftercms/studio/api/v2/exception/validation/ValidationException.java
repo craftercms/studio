@@ -13,13 +13,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.validation;
 
-package org.craftercms.studio.api.v1.service.content;
-
-import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-public interface ImportService {
+/**
+ * Base exception for all data validations
+ *
+ * @author joseross
+ * @since 3.2.0
+ */
+public abstract class ValidationException extends ServiceLayerException {
 
-    void importSite(String configLocation) throws ServiceLayerException, ValidationException;
+    public ValidationException() {
+    }
+
+    public ValidationException(String message) {
+        super(message);
+    }
+
+    public ValidationException(String message, Exception e) {
+        super(message, e);
+    }
+
 }
