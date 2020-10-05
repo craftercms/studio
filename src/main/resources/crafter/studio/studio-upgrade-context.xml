@@ -25,6 +25,7 @@
         <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
         <constructor-arg name="contentRepository" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="instanceService" ref="instanceService"/>
 
         <constructor-arg name="configurationFile"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_CONFIGURATION_FILE)}"/>

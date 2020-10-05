@@ -54,7 +54,7 @@ public class SiteVersionProvider extends XmlFileVersionProvider {
             try (InputStream in = defaultFile.getInputStream();
                  OutputStream out = Files.newOutputStream(file)) {
                 IOUtils.copy(in, out);
-                studioContext.commitChanges("Upgrade Manager: Add version file", path);
+                studioContext.commitChanges("[Upgrade Manager] Add version file", path);
 
             }
         } else {

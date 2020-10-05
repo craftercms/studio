@@ -16,6 +16,7 @@
 package org.craftercms.studio.impl.v2.upgrade;
 
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -28,11 +29,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNoneEmpty;
 import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.GLOBAL_REPO_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
@@ -49,6 +54,8 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  */
 public class StudioUpgradeContext extends UpgradeContext<String> {
 
+    public static final String COMMIT_IDENTIFIER_FORMAT = "%s,%s,%s";
+
     /**
      * Studio configuration
      */
@@ -60,6 +67,11 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
     protected DataSource dataSource;
 
     /**
+     * The instance service
+     */
+    protected InstanceService instanceService;
+
+    /**
      * The name of the config file being upgraded
      */
     protected String currentConfigName;
@@ -69,10 +81,12 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
      */
     protected String currentConfigPath;
 
-    public StudioUpgradeContext(String target, StudioConfiguration studioConfiguration, DataSource dataSource) {
+    public StudioUpgradeContext(String target, StudioConfiguration studioConfiguration, DataSource dataSource,
+                                InstanceService instanceService) {
         super(target);
         this.studioConfiguration = studioConfiguration;
         this.dataSource = dataSource;
+        this.instanceService = instanceService;
     }
 
     public DataSource getDataSource() {
@@ -155,10 +169,20 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
 
             if (!status.isClean()) {
                 git.commit()
-                        .setMessage(message)
+                        .setMessage(message + "\n\n" + getIdentifier())
                         .call();
             }
         }
+    }
+
+    /**
+     * Returns the identifier for this particular Studio instance
+     */
+    protected String getIdentifier() {
+        var activeEnvironment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+        var identifier=  format(COMMIT_IDENTIFIER_FORMAT, instanceService.getInstanceId(), activeEnvironment,
+                System.getProperty("user.name"));
+        return Base64.getEncoder().encodeToString(identifier.getBytes(UTF_8));
     }
 
     /**
