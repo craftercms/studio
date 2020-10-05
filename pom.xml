@@ -45,7 +45,7 @@
         <studio.ui.version>support/3.1.x</studio.ui.version><!-- craftercms ui version flag -->
         <studio.ui.node.version>v13.6.0</studio.ui.node.version>
         <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
-        <spring.version>4.3.18.RELEASE</spring.version>
+        <spring.version>4.3.29.RELEASE</spring.version>
         <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
