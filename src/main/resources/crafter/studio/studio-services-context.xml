@@ -18,14 +18,16 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
     <import resource="classpath:crafter/studio/database-context.xml"/>
     <import resource="classpath:crafter/studio/studio-upgrade-context.xml"/>
     <import resource="classpath:crafter/studio/studio-search-context.xml"/>
 
-
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
       <!-- ////////////////////////////////////// -->
       <!--         logging                        -->
       <!-- ////////////////////////////////////// -->
@@ -794,6 +796,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -804,6 +807,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <!-- /////// -->

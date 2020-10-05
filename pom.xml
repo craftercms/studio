@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.9-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.10-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -37,7 +37,6 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tika.version>1.5</tika.version>
         <mockito.version>1.9.5</mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
@@ -46,19 +45,19 @@
         <studio.ui.version>support/3.1.x-es-7</studio.ui.version><!-- craftercms ui version flag -->
         <studio.ui.node.version>v13.6.0</studio.ui.node.version>
         <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
-        <spring.version>4.3.18.RELEASE</spring.version>
+        <spring.version>4.3.29.RELEASE</spring.version>
         <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
-        <mariadb4j.version>2.4.7</mariadb4j.version>
-        <jackson.version>2.10.3</jackson.version>
-        <jackson.databind.version>2.10.3</jackson.databind.version>
+        <mariadb4j.version>2.4.8</mariadb4j.version>
+        <jackson.version>2.10.5</jackson.version>
+        <jackson.databind.version>2.10.5</jackson.databind.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.9</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
-        <apache.cxf.version>3.1.18</apache.cxf.version>
+        <apache.cxf.version>3.3.5</apache.cxf.version>
         <nekohtml.version>1.9.22</nekohtml.version>
         <xerces.version>2.12.0</xerces.version>
     </properties>

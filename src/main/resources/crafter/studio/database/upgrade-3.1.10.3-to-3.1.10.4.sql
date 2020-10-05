@@ -14,13 +14,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.craftercms.sites.editorial.SearchHelper
-import org.craftercms.sites.editorial.ProfileUtils
+CREATE TABLE IF NOT EXISTS cluster_remote_repository
+(
+  `cluster_id`                  BIGINT(20)    NOT NULL,
+  `remote_repository_id`        BIGINT(20)    NOT NULL,
+  `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cluster_id`, `remote_repository_id`),
+  FOREIGN KEY cluster_remote_ix_cluster_id(`cluster_id`) REFERENCES `cluster` (`id`)
+    ON DELETE CASCADE,
+  FOREIGN KEY cluster_remote_ix_remote_id(`remote_repository_id`) REFERENCES `remote_repository` (`id`)
+    ON DELETE CASCADE
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
 
-def segment = ProfileUtils.getSegment(authToken.principal, siteItemService)
-def searchHelper = new SearchHelper(elasticsearch, urlTransformationService)
-// articleCategories and articlePath should be provided as additionalModel of the component and
-// should be the categories of the current article
-def articles = searchHelper.searchArticles(false, articleCategories, segment, 0, 3, "-localId:\"${articlePath}\"")
-
-templateModel.articles = articles
+UPDATE _meta SET version = '3.1.10.4' ;

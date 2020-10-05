@@ -146,6 +146,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodeSandobxSyncTask.setDeploymentService(deploymentService);
                                                 nodeSandobxSyncTask.setEventService(eventService);
                                                 nodeSandobxSyncTask.setEncryptor(encryptor);
+                                                nodeSandobxSyncTask.setClusterDao(clusterDAO);
+                                                nodeSandobxSyncTask.setLocalAddress(localAddress);
                                                 taskExecutor.execute(nodeSandobxSyncTask);
                                                 break;
                                             case PUBLISHED:
@@ -172,6 +174,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                         }
                     }
                 }
+            } catch (Exception err) {
+                logger.error("Error while executing cluster sync job", err);
             } finally {
                 singleWorkerLock.unlock();
             }

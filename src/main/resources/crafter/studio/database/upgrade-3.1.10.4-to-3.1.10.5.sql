@@ -13,14 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+ALTER TABLE `group` MODIFY `group_name` VARCHAR(512) NOT NULL ;
 
-import org.craftercms.sites.editorial.SearchHelper
-import org.craftercms.sites.editorial.ProfileUtils
-
-def segment = ProfileUtils.getSegment(authToken.principal, siteItemService)
-def searchHelper = new SearchHelper(elasticsearch, urlTransformationService)
-// articleCategories and articlePath should be provided as additionalModel of the component and
-// should be the categories of the current article
-def articles = searchHelper.searchArticles(false, articleCategories, segment, 0, 3, "-localId:\"${articlePath}\"")
-
-templateModel.articles = articles
+UPDATE _meta SET version = '3.1.10.5' ;

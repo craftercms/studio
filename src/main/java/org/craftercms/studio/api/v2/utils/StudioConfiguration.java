@@ -82,6 +82,8 @@ public interface StudioConfiguration {
     String DB_DATA_PATH = "studio.db.dataPath";
     String DB_PORT = "studio.db.port";
     String DB_SOCKET = "studio.db.socket";
+    String DB_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.db.retryingOperation.maxAttempts";
+    String DB_RETRYING_OPERATION_MAX_SLEEP = "studio.db.retryingOperation.maxSleep";
 
 
     /** Configuration */
@@ -273,6 +275,7 @@ public interface StudioConfiguration {
     String PUBLISHING_THREAD_POOL_NAME_PREFIX = "studio.publishing.threadPool.namePrefix";
     String PUBLISHING_THREAD_POOL_CORE_POOL_SIZE = "studio.publishing.threadPool.corePoolSize";
     String PUBLISHING_THREAD_POOL_MAX_POOL_SIZE = "studio.publishing.threadPool.maxPoolSize";
+    String PUBLISHING_SITE_LOCK_TTL = "studio.publishing.siteLock.ttl";
 
     /** Clustering **/
     String CLUSTERING_SYNC_URL_FORMAT = "studio.clustering.sync.urlFormat";
