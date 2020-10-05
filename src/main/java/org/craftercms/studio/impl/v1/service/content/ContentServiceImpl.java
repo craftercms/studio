@@ -88,7 +88,6 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.exception.validation.FilenameTooLongException;
 import org.craftercms.studio.api.v2.exception.validation.PathTooLongException;
-import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -105,6 +104,7 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
@@ -144,13 +144,15 @@ import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_OFF_
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_FILENAME_MAX_SIZE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_FULLPATH_MAX_SIZE;
 
 /**
  * Content Services that other services may use
  * @author russdanner
  * @author Sumer Jabri
  */
-public class ContentServiceImpl implements ContentService {
+public class ContentServiceImpl implements ContentService, InitializingBean {
     // TODO: SJ: Refactor in 2.7.x to leverage Crafter Core as this will automatically enable inheritance, caching and
     // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
@@ -180,6 +182,9 @@ public class ContentServiceImpl implements ContentService {
     protected UserService userService;
     protected ItemServiceInternal itemServiceInternal;
 
+    protected int filenameMaxSize;
+    protected int fullPathMaxSize;
+
     /**
      * file and folder name patterns for copied files and folders
      */
@@ -191,6 +196,12 @@ public class ContentServiceImpl implements ContentService {
 
     public final static String INTERNAL_NAME_MODIFIER_PATTERN = "\\s\\(Copy \\d+\\)";
     public final static String INTERNAL_NAME_MODIFIER_FORMAT = "%s (Copy %s)";
+
+    @Override
+    public void afterPropertiesSet() {
+        filenameMaxSize = studioConfiguration.getProperty(CONTENT_FILENAME_MAX_SIZE, Integer.class);
+        fullPathMaxSize = studioConfiguration.getProperty(CONTENT_FULLPATH_MAX_SIZE, Integer.class);
+    }
 
     @Override
     @ValidateParams
@@ -2626,12 +2637,12 @@ public class ContentServiceImpl implements ContentService {
 
     //TODO: Move this to a fixed always-on site policy when implemented
     protected void validateContent(String path, String filename) throws ServiceLayerException {
-        if (filename.length() >= 255) {
+        if (filename.length() >= filenameMaxSize) {
             throw new FilenameTooLongException(filename);
         }
 
         var fullPath = FilenameUtils.concat(path, filename);
-        if (fullPath.length() >= 1024) {
+        if (fullPath.length() >= fullPathMaxSize) {
             throw new PathTooLongException(fullPath);
         }
     }

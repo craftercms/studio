@@ -328,6 +328,10 @@ public interface StudioConfiguration {
     /** Cache Configuration  **/
     String CACHE_TEMPLATES = "studio.cache.templates";
 
+    /* Content validation */
+    String CONTENT_FILENAME_MAX_SIZE = "studio.content.filename.maxSize";
+    String CONTENT_FULLPATH_MAX_SIZE = "studio.content.fullPath.maxSize";
+
     void loadConfig();
 
     String getProperty(String key);
