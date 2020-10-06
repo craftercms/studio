@@ -18,12 +18,14 @@ package org.craftercms.studio.impl.v2.service.item.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -31,6 +33,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,12 +57,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private UserServiceInternal userServiceInternal;
     private SiteFeedMapper siteFeedMapper;
     private ItemDAO itemDao;
+    private ServicesConfig servicesConfig;
 
     public ItemServiceInternalImpl(SiteFeedMapper siteFeedMapper, ItemDAO itemDao,
-                                   UserServiceInternal userServiceInternal) {
+                                   UserServiceInternal userServiceInternal, ServicesConfig servicesConfig) {
         this.siteFeedMapper = siteFeedMapper;
         this.itemDao = itemDao;
         this.userServiceInternal = userServiceInternal;
+        this.servicesConfig = servicesConfig;
     }
 
     @Override
@@ -341,5 +346,37 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         if (CollectionUtils.isNotEmpty(paths)) {
             itemDao.deleteItemsForSiteAndPath(siteId, paths);
         }
+    }
+
+    @Override
+    public String getBrowserUrl(String site, String path) {
+        String replacePattern;
+        boolean isPage = false;
+        if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
+                StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+            replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
+        } else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site))) {
+            replacePattern = DmConstants.ROOT_PATTERN_ASSETS;
+        } else if (ContentUtils.matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
+            replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
+        } else {
+            replacePattern = DmConstants.ROOT_PATTERN_PAGES;
+            isPage = true;
+        }
+
+        return getBrowserUri(path, replacePattern, isPage);
+    }
+
+    protected String getBrowserUri(String uri, String replacePattern, boolean isPage) {
+        String browserUri = uri.replaceFirst(replacePattern, "");
+        browserUri = browserUri.replaceFirst(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+        if (browserUri.length() == 0) {
+            browserUri = FILE_SEPARATOR;
+        }
+        // TODO: come up with a better way of doing this.
+        if (isPage) {
+            browserUri = browserUri.replaceFirst("\\.xml", ".html");
+        }
+        return browserUri;
     }
 }

@@ -261,4 +261,12 @@ public interface ItemServiceInternal {
      * @param paths list of item paths to delete
      */
     void deleteItemsForSiteAndPaths(long siteId, List<String> paths);
+
+    /**
+     * Get browser url for given repository item
+     * @param site site identifier
+     * @param path path of the content
+     * @return browser url
+     */
+    String getBrowserUrl(String site, String path);
 }

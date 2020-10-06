@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -41,6 +42,9 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
 
 import java.io.InputStream;
 import java.time.ZoneOffset;
@@ -227,12 +231,27 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                 // Item
                 // TODO: get local code with API 2
+                Document document =
+                        contentService.getContentAsDocument(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
+                String label = fileName;
+                String contentTypeId  =
+                        contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
+                String disabled = "false";
+                if(document != null) {
+                    Element rootElement = document.getRootElement();
+
+                    label = rootElement.valueOf("internal-name");
+                    contentTypeId = rootElement.valueOf("content-type");
+                    disabled = rootElement.valueOf("disabled");
+                }
                 Item item = itemServiceInternal.instantiateItemAfterWrite(site,
-                        parentItem.getUri() + FILE_SEPARATOR + fileName, user, ZonedDateTime.now(), fileName,
-                        contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
-                        Locale.US.toString(), result.getCommitId(),
+                        parentItem.getUri() + FILE_SEPARATOR + fileName, user, ZonedDateTime.now(), label,
+                        contentTypeId, Locale.US.toString(), result.getCommitId(),
                         contentRepository.getContentSize(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
                         Optional.of(unlock));
+                item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
+                item.setPreviewUrl(
+                        itemServiceInternal.getBrowserUrl(site, parentItem.getUri() + FILE_SEPARATOR + fileName));
                 itemServiceInternal.upsertEntry(site, item);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
@@ -304,9 +323,26 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // Item
             // TODO: get local code with API 2
+            String label = FilenameUtils.getName(path);
+            String contentTypeId = contentService.getContentTypeClass(site, path);
+            String disabled = "false";
+            try {
+                Document document = contentService.getContentAsDocument(site, path);
+                if (document != null) {
+                    Element rootElement = document.getRootElement();
+
+                    label = rootElement.valueOf("internal-name");
+                    contentTypeId = rootElement.valueOf("content-type");
+                    disabled = rootElement.valueOf("disabled");
+                }
+            } catch (DocumentException e) {
+                logger.error("Error while processing content and extracting metadata for " + site + " - " + path, e);
+            }
             Item item = itemServiceInternal.instantiateItemAfterWrite(site, path, user, ZonedDateTime.now(),
-                    contentItem.getInternalName(), contentService.getContentTypeClass(site, path), Locale.US.toString(),
+                    label, contentTypeId, Locale.US.toString(),
                     result.getCommitId(), contentRepository.getContentSize(site, path), Optional.of(unlock));
+            item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
+            item.setPreviewUrl(itemServiceInternal.getBrowserUrl(site, path));
             itemServiceInternal.upsertEntry(site, item);
         }
 

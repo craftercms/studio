@@ -1178,6 +1178,9 @@ public class SiteServiceImpl implements SiteService {
             Map<String, Object> properties;
             ItemMetadata metadata;
             userObj = userServiceInternal.getUserByGitName(repoOperation.getAuthor());
+            String label = FilenameUtils.getName(repoOperation.getPath());
+            String contentTypeId = contentService.getContentTypeClass(site, repoOperation.getPath());
+            String disabled = "false";
             switch (repoOperation.getAction()) {
                 case CREATE:
                 case COPY:
@@ -1215,16 +1218,29 @@ public class SiteServiceImpl implements SiteService {
                     }
 
                     // Item
+                    try {
+                        Document document = contentService.getContentAsDocument(site, repoOperation.getPath());
+                        if (document != null) {
+                            Element rootElement = document.getRootElement();
+
+                            label = rootElement.valueOf("internal-name");
+                            contentTypeId = rootElement.valueOf("content-type");
+                            disabled = rootElement.valueOf("disabled");
+                        }
+                    } catch (DocumentException e) {
+                        logger.error("Error while processing content and extracting metadata for " + site + " - "
+                                + repoOperation.getPath(), e);
+                    }
                     item = itemServiceInternal.instantiateItem(getSite(site).getId(), site, repoOperation.getPath(),
-                            repoOperation.getPath(), NEW.value, userObj.getId(), userObj.getUsername(),
-                            userObj.getId(), userObj.getUsername(), repoOperation.getDateTime(), userObj.getId(),
-                            userObj.getUsername(), repoOperation.getDateTime(),
-                            FilenameUtils.getName(repoOperation.getPath()), contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()), "file",
+                            itemServiceInternal.getBrowserUrl(site, repoOperation.getPath()), NEW.value,
+                            userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
+                            repoOperation.getDateTime(), userObj.getId(), userObj.getUsername(),
+                            repoOperation.getDateTime(), label, contentTypeId, "file",
                             StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, false,
                             Locale.US.toString(), null,
                             contentRepository.getContentSize(site, repoOperation.getPath()), null,
                             repoOperation.getCommitId());
+                    item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
                     itemServiceInternal.upsertEntry(site, item);
 
                     break;
@@ -1257,12 +1273,25 @@ public class SiteServiceImpl implements SiteService {
 
                     // Item
                     // TODO: Replace with API 2
+                    try {
+                        Document document = contentService.getContentAsDocument(site, repoOperation.getPath());
+                        if (document != null) {
+                            Element rootElement = document.getRootElement();
+
+                            label = rootElement.valueOf("internal-name");
+                            contentTypeId = rootElement.valueOf("content-type");
+                            disabled = rootElement.valueOf("disabled");
+                        }
+                    } catch (DocumentException e) {
+                        logger.error("Error while processing content and extracting metadata for " + site + " - "
+                                + repoOperation.getPath(), e);
+                    }
                     item = itemServiceInternal.instantiateItemAfterWrite(site, repoOperation.getPath(),
-                            userObj.getUsername(), repoOperation.getDateTime(),
-                            FilenameUtils.getName(repoOperation.getPath()),
-                            contentService.getContentTypeClass(site, repoOperation.getPath()), Locale.US.toString(),
-                            repoOperation.getCommitId(),
+                            userObj.getUsername(), repoOperation.getDateTime(), label, contentTypeId,
+                            Locale.US.toString(), repoOperation.getCommitId(),
                             contentRepository.getContentSize(site, repoOperation.getPath()), Optional.empty());
+                    item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
+                    item.setPreviewUrl(itemServiceInternal.getBrowserUrl(site, repoOperation.getPath()));
                     itemServiceInternal.upsertEntry(site, item);
                     break;
 
@@ -1351,13 +1380,27 @@ public class SiteServiceImpl implements SiteService {
 
                     // Item
                     // TODO: API 2 goes here
+                    try {
+                        Document document = contentService.getContentAsDocument(site, repoOperation.getMoveToPath());
+                        if (document != null) {
+                            Element rootElement = document.getRootElement();
+
+                            label = rootElement.valueOf("internal-name");
+                            contentTypeId = rootElement.valueOf("content-type");
+                            disabled = rootElement.valueOf("disabled");
+                        }
+                    } catch (DocumentException e) {
+                        logger.error("Error while processing content and extracting metadata for " + site + " - "
+                                + repoOperation.getPath(), e);
+                    }
                     item = itemServiceInternal.instantiateItemAfterWrite(site, repoOperation.getPath(),
                             userObj.getUsername(), repoOperation.getDateTime(),
-                            contentService.getContentTypeClass(site, repoOperation.getMoveToPath()),
+                            contentTypeId,
                             repoOperation.getMoveToPath(), Locale.US.toString(), repoOperation.getCommitId(),
                             contentRepository.getContentSize(site,repoOperation.getMoveToPath()), Optional.empty());
+                    item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
                     item.setPath(repoOperation.getMoveToPath());
-                    item.setPreviewUrl(repoOperation.getMoveToPath());
+                    item.setPreviewUrl(itemServiceInternal.getBrowserUrl(site, repoOperation.getMoveToPath()));
                     itemServiceInternal.upsertEntry(site, item);
 
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
