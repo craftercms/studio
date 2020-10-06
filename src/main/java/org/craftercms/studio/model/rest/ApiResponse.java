@@ -59,10 +59,10 @@ public class ApiResponse {
             "Try a different group name", StringUtils.EMPTY);
 
     // 5000 - 6000
-    public static final ApiResponse PROJECT_NOT_FOUND = new ApiResponse(5000, "Project not found",
-            "Check if you sent in the right Project Id", StringUtils.EMPTY);
-    public static final ApiResponse PROJECT_ALREADY_EXISTS = new ApiResponse(5001, "Project already exists",
-            "Try a different project name", StringUtils.EMPTY);
+    public static final ApiResponse SITE_NOT_FOUND = new ApiResponse(5000, "Site not found",
+            "Check if you sent in the right Site Id", StringUtils.EMPTY);
+    public static final ApiResponse SITE_ALREADY_EXISTS = new ApiResponse(5001, "Site already exists",
+            "Try a different site name", StringUtils.EMPTY);
 
     // 6000 - 7000
     public static final ApiResponse USER_NOT_FOUND = new ApiResponse(6000, "User not found",

@@ -72,6 +72,13 @@ pipelines:
             filename: upgrade-3.2.0.10-to-3.2.0.11.sql
             spName: populateItemTable
             clearExistingData: true
+      - currentVersion: 3.2.0.11
+        nextVersion: 3.2.0.12
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/3.2.x/3.2.0.12/system/global-permission-mappings-config.xslt
+            commitDetails: Add new permission 'edit_site'
 
   # Pipeline to upgrade site repositories
   site:
@@ -143,6 +150,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/3.2.x/config/permission-mappings-config/permission-mappings-config-v13.xslt
               commitDetails: Added get_children permission
+        - currentVersion: 13
+          nextVersion: 14
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/3.2.x/config/permission-mappings-config/permission-mappings-config-v14.xslt
+              commitDetails: Add new permission 'edit_site'
 
   role-mappings-config:
     module: studio

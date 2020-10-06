@@ -42,8 +42,6 @@ import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-
 /**
  * Note: consider renaming
  * A site in Crafter Studio is currently the name for a WEM project being managed.
@@ -110,46 +108,47 @@ public interface SiteService {
 
     int countSites();
 
-    /**
-     * Create a new site based on an existing blueprint
-     * @param blueprintName blueprint name to create site
-     * @param siteName site name
-     * @param siteId site identifier
+	/**
+	 * Create a new site based on an existing blueprint
+	 * @param blueprintName blueprint name to create site
+	 * @param siteId site identifier
+	 * @param siteName site name
 	 * @param sandboxBranch sandbox branch name
-     * @param desc description
-     * @param params site parameters
-     * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 * @param desc description
+	 * @param params site parameters
+	 * @param createAsOrphan create the site from a remote repository as orphan (no git history)
 	 *
 	 * @throws SiteAlreadyExistsException site already exists
 	 * @throws SiteCreationException error during site creation process
 	 * @throws DeployerTargetException error creating deployer targets
 	 * @throws BlueprintNotFoundException blueprint not found
 	 * @throws MissingPluginParameterException missing mandatory blueprint parameters
-     */
-    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
-                                 String desc, Map<String, String> params, boolean createAsOrphan)
-            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-            BlueprintNotFoundException, MissingPluginParameterException;
+	 */
+	void createSiteFromBlueprint(String blueprintName, String siteId, String siteName, String sandboxBranch,
+								 String desc, Map<String, String> params, boolean createAsOrphan)
+			throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
+			BlueprintNotFoundException, MissingPluginParameterException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
      *
      * @param siteId site identifier
-     * @param sandboxBranch sandbox branch name
-     * @param description description
-     * @param blueprintName name of the blueprint to create site
-     * @param remoteName remote repository name
-     * @param remoteUrl remote repository url
-     * @param remoteBranch remote repository branch to create site from
-     * @param singleBranch clone single branch if true, otherwise clone whole repo
-     * @param authenticationType remote repository authentication type
-     * @param remoteUsername remote repository username to use for authentication
-     * @param remotePassword remote repository username to use for authentication
-     * @param remoteToken remote repository username to use for authentication
-     * @param remotePrivateKey remote repository username to use for authentication
-     * @param createOption remote repository username to use for authentication
-     * @param params site parameters
-     * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 * @param siteName the name of the site
+	 * @param sandboxBranch sandbox branch name
+	 * @param description description
+	 * @param blueprintName name of the blueprint to create site
+	 * @param remoteName remote repository name
+	 * @param remoteUrl remote repository url
+	 * @param remoteBranch remote repository branch to create site from
+	 * @param singleBranch clone single branch if true, otherwise clone whole repo
+	 * @param authenticationType remote repository authentication type
+	 * @param remoteUsername remote repository username to use for authentication
+	 * @param remotePassword remote repository username to use for authentication
+	 * @param remoteToken remote repository username to use for authentication
+	 * @param remotePrivateKey remote repository username to use for authentication
+	 * @param createOption remote repository username to use for authentication
+	 * @param params site parameters
+	 * @param createAsOrphan create the site from a remote repository as orphan (no git history)
 	 *
 	 * @throws ServiceLayerException general service error
 	 * @throws InvalidRemoteRepositoryException invalid remote repository
@@ -158,11 +157,11 @@ public interface SiteService {
 	 * @throws RemoteRepositoryNotBareException remote repository is not bare
 	 * @throws InvalidRemoteUrlException invalid remote url
      */
-    void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
-                                    String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
-                                    String authenticationType, String remoteUsername, String remotePassword,
-                                    String remoteToken, String remotePrivateKey, String createOption,
-                                    Map<String, String> params, boolean createAsOrphan)
+    void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
+									String blueprintName, String remoteName, String remoteUrl, String remoteBranch,
+									boolean singleBranch, String authenticationType, String remoteUsername,
+									String remotePassword, String remoteToken, String remotePrivateKey,
+									String createOption, Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 
