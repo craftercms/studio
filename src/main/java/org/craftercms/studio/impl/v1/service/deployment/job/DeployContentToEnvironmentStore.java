@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 import org.springframework.core.task.TaskExecutor;
-
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
@@ -88,9 +87,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             Set<String> siteNames = siteService.getAllAvailableSites();
             if (siteNames != null && siteNames.size() > 0) {
                 for (String site : siteNames) {
-
                     PublisherTask publisherTask = new PublisherTask(site, studioConfiguration, siteService,
-                            publishingManager, servicesConfig,contentRepository, notificationService, auditServiceInternal);
+                            publishingManager, servicesConfig, contentRepository, notificationService, auditServiceInternal);
                     taskExecutor.execute(publisherTask);
                 }
             }

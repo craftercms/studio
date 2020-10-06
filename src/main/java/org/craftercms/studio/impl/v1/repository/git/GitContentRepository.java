@@ -42,18 +42,24 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -133,7 +139,9 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_FROM_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
@@ -146,6 +154,7 @@ import static org.craftercms.studio.api.v2.dal.RemoteRepository.AuthenticationTy
 import static org.craftercms.studio.api.v2.dal.RemoteRepository.AuthenticationType.TOKEN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COPY_CONTENT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_FOLDER_COMMIT_MESSAGE;
@@ -186,6 +195,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected UserServiceInternal userServiceInternal;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
+    protected ClusterDAO clusterDao;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -371,6 +381,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String deleteContent(String site, String path, String approver) {
         String commitId = null;
+        boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
         try {
             GitRepositoryHelper helper =
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
@@ -379,13 +390,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 try (Git git = new Git(repo)) {
                     String pathToDelete = helper.getGitPath(path);
-                    Path toDelete = Paths.get(repo.getDirectory().getParent(), pathToDelete);
                     Path parentToDelete = Paths.get(pathToDelete).getParent();
                     git.rm().addFilepattern(pathToDelete).setCached(false).call();
 
                     String pathToCommit = pathToDelete;
-                    if (toDelete.toFile().isFile()) {
-                        pathToCommit = deleteParentFolder(git, parentToDelete);
+                    if (isPage) {
+                        pathToCommit = deleteParentFolder(git, parentToDelete, true);
                     }
 
                     // TODO: SJ: we need to define messages in a string table of sorts
@@ -396,7 +406,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 }
             }
-        } catch (GitAPIException | UserNotFoundException e) {
+        } catch (GitAPIException | UserNotFoundException | IOException e) {
             logger.error("Error while deleting content for site: " + site + " path: " + path, e);
         } catch (ServiceLayerException | CryptoException e) {
             logger.error("Unknown service error during delete for site: " + site + " path: " + path, e);
@@ -404,27 +414,41 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return commitId;
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException, CryptoException {
+    private String deleteParentFolder(Git git, Path parentFolder, boolean wasPage)
+            throws GitAPIException, CryptoException, IOException {
         String parent = parentFolder.toString();
         String toRet = parent;
         GitRepositoryHelper helper =
                 GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-        String[] children = toDelete.toFile().list();
-        if (children != null && children.length < 2) {
-            if (children.length == 1 || children[0].equals(".keep")) {
-                Path ancestor = parentFolder.getParent();
-                git.rm()
-                        .addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep"))
-                        .setCached(false)
-                        .call();
-            } else {
-                Path ancestor = parentFolder.getParent();
-                git.rm()
-                        .addFilepattern(helper.getGitPath(parentFolder.toString()))
-                        .setCached(false)
-                        .call();
+        List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+        List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
+                .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+        if (wasPage ||
+                (CollectionUtils.isEmpty(dirs) &&
+                        (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+            if (CollectionUtils.isNotEmpty(dirs)) {
+                for (String child : dirs) {
+                    Path childToDelete = Paths.get(folderToDelete, child);
+                    deleteParentFolder(git, childToDelete, false);
+                    git.rm()
+                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                            .setCached(false)
+                            .call();
+
+                }
+            }
+
+            if (CollectionUtils.isNotEmpty(files)) {
+                for (String child : files) {
+                    git.rm()
+                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                            .setCached(false)
+                            .call();
+
+                }
             }
         }
         return toRet;
@@ -1207,6 +1231,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
 
+    @RetryingOperation
     @Override
     public void deleteGitLogForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -1465,8 +1490,29 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         logger.debug("Insert site remote record into database");
         remoteRepositoryDAO.insertRemoteRepository(params);
+        params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
+        if (remoteRepository != null) {
+            insertClusterRemoteRepository(remoteRepository);
+        }
     }
 
+    @RetryingOperation
+    public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
+        HierarchicalConfiguration<ImmutableNode> registrationData =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        if (registrationData != null && !registrationData.isEmpty()) {
+            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+            ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
+            if (member != null) {
+                clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+            }
+        }
+    }
+
+    @RetryingOperation
     @Override
     public void removeRemoteRepositoriesForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -1941,4 +1987,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.encryptor = encryptor;
     }
 
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
 }

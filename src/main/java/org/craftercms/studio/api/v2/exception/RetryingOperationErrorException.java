@@ -14,13 +14,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.craftercms.sites.editorial.SearchHelper
-import org.craftercms.sites.editorial.ProfileUtils
+package org.craftercms.studio.api.v2.exception;
 
-def segment = ProfileUtils.getSegment(authToken.principal, siteItemService)
-def searchHelper = new SearchHelper(elasticsearch, urlTransformationService)
-// articleCategories and articlePath should be provided as additionalModel of the component and
-// should be the categories of the current article
-def articles = searchHelper.searchArticles(false, articleCategories, segment, 0, 3, "-localId:\"${articlePath}\"")
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-templateModel.articles = articles
+public class RetryingOperationErrorException extends ServiceLayerException {
+
+    public RetryingOperationErrorException() {
+    }
+
+    public RetryingOperationErrorException(Throwable e) {
+        super(e);
+    }
+
+    public RetryingOperationErrorException(String message) {
+        super(message);
+    }
+
+    public RetryingOperationErrorException(String message, Exception e) {
+        super(message, e);
+    }
+}

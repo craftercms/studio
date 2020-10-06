@@ -18,7 +18,12 @@ package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.DeployerTargetException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteCreationException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -36,6 +41,8 @@ import java.util.Set;
 import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 /**
  * Note: consider renaming
@@ -104,7 +111,7 @@ public interface SiteService {
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
                                  String desc, Map<String, String> params, boolean createAsOrphan)
             throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-            BlueprintNotFoundException, MissingPluginParameterException;
+			BlueprintNotFoundException, MissingPluginParameterException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
@@ -312,4 +319,26 @@ public interface SiteService {
      * @return List of deleted sites from DB
      */
     List<SiteFeed> getDeletedSites();
+
+	/**
+	 * Lock publishing for site
+	 * @param siteId site identifier
+	 * @param lockOwnerId lock owner identifier
+	 * @param ttl TTL for lock
+	 * @return true if locking was successful
+	 */
+	boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl);
+
+	/**
+	 * Unlock publishing for site
+	 * @param siteId site identifier
+	 * @return true if unlocking was successful
+	 */
+    boolean unlockPublishingForSite(String siteId, String lockOwnerId);
+
+	/**
+	 * update publishing lock heartbeat for site
+	 * @param siteId site identifier
+	 */
+	void updatePublishingLockHeartbeatForSite(String siteId);
 }

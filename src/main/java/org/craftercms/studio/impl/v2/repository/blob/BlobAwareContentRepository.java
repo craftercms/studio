@@ -25,6 +25,7 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.lang.RegexUtils;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -520,6 +521,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public boolean commitIdExists(String site, String commitId) {
         return localRepositoryV2.commitIdExists(site, commitId);
+    }
+
+    @Override
+    public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
+        return localRepositoryV2.commitIdExists(site, repoType, commitId);
     }
 
     @Override
