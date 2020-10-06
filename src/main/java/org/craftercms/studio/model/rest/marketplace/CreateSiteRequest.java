@@ -46,6 +46,7 @@ public class CreateSiteRequest {
 
     private String description;
 
+    @NotBlank
     private String name;
 
     private Map<String, String> siteParams = new HashMap<>();

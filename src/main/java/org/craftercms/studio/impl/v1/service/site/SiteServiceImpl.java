@@ -385,8 +385,8 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintId") String blueprintId,
-                                        @ValidateNoTagsParam(name = "siteName") String siteName,
                                         @ValidateStringParam(name = "siteId") String siteId,
+                                        @ValidateNoTagsParam(name = "siteName") String siteName,
                                         @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
                                         @ValidateNoTagsParam(name = "desc") String desc,
                                         Map<String, String> params, boolean createAsOrphan)
@@ -442,7 +442,7 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             try {
                 logger.info("Copying site content from blueprint.");
-                success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc, params);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
 
                 logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
@@ -523,8 +523,8 @@ public class SiteServiceImpl implements SiteService {
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
-    protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteName, String siteId,
-                                                 String sandboxBranch, String desc, Map<String, String> params)
+    protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,
+                                                 Map<String, String> params)
             throws Exception {
         boolean success = true;
 
@@ -601,6 +601,7 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId,
+                                           @ValidateStringParam(name = "siteName") String siteName,
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
                                            @ValidateNoTagsParam(name = "description") String description,
                                            String blueprintName,
@@ -610,8 +611,7 @@ public class SiteServiceImpl implements SiteService {
                                            String remoteUsername, String remotePassword, String remoteToken,
                                            String remotePrivateKey,
                                            @ValidateStringParam(name = "createOption") String createOption,
-                                           Map<String, String> params, boolean createAsOrphan,
-                                           String siteName)
+                                           Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -629,16 +629,16 @@ public class SiteServiceImpl implements SiteService {
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.info("Clone from remote repository create option selected");
-                createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
+                createSiteCloneRemote(siteId, siteName, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
                         singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                        params, createAsOrphan, siteName);
+                        params, createAsOrphan);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.info("Push to remote repository create option selected");
-                createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
+                createSitePushToRemote(siteId, siteName, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey, params, createAsOrphan, siteName);
+                        remotePrivateKey, params, createAsOrphan);
                 break;
 
             default:
@@ -650,11 +650,11 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @SuppressWarnings("deprecation")
-    private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
-                                       String remoteUrl, String remoteBranch, boolean singleBranch,
+    private void createSiteCloneRemote(String siteId, String siteName, String sandboxBranch, String description,
+                                       String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
                                        String remoteToken, String remotePrivateKey, Map<String, String> params,
-                                       boolean createAsOrphan, String siteName)
+                                       boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -749,7 +749,7 @@ public class SiteServiceImpl implements SiteService {
 
                 upgradeManager.upgrade(siteId);
 
-                insertCreateSiteAuditLog(siteId, siteId);
+                insertCreateSiteAuditLog(siteId, siteName);
 
                 // Add default groups
                 logger.info("Adding default groups for site " + siteId);
@@ -770,7 +770,7 @@ public class SiteServiceImpl implements SiteService {
                 deleteSite(siteId);
 
                 throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.");
+                        " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
             }
         }
 
@@ -793,11 +793,11 @@ public class SiteServiceImpl implements SiteService {
         logger.info("Finished creating site " + siteId);
     }
 
-    private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintId,
-                                        String remoteName, String remoteUrl, String remoteBranch,
+    private void createSitePushToRemote(String siteId, String siteName, String sandboxBranch, String description,
+                                        String blueprintId, String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
                                         String remoteToken, String remotePrivateKey, Map<String, String> params,
-                                        boolean createAsOrphan, String siteName)
+                                        boolean createAsOrphan)
             throws ServiceLayerException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
@@ -840,8 +840,7 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             try {
                 logger.info("Creating site " + siteId + " from blueprint " + blueprintId);
-                success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description,
-                        params);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
 
                 addSiteUuidFile(siteId, siteUuid);
 
@@ -899,7 +898,7 @@ public class SiteServiceImpl implements SiteService {
                 try {
 
                     logger.debug("Adding audit logs.");
-                    insertCreateSiteAuditLog(siteId, siteId);
+                    insertCreateSiteAuditLog(siteId, siteName);
                     insertAddRemoteAuditLog(siteId, remoteName);
 
                     // Add default groups

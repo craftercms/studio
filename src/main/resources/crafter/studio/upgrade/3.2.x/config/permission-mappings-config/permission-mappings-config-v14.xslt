@@ -36,6 +36,7 @@
         </xsl:if>
     </xsl:template>
 
+    <!-- Add the new permission to any role that has the 'create-site' permission -->
     <xsl:template match="permissions/role/rule/allowed-permissions">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
@@ -48,4 +49,19 @@
             </xsl:if>
         </xsl:copy>
     </xsl:template>
+
+    <!-- Add the new permission to the default site admin role -->
+    <xsl:template match="permissions/role[@name='admin']/rule[@regex='/.*']/allowed-permissions">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates/>
+            <xsl:if test="not(permission = 'edit_site')">
+                <xsl:element name="permission">
+                    <xsl:text>edit_site</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
 </xsl:stylesheet>

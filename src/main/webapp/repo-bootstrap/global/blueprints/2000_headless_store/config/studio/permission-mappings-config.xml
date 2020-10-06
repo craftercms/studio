@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>13</version>
+    <version>14</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -278,6 +278,7 @@
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
+                <permission>edit_site</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">

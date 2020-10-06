@@ -60,19 +60,19 @@ class SpringSiteServices {
         return springBackedService.getAllAvailableSites()
     }
 
-    def createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, params, createAsOrphan) {
+    def createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc, params, createAsOrphan) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc,
+        return springBackedService.createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc,
                 params, createAsOrphan)
     }
 
-    def createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl, remoteBranch,
-                                   singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                                   remotePrivateKey, createOption, params, createAsOrphan, siteName) {
+    def createSiteWithRemoteOption(siteId, siteName, sandboxBranch, description, blueprint, remoteName, remoteUrl,
+                                   remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
+                                   remoteToken, remotePrivateKey, createOption, params, createAsOrphan) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
-                remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption, params, createAsOrphan, siteName)
+        return springBackedService.createSiteWithRemoteOption(siteId, siteName, sandboxBranch, description, blueprint,
+                remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
+                remoteToken, remotePrivateKey, createOption, params, createAsOrphan)
     }
 
     def deleteSite(siteId) {

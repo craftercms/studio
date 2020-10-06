@@ -233,11 +233,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         sitesServiceInternal.validateBlueprintParameters(PluginDescriptor.of(plugin), request.getSiteParams());
 
-        siteService.createSiteWithRemoteOption(request.getSiteId(), request.getSandboxBranch(),
+        siteService.createSiteWithRemoteOption(request.getSiteId(), request.getName(), request.getSandboxBranch(),
             request.getDescription(), request.getBlueprintId(), request.getRemoteName(),
             result.get(PLUGIN_URL).toString(), result.get(PLUGIN_REF).toString(), false,
             RemoteRepository.AuthenticationType.NONE, null, null, null,
             null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
-            true, request.getName());
+            true);
     }
 }

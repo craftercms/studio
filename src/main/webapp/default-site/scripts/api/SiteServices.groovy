@@ -60,20 +60,21 @@ class SiteServices {
         return siteServicesImpl.getAllAvailableSites()
     }
 
-    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, sandboxBranch, desc, params,
+    static createSiteFromBlueprint(context, blueprintName, siteId, siteName, sandboxBranch, desc, params,
                                    createAsOrphan) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, params,
+        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc, params,
                 createAsOrphan)
     }
 
-    static createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl,
-                                      remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                                      remoteToken, remotePrivateKey, createOption, params, createAsOrphan, name) {
+    static createSiteWithRemoteOption(context, siteId, siteName, sandboxBranch, description, blueprint, remoteName,
+                                      remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername,
+                                      remotePassword, remoteToken, remotePrivateKey, createOption, params,
+                                      createAsOrphan) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
-                remoteUrl, remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption, params, createAsOrphan, name)
+        return siteServicesImpl.createSiteWithRemoteOption(siteId, siteName, sandboxBranch, description, blueprint,
+                remoteName, remoteUrl, remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword,
+                remoteToken, remotePrivateKey, createOption, params, createAsOrphan)
     }
 
     static deleteSite(context, siteId) {
