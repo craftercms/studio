@@ -269,4 +269,23 @@ public interface ItemServiceInternal {
      * @return browser url
      */
     String getBrowserUrl(String site, String path);
+
+    /**
+     * Persist item metadata after write
+     * @param siteId site identifier
+     * @param path path of the content
+     * @param username user that executed write operation
+     * @param commitId commit id of the write operation
+     * @param unlock true if content needs to be unlocked after write (save & close), otherwise false
+     */
+    void persistItemAfterWrite(String siteId, String path, String username, String commitId,
+                               Optional<Boolean> unlock) throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Move item
+     * @param siteId site identifier
+     * @param oldPath old path
+     * @param newPath new path
+     */
+    void moveItem(String siteId, String oldPath, String newPath);
 }

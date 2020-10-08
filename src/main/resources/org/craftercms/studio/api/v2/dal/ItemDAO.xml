@@ -219,4 +219,10 @@
             #{path}
         </foreach>
     </delete>
+
+    <update id="moveItem">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET path = #{newPath}
+        WHERE s.site_id = #{siteId} AND i.path = #{oldPath}
+    </update>
 </mapper>

@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -117,7 +116,6 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -149,7 +147,6 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
@@ -1218,31 +1215,8 @@ public class SiteServiceImpl implements SiteService {
                     }
 
                     // Item
-                    try {
-                        Document document = contentService.getContentAsDocument(site, repoOperation.getPath());
-                        if (document != null) {
-                            Element rootElement = document.getRootElement();
-
-                            label = rootElement.valueOf("internal-name");
-                            contentTypeId = rootElement.valueOf("content-type");
-                            disabled = rootElement.valueOf("disabled");
-                        }
-                    } catch (DocumentException e) {
-                        logger.error("Error while processing content and extracting metadata for " + site + " - "
-                                + repoOperation.getPath(), e);
-                    }
-                    item = itemServiceInternal.instantiateItem(getSite(site).getId(), site, repoOperation.getPath(),
-                            itemServiceInternal.getBrowserUrl(site, repoOperation.getPath()), NEW.value,
-                            userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
-                            repoOperation.getDateTime(), userObj.getId(), userObj.getUsername(),
-                            repoOperation.getDateTime(), label, contentTypeId, "file",
-                            StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, false,
-                            Locale.US.toString(), null,
-                            contentRepository.getContentSize(site, repoOperation.getPath()), null,
-                            repoOperation.getCommitId());
-                    item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
-                    itemServiceInternal.upsertEntry(site, item);
-
+                    itemServiceInternal.persistItemAfterWrite(site, repoOperation.getPath(), userObj.getUsername(),
+                            repoOperation.getCommitId(), Optional.empty());
                     break;
 
                 case UPDATE:
@@ -1273,26 +1247,8 @@ public class SiteServiceImpl implements SiteService {
 
                     // Item
                     // TODO: Replace with API 2
-                    try {
-                        Document document = contentService.getContentAsDocument(site, repoOperation.getPath());
-                        if (document != null) {
-                            Element rootElement = document.getRootElement();
-
-                            label = rootElement.valueOf("internal-name");
-                            contentTypeId = rootElement.valueOf("content-type");
-                            disabled = rootElement.valueOf("disabled");
-                        }
-                    } catch (DocumentException e) {
-                        logger.error("Error while processing content and extracting metadata for " + site + " - "
-                                + repoOperation.getPath(), e);
-                    }
-                    item = itemServiceInternal.instantiateItemAfterWrite(site, repoOperation.getPath(),
-                            userObj.getUsername(), repoOperation.getDateTime(), label, contentTypeId,
-                            Locale.US.toString(), repoOperation.getCommitId(),
-                            contentRepository.getContentSize(site, repoOperation.getPath()), Optional.empty());
-                    item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
-                    item.setPreviewUrl(itemServiceInternal.getBrowserUrl(site, repoOperation.getPath()));
-                    itemServiceInternal.upsertEntry(site, item);
+                    itemServiceInternal.persistItemAfterWrite(site, repoOperation.getPath(), userObj.getUsername(),
+                            repoOperation.getCommitId(), Optional.empty());
                     break;
 
                 case DELETE:
@@ -1380,28 +1336,9 @@ public class SiteServiceImpl implements SiteService {
 
                     // Item
                     // TODO: API 2 goes here
-                    try {
-                        Document document = contentService.getContentAsDocument(site, repoOperation.getMoveToPath());
-                        if (document != null) {
-                            Element rootElement = document.getRootElement();
-
-                            label = rootElement.valueOf("internal-name");
-                            contentTypeId = rootElement.valueOf("content-type");
-                            disabled = rootElement.valueOf("disabled");
-                        }
-                    } catch (DocumentException e) {
-                        logger.error("Error while processing content and extracting metadata for " + site + " - "
-                                + repoOperation.getPath(), e);
-                    }
-                    item = itemServiceInternal.instantiateItemAfterWrite(site, repoOperation.getPath(),
-                            userObj.getUsername(), repoOperation.getDateTime(),
-                            contentTypeId,
-                            repoOperation.getMoveToPath(), Locale.US.toString(), repoOperation.getCommitId(),
-                            contentRepository.getContentSize(site,repoOperation.getMoveToPath()), Optional.empty());
-                    item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
-                    item.setPath(repoOperation.getMoveToPath());
-                    item.setPreviewUrl(itemServiceInternal.getBrowserUrl(site, repoOperation.getMoveToPath()));
-                    itemServiceInternal.upsertEntry(site, item);
+                    itemServiceInternal.moveItem(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+                    itemServiceInternal.persistItemAfterWrite(site, repoOperation.getMoveToPath(),
+                            userObj.getUsername(), repoOperation.getCommitId(), Optional.empty());
 
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());

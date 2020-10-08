@@ -194,7 +194,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 return store.getContentSize(site, normalize(path));
             }
-            return localRepositoryV1.getContentSize(site, path);
+            return localRepositoryV2.getContentSize(site, path);
         } catch (Exception e) {
             logger.error("Error getting size for content {0} in site {1}", e, path, site);
             return -1L;

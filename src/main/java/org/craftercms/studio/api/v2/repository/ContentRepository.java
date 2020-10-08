@@ -227,4 +227,12 @@ public interface ContentRepository {
 
     Item getItem(String siteId, String path);
 
+    /**
+     * get file size
+     *
+     * @param site site id where the operation will be executed
+     * @param path path to content
+     * @return Size in bytes
+     */
+    long getContentSize(String site, String path);
 }

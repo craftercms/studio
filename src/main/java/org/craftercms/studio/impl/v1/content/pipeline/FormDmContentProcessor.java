@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -37,21 +36,16 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
 
 import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -208,10 +202,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         if (parentItem != null) {
             // convert file to folder if target path is a file
             String folderPath = fileToFolder(site, parentItem.getUri());
+            String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
             try {
-                contentService.writeContent(site, parentItem.getUri() + FILE_SEPARATOR + fileName, input);
-                if (!objectMetadataManager.metadataExist(site, parentItem.getUri() + FILE_SEPARATOR + fileName)) {
-                    objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
+                contentService.writeContent(site, itemPath, input);
+                if (!objectMetadataManager.metadataExist(site, itemPath)) {
+                    objectMetadataManager.insertNewObjectMetadata(site, itemPath);
                 }
                 Map<String, Object> properties = new HashMap<>();
                 properties.put(ItemMetadata.PROP_NAME, fileName);
@@ -224,35 +219,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 } else {
                     properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
                 }
-                objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName,
-                        properties);
-                result.setCommitId(objectMetadataManager.getProperties(site, parentItem.getUri() + FILE_SEPARATOR +
-                        fileName).getCommitId());
+                objectMetadataManager.setObjectMetadata(site, itemPath, properties);
+                result.setCommitId(objectMetadataManager.getProperties(site, itemPath).getCommitId());
 
                 // Item
                 // TODO: get local code with API 2
-                Document document =
-                        contentService.getContentAsDocument(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
-                String label = fileName;
-                String contentTypeId  =
-                        contentService.getContentTypeClass(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
-                String disabled = "false";
-                if(document != null) {
-                    Element rootElement = document.getRootElement();
-
-                    label = rootElement.valueOf("internal-name");
-                    contentTypeId = rootElement.valueOf("content-type");
-                    disabled = rootElement.valueOf("disabled");
-                }
-                Item item = itemServiceInternal.instantiateItemAfterWrite(site,
-                        parentItem.getUri() + FILE_SEPARATOR + fileName, user, ZonedDateTime.now(), label,
-                        contentTypeId, Locale.US.toString(), result.getCommitId(),
-                        contentRepository.getContentSize(site, parentItem.getUri() + FILE_SEPARATOR + fileName),
-                        Optional.of(unlock));
-                item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
-                item.setPreviewUrl(
-                        itemServiceInternal.getBrowserUrl(site, parentItem.getUri() + FILE_SEPARATOR + fileName));
-                itemServiceInternal.upsertEntry(site, item);
+                itemServiceInternal.persistItemAfterWrite(site, itemPath, user, result.getCommitId(), Optional.of(unlock));
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -261,12 +233,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // unlock the content upon save
             if (unlock) {
-                contentRepository.unLockItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
+                contentRepository.unLockItem(site, itemPath);
             } else {
-                contentRepository.lockItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
+                contentRepository.lockItem(site, itemPath);
             }
 
-            fileItem = contentService.getContentItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName, 0);
+            fileItem = contentService.getContentItem(site, itemPath, 0);
             return fileItem;
         } else {
             throw new ContentNotFoundException(parentItem.getUri() + " does not exist in site: " + site);
@@ -323,27 +295,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // Item
             // TODO: get local code with API 2
-            String label = FilenameUtils.getName(path);
-            String contentTypeId = contentService.getContentTypeClass(site, path);
-            String disabled = "false";
-            try {
-                Document document = contentService.getContentAsDocument(site, path);
-                if (document != null) {
-                    Element rootElement = document.getRootElement();
-
-                    label = rootElement.valueOf("internal-name");
-                    contentTypeId = rootElement.valueOf("content-type");
-                    disabled = rootElement.valueOf("disabled");
-                }
-            } catch (DocumentException e) {
-                logger.error("Error while processing content and extracting metadata for " + site + " - " + path, e);
-            }
-            Item item = itemServiceInternal.instantiateItemAfterWrite(site, path, user, ZonedDateTime.now(),
-                    label, contentTypeId, Locale.US.toString(),
-                    result.getCommitId(), contentRepository.getContentSize(site, path), Optional.of(unlock));
-            item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
-            item.setPreviewUrl(itemServiceInternal.getBrowserUrl(site, path));
-            itemServiceInternal.upsertEntry(site, item);
+            itemServiceInternal.persistItemAfterWrite(site, path, user, result.getCommitId(), Optional.of(unlock));
         }
 
         // unlock the content upon save if the flag is true

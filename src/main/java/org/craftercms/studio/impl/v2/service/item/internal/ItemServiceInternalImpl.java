@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -54,17 +55,25 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(ItemServiceInternalImpl.class);
 
+    public final static String INTERNAL_NAME = "//internal-name";
+    public final static String CONTENT_TYPE = "//content-type";
+    public final static String DISABLED = "//disabled";
+    public final static String LOCALE_CODE = "//locale-code";
+
     private UserServiceInternal userServiceInternal;
     private SiteFeedMapper siteFeedMapper;
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
+    private ContentServiceInternal contentServiceInternal;
 
     public ItemServiceInternalImpl(SiteFeedMapper siteFeedMapper, ItemDAO itemDao,
-                                   UserServiceInternal userServiceInternal, ServicesConfig servicesConfig) {
+                                   UserServiceInternal userServiceInternal, ServicesConfig servicesConfig,
+                                   ContentServiceInternal contentServiceInternal) {
         this.siteFeedMapper = siteFeedMapper;
         this.itemDao = itemDao;
         this.userServiceInternal = userServiceInternal;
         this.servicesConfig = servicesConfig;
+        this.contentServiceInternal = contentServiceInternal;
     }
 
     @Override
@@ -378,5 +387,38 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             browserUri = browserUri.replaceFirst("\\.xml", ".html");
         }
         return browserUri;
+    }
+
+    @Override
+    public void persistItemAfterWrite(String siteId, String path, String username, String commitId,
+                                      Optional<Boolean> unlock)
+            throws ServiceLayerException, UserNotFoundException {
+        User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+        org.craftercms.core.service.Item descriptor = contentServiceInternal.getItem(siteId, path);
+        String disabledStr = descriptor.queryDescriptorValue(DISABLED);
+        boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
+        Item item = instantiateItem(siteId, path)
+                .withPreviewUrl(getBrowserUrl(siteId, path))
+                .withLastModifiedBy(userObj.getId())
+                .withLastModifiedOn(ZonedDateTime.now())
+                .withLabel(descriptor.queryDescriptorValue(INTERNAL_NAME))
+                .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
+                .withMimeType(StudioUtils.getMimeType(path))
+                .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
+                .withCommitId(commitId)
+                .withDisabled(disabled)
+                .withSize(contentServiceInternal.getContentSize(siteId, path))
+                .build();
+        if (unlock.isPresent() && !unlock.get()) {
+            item.setState(ItemState.savedAndNotClosed(item.getState()));
+        } else {
+            item.setState(ItemState.savedAndClosed(item.getState()));
+        }
+        upsertEntry(siteId, item);
+    }
+
+    @Override
+    public void moveItem(String siteId, String oldPath, String newPath) {
+        itemDao.moveItem(siteId, oldPath, newPath);
     }
 }

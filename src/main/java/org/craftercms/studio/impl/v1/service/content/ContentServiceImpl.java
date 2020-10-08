@@ -214,7 +214,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public long getContentSize(@ValidateStringParam(name = "site") String site,
                                @ValidateStringParam(name = "path") String path) {
-        return _contentRepository.getContentSize(site, path);
+        return contentRepository.getContentSize(site, path);
     }
 
     @Override
