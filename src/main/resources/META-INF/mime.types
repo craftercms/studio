@@ -1544,6 +1544,7 @@ image/cgm					cgm
 # image/fits
 image/g3fax					g3
 image/gif					gif
+image/heic        heic
 image/ief					ief
 # image/jls
 # image/jp2
@@ -1745,7 +1746,10 @@ text/vnd.wap.wml				wml
 text/vnd.wap.wmlscript				wmls
 text/x-asm					s asm
 text/x-c					c cc cxx cpp h hh dic
+text/x-freemarker           ftl
 text/x-fortran					f for f77 f90
+text/x-groovy               groovy
+text/x-handlebars-template        hbs
 text/x-java-source				java
 text/x-nfo					nfo
 text/x-opml					opml
