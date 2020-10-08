@@ -13,13 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.validation;
 
-package org.craftercms.studio.api.v1.service.content;
+import static java.lang.String.format;
 
-import org.craftercms.commons.validation.ValidationException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+/**
+ * Base exception for all filename related validations
+ *
+ * @author joseross
+ * @since 3.2.0
+ */
+public abstract class FilenameValidationException extends ValidationException {
 
-public interface ImportService {
+    protected String filename;
 
-    void importSite(String configLocation) throws ServiceLayerException, ValidationException;
+    public FilenameValidationException(String filename, String message, Exception cause) {
+        super(format(message, filename), cause);
+        this.filename = filename;
+    }
+
+    public FilenameValidationException(String filename, String message) {
+        super(format(message, filename));
+        this.filename = filename;
+    }
+
 }

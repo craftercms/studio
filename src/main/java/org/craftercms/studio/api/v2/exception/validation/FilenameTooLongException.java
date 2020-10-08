@@ -13,13 +13,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.validation;
 
-package org.craftercms.studio.api.v1.service.content;
+/**
+ * Exception thrown when a filename is too long
+ *
+ * @author joseross
+ * @since 3.2.0
+ */
+public class FilenameTooLongException extends FilenameValidationException {
 
-import org.craftercms.commons.validation.ValidationException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+    public FilenameTooLongException(String filename) {
+        super(filename, "Filename '%s' is invalid because it's too long");
+    }
 
-public interface ImportService {
-
-    void importSite(String configLocation) throws ServiceLayerException, ValidationException;
 }

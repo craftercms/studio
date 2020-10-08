@@ -104,8 +104,7 @@ public abstract class AbstractUpgradeOperation extends
     protected abstract void doExecute(StudioUpgradeContext context) throws Exception;
 
     protected String getCommitMessage() {
-        //TODO: Improve message format
-        String header = "Site upgrade from v" + currentVersion + " to v" + nextVersion;
+        String header = "[Upgrade Manager] Upgrade from v" + currentVersion + " to v" + nextVersion;
         if(StringUtils.isNotEmpty(commitDetails)) {
             return header + ":\n" + commitDetails;
         } else {

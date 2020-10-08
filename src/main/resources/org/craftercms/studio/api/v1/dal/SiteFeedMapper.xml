@@ -164,4 +164,9 @@
         UPDATE site SET publishing_lock_heartbeat = CURRENT_TIMESTAMP
         WHERE site_id = #{siteId} AND deleted = 0;
     </update>
+
+    <update id="updateSite">
+        UPDATE site SET name = #{name}, description = #{description} WHERE site_id = #{siteId} AND deleted = 0
+    </update>
+
 </mapper>

@@ -13,13 +13,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.validation;
 
-package org.craftercms.studio.api.v1.service.content;
+import static java.lang.String.format;
 
-import org.craftercms.commons.validation.ValidationException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+/**
+ * @author joseross
+ * @since 3.2.0
+ */
+public abstract class PathValidationException extends ValidationException {
 
-public interface ImportService {
+    protected String path;
 
-    void importSite(String configLocation) throws ServiceLayerException, ValidationException;
+    public PathValidationException(String path, String message, Exception cause) {
+        super(format(message, path), cause);
+        this.path = path;
+    }
+
+    public PathValidationException(String path, String message) {
+        super(format(message, path));
+        this.path = path;
+    }
+
 }

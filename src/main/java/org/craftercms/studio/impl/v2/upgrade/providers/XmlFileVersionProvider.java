@@ -138,7 +138,7 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
                 xmlWriter.write(document);
             }
 
-            studioContext.commitChanges("Upgrade Manager: Update version", actualPath);
+            studioContext.commitChanges("[Upgrade Manager] Update version", actualPath);
         }
     }
 

@@ -195,7 +195,7 @@ public class ExceptionHandlers {
     @ExceptionHandler(SiteNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleSiteNotFoundException(HttpServletRequest request, SiteNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.PROJECT_NOT_FOUND);
+        ApiResponse response = new ApiResponse(ApiResponse.SITE_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 

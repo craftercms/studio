@@ -126,7 +126,7 @@ public interface ContentService {
      *
      * @throws SiteNotFoundException site not found
      */
-    boolean createFolder(String site, String path, String name) throws SiteNotFoundException;
+    boolean createFolder(String site, String path, String name) throws SiteNotFoundException, ServiceLayerException;
 
     /**
      * delete content at the path
@@ -150,7 +150,7 @@ public interface ContentService {
      * @param toPath   the target path to copy content to
      * @return final path if successful, null otherwise
      */
-    String copyContent(String site, String fromPath, String toPath);
+    String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 
     /**
      * move content fromPath to toPath

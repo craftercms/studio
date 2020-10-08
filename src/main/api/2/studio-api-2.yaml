@@ -1585,6 +1585,54 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/{siteId}:
+    post:
+      tags:
+        - sites
+      summary: Updates the name and description for a given site
+      description: 'Required Permission: "EDIT_SITE"'
+      operationId: updateSite
+      parameters:
+        - name: siteId
+          in: path
+          required: true
+          description: The site ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: The name of the site
+                  type: string
+                description:
+                  description: The description of the site
+                  type: string
+              required:
+                - name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -4517,8 +4565,8 @@ components:
           * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
           * `CODE:` 3001, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
           * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
-          * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
-          * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
+          * `CODE:` 5000, `MESSAGE:` Site not found, `REMEDIAL ACTION:` Check if you sent in the right Site Id
+          * `CODE:` 5001, `MESSAGE:` Site already exists, `REMEDIAL ACTION:` Try a different site name
           * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)

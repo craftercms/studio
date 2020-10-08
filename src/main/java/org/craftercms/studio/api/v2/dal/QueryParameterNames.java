@@ -51,6 +51,10 @@ public abstract class QueryParameterNames {
 
     public static final String TTL = "ttl";
 
+    public static final String NAME = "name";
+
+    public static final String DESC = "description";
+
     /* Groups */
 
     // Group ID

@@ -41,6 +41,7 @@ try {
     def siteId = parsedReq.site_id
     def sandboxBranch = parsedReq.sandbox_branch
     def description = parsedReq.description
+    def siteName = parsedReq.name
     /** Remote options */
     def useRemote = parsedReq.use_remote
     if (useRemote != null) {
@@ -82,6 +83,11 @@ try {
     } catch (Exception exc) {
         invalidParams = true
         paramsList.add("blueprint")
+    }
+
+    if (!siteName) {
+        invalidParams = true
+        paramsList.add("name")
     }
 
 // site_id
@@ -199,7 +205,7 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
         try {
             if (!useRemote) {
-                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description,
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteName, sandboxBranch, description,
                         siteParams, createAsOrphan)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
@@ -207,9 +213,10 @@ try {
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             } else {
-                SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint,
-                        remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername,
-                        remotePassword, remoteToken, remotePrivateKey, createOption, siteParams, createAsOrphan)
+                SiteServices.createSiteWithRemoteOption(context, siteId, siteName,  sandboxBranch, description,
+                        blueprint, remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType,
+                        remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption, siteParams,
+                        createAsOrphan)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId

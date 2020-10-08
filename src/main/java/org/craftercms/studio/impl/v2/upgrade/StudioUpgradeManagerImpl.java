@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.core.io.Resource;
@@ -80,12 +81,14 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     protected DbIntegrityValidator integrityValidator;
     protected ContentRepository contentRepository;
     protected StudioConfiguration studioConfiguration;
+    protected InstanceService instanceService;
 
     public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
                                     UpgradePipelineFactory<String> dbPipelineFactory,
                                     UpgradePipelineFactory<String> bpPipelineFactory, Resource configurationFile,
                                     DataSource dataSource, DbIntegrityValidator integrityValidator,
-                                    ContentRepository contentRepository, StudioConfiguration studioConfiguration) {
+                                    ContentRepository contentRepository, StudioConfiguration studioConfiguration,
+                                    InstanceService instanceService) {
         this.dbVersionProvider = dbVersionProvider;
         this.dbPipelineFactory = dbPipelineFactory;
         this.bpPipelineFactory = bpPipelineFactory;
@@ -94,6 +97,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         this.integrityValidator = integrityValidator;
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
+        this.instanceService = instanceService;
     }
 
     /**
@@ -147,7 +151,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 
     @Override
     protected UpgradeContext<String> createUpgradeContext(String site) {
-        return new StudioUpgradeContext(site, studioConfiguration, dataSource);
+        return new StudioUpgradeContext(site, studioConfiguration, dataSource, instanceService);
     }
 
     /**
