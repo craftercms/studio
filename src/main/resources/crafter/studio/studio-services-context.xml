@@ -489,7 +489,7 @@
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
     </bean>

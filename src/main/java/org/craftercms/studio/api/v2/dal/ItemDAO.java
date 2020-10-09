@@ -18,8 +18,12 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CONTENT_TYPE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENTRIES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_IDS;
@@ -27,6 +31,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIP
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ON_STATES_BIT_MAP;
@@ -38,6 +43,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ROOT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES_BIT_MAP;
 
 public interface ItemDAO {
@@ -229,4 +235,43 @@ public interface ItemDAO {
      * @param paths paths of the items
      */
     void deleteItemsForSiteAndPath(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths);
+
+    /**
+     * Get total number of records for content dashboard
+     *
+     * @param siteId site identifier
+     * @param path path regular expression to apply as filter for result set
+     * @param modifier filter results by user
+     * @param contentType filter results by content type
+     * @param state filter results by state
+     * @param dateFrom lower boundary for modified date
+     * @param dateTo upper boundary for modified date
+     * @return total number of records in result set
+     */
+    int getContentDashboardTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                                 @Param(MODIFIER) String modifier, @Param(CONTENT_TYPE) String contentType,
+                                 @Param(STATE) long state, @Param(DATE_FROM) ZonedDateTime dateFrom,
+                                 @Param(DATE_TO) ZonedDateTime dateTo);
+
+    /**
+     * Get result set for content dashboard
+     *
+     * @param siteId site identifier
+     * @param path path regular expression to apply as filter for result set
+     * @param modifier filter results by user
+     * @param contentType filter results by content type
+     * @param state filter results by state
+     * @param dateFrom lower boundary for modified date
+     * @param dateTo upper boundary for modified date
+     * @param sort sort results by column
+     * @param order order of results
+     * @param offset offset of the first record in result set
+     * @param limit number of records to return
+     * @return list of item metadata records
+     */
+    List<Item> getContentDashboard(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                                   @Param(MODIFIER) String modifier, @Param(CONTENT_TYPE) String contentType,
+                                   @Param(STATE) long state, @Param(DATE_FROM) ZonedDateTime dateFrom,
+                                   @Param(DATE_TO) ZonedDateTime dateTo, @Param(SORT) String sort,
+                                   @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 }

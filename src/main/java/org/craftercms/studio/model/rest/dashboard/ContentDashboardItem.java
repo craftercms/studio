@@ -26,6 +26,7 @@ public class ContentDashboardItem {
     private String modifier;
     private ZonedDateTime modifiedDate;
     private String contentType;
+    private long state;
 
     public String getSiteId() {
         return siteId;
@@ -73,5 +74,13 @@ public class ContentDashboardItem {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public long getState() {
+        return state;
+    }
+
+    public void setState(long state) {
+        this.state = state;
     }
 }
