@@ -35,7 +35,7 @@ public class SandboxItem {
     private String lockOwner;
     private boolean disabled;
     private String localeCode;
-    private String translationSourceId;
+    private Long translationSourceId;
     private String creator;
     private ZonedDateTime createdDate;
     private String modifier;
@@ -149,11 +149,11 @@ public class SandboxItem {
         this.localeCode = localeCode;
     }
 
-    public String getTranslationSourceId() {
+    public Long getTranslationSourceId() {
         return translationSourceId;
     }
 
-    public void setTranslationSourceId(String translationSourceId) {
+    public void setTranslationSourceId(Long translationSourceId) {
         this.translationSourceId = translationSourceId;
     }
 
@@ -220,7 +220,7 @@ public class SandboxItem {
         instance.lockOwner = item.getOwner();
         instance.disabled = item.isDisabled();
         instance.localeCode = item.getLocaleCode();
-        instance.translationSourceId = String.valueOf(item.getTranslationSourceId());
+        instance.translationSourceId = item.getTranslationSourceId();
         instance.creator = item.getCreator();
         instance.createdDate = item.getCreatedOn();
         instance.modifier = item.getModifier();

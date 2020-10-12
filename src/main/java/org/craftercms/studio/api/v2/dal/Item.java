@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import okhttp3.OkHttpClient.Builder;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -25,7 +24,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
-import java.util.Iterator;
 import java.util.Map;
 
 public class Item {

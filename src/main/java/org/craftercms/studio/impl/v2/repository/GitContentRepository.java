@@ -1421,6 +1421,26 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return contentStoreService.getItem(context, null, path, null, true);
     }
 
+    @Override
+    public long getContentSize(final String site, final String path) {
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            RevTree tree = helper.getTreeForLastCommit(repo);
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                if (tw != null && tw.getObjectId(0) != null) {
+                    ObjectId id = tw.getObjectId(0);
+                    ObjectLoader objectLoader = repo.open(id);
+                    return objectLoader.getSize();
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
+        }
+        return -1L;
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }

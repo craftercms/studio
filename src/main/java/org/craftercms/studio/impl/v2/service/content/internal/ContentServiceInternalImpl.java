@@ -131,6 +131,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return contentRepository.getItem(siteId, path);
     }
 
+    @Override
+    public long getContentSize(String siteId, String path) {
+        return contentRepository.getContentSize(siteId, path);
+    }
+
     public ContentRepository getContentRepository() {
         return contentRepository;
     }

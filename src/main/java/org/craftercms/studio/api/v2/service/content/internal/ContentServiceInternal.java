@@ -97,4 +97,11 @@ public interface ContentServiceInternal {
 
     Item getItem(String siteId, String path);
 
+    /**
+     * Get content size
+     * @param siteId site identifier
+     * @param path content path
+     * @return size in bytes
+     */
+    long getContentSize(String siteId, String path);
 }

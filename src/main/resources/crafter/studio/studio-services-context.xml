@@ -503,6 +503,8 @@
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
         <constructor-arg name="itemDao" ref="itemDao" />
         <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
+        <constructor-arg name="contentServiceInternal" ref="contentServiceInternal" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

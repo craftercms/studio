@@ -34,6 +34,10 @@ public abstract class QueryParameterNames {
     public static final String PATHS = "paths";
     // Modifier
     public static final String MODIFIER = "modifier";
+    // Old path
+    public static final String OLD_PATH = "oldPath";
+    // New path
+    public static final String NEW_PATH = "newPath";
 
     /* Organizations */
 

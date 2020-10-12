@@ -219,6 +219,7 @@
             #{path}
         </foreach>
     </delete>
+
     <select id="getContentDashboardTotal" resultType="int">
         select count (1) from item i inner join site s on i.site_id = s.id
         where s.site_id = #{siteId}
@@ -279,4 +280,10 @@
         </choose>
         LIMIT #{offset}, #{limit}
     </select>
+
+    <update id="moveItem">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET path = #{newPath}
+        WHERE s.site_id = #{siteId} AND i.path = #{oldPath}
+    </update>
 </mapper>

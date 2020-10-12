@@ -34,6 +34,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ON_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_ID;
@@ -274,4 +275,12 @@ public interface ItemDAO {
                                    @Param(STATE) long state, @Param(DATE_FROM) ZonedDateTime dateFrom,
                                    @Param(DATE_TO) ZonedDateTime dateTo, @Param(SORT) String sort,
                                    @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+
+    /**
+     * Move item
+     * @param siteId site identifier
+     * @param oldPath old path
+     * @param newPath new path
+     */
+    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, String newPath);
 }

@@ -29,7 +29,6 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -38,7 +37,6 @@ import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -185,13 +183,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 }
                 // Item
                 // TODO: get local code with API 2
-                Item item = itemServiceInternal.instantiateItemAfterWrite(site, path + FILE_SEPARATOR + assetName,
-                        user, ZonedDateTime.now(), assetName,
-                        contentService.getContentTypeClass(site, path + FILE_SEPARATOR + assetName),
-                        Locale.US.toString(), result.getCommitId(),
-                        contentRepository.getContentSize(site, path + FILE_SEPARATOR + assetName),
+                itemServiceInternal.persistItemAfterWrite(site, contentPath, user, result.getCommitId(),
                         Optional.of(unlock));
-                itemServiceInternal.upsertEntry(site, item);
 
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
@@ -252,10 +245,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             // Item
             String assetName = FilenameUtils.getName(relativePath);
             // TODO: get local code with API 2
-            Item item = itemServiceInternal.instantiateItemAfterWrite(site, relativePath, user, ZonedDateTime.now(),
-                    assetName, contentService.getContentTypeClass(site, relativePath), Locale.US.toString(),
-                    result.getCommitId(), contentService.getContentSize(site, relativePath), Optional.of(unlock));
-            itemServiceInternal.upsertEntry(site, item);
+            itemServiceInternal.persistItemAfterWrite(site, relativePath, user, result.getCommitId(), Optional.of(unlock));
         }
         if (unlock) {
             contentRepository.unLockItem(site, relativePath);
