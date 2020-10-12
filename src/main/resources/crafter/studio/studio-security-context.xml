@@ -49,6 +49,7 @@
     <bean id="studioLoginUrlAuthenticationEntryPoint"
           class="org.craftercms.studio.impl.v1.web.security.access.StudioLoginUrlAuthenticationEntryPoint">
         <constructor-arg name="loginFormUrl" value="/login" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="studioAuthenticationTokenProcessingFilter"

@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v1.web.security.access;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.UrlUtils;
@@ -30,13 +30,22 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.StringTokenizer;
+
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PUBLIC_URLS;
 
 public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
     private static final String PARAM_REDIRECT = "redirect";
     private static final Logger logger = LoggerFactory.getLogger(StudioLoginUrlAuthenticationEntryPoint.class);
+
+    private StudioConfiguration studioConfiguration;
+
+    public StudioLoginUrlAuthenticationEntryPoint(String loginFormUrl, StudioConfiguration studioConfiguration) {
+        super(loginFormUrl);
+        this.studioConfiguration = studioConfiguration;
+    }
 
     /**
      * @param loginFormUrl URL where the login page can be found. Should either be
@@ -48,7 +57,8 @@ public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
     }
 
     @Override
-    protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
+    protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response,
+                                                     AuthenticationException exception) {
 
         String redirectParamValue = request.getContextPath() + UrlUtils.buildRequestUrl(request);
         redirectParamValue = UriUtils.encode(redirectParamValue, StandardCharsets.UTF_8.toString());
@@ -58,14 +68,26 @@ public class StudioLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
     }
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+                         AuthenticationException authException)
+            throws IOException, ServletException {
         String requestUrl = UrlUtils.buildRequestUrl(request);
-        if (StringUtils.startsWith(requestUrl, "/api/")) {
+        if (StringUtils.startsWith(requestUrl, "/api/") && !StringUtils.equalsAny(requestUrl, getPublicUrls())) {
             // This is invoked when user tries to access a secured REST resource without supplying any credentials
             // We should just send a 401 Unauthorized response because there is no 'login page' to redirect to
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         } else {
             super.commence(request, response, authException);
         }
+    }
+
+    private String[] getPublicUrls() {
+        StringTokenizer st = new StringTokenizer(studioConfiguration.getProperty(SECURITY_PUBLIC_URLS), ",");
+        String[] publicUrls = new String[st.countTokens()];
+        int i = 0;
+        while (st.hasMoreTokens()) {
+            publicUrls[i++] = st.nextToken().trim();
+        }
+        return publicUrls;
     }
 }
