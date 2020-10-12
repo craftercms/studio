@@ -1189,12 +1189,18 @@ public class SiteServiceImpl implements SiteService {
                         objectStateService.insertNewEntry(site, repoOperation.getPath());
                     } else {
                         logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
+                        if (StringUtils.equalsIgnoreCase(state.getPath(), repoOperation.getPath()) &&
+                                !StringUtils.equals(state.getPath(), repoOperation.getPath())) {
+                            objectStateService.updateObjectPath(site, state.getPath(), repoOperation.getPath());
+                        }
                         objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
                     }
 
                     logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
                     if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                         objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                    } else {
+                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
                     }
                     metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
                     if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
@@ -1330,7 +1336,10 @@ public class SiteServiceImpl implements SiteService {
                                 objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(),
                                         properties);
                             }
-                            objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                            if (!StringUtils.equalsIgnoreCase(repoOperation.getPath(),
+                                    repoOperation.getMoveToPath())) {
+                                objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                            }
                         }
                     }
 
