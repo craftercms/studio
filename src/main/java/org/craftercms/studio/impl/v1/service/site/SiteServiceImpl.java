@@ -33,8 +33,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -65,7 +63,6 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.DeployerTargetException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
@@ -147,7 +144,6 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
@@ -1166,12 +1162,18 @@ public class SiteServiceImpl implements SiteService {
                             objectStateService.insertNewEntry(site, repoOperation.getPath());
                         } else {
                             logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
+                            if (StringUtils.equalsIgnoreCase(state.getPath(), repoOperation.getPath()) &&
+                                    !StringUtils.equals(state.getPath(), repoOperation.getPath())) {
+                                objectStateService.updateObjectPath(site, state.getPath(), repoOperation.getPath());
+                            }
                             objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
                         }
 
                         logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                        } else {
+                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
                         }
                         metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
                         if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
@@ -1296,7 +1298,10 @@ public class SiteServiceImpl implements SiteService {
                                     objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(),
                                             properties);
                                 }
-                                objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                                if (!StringUtils.equalsIgnoreCase(repoOperation.getPath(),
+                                        repoOperation.getMoveToPath())) {
+                                    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                                }
                             }
                         }
 
