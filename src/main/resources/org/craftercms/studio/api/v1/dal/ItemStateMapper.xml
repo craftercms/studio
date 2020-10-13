@@ -118,7 +118,7 @@
     <delete id="deleteObjectStateForSiteAndPath" parameterType="java.util.Map" flushCache="true">
         DELETE FROM item_state
         WHERE site = #{site}
-        AND path = #{path}
+        AND path = BINARY #{path}
     </delete>
 
     <delete id="deleteObjectStateForSiteAndFolder" parameterType="java.util.Map" flushCache="true">

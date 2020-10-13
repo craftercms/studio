@@ -1095,7 +1095,9 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
 
         if (!renamedItem.isFolder()) {
             if (objectMetadataManager.metadataExist(site, movePath)) {
-                objectMetadataManager.deleteObjectMetadata(site, movePath);
+                if (!StringUtils.equalsIgnoreCase(fromPath, movePath)) {
+                    objectMetadataManager.deleteObjectMetadata(site, movePath);
+                }
             }
             objectMetadataManager.updateObjectPath(site, fromPath, movePath);
         }
