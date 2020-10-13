@@ -1144,6 +1144,8 @@ public class SiteServiceImpl implements SiteService {
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId,
                                         boolean generateAuditLog) throws ServiceLayerException, UserNotFoundException {
+        // TODO: Switch to new item table instead of using old state and metadata - Dejan
+        // TODO: Remove references to old data layer - Dejan
         boolean toReturn = true;
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
@@ -1189,6 +1191,9 @@ public class SiteServiceImpl implements SiteService {
                         objectStateService.insertNewEntry(site, repoOperation.getPath());
                     } else {
                         logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
+                        // If state already exists (renamed item with only case change) and path in the state
+                        // table is equal except for the case, than update item state table with new path value
+                        // (DB by default is case insensitive)
                         if (StringUtils.equalsIgnoreCase(state.getPath(), repoOperation.getPath()) &&
                                 !StringUtils.equals(state.getPath(), repoOperation.getPath())) {
                             objectStateService.updateObjectPath(site, state.getPath(), repoOperation.getPath());
