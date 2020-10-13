@@ -142,7 +142,8 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
-                               @ValidateStringParam(name = "password") String password) throws Exception {
+                               @ValidateStringParam(name = "password", notBlank = true) String password)
+            throws Exception {
         RequestContext requestContext = RequestContext.getCurrent();
         HttpServletRequest request = requestContext.getRequest();
         HttpServletResponse response = requestContext.getResponse();
