@@ -220,6 +220,67 @@
         </foreach>
     </delete>
 
+    <select id="getContentDashboardTotal" resultType="int">
+        select count (1) from item i inner join site s on i.site_id = s.id
+        where s.site_id = #{siteId}
+        <if test="path != null">
+            AND i.path RLIKE #{path}
+        </if>
+        <if test="modifier != null">
+            AND i.last_modified_by in (select id from user where username = #{modifier})
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND last_modified_on BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND last_modified_on >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= last_modified_on
+            </when>
+        </choose>
+    </select>
+
+
+    <select id="getContentDashboard" resultMap="ItemMap">
+        select s.site_id as site_name, u.username as modifier, i.* from item i  inner join site s on i.site_id = s.id
+        inner join user u on i.last_modified_by = u.id
+        where s.site_id = #{siteId}
+        <if test="path != null">
+            AND i.path RLIKE #{path}
+        </if>
+        <if test="modifier != null">
+            AND u.username = #{modifier}
+        </if>
+        <choose>
+            <when test="dateFrom != null and dateTo != null ">
+                AND last_modified_on BETWEEN #{dateFrom} AND #{dateTo}
+            </when>
+            <when test="dateFrom != null and dateTo == null ">
+                AND last_modified_on >= #{dateFrom}
+            </when>
+            <when test="dateFrom == null and dateTo != null ">
+                AND #{dateTo} >= last_modified_on
+            </when>
+        </choose>
+        <choose>
+            <when test="(sort != null and sort !=  '') and (order != null and order != '')">
+                ORDER BY ${sort} ${order}
+            </when>
+            <when test="(sort != null and sort !=  '') and (order == null or order == '')">
+                ORDER BY ${sort}
+            </when>
+            <when test="(sort == null or sort !=  '') and (order != null and order != '')">
+                ORDER BY last_modified_on ${order}
+            </when>
+            <otherwise>
+                ORDER BY last_modified_on DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{limit}
+    </select>
+
     <update id="moveItem">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET path = #{newPath}

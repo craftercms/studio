@@ -358,6 +358,20 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public int getContentDashboardTotal(String siteId, String path, String modifier, String contentType, long state,
+                                        ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        return itemDao.getContentDashboardTotal(siteId, path, modifier, contentType, state, dateFrom, dateTo);
+    }
+
+    @Override
+    public List<Item> getContentDashboard(String siteId, String path, String modifier, String contentType, long state,
+                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy, String order,
+                                          int offset, int limit) {
+        return itemDao.getContentDashboard(siteId, path, modifier, contentType, state, dateFrom, dateTo, sortBy, order,
+                offset, limit);
+    }
+
+    @Override
     public String getBrowserUrl(String site, String path) {
         String replacePattern;
         boolean isPage = false;

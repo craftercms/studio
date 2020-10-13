@@ -32,6 +32,8 @@ public abstract class QueryParameterNames {
     public static final String PATH = "path";
     // Paths
     public static final String PATHS = "paths";
+    // Modifier
+    public static final String MODIFIER = "modifier";
     // Old path
     public static final String OLD_PATH = "oldPath";
     // New path
@@ -162,6 +164,10 @@ public abstract class QueryParameterNames {
     public static final String OFF_STATES_BIT_MAP = "offStatesBitMap";
 
     public static final String ITEM_IDS = "itemIds";
+
+    public static final String CONTENT_TYPE = "contentType";
+
+    public static final String STATE = "state";
 
     private QueryParameterNames() { }
 }
