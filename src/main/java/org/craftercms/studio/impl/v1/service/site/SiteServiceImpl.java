@@ -1192,7 +1192,7 @@ public class SiteServiceImpl implements SiteService {
                     } else {
                         logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
                         // If state already exists (renamed item with only case change) and path in the state
-                        // table is equal except for the case, than update item state table with new path value
+                        // table is equal except for the case, then update item state table with new path value
                         // (DB by default is case insensitive)
                         if (StringUtils.equalsIgnoreCase(state.getPath(), repoOperation.getPath()) &&
                                 !StringUtils.equals(state.getPath(), repoOperation.getPath())) {
