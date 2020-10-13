@@ -160,7 +160,7 @@
     </select>
 
     <delete id="deleteEntry" parameterType="java.util.Map">
-        DELETE FROM item_metadata WHERE site=#{site} AND path=#{path}
+        DELETE FROM item_metadata WHERE site=#{site} AND path = BINARY #{path}
     </delete>
 
     <delete id="deleteFolder" parameterType="java.util.Map">
