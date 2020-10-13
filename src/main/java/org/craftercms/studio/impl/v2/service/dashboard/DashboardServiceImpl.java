@@ -20,9 +20,11 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
@@ -38,6 +40,7 @@ public class DashboardServiceImpl implements DashboardService {
     private ObjectMetadataManager objectMetadataManager;
     private AuditServiceInternal auditServiceInternal;
     private PublishServiceInternal publishServiceInternal;
+    private ItemServiceInternal itemServiceInternal;
 
     @Override
     public int getAuditDashboardTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String user,
@@ -58,7 +61,7 @@ public class DashboardServiceImpl implements DashboardService {
     public int getContentDashboardTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
                                         String modifier, String contentType, long state, ZonedDateTime dateFrom,
                                         ZonedDateTime dateTo) {
-        return objectMetadataManager.getContentDashboardTotal(siteId, path, modifier, contentType, state, dateFrom,
+        return itemServiceInternal.getContentDashboardTotal(siteId, path, modifier, contentType, state, dateFrom,
                 dateTo);
     }
 
@@ -67,20 +70,22 @@ public class DashboardServiceImpl implements DashboardService {
                                                           String path, String modifier, String contentType, long state,
                                                           ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy,
                                                           String order, int offset, int limit) {
-        return prepareContentDashboardResult(objectMetadataManager.getContentDashboard(siteId, path, modifier,
+        return prepareContentDashboardResult(siteId, itemServiceInternal.getContentDashboard(siteId, path, modifier,
                 contentType, state, dateFrom, dateTo, sortBy, order, offset, limit));
     }
 
-    private List<ContentDashboardItem> prepareContentDashboardResult(List<ItemMetadata> itemMetadataList) {
+    private List<ContentDashboardItem> prepareContentDashboardResult(String siteId, List<Item> itemList) {
         List<ContentDashboardItem> contentDashboardItemList = new ArrayList<ContentDashboardItem>();
-        if (itemMetadataList != null && itemMetadataList.size() > 0) {
-            for (ItemMetadata item : itemMetadataList) {
+        if (itemList != null && itemList.size() > 0) {
+            for (Item item : itemList) {
                 ContentDashboardItem contentDashboardItem = new ContentDashboardItem();
-                contentDashboardItem.setSiteId(item.getSite());
+                contentDashboardItem.setSiteId(siteId);
                 contentDashboardItem.setPath(item.getPath());
-                contentDashboardItem.setLabel(item.getName());
+                contentDashboardItem.setLabel(item.getLabel());
                 contentDashboardItem.setModifier(item.getModifier());
-                contentDashboardItem.setModifiedDate(item.getModified());
+                contentDashboardItem.setModifiedDate(item.getLastModifiedOn());
+                contentDashboardItem.setContentType(item.getContentTypeId());
+                contentDashboardItem.setState(item.getState());
                 contentDashboardItemList.add(contentDashboardItem);
             }
         }
@@ -123,14 +128,6 @@ public class DashboardServiceImpl implements DashboardService {
         return publishingDashboardItems;
     }
 
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
-    }
-
     public AuditServiceInternal getAuditServiceInternal() {
         return auditServiceInternal;
     }
@@ -145,5 +142,13 @@ public class DashboardServiceImpl implements DashboardService {
 
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }
