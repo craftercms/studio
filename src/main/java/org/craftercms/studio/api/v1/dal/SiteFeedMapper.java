@@ -21,7 +21,11 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DESC;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TTL;
 
 public interface SiteFeedMapper {
 
@@ -64,4 +68,38 @@ public interface SiteFeedMapper {
      * @param siteId site identifier
      */
     void setPublishedRepoCreated(@Param(SITE_ID) String siteId);
+
+    /**
+     * Lock publisher task for site
+     * @param siteId site identifier
+     * @param lockOwnerId lock owner identifier
+     * @param ttl TTL for lock
+     * @return 1 if publishing was locked, otherwise 0
+     */
+    int tryLockPublishingForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId,
+                                 @Param(TTL) int ttl);
+
+    /**
+     * unlock publisher task for site
+     * @param siteId site identifier
+     * @param lockOwnerId lock owner identifier
+     */
+    void unlockPublishingForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId);
+
+    /**
+     * update publishing lock heartbeat for site
+     * @param siteId site identifier
+     */
+    void updatePublishingLockHeartbeatForSite(@Param(SITE_ID) String siteId);
+
+    /**
+     * Updates the name and description for the given site
+     *
+     * @param siteId the id of the site
+     * @param name the name of the site
+     * @param description the description of the site
+     * @return the number of changed rows
+     */
+    int updateSite(@Param(SITE_ID) String siteId, @Param(NAME) String name, @Param(DESC) String description);
+
 }

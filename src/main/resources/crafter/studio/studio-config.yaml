@@ -90,6 +90,14 @@ studio.blob.publishingTarget: preview
 studio.blob.intercepted.paths:
   - /static-assets/.*
 
+##################################################
+##                Content Service               ##
+##################################################
+# The max length for filenames (depends on the platform & filesystem used)
+studio.content.filename.maxSize: 255
+# The max length for the full path of files (this needs to be in sync the the db schema)
+studio.content.fullPath.maxSize: 1024
+
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################
@@ -359,7 +367,7 @@ studio.mail.port: 25
 studio.mail.username:
 # SMTP password for authenticated access when sending emails.
 studio.mail.password:
-# Turn on/off (value true/false) SMTP authenaticated access protocol.
+# Turn on/off (value true/false) SMTP authenticated access protocol.
 studio.mail.smtp.auth: false
 # Enable/disable (value true/false) SMTP TLS protocol when sending emails.
 studio.mail.smtp.starttls.enable: true
@@ -504,6 +512,10 @@ studio.db.dataPath: ${env:CRAFTER_DATA_DIR}/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+# Max number of retries for retrying operation
+studio.db.retryingOperation.maxAttempts: 50
+# Max sleep time in milliseconds between retries
+studio.db.retryingOperation.maxSleep: 1000
 
 ##########################################################
 ##                   Asset Processing                   ##
@@ -521,8 +533,6 @@ studio.upgrade.branchName: site-upgrade
 studio.upgrade.commitMessage: Successful site upgrade
 # Path for the site version file
 studio.upgrade.versionFile: /config/studio/studio_version.xml
-# Path for the site version template
-studio.upgrade.versionTemplate: classpath:crafter/studio/upgrade/update-version.xslt
 # Path for the site version default file
 studio.upgrade.versionDefault: classpath:crafter/studio/upgrade/studio_version.xml
 # XPath for querying the version
@@ -534,7 +544,7 @@ studio.upgrade.defaultVersion.file: 1
 # Pipelines configuration file
 studio.upgrade.configurationFile: classpath:crafter/studio/upgrade/pipelines.yaml
 # Common prefix for the pipelines
-studio.upgrade.pipeline.prefix: pipelines
+studio.upgrade.pipeline.prefix: pipelines.
 # Name for the system pipeline
 studio.upgrade.pipeline.system: system
 # Name for the site pipeline
@@ -542,7 +552,7 @@ studio.upgrade.pipeline.site: site
 # Name for the blueprint pipeline
 studio.upgrade.pipeline.blueprint: blueprint
 # Prefix for the configuration file pipeline
-studio.upgrade.pipeline.configurations: configurations
+studio.upgrade.pipeline.configurations: configurations.
 # Folder to look for database scripts
 studio.upgrade.scriptFolder: crafter/studio/database/
 
@@ -558,6 +568,8 @@ studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
 studio.publishing.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.publishing.threadPool.maxPoolSize: 20
+# Publishing lock TTL in minutes
+studio.publishing.siteLock.ttl: 180
 
 ##################################################
 ##                 Clustering                   ##

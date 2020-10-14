@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.9.2'
+  version: '3.2.0.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1585,6 +1585,54 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/{siteId}:
+    post:
+      tags:
+        - sites
+      summary: Updates the name and description for a given site
+      description: 'Required Permission: "EDIT_SITE"'
+      operationId: updateSite
+      parameters:
+        - name: siteId
+          in: path
+          required: true
+          description: The site ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: The name of the site
+                  type: string
+                description:
+                  description: The description of the site
+                  type: string
+              required:
+                - name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -3093,9 +3141,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: locale
+        - name: localeCode
           in: query
-          description: filter children by locale, or show source items (not translation) if translatation to specified locale does not exist
+          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
           schema:
             type: string
         - name: sortStrategy
@@ -3190,9 +3238,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: locale
+        - name: localeCode
           in: query
-          description: filter children by locale, or show source items (not translation) if translatation to specified locale does not exist
+          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
           schema:
             type: string
         - name: sortStrategy
@@ -3342,6 +3390,48 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   item:
                     $ref: '#/components/schemas/DetailedItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/descriptor:
+    get:
+      tags:
+        - content
+      summary: Get the XML descriptor for a given path
+      operationId: getDescriptor
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: item path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  xml:
+                    type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4475,8 +4565,8 @@ components:
           * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
           * `CODE:` 3001, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
           * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
-          * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
-          * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
+          * `CODE:` 5000, `MESSAGE:` Site not found, `REMEDIAL ACTION:` Check if you sent in the right Site Id
+          * `CODE:` 5001, `MESSAGE:` Site already exists, `REMEDIAL ACTION:` Try a different site name
           * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
@@ -4495,7 +4585,7 @@ components:
           * `CODE:` 12003, `MESSAGE:` Remote is invalid. Not added to remote repositories, `REMEDIAL ACTION:` Add new remote repository with valid parameters.
           * `CODE:` 12004, `MESSAGE:` Failed to remove remote repository, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 12005, `MESSAGE:` Push to remote repository failed, `REMEDIAL ACTION:` Check your repository settings or contact your system administrator.
-          * `CODE:` 12006, `MESSAGE:` Remove remote repository failed, `REMEDIAL ACTION:` Remote repository is cluster node repository. Can't be removed.
+          * `CODE:` 12006, `MESSAGE:` Remove remote repository failed, `REMEDIAL ACTION:` The remote repository is a cluster node repository. It can't be removed.
           * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
@@ -5311,7 +5401,7 @@ components:
           description: >-
             Authentication type to use to access remote repository
 
-            Posible values:
+            Possible values:
 
               - none: no authentication
 
@@ -5517,11 +5607,16 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         contentTypeId:
           type: string
           description: content type of content item
@@ -5608,11 +5703,16 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         contentTypeId:
           type: string
           description: content type of content item
@@ -5736,11 +5836,16 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         path:
           type: string
           description: path where content item is stored inside repository (with filename)

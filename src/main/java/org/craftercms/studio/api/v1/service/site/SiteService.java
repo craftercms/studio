@@ -18,7 +18,12 @@ package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.DeployerTargetException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteCreationException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -103,46 +108,47 @@ public interface SiteService {
 
     int countSites();
 
-    /**
-     * Create a new site based on an existing blueprint
-     * @param blueprintName blueprint name to create site
-     * @param siteName site name
-     * @param siteId site identifier
+	/**
+	 * Create a new site based on an existing blueprint
+	 * @param blueprintName blueprint name to create site
+	 * @param siteId site identifier
+	 * @param siteName site name
 	 * @param sandboxBranch sandbox branch name
-     * @param desc description
-     * @param params site parameters
-     * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 * @param desc description
+	 * @param params site parameters
+	 * @param createAsOrphan create the site from a remote repository as orphan (no git history)
 	 *
 	 * @throws SiteAlreadyExistsException site already exists
 	 * @throws SiteCreationException error during site creation process
 	 * @throws DeployerTargetException error creating deployer targets
 	 * @throws BlueprintNotFoundException blueprint not found
 	 * @throws MissingPluginParameterException missing mandatory blueprint parameters
-     */
-    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
-                                 String desc, Map<String, String> params, boolean createAsOrphan)
-            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-            BlueprintNotFoundException, MissingPluginParameterException;
+	 */
+	void createSiteFromBlueprint(String blueprintName, String siteId, String siteName, String sandboxBranch,
+								 String desc, Map<String, String> params, boolean createAsOrphan)
+			throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
+			BlueprintNotFoundException, MissingPluginParameterException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
      *
      * @param siteId site identifier
-     * @param sandboxBranch sandbox branch name
-     * @param description description
-     * @param blueprintName name of the blueprint to create site
-     * @param remoteName remote repository name
-     * @param remoteUrl remote repository url
-     * @param remoteBranch remote repository branch to create site from
-     * @param singleBranch clone single branch if true, otherwise clone whole repo
-     * @param authenticationType remote repository authentication type
-     * @param remoteUsername remote repository username to use for authentication
-     * @param remotePassword remote repository username to use for authentication
-     * @param remoteToken remote repository username to use for authentication
-     * @param remotePrivateKey remote repository username to use for authentication
-     * @param createOption remote repository username to use for authentication
-     * @param params site parameters
-     * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 * @param siteName the name of the site
+	 * @param sandboxBranch sandbox branch name
+	 * @param description description
+	 * @param blueprintName name of the blueprint to create site
+	 * @param remoteName remote repository name
+	 * @param remoteUrl remote repository url
+	 * @param remoteBranch remote repository branch to create site from
+	 * @param singleBranch clone single branch if true, otherwise clone whole repo
+	 * @param authenticationType remote repository authentication type
+	 * @param remoteUsername remote repository username to use for authentication
+	 * @param remotePassword remote repository username to use for authentication
+	 * @param remoteToken remote repository username to use for authentication
+	 * @param remotePrivateKey remote repository username to use for authentication
+	 * @param createOption remote repository username to use for authentication
+	 * @param params site parameters
+	 * @param createAsOrphan create the site from a remote repository as orphan (no git history)
 	 *
 	 * @throws ServiceLayerException general service error
 	 * @throws InvalidRemoteRepositoryException invalid remote repository
@@ -151,11 +157,11 @@ public interface SiteService {
 	 * @throws RemoteRepositoryNotBareException remote repository is not bare
 	 * @throws InvalidRemoteUrlException invalid remote url
      */
-    void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
-                                    String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
-                                    String authenticationType, String remoteUsername, String remotePassword,
-                                    String remoteToken, String remotePrivateKey, String createOption,
-                                    Map<String, String> params, boolean createAsOrphan)
+    void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
+									String blueprintName, String remoteName, String remoteUrl, String remoteBranch,
+									boolean singleBranch, String authenticationType, String remoteUsername,
+									String remotePassword, String remoteToken, String remotePrivateKey,
+									String createOption, Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 
@@ -177,7 +183,7 @@ public interface SiteService {
 	 *
 	 * @throws SiteNotFoundException site not found
 	 */
-	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws SiteNotFoundException;
+	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
@@ -191,7 +197,7 @@ public interface SiteService {
 	 * @throws SiteNotFoundException site not found
      */
     boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog)
-            throws SiteNotFoundException;
+            throws ServiceLayerException, UserNotFoundException;
 
    	/**
    	 * get a list of available blueprints
@@ -364,4 +370,27 @@ public interface SiteService {
      * @return List of deleted sites from DB
      */
     List<SiteFeed> getDeletedSites();
+
+	/**
+	 * Lock publishing for site
+	 * @param siteId site identifier
+	 * @param lockOwnerId lock owner identifier
+	 * @param ttl TTL for lock
+	 * @return true if locking was successful
+	 */
+	boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl);
+
+	/**
+	 * Unlock publishing for site
+	 * @param siteId site identifier
+	 * @param lockOwnerId lock owner identifier
+	 * @return true if unlocking was successful
+	 */
+    boolean unlockPublishingForSite(String siteId, String lockOwnerId);
+
+	/**
+	 * update publishing lock heartbeat for site
+	 * @param siteId site identifier
+	 */
+	void updatePublishingLockHeartbeatForSite(String siteId);
 }

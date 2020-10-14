@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
@@ -61,6 +62,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
@@ -92,6 +94,9 @@ import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.S
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
@@ -121,6 +126,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected PublishRequestMapper publishRequestMapper;
     protected AuditServiceInternal auditServiceInternal;
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Override
     @ValidateParams
@@ -133,6 +139,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, SUBMIT_WITHOUT_WORKFLOW_SCHEDULED,
                     NEW_SUBMITTED_NO_WF_SCHEDULED);
+            itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();
@@ -166,6 +173,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             publishRequestMapper.insertItemForDeployment(item);
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
+
         // We need to pick up this on Inserting , not on execution!
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
@@ -244,9 +253,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                             item.setOldPath(oldPath);
                         }
                         String commitId = metadata.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId)) {
+                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
+                            if (StringUtils.isNotEmpty(commitId)) {
+                                logger.warn("Commit ID is NULL for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            } else {
+                                logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            }
+                            logger.info("Publishing content from HEAD for " + path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
 
@@ -279,7 +296,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
-
+            itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
         Set<String> environments = getAllPublishedEnvironments(site);
         for (String environment : environments) {
@@ -290,6 +307,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
         String statusMessage = studioConfiguration
                 .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
         try {
@@ -324,9 +342,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                             item.setOldPath(oldPath);
                         }
                         String commitId = metadata.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId)) {
+                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
+                            if (StringUtils.isNotEmpty(commitId)) {
+                                logger.warn("Commit ID is NULL for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            } else {
+                                logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            }
+                            logger.info("Publishing content from HEAD for " + path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
                     }
@@ -387,6 +413,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
@@ -423,6 +450,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return publishRequestMapper.getScheduledItems(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
@@ -436,6 +464,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         publishRequestMapper.cancelWorkflow(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
@@ -454,7 +483,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                                  @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
                                  @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
                                  @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                 @ValidateStringParam(name = "filterType") String filterType) throws SiteNotFoundException {
+                                 @ValidateStringParam(name = "filterType") String filterType)
+            throws SiteNotFoundException {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
@@ -822,7 +852,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     private boolean checkCommitIds(String site, List<String> commitIds) {
         boolean toRet = true;
         for (String commitId : commitIds) {
-            toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
+            if (StringUtils.isNotEmpty(commitId)) {
+                toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
+            }
         }
         return toRet;
     }
@@ -1054,5 +1086,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

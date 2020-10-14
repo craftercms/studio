@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.api.v2.service.content.internal;
 
+import org.craftercms.core.service.Item;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
+
 import java.util.List;
 
 public interface ContentServiceInternal {
@@ -37,4 +40,68 @@ public interface ContentServiceInternal {
      * @return list of paths of subtree items
      */
     List<String> getSubtreeItems(String siteId, List<String> path);
+
+    /**
+     * Get list of children for given path
+     *
+     * @param siteId site identifier
+     * @param path item path to children for
+     * @param locale filter children by locale
+     * @param sortStrategy sort order
+     * @param order ascending or descending
+     * @param offset offset of the first child in the result
+     * @param limit number of children to return
+     *
+     * @return list of children
+     */
+    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy, String order,
+                                        int offset, int limit);
+
+    /**
+     * Get total number of children for given path
+     *
+     * @param siteId site identifier
+     * @param path item path to children for
+     * @param locale filter children by locale
+     *
+     * @return total number of children
+     */
+    int getChildrenByPathTotal(String siteId, String path, String locale);
+
+    /**
+     * Get list of children for given item id
+     *
+     * @param siteId site identifier
+     * @param parentId item id to get children for
+     * @param locale filter children by locale
+     * @param sortStrategy sort order
+     * @param order ascending or descending
+     * @param offset offset of the first child in the result
+     * @param limit number of children to return
+     *
+     * @return list of children
+     */
+    GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
+                                      String order, int offset, int limit);
+
+    /**
+     * Get total number of children for given path
+     *
+     * @param siteId site identifier
+     * @param parentId item id to children for
+     * @param locale filter children by locale
+     *
+     * @return total number of children
+     */
+    int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale);
+
+    Item getItem(String siteId, String path);
+
+    /**
+     * Get content size
+     * @param siteId site identifier
+     * @param path content path
+     * @return size in bytes
+     */
+    long getContentSize(String siteId, String path);
 }

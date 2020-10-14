@@ -16,20 +16,19 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.plugin;
 
-import java.io.ByteArrayInputStream;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
-import org.springframework.beans.factory.annotation.Required;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.Property;
@@ -53,20 +52,22 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
     protected String descriptorPath;
     protected String descriptorVersion;
 
-    @Required
-    public void setDescriptorReader(final PluginDescriptorReader descriptorReader) {
+    public AbstractPluginDescriptorUpgradeOperation(StudioConfiguration studioConfiguration,
+                                                    PluginDescriptorReader descriptorReader) {
+        super(studioConfiguration);
         this.descriptorReader = descriptorReader;
     }
 
     @Override
-    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    protected void doInit(final HierarchicalConfiguration config) {
         descriptorPath = config.getString(CONFIG_KEY_DESCRIPTOR_PATH);
         descriptorVersion = config.getString(CONFIG_KEY_DESCRIPTOR_VERSION);
     }
 
     @Override
-    public void execute(final String site) throws UpgradeException {
-        Path descriptorFile = getRepositoryPath(site).getParent().resolve(descriptorPath);
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
+        Path descriptorFile = context.getRepositoryPath().resolve(descriptorPath);
         if (Files.notExists(descriptorFile)) {
             logger.info("Plugin descriptor file not found for site {0}", site);
             return;
@@ -96,9 +97,8 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
             }, options);
             String content = yaml.dumpAsMap(descriptor);
 
-            writeToRepo(site, descriptorPath, new ByteArrayInputStream(content.getBytes()));
-
-            commitAllChanges(site);
+            Files.writeString(context.getFile(descriptorPath), content);
+            trackChanges(descriptorPath);
         } catch (Exception e) {
             throw new UpgradeException("Plugin descriptor can't be read for site " + site);
         }

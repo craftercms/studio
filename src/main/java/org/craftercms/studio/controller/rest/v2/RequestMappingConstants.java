@@ -32,6 +32,15 @@ public interface RequestMappingConstants {
     String PUBLISHING_DASHBOARD = "/publishing";
     String CONTENT_DASHBOARD = "/content";
 
+    /** Content controller */
+    String CONTENT = "/content";
+    String LIST_QUICK_CREATE_CONTENT = "/list_quick_create_content";
+    String GET_DELETE_PACKAGE = "/get_delete_package";
+    String DELETE = "/delete";
+    String GET_CHILDREN_BY_PATH = "/children_by_path";
+    String GET_CHILDREN_BY_ID = "/children_by_id";
+    String GET_DESCRIPTOR = "/descriptor";
+
     /** Users controller */
     String USERS = "/users";
     String PATH_PARAM_ID = "/{id}";

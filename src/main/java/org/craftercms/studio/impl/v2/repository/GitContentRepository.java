@@ -18,10 +18,15 @@ package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.core.service.ContentStoreService;
+import org.craftercms.core.service.Item;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -35,9 +40,14 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.core.ContextManager;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
@@ -78,6 +88,7 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -93,12 +104,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.IN_PROGRESS_BRANCH_NAME_SUFFIX;
@@ -107,12 +120,14 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -136,6 +151,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private SecurityService securityService;
     private RemoteRepositoryDAO remoteRepositoryDAO;
     private TextEncryptor encryptor;
+    private ContextManager contextManager;
+    private ContentStoreService contentStoreService;
+    private ClusterDAO clusterDao;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -578,6 +596,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return gitLogDao.getGitLog(params);
     }
 
+    @RetryingOperation
     @Override
     public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -587,6 +606,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         gitLogDao.markGitLogProcessed(params);
     }
 
+    @RetryingOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -833,6 +853,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toRet;
     }
 
+    @RetryingOperation
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
@@ -956,9 +977,21 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
-                        if (Objects.isNull(commitId)) {
-                            logger.warn("Skipping file " + path + " because commit id is null");
-                            continue;
+                        if (Objects.isNull(commitId) || !commitIdExists(site, PUBLISHED, commitId)) {
+                            if (contentExists(site, path)) {
+                                if (Objects.isNull(commitId)) {
+                                    logger.warn("Commit ID is NULL for content " + path +
+                                            ". Was the git repo reset at some point?" );
+                                } else {
+                                    logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                            ". Was the git repo reset at some point?" );
+                                }
+                                logger.info("Publishing content from HEAD for " + path);
+                                commitId = getRepoLastCommitId(site);
+                            } else {
+                                logger.warn("Skipping file " + path + " because commit id is null");
+                                continue;
+                            }
                         }
                         logger.debug("Checking out file " + path + " from commit id " + commitId +
                                 " for site " + site);
@@ -978,9 +1011,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                         if (deploymentItem.isDelete()) {
                             String deletePath = helper.getGitPath(deploymentItem.getPath());
+                            boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
                             git.rm().addFilepattern(deletePath).setCached(false).call();
                             Path parentToDelete = Paths.get(path).getParent();
-                            deleteParentFolder(git, parentToDelete);
+                            deleteParentFolder(git, parentToDelete, isPage);
                         }
                         deployedCommits.add(commitId);
                         String packageId = deploymentItem.getPackageId();
@@ -1077,9 +1111,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private void cleanUpMoveFolders(Git git, String path) throws GitAPIException {
+    private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
         Path parentToDelete = Paths.get(path).getParent();
-        deleteParentFolder(git, parentToDelete);
+        boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+        deleteParentFolder(git, parentToDelete, isPage);
         Path testDelete = Paths.get(git.getRepository().getDirectory().getParent(), parentToDelete.toString());
         File testDeleteFile = testDelete.toFile();
         if (!testDeleteFile.exists()) {
@@ -1087,7 +1122,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException {
+    private String deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
         String parent = parentFolder.toString();
         String toRet = parent;
         try {
@@ -1095,20 +1130,34 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             String folderToDelete = helper.getGitPath(parent);
             Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-            String[] children = toDelete.toFile().list();
-            if (children != null && children.length < 2) {
-                if (children.length == 1 || children[0].equals(".keep")) {
-                    Path ancestor = parentFolder.getParent();
-                    git.rm()
-                            .addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep"))
-                            .setCached(false)
-                            .call();
-                } else {
-                    Path ancestor = parentFolder.getParent();
-                    git.rm()
-                            .addFilepattern(helper.getGitPath(parentFolder.toString()))
-                            .setCached(false)
-                            .call();
+            if (Files.exists(toDelete)) {
+                List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                        .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+                List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
+                        .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+                if (wasPage ||
+                        (CollectionUtils.isEmpty(dirs) &&
+                                (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+                    if (CollectionUtils.isNotEmpty(dirs)) {
+                        for (String child : dirs) {
+                            Path childToDelete = Paths.get(folderToDelete, child);
+                            deleteParentFolder(git, childToDelete, false);
+                            git.rm()
+                                    .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                                    .setCached(false)
+                                    .call();
+
+                        }
+                    }
+                    if (CollectionUtils.isNotEmpty(files)) {
+                        for (String child : files) {
+                            git.rm()
+                                    .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                                    .setCached(false)
+                                    .call();
+
+                        }
+                    }
                 }
             }
         } catch (CryptoException e) {
@@ -1124,11 +1173,16 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     @Override
     public boolean commitIdExists(String site, String commitId) {
+        return commitIdExists(site, SANDBOX, commitId);
+    }
+
+    @Override
+    public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
         boolean toRet = false;
         try {
             GitRepositoryHelper helper =
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
-            try (Repository repo = helper.getRepository(site, SANDBOX)) {
+            try (Repository repo = helper.getRepository(site, repoType)) {
                 if (repo != null) {
                     ObjectId objCommitId = repo.resolve(commitId);
                     if (objCommitId != null) {
@@ -1140,7 +1194,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 }
             }
         } catch (CryptoException | IOException e) {
-            logger.info("Commit ID " + commitId + " does not exist in sandbox for site " + site);
+            logger.info("Commit ID " + commitId + " does not exist in " + repoType + " for site " + site);
         }
         return toRet;
     }
@@ -1200,6 +1254,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toReturn;
     }
 
+    @RetryingOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) {
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
@@ -1283,6 +1338,107 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
         logger.debug("Insert site remote record into database");
         remoteRepositoryDAO.insertRemoteRepository(params);
+
+        params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
+        if (remoteRepository != null) {
+            insertClusterRemoteRepository(remoteRepository);
+        }
+    }
+
+    @RetryingOperation
+    public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
+        HierarchicalConfiguration<ImmutableNode> registrationData =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        if (registrationData != null && !registrationData.isEmpty()) {
+            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+            ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
+            if (member != null) {
+                clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+            }
+        }
+    }
+    @Override
+    public boolean contentExists(String site, String path) {
+        boolean toReturn = false;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            if (repo != null ) {
+
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                    // Check if the array of items is not null, and since we have an absolute path to the item,
+                    // pick the first item in the list
+                    if (tw != null && tw.getObjectId(0) != null) {
+                        toReturn = true;
+                        tw.close();
+                    } else if (tw == null) {
+                        String gitPath = helper.getGitPath(path);
+                        if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                            toReturn = true;
+                        }
+                    }
+                } catch (IOException e) {
+                    logger.info("Content not found for site: " + site + " path: " + path, e);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
+        }
+        return toReturn;
+    }
+
+    @Override
+    public String getRepoLastCommitId(final String site) {
+        String toReturn = EMPTY;
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            Repository repository =
+                    helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            if (repository != null) {
+                synchronized (repository) {
+                    Repository repo = helper.getRepository(site, SANDBOX);
+                    ObjectId commitId = repo.resolve(HEAD);
+                    if (commitId != null) {
+                        toReturn = commitId.getName();
+                    }
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error getting last commit ID for site " + site, e);
+        }
+        return toReturn;
+    }
+
+    @Override
+    public Item getItem(String siteId, String path) {
+        var context = contextManager.getContext(siteId);
+        return contentStoreService.getItem(context, null, path, null, true);
+    }
+
+    @Override
+    public long getContentSize(final String site, final String path) {
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            RevTree tree = helper.getTreeForLastCommit(repo);
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                if (tw != null && tw.getObjectId(0) != null) {
+                    ObjectId id = tw.getObjectId(0);
+                    ObjectLoader objectLoader = repo.open(id);
+                    return objectLoader.getSize();
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
+        }
+        return -1L;
     }
 
     public StudioConfiguration getStudioConfiguration() {
@@ -1337,4 +1493,19 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         this.encryptor = encryptor;
     }
 
+    public void setContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
+    }
+
+    public void setContentStoreService(ContentStoreService contentStoreService) {
+        this.contentStoreService = contentStoreService;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
 }

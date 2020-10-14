@@ -142,7 +142,7 @@ application/ipfix				ipfix
 application/java-archive			jar
 application/java-serialized-object		ser
 application/java-vm				class
-application/javascript				js
+application/javascript				js tsx
 # application/jose
 # application/jose+json
 # application/jrd+json
@@ -1277,6 +1277,7 @@ application/x-hdf				hdf
 application/x-install-instructions		install
 application/x-iso9660-image			iso
 application/x-java-jnlp-file			jnlp
+application/x-javascript+xml		jsx
 application/x-latex				latex
 application/x-lzh-compressed			lzh lha
 application/x-mie				mie
@@ -1544,6 +1545,7 @@ image/cgm					cgm
 # image/fits
 image/g3fax					g3
 image/gif					gif
+image/heic        heic
 image/ief					ief
 # image/jls
 # image/jp2
@@ -1690,6 +1692,7 @@ text/html					html htm tmpl
 # text/jcr-cnd
 # text/markdown
 # text/mizar
+text/less         less
 text/n3						n3
 # text/parameters
 # text/parityfec
@@ -1745,11 +1748,16 @@ text/vnd.wap.wml				wml
 text/vnd.wap.wmlscript				wmls
 text/x-asm					s asm
 text/x-c					c cc cxx cpp h hh dic
+text/x-freemarker           ftl
 text/x-fortran					f for f77 f90
+text/x-groovy               groovy
+text/x-handlebars-template        hbs
 text/x-java-source				java
 text/x-nfo					nfo
 text/x-opml					opml
 text/x-pascal					p pas
+text/x-sass 				sass
+text/x-scss 				scss
 text/x-setext					etx
 text/x-sfv					sfv
 text/x-uuencode					uu

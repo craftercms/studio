@@ -224,5 +224,4 @@ public class SiteConfigTO implements Serializable {
     public void setAdminEmailAddress(String adminEmailAddress) {
         this.adminEmailAddress = adminEmailAddress;
     }
-
 }

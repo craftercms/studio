@@ -23,6 +23,9 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
@@ -35,6 +38,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,8 +62,11 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 
 public class UserServiceInternalImpl implements UserServiceInternal {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceInternalImpl.class);
 
     private UserDAO userDao;
     private GroupServiceInternal groupServiceInternal;
@@ -202,6 +209,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
         long userId = user.getId();
@@ -224,6 +232,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public void deleteUsers(List<Long> userIds,
                             List<String> usernames) throws UserNotFoundException, ServiceLayerException {
@@ -239,6 +248,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public List<User> enableUsers(List<Long> userIds, List<String> usernames,
                                   boolean enabled) throws ServiceLayerException, UserNotFoundException {
@@ -293,6 +303,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
@@ -324,6 +335,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @RetryingOperation
     @Override
     public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
@@ -366,8 +378,13 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public User getUserByGitName(String gitName) {
-        return userDao.getUserByGitName(gitName);
+    public User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException {
+        User user =  userDao.getUserByGitName(gitName);
+        if (Objects.isNull(user)) {
+            logger.info("Git user " + gitName + " not found in DB.");
+            user = getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+        }
+        return user;
     }
 
     public UserDAO getUserDao() {

@@ -123,6 +123,7 @@ package org.craftercms.studio.api.v1.constant;
     String CONTENT_TYPE_REMOTE_REPOSITORY = "remoteRepository";
     String CONTENT_TYPE_CONFIG_FOLDER = "content-types";
     String CONTENT_TYPE_SCRIPT = "script";
+    String CONTENT_TYPE_LEVEL_DESCRIPTOR= "levelDescriptor";
 
     /**
      * System constants
@@ -203,4 +204,6 @@ package org.craftercms.studio.api.v1.constant;
     String MODULE_ENGINE = "engine";
 
     String DEFAULT_CONFIG_URL = "http://localhost:8080";
+
+    String DEFAULT_PUBLISHING_LOCK_OWNER_ID = "STANDALONE STUDIO";
 }

@@ -17,11 +17,13 @@ package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -32,7 +34,7 @@ import java.util.List;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that upgrades encrypted values in
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that upgrades encrypted values in
  * the database.
  *
  * @author joseross
@@ -55,14 +57,16 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
 
     protected TextEncryptor textEncryptor;
 
-    public DbEncryptionUpgradeOperation(TextEncryptor textEncryptor) {
+    public DbEncryptionUpgradeOperation(StudioConfiguration studioConfiguration,
+                                        TextEncryptor textEncryptor) {
+        super(studioConfiguration);
         this.textEncryptor = textEncryptor;
     }
 
     @Override
-    public void execute(String site) throws UpgradeException {
+    public void doExecute(StudioUpgradeContext context) throws UpgradeException {
         try {
-            NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(context.getDataSource());
             upgradeRemoteRepositories(jdbcTemplate);
             upgradeClusterMembers(jdbcTemplate);
         } catch (Exception e) {

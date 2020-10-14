@@ -17,7 +17,9 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -28,6 +30,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.core.task.TaskExecutor;
 
@@ -85,7 +88,7 @@ public class RebuildRepositoryMetadata {
             logger.debug("Initiate rebuild metadata process for site " + site);
             try {
                 rebuildMetadata(site);
-            } catch (SiteNotFoundException e) {
+            } catch (ServiceLayerException | UserNotFoundException e) {
                 logger.error("Error while rebuilding metadata", e);
             }
             CronJobContext.clear();
@@ -93,7 +96,8 @@ public class RebuildRepositoryMetadata {
         }
     }
 
-    protected boolean cleanOldMetadata(String site) {
+    @RetryingOperation
+    public boolean cleanOldMetadata(String site) {
         logger.debug("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -141,7 +145,7 @@ public class RebuildRepositoryMetadata {
     }
 
 
-    protected boolean rebuildMetadata(String site) throws SiteNotFoundException {
+    protected boolean rebuildMetadata(String site) throws ServiceLayerException, UserNotFoundException {
         siteService.syncDatabaseWithRepo(site, null);
         return true;
     }

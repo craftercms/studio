@@ -20,6 +20,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -47,6 +48,8 @@ public class StudioNodeHeartbeatJob implements Runnable {
         if (singleWorkerLock.tryLock()) {
             try {
                 updateHeartbeat();
+            } catch (Exception error) {
+                logger.error("Error during execution of node heartbeat job", error);
             } finally {
                 singleWorkerLock.unlock();
             }
@@ -55,7 +58,8 @@ public class StudioNodeHeartbeatJob implements Runnable {
         }
     }
 
-    private void updateHeartbeat() {
+    @RetryingOperation
+    public void updateHeartbeat() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);

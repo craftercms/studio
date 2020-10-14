@@ -69,5 +69,5 @@ public interface UserServiceInternal {
      * @param gitName first and last name separated with ' '
      * @return user
      */
-    User getUserByGitName(String gitName);
+    User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException;
 }

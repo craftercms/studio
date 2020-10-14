@@ -16,12 +16,16 @@
 
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -37,6 +41,8 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,23 +56,28 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_PUBLISHING_LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
-public class PublisherTask implements Runnable {
+public class PublisherTask extends Thread {
 
     private static final Logger logger = LoggerFactory.getLogger(PublisherTask.class);
 
@@ -110,74 +121,89 @@ public class PublisherTask implements Runnable {
         String env = null;
         if (singleWorkerLock.tryLock()) {
             try {
-                try {
-                    syncRepository(site);
-                } catch (Exception e) {
-                    logger.error("Failed to sync database from repository for site " + site, e);
-                    siteService.enablePublishing(site, false);
-                }
-                if (contentRepository.repositoryExists(site) && siteService.isPublishingEnabled(site)) {
-                    if (!publishingManager.isPublishingBlocked(site)) {
-                        try {
-                            Set<String> environments = getAllPublishingEnvironments(site);
-                            for (String environment : environments) {
-                                env = environment;
-                                logger.debug("Processing content ready for deployment for site \"{0}\"", site);
-                                List<PublishRequest> itemsToDeploy =
-                                        publishingManager.getItemsReadyForDeployment(site, environment);
+                // Check publishing lock status
+                logger.debug("Try to lock site " + site + " for publishing by lock owner " + getLockOwnerId());
+                if (siteService.tryLockPublishingForSite(site, getLockOwnerId(), getLockTTL())) {
+                    try {
+                        syncRepository(site);
+                    } catch (Exception e) {
+                        logger.error("Failed to sync database from repository for site " + site, e);
+                        siteService.enablePublishing(site, false);
+                    }
 
-                                if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
-                                    publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
-                                    List<String> commitIds = itemsToDeploy.stream()
-                                            .map(PublishRequest::getCommitId)
-                                            .distinct().collect(Collectors.toList());
+                    if (contentRepository.repositoryExists(site) && siteService.isPublishingEnabled(site)) {
+                        if (!publishingManager.isPublishingBlocked(site)) {
+                            try {
+                                Set<String> environments = getAllPublishingEnvironments(site);
+                                for (String environment : environments) {
+                                    env = environment;
+                                    logger.debug("Processing content ready for deployment for site \"{0}\"", site);
+                                    List<PublishRequest> itemsToDeploy =
+                                            publishingManager.getItemsReadyForDeployment(site, environment);
+                                    while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
+                                        logger.debug("Deploying " + itemsToDeploy.size() + " items for " +
+                                                "site " + site);
+                                        publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
+                                        List<String> commitIds = itemsToDeploy.stream()
+                                                .map(PublishRequest::getCommitId)
+                                                .distinct().collect(Collectors.toList());
 
-                                    boolean allCommitsPresent = true;
-                                    for (String commit : commitIds) {
-                                        boolean commitPresent = contentRepository.commitIdExists(site, commit);
-                                        if (!commitPresent) {
-                                            logger.debug("Commit with ID: " + commit + " is not present in local repo" +
-                                                    " for site " + site + ". Publisher task will skip this cycle.");
-                                            allCommitsPresent = false;
+                                        boolean allCommitsPresent = true;
+                                        for (String commit : commitIds) {
+                                            if (StringUtils.isNotEmpty(commit)) {
+                                                boolean commitPresent = contentRepository.commitIdExists(site, commit);
+                                                if (!commitPresent) {
+                                                    logger.debug("Commit with ID: " + commit + " is not present in " +
+                                                            "local repo for site " + site + ". " +
+                                                            "Publisher task will skip this cycle.");
+                                                    allCommitsPresent = false;
+                                                }
+                                            }
                                         }
-                                    }
 
-                                    if (allCommitsPresent) {
-                                        logger.info("Starting publishing on environment " + environment +
-                                                " for site " + site);
-                                        logger.debug("Site \"{0}\" has {1} items ready for deployment",
-                                                site, itemsToDeploy.size());
+                                        if (allCommitsPresent) {
+                                            logger.info("Starting publishing on environment " + environment +
+                                                    " for site " + site);
+                                            logger.debug("Site \"{0}\" has {1} items ready for deployment",
+                                                    site, itemsToDeploy.size());
 
-                                        doPublishing(itemsToDeploy, environment);
-                                    } else {
-                                        publishingManager.markItemsReady(site, environment, itemsToDeploy);
+                                            doPublishing(itemsToDeploy, environment);
+                                        } else {
+                                            publishingManager.markItemsReady(site, environment, itemsToDeploy);
+                                        }
+                                        siteService.updatePublishingLockHeartbeatForSite(site);
+                                        itemsToDeploy =
+                                                publishingManager.getItemsReadyForDeployment(site, environment);
                                     }
                                 }
+                            } catch (Exception err) {
+                                logger.error("Error while executing deployment to environment store for site: "
+                                        + site, err);
+                                publishingManager.resetProcessingQueue(site, env);
+                                notificationService.notifyDeploymentError(site, err);
+                                logger.info("Continue executing deployment for other sites.");
                             }
-                        } catch (Exception err) {
-                            logger.error("Error while executing deployment to environment store for site: "
-                                    + site, err);
-                            publishingManager.resetProcessingQueue(site, env);
-                            notificationService.notifyDeploymentError(site, err);
-                            logger.info("Continue executing deployment for other sites.");
+                        } else {
+                            logger.info("Publishing is blocked for site " + site);
                         }
                     } else {
-                        logger.info("Publishing is blocked for site " + site);
+                        logger.info("Publishing is disabled for site " + site);
                     }
-                } else {
-                    logger.info("Publishing is disabled for site " + site);
                 }
             } catch (Exception err) {
                 logger.error("Error while executing deployment to environment store", err);
                 notificationService.notifyDeploymentError(site, err);
                 publishingManager.resetProcessingQueue(site, env);
             } finally {
+                // Unlock publishing if queue does not have packages ready for publishing
+                logger.debug("Unlocking publishing for site " + site + " by lock owner " + getLockOwnerId());
+                siteService.unlockPublishingForSite(site, getLockOwnerId());
                 singleWorkerLock.unlock();
             }
         }
     }
 
-    private void syncRepository(String site) throws SiteNotFoundException {
+    private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
         logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
@@ -232,8 +258,6 @@ public class PublisherTask implements Runnable {
                 logger.debug("Mark items as processing for site \"{0}\"", site);
                 Set<String> packageIds = new HashSet<String>();
                 for (PublishRequest item : itemsToDeploy) {
-                    processPublishingRequest(site, environment, item,
-                            completeDeploymentItemList, processedPaths);
                     if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
                         currentPackageId = item.getPackageId();
                         statusMessage = studioConfiguration.getProperty
@@ -244,6 +268,7 @@ public class PublisherTask implements Runnable {
                                                 .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                         siteService.updatePublishingStatusMessage(site, statusMessage);
                     }
+                    processPublishingRequest(site, environment, item, completeDeploymentItemList, processedPaths);
                     if (packageIds.add(item.getPackageId())) {
                         sbComment.append(item.getSubmissionComment()).append("\n");
                     }
@@ -309,17 +334,13 @@ public class PublisherTask implements Runnable {
     }
 
     private void processPublishingRequest(String site, String environment, PublishRequest item,
-            List<DeploymentItemTO> completeDeploymentItemList,
-            Set<String> processedPaths)
-    throws ServiceLayerException, DeploymentException {
+                                          List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
+            throws ServiceLayerException, DeploymentException {
         List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
         Set<String> missingDependenciesPaths = new HashSet<String>();
         SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
+        String statusMessage;
         String messagePath = item.getPath();
-        String statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
-        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
-                ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-        siteService.updatePublishingStatusMessage(site, statusMessage);
         try {
             List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 
@@ -408,5 +429,26 @@ public class PublisherTask implements Runnable {
         boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(
                 JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
         return toReturn;
+    }
+
+    private String getLockOwnerId() {
+        HierarchicalConfiguration<ImmutableNode> clusterConfig =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        String clusterNodeId = StringUtils.EMPTY;
+        if (Objects.nonNull(clusterConfig)) {
+            clusterNodeId = clusterConfig.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+        }
+        if  (StringUtils.isEmpty(clusterNodeId)) {
+            try {
+                clusterNodeId = InetAddress.getLocalHost().toString();
+            } catch (UnknownHostException e) {
+                clusterNodeId = DEFAULT_PUBLISHING_LOCK_OWNER_ID;
+            }
+        }
+        return clusterNodeId;
+    }
+
+    private int getLockTTL() {
+        return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
     }
 }

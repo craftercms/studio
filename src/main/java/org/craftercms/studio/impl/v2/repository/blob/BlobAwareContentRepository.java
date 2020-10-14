@@ -25,6 +25,8 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.lang.RegexUtils;
+import org.craftercms.core.service.Item;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -192,7 +194,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 return store.getContentSize(site, normalize(path));
             }
-            return localRepositoryV1.getContentSize(site, path);
+            return localRepositoryV2.getContentSize(site, path);
         } catch (Exception e) {
             logger.error("Error getting size for content {0} in site {1}", e, path, site);
             return -1L;
@@ -524,6 +526,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
+    public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
+        return localRepositoryV2.commitIdExists(site, repoType, commitId);
+    }
+
+    @Override
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
@@ -593,4 +600,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                                                             ZonedDateTime toDate, int limit) {
         return localRepositoryV2.getPublishingHistory(siteId, environment, path, publisher, fromDate, toDate, limit);
     }
+
+    @Override
+    public Item getItem(String siteId, String path) {
+        return localRepositoryV2.getItem(siteId, path);
+    }
+
 }

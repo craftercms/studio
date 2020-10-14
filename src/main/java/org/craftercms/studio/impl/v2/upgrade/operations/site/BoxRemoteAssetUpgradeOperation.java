@@ -16,30 +16,30 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.sql.DataSource;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
 import static java.util.Collections.singletonMap;
+import static org.apache.commons.text.StringSubstitutor.replace;
 
 /**
- * Implementation of {@link UpgradeOperation} to update item descriptors that use the Box File Upload control
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} to update item descriptors that use the Box File Upload control
  *
  * <p>Supported YAML properties:</p>
  * <ul>
@@ -108,8 +108,13 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
      */
     protected String urlTemplate;
 
+    public BoxRemoteAssetUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource,
+                                          String contentTypeXpath, String formDefinitionTemplate) {
+        super(studioConfiguration, contentTypeXpath, formDefinitionTemplate);
+    }
+
     @Override
-    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    protected void doInit(final HierarchicalConfiguration config) {
         super.doInit(config);
         fieldNameXpath = config.getString(CONFIG_KEY_FIELD_XPATH);
         profileIdXpath = config.getString(CONFIG_KEY_PROFILE_XPATH);
@@ -121,11 +126,11 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
     }
 
     @Override
-    protected void updateFile(final String site, final Path file) throws UpgradeException {
+    protected void updateFile(StudioUpgradeContext context, Path file) throws UpgradeException {
         try {
             Document descriptor = loadDocument(file);
             String contentTypeName = (String) select(descriptor, contentTypeXpath, XPathConstants.STRING);
-            Path formDefinition = getFormDefinition(site, contentTypeName);
+            Path formDefinition = getFormDefinition(context, contentTypeName);
             Document definition = loadDocument(formDefinition);
             NodeList formFields = (NodeList) select(definition, fieldNameXpath, XPathConstants.NODESET);
             logger.debug("Found {0} Box controls for content-type {1}", formFields.getLength(), contentTypeName);
@@ -160,11 +165,9 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
 
         Map<String, String> idValue = singletonMap(PLACEHOLDER_ID, fieldName);
 
-        String profileId = (String) select(definition,
-            StrSubstitutor.replace(profileIdXpath, idValue), XPathConstants.STRING);
+        String profileId = (String) select(definition, replace(profileIdXpath, idValue), XPathConstants.STRING);
 
-        NodeList items = (NodeList) select(descriptor,
-            StrSubstitutor.replace(itemXpath, idValue), XPathConstants.NODESET);
+        NodeList items = (NodeList) select(descriptor, replace(itemXpath, idValue), XPathConstants.NODESET);
 
         logger.debug("Found {0} Box fields in file {1}", items.getLength(), file);
 
@@ -201,7 +204,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
             values.put(PLACEHOLDER_ID, fileId);
             values.put(PLACEHOLDER_EXTENSION, FilenameUtils.getExtension(fileName));
 
-            String urlValue = StrSubstitutor.replace(urlTemplate, values);
+            String urlValue = replace(urlTemplate, values);
             logger.debug("Adding url element for field {0}/{1} with value {2}",
                 fieldName, fileId, urlValue);
 
