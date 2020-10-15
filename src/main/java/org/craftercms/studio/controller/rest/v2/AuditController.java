@@ -81,7 +81,7 @@ public class AuditController {
             throw new SiteNotFoundException("Site " + siteId + " not found.");
         }
 
-        if (StringUtils.isNotEmpty(siteName) && !siteService.existsByName(siteName)) {
+        if (StringUtils.isNotEmpty(siteName) && !siteService.exists(siteName)) {
             throw new SiteNotFoundException("Site " + siteName + " not found.");
         }
 
