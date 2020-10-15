@@ -453,6 +453,7 @@
         <property name="itemDao" ref="itemDao" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"

@@ -179,4 +179,13 @@ public interface SecurityService {
      * @return true if user belongs to admin group
      */
     boolean isSiteAdmin(String username, String site);
+
+    /**
+     * get available actions on content for user
+     * @param site site identifier
+     * @param path content path
+     * @param user username
+     * @return available actions bitmap
+     */
+    long getAvailableActions(String site, String path, String user);
 }

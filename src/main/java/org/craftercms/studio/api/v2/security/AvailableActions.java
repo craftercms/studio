@@ -39,7 +39,9 @@ import static org.craftercms.studio.permissions.StudioPermissions.ACTION_DELETE_
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_DELETE_CONTENT;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_DELETE_GROUPS;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_DELETE_USERS;
+import static org.craftercms.studio.permissions.StudioPermissions.ACTION_EDIT_SITE;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_ENCRYPTION_TOOL;
+import static org.craftercms.studio.permissions.StudioPermissions.ACTION_GET_CHILDREN;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_GET_PUBLISHING_QUEUE;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_LIST_CMIS;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_LIST_REMOTES;
@@ -94,7 +96,7 @@ public enum AvailableActions {
     READ_AUDIT_LOG("Read Audit Log", 20),
     READ_SITE_LOG("Read Site Log", 21),
     ADD_REMOTE_REPOSITORY("Add Remote Repository", 22),
-    REMOVE_REMOTE_REPOSITORY("Remove Remote Repositroy", 23),
+    REMOVE_REMOTE_REPOSITORY("Remove Remote Repository", 23),
     PULL_FROM_REMOTE_REPOSITORY("Pull From Remote Repository", 24),
     PUSH_TO_REMOTE_REPOSITORY("Push To Remote Repository", 25),
     RESOLVE_CONFLICTS("Resolve Conflicts", 26),
@@ -152,8 +154,12 @@ public enum AvailableActions {
     public static final long DELETE_GROUPS = SYSTEM_DELETE.value;
     // delete_users
     public static final long DELETE_USERS = SYSTEM_DELETE.value;
+    // edit_site
+    public static final long EDIT_SITE = SYSTEM_UPDATE.value;
     // encryption_tool
     public static final long ENCRYPTION_TOOL = CONTENT_UPDATE.value + SYSTEM_UPDATE.value;
+    // get_children
+    public static final long GET_CHILDREN = 0L;
     // get_publishing_queue
     public static final long GET_PUBLISHING_QUEUE = READ_PUBLISHING_QUEUE.value;
     // list_cmis
@@ -215,7 +221,7 @@ public enum AvailableActions {
 
     public static long mapPermissionToAvailableActions(String permission) {
         long result = 0L;
-        switch (permission) {
+        switch (permission.toLowerCase()) {
             case ACTION_ADD_REMOTE:
                 result = ADD_REMOTE;
                 break;
@@ -270,8 +276,14 @@ public enum AvailableActions {
             case ACTION_DELETE_USERS:
                 result = DELETE_USERS;
                 break;
+            case ACTION_EDIT_SITE:
+                result = EDIT_SITE;
+                break;
             case ACTION_ENCRYPTION_TOOL:
                 result = ENCRYPTION_TOOL;
+                break;
+            case ACTION_GET_CHILDREN:
+                result = GET_CHILDREN;
                 break;
             case ACTION_GET_PUBLISHING_QUEUE:
                 result = GET_PUBLISHING_QUEUE;

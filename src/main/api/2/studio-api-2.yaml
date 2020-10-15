@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.1'
+  version: '3.2.0.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1842,7 +1842,7 @@ paths:
       operationId: getVersion
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1872,7 +1872,7 @@ paths:
       operationId: getStatus
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1902,7 +1902,7 @@ paths:
       operationId: getMemory
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1939,7 +1939,7 @@ paths:
             type: integer
             format: int64
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -5682,6 +5682,44 @@ components:
           type: integer
           format: int64
           description: size of content item in the repository
+        availableAction:
+          type: integer
+          format: int64
+          description: >-
+            available actions bitmap
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Create, `DESCRIPTION`: Create content
+              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Update, `DESCRIPTION`: Update content
+              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
+              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
+              * `BIT ORDER (little-endian)`: 27, `FLAG`: System Create, `DESCRIPTION`: Create system object
+              * `BIT ORDER (little-endian)`: 28, `FLAG`: System Read, `DESCRIPTION`: Read system object
+              * `BIT ORDER (little-endian)`: 29, `FLAG`: System Update, `DESCRIPTION`: Update system object
+              * `BIT ORDER (little-endian)`: 30, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
+              * `BIT ORDER (little-endian)`: 31, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
+              * `BIT ORDER (little-endian)`: 32, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
       required:
         - id
         - label
@@ -5698,6 +5736,7 @@ components:
         - modifier
         - lastModifiedDate
         - commitId
+        - availableActions
 
     DetailedItem:
       type: object
@@ -5758,6 +5797,44 @@ components:
         translationSourceId:
           type: string
           description: ID of content item that is original for translation that current item represents
+        availableAction:
+          type: integer
+          format: int64
+          description: >-
+            available actions bitmap
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Create, `DESCRIPTION`: Create content
+              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Update, `DESCRIPTION`: Update content
+              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
+              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
+              * `BIT ORDER (little-endian)`: 27, `FLAG`: System Create, `DESCRIPTION`: Create system object
+              * `BIT ORDER (little-endian)`: 28, `FLAG`: System Read, `DESCRIPTION`: Read system object
+              * `BIT ORDER (little-endian)`: 29, `FLAG`: System Update, `DESCRIPTION`: Update system object
+              * `BIT ORDER (little-endian)`: 30, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
+              * `BIT ORDER (little-endian)`: 31, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
+              * `BIT ORDER (little-endian)`: 32, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
         sandbox:
           type: object
           description: metadata of content item version stored in sandbox repository
@@ -5831,6 +5908,7 @@ components:
         - lockOwner
         - disabled
         - staging
+        - availableActions
 
     LocalizationItem:
       type: object
