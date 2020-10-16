@@ -73,6 +73,7 @@ import static org.craftercms.studio.permissions.StudioPermissions.ACTION_WRITE_G
 
 public enum AvailableActions {
 
+    // Editorial
     CONTENT_CREATE("Content: Create", 0),
     CONTENT_UPDATE("Content: Update", 1),
     CONTENT_DELETE("Content: Delete", 2),
@@ -82,30 +83,71 @@ public enum AvailableActions {
     CONTENT_MOVE_RENAME("Content: Move/Rename", 6),
     CONTENT_DUPLICATE("Content: Duplicate", 7),
     CONTENT_TRANSLATE("Content: Translate", 8),
-    REQUEST_PUBLISH("Request Publish", 9),
-    APPROVE_PUBLISH("Approve Publish", 10),
-    REJECT_PUBLISH("Reject Publish", 11),
-    CANCEL_PUBLISH("Cancel Publish", 12),
-    BULK_PUBLISH("Bulk Publish", 13),
-    READ_PUBLISHING_QUEUE("Read Publishing Queue", 14),
-    READ_PUBLISHING_STATUS("Read Publishing Status", 15),
-    START_PUBLISHING("Start Publishing", 16),
-    STOP_PUBLISHING("Stop Publishing", 17),
-    PUBLISH_BY_COMMIT_ID("Publish by Commit ID", 18),
-    SET_WORKFLOW_STATE("Set Workflow State", 19),
-    READ_AUDIT_LOG("Read Audit Log", 20),
-    READ_SITE_LOG("Read Site Log", 21),
-    ADD_REMOTE_REPOSITORY("Add Remote Repository", 22),
-    REMOVE_REMOTE_REPOSITORY("Remove Remote Repository", 23),
-    PULL_FROM_REMOTE_REPOSITORY("Pull From Remote Repository", 24),
-    PUSH_TO_REMOTE_REPOSITORY("Push To Remote Repository", 25),
-    RESOLVE_CONFLICTS("Resolve Conflicts", 26),
-    SYSTEM_CREATE("System Create", 27),
-    SYSTEM_READ("System Read", 28),
-    SYSTEM_UPDATE("System Update", 29),
-    SYSTEM_DELETE("System Delete", 30),
-    READ_STUDIO_LOG_SETTINGS("Read Studio Log Settings", 31),
-    UPDATE_STUDIO_LOG_SETTINGS("Update Studio Log Settings", 32);
+    CONTENT_RESERVED_1("Content: Reserved 1", 9),
+    CONTENT_RESERVED_2("Content: Reserved 2", 10),
+    CONTENT_RESERVED_3("Content: Reserved 3", 11),
+
+    // Publishing
+    REQUEST_PUBLISH("Request Publish", 12),
+    APPROVE_PUBLISH("Approve Publish", 13),
+    REJECT_PUBLISH("Reject Publish", 14),
+    CANCEL_PUBLISH("Cancel Publish", 15),
+    BULK_PUBLISH("Bulk Publish", 16),
+    READ_PUBLISHING_QUEUE("Read Publishing Queue", 17),
+    READ_PUBLISHING_STATUS("Read Publishing Status", 18),
+    START_PUBLISHING("Start Publishing", 19),
+    STOP_PUBLISHING("Stop Publishing", 20),
+    PUBLISH_BY_COMMIT_ID("Publish by Commit ID", 21),
+    PUBLISHING_RESERVED_1("Publishing: Reserved 1", 22),
+    PUBLISHING_RESERVED_2("Publishing: Reserved 2", 23),
+
+    // Site Admin
+    SET_WORKFLOW_STATE("Set Workflow State", 24),
+    READ_AUDIT_LOG("Read Audit Log", 25),
+    READ_SITE_LOG("Read Site Log", 26),
+    SITE_ADMIN_RESERVED_1("Site Admin: Reserved 1", 27),
+    SITE_ADMIN_RESERVED_2("Site Admin: Reserved 2", 28),
+    SITE_ADMIN_RESERVED_3("Site Admin: Reserved 3", 29),
+    SITE_ADMIN_RESERVED_4("Site Admin: Reserved 4", 30),
+    SITE_ADMIN_RESERVED_5("Site Admin: Reserved 5", 31),
+
+    // Site Git Operations
+    ADD_REMOTE_REPOSITORY("Add Remote Repository", 32),
+    REMOVE_REMOTE_REPOSITORY("Remove Remote Repository", 33),
+    PULL_FROM_REMOTE_REPOSITORY("Pull From Remote Repository", 34),
+    PUSH_TO_REMOTE_REPOSITORY("Push To Remote Repository", 35),
+    RESOLVE_CONFLICTS("Resolve Conflicts", 36),
+    GIT_RESERVED_1("Git: Reserved 1", 37),
+    GIT_RESERVED_2("Git: Reserved 2", 38),
+    GIT_RESERVED_3("Git: Reserved 3", 39),
+
+    // System Admin
+    SYSTEM_CREATE("System Create", 40),
+    SYSTEM_READ("System Read", 41),
+    SYSTEM_UPDATE("System Update", 42),
+    SYSTEM_DELETE("System Delete", 43),
+    READ_STUDIO_LOG_SETTINGS("Read Studio Log Settings", 44),
+    UPDATE_STUDIO_LOG_SETTINGS("Update Studio Log Settings", 45),
+    ADMIN_RESERVED_1("Admin: Reserved 1", 46),
+    ADMIN_RESERVED_2("Admin: Reserved 2", 47),
+
+    // Reserved
+    RESERVED_1("Reserved 1", 48),
+    RESERVED_2("Reserved 2", 49),
+    RESERVED_3("Reserved 3", 50),
+    RESERVED_4("Reserved 4", 51),
+    RESERVED_5("Reserved 5", 52),
+    RESERVED_6("Reserved 6", 53),
+    RESERVED_7("Reserved 7", 54),
+    RESERVED_8("Reserved 8", 55),
+    RESERVED_9("Reserved 9", 56),
+    RESERVED_10("Reserved 10", 57),
+    RESERVED_11("Reserved 11", 58),
+    RESERVED_12("Reserved 12", 59),
+    RESERVED_13("Reserved 13", 60),
+    RESERVED_14("Reserved 14", 61),
+    RESERVED_15("Reserved 15", 62),
+    RESERVED_16("Reserved 16", 63);
 
     public final long value;
     public final String label;

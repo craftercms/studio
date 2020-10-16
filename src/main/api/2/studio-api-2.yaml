@@ -5696,30 +5696,61 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
-              * `BIT ORDER (little-endian)`: 13, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
-              * `BIT ORDER (little-endian)`: 14, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
-              * `BIT ORDER (little-endian)`: 15, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
-              * `BIT ORDER (little-endian)`: 16, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
-              * `BIT ORDER (little-endian)`: 17, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
-              * `BIT ORDER (little-endian)`: 18, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
-              * `BIT ORDER (little-endian)`: 19, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
-              * `BIT ORDER (little-endian)`: 20, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
-              * `BIT ORDER (little-endian)`: 21, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
-              * `BIT ORDER (little-endian)`: 22, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
-              * `BIT ORDER (little-endian)`: 23, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
-              * `BIT ORDER (little-endian)`: 24, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
-              * `BIT ORDER (little-endian)`: 25, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
-              * `BIT ORDER (little-endian)`: 26, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
-              * `BIT ORDER (little-endian)`: 27, `FLAG`: System Create, `DESCRIPTION`: Create system object
-              * `BIT ORDER (little-endian)`: 28, `FLAG`: System Read, `DESCRIPTION`: Read system object
-              * `BIT ORDER (little-endian)`: 29, `FLAG`: System Update, `DESCRIPTION`: Update system object
-              * `BIT ORDER (little-endian)`: 30, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
-              * `BIT ORDER (little-endian)`: 31, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
-              * `BIT ORDER (little-endian)`: 32, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Content: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Content: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Content: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Publishing: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Publishing: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
+              * `BIT ORDER (little-endian)`: 27, `FLAG`: Site Admin: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 28, `FLAG`: Site Admin: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 29, `FLAG`: Site Admin: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 30, `FLAG`: Site Admin: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 31, `FLAG`: Site Admin: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 32, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
+              * `BIT ORDER (little-endian)`: 33, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
+              * `BIT ORDER (little-endian)`: 34, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
+              * `BIT ORDER (little-endian)`: 35, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
+              * `BIT ORDER (little-endian)`: 36, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
+              * `BIT ORDER (little-endian)`: 37, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 38, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 39, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 40, `FLAG`: System Create, `DESCRIPTION`: Create system object
+              * `BIT ORDER (little-endian)`: 41, `FLAG`: System Read, `DESCRIPTION`: Read system object
+              * `BIT ORDER (little-endian)`: 42, `FLAG`: System Update, `DESCRIPTION`: Update system object
+              * `BIT ORDER (little-endian)`: 43, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
+              * `BIT ORDER (little-endian)`: 44, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
+              * `BIT ORDER (little-endian)`: 45, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
+              * `BIT ORDER (little-endian)`: 46, `FLAG`: System: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 47, `FLAG`: System: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 48, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 49, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 50, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 51, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 52, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 53, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 54, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 55, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 56, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 57, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 58, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 59, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 60, `FLAG`: Reserved 13, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 61, `FLAG`: Reserved 14, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 62, `FLAG`: Reserved 15, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 63, `FLAG`: Reserved 16, `DESCRIPTION`: Reserved for future use
       required:
         - id
         - label
