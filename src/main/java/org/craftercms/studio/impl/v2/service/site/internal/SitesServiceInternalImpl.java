@@ -24,6 +24,7 @@ import org.craftercms.commons.plugin.model.Parameter;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -175,7 +176,11 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    public void updateSite(String siteId, String name, String description) throws SiteNotFoundException {
+    public void updateSite(String siteId, String name, String description)
+            throws SiteNotFoundException, SiteAlreadyExistsException {
+        if (siteFeedMapper.existsByName(name) > 0) {
+            throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
+        }
         int updated = siteFeedMapper.updateSite(siteId, name, description);
         if (updated != 1) {
             throw new SiteNotFoundException();

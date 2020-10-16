@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
 import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -189,6 +190,13 @@ public class ExceptionHandlers {
     public ResponseBody handleClusterMemberAlreadyExistsException(HttpServletRequest request,
                                                                   ClusterMemberAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CLUSTER_MEMBER_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(SiteAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleSiteAlreadyExistsException(HttpServletRequest request, SiteAlreadyExistsException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.SITE_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
