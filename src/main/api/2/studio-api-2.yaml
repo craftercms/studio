@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.1'
+  version: '3.2.0.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3410,16 +3410,21 @@ paths:
       parameters:
         - name: siteId
           in: query
-          description: site ID
+          description: The site ID
           required: true
           schema:
             type: string
         - name: path
           in: query
-          description: item path
+          description: The path of the descriptor
           required: true
           schema:
             type: string
+        - name: flatten
+          in: query
+          description: Indicates if included descriptors should be flattened
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK

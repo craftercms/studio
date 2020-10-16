@@ -127,8 +127,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public org.craftercms.core.service.Item getItem(String siteId, String path) {
-        return contentRepository.getItem(siteId, path);
+    public org.craftercms.core.service.Item getItem(String siteId, String path, boolean flatten) {
+        return contentRepository.getItem(siteId, path, flatten);
     }
 
     @Override

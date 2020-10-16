@@ -120,6 +120,6 @@ public interface ContentService {
                                         int offset, int limit);
 
 
-    Item getItem(String siteId, String path);
+    Item getItem(String siteId, String path, boolean flatten);
 
 }

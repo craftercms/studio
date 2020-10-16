@@ -168,9 +168,10 @@ public class ContentController {
     }
 
     @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getDescriptor(@RequestParam String siteId, @RequestParam String path) throws
+    public ResponseBody getDescriptor(@RequestParam String siteId, @RequestParam String path,
+                                      @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
             ContentNotFoundException {
-        var item = contentService.getItem(siteId, path);
+        var item = contentService.getItem(siteId, path, flatten);
         var descriptor = item.getDescriptorDom();
         if (descriptor == null) {
             throw new ContentNotFoundException(path, siteId, "No descriptor found for " + path + " in site " + siteId);

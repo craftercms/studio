@@ -295,7 +295,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default Item getItem(String siteId, String path) {
+    default Item getItem(String siteId, String path, boolean flatten) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
