@@ -85,7 +85,7 @@ try {
         paramsList.add("blueprint")
     }
 
-    if (!siteName) {
+    if (!siteName || siteName.length() > 255) {
         invalidParams = true
         paramsList.add("name")
     }

@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -87,7 +88,7 @@ public class SitesController {
 
     @PostMapping("/{siteId}")
     public ResponseBody updateSite(@PathVariable String siteId, @Valid @RequestBody UpdateSiteRequest request)
-            throws SiteNotFoundException {
+            throws SiteNotFoundException, SiteAlreadyExistsException {
         sitesService.updateSite(siteId, request.getName(), request.getDescription());
 
         var result = new Result();

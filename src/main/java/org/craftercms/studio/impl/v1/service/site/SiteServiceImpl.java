@@ -389,7 +389,7 @@ public class SiteServiceImpl implements SiteService {
                                         Map<String, String> params, boolean createAsOrphan)
             throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
             BlueprintNotFoundException, MissingPluginParameterException {
-        if (exists(siteId)) {
+        if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
 
@@ -611,7 +611,7 @@ public class SiteServiceImpl implements SiteService {
                                            Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
-        if (exists(siteId)) {
+        if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
 
@@ -796,7 +796,7 @@ public class SiteServiceImpl implements SiteService {
                                         String remoteToken, String remotePrivateKey, Map<String, String> params,
                                         boolean createAsOrphan)
             throws ServiceLayerException {
-        if (exists(siteId)) {
+        if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
 

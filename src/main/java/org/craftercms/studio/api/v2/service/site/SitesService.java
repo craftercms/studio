@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.service.site;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 
 import java.util.List;
@@ -61,6 +62,7 @@ public interface SitesService {
      *
      * @throws SiteNotFoundException if the site doesn't exist
      */
-    void updateSite(String siteId, String name, String description) throws SiteNotFoundException;
+    void updateSite(String siteId, String name, String description)
+            throws SiteNotFoundException, SiteAlreadyExistsException;
 
 }
