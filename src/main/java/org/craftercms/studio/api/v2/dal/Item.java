@@ -53,6 +53,7 @@ public class Item {
         public static final String SIZE = "size";
         public static final String PARENT_ID = "parentId";
         public static final String COMMIT_ID = "commitId";
+        public static final String AVAILABLE_ACTIONS = "availableActions";
     }
 
     private static final Logger logger = LoggerFactory.getLogger(Item.class);
@@ -82,6 +83,7 @@ public class Item {
     private long size;
     private Long parentId = null;
     private String commitId;
+    private long availableActions;
 
     public Item() { }
 
@@ -111,6 +113,7 @@ public class Item {
         size = builder.size;
         parentId = builder.parentId;
         commitId = builder.commitId;
+        availableActions = builder.availableActions;
     }
 
     public long getId() {
@@ -315,6 +318,14 @@ public class Item {
         this.commitId = commitId;
     }
 
+    public long getAvailableActions() {
+        return availableActions;
+    }
+
+    public void setAvailableActions(long availableActions) {
+        this.availableActions = availableActions;
+    }
+
     public void populateProperties(Map<String, Object> properties) {
         properties.forEach((propertyName, value) -> {
             PropertyDescriptor pd;
@@ -407,6 +418,8 @@ public class Item {
                         case Properties.COMMIT_ID:
                             setCommitId((String) value);
                             break;
+                        case Properties.AVAILABLE_ACTIONS:
+                            setAvailableActions((Long) value);
                     }
                 });
     }
@@ -437,6 +450,7 @@ public class Item {
         private long size;
         private Long parentId = null;
         private String commitId;
+        private Long availableActions;
 
         public Builder() { }
 
@@ -466,6 +480,7 @@ public class Item {
             clone.size = item.size;
             clone.parentId = item.parentId;
             clone.commitId = item.commitId;
+            clone.availableActions = item.availableActions;
             return clone;
         }
 

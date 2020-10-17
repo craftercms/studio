@@ -42,6 +42,7 @@ public class SandboxItem {
     private ZonedDateTime lastModifiedDate;
     private String commitId;
     private long sizeInBytes;
+    private long availableActions;
 
     public long getId() {
         return id;
@@ -205,6 +206,14 @@ public class SandboxItem {
         this.sizeInBytes = sizeInBytes;
     }
 
+    public long getAvailableActions() {
+        return availableActions;
+    }
+
+    public void setAvailableActions(long availableActions) {
+        this.availableActions = availableActions;
+    }
+
     public static SandboxItem getInstance(Item item) {
         SandboxItem instance = new SandboxItem();
 
@@ -227,6 +236,7 @@ public class SandboxItem {
         instance.lastModifiedDate = item.getLastModifiedOn();
         instance.commitId = item.getCommitId();
         instance.sizeInBytes = item.getSize();
+        instance.availableActions = item.getAvailableActions();
 
         return instance;
     }
