@@ -225,7 +225,7 @@ public interface ContentRepository {
      */
     String getRepoLastCommitId(String site);
 
-    Item getItem(String siteId, String path);
+    Item getItem(String siteId, String path, boolean flatten);
 
     /**
      * get file size

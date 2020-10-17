@@ -95,7 +95,7 @@ public interface ContentServiceInternal {
      */
     int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale);
 
-    Item getItem(String siteId, String path);
+    Item getItem(String siteId, String path, boolean flatten);
 
     /**
      * Get content size

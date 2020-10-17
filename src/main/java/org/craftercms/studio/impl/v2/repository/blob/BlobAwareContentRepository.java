@@ -602,8 +602,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public Item getItem(String siteId, String path) {
-        return localRepositoryV2.getItem(siteId, path);
+    public Item getItem(String siteId, String path, boolean flatten) {
+        return localRepositoryV2.getItem(siteId, path, flatten);
     }
 
 }

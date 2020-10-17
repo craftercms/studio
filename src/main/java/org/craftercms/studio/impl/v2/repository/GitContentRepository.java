@@ -1416,9 +1416,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     }
 
     @Override
-    public Item getItem(String siteId, String path) {
+    public Item getItem(String siteId, String path, boolean flatten) {
         var context = contextManager.getContext(siteId);
-        return contentStoreService.getItem(context, null, path, null, true);
+        return contentStoreService.getItem(context, null, path, null, flatten);
     }
 
     @Override
