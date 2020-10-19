@@ -45,6 +45,7 @@ public interface StudioBlobStoreResolver extends BlobStoreResolver {
      * @return the blob store object
      * @throws ServiceLayerException if there is any error looking up the stores
      * @throws ConfigurationException if there is any error reading the configuration
+     * @throws IOException IO error
      */
     BlobStore getByPaths(String site, String... paths)
             throws ServiceLayerException, ConfigurationException, IOException;

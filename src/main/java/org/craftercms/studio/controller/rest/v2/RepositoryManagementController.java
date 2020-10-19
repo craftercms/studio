@@ -20,6 +20,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -47,28 +48,45 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ADD_REMOTE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CANCEL_FAILED_PULL;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.COMMIT_RESOLUTION;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DIFF_CONFLICTED_FILE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_REMOTES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PULL_FROM_REMOTE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUSH_TO_REMOTE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REBUILD_DATABASE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REMOVE_REMOTE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REPOSITORY;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESOLVE_CONFLICT;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REPOSITORY_STATUS;
+import static org.craftercms.studio.model.rest.ApiResponse.ADD_REMOTE_INVALID;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
-import static org.craftercms.studio.model.rest.ApiResponse.INTERNAL_SYSTEM_FAILURE;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.craftercms.studio.model.rest.ApiResponse.PUSH_TO_REMOTE_FAILED;
+import static org.craftercms.studio.model.rest.ApiResponse.REMOVE_REMOTE_FAILED;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
-@RequestMapping("/api/2/repository")
+@RequestMapping(API_2 + REPOSITORY)
 public class RepositoryManagementController {
 
     private RepositoryManagementService repositoryManagementService;
     private SiteService siteService;
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/add_remote")
-    public ResponseBody addRemote(@RequestBody RemoteRepository remoteRepository)
+    @PostMapping(ADD_REMOTE)
+    public ResponseBody addRemote(HttpServletResponse response, @RequestBody RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
 
         if (!siteService.exists(remoteRepository.getSiteId())) {
@@ -82,13 +100,14 @@ public class RepositoryManagementController {
         if (res) {
             result.setResponse(CREATED);
         } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+            result.setResponse(ADD_REMOTE_INVALID);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
         responseBody.setResult(result);
         return responseBody;
     }
 
-    @GetMapping("/list_remotes")
+    @GetMapping(value = LIST_REMOTES, produces = APPLICATION_JSON_VALUE)
     public ResponseBody listRemotes(@RequestParam(name = "siteId", required = true) String siteId)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
@@ -104,7 +123,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/pull_from_remote")
+    @PostMapping(PULL_FROM_REMOTE)
     public ResponseBody pullFromRemote(@RequestBody PullFromRemoteRequest pullFromRemoteRequest)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         if (!siteService.exists(pullFromRemoteRequest.getSiteId())) {
@@ -125,8 +144,8 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/push_to_remote")
-    public ResponseBody pushToRemote(@RequestBody PushToRemoteRequest pushToRemoteRequest)
+    @PostMapping(PUSH_TO_REMOTE)
+    public ResponseBody pushToRemote(HttpServletResponse response, @RequestBody PushToRemoteRequest pushToRemoteRequest)
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
         if (!siteService.exists(pushToRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(pushToRemoteRequest.getSiteId());
@@ -140,13 +159,14 @@ public class RepositoryManagementController {
         if (res) {
             result.setResponse(OK);
         } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            result.setResponse(PUSH_TO_REMOTE_FAILED);
         }
         responseBody.setResult(result);
         return responseBody;
     }
 
-    @PostMapping("/rebuild_database")
+    @PostMapping(REBUILD_DATABASE)
     public ResponseBody rebuildDatabase(@RequestBody RebuildDatabaseRequest rebuildDatabaseRequest)
             throws SiteNotFoundException {
         if (!siteService.exists(rebuildDatabaseRequest.getSiteId())) {
@@ -161,9 +181,9 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/remove_remote")
-    public ResponseBody removeRemote(@RequestBody RemoveRemoteRequest removeRemoteRequest)
-            throws CryptoException, SiteNotFoundException {
+    @PostMapping(REMOVE_REMOTE)
+    public ResponseBody removeRemote(HttpServletResponse response, @RequestBody RemoveRemoteRequest removeRemoteRequest)
+            throws CryptoException, SiteNotFoundException, RemoteNotRemovableException {
         if (!siteService.exists(removeRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(removeRemoteRequest.getSiteId());
         }
@@ -175,13 +195,14 @@ public class RepositoryManagementController {
         if (res) {
             result.setResponse(OK);
         } else {
-            result.setResponse(INTERNAL_SYSTEM_FAILURE);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            result.setResponse(REMOVE_REMOTE_FAILED);
         }
         responseBody.setResult(result);
         return responseBody;
     }
 
-    @GetMapping("/status")
+    @GetMapping(STATUS)
     public ResponseBody getRepositoryStatus(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
@@ -196,7 +217,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/resolve_conflict")
+    @PostMapping(RESOLVE_CONFLICT)
     public ResponseBody resolveConflict(@RequestBody ResolveConflictRequest resolveConflictRequest)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(resolveConflictRequest.getSiteId())) {
@@ -216,7 +237,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @GetMapping("/diff_conflicted_file")
+    @GetMapping(DIFF_CONFLICTED_FILE)
     public ResponseBody getDiffForConflictedFile(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                                  @RequestParam(value = REQUEST_PARAM_PATH) String path)
             throws ServiceLayerException, CryptoException {
@@ -236,7 +257,7 @@ public class RepositoryManagementController {
         return  responseBody;
     }
 
-    @PostMapping("/commit_resolution")
+    @PostMapping(COMMIT_RESOLUTION)
     public ResponseBody commitConflictResolution(@RequestBody CommitResolutionRequest commitResolutionRequest)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(commitResolutionRequest.getSiteId())) {
@@ -252,7 +273,7 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    @PostMapping("/cancel_failed_pull")
+    @PostMapping(CANCEL_FAILED_PULL)
     public ResponseBody cancelFailedPull(@RequestBody CancelFailedPullRequest cancelFailedPullRequest)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(cancelFailedPullRequest.getSiteId())) {

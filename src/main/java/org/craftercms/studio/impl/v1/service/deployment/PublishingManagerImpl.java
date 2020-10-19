@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +43,8 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -50,12 +52,17 @@ import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
@@ -81,6 +88,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected PublishRequestMapper publishRequestMapper;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Override
     @ValidateParams
@@ -214,7 +222,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
 
                     // check if commit id from workflow and from object state match
-                    if (itemMetadata.getCommitId() != null && itemMetadata.getCommitId().equals(item.getCommitId())) {
+                    if (Objects.isNull(itemMetadata.getCommitId()) || itemMetadata.getCommitId().equals(item.getCommitId())) {
                         objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                     }
                 } else {
@@ -227,6 +235,13 @@ public class PublishingManagerImpl implements PublishingManager {
                 itemMetadata.setSubmittedToEnvironment(StringUtils.EMPTY);
                 itemMetadata.setLaunchDate(null);
                 objectMetadataManager.updateObjectMetadata(itemMetadata);
+
+                if (isLive) {
+                    itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                            PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+                } else {
+                    itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
+                }
             }
         }
         return deploymentItem;
@@ -251,6 +266,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
@@ -262,6 +278,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void markItemsProcessing(@ValidateStringParam(name = "site") String site,
@@ -273,6 +290,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void markItemsReady(@ValidateStringParam(name = "site") String site,
@@ -284,6 +302,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void markItemsBlocked(@ValidateStringParam(name = "site") String site,
@@ -364,7 +383,12 @@ public class PublishingManagerImpl implements PublishingManager {
                 missingItem.setOldPath(oldPath);
                 missingItem.setAction(PublishRequest.Action.MOVE);
             }
-            missingItem.setCommitId(metadata.getCommitId());
+            String commitId = metadata.getCommitId();
+            if (StringUtils.isNotEmpty(commitId)) {
+                missingItem.setCommitId(commitId);
+            } else {
+                missingItem.setCommitId(contentRepository.getRepoLastCommitId(site));
+            }
         }
         String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);
@@ -381,6 +405,17 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put("site", site);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         params.put("state", PublishRequest.State.BLOCKED);
+        Integer result = publishRequestMapper.isPublishingBlocked(params);
+        return result > 0;
+    }
+
+    @Override
+    @ValidateParams
+    public boolean hasPublishingQueuePackagesReady(@ValidateStringParam(name = "site") String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("state", READY_FOR_LIVE);
         Integer result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
     }
@@ -413,6 +448,7 @@ public class PublishingManagerImpl implements PublishingManager {
         return result < 1;
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void resetProcessingQueue(@ValidateStringParam(name = "site") String site,
@@ -521,5 +557,13 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

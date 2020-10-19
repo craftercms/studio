@@ -33,6 +33,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -43,7 +44,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -84,7 +84,12 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.exception.validation.FilenameTooLongException;
+import org.craftercms.studio.api.v2.exception.validation.PathTooLongException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -99,6 +104,7 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
@@ -110,6 +116,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_LEVEL_DESCRIPTOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
@@ -131,14 +138,21 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_FILENAME_MAX_SIZE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_FULLPATH_MAX_SIZE;
 
 /**
  * Content Services that other services may use
  * @author russdanner
  * @author Sumer Jabri
  */
-public class ContentServiceImpl implements ContentService {
+public class ContentServiceImpl implements ContentService, InitializingBean {
     // TODO: SJ: Refactor in 2.7.x to leverage Crafter Core as this will automatically enable inheritance, caching and
     // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
@@ -166,12 +180,28 @@ public class ContentServiceImpl implements ContentService {
     protected EntitlementValidator entitlementValidator;
     protected AuditServiceInternal auditServiceInternal;
     protected UserService userService;
+    protected ItemServiceInternal itemServiceInternal;
+
+    protected int filenameMaxSize;
+    protected int fullPathMaxSize;
 
     /**
      * file and folder name patterns for copied files and folders
      */
     public final static Pattern COPY_FILE_PATTERN = Pattern.compile("(.+)-([0-9]+)\\.(.+)");
     public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-([0-9]+)");
+
+    public final static Pattern COPY_FILE_MODIFIER_PATTERN = Pattern.compile(".+(-copy-([\\d]+))(.+)?(\\..*)?");
+    public final static String COPY_FILE_MODIFIER_FORMAT = "%s-copy-%s%s";
+
+    public final static String INTERNAL_NAME_MODIFIER_PATTERN = "\\s\\(Copy \\d+\\)";
+    public final static String INTERNAL_NAME_MODIFIER_FORMAT = "%s (Copy %s)";
+
+    @Override
+    public void afterPropertiesSet() {
+        filenameMaxSize = studioConfiguration.getProperty(CONTENT_FILENAME_MAX_SIZE, Integer.class);
+        fullPathMaxSize = studioConfiguration.getProperty(CONTENT_FULLPATH_MAX_SIZE, Integer.class);
+    }
 
     @Override
     @ValidateParams
@@ -198,7 +228,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public long getContentSize(@ValidateStringParam(name = "site") String site,
                                @ValidateStringParam(name = "path") String path) {
-        return _contentRepository.getContentSize(site, path);
+        return contentRepository.getContentSize(site, path);
     }
 
     @Override
@@ -304,6 +334,9 @@ public class ContentServiceImpl implements ContentService {
                 + "system administrator.");
         }
 
+        //TODO: Replace with a call to the site policy validator when implemented
+        validateContent(path, fileName);
+
         Map<String, String> params = new HashMap<String, String>();
         params.put(DmConstants.KEY_SITE, site);
         params.put(DmConstants.KEY_PATH, path);
@@ -326,7 +359,7 @@ public class ContentServiceImpl implements ContentService {
             boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
 
             if (contentExists) {
-                ItemState itemState = objectStateService.getObjectState(site, path);
+                org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, path);
                 if (itemState == null) {
                     // This file is either new or someone created it outside of our system, we must create a state
                     // for it
@@ -346,6 +379,7 @@ public class ContentServiceImpl implements ContentService {
                     }
 
                     objectStateService.setSystemProcessing(site, path, true);
+                    itemServiceInternal.setSystemProcessing(site, path, true);
                 }
                 else {
                     logger.error("the object state is still null even after attempting to create it for site {0} "
@@ -384,6 +418,7 @@ public class ContentServiceImpl implements ContentService {
 
             // Item has been processed and persisted, set system processing state to off
             objectStateService.setSystemProcessing(site, path, false);
+            itemServiceInternal.setSystemProcessing(site, path, false);
 
             // TODO: SJ: The path sent from the UI is inconsistent, hence the acrobatics below. Fix in 2.7.x
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
@@ -403,12 +438,22 @@ public class ContentServiceImpl implements ContentService {
                 } else {
                     objectStateService.transition(site, itemTo, SAVE_FOR_PREVIEW);
                 }
+
                 objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
                 // TODO: SJ: the line below doesn't make any sense, itemTo == null => insert? Investigate and fix in
                 // TODO: SJ: 2.7.x
                 objectStateService.insertNewEntry(site, itemTo);
             }
+
+            if (isSaveAndClose) {
+                itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_CLOSE_ON_MASK,
+                        SAVE_AND_CLOSE_OFF_MASK);
+            } else {
+                itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
+                        SAVE_AND_NOT_CLOSE_OFF_MASK);
+            }
+
 
             // Sync preview
             PreviewEventContext context = new PreviewEventContext();
@@ -420,6 +465,8 @@ public class ContentServiceImpl implements ContentService {
             // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
             objectStateService.setSystemProcessing(site, relativePath, false);
             objectStateService.setSystemProcessing(site, path, false);
+            itemServiceInternal.setSystemProcessing(site, relativePath, false);
+            itemServiceInternal.setSystemProcessing(site, path, false);
             throw e;
         }
     }
@@ -443,6 +490,9 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
+
+        //TODO: Replace with a call to the site policy validator when implemented
+        validateContent(targetPath, fileName);
 
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
@@ -487,6 +537,9 @@ public class ContentServiceImpl implements ContentService {
                 + "system administrator.");
         }
 
+        //TODO: Replace with a call to thes site policy validator when implemented
+        validateContent(path, assetName);
+
         boolean isSystemAsset = Boolean.valueOf(systemAsset);
 
         Map<String, String> params = new HashMap<String, String>();
@@ -514,7 +567,7 @@ public class ContentServiceImpl implements ContentService {
             item = getContentItem(site, path);
 
             if (item != null) {
-                ItemState itemState = objectStateService.getObjectState(site, path);
+                org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, path);
                 if (itemState != null) {
                     if (itemState.getSystemProcessing() != 0) {
                         logger.error(String.format("Error Content %s is being processed " +
@@ -522,6 +575,7 @@ public class ContentServiceImpl implements ContentService {
                         throw new RuntimeException(String.format("Content \"%s\" is being processed", assetName));
                     }
                     objectStateService.setSystemProcessing(site, path, true);
+                    itemServiceInternal.setSystemProcessing(site, path, true);
                 }
             }
 
@@ -546,6 +600,7 @@ public class ContentServiceImpl implements ContentService {
                     objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
                 }
             }
+            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
             PreviewEventContext context = new PreviewEventContext();
             context.setSite(site);
@@ -565,6 +620,7 @@ public class ContentServiceImpl implements ContentService {
         } finally {
             if (item != null) {
                 objectStateService.setSystemProcessing(site, path, false);
+                itemServiceInternal.setSystemProcessing(site, path, false);
             }
         }
     }
@@ -598,10 +654,17 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean createFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name) throws SiteNotFoundException {
+                                @ValidateStringParam(name = "name") String name)
+            throws SiteNotFoundException, ServiceLayerException {
+        //TODO: Replace with a call to the site policy validator when implemented
+        validateContent(path, name);
+
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
+            contentRepository.insertGitLog(site, commitId, 1);
+            siteService.updateLastCommitId(site, commitId);
+
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
@@ -638,6 +701,7 @@ public class ContentServiceImpl implements ContentService {
 
         commitId = _contentRepository.deleteContent(site, path, approver);
 
+        itemServiceInternal.deleteItem(site, path);
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         try {
@@ -708,7 +772,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public String copyContent(@ValidateStringParam(name = "site") String site,
                               @ValidateSecurePathParam(name = "fromPath") String fromPath,
-                              @ValidateSecurePathParam(name = "toPath") String toPath) {
+                              @ValidateSecurePathParam(name = "toPath") String toPath) throws ServiceLayerException {
         return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
 
@@ -716,7 +780,7 @@ public class ContentServiceImpl implements ContentService {
      * internal method copy that handles
      * Get dependencies is already recursive
      */
-    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) {
+    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) throws ServiceLayerException {
         String retNewFileName = null;
 
         String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
@@ -824,13 +888,14 @@ public class ContentServiceImpl implements ContentService {
                         }
 
 
-                        ItemState itemState = objectStateService.getObjectState(site, copyPath);
+                        org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, copyPath);
 
                         if (itemState == null) {
                             ContentItemTO copyItem = getContentItem(site, copyPath, 0);
                             objectStateService.insertNewEntry(site, copyItem);
                             objectStateService.setSystemProcessing(site, copyPath, false);
                         }
+                        itemServiceInternal.setSystemProcessing(site, copyPath, false);
 
                         // copy was successful, return the new name
                         retNewFileName = copyPath;
@@ -851,10 +916,10 @@ public class ContentServiceImpl implements ContentService {
                 // no need to process
                 retNewFileName = copyPath;
             }
-        }
-        catch(ServiceLayerException eServiceLayerException) {
+        } catch(ServiceLayerException eServiceLayerException) {
             logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
                 eServiceLayerException, site, fromPath, toPath, copyPath);
+            throw eServiceLayerException;
         }
 
         return retNewFileName;
@@ -995,6 +1060,14 @@ public class ContentServiceImpl implements ContentService {
 
             // change the path of this object in the object state database
             objectStateService.updateObjectPath(site, fromPath, movePath);
+
+            // Item update
+            Item item = itemServiceInternal.instantiateItem(site, fromPath)
+                    .withPath(movePath)
+                    .build();
+            item.setState(ItemState.savedAndClosed(item.getState()));
+            itemServiceInternal.upsertEntry(site, item);
+
             objectStateService.transition(site, renamedItem, SAVE);
             renamedItem = getContentItem(site, movePath, 0);
         }
@@ -1022,7 +1095,9 @@ public class ContentServiceImpl implements ContentService {
 
         if (!renamedItem.isFolder()) {
             if (objectMetadataManager.metadataExist(site, movePath)) {
-                objectMetadataManager.deleteObjectMetadata(site, movePath);
+                if (!StringUtils.equalsIgnoreCase(fromPath, movePath)) {
+                    objectMetadataManager.deleteObjectMetadata(site, movePath);
+                }
             }
             objectMetadataManager.updateObjectPath(site, fromPath, movePath);
         }
@@ -1211,42 +1286,55 @@ public class ContentServiceImpl implements ContentService {
         if(adjustOnCollide && contentExists) {
             logger.debug("File already found at path {0}, creating new name", proposedDestPath);
             try {
-                Map<String,String> ids = contentItemIdGenerator.getIds();
-                String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
+                var siblings = contentRepository.getSubtreeItems(site, newPathOnly);
+                var modifier = 1;
+                var collisionFound = true;
+                while (collisionFound) {
+                    var matcher = COPY_FILE_MODIFIER_PATTERN.matcher(proposedDestPath);
+                    // check if the file already has a modifier (it is a copy of something)
+                    if (matcher.matches()) {
+                        // extract the values from the path
+                        var existingModifier = matcher.group(1); // the full modifier
+                        var modifierVersion = matcher.group(2); // the number of the modifier
+                        // remove the existing modifier
+                        proposedDestPath = proposedDestPath.replaceFirst(existingModifier, "");
+                        // calculate the new modifier
+                        modifier = Integer.parseInt(modifierVersion) + 1;
+                    }
+                    if (proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) == -1) {
+                        int pdpli = proposedDestPath.lastIndexOf(".");
+                        if (pdpli == -1) pdpli = proposedDestPath.length();
+                        proposedDestPath = String.format(COPY_FILE_MODIFIER_FORMAT,
+                                proposedDestPath.substring(0, pdpli), modifier, proposedDestPath.substring(pdpli));
 
-                if(proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) == -1) {
-                    int pdpli = proposedDestPath.lastIndexOf(".");
-                    if (pdpli == -1) pdpli = proposedDestPath.length();
-                    proposedDestPath =
-                            proposedDestPath.substring(0, pdpli) + "-" + id +
-                                    proposedDestPath.substring(pdpli);
+                        // a regex would be better
+                        proposedDestPath_filename =
+                                proposedDestPath.substring(proposedDestPath.lastIndexOf(FILE_SEPARATOR) + 1);
+                        proposedDestPath_folder =
+                                proposedDestPath.substring(0, proposedDestPath.lastIndexOf(FILE_SEPARATOR));
+                        proposedDestPath_folder =
+                                proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
+                    } else {
+                        proposedDestPath = String.format(COPY_FILE_MODIFIER_FORMAT,
+                                proposedDestPath.substring(0,
+                                        proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)),
+                                modifier,
+                                proposedDestPath.substring(
+                                        proposedDestPath.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)));
 
-                    // a regex would be better
-                    proposedDestPath_filename =
-                            proposedDestPath.substring(proposedDestPath.lastIndexOf(FILE_SEPARATOR)+1);
-                    proposedDestPath_folder =
-                            proposedDestPath.substring(0, proposedDestPath.lastIndexOf(FILE_SEPARATOR));
-                    proposedDestPath_folder =
-                            proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR)+1);
-                }
-                else {
-                    proposedDestPath =
-                            proposedDestPath.substring(0,
-                                    proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)) + "-" + id +
-                                    proposedDestPath.substring(
-                                            proposedDestPath.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE));
-
-                    proposedDestPath_filename = DmConstants.INDEX_FILE;
-                    proposedDestPath_folder =
-                            proposedDestPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE,"");
-                    proposedDestPath_folder =
-                            proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR)+1);
+                        proposedDestPath_filename = DmConstants.INDEX_FILE;
+                        proposedDestPath_folder =
+                                proposedDestPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+                        proposedDestPath_folder =
+                                proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
+                    }
+                    collisionFound = siblings.contains(proposedDestPath);
                 }
 
                 result.put("FILE_PATH", proposedDestPath);
                 result.put("FILE_NAME", proposedDestPath_filename);
                 result.put("FILE_FOLDER", proposedDestPath_folder);
-                result.put("MODIFIER", id);
+                result.put("MODIFIER", Integer.toString(modifier));
                 result.put("ALT_NAME", "true");
             }
             catch(Exception altPathGenErr) {
@@ -1346,8 +1434,8 @@ public class ContentServiceImpl implements ContentService {
         if(modifier != null) {
             Node internalNameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_INTERNAL_NAME);
             if (internalNameNode != null) {
-                String internalNameValue = internalNameNode.getText();
-                internalNameNode.setText(internalNameValue + " " + modifier);
+                String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
+                internalNameNode.setText(String.format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
             }
         }
 
@@ -1766,7 +1854,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
-        ItemState state = objectStateService.getObjectState(site, item.getUri(), false);
+        org.craftercms.studio.api.v1.dal.ItemState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
             if (item.isFolder()) {
                 boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
@@ -1923,6 +2011,9 @@ public class ContentServiceImpl implements ContentService {
             }
             // Update the database with the commitId for the target item
             objectStateService.transition(site, path, REVERT);
+
+            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+
             objectMetadataManager.updateCommitId(site, path, commitId);
             contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
@@ -2062,10 +2153,11 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public String getContentTypeClass(@ValidateStringParam(name = "site") String site, String uri) {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
-        if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
+        if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+            return CONTENT_TYPE_LEVEL_DESCRIPTOR;
+        } else if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
             return CONTENT_TYPE_PAGE;
-        } else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) ||
-                uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+        } else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
             return CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
             return CONTENT_TYPE_DOCUMENT;
@@ -2305,16 +2397,20 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Dejan to look into this
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
+        itemServiceInternal.setStateBits(site, path, USER_LOCKED.value);
     }
 
     @Override
     @ValidateParams
     public void unLockContent(@ValidateStringParam(name = "site") String site,
                               @ValidateSecurePathParam(name = "path") String path) {
-        ContentItemTO item = getContentItem(site, path, 0);
-        objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT); // this unlocks too
+        ContentItemTO itemTO = getContentItem(site, path, 0);
+        objectStateService.transition(site, itemTO, TransitionEvent.CANCEL_EDIT); // this unlocks too
         _contentRepository.unLockItem(site, path);
         objectMetadataManager.unLockContent(site, path);
+
+        // Item
+        itemServiceInternal.resetStateBits(site, path, USER_LOCKED.value);
     }
 
     @Override
@@ -2503,7 +2599,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
@@ -2523,7 +2619,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException {
+            throws ServiceLayerException, InvalidRemoteUrlException, AuthenticationException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
@@ -2539,6 +2635,18 @@ public class ContentServiceImpl implements ContentService {
         auditServiceInternal.insertAuditLog(auditLog);
         
         return toRet;
+    }
+
+    //TODO: Move this to a fixed always-on site policy when implemented
+    protected void validateContent(String path, String filename) throws ServiceLayerException {
+        if (filename.length() >= filenameMaxSize) {
+            throw new FilenameTooLongException(filename);
+        }
+
+        var fullPath = FilenameUtils.concat(path, filename);
+        if (fullPath.length() >= fullPathMaxSize) {
+            throw new PathTooLongException(fullPath);
+        }
     }
 
     public ContentRepository getContentRepository() {
@@ -2679,5 +2787,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

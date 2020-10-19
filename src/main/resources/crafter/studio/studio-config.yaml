@@ -29,10 +29,10 @@ studio.repo.siteSandboxBranch: master
 studio.repo.defaultRemoteName: origin
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
-# If not using environment-config.xml, environments are configured here
-# Git repository branch for the `live` environment, default "live"
+# Git repository branch for publishing targets are configured here
+# Git repository branch for the `live` publishing target, default "live"
 studio.repo.published.live: live
-# Git repository branch for the `staging` environment, default "staging"
+# Git repository branch for the `staging` publishing target, default "staging"
 studio.repo.published.staging: staging
 # Blueprints folder name under global
 studio.repo.blueprintsPath: blueprints
@@ -84,8 +84,19 @@ studio.blob.config.module: studio
 studio.blob.config.path: blob-stores-config.xml
 # Extension used for the blob files in the site
 studio.blob.file.extension: blob
-# Environment to use for all operations
-studio.blob.environment: preview
+# Target to use for all operations
+studio.blob.publishingTarget: preview
+# The patterns of urls that should be handled by blob stores
+studio.blob.intercepted.paths:
+  - /static-assets/.*
+
+##################################################
+##                Content Service               ##
+##################################################
+# The max length for filenames (depends on the platform & filesystem used)
+studio.content.filename.maxSize: 255
+# The max length for the full path of files (this needs to be in sync the the db schema)
+studio.content.fullPath.maxSize: 1024
 
 ############################################################
 ##                   Site Configuration                   ##
@@ -120,10 +131,6 @@ studio.configuration.site.generalConfigFileName: site-config.xml
 studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
 # File name where configuration of user role mappings is stored for a site.
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
-# Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
-studio.configuration.site.environment: local
-# File name where environment specific configuration is stored
-studio.configuration.site.environment.configFileName: environment/environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
@@ -162,6 +169,8 @@ studio.configuration.site.defaultPreviewUrl: ^https?://localhost:8080/?
 studio.configuration.site.defaultAuthoringUrl: ^https?://localhost:8080/studio/?
 # Default GraphQL server URL
 studio.configuration.site.defaultGraphqlServerUrl: ^https?://localhost:8080/?
+# Path for the translation configuration file
+studio.configuration.site.translation: ${studio.configuration.site.configBasePath}/translation-config.xml
 # Studio management authorization token.
 # Please update this per installation and provide this token to the status monitors.
 studio.configuration.management.authorizationToken: defaultManagementToken
@@ -169,7 +178,7 @@ studio.configuration.management.authorizationToken: defaultManagementToken
 # Please update this per installation and provide this token to the status monitors.
 studio.configuration.management.previewAuthorizationToken: ${env:ENGINE_MANAGEMENT_TOKEN}
 # Protected URLs with preview engine management authorization token.
-# Coma separated list of preview engine urls
+# Comma separated list of preview engine urls
 studio.configuration.management.previewProtectedUrls: >-
   /api/1/monitoring/log.json,
   /api/1/monitoring/memory.json,
@@ -228,7 +237,7 @@ studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-se
 studio.security.publicUrls: >
   /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
   /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
-  /static-assets/.+
+  /static-assets/.+,/api/2/users/validate_token,/api/1/services/api/1/security/login.json,/api/2/users/forgot_password.*
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -248,7 +257,7 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 # Forgot password token time-out period in minutes
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
-studio.security.resetPassword.serviceUrl: "#/reset-password"
+studio.security.resetPassword.serviceUrl: "login"
 # Password requirements validation regular expression
 # The supported capture group keys are:
 #   hasNumbers
@@ -260,6 +269,8 @@ studio.security.resetPassword.serviceUrl: "#/reset-password"
 #   maxLength
 #   minMaxLength
 studio.security.passwordRequirements.validationRegex: ^(?=(?<hasNumbers>.*[0-9]))(?=(?<hasLowercase>.*[a-z]))(?=(?<hasUppercase>.*[A-Z]))(?=(?<hasSpecialChars>.*[~|!`,;\/@#$%^&+=]))(?<minLength>.{8,})$
+# Delay set password API response in seconds
+studio.security.setPasswordDelay: 1
 # Studio authentication chain configuration
 studio.authentication.chain:
   # Authentication provider type
@@ -327,7 +338,9 @@ studio.security.encryption.salt: default_encryption_salt
 # Amount of time (in seconds) to delay encryption response
 studio.security.encryption.delay: 1
 # Amount of characters to limit the encryption input
-studio.security.encryption.maxLength: 512
+studio.security.encryption.maxLength: 4096
+# If the secure headers should be written for every request
+studio.security.headers.enabled: true
 
 ###############################################################
 ##               Page Navigation Order Service               ##
@@ -354,7 +367,7 @@ studio.mail.port: 25
 studio.mail.username:
 # SMTP password for authenticated access when sending emails.
 studio.mail.password:
-# Turn on/off (value true/false) SMTP authenaticated access protocol.
+# Turn on/off (value true/false) SMTP authenticated access protocol.
 studio.mail.smtp.auth: false
 # Enable/disable (value true/false) SMTP TLS protocol when sending emails.
 studio.mail.smtp.starttls.enable: true
@@ -472,7 +485,7 @@ studio.db.pool.maxWaitTime: 10000
 # for any reason, initializer needs to be turned on.
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
-studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=${env:MARIADB_ROOT_PASSWD}
 # Create schema SQL script location
 studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
 # Create database SQL script location
@@ -499,6 +512,10 @@ studio.db.dataPath: ${env:CRAFTER_DATA_DIR}/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+# Max number of retries for retrying operation
+studio.db.retryingOperation.maxAttempts: 50
+# Max sleep time in milliseconds between retries
+studio.db.retryingOperation.maxSleep: 1000
 
 ##########################################################
 ##                   Asset Processing                   ##
@@ -516,8 +533,6 @@ studio.upgrade.branchName: site-upgrade
 studio.upgrade.commitMessage: Successful site upgrade
 # Path for the site version file
 studio.upgrade.versionFile: /config/studio/studio_version.xml
-# Path for the site version template
-studio.upgrade.versionTemplate: classpath:crafter/studio/upgrade/update-version.xslt
 # Path for the site version default file
 studio.upgrade.versionDefault: classpath:crafter/studio/upgrade/studio_version.xml
 # XPath for querying the version
@@ -529,7 +544,7 @@ studio.upgrade.defaultVersion.file: 1
 # Pipelines configuration file
 studio.upgrade.configurationFile: classpath:crafter/studio/upgrade/pipelines.yaml
 # Common prefix for the pipelines
-studio.upgrade.pipeline.prefix: pipelines
+studio.upgrade.pipeline.prefix: pipelines.
 # Name for the system pipeline
 studio.upgrade.pipeline.system: system
 # Name for the site pipeline
@@ -537,7 +552,7 @@ studio.upgrade.pipeline.site: site
 # Name for the blueprint pipeline
 studio.upgrade.pipeline.blueprint: blueprint
 # Prefix for the configuration file pipeline
-studio.upgrade.pipeline.configurations: configurations
+studio.upgrade.pipeline.configurations: configurations.
 # Folder to look for database scripts
 studio.upgrade.scriptFolder: crafter/studio/database/
 
@@ -553,6 +568,8 @@ studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
 studio.publishing.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.publishing.threadPool.maxPoolSize: 20
+# Publishing lock TTL in minutes
+studio.publishing.siteLock.ttl: 180
 
 ##################################################
 ##                 Clustering                   ##
@@ -615,6 +632,12 @@ studio.search.urls: http://localhost:9201
 studio.search.username: ''
 # The password for Elasticsearch
 studio.search.password: ''
+# The connection timeout in milliseconds, if set to -1 the default will be used
+studio.search.timeout.connect: -1
+# The socket timeout in milliseconds, if set to -1 the default will be used
+studio.search.timeout.socket: -1
+# The number of threads to use, if set to -1 the default will be used
+studio.search.threads: -1
 # Suffix added to the name for authoring indexes
 studio.search.index.suffix: -authoring
 # Name of the field for paths
@@ -630,7 +653,7 @@ studio.search.field.size: contentLength
 # Name of the field for mimeType
 studio.search.field.mimeType: contentType
 # List of fields to include in the search
-studio.search.fields.search: localId, internal-name, title, content, *_html, *_t, *_txt
+studio.search.fields.search: localId.text, internal-name.text, title.text, content, *_html, *_t, *_txt
 # List of fields to include for highlighting
 studio.search.fields.highlight: localId, internal-name, title, content, *_html, *_t, *_txt
 # The size of each highlight snippet
@@ -812,3 +835,10 @@ studio.marketplace.search.pending: false
 ##################################################
 # If Studio should cache its FreeMarker templates
 studio.cache.templates: true
+
+##################################################
+##             Forwarded Headers                ##
+##################################################
+# Indicates if Forwarded or X-Forwarded headers should be used when resolving the client-originated protocol and
+# address. Enable when Studio is behind a reverse proxy or load balancer that sends these
+studio.forwarded.headers.enabled: false

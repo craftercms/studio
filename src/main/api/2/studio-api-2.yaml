@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.7.1'
+  version: '3.2.0.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1131,6 +1131,39 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /users/validate_token:
+    get:
+      tags:
+        - users
+      summary: Validate forgot password token
+      description: 'Required Permission: "ANONYMOUS"'
+      operationId: validateToken
+      parameters:
+        - name: token
+          in: query
+          description: forgot password token to be validated
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /ui/views/global_menu:
     get:
       tags:
@@ -1552,6 +1585,54 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/{siteId}:
+    post:
+      tags:
+        - sites
+      summary: Updates the name and description for a given site
+      description: 'Required Permission: "EDIT_SITE"'
+      operationId: updateSite
+      parameters:
+        - name: siteId
+          in: path
+          required: true
+          description: The site ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: The name of the site
+                  type: string
+                description:
+                  description: The description of the site
+                  type: string
+              required:
+                - name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -1761,7 +1842,7 @@ paths:
       operationId: getVersion
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1791,7 +1872,7 @@ paths:
       operationId: getStatus
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1806,7 +1887,7 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  version:
+                  status:
                     $ref: '#/components/schemas/StatusItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1821,7 +1902,7 @@ paths:
       operationId: getMemory
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1836,7 +1917,7 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  version:
+                  memory:
                     $ref: '#/components/schemas/MemoryItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1858,7 +1939,7 @@ paths:
             type: integer
             format: int64
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -2813,6 +2894,38 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /configuration/translation:
+    get:
+      tags:
+        - configuration
+      summary: Get translation configuration for a given site
+      operationId: getTranslationConfig
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  config:
+                    $ref: '#/components/schemas/TranslationConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /plugin/file:
     get:
       tags:
@@ -2983,6 +3096,12 @@ paths:
             type: array
             items:
               type: string
+        - name: submissionComment
+          in: query
+          description: Submission comment
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Deleted
@@ -3022,9 +3141,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: locale
+        - name: localeCode
           in: query
-          description: filter children by locale, or show source items (not translation) if translatation to specified locale does not exist
+          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
           schema:
             type: string
         - name: sortStrategy
@@ -3119,9 +3238,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: locale
+        - name: localeCode
           in: query
-          description: filter children by locale, or show source items (not translation) if translatation to specified locale does not exist
+          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
           schema:
             type: string
         - name: sortStrategy
@@ -3282,6 +3401,53 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/descriptor:
+    get:
+      tags:
+        - content
+      summary: Get the XML descriptor for a given path
+      operationId: getDescriptor
+      parameters:
+        - name: siteId
+          in: query
+          description: The site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: The path of the descriptor
+          required: true
+          schema:
+            type: string
+        - name: flatten
+          in: query
+          description: Indicates if included descriptors should be flattened
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  xml:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dependency/dependencies:
     get:
       tags:
@@ -3369,6 +3535,11 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: showIncompatible
+          in: query
+          description: Include incompatible plugins (defaults to false)
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -4399,8 +4570,8 @@ components:
           * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
           * `CODE:` 3001, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
           * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
-          * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
-          * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
+          * `CODE:` 5000, `MESSAGE:` Site not found, `REMEDIAL ACTION:` Check if you sent in the right Site Id
+          * `CODE:` 5001, `MESSAGE:` Site already exists, `REMEDIAL ACTION:` Try a different site name
           * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
@@ -4416,7 +4587,11 @@ components:
           * `CODE:` 12000, `MESSAGE:` Remote repository not found, `REMEDIAL ACTION:` Check if you sent in the right remote repository name
           * `CODE:` 12001, `MESSAGE:` Remote repository already exists, `REMEDIAL ACTION:` Get the list of remote repositories to validate
           * `CODE:` 12002, `MESSAGE:` Pull from remote repository resulted in conflict, `REMEDIAL ACTION:` Resolve conflicts before continuing work with repository
-          * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator
+          * `CODE:` 12003, `MESSAGE:` Remote is invalid. Not added to remote repositories, `REMEDIAL ACTION:` Add new remote repository with valid parameters.
+          * `CODE:` 12004, `MESSAGE:` Failed to remove remote repository, `REMEDIAL ACTION:` Contact your system administrator.
+          * `CODE:` 12005, `MESSAGE:` Push to remote repository failed, `REMEDIAL ACTION:` Check your repository settings or contact your system administrator.
+          * `CODE:` 12006, `MESSAGE:` Remove remote repository failed, `REMEDIAL ACTION:` The remote repository is a cluster node repository. It can't be removed.
+          * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
@@ -4887,6 +5062,9 @@ components:
         keywords:
           type: string
           description: The keywords to search in the files
+        path:
+          type: string
+          description: Regular expression to filter the paths
         offset:
           type: integer
           format: int64
@@ -4908,9 +5086,6 @@ components:
             Type":"text/css" or nested objects for range facets like "Width": { "min": 0, "max": 150 }. Both keys and
              values can be taken from the facets object of a previous search.
           additionalProperties: true
-      required:
-        - query
-        - keywords
 
     SearchResult:
       type: object
@@ -5231,7 +5406,7 @@ components:
           description: >-
             Authentication type to use to access remote repository
 
-            Posible values:
+            Possible values:
 
               - none: no authentication
 
@@ -5278,6 +5453,15 @@ components:
           items:
             type: string
             description: remote repository branch name
+        reachable:
+          type: boolean
+          description: true if remote repository is reachable, otherwise false
+        unreachableReason:
+          type: string
+          description: reason why remote is unreachable
+        removable:
+          type: boolean
+          description: true if remote repository can be removed, otherwise false
 
     QuickCreateItem:
       type: object
@@ -5428,11 +5612,16 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         contentTypeId:
           type: string
           description: content type of content item
@@ -5498,6 +5687,75 @@ components:
           type: integer
           format: int64
           description: size of content item in the repository
+        availableAction:
+          type: integer
+          format: int64
+          description: >-
+            available actions bitmap
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Create, `DESCRIPTION`: Create content
+              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Update, `DESCRIPTION`: Update content
+              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
+              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Content: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Content: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Content: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Publishing: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Publishing: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
+              * `BIT ORDER (little-endian)`: 27, `FLAG`: Site Admin: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 28, `FLAG`: Site Admin: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 29, `FLAG`: Site Admin: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 30, `FLAG`: Site Admin: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 31, `FLAG`: Site Admin: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 32, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
+              * `BIT ORDER (little-endian)`: 33, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
+              * `BIT ORDER (little-endian)`: 34, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
+              * `BIT ORDER (little-endian)`: 35, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
+              * `BIT ORDER (little-endian)`: 36, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
+              * `BIT ORDER (little-endian)`: 37, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 38, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 39, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 40, `FLAG`: System Create, `DESCRIPTION`: Create system object
+              * `BIT ORDER (little-endian)`: 41, `FLAG`: System Read, `DESCRIPTION`: Read system object
+              * `BIT ORDER (little-endian)`: 42, `FLAG`: System Update, `DESCRIPTION`: Update system object
+              * `BIT ORDER (little-endian)`: 43, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
+              * `BIT ORDER (little-endian)`: 44, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
+              * `BIT ORDER (little-endian)`: 45, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
+              * `BIT ORDER (little-endian)`: 46, `FLAG`: System: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 47, `FLAG`: System: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 48, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 49, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 50, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 51, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 52, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 53, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 54, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 55, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 56, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 57, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 58, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 59, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 60, `FLAG`: Reserved 13, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 61, `FLAG`: Reserved 14, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 62, `FLAG`: Reserved 15, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 63, `FLAG`: Reserved 16, `DESCRIPTION`: Reserved for future use
       required:
         - id
         - label
@@ -5514,16 +5772,22 @@ components:
         - modifier
         - lastModifiedDate
         - commitId
+        - availableActions
 
     DetailedItem:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         contentTypeId:
           type: string
           description: content type of content item
@@ -5569,6 +5833,44 @@ components:
         translationSourceId:
           type: string
           description: ID of content item that is original for translation that current item represents
+        availableAction:
+          type: integer
+          format: int64
+          description: >-
+            available actions bitmap
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Create, `DESCRIPTION`: Create content
+              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Update, `DESCRIPTION`: Update content
+              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
+              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
+              * `BIT ORDER (little-endian)`: 27, `FLAG`: System Create, `DESCRIPTION`: Create system object
+              * `BIT ORDER (little-endian)`: 28, `FLAG`: System Read, `DESCRIPTION`: Read system object
+              * `BIT ORDER (little-endian)`: 29, `FLAG`: System Update, `DESCRIPTION`: Update system object
+              * `BIT ORDER (little-endian)`: 30, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
+              * `BIT ORDER (little-endian)`: 31, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
+              * `BIT ORDER (little-endian)`: 32, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
         sandbox:
           type: object
           description: metadata of content item version stored in sandbox repository
@@ -5642,16 +5944,22 @@ components:
         - lockOwner
         - disabled
         - staging
+        - availableActions
 
     LocalizationItem:
       type: object
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: content item ID
         label:
           type: string
           description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
         path:
           type: string
           description: path where content item is stored inside repository (with filename)
@@ -5751,6 +6059,18 @@ components:
 
     DashboardItem:
       type: object
+
+    TranslationConfig:
+      type: object
+      properties:
+        localeCodes:
+          type: array
+          description: List of codes for the supported locales
+          items:
+            type: string
+        defaultLocaleCode:
+          type: string
+          description: The code of the default locale for all new content
 
   responses:
     NotFound:

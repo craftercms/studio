@@ -17,7 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -32,8 +32,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -45,19 +43,28 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ALL_SUB_URLS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PROXY_ENGINE;
 
+/**
+ * Controller to proxy request to preview & add the management token if needed
+ */
 @RestController
 public class ProxyController {
 
-    private SiteService siteService;
-    private StudioConfiguration studioConfiguration;
+    protected final StudioConfiguration studioConfiguration;
+
+    protected final ServicesConfig servicesConfig;
+
+    protected final RestTemplate restTemplate = new RestTemplate();
+
+    public ProxyController(StudioConfiguration studioConfiguration, ServicesConfig servicesConfig) {
+        this.studioConfiguration = studioConfiguration;
+        this.servicesConfig = servicesConfig;
+    }
 
     @RequestMapping(PROXY_ENGINE + ALL_SUB_URLS)
-    @SuppressWarnings("unchecked")
-    public ResponseEntity proxyEngine(@RequestBody(required = false) String body,
-                                      HttpMethod method, HttpServletRequest request, HttpServletResponse response,
-                                      @RequestParam(value = "crafterSite", required = true) String site)
+    public ResponseEntity<Object> proxyEngine(@RequestBody(required = false) String body,
+                                              @RequestParam("crafterSite") String siteId,
+                                              HttpMethod method, HttpServletRequest request)
             throws URISyntaxException {
-        String previewEngineServerUrl = getPreviewEngineServerUrl(site);
         String requestUrl = request.getRequestURI();
         String proxiedUrl = StringUtils.replace(requestUrl, request.getContextPath(), StringUtils.EMPTY);
         proxiedUrl = StringUtils.replace(proxiedUrl, PROXY_ENGINE, StringUtils.EMPTY);
@@ -65,7 +72,7 @@ public class ProxyController {
         boolean managementTokenRequired = engineProtectedUrls.contains(proxiedUrl);
 
         // Prepare URL to execute proxied request
-        URI uri = new URI(previewEngineServerUrl);
+        URI uri = new URI(getAuthoringUrl(siteId));
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUri(uri)
                 .path(proxiedUrl)
                 .query(request.getQueryString());
@@ -79,12 +86,10 @@ public class ProxyController {
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
-            headers.set(headerName, request.getHeader(headerName));
-        }
+            headers.set(headerName, request.getHeader(headerName));}
 
         // Execute proxied request and return response
-        HttpEntity httpEntity = new HttpEntity(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<Object> httpEntity = new HttpEntity<>(body, headers);
         try {
             return restTemplate.exchange(uri, method, httpEntity, Object.class);
         } catch(HttpStatusCodeException e) {
@@ -94,32 +99,26 @@ public class ProxyController {
         }
     }
 
-    private String getPreviewEngineServerUrl(String site) {
-        return siteService.getPreviewEngineServerUrl(site);
+    /**
+     * Returns the full authoring url used for preview
+     */
+    protected String getAuthoringUrl(String siteId) {
+        return servicesConfig.getAuthoringUrl(siteId);
     }
 
-    private String getEngineManagementTokenValue() {
+    /**
+     * Returns the management token for preview
+     */
+    protected String getEngineManagementTokenValue() {
         return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_AUTHORIZATION_TOKEN);
     }
 
-    private List<String> getEngineProtectedUrls() {
+    /**
+     * Returns the list of preview URLs that require the management token
+     */
+    protected List<String> getEngineProtectedUrls() {
         return Arrays.asList(
                 studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS).split(","));
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
 }

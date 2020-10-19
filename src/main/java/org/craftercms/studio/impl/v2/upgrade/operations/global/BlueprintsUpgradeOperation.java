@@ -27,22 +27,23 @@ import java.util.jar.Manifest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.monitoring.VersionInfo;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-import org.springframework.beans.factory.annotation.Required;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
@@ -52,7 +53,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPR
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that syncs the blueprints in the
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that syncs the blueprints in the
  * global repository from the bootstrap repo.
  * @author joseross
  */
@@ -62,36 +63,24 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    protected ServicesConfig servicesConfig;
     protected SecurityService securityService;
     protected UserServiceInternal userServiceInternal;
+    protected TextEncryptor encryptor;
 
-    @Required
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
+    public BlueprintsUpgradeOperation(StudioConfiguration studioConfiguration, SecurityService securityService,
+                                      UserServiceInternal userServiceInternal, TextEncryptor encryptor) {
+        super(studioConfiguration);
         this.securityService = securityService;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+        this.encryptor = encryptor;
     }
 
     @Override
-    public void execute(final String site) throws UpgradeException {
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
         try {
-            GitContentRepositoryHelper helper =
-                new GitContentRepositoryHelper(studioConfiguration, servicesConfig, userServiceInternal, securityService);
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
             Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                 studioConfiguration.getProperty(BLUE_PRINTS_PATH));

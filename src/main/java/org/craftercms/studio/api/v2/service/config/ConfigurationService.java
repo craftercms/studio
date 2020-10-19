@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.config;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -40,7 +41,7 @@ public interface ConfigurationService {
      *
      * @param siteId Site id to use
      * @return role mappings configuration
-     * @throws ConfigurationException
+     * @throws ConfigurationException configuration error
      */
     Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
 
@@ -63,8 +64,8 @@ public interface ConfigurationService {
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return DOM document representing configuration file
-     * @throws DocumentException
-     * @throws IOException
+     * @throws DocumentException XML document error
+     * @throws IOException IO error
      */
     Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
             throws DocumentException, IOException;
@@ -85,7 +86,7 @@ public interface ConfigurationService {
      * @param path path where to store configuration file
      * @param environment environment to use. if empty using default
      * @param content content of configuration file
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
         throws ServiceLayerException;
@@ -118,7 +119,17 @@ public interface ConfigurationService {
      *
      * @param path path of configuration file
      * @param content content of configuration file
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     void writeGlobalConfiguration(String path, InputStream content) throws ServiceLayerException;
+
+    /**
+     * Get the translation configuration for a given site
+     * @param siteId the id of the site
+     * @return the translation configuration
+     *
+     * @throws ServiceLayerException general service error
+     */
+    TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
+
 }

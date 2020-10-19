@@ -35,6 +35,8 @@ public interface PublishService {
      * @param states publishing package states
      *
      * @return total number of publishing packages
+     *
+     * @throws SiteNotFoundException site not found
      */
     int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states)
             throws SiteNotFoundException;
@@ -48,7 +50,10 @@ public interface PublishService {
      * @param states publishing package states
      * @param offset offset for pagination
      * @param limit limit for pagination
+     *
      * @return list of publishing packages
+     *
+     * @throws SiteNotFoundException site not found
      */
     List<PublishingPackage> getPublishingPackages(String siteId, String environment, String path, List<String> states,
                                                   int offset, int limit) throws SiteNotFoundException;
@@ -60,6 +65,8 @@ public interface PublishService {
      * @param packageId package identifier
      *
      * @return publishing package details
+     *
+     * @throws SiteNotFoundException site not found
      */
     PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) throws SiteNotFoundException;
 
@@ -68,6 +75,8 @@ public interface PublishService {
      *
      * @param siteId site identifier
      * @param packageIds list of package identifiers
+     *
+     * @throws SiteNotFoundException site not found
      */
     void cancelPublishingPackages(String siteId, List<String> packageIds) throws SiteNotFoundException;
 

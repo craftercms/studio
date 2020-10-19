@@ -25,10 +25,10 @@ import org.craftercms.search.elasticsearch.impl.AbstractElasticsearchWrapper;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Implementation of {@link ElasticsearchWrapper} specific for authoring indexes
@@ -46,13 +46,9 @@ public class PermissionAwareSearchService extends AbstractElasticsearchWrapper {
      */
     protected String pathFieldName;
 
-    @Required
-    public void setIndexSuffix(final String indexSuffix) {
+    public PermissionAwareSearchService(RestHighLevelClient client, String indexSuffix, String pathFieldName) {
+        super(client);
         this.indexSuffix = indexSuffix;
-    }
-
-    @Required
-    public void setPathFieldName(final String pathFieldName) {
         this.pathFieldName = pathFieldName;
     }
 
@@ -79,8 +75,8 @@ public class PermissionAwareSearchService extends AbstractElasticsearchWrapper {
      */
     public SearchResponse search(String siteId, List<String> allowedPaths, SearchRequest request,
                                  RequestOptions options) throws IOException {
-
-        request.indices(siteId + indexSuffix);
+        //TODO: Implement locale in Studio too? for now just query all existing aliases
+        request.indices(siteId + indexSuffix + "*");
 
         //TODO: Prevent running the search without allowedPaths
         if(CollectionUtils.isNotEmpty(allowedPaths)) {

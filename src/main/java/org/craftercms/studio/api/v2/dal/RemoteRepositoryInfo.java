@@ -16,8 +16,12 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.List;
+
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 
 public class RemoteRepositoryInfo implements Serializable {
 
@@ -28,19 +32,72 @@ public class RemoteRepositoryInfo implements Serializable {
     private String fetch;
     private String pushUrl;
     private List<String> branches;
+    private boolean reachable = true;
+    private String unreachableReason;
+    private boolean removable = true;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+    public void setName(String name) {
+        this.name = name;
+        this.removable = !StringUtils.startsWith(name, CLUSTER_NODE_REMOTE_NAME_PREFIX);
+    }
 
-    public String getFetch() { return fetch; }
-    public void setFetch(String fetch) { this.fetch = fetch; }
+    public String getUrl() {
+        return url;
+    }
 
-    public String getPushUrl() { return pushUrl; }
-    public void setPushUrl(String pushUrl) { this.pushUrl = pushUrl; }
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-    public List<String> getBranches() { return branches; }
-    public void setBranches(List<String> branches) { this.branches = branches; }
+    public String getFetch() {
+        return fetch;
+    }
+
+    public void setFetch(String fetch) {
+        this.fetch = fetch;
+    }
+
+    public String getPushUrl() {
+        return pushUrl;
+    }
+
+    public void setPushUrl(String pushUrl) {
+        this.pushUrl = pushUrl;
+    }
+
+    public List<String> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(List<String> branches) {
+        this.branches = branches;
+    }
+
+    public boolean isReachable() {
+        return reachable;
+    }
+
+    public void setReachable(boolean reachable) {
+        this.reachable = reachable;
+    }
+
+    public String getUnreachableReason() {
+        return unreachableReason;
+    }
+
+    public void setUnreachableReason(String unreachableReason) {
+        this.unreachableReason = unreachableReason;
+    }
+
+    public boolean isRemovable() {
+        return removable;
+    }
+
+    public void setRemovable(boolean removable) {
+        // not used
+    }
 }

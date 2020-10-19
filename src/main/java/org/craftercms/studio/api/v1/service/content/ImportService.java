@@ -16,9 +16,10 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.commons.validation.ValidationException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 public interface ImportService {
 
-    void importSite(String configLocation) throws SiteNotFoundException;
+    void importSite(String configLocation) throws ServiceLayerException, ValidationException;
 }

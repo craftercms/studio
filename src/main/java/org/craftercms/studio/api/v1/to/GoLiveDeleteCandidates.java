@@ -76,7 +76,7 @@ public class GoLiveDeleteCandidates implements Serializable {
     /**
      * Update the dependency collection with the given dependency uri
      *
-     * @param uri
+     * @param uri path
      * @return true if dependency added
      */
     public boolean addDependency(String uri){
@@ -93,7 +93,7 @@ public class GoLiveDeleteCandidates implements Serializable {
     /**
      * Add the folder path and remove all the child from the live dependency collection
      *
-     * @param uri
+     * @param uri path
      */
     public void addDependencyParentFolder(String uri){
         if (contentService.contentExists(site, uri)){

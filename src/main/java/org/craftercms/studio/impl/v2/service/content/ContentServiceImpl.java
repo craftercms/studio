@@ -19,6 +19,8 @@ package org.craftercms.studio.impl.v2.service.content;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -35,8 +37,11 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -46,7 +51,10 @@ import java.util.List;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissions.ACTION_DELETE_CONTENT;
 
 public class ContentServiceImpl implements ContentService {
 
@@ -58,6 +66,7 @@ public class ContentServiceImpl implements ContentService {
     private UserService userService;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
+    private ItemServiceInternal itemServiceInternal;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -65,8 +74,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path) {
+    @HasPermission(type = DefaultPermission.class, action = ACTION_DELETE_CONTENT)
+    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, path);
         List<String> childItems = new ArrayList<String>();
         childItems.addAll(subtreeItems);
@@ -76,8 +86,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> paths) {
+    @HasPermission(type = CompositePermission.class, action = ACTION_DELETE_CONTENT)
+    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
         List<String> childItems = new ArrayList<String>();
         childItems.addAll(subtreeItems);
@@ -87,30 +98,42 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_content")
-    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path)
+    @HasPermission(type = DefaultPermission.class, action = ACTION_DELETE_CONTENT)
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+                                 String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
-        contentToDelete.add(path);
         contentToDelete.addAll(getChildItems(siteId, path));
+        contentToDelete.add(path);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
+
         AuthenticatedUser currentUser = userService.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(), ZonedDateTime.now(ZoneOffset.UTC));
+        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
     }
 
     @Override
-    public boolean deleteContent(String siteId, List<String> paths)
+    @HasPermission(type = CompositePermission.class, action = ACTION_DELETE_CONTENT)
+    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
+                                 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
+                                 String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
         List<String> contentToDelete = new ArrayList<String>();
-        contentToDelete.addAll(paths);
         contentToDelete.addAll(getChildItems(siteId, paths));
+        contentToDelete.addAll(paths);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
-        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(), ZonedDateTime.now(ZoneOffset.UTC));
+        deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
+                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
         objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
+        itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
     }
@@ -135,6 +158,28 @@ public class ContentServiceImpl implements ContentService {
         }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                               @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
+                                               String sortStrategy,
+                                               String order, int offset, int limit) {
+        return contentServiceInternal.getChildrenByPath(siteId, path, locale, sortStrategy, order, offset, limit);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public GetChildrenResult getChildrenById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String id,
+                                             String locale, String sortStrategy, String order, int offset, int limit) {
+        return contentServiceInternal.getChildrenById(siteId, id, locale, sortStrategy, order, offset, limit);
+    }
+
+    @Override
+    public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                        @ValidateSecurePathParam String path, boolean flatten) {
+        return contentServiceInternal.getItem(siteId, path, flatten);
     }
 
     public ContentServiceInternal getContentServiceInternal() {
@@ -199,5 +244,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

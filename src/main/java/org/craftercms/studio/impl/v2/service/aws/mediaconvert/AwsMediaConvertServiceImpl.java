@@ -244,7 +244,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
     }
 
     /**
-     * Builds a remote-asset url using the given profile & S3 URI
+     * Builds a remote-asset url using the given profile and S3 URI
      */
     protected String createUrl(String profileId, String fullUri) {
         AmazonS3URI uri = new AmazonS3URI(fullUri);

@@ -17,12 +17,13 @@
 package org.craftercms.studio.impl.v2.upgrade.operations.file;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 
 import java.io.File;
@@ -30,7 +31,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that renames/moves files and
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that renames/moves files and
  * folders in the repository.
  * @author Dejan Brkic
  */
@@ -46,32 +47,38 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
     protected String newPath;
     protected boolean overwrite;
 
+    public RenameUpgradeOperation(StudioConfiguration studioConfiguration) {
+        super(studioConfiguration);
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    public void doInit(final HierarchicalConfiguration config) {
         oldPath = config.getString(CONFIG_KEY_OLD_PATH);
         newPath = config.getString(CONFIG_KEY_NEW_PATH);
         overwrite = config.getBoolean(CONFIG_KEY_OVERWRITE, false);
     }
 
     @Override
-    public void execute(final String site) throws UpgradeException {
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
         try {
-            Path repo = getRepositoryPath(site).getParent().toAbsolutePath();
+            Path repo = context.getRepositoryPath();
             Path from = repo.resolve(oldPath);
             Path to = repo.resolve(newPath);
 
-            renamePath(from, to);
-            commitAllChanges(site);
+            if (renamePath(from, to)) {
+                trackChanges(oldPath, newPath);
+            }
         } catch (Exception e) {
             throw new UpgradeException("Error moving path " + oldPath + " to path " + newPath + " for repo " +
                     (StringUtils.isEmpty(site) ? "global" : site), e);
         }
     }
 
-    protected void renamePath(Path from, Path to) throws IOException {
+    protected boolean renamePath(Path from, Path to) throws IOException {
         File fromFile = from.toFile();
         File toFile = to.toFile();
         if (fromFile.exists()) {
@@ -80,7 +87,7 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
                     FileUtils.forceDelete(toFile);
                 } else {
                     logger.info("Rename operation not executed because target path {0} already exists.", to);
-                    return;
+                    return false;
                 }
             }
             if (fromFile.isDirectory()) {
@@ -88,8 +95,9 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
             } else if (fromFile.isFile()) {
                 FileUtils.moveFile(fromFile, toFile);
             }
-
+            return true;
         }
+        return false;
     }
 
 }

@@ -16,9 +16,8 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
@@ -31,15 +30,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -47,7 +49,9 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
@@ -65,6 +69,9 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.FetchResult;
 
 public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
+
+    protected static final List<String> createdSites = new ArrayList<String>();
+    protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncSandboxTask.class);
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
@@ -114,7 +121,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         if (result) {
             try {
                 logger.debug("Create site from remote for site " + siteId);
-                result = createSiteFromRemote();
+                result = createSiteFromRemote(SANDBOX);
                 if (result) {
                     addSiteUuidFile(siteId, siteUuid);
                     deploymentService.syncAllContentToPreview(siteId, true);
@@ -171,12 +178,16 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                     remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), lastCommitId);
                 }
             }
+
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(siteId);
+            eventService.publish(EVENT_PREVIEW_SYNC, context);
         } catch (GitAPIException e) {
             logger.error("Error while syncing cluster node content for site " + siteId);
         }
     }
 
-    protected boolean cloneSiteInternal(String siteId, GitRepositories repoType)
+    protected boolean cloneSiteInternal(String siteId)
             throws CryptoException, ServiceLayerException {
         // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
         // we will eventually to catch up to the latest
@@ -184,11 +195,11 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         int idx = 0;
         while (!cloned && idx < clusterNodes.size()) {
             ClusterMember remoteNode = clusterNodes.get(idx++);
-            logger.debug("Cloning " + repoType.toString() + " repository for site " + siteId +
+            logger.debug("Cloning " + SANDBOX.toString() + " repository for site " + siteId +
                          " from " + remoteNode.getLocalAddress());
 
             // prepare a new folder for the cloned repository
-            Path siteSandboxPath = buildRepoPath(repoType);
+            Path siteSandboxPath = buildRepoPath(SANDBOX);
             File localPath = siteSandboxPath.toFile();
             localPath.delete();
             // then clone
@@ -203,15 +214,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                 configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
 
                 String cloneUrl = remoteNode.getGitUrl().replace("{siteId}", siteId);
-                switch (repoType) {
-                    case SANDBOX:
-                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(SANDBOX_PATH);
-                        break;
-                    case PUBLISHED:
-                        cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(PUBLISHED_PATH);
-                        break;
-                    default:
-                }
+                cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(SANDBOX_PATH);
 
                 logger.debug("Executing clone command");
                 cloneResult = cloneCommand
@@ -222,14 +225,6 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                         .call();
                 Files.deleteIfExists(tempKey);
 
-                logger.debug("If cloned repo was published repo, than add local sandbox as origin");
-                if (repoType.equals(PUBLISHED)) {
-                    try {
-                        addOriginRemote();
-                    } catch (InvalidRemoteUrlException e) {
-                        logger.error("Failed to add sandbox as origin");
-                    }
-                }
                 cloned = true;
 
             } catch (InvalidRemoteException e) {
@@ -295,4 +290,63 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         Files.write(path, toWrite.getBytes());
     }
 
+    protected boolean checkIfSiteRepoExistsInternal() {
+        boolean toRet = false;
+        if (createdSites.contains(siteId)) {
+            toRet = true;
+        } else {
+            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
+            if (!StringUtils.isEmpty(firstCommitId)) {
+                toRet = true;
+                createdSites.add(siteId);
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    protected void addRemotesInternal() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+        Map<String, String> existingRemotes = remotesMap.get(siteId);
+        logger.debug("Add cluster members as remotes to local sandbox repository");
+        for (ClusterMember member : clusterNodes) {
+            if (existingRemotes != null && existingRemotes.containsKey(member.getGitRemoteName())) {
+                continue;
+            }
+
+            try {
+                if (existingRemotes == null) {
+                    existingRemotes = new HashMap<String, String>();
+                    remotesMap.put(siteId, existingRemotes);
+                }
+
+                String remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
+                        studioConfiguration.getProperty(SANDBOX_PATH);
+                addRemoteRepository(member, remoteUrl, SANDBOX);
+
+                existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
+
+            } catch (IOException e) {
+                logger.error("Failed to open repository", e);
+            }
+        }
+    }
+
+    @RetryingOperation
+    @Override
+    public void syncRemoteRepositoriesInternal() {
+        List<RemoteRepository> remoteRepositories =
+                clusterDao.getMissingClusterNodeRemoteRepositories(localAddress, siteId);
+        if (CollectionUtils.isNotEmpty(remoteRepositories)) {
+            ClusterMember currentNode = clusterDao.getMemberByLocalAddress(localAddress);
+            for (RemoteRepository remoteRepository : remoteRepositories) {
+                try {
+                    addRemoteRepository(remoteRepository, SANDBOX);
+                    clusterDao.addClusterRemoteRepository(currentNode.getId(), remoteRepository.getId());
+                } catch (IOException | InvalidRemoteUrlException | ServiceLayerException e) {
+                    logger.error("Error while adding remote " + remoteRepository.getRemoteName() +
+                            " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
+                }
+            }
+        }
+    }
 }

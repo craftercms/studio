@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import net.sf.json.JSONArray;
@@ -78,6 +79,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -97,6 +99,13 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJEC
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.REJECT_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 /**
@@ -153,6 +162,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected NotificationService notificationService;
     protected StudioConfiguration studioConfiguration;
     protected AuditServiceInternal auditServiceInternal;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Override
     @ValidateParams
@@ -175,6 +185,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (length > 0) {
                 for (int index = 0; index < length; index++) {
                     objectStateService.setSystemProcessing(site, items.optString(index), true);
+                    itemServiceInternal.setSystemProcessing(site, items.optString(index), true);
                 }
             }
             boolean isNow = (requestObject.containsKey(JSON_KEY_SCHEDULE)) ?
@@ -216,6 +227,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 for (DmDependencyTO goLiveItem : submittedItems) {
                     submittedPaths.add(goLiveItem.getUri());
                     objectStateService.setSystemProcessing(site, goLiveItem.getUri(), true);
+                    itemServiceInternal.setSystemProcessing(site, goLiveItem.getUri(), true);
                     DependencyRules rule = new DependencyRules(site);
                     rule.setObjectStateService(objectStateService);
                     rule.setContentService(contentService);
@@ -223,6 +235,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     for (DmDependencyTO dep : depSet) {
                         submittedPaths.add(dep.getUri());
                         objectStateService.setSystemProcessing(site, dep.getUri(), true);
+                        itemServiceInternal.setSystemProcessing(site, dep.getUri(), true);
                     }
                 }
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext,
@@ -243,6 +256,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 for (String relativePath : submittedPaths) {
                     objectStateService.setSystemProcessing(site, relativePath, false);
                 }
+                itemServiceInternal.setSystemProcessingBulk(site, submittedPaths, false);
             }
         } catch (Exception e) {
             result.setSuccess(false);
@@ -349,6 +363,16 @@ public class WorkflowServiceImpl implements WorkflowService {
             objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_SCHEDULED);
         } else {
             objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
+        }
+
+        // Item
+
+        if (Objects.nonNull(scheduledDate)) {
+            itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
+                    SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK);
+        } else {
+            itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_ON_MASK,
+                    SUBMIT_TO_WORKFLOW_OFF_MASK);
         }
     }
 
@@ -467,6 +491,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         }
                     } else {
                         _cancelWorkflow(site, state.getPath());
+                        itemServiceInternal.deleteItem(site, state.getPath());
                         objectStateService.deleteObjectStateForPath(site, state.getPath());
                         objectMetadataManager.deleteObjectMetadata(site, state.getPath());
                     }
@@ -494,6 +519,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
         } else {
+            itemServiceInternal.deleteItem(itemState.getSite(), itemState.getPath());
             objectStateService.deleteObjectState(itemState.getObjectId());
         }
     }
@@ -656,6 +682,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         objectStateService.transitionBulk(site, paths,
                 org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT,
                 State.NEW_UNPUBLISHED_UNLOCKED);
+
+        itemServiceInternal.updateStateBitsBulk(site, paths, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
     }
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceLayerException {
@@ -726,10 +754,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param user username of actor
      * @return call result
-     * @throws ServiceLayerException
      */
     @Override
     @ValidateParams
@@ -741,10 +769,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param operation operation
      * @return call result
-     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approve(String site, String request, Operation operation) {
@@ -842,10 +870,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
                             renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
                             renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
                         //Set proper information of all renameItems before send them to GoLive
@@ -897,10 +927,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param operation operation
      * @return call result
-     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approve_new(String site, String request, Operation operation) {
@@ -1021,10 +1051,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
                             renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
                             renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
                         //Set proper information of all renameItems before send them to GoLive
@@ -1074,13 +1106,9 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
                     .CompleteMessages, responseMessageKey, Locale.ENGLISH));
 
-        } catch (JSONException e) {
+        } catch (JSONException | ServiceLayerException e) {
             logger.error("error performing operation " + operation + " " + e);
 
-            result.setSuccess(false);
-            result.setMessage(e.getMessage());
-        } catch (ServiceLayerException e) {
-            logger.error("error performing operation " + operation + " " + e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1090,10 +1118,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+     * @param operation operation
      * @return call result
-     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approveWithoutDependencies(String site, String request, Operation operation) {
@@ -1187,10 +1215,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
                             renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
                             renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
+                            itemServiceInternal.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
                         //Set proper information of all renameItems before send them to GoLive
@@ -2248,6 +2278,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     auditLogParameters.add(auditLogParameter);
                 }
                 objectStateService.setSystemProcessingBulk(site, paths, true);
+                itemServiceInternal.setSystemProcessingBulk(site, paths, true);
                 Set<String> cancelPaths = new HashSet<String>();
                 cancelPaths.addAll(paths);
                 deploymentService.cancelWorkflowBulk(site, cancelPaths);
@@ -2263,6 +2294,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditLog.setParameters(auditLogParameters);
                 auditServiceInternal.insertAuditLog(auditLog);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
+                itemServiceInternal.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);
                 result.setStatus(200);
                 result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
@@ -2347,6 +2379,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             objectMetadataManager.setObjectMetadata(site, dmDependencyTO.getUri(), newProps);
             ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
             objectStateService.transition(site, item, TransitionEvent.REJECT);
+
+            itemServiceInternal.resetStateBits(site, dmDependencyTO.getUri(), REJECT_OFF_MASK);
         }
     }
 
@@ -2462,6 +2496,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

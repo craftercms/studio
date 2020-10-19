@@ -39,7 +39,7 @@ public class ClusterManagementController {
 
     @GetMapping("/api/2/cluster")
     public ResponseBody getAllMembers() throws ServiceLayerException {
-        List<ClusterMember> clusterMembers = clusterManagementService.getAllMemebers();
+        List<ClusterMember> clusterMembers = clusterManagementService.getAllMembers();
 
         ResponseBody responseBody = new ResponseBody();
         ResultList<ClusterMember> result = new ResultList<ClusterMember>();

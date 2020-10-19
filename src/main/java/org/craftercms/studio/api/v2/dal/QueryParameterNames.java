@@ -26,8 +26,18 @@ public abstract class QueryParameterNames {
     public static final String LIMIT = "limit";
     // Sort
     public static final String SORT = "sort";
-
+    // Order
     public static final String ORDER = "order";
+    // Path
+    public static final String PATH = "path";
+    // Paths
+    public static final String PATHS = "paths";
+    // Modifier
+    public static final String MODIFIER = "modifier";
+    // Old path
+    public static final String OLD_PATH = "oldPath";
+    // New path
+    public static final String NEW_PATH = "newPath";
 
     /* Organizations */
 
@@ -38,6 +48,14 @@ public abstract class QueryParameterNames {
     public static final String SITE_ID = "siteId";
 
     public static final String SITE = "site";
+
+    public static final String LOCK_OWNER_ID = "lockOwnerId";
+
+    public static final String TTL = "ttl";
+
+    public static final String NAME = "name";
+
+    public static final String DESC = "description";
 
     /* Groups */
 
@@ -78,6 +96,8 @@ public abstract class QueryParameterNames {
     public static final String EMAIL = "email";
     // Active
     public static final String ENABLED = "enabled";
+    // First name and Last name
+    public static final String GIT_NAME = "gitName";
 
     /* Cluster */
     // Local address
@@ -92,6 +112,10 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_INACTIVE_STATE = "inactiveState";
     // Stale heartbeat limit
     public static final String CLUSTER_HEARTBEAT_STALE_LIMIT = "heartbeatStaleLimit";
+    // cluster id
+    public static final String CLUSTER_ID = "clusterId";
+    // remote repository id
+    public static final String REMOTE_REPOSITORY_ID = "remoteRepositoryId";
 
     /* Publish request */
     // Environment
@@ -117,6 +141,33 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_NODE_ID = "clusterNodeId";
 
     public static final String INCLUDE_PARAMETERS = "includeParameters";
+
+    /* Item */
+    public static final String LOCALE_CODE = "localeCode";
+
+    public static final String PARENT_PATH = "parentPath";
+
+    public static final String PARENT_ID = "parentId";
+
+    public static final String LEVEL_DESCRIPTOR_PATH = "ldPath";
+
+    public static final String LEVEL_DESCRIPTOR_NAME = "ldName";
+
+    public static final String ENTRIES = "entries";
+
+    public static final String ROOT_PATH = "rootPath";
+
+    public static final String STATES_BIT_MAP = "statesBitMap";
+
+    public static final String ON_STATES_BIT_MAP = "onStatesBitMap";
+
+    public static final String OFF_STATES_BIT_MAP = "offStatesBitMap";
+
+    public static final String ITEM_IDS = "itemIds";
+
+    public static final String CONTENT_TYPE = "contentType";
+
+    public static final String STATE = "state";
 
     private QueryParameterNames() { }
 }

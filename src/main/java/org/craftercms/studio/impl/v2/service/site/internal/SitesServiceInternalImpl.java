@@ -23,6 +23,9 @@ import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.Parameter;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -30,7 +33,6 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -52,6 +54,15 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     private PluginDescriptorReader descriptorReader;
     private ContentRepository contentRepository;
     private StudioConfiguration studioConfiguration;
+    private SiteFeedMapper siteFeedMapper;
+
+    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
+                                    StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper) {
+        this.descriptorReader = descriptorReader;
+        this.contentRepository = contentRepository;
+        this.studioConfiguration = studioConfiguration;
+        this.siteFeedMapper = siteFeedMapper;
+    }
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -164,24 +175,16 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         return null;
     }
 
-    @Required
-    public void setDescriptorReader(final PluginDescriptorReader descriptorReader) {
-        this.descriptorReader = descriptorReader;
+    @Override
+    public void updateSite(String siteId, String name, String description)
+            throws SiteNotFoundException, SiteAlreadyExistsException {
+        if (siteFeedMapper.existsByName(name) > 0) {
+            throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
+        }
+        int updated = siteFeedMapper.updateSite(siteId, name, description);
+        if (updated != 1) {
+            throw new SiteNotFoundException();
+        }
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
 }

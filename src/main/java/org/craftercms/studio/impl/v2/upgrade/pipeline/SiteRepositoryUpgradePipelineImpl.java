@@ -20,30 +20,33 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.upgrade.UpgradeOperation;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineImpl;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradePipeline} that handles a git repository
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradePipeline} that handles a git repository
  * to work on a temporary branch for upgrades.
  * @author joseross
  */
-public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImpl {
+public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImpl<String> {
 
     private static final Logger logger = LoggerFactory.getLogger(SiteRepositoryUpgradePipelineImpl.class);
 
@@ -63,10 +66,14 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected String commitMessage;
 
     protected StudioConfiguration studioConfiguration;
-    protected ServicesConfig servicesConfig;
     protected SecurityService securityService;
     protected UserServiceInternal userServiceInternal;
     protected SiteService siteService;
+    protected TextEncryptor encryptor;
+
+    public SiteRepositoryUpgradePipelineImpl(String name, List<UpgradeOperation<String>> upgradeOperations) {
+        super(name, upgradeOperations);
+    }
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
@@ -101,91 +108,77 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
      * {@inheritDoc}
      */
     @Override
-    public void execute(final String site) throws UpgradeException {
-        GitContentRepositoryHelper helper = new GitContentRepositoryHelper(studioConfiguration, servicesConfig,
-                userServiceInternal, securityService);
+    public void execute(final UpgradeContext<String> context) throws UpgradeException {
+        var site = context.getTarget();
+        try {
+            GitRepositoryHelper helper =
+                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
 
-        Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
-        String sandboxBranch = siteSandboxBranch;
-        if (repository != null) {
-            Git git = new Git(repository);
-            try {
-                if (!isEmpty()) {
-                    SiteFeed siteFeed = siteService.getSite(site);
-                    if (!StringUtils.isEmpty(siteFeed.getSandboxBranch())) {
-                        sandboxBranch = siteFeed.getSandboxBranch();
-                    }
-                    createTemporaryBranch(site, git);
-                    checkoutBranch(siteUpgradeBranch, git);
-                    super.execute(site);
-                    checkoutBranch(sandboxBranch, git);
-                    mergeTemporaryBranch(repository, git);
-                    deleteTemporaryBranch(git);
-
-                }
-            } catch (GitAPIException | IOException | SiteNotFoundException e) {
-                throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
-            } finally {
-                if (!isEmpty()) {
-                    try {
+            Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
+            String sandboxBranch = siteSandboxBranch;
+            if (repository != null) {
+                Git git = new Git(repository);
+                try {
+                    if (!isEmpty()) {
+                        SiteFeed siteFeed = siteService.getSite(site);
+                        if (!StringUtils.isEmpty(siteFeed.getSandboxBranch())) {
+                            sandboxBranch = siteFeed.getSandboxBranch();
+                        }
+                        createTemporaryBranch(site, git);
+                        checkoutBranch(siteUpgradeBranch, git);
+                        super.execute(context);
                         checkoutBranch(sandboxBranch, git);
-                    } catch (GitAPIException e) {
-                        logger.error("Error cleaning up repo for site " + site, e);
-                    }
-                }
-                git.close();
-            }
-        }
+                        mergeTemporaryBranch(repository, git);
+                        deleteTemporaryBranch(git);
 
+                    }
+                } catch (GitAPIException | IOException | SiteNotFoundException e) {
+                    throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
+                } finally {
+                    if (!isEmpty()) {
+                        try {
+                            checkoutBranch(sandboxBranch, git);
+                        } catch (GitAPIException e) {
+                            logger.error("Error cleaning up repo for site " + site, e);
+                        }
+                    }
+                    git.close();
+                }
+            }
+        } catch (CryptoException e) {
+            throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
+        }
     }
 
-    @Required
     public void setSiteSandboxBranch(final String siteSandboxBranch) {
         this.siteSandboxBranch = siteSandboxBranch;
     }
 
-    @Required
     public void setSiteUpgradeBranch(final String siteUpgradeBranch) {
         this.siteUpgradeBranch = siteUpgradeBranch;
     }
 
-    @Required
     public void setCommitMessage(final String commitMessage) {
         this.commitMessage = commitMessage;
     }
 
-
-    @Required
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    @Required
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
     }
 }

@@ -62,6 +62,7 @@ import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.security.AvailableActions;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
@@ -142,7 +143,8 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
-                               @ValidateStringParam(name = "password") String password) throws Exception {
+                               @ValidateStringParam(name = "password", notBlank = true) String password)
+            throws Exception {
         RequestContext requestContext = RequestContext.getCurrent();
         HttpServletRequest request = requestContext.getRequest();
         HttpServletResponse response = requestContext.getResponse();
@@ -226,6 +228,26 @@ public class SecurityServiceImpl implements SecurityService {
             toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
             String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
             toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
+        }
+        return toRet;
+    }
+
+    @Override
+    public Map<String, Object> getUserProfileByGitName(
+            @ValidateStringParam(name = "firstNameLastName") String gitName)
+            throws ServiceLayerException, UserNotFoundException {
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        User u = userServiceInternal.getUserByGitName(gitName);
+        if (u != null) {
+            toRet.put(KEY_USERNAME, u.getUsername());
+            toRet.put(KEY_FIRSTNAME, u.getFirstName());
+            toRet.put(KEY_LASTNAME, u.getLastName());
+            toRet.put(KEY_EMAIL, u.getEmail());
+            toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
+            String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
+            toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
+        } else {
+            throw new UserNotFoundException("User " + gitName + " not found");
         }
         return toRet;
     }
@@ -911,6 +933,12 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         return ticket;
+    }
+
+    @Override
+    public long getAvailableActions(String site, String path, String user) {
+        List<String> permissions = new ArrayList<>(getUserPermissions(site, path, user, new ArrayList<String>()));
+        return AvailableActions.mapPermissionsToAvailableActions(permissions);
     }
 
     public String getRoleMappingsFileName() {

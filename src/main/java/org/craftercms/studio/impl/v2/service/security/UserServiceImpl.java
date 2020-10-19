@@ -21,6 +21,8 @@ import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -51,6 +53,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
@@ -59,12 +62,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
@@ -72,9 +69,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -99,10 +93,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_ALGORITHM;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_TYPE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
@@ -124,6 +115,8 @@ public class UserServiceImpl implements UserService {
     private ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
     private JavaMailSender emailService;
     private JavaMailSender emailServiceNoAuth;
+    private InstanceService instanceService;
+    private TextEncryptor encryptor;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -306,6 +299,7 @@ public class UserServiceImpl implements UserService {
                     SiteFeed siteFeed = siteService.getSite(siteId);
                     Site site = new Site();
                     site.setSiteId(siteFeed.getSiteId());
+                    site.setName(siteFeed.getName());
                     site.setDesc(siteFeed.getDescription());
 
                     sites.add(site);
@@ -423,7 +417,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
+    public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException,
+            UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         boolean success = false;
@@ -441,8 +436,8 @@ public class UserServiceImpl implements UserService {
                     long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
                             Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
                     String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
-
-                    String token = username + "|" + timestamp + "|" + salt;
+                    String studioId = instanceService.getInstanceId();
+                    String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
                     String hashedToken = encryptToken(token);
                     logger.debug("Sending forgot password email to " + email);
                     try {
@@ -462,31 +457,19 @@ public class UserServiceImpl implements UserService {
 
     private String encryptToken(String token) {
         try {
-            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
-            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
-            byte[] tokenBytes = token.getBytes(StandardCharsets.UTF_8);
-            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
-            byte[] encrypted = cipher.doFinal(tokenBytes);
-            return Base64.getEncoder().encodeToString(encrypted);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException |
-                IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            String hashedToken = encryptor.encrypt(token);
+            return Base64.getEncoder().encodeToString(hashedToken.getBytes(StandardCharsets.UTF_8));
+        } catch (CryptoException e) {
             logger.error("Error while encrypting forgot password token", e);
             return null;
         }
     }
 
-    private String decryptToken(String token) {
+    private String decryptToken(String hashedToken) {
         try {
-            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
-            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
-            byte[] tokenBytes = Base64.getDecoder().decode(token.getBytes(StandardCharsets.UTF_8));
-            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
-            byte[] decrypted = cipher.doFinal(tokenBytes);
-            return new String(decrypted, StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            byte[] hashedTokenBytes = Base64.getDecoder().decode(hashedToken.getBytes(StandardCharsets.UTF_8));
+            return encryptor.decrypt(new String(hashedTokenBytes, StandardCharsets.UTF_8));
+        } catch (CryptoException e) {
             logger.error("Error while decrypting forgot password token", e);
             return null;
         }
@@ -549,7 +532,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User setPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+    public User setPassword(String token, String newPassword) throws UserNotFoundException,
+            UserExternallyManagedException, ServiceLayerException {
         if (validateToken(token)) {
             String username = getUsernameFromToken(token);
             if (StringUtils.isNotEmpty(username)) {
@@ -571,13 +555,14 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-    private boolean validateToken(String token) throws UserNotFoundException,
+    @Override
+    public boolean validateToken(String token) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
         boolean toRet = false;
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 3) {
+            if (tokenElements.countTokens() == 4) {
                 String username = tokenElements.nextToken();
                 User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (userProfile == null) {
@@ -587,11 +572,10 @@ public class UserServiceImpl implements UserService {
                     if (userProfile.isExternallyManaged()) {
                         throw new UserExternallyManagedException();
                     } else {
-                        long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-                        if (tokenTimestamp < System.currentTimeMillis()) {
-                            toRet = false;
-                        } else {
-                            toRet = true;
+                        String studioId = tokenElements.nextToken();
+                        if (StringUtils.equals(studioId, instanceService.getInstanceId())) {
+                            long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+                            toRet = tokenTimestamp >= System.currentTimeMillis();
                         }
                     }
                 }
@@ -605,7 +589,7 @@ public class UserServiceImpl implements UserService {
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 3) {
+            if (tokenElements.countTokens() == 4) {
                 toRet = tokenElements.nextToken();
             }
         }
@@ -714,4 +698,17 @@ public class UserServiceImpl implements UserService {
     public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
         this.emailServiceNoAuth = emailServiceNoAuth;
     }
+
+    public InstanceService getInstanceService() {
+        return instanceService;
+    }
+
+    public void setInstanceService(InstanceService instanceService) {
+        this.instanceService = instanceService;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }

@@ -24,20 +24,21 @@ import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+
+import javax.sql.DataSource;
 
 /**
- * Implementation of {@link UpgradeOperation} that updates multiple files using a XSLT template.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates multiple files using a XSLT template.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>regex</strong>: (required) the regex used to find files to update</li>
  * </ul>
- * </p>
  *
  * @author joseross
  * @since 3.1.1
@@ -50,16 +51,21 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
 
     protected String regex;
 
+    public BatchXsltFileUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+        super(studioConfiguration);
+    }
+
     @Override
-    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    protected void doInit(final HierarchicalConfiguration config) {
         super.doInit(config);
         regex = config.getString(CONFIG_KEY_REGEX);
     }
 
     @Override
-    public void execute(final String site) throws UpgradeException {
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
         logger.debug("Looking site {0} for files that match: {1}", site, regex);
-        Path repository = getRepositoryPath(site).getParent();
+        Path repository = context.getRepositoryPath();
         try (Stream<Path> paths = Files.find(repository, Integer.MAX_VALUE,
             (path, attrs) -> repository.relativize(path).toString().matches(regex) )) {
             paths.forEach(path -> {
@@ -68,7 +74,7 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
                     Path temp = Files.createTempFile("upgrade-manager", "xslt");
                     try {
                         OutputStream os = Files.newOutputStream(temp);
-                        executeTemplate(site, repository.relativize(path).toString(), os);
+                        executeTemplate(context, repository.relativize(path).toString(), os);
                         os.close();
                         if (Files.size(temp) > 0) {
                             Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
@@ -80,7 +86,6 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
                     logger.error("Error upgrading file {0} in site {1}", e, site, path);
                 }
             });
-            commitAllChanges(site);
         } catch (IOException e) {
             throw new UpgradeException("Error searching for files in site " + site, e);
         }

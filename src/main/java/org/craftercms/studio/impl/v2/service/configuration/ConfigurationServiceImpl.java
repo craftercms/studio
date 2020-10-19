@@ -15,9 +15,11 @@
  */
 package org.craftercms.studio.impl.v2.service.configuration;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -43,14 +45,15 @@ import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
@@ -79,6 +82,8 @@ import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
@@ -97,6 +102,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public static final String PLACEHOLDER_TYPE = "type";
     public static final String PLACEHOLDER_NAME = "name";
 
+    /* Translation Config */
+    public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
+    public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
+
     private ContentService contentService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
@@ -106,6 +115,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ServicesConfig servicesConfig;
     private ObjectStateService objectStateService;
     private EventService eventService;
+    private EncryptionAwareConfigurationReader configurationReader;
+    private ItemServiceInternal itemServiceInternal;
+
+    private String translationConfig;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -304,6 +317,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             objectMetadataManager.insertNewObjectMetadata(siteId, path);
         }
         objectMetadataManager.setObjectMetadata(siteId, path, properties);
+
+        itemServiceInternal.updateStateBits(siteId, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
     }
 
     private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
@@ -364,63 +379,75 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
     }
 
-    @Required
+    @Override
+    @SuppressWarnings("rawtypes")
+    public TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException {
+        TranslationConfiguration translationConfiguration = new TranslationConfiguration();
+        if (contentService.contentExists(siteId, translationConfig)) {
+            try (InputStream is = contentService.getContent(siteId, translationConfig)) {
+                HierarchicalConfiguration config = configurationReader.readXmlConfiguration(is);
+                if (config != null) {
+                    translationConfiguration.setDefaultLocaleCode(
+                            config.getString(CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE));
+                    translationConfiguration.setLocaleCodes(
+                            config.getList(String.class, CONFIG_KEY_TRANSLATION_LOCALES));
+                }
+            } catch (Exception e) {
+                throw new ServiceLayerException("Error getting translation config for site " + siteId, e);
+            }
+        }
+        return translationConfiguration;
+    }
+
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }
 
-    @Required
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    @Required
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
     }
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
         this.objectMetadataManager = objectMetadataManager;
     }
 
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 
     public void setObjectStateService(ObjectStateService objectStateService) {
         this.objectStateService = objectStateService;
     }
 
-    public void setEventService(final EventService eventService) {
+    public void setEventService(EventService eventService) {
         this.eventService = eventService;
     }
 
+    public void setConfigurationReader(EncryptionAwareConfigurationReader configurationReader) {
+        this.configurationReader = configurationReader;
+    }
+
+    public void setTranslationConfig(String translationConfig) {
+        this.translationConfig = translationConfig;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
 }

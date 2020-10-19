@@ -17,18 +17,18 @@
 package org.craftercms.studio.impl.v2.upgrade.operations.file;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that deletes files and folders in the
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that deletes files and folders in the
  * repository
  * @author Dejan Brkic
  */
@@ -38,31 +38,34 @@ public class DeleteUpgradeOperation extends AbstractUpgradeOperation {
 
     protected String[] paths;
 
+    public DeleteUpgradeOperation(StudioConfiguration studioConfiguration) {
+        super(studioConfiguration);
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    public void doInit(final HierarchicalConfiguration config) {
         paths = (String[]) config.getArray(String.class, CONFIG_KEY_PATHS);
     }
 
     @Override
-    public void execute(final String site) throws UpgradeException {
+    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+        var site = context.getTarget();
         for (String path : paths) {
             try {
-                Path pathToDelete = Paths.get(getRepositoryPath(site).getParent().toAbsolutePath().toString(), path);
+                Path pathToDelete = context.getFile(path);
                 File f = pathToDelete.toFile();
                 if (f.exists()) {
                     FileUtils.forceDelete(f);
+                    trackChanges(path);
                 }
             } catch (Exception e) {
                 throw new UpgradeException("Error deleting path " + path + " to path for repo " +
                         (StringUtils.isEmpty(site) ? "global" : site), e);
             }
         }
-
-        commitAllChanges(site);
-
     }
 
 }

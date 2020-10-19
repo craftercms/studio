@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v1.to;
 
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -78,6 +77,26 @@ public class SiteConfigTO implements Serializable {
      * Pattern for the plugins folder
      */
     protected String pluginFolderPattern;
+
+    /**
+     * Authoring url
+     */
+    protected String authoringUrl;
+
+    /**
+     * Staging url
+     */
+    protected String stagingUrl;
+
+    /**
+     * Live url
+     */
+    protected String liveUrl;
+
+    /**
+     * Admin email address for notification service
+     */
+    protected String adminEmailAddress;
 
     /**
      * @return the WEM project
@@ -174,4 +193,35 @@ public class SiteConfigTO implements Serializable {
         this.pluginFolderPattern = pluginFolderPattern;
     }
 
+    public String getAuthoringUrl() {
+        return authoringUrl;
+    }
+
+    public void setAuthoringUrl(String authoringUrl) {
+        this.authoringUrl = authoringUrl;
+    }
+
+    public String getStagingUrl() {
+        return stagingUrl;
+    }
+
+    public void setStagingUrl(String stagingUrl) {
+        this.stagingUrl = stagingUrl;
+    }
+
+    public String getLiveUrl() {
+        return liveUrl;
+    }
+
+    public void setLiveUrl(String liveUrl) {
+        this.liveUrl = liveUrl;
+    }
+
+    public String getAdminEmailAddress() {
+        return adminEmailAddress;
+    }
+
+    public void setAdminEmailAddress(String adminEmailAddress) {
+        this.adminEmailAddress = adminEmailAddress;
+    }
 }

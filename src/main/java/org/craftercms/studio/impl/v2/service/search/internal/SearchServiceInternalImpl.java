@@ -245,7 +245,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Loads facets & type mapping from the global configuration
+     * Loads facets and type mapping from the global configuration
      */
     public void init() {
         loadTypesFromGlobalConfiguration();
@@ -384,7 +384,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      */
     protected SearchResult processResults(SearchResponse response, Map<String, FacetTO> siteFacets) {
         SearchResult result = new SearchResult();
-        result.setTotal(response.getHits().getTotalHits());
+        result.setTotal(response.getHits().getTotalHits().value);
 
         List<SearchResultItem> items = Stream.of(response.getHits().getHits())
             .map(hit -> processSearchHit(hit.getSourceAsMap(), hit.getHighlightFields()))
@@ -432,6 +432,10 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             }
 
             query.must(keywordsQuery);
+        }
+
+        if (StringUtils.isNotEmpty(params.getPath())) {
+            query.filter(QueryBuilders.regexpQuery(pathFieldName, params.getPath()));
         }
 
         if(MapUtils.isNotEmpty(params.getFilters())) {

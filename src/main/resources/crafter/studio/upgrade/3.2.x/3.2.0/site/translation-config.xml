@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<translation-config>
+
+    <!-- List of codes for the supported locales -->
+    <!--
+    <localeCodes>
+        <localeCode>en_us</localeCode>
+    </localeCodes>
+    -->
+
+    <!-- The code of the default locale for all new content -->
+    <!--
+    <defaultLocaleCode>en_us</defaultLocaleCode>
+    -->
+
+    <!-- Indicates if the default locale should be used when none of the resolvers can find a locale -->
+    <!--
+    <fallbackToDefaultLocale>true</fallbackToDefaultLocale>
+    -->
+
+    <!-- List of locale resolvers -->
+    <!--
+    <localeResolvers>
+    -->
+        <!-- List of locale resolvers, will be executed in the same order until one returns a locale -->
+        <!--
+        <localeResolver>
+            <type>urlPattern</type>
+            <mappings>
+                <mapping>
+                    <pattern>.+/en</pattern>
+                    <localeCode>en_us</localeCode>
+                </mapping>
+            </mappings>
+        </localeResolver>
+        <localeResolver>
+            <type>cookie</type>
+        </localeResolver>
+        <localeResolver>
+            <type>header</type>
+        </localeResolver>
+        <localeResolver>
+            <type>groovy</type>
+            <script>/scripts/locale.groovy</script>
+        </localeResolver>
+    </localeResolvers>
+    -->
+
+</translation-config>

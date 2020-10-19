@@ -1,6 +1,74 @@
-# Configuration for tests
 
-studio.db.port: 33307
-studio.db.socket: /tmp/MariaDB4j.33307.sock
+# The key used for encryption of configuration properties
+studio.security.encryption.key: zEtRii1jWUuUUB0W
+# The salt used for encryption of configuration properties
+studio.security.encryption.salt: DgGN9xhq3GOn6zxg
+
+##################################################
+##                   Database                   ##
+##################################################
+# Embedded database configuration
+# JDBC driver and Java class used for accessing crafter database
+studio.db.driver: org.mariadb.jdbc.Driver
+# Database schema name
+studio.db.schema: crafter
+# Connection string used when connecting database with JDBC driver
+# Format:
+# jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
+# Note that a relative path is not suitable for a production deployment
 studio.db.url: jdbc:mariadb://127.0.0.1:33307/crafter?user=crafter&password=crafter
-studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33307?user=root&password=
+# Defines initial number of database connections in database connection pool
+studio.db.pool.initialConnections: 10
+# Defines maximum number of active database connections in database connection pool
+studio.db.pool.maxActiveConnections: 100
+# Defines maximum number of idle database connections to retain in database connection pool.
+studio.db.pool.maxIdleConnections: 30
+# Defines minimum number of idle database connections to retain in database connection pool.
+studio.db.pool.minIdleConnections: 10
+# Defines maximum waiting time for a database connection to become available (value is in milliseconds).
+studio.db.pool.maxWaitTime: 10000
+# Turn database initializer on (value true) or off (value false).
+# When initializer is turned off, system will not try to initialize database on startup.
+# When system is starting for the first time initializer must be turned on.
+# When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped
+# for any reason, initializer needs to be turned on.
+studio.db.initializer.enabled: true
+# Connection string used to initialize database
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33307?user=root&password=root
+# Create schema SQL script location
+studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
+# Create database SQL script location
+studio.db.initializer.createDbscriptLocation: crafter/studio/database/createDDL.sql
+# Enable random admin password generation
+studio.db.initializer.randomAdminPassword.enabled: false
+# Random admin password length
+studio.db.initializer.randomAdminPassword.length: 16
+# Random admin password allowed chars
+studio.db.initializer.randomAdminPassword.chars: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_=+-/
+# Test database connections retrieved from the pool before being used (value true).
+# If value is set to false database connection will not be tested before being used.
+studio.db.testOnBorrow: true
+# The SQL query to validate the connection for database
+studio.db.validationQuery: SELECT 1
+# Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
+# Use a value less than or equal to 0 for no timeout.
+studio.db.validationInterval: 1
+# Base folder for the embedded database
+studio.db.basePath: target/tests/bin/dbms
+# Data folder for the embedded database
+studio.db.dataPath: target/tests/data/db
+# Port number for the embedded database (note this must match what's in the connection URLs in this config file)
+studio.db.port: 33307
+# Socket path for the embedded database
+studio.db.socket: /tmp/MariaDB4j.33307.sock
+
+# Absolute path to repository base (all actual repositories will be under this)
+studio.repo.basePath: target/tests/data/repos
+# URL to the preview repository (aka Sandbox) where authors save work-in-progress
+studio.preview.repoUrl: target/tests/data/repos/sites/{siteName}/sandbox
+# The URL the deployer will use to clone/pull the site's published repo. When the deployer is in a separate node
+# (because of clustering), this URL should be an SSH/HTTP URL to the load balancer in front of the Studios
+studio.serverless.delivery.deployer.target.remoteRepoUrl: target/tests/data/repos/sites/{siteName}/published
+# The deployer's local path where it will store the clone of the published site. This property is not needed if
+# the deployer is not the preview deployer, so you can leave an empty string ('') instead
+studio.serverless.delivery.deployer.target.localRepoPath: target/tests/data/repos/aws/{siteName}

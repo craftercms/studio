@@ -81,4 +81,12 @@ public interface RequestConstants {
     String REQUEST_PARAM_GROUP_BY = "groupBy";
 
     String REQUEST_PARAM_FILTERS = "filters";
+
+    String REQUEST_PARAM_TOKEN = "token";
+
+    String REQUEST_PARAM_SUBMISSION_COMMENT = "submissionComment";
+
+    String REQUEST_PARAM_SORT_STRATEGY = "sortStrategy";
+
+    String REQUEST_PARAM_LOCALE_CODE = "localeCode";
 }

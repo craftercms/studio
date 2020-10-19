@@ -18,12 +18,6 @@ package org.craftercms.studio.impl.v2.utils;
 
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.builder.ConfigurationBuilderEvent;
-import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
-import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
-import org.apache.commons.configuration2.builder.fluent.Parameters;
-import org.apache.commons.configuration2.event.Event;
-import org.apache.commons.configuration2.event.EventListener;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.tree.DefaultExpressionEngine;
 import org.apache.commons.configuration2.tree.DefaultExpressionEngineSymbols;
@@ -178,6 +172,12 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     @Override
     public <T> T getProperty(String key, Class<T> clazz, T defaultVal) {
         return getConfig().get(clazz, key, defaultVal);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T[] getArray(String key, Class<T> clazz) {
+        return (T[]) getConfig().getArray(clazz, key);
     }
 
     @Override

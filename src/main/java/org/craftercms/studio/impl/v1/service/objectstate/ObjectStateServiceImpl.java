@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
@@ -91,6 +92,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         return state;
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void setSystemProcessing(@ValidateStringParam(name = "site") String site,
@@ -126,7 +128,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
     }
 
-    private void setSystemProcessingBulkPartial(String site, List<String> paths, boolean isSystemProcessing) {
+    @RetryingOperation
+    public void setSystemProcessingBulkPartial(String site, List<String> paths, boolean isSystemProcessing) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
@@ -143,6 +146,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         transition(site, path, event);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void transition(@ValidateStringParam(name = "site") String site,
@@ -198,6 +202,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         logger.debug("Transition finished for " + event.name() + " on object " + lockKey);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deployCommitId(@ValidateStringParam(name = "site") String site,
@@ -280,6 +285,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         return objects;
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void updateObjectPath(@ValidateStringParam(name = "site") String site,
@@ -410,12 +416,14 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         return objects;
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteObjectState(@ValidateStringParam(name = "objectId") String objectId) {
         itemStateMapper.deleteObjectState(objectId);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteObjectStateForPath(@ValidateStringParam(name = "site") String site,
@@ -427,6 +435,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         itemStateMapper.deleteObjectStateForSiteAndPath(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteObjectStatesForFolder(@ValidateStringParam(name = "site") String site,
@@ -438,6 +447,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         itemStateMapper.deleteObjectStateForSiteAndFolder(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void transitionBulk(@ValidateStringParam(name = "site") String site, List<String> paths,
@@ -497,6 +507,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public String setObjectState(@ValidateStringParam(name = "site") String site,
@@ -517,6 +528,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         return "Success";
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteObjectStatesForSite(@ValidateStringParam(name = "site") String site) {
@@ -530,6 +542,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         return toReturn;
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void setStateForSiteContent(@ValidateStringParam(name = "site") String site, State state) {
@@ -570,7 +583,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     private void initializeTransitionTable() {
         transitionTable = new State[][]{
                 {State.NEW_DELETED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_DELETED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_SUBMITTED_NO_WF_UNSCHEDULED,State.NOOP,State.NOOP,State.EXISTING_UNEDITED_UNLOCKED,State.NEW_PUBLISHING_FAILED},
-                {State.NEW_DELETED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_DELETED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_SUBMITTED_NO_WF_UNSCHEDULED,State.NOOP,State.NOOP,State.EXISTING_UNEDITED_UNLOCKED,State.NEW_PUBLISHING_FAILED},
+                {State.NEW_DELETED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_DELETED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_SUBMITTED_NO_WF_UNSCHEDULED,State.NOOP,State.NEW_UNPUBLISHED_UNLOCKED,State.EXISTING_UNEDITED_UNLOCKED,State.NEW_PUBLISHING_FAILED},
                 {State.NEW_DELETED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_DELETED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_SUBMITTED_NO_WF_UNSCHEDULED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_UNPUBLISHED_UNLOCKED,State.EXISTING_UNEDITED_UNLOCKED,State.NEW_PUBLISHING_FAILED},
                 {State.NEW_DELETED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_DELETED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_SUBMITTED_NO_WF_UNSCHEDULED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_UNPUBLISHED_UNLOCKED,State.EXISTING_UNEDITED_UNLOCKED,State.NEW_PUBLISHING_FAILED},
                 {State.NEW_DELETED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED,State.NEW_DELETED,State.NEW_UNPUBLISHED_UNLOCKED,State.NEW_UNPUBLISHED_LOCKED,State.NEW_SUBMITTED_WITH_WF_SCHEDULED,State.NEW_SUBMITTED_WITH_WF_UNSCHEDULED,State.NEW_SUBMITTED_NO_WF_SCHEDULED,State.NEW_SUBMITTED_NO_WF_UNSCHEDULED,State.NEW_SUBMITTED_NO_WF_UNSCHEDULED,State.NEW_UNPUBLISHED_UNLOCKED,State.EXISTING_UNEDITED_UNLOCKED,State.NEW_PUBLISHING_FAILED},

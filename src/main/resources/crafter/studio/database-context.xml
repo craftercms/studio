@@ -18,7 +18,9 @@
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns="http://www.springframework.org/schema/beans"
        xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration" destroy-method="close">
         <property name="driverClassName"
@@ -70,6 +72,13 @@
         <property name="basePackage" value="org.craftercms.studio.api.v1.dal,org.craftercms.studio.api.v2.dal" />
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean -->
+
+    <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingOperationAspect" >
+        <property name="maxRetries"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
+        <property name="maxSleep"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_SLEEP)}" />
+    </bean>
 
     <!-- MyBatis Mappers -->
     <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
@@ -152,6 +161,11 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
+    <bean id="itemDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ItemDAO" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
     <beans profile="!crafter.studio.externalDb">
         <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
               init-method="initDataSource" depends-on="studioMariaDBService">
@@ -161,7 +175,7 @@
         </bean>
 
         <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
-              destroy-method="stop" depends-on="studioConfiguration" >
+              destroy-method="stop" depends-on="studioConfiguration">
             <property name="defaultBaseDir"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_BASE_PATH)}" />
             <property name="defaultDataDir"
@@ -170,6 +184,10 @@
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_PORT)}"  />
             <property name="defaultSocket"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SOCKET)}" />
+            <property name="securityDisabled" value="false" />
+            <property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}" />
+            <property name="driverClassName"
+                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}" />
         </bean>
     </beans>
 

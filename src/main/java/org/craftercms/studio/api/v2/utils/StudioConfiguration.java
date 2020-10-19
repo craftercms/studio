@@ -82,6 +82,8 @@ public interface StudioConfiguration {
     String DB_DATA_PATH = "studio.db.dataPath";
     String DB_PORT = "studio.db.port";
     String DB_SOCKET = "studio.db.socket";
+    String DB_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.db.retryingOperation.maxAttempts";
+    String DB_RETRYING_OPERATION_MAX_SLEEP = "studio.db.retryingOperation.maxSleep";
 
 
     /** Configuration */
@@ -102,8 +104,6 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
     String CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.site.permissionMappingsFileName";
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
-    String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
-    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME = "studio.configuration.site.environment.configFileName";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
     String CONFIGURATION_DEFAULT_GROUPS = "studio.configuration.defaultGroups";
     String CONFIGURATION_DEFAULT_ADMIN_GROUP = "studio.configuration.defaultAdminGroup";
@@ -168,6 +168,7 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
     String SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX = "studio.security.passwordRequirements.validationRegex";
+    String SECURITY_SET_PASSWORD_DELAY = "studio.security.setPasswordDelay";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
@@ -274,6 +275,7 @@ public interface StudioConfiguration {
     String PUBLISHING_THREAD_POOL_NAME_PREFIX = "studio.publishing.threadPool.namePrefix";
     String PUBLISHING_THREAD_POOL_CORE_POOL_SIZE = "studio.publishing.threadPool.corePoolSize";
     String PUBLISHING_THREAD_POOL_MAX_POOL_SIZE = "studio.publishing.threadPool.maxPoolSize";
+    String PUBLISHING_SITE_LOCK_TTL = "studio.publishing.siteLock.ttl";
 
     /** Clustering **/
     String CLUSTERING_SYNC_URL_FORMAT = "studio.clustering.sync.urlFormat";
@@ -326,6 +328,10 @@ public interface StudioConfiguration {
     /** Cache Configuration  **/
     String CACHE_TEMPLATES = "studio.cache.templates";
 
+    /* Content validation */
+    String CONTENT_FILENAME_MAX_SIZE = "studio.content.filename.maxSize";
+    String CONTENT_FULLPATH_MAX_SIZE = "studio.content.fullPath.maxSize";
+
     void loadConfig();
 
     String getProperty(String key);
@@ -333,6 +339,8 @@ public interface StudioConfiguration {
     <T> T getProperty(String key, Class<T> clazz);
 
     <T> T getProperty(String key, Class<T> clazz, T defaultVal);
+
+    <T> T[] getArray(String key, Class<T> clazz);
 
     HierarchicalConfiguration<ImmutableNode> getSubConfig(String key);
 

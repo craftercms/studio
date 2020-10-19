@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -38,6 +39,10 @@ import org.springframework.core.io.Resource;
 public interface ContentService {
 
     /**
+     * Check if content exists
+     * 
+     * @param site site identifier
+     * @param path path of the content
      * @return true if site has content object at path
      */
     boolean contentExists(String site, String path);
@@ -45,8 +50,8 @@ public interface ContentService {
     /**
      * get document from wcm content
      *
-     * @param site
-     * @param path
+     * @param site site identifier
+     * @param path path of the content
      * @return document
      */
     InputStream getContent(String site, String path) throws ContentNotFoundException;
@@ -82,9 +87,10 @@ public interface ContentService {
     /**
      * get document from wcm content
      *
-     * @param path
+     * @param site site identifier
+     * @param path content path
      * @return document
-     * @throws DocumentException
+     * @throws DocumentException XML document error
      */
     Document getContentAsDocument(String site, String path) throws DocumentException;
 
@@ -105,6 +111,8 @@ public interface ContentService {
      * @param path    path to content
      * @param content stream of content to write
      * @return return true if successful
+     *
+     * @throws ServiceLayerException general service error
      */
     boolean writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
@@ -115,8 +123,10 @@ public interface ContentService {
      * @param path path to create a folder in
      * @param name a folder name to create
      * @return return the reference to the folder created
+     *
+     * @throws SiteNotFoundException site not found
      */
-    boolean createFolder(String site, String path, String name) throws SiteNotFoundException;
+    boolean createFolder(String site, String path, String name) throws SiteNotFoundException, ServiceLayerException;
 
     /**
      * delete content at the path
@@ -124,10 +134,13 @@ public interface ContentService {
      * @param site - the project ID
      * @param path path to content
      * @return return true if successful
+     *
+     * @throws SiteNotFoundException site not found
      */
     boolean deleteContent(String site, String path, String approver) throws SiteNotFoundException;
 
-    boolean deleteContent(String site, String path, boolean generateActivity, String approver) throws SiteNotFoundException;
+    boolean deleteContent(String site, String path, boolean generateActivity, String approver)
+            throws SiteNotFoundException;
 
     /**
      * copy content fromPath to toPath
@@ -137,7 +150,7 @@ public interface ContentService {
      * @param toPath   the target path to copy content to
      * @return final path if successful, null otherwise
      */
-    String copyContent(String site, String fromPath, String toPath);
+    String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 
     /**
      * move content fromPath to toPath
@@ -154,6 +167,8 @@ public interface ContentService {
      *
      * @param site - the project ID
      * @param path - the path to root at
+     *
+     * @return content item with children tree
      */
     ContentItemTO getContentItemTree(String site, String path, int depth);
 
@@ -162,6 +177,8 @@ public interface ContentService {
      *
      * @param site - the project ID
      * @param path - the path of the content item
+     *
+     * @return content item representation
      */
     ContentItemTO getContentItem(String site, String path);
 
@@ -171,6 +188,8 @@ public interface ContentService {
      * @param site - the project ID
      * @param path - the path of the content item
      * @param depth - depth to get desendents
+     *
+     * @return content item representation
      */
     ContentItemTO getContentItem(String site, String path, int depth);
 
@@ -179,6 +198,8 @@ public interface ContentService {
      *
      * @param site - the project ID
      * @param path - the path of the item
+     *
+     * @return version history
      */
     VersionTO[] getContentItemVersionHistory(String site, String path);
 
@@ -188,8 +209,15 @@ public interface ContentService {
      * @param site    - the project ID
      * @param path    - the path of the item to "revert"
      * @param version - old version ID to base to version on
+     * @param major major version
+     * @param comment comment for revert action
+     *
+     * @return true if success otherwise false
+     *
+     * @throws SiteNotFoundException site not found
      */
-    boolean revertContentItem(String site, String path, String version, boolean major, String comment) throws SiteNotFoundException;
+    boolean revertContentItem(String site, String path, String version, boolean major, String comment)
+            throws SiteNotFoundException;
 
 	/**
      * return the content for a given version
@@ -197,6 +225,10 @@ public interface ContentService {
      * @param site    - the project ID
      * @param path    - the path item
      * @param version - version
+     *
+     * @return content
+     *
+     * @throws ContentNotFoundException content not found
      */
  	InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
 
@@ -206,23 +238,26 @@ public interface ContentService {
      * @param site    - the project ID
      * @param path    - the path item
      * @param version - version
+     * @return version number
+     *
+     * @throws ContentNotFoundException content not found
      */
  	String getContentVersionAsString(String site, String path, String version)	throws ContentNotFoundException;
 
     /**
      * write content
      *
-     * @param site
-     * @param path
-     * @param fileName
-     * @param contentType
-     * @param input
+     * @param site site identifier
+     * @param path path
+     * @param fileName file name
+     * @param contentType content type
+     * @param input content
      * @param createFolders
      * 			create missing folders in path?
-     * @param edit
+     * @param edit edit
      * @param unlock
      * 			unlock the content upon edit?
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock) throws ServiceLayerException;
@@ -240,8 +275,8 @@ public interface ContentService {
     /**
      * get the next available of the given content name at the given path (used for paste/duplicate)
      *
-     * @param site
-     * @param path
+     * @param site site identifier
+     * @param path path of the item
      * @return next available name that avoids a name conflict
      */
     String getNextAvailableName(String site, String path);
@@ -274,6 +309,8 @@ public interface ContentService {
      * @param path path to a folder to rename
      * @param name a new folder name
      * @return return the reference to the folder renamed
+     *
+     * @throws ServiceLayerException general service error
      */
     boolean renameFolder(String site, String path, String name) throws ServiceLayerException;
 
@@ -283,9 +320,14 @@ public interface ContentService {
      * @param remoteName remote name
      * @param remoteBranch remote branch
      * @return true if operation was successful
+     *
+     * @throws ServiceLayerException general service error
+     * @throws InvalidRemoteUrlException invalid remote url
+     * @throws AuthenticationException authentication error
+     * @throws CryptoException git repository helper error
      */
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException;
+            InvalidRemoteUrlException, AuthenticationException, CryptoException;
 
     /**
      * Pull from remote repository
@@ -293,7 +335,12 @@ public interface ContentService {
      * @param remoteName remote name
      * @param remoteBranch remote branch
      * @return true if operation was successful
+     *
+     * @throws ServiceLayerException general service error
+     * @throws InvalidRemoteUrlException invalid remote url
+     * @throws AuthenticationException authentication error
+     * @throws CryptoException git repository helper error
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, AuthenticationException;
+            InvalidRemoteUrlException, AuthenticationException, CryptoException;
 }

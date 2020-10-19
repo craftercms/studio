@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v1.service.configuration;
 
-
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
@@ -190,4 +189,31 @@ public interface ServicesConfig {
 	 */
 	Map<String, FacetTO> getFacets(String site);
 
+	/**
+	 * Get configured authoring url for given site
+	 * @param siteId site identifier
+	 * @return authoring url
+	 */
+	String getAuthoringUrl(String siteId);
+
+	/**
+	 * Get configure staging url for given site
+	 * @param siteId site identifier
+	 * @return staging url
+	 */
+	String getStagingUrl(String siteId);
+
+	/**
+	 * Get configured live url for given site
+	 * @param siteId site identifier
+	 * @return live url
+	 */
+	String getLiveUrl(String siteId);
+
+	/**
+	 * Get configured admin email address for notification emails for given site
+	 * @param siteId site identifier
+	 * @return admin email address
+	 */
+	String getAdminEmailAddress(String siteId);
 }

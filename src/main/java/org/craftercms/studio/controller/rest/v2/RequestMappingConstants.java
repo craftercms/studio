@@ -31,4 +31,43 @@ public interface RequestMappingConstants {
     String AUDIT_DASHBOARD = "/audit";
     String PUBLISHING_DASHBOARD = "/publishing";
     String CONTENT_DASHBOARD = "/content";
+
+    /** Content controller */
+    String CONTENT = "/content";
+    String LIST_QUICK_CREATE_CONTENT = "/list_quick_create_content";
+    String GET_DELETE_PACKAGE = "/get_delete_package";
+    String DELETE = "/delete";
+    String GET_CHILDREN_BY_PATH = "/children_by_path";
+    String GET_CHILDREN_BY_ID = "/children_by_id";
+    String GET_DESCRIPTOR = "/descriptor";
+
+    /** Users controller */
+    String USERS = "/users";
+    String PATH_PARAM_ID = "/{id}";
+    String ENABLE = "/enable";
+    String DISABLE = "/disable";
+    String SITES = "/sites";
+    String PATH_PARAM_SITE = "/{site}";
+    String ROLES = "/roles";
+    String ME = "/me";
+    String LOGOUT_SSO_URL = "/logout/sso/url";
+    String FORGOT_PASSWORD = "/forgot_password";
+    String CHANGE_PASSWORD = "/change_password";
+    String SET_PASSWORD = "/set_password";
+    String RESET_PASSWORD = "/reset_password";
+    String VALIDATE_TOKEN = "/validate_token";
+
+    /** Repository Management controller **/
+    String REPOSITORY = "/repository";
+    String ADD_REMOTE = "/add_remote";
+    String LIST_REMOTES = "/list_remotes";
+    String PULL_FROM_REMOTE = "/pull_from_remote";
+    String PUSH_TO_REMOTE = "/push_to_remote";
+    String REBUILD_DATABASE = "/rebuild_database";
+    String REMOVE_REMOTE = "/remove_remote";
+    String STATUS = "/status";
+    String RESOLVE_CONFLICT = "/resolve_conflict";
+    String DIFF_CONFLICTED_FILE = "/diff_conflicted_file";
+    String COMMIT_RESOLUTION = "/commit_resolution";
+    String CANCEL_FAILED_PULL = "/cancel_failed_pull";
 }

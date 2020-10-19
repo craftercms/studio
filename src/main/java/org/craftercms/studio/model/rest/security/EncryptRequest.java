@@ -27,18 +27,26 @@
  @JsonIgnoreProperties(ignoreUnknown = true)
  public class EncryptRequest {
 
-  /**
-   * The value to encrypt
-   */
-  @NotBlank
-  private String text;
+     /**
+      * The value to encrypt
+      */
+     @NotBlank
+     private String text;
+     private String siteId;
 
-  public String getText() {
-   return text;
-  }
+     public String getText() {
+         return text;
+     }
 
-  public void setText(final String text) {
-   this.text = text;
-  }
+     public void setText(final String text) {
+         this.text = text;
+     }
 
+     public String getSiteId() {
+         return siteId;
+     }
+
+     public void setSiteId(String siteId) {
+         this.siteId = siteId;
+     }
  }

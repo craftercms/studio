@@ -25,7 +25,7 @@
         <constructor-arg>
             <map key-type="java.lang.String" value-type="java.lang.String">
                 <entry key="environment"
-                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
+                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}}"/>
                 <entry key="previewUrl" value="${previewUrl}"/>
 
             </map>

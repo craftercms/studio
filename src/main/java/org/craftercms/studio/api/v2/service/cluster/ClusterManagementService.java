@@ -28,7 +28,7 @@ public interface ClusterManagementService {
      *
      * @return List of cluster members
      */
-    List<ClusterMember> getAllMemebers();
+    List<ClusterMember> getAllMembers();
 
 
     /**
@@ -36,6 +36,8 @@ public interface ClusterManagementService {
      *
      * @param memberIds List of ids of member to remover from cluster
      * @return True if success, otherwise false
+     *
+     * @throws SiteNotFoundException site not found
      */
     boolean removeMembers(List<Long> memberIds) throws SiteNotFoundException;
 }

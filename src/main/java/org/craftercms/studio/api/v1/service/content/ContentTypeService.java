@@ -30,17 +30,19 @@ public interface ContentTypeService {
     /**
      * get a content type by the given site and the content path
      *
-     * @param site
-     * @param path
+     * @param site site identifier
+     * @param path path of the content
      * @return content type
+     *
+     * @throws ServiceLayerException general service error
      */
     ContentTypeConfigTO getContentTypeForContent(String site, String path) throws ServiceLayerException;
 
     /**
      * check if the user is allowed to access the content type with the given user roles
      *
-     * @param userRoles
-     * @param item
+     * @param userRoles user roles
+     * @param item content type
      * @return true if user has permissions to access the content type
      */
     boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item);
@@ -48,8 +50,8 @@ public interface ContentTypeService {
     /**
      * get a content type by the given site and type name
      *
-     * @param site
-     * @param type
+     * @param site site identifier
+     * @param type content type name
      * @return content type
      */
     ContentTypeConfigTO getContentType(String site, String type);

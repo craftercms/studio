@@ -24,7 +24,7 @@
 
     <server>
         <id/> (id of the server, can have any value)
-        <url/> (url of the server)
+        <url/> (url of the server, if missing or empty the request will be executed locally)
         <patterns>
             <pattern/> (regex to match requests)
         </patterns>
@@ -48,7 +48,16 @@
             <id>engine</id>
             <url>http://my-crafter-egine-server</url>
             <patterns>
-                <pattern>/api/1/.*</pattern>
+                <pattern>/api/.*</pattern>
+            </patterns>
+        </server>
+
+        <!-- Proxy all Crafter Engine static-assets requests to this server -->
+        <server>
+            <id>static-assets</id>
+            <url>http://my-crafter-engine-server</url>
+            <patterns>
+                <pattern>/static-assets/.*</pattern>
             </patterns>
         </server>
 

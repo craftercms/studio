@@ -21,9 +21,9 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.MetaDAO;
@@ -45,9 +45,8 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_SYNC_URL_FORMAT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 
 public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
@@ -56,6 +55,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     private ClusterDAO clusterDao;
     private MetaDAO metaDao;
     private StudioConfiguration studioConfiguration;
+    private TextEncryptor encryptor;
 
     public void init() {
         logger.debug("Autoregister cluster if cluster node is configured");
@@ -65,55 +65,53 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
             try {
                 logger.debug("Collect and populate data for cluster node registration");
                 clusterMember.setLocalAddress(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
-                if (!isRegistered(clusterMember.getLocalAddress())) {
-                    Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                                          studioConfiguration.getProperty(SITES_REPOS_PATH));
-                    String authenticationType = registrationData.getString(CLUSTER_MEMBER_AUTHENTICATION_TYPE);
-                    String username = registrationData.getString(CLUSTER_MEMBER_USERNAME);
-                    String password = registrationData.getString(CLUSTER_MEMBER_PASSWORD);
-                    String token = registrationData.getString(CLUSTER_MEMBER_TOKEN);
-                    String privateKey = registrationData.getString(CLUSTER_MEMBER_PRIVATE_KEY);
-                    String gitUrl = studioConfiguration.getProperty(CLUSTERING_SYNC_URL_FORMAT);
-                    if (StringUtils.isEmpty(username)) {
-                        gitUrl = gitUrl.replace("{username}@", "");
-                    } else {
-                        gitUrl = gitUrl.replace("{username}", username);
-                    }
-                    gitUrl = gitUrl.replace("{localAddress}", clusterMember.getLocalAddress())
-                                   .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
-                             + "/{siteId}";
-                    clusterMember.setGitUrl(gitUrl);
-                    clusterMember.setState(ClusterMember.State.ACTIVE);
-                    clusterMember.setGitRemoteName(getGitRemoteName(clusterMember));
-                    clusterMember.setGitAuthType(authenticationType.toLowerCase());
-                    clusterMember.setGitUsername(username);
-                    TextEncryptor encryptor = null;
-                    encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                                                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-                    if (StringUtils.isEmpty(password)) {
-                        clusterMember.setGitPassword(password);
-                    } else {
-                        String hashedPassword = encryptor.encrypt(password);
-                        clusterMember.setGitPassword(hashedPassword);
-                    }
-
-                    if (StringUtils.isEmpty(token)) {
-                        clusterMember.setGitToken(token);
-                    } else {
-                        String hashedToken = encryptor.encrypt(token);
-                        clusterMember.setGitToken(hashedToken);
-                    }
-
-                    if (StringUtils.isEmpty(privateKey)) {
-                        clusterMember.setGitPrivateKey(privateKey);
-                    } else {
-                        String hashedPrivateKey = encryptor.encrypt(privateKey);
-                        clusterMember.setGitPrivateKey(hashedPrivateKey);
-                    }
-
-                    logger.debug("Register cluster member");
-                    registerClusterNode(clusterMember);
+                if (isRegistered(clusterMember.getLocalAddress())) {
+                    removeClusterNode(clusterMember.getLocalAddress());
                 }
+                Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                                      studioConfiguration.getProperty(SITES_REPOS_PATH));
+                String authenticationType = registrationData.getString(CLUSTER_MEMBER_AUTHENTICATION_TYPE);
+                String username = registrationData.getString(CLUSTER_MEMBER_USERNAME);
+                String password = registrationData.getString(CLUSTER_MEMBER_PASSWORD);
+                String token = registrationData.getString(CLUSTER_MEMBER_TOKEN);
+                String privateKey = registrationData.getString(CLUSTER_MEMBER_PRIVATE_KEY);
+                String gitUrl = studioConfiguration.getProperty(CLUSTERING_SYNC_URL_FORMAT);
+                if (StringUtils.isEmpty(username)) {
+                    gitUrl = gitUrl.replace("{username}@", "");
+                } else {
+                    gitUrl = gitUrl.replace("{username}", username);
+                }
+                gitUrl = gitUrl.replace("{localAddress}", clusterMember.getLocalAddress())
+                               .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
+                         + "/{siteId}";
+                clusterMember.setGitUrl(gitUrl);
+                clusterMember.setState(ClusterMember.State.ACTIVE);
+                clusterMember.setGitRemoteName(getGitRemoteName(clusterMember));
+                clusterMember.setGitAuthType(authenticationType.toLowerCase());
+                clusterMember.setGitUsername(username);
+                if (StringUtils.isEmpty(password)) {
+                    clusterMember.setGitPassword(password);
+                } else {
+                    String hashedPassword = encryptor.encrypt(password);
+                    clusterMember.setGitPassword(hashedPassword);
+                }
+
+                if (StringUtils.isEmpty(token)) {
+                    clusterMember.setGitToken(token);
+                } else {
+                    String hashedToken = encryptor.encrypt(token);
+                    clusterMember.setGitToken(hashedToken);
+                }
+
+                if (StringUtils.isEmpty(privateKey)) {
+                    clusterMember.setGitPrivateKey(privateKey);
+                } else {
+                    String hashedPrivateKey = encryptor.encrypt(privateKey);
+                    clusterMember.setGitPrivateKey(hashedPrivateKey);
+                }
+
+                logger.debug("Register cluster member");
+                registerClusterNode(clusterMember);
             } catch (CryptoException e) {
                 logger.error("Failed to register cluster member");
             }
@@ -149,6 +147,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         return result > 0;
     }
 
+    @RetryingOperation
     @Override
     public boolean removeClusterNode(String localAddress) {
         logger.error("Remove cluster node " + localAddress);
@@ -160,7 +159,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     private String getGitRemoteName(ClusterMember clusterMember) {
         // When the port is specified, replaces the colon since it's an invalid remote name character
-        return clusterMember.getLocalAddress().replace(":", "_");
+        return CLUSTER_NODE_REMOTE_NAME_PREFIX + clusterMember.getLocalAddress().replace(":", "_");
     }
 
     public ClusterDAO getClusterDao() {
@@ -186,4 +185,9 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }

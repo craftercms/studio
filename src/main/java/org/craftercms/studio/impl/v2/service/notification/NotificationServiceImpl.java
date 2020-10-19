@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -44,6 +45,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -237,9 +240,8 @@ public class NotificationServiceImpl implements NotificationService {
             if (emailTemplate != null) {
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("siteName", site);
-                templateModel.put("liveUrl", siteService.getLiveServerUrl(site));
-                templateModel.put("previewUrl", siteService.getPreviewServerUrl(site));
-                templateModel.put("authoringUrl", siteService.getAuthoringServerUrl(site));
+                templateModel.put("liveUrl", servicesConfig.getLiveUrl(site));
+                templateModel.put("authoringUrl", servicesConfig.getAuthoringUrl(site));
                 for (Pair<String, Object> param : params) {
                     templateModel.put(param.getKey(), param.getValue());
                 }
@@ -277,15 +279,25 @@ public class NotificationServiceImpl implements NotificationService {
                                        @ValidateStringParam(name = "userThatRejects") final String userThatRejects,
                                        final Locale locale) {
         try {
-            final Map<String, Object> submitterUser = securityService.getUserProfile(submittedBy);
-            Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put("files", convertPathsToContent(site, rejectedItems));
-            templateModel.put("submitter", submitterUser);
-            templateModel.put("rejectionReason", rejectionReason);
-            templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
-                locale, templateModel);
-        } catch (Throwable ex) {
+            Map<String, Object> submitterUser;
+            try {
+                submitterUser = securityService.getUserProfile(submittedBy);
+            } catch (ServiceLayerException | UserNotFoundException e) {
+                logger.debug("User not found by username " + submittedBy);
+                submitterUser = securityService.getUserProfileByGitName(submittedBy);
+            }
+            if (Objects.nonNull(submitterUser) && !submitterUser.isEmpty()) {
+                Map<String, Object> templateModel = new HashMap<>();
+                templateModel.put("files", convertPathsToContent(site, rejectedItems));
+                templateModel.put("submitter", submitterUser);
+                templateModel.put("rejectionReason", rejectionReason);
+                templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
+                notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
+                        locale, templateModel);
+            } else {
+                logger.info("Unable to notify content rejection. User " + submittedBy + " not found.");
+            }
+        } catch (Exception ex) {
             logger.error("Unable to notify content rejection", ex);
         }
     }
@@ -302,35 +314,39 @@ public class NotificationServiceImpl implements NotificationService {
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             if (document != null) {
                 Element root = document.getRootElement();
-                final List<Element> languages = root.selectNodes("//lang");
-                if (languages.isEmpty()) {
+                final List<Node> nodes = root.selectNodes("//lang");
+                if (nodes.isEmpty()) {
                     throw new ConfigurationException("Notification Configuration is a invalid xml file, missing " +
-                        "at " + "least one lang");
-
+                        "at least one lang");
                 }
-                for (Element language : languages) {
-                    String messagesLang = language.attributeValue("name");
-                    if (StringUtils.isNotBlank(messagesLang)) {
-                        if (!siteNotificationConfig.containsKey(messagesLang)) {
-                            siteNotificationConfig.put(messagesLang, new NotificationConfigTO(site));
+                for (Node node : nodes) {
+                    if (node.getNodeType() == Node.ELEMENT_NODE) {
+                        Element language = (Element) node;
+                        String messagesLang = language.attributeValue("name");
+                        if (StringUtils.isNotBlank(messagesLang)) {
+                            if (!siteNotificationConfig.containsKey(messagesLang)) {
+                                siteNotificationConfig.put(messagesLang, new NotificationConfigTO(site));
+                            }
+                            NotificationConfigTO configForLang = siteNotificationConfig.get(messagesLang);
+                            loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
+                                .getMessages());
+                            loadGenericMessage((Element)language.selectSingleNode("//completeMessages"), configForLang
+                                .getCompleteMessages());
+                            loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
+                                .getEmailMessageTemplates());
+                            loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
+                                .getCannedMessages());
+                            loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification"),
+                                configForLang.getDeploymentFailureNotifications());
+                            loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
+                                .getApproverEmails());
+                            loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
+                                    configForLang.getRepositoryMergeConflictNotifications());
+                        } else {
+                            logger.error("A lang section does not have the 'name' attribute, ignoring");
                         }
-                        NotificationConfigTO configForLang = siteNotificationConfig.get(messagesLang);
-                        loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
-                            .getMessages());
-                        loadGenericMessage((Element)language.selectSingleNode("//completeMessages"), configForLang
-                            .getCompleteMessages());
-                        loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
-                            .getEmailMessageTemplates());
-                        loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
-                            .getCannedMessages());
-                        loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification"),
-                            configForLang.getDeploymentFailureNotifications());
-                        loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
-                            .getApproverEmails());
-                        loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
-                                configForLang.getRepositoryMergeConflictNotifications());
                     } else {
-                        logger.error("A lang section does not have the 'name' attribute, ignoring");
+                        logger.info("Unable to execute against a non-XML-element: " + node.getUniquePath());
                     }
                 }
             }
@@ -353,7 +369,7 @@ public class NotificationServiceImpl implements NotificationService {
                     }
                 }
             } else {
-                deploymentFailureNotifications.add(siteService.getAdminEmailAddress(site));
+                deploymentFailureNotifications.add(servicesConfig.getAdminEmailAddress(site));
             }
         } else {
             logger.error("Unable to read completed Messages (they don't exist)");

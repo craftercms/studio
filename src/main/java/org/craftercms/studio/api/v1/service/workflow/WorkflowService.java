@@ -53,11 +53,13 @@ public interface WorkflowService {
 	/**
 	 * cancel the workflow pending on the given item.
 	 *
-	 * @param site
-	 * @param path
+	 * @param site site identifier
+	 * @param path path of the content
+	 *
 	 * @param cancelWorkflow
 	 * 			cancel the pending workflow instance this content belongs to?
-	 * @throws ServiceLayerException
+	 * @return true if success, otherwise false
+	 * @throws ServiceLayerException general service error
 	 */
 	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException;
 
@@ -66,18 +68,18 @@ public interface WorkflowService {
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
 	 *
-	 * @param site
-	 * @param path
+	 * @param site site identifier
+	 * @param path path of the item
 	 */
 	void updateWorkflowSandboxes(String site, String path);
 
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
+	 * @param user  user
      * @return call result
-     * @throws ServiceLayerException
      */
     ResultTO goDelete(String site, String request, String user);
 
@@ -96,10 +98,10 @@ public interface WorkflowService {
     /**
      * approve workflows and schedule them as specified in the request
      *
-     * @param site
-     * @param request
+     * @param site site identifier
+     * @param request request body
      * @return call result
-     * @throws ServiceLayerException
+     * @throws ServiceLayerException general service error
      */
     ResultTO goLive(final String site, final String request) throws ServiceLayerException;
 

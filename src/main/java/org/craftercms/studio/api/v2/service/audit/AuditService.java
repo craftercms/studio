@@ -116,7 +116,8 @@ public interface AuditService {
      * @param excludeLive exclude live items
      * @param filterType filter type
      * @return list of content items
-     * @throws ServiceLayerException
+     *
+     * @throws ServiceLayerException general service error
      */
     List<ContentItemTO> getUserActivities(String site, String user, int limit, String sort, boolean ascending,
                                       boolean excludeLive, String filterType) throws ServiceLayerException;

@@ -174,6 +174,12 @@
                         <class>fa-font</class>
                     </icon>
                 </control>
+                <control>
+                    <name>locale-selector</name>
+                    <icon>
+                        <class>fa-globe</class>
+                    </icon>
+                </control>
             </controls>
             <datasources>
                 <datasource>

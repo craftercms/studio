@@ -63,6 +63,10 @@ public interface ObjectStateService {
 
     /**
      * get the object for a given set of states
+     *
+     * @param site site identifier
+     * @param states list of states
+     * @return list of items
      */
     List<ItemState> getObjectStateByStates(String site, List<String> states);
 

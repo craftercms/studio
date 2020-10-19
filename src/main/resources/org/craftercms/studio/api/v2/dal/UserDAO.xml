@@ -164,4 +164,11 @@
             AND g.group_name = #{groupName}
     </select>
 
+    <select id="getUserByGitName" resultMap="UserMap">
+        SELECT *
+        FROM `user`
+        WHERE CONCAT(first_name, ' ', last_name) = #{gitName}
+        AND deleted = 0
+        LIMIT 1
+    </select>
 </mapper>

@@ -25,7 +25,7 @@ public class DocumentFilter extends AbstractFilter {
      * filtering for documents. compared with contentType and
      * contentType for pages is /cstudio-com/document
      *
-     * @param item
+     * @param item item
      * @return true/false
      */
 

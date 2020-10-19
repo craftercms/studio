@@ -19,23 +19,25 @@ package org.craftercms.studio.impl.v2.upgrade.operations.site;
 import java.nio.file.Path;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+
+import javax.sql.DataSource;
 
 /**
- * Implementation of {@link UpgradeOperation} that replaces text in the content repository.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that replaces text in the content repository.
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>pattern</strong>: (required) the pattern to search in the files, can be a regular expression</li>
  *     <li><strong>replacement</strong>: (required) the expression to replace in the files, can use matched groups
  *     from the regular expression in the pattern</li>
  * </ul>
- * </p>
  *
  * @author joseross
  */
@@ -56,24 +58,28 @@ public class FindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperat
      */
     protected String replacement;
 
+    public FindAndReplaceUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+        super(studioConfiguration);
+    }
+
     @Override
-    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    protected void doInit(final HierarchicalConfiguration config) {
         super.doInit(config);
         pattern = config.getString(CONFIG_KEY_PATTERN);
         replacement = config.getString(CONFIG_KEY_REPLACEMENT);
     }
 
     @Override
-    protected boolean shouldBeUpdated(final String site, final Path file) {
+    protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) {
         return true;
     }
 
     @Override
-    protected void updateFile(final String site, final Path path) throws UpgradeException {
+    protected void updateFile(StudioUpgradeContext context, Path path) throws UpgradeException {
         String content = readFile(path);
         String updated = null;
         if(StringUtils.isNotEmpty(content)) {
-            updated = StringUtils.replaceAll(content, pattern, replacement);
+            updated = RegExUtils.replaceAll(content, pattern, replacement);
         }
 
         if(StringUtils.isNotEmpty(updated) && !StringUtils.equals(content, updated)) {

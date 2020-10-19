@@ -21,9 +21,14 @@ import org.craftercms.studio.model.search.SearchParams
 
 class ContentMonitoring {
 
+	static SERVICES_CONFIG_BEAN = "cstudioServicesConfig"
+	static SITE_SERVICE_BEAN = "cstudioSiteServiceSimple"
+	static NOTIFICATION_SERVICE_BEAN = "cstudioNotificationService"
+	static SEARCH_SERVICE_BEAN = "searchServiceInternal"
+
 	static doMonitoringForAllSites(context, logger) {
 		def results = []
-		def siteService = context.get("cstudioSiteServiceSimple")
+		def siteService = context.get(SITE_SERVICE_BEAN)
 		def sites = siteService.getAllAvailableSites()
 
 		sites.each { site ->
@@ -33,7 +38,7 @@ class ContentMonitoring {
 			results.add(result)
 		}
 
-		return results;
+		return results
 	}
 
 	/**
@@ -47,9 +52,10 @@ class ContentMonitoring {
 
 		def results = [:]
 
-		def searchService = context.get("searchServiceInternal")
-		def notificationService = context.get("cstudioNotificationService")
-		def siteService = context.get("cstudioSiteServiceSimple")
+		def searchService = context.get(SEARCH_SERVICE_BEAN)
+		def notificationService = context.get(NOTIFICATION_SERVICE_BEAN)
+		def siteService = context.get(SITE_SERVICE_BEAN)
+		def servicesConfig = context.get(SERVICES_CONFIG_BEAN)
 
 		def config = siteService.getConfiguration(site, "site-config.xml", false);
 
@@ -59,8 +65,9 @@ class ContentMonitoring {
 				config.contentMonitoring.monitor = [ config.contentMonitoring.monitor ]
 			}
 
+			results.monitors = []
 			config.contentMonitoring.monitor.each { monitor ->
-				def authoringBaseUrl = siteService.getAuthoringServerUrl(site)
+				def authoringBaseUrl = servicesConfig.getAuthoringUrl(site)
 
 				logger.info("executing monitor: ${monitor.name}")
 
@@ -70,7 +77,6 @@ class ContentMonitoring {
 						monitor.paths.path = [ monitor.paths.path ]
 					}
 
-					results.monitors = []
 					def queryStatement = monitor.query
 
                     def searchParams = new SearchParams()

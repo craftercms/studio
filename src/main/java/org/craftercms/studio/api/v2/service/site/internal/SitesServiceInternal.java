@@ -17,6 +17,8 @@
 package org.craftercms.studio.api.v2.service.site.internal;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 
 import java.util.List;
@@ -26,6 +28,8 @@ public interface SitesServiceInternal {
 
     /**
      * Get list of available blueprints
+     *
+     * @return lost of blueprints
      */
     List<PluginDescriptor> getAvailableBlueprints();
 
@@ -59,5 +63,17 @@ public interface SitesServiceInternal {
      */
     void validateBlueprintParameters(PluginDescriptor descriptor, Map<String, String> params)
         throws MissingPluginParameterException;
+
+    /**
+     * Updates the name and description for the given site
+     *
+     * @param siteId the id of the site
+     * @param name the name of the site
+     * @param description the description of the site
+     *
+     * @throws SiteNotFoundException if the site doesn't exist
+     */
+    void updateSite(String siteId, String name, String description)
+            throws SiteNotFoundException, SiteAlreadyExistsException;
 
 }

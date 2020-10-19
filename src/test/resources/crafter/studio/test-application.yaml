@@ -1,0 +1,3 @@
+crafter.engine.extension.base: classpath*:crafter/studio/extension
+MARIADB_ROOT_PASSWD: root
+CRAFTER_DATA_DIR: target/tests/data

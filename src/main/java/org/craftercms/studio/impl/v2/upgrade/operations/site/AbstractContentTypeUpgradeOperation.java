@@ -16,11 +16,17 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+import org.w3c.dom.Document;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -32,24 +38,16 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
-import org.springframework.beans.factory.annotation.Required;
-import org.w3c.dom.Document;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
- * Base implementation of {@link UpgradeOperation} for all content-type related upgrades
+ * Base implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} for all content-type related upgrades
  *
- * <p>Supported YAML properties:
+ * <p>Supported YAML properties:</p>
  * <ul>
  *     <li><strong>includedContentTypes</strong>: (optional) list of content-types that can be handled by this
  *     operation, if left unset all content-types will be included</li>
@@ -59,7 +57,6 @@ import com.google.common.cache.CacheBuilder;
  *     performance tuning in case an upgrade needs to parse too many files in the repository. Defaults to 200
  *     </li>
  * </ul>
- * </p>
  *
  * @author joseross
  */
@@ -103,18 +100,15 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
     protected XPathFactory xPathFactory = XPathFactory.newInstance();
     protected TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
-    @Required
-    public void setContentTypeXpath(final String contentTypeXpath) {
+    public AbstractContentTypeUpgradeOperation(StudioConfiguration studioConfiguration, String contentTypeXpath,
+                                               String formDefinitionTemplate) {
+        super(studioConfiguration);
         this.contentTypeXpath = contentTypeXpath;
-    }
-
-    @Required
-    public void setFormDefinitionTemplate(final String formDefinitionTemplate) {
         this.formDefinitionTemplate = formDefinitionTemplate;
     }
 
     @Override
-    protected void doInit(final HierarchicalConfiguration<ImmutableNode> config) {
+    protected void doInit(final HierarchicalConfiguration config) {
         super.doInit(config);
         includedContentTypes = config.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
         formDefinitionXpath = config.getString(CONFIG_KEY_FORM_DEFINITION);
@@ -126,8 +120,8 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
     }
 
     @Override
-    protected boolean shouldBeUpdated(final String site, final Path file) throws UpgradeException {
-        logger.debug("Checking file {0} for site {1}", file, site);
+    protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException {
+        logger.debug("Checking file {0} for site {1}", file, context);
         try {
             Document document = loadDocument(file);
 
@@ -139,7 +133,7 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
             }
 
             if(StringUtils.isNotEmpty(formDefinitionXpath)) {
-                Path formDefinition = getFormDefinition(site, contentTypeName);
+                Path formDefinition = getFormDefinition(context, contentTypeName);
 
                 document = loadDocument(formDefinition);
                 return (Boolean) select(document, formDefinitionXpath, XPathConstants.BOOLEAN);
@@ -170,13 +164,13 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
 
     /**
      * Finds the form-definition.xml five for the given content-type
-     * @param site the site id
+     * @param context the current upgrade context
      * @param contentTypeName the content-type name
      * @return the form definition file
      */
-    protected Path getFormDefinition(String site, String contentTypeName) {
-        return getRepositoryPath(site).getParent()
-            .resolve(formDefinitionTemplate.replaceFirst(NAME_PLACEHOLDER, contentTypeName));
+    protected Path getFormDefinition(StudioUpgradeContext context, String contentTypeName) {
+        return context.getRepositoryPath()
+                .resolve(formDefinitionTemplate.replaceFirst(NAME_PLACEHOLDER, contentTypeName));
     }
 
     /**

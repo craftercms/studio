@@ -69,6 +69,10 @@ public interface UserService {
      *
      * @param username user that forgot password
      * @return true if success
+     *
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     * @throws UserExternallyManagedException user is externally managed
      */
     boolean forgotPassword(String username)
             throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException;
@@ -80,6 +84,12 @@ public interface UserService {
      * @param current current password
      * @param newPassword new password
      * @return user whose password is successfully changed
+     *
+     * @throws PasswordDoesNotMatchException password does not match with stored
+     * @throws UserExternallyManagedException user is externally managed
+     * @throws ServiceLayerException general service error
+     * @throws AuthenticationException authentication error
+     * @throws UserNotFoundException user not found
      */
     User changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException,
@@ -91,6 +101,10 @@ public interface UserService {
      * @param token forgot password token
      * @param newPassword new password
      * @return uses whose password is successfully set
+     *
+     * @throws UserNotFoundException user not found
+     * @throws UserExternallyManagedException user is externally managed
+     * @throws ServiceLayerException general service error
      */
     User setPassword(String token, String newPassword)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException;
@@ -101,7 +115,24 @@ public interface UserService {
      * @param username username
      * @param newPassword new password
      * @return true if user's password is successfully reset
+     *
+     * @throws UserNotFoundException user not found
+     * @throws UserExternallyManagedException user is externally managed
+     * @throws ServiceLayerException general service error
      */
     boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException;
+
+    /**
+     * Validate forgot password token
+     *
+     * @param token forgot password token to validate
+     * @return true if token is valid otherwise false
+     *
+     * @throws UserNotFoundException user not found
+     * @throws UserExternallyManagedException user is externally managed
+     * @throws ServiceLayerException general service error
+     */
+    boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException,
+            ServiceLayerException;
 }

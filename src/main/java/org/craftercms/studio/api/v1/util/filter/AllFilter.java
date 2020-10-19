@@ -21,7 +21,7 @@ public class AllFilter extends AbstractFilter {
 
     /**
      * filtering for all items. always returns true.
-     * @param item
+     * @param item item
      * @return true/false
      */
 

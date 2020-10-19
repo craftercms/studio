@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import org.apache.commons.collections.FastArrayList;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -45,7 +45,8 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.event.EventService;
@@ -56,12 +57,12 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
@@ -73,7 +74,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -94,6 +94,9 @@ import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.S
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
@@ -123,6 +126,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected PublishRequestMapper publishRequestMapper;
     protected AuditServiceInternal auditServiceInternal;
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    protected ItemServiceInternal itemServiceInternal;
 
     @Override
     @ValidateParams
@@ -135,6 +139,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, SUBMIT_WITHOUT_WORKFLOW_SCHEDULED,
                     NEW_SUBMITTED_NO_WF_SCHEDULED);
+            itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();
@@ -162,14 +167,14 @@ public class DeploymentServiceImpl implements DeploymentService {
         groupedPaths.put(PublishRequest.Action.MOVE, movedPaths);
         groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
 
-        environment = resolveEnvironment(site, environment);
-
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
                 submissionComment);
         for (PublishRequest item : items) {
             publishRequestMapper.insertItemForDeployment(item);
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
+
         // We need to pick up this on Inserting , not on execution!
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
@@ -183,18 +188,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
-    }
-
-    private String resolveEnvironment(String site, String environment) {
-        String toRet = environment;
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-        for (PublishingTargetTO target : publishingTargets) {
-            if (target.getDisplayLabel().equals(environment)) {
-                toRet = target.getRepoBranchName();
-                break;
-            }
-        }
-        return toRet;
     }
 
     protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow) {
@@ -260,9 +253,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                             item.setOldPath(oldPath);
                         }
                         String commitId = metadata.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId)) {
+                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
+                            if (StringUtils.isNotEmpty(commitId)) {
+                                logger.warn("Commit ID is NULL for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            } else {
+                                logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            }
+                            logger.info("Publishing content from HEAD for " + path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
 
@@ -290,20 +291,23 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     @ValidateParams
     public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
-                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate)
+                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate,
+                       String submissionComment)
             throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
-
+            itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
-        Set<String> environments = getAllPublishingEnvironments(site);
+        Set<String> environments = getAllPublishedEnvironments(site);
         for (String environment : environments) {
-            List<PublishRequest> items = createDeleteItems(site, environment, paths, approver, scheduledDate);
+            List<PublishRequest> items =
+                    createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
             for (PublishRequest item : items) {
                 publishRequestMapper.insertItemForDeployment(item);
             }
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        itemServiceInternal.setSystemProcessingBulk(site, paths, false);
         String statusMessage = studioConfiguration
                 .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
         try {
@@ -313,21 +317,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-    protected Set<String> getAllPublishingEnvironments(String site) {
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-        Set<String> environments = new HashSet<String>();
-        if (publishingTargets != null && publishingTargets.size() > 0) {
-            for (PublishingTargetTO target : publishingTargets) {
-                if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                    environments.add(target.getRepoBranchName());
-                }
-            }
-        }
-        return environments;
-    }
-
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
-                                                   String approver, ZonedDateTime scheduledDate)
+                                                   String approver, ZonedDateTime scheduledDate,
+                                                   String submissionComment)
             throws SiteNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         String packageId = UUID.randomUUID().toString();
@@ -350,9 +342,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                             item.setOldPath(oldPath);
                         }
                         String commitId = metadata.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId)) {
+                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
+                            if (StringUtils.isNotEmpty(commitId)) {
+                                logger.warn("Commit ID is NULL for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            } else {
+                                logger.warn("Commit ID " + commitId + " does not exist for content " + path +
+                                        ". Was the git repo reset at some point?" );
+                            }
+                            logger.info("Publishing content from HEAD for " + path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
                     }
@@ -360,6 +360,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                     item.setContentTypeClass(contentTypeClass);
                     item.setUser(approver);
                     item.setPackageId(packageId);
+                    item.setSubmissionComment(submissionComment);
                     newItems.add(item);
 
                     if (contentService.contentExists(site, path)) {
@@ -379,7 +380,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                     for (RepositoryItem child : children) {
                         childPaths.add(child.path + FILE_SEPARATOR + child.name);
                     }
-                    newItems.addAll(createDeleteItems(site, environment, childPaths, approver, scheduledDate));
+                    newItems.addAll(createDeleteItems(site, environment, childPaths, approver, scheduledDate,
+                            submissionComment));
                     deleteFolder(site, path, approver);
                 }
             }
@@ -411,6 +413,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
@@ -447,6 +450,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return publishRequestMapper.getScheduledItems(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
@@ -460,6 +464,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         publishRequestMapper.cancelWorkflow(params);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
@@ -478,7 +483,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                                  @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
                                  @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
                                  @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                 @ValidateStringParam(name = "filterType") String filterType) throws SiteNotFoundException {
+                                 @ValidateStringParam(name = "filterType") String filterType)
+            throws SiteNotFoundException {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
@@ -529,23 +535,10 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private List<String> getEnvironmentNames(String siteId) {
         List<String> toRet = new ArrayList<String>();
+        toRet.add(servicesConfig.getLiveEnvironment(siteId));
         if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            List<PublishingChannelTO> channelsTO = getPublishedEnvironments(siteId);
-            if (CollectionUtils.isNotEmpty(channelsTO)) {
-                channelsTO.forEach(channel -> {
-                    toRet.add(channel.getName());
-                });
-            }
-        } else {
-            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(siteId);
-            if (CollectionUtils.isNotEmpty(publishingTargets)) {
-                publishingTargets.forEach(target -> {
-                    toRet.add(target.getRepoBranchName());
-                });
-            }
+            toRet.add(servicesConfig.getStagingEnvironment(siteId));
         }
-
-
         return toRet;
     }
 
@@ -729,21 +722,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
-        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(site) ?
-                getAvailablePublishingChannelGroupsForSite(site) : getPublishedEnvironments(site);
-        List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
-        List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
-        for (PublishingChannelTO channelTO : channelsTO) {
-            if (channelTO.isPublish()) {
-                publishChannels.add(channelTO);
-            }
-            if (channelTO.isUpdateStatus()) {
-                updateStatusChannels.add(channelTO);
-            }
-        }
+        List<PublishingChannelTO> channelsTO = getPublishedEnvironments(site);
         Map<String, List<PublishingChannelTO>> result = new HashMap<>();
-        result.put("availablePublishChannels", publishChannels);
-        result.put("availableUpdateStatusChannels", updateStatusChannels);
+        result.put("availablePublishChannels", channelsTO);
         return result;
     }
 
@@ -762,37 +743,11 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected Set<String> getAllPublishedEnvironments(String site) {
         Set<String> publishedEnvironments = new LinkedHashSet<String>();
-        publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
         publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
+        }
         return publishedEnvironments;
-    }
-
-    protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site) {
-        List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
-        List<String> channels = getPublishingChannels(site);
-        for (String ch : channels) {
-            PublishingChannelTO chTO = new PublishingChannelTO();
-            chTO.setName(ch);
-            chTO.setPublish(true);
-            chTO.setUpdateStatus(false);
-            channelTOs.add(chTO);
-        }
-        return channelTOs;
-    }
-
-    protected List<String> getPublishingChannels(String site) {
-        List<String> channels = new ArrayList<String>();
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-        Collections.sort(publishingTargets, new Comparator<PublishingTargetTO>() {
-            @Override
-            public int compare(PublishingTargetTO o1, PublishingTargetTO o2) {
-                return o1.getOrder() - o2.getOrder();
-            }
-        });
-        for (PublishingTargetTO target : publishingTargets) {
-            channels.add(target.getDisplayLabel());
-        }
-        return channels;
     }
 
     @Override
@@ -877,9 +832,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-        environment = resolveEnvironment(site, environment);
-        Set<String> environments = servicesConfig.isStagingEnvironmentEnabled(site) ?
-                getAllPublishedEnvironments(site) : getAllPublishingEnvironments(site);
+        Set<String> environments = getAllPublishedEnvironments(site);
         if (!environments.contains(environment)) {
             throw new EnvironmentNotFoundException();
         }
@@ -899,7 +852,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     private boolean checkCommitIds(String site, List<String> commitIds) {
         boolean toRet = true;
         for (String commitId : commitIds) {
-            toRet = toRet && contentRepository.commitIdExists(site, commitId);
+            if (StringUtils.isNotEmpty(commitId)) {
+                toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
+            }
         }
         return toRet;
     }
@@ -975,7 +930,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-        Set<String> environements = getAllPublishingEnvironments(site);
+        Set<String> environements = getAllPublishedEnvironments(site);
         if (!environements.contains(environment)) {
             throw new EnvironmentNotFoundException();
         }
@@ -1001,7 +956,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void resetStagingEnvironment(String siteId) throws ServiceLayerException {
+    public void resetStagingEnvironment(String siteId) throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
@@ -1131,5 +1086,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

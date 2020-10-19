@@ -40,20 +40,23 @@ public class DmContentItemComparator extends ContentComparatorBase<ContentItemTO
     /**
 	 * constructor that sets the sort key and the sort type
 	 * 
-	 * @param sort
-	 * @param ascending
+	 * @param sort sort strategy
+	 * @param ascending if true order is ascending, otherwise descending
 	 * @param listFloatingPagesLast
 	 * 			if this is set to true, floating items will come last in the child list
 	 * @param listLevelDescriptorsFirst
 	 * 			if this is set to true, level descriptors will come first in the child list
 	 */
-	public DmContentItemComparator(final String sort, final boolean ascending, final boolean listFloatingPagesLast, final boolean listLevelDescriptorsFirst) {
+	public DmContentItemComparator(final String sort, final boolean ascending, final boolean listFloatingPagesLast,
+								   final boolean listLevelDescriptorsFirst) {
 		super(sort, ascending);
 		_listFloatingPagesLast = listFloatingPagesLast;
 		_listLevelDescriptorsFirst = listLevelDescriptorsFirst;
 	}
 	
-	public DmContentItemComparator(final String sort, final boolean ascending, final boolean listFloatingPagesLast, final boolean listLevelDescriptorsFirst,final String secondLevelSortBy,final boolean secLevelCompareReq,final boolean secLevAscending) {
+	public DmContentItemComparator(final String sort, final boolean ascending, final boolean listFloatingPagesLast,
+								   final boolean listLevelDescriptorsFirst,final String secondLevelSortBy,
+								   final boolean secLevelCompareReq,final boolean secLevAscending) {
         this(sort,ascending,listFloatingPagesLast,listLevelDescriptorsFirst);
         this._secondLevelSortBy = secondLevelSortBy;
         this._isSecondLevelCompareRequired = secLevelCompareReq;

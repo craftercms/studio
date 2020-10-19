@@ -25,6 +25,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -33,6 +34,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -71,10 +73,12 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private Deployer deployer;
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
-    private ClusterDAO clusterDAO;
+    private ClusterDAO clusterDao;
     private ServicesConfig servicesConfig;
     private GitRepositories repositoryType;
     private DeploymentService deploymentService;
+    private EventService eventService;
+    private TextEncryptor encryptor;
 
     private ReentrantLock singleWorkerLock = new ReentrantLock();
     private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
@@ -88,7 +92,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 if (registrationData != null && !registrationData.isEmpty()) {
                     String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
                     logger.debug("Cluster is configured.");
-                    List<ClusterMember> cm = clusterDAO.getAllMembers();
+                    List<ClusterMember> cm = clusterDao.getAllMembers();
                     boolean memberRemoved =
                             !cm.stream().anyMatch(clusterMember -> {
                                 return clusterMember.getLocalAddress().equals(localAddress);
@@ -103,7 +107,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                             Map<String, String> params = new HashMap<String, String>();
                             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
                             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
-                            List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
+                            List<ClusterMember> clusterMembers = clusterDao.getOtherMembers(params);
 
                             if (repositoryType.equals(GitRepositories.GLOBAL)) {
                                 StudioNodeSyncGlobalRepoTask nodeGlobalRepoSyncTask =
@@ -111,6 +115,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                 nodeGlobalRepoSyncTask.setClusterNodes(clusterMembers);
                                 nodeGlobalRepoSyncTask.setContentRepository(contentRepository);
                                 nodeGlobalRepoSyncTask.setStudioConfiguration(studioConfiguration);
+                                nodeGlobalRepoSyncTask.setEncryptor(encryptor);
                                 taskExecutor.execute(nodeGlobalRepoSyncTask);
                             } else {
                                 cleanupDeletedSites();
@@ -119,7 +124,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
 
                                 if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                                    int numActiveMembers = clusterDAO.countActiveMembers(params);
+                                    int numActiveMembers = clusterDao.countActiveMembers(params);
                                     logger.debug("Number of active cluster members: " + numActiveMembers);
                                 }
                                 if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
@@ -139,6 +144,10 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodeSandobxSyncTask.setServicesConfig(servicesConfig);
                                                 nodeSandobxSyncTask.setClusterNodes(clusterMembers);
                                                 nodeSandobxSyncTask.setDeploymentService(deploymentService);
+                                                nodeSandobxSyncTask.setEventService(eventService);
+                                                nodeSandobxSyncTask.setEncryptor(encryptor);
+                                                nodeSandobxSyncTask.setClusterDao(clusterDao);
+                                                nodeSandobxSyncTask.setLocalAddress(localAddress);
                                                 taskExecutor.execute(nodeSandobxSyncTask);
                                                 break;
                                             case PUBLISHED:
@@ -153,6 +162,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                                 nodePublishedSyncTask.setServicesConfig(servicesConfig);
                                                 nodePublishedSyncTask.setClusterNodes(clusterMembers);
                                                 nodePublishedSyncTask.setDeploymentService(deploymentService);
+                                                nodePublishedSyncTask.setEncryptor(encryptor);
                                                 taskExecutor.execute(nodePublishedSyncTask);
                                                 break;
                                         }
@@ -164,6 +174,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                         }
                     }
                 }
+            } catch (Exception err) {
+                logger.error("Error while executing cluster sync job", err);
             } finally {
                 singleWorkerLock.unlock();
             }
@@ -183,8 +195,10 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                     destroySitePreviewContext(siteFeed.getName());
                     contentRepository.deleteSite(siteFeed.getName());
                 }
-                StudioNodeSyncBaseTask.createdSites.remove(siteFeed.getSiteId());
-                StudioNodeSyncBaseTask.remotesMap.remove(siteFeed.getSiteId());
+                StudioNodeSyncSandboxTask.createdSites.remove(siteFeed.getSiteId());
+                StudioNodeSyncSandboxTask.remotesMap.remove(siteFeed.getSiteId());
+                StudioNodeSyncPublishedTask.createdSites.remove(siteFeed.getSiteId());
+                StudioNodeSyncPublishedTask.remotesMap.remove(siteFeed.getSiteId());
                 deletedSitesMap.put(key, siteFeed.getName());
             }
         });
@@ -281,12 +295,12 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         this.contentRepository = contentRepository;
     }
 
-    public ClusterDAO getClusterDAO() {
-        return clusterDAO;
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
     }
 
-    public void setClusterDAO(ClusterDAO clusterDAO) {
-        this.clusterDAO = clusterDAO;
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
     }
 
     public ServicesConfig getServicesConfig() {
@@ -312,4 +326,17 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
     }
+
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }
