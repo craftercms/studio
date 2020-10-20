@@ -1633,6 +1633,46 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/{siteId}/policy/validate:
+    post:
+      tags:
+        - sites
+      summary: Verifies if all indicated actions are compliant with the site policies
+      operationId: validate
+      parameters:
+        - name: siteId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentValidationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/ContentValidationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -3432,40 +3472,6 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   xml:
                     type: string
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /content/validate:
-    post:
-      tags:
-        - content
-      summary: Verifies if all indicated actions are compliant with the site policies
-      operationId: validate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ContentValidationRequest'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  result:
-                    $ref: '#/components/schemas/ContentValidationResult'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5995,9 +6001,6 @@ components:
     ContentValidationRequest:
       type: object
       properties:
-        siteId:
-          type: string
-          description: The site id
         actions:
           type: array
           description: The list of actions to verify
@@ -6010,7 +6013,10 @@ components:
                   The type of action, possible values: CREATE, RENAME, MOVE, COPY
               source:
                 type: string
-                description: The source value, only needed for COPY and MOVE actions
+                description: The source value, only needed for recursive COPY, MOVE and RENAME actions
+              contentType:
+                type: string
+                description: The id of the content type, only needed for CREATE actions
               target:
                 type: string
                 description: The target value
