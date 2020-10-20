@@ -1633,6 +1633,46 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/{siteId}/policy/validate:
+    post:
+      tags:
+        - sites
+      summary: Verifies if all indicated actions are compliant with the site policies
+      operationId: validate
+      parameters:
+        - name: siteId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentValidationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/ContentValidationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -6071,6 +6111,61 @@ components:
         defaultLocaleCode:
           type: string
           description: The code of the default locale for all new content
+
+    ContentValidationRequest:
+      type: object
+      properties:
+        actions:
+          type: array
+          description: The list of actions to verify
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                description: >
+                  The type of action, possible values: CREATE, RENAME, MOVE, COPY
+              source:
+                type: string
+                description: The source value, only needed for recursive COPY, MOVE and RENAME actions
+              contentType:
+                type: string
+                description: The id of the crafter content type, only needed for CREATE actions
+              target:
+                type: string
+                description: The target value
+              recursive:
+                type: boolean
+                description: Indicates if all child items should be verified too
+                default: false
+            required:
+              - type
+              - target
+      required:
+        - siteId
+        - actions
+
+    ContentValidationResult:
+      type: object
+      properties:
+        actions:
+          type: array
+          description: The list of results
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                description: The type of action
+              target:
+                type: string
+                description: The target value
+              allowed:
+                type: boolean
+                description: Indicates if the operation is allowed
+              modifiedValue:
+                type: string
+                description: The adjusted value if available
 
   responses:
     NotFound:
