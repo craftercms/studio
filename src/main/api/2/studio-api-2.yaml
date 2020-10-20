@@ -6016,7 +6016,7 @@ components:
                 description: The source value, only needed for recursive COPY, MOVE and RENAME actions
               contentType:
                 type: string
-                description: The id of the content type, only needed for CREATE actions
+                description: The id of the crafter content type, only needed for CREATE actions
               target:
                 type: string
                 description: The target value
