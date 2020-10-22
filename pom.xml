@@ -643,6 +643,31 @@
                     </execution>
 
                     <execution>
+                        <id>install ace deps</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/ace</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build ace editor</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}/ui/ace</workingDirectory>
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!--
+                    Disabled until we implement the history dialog or otherwise use monaco
+                    editor (possibly in Crafter 3.2.1+)
+                    <execution>
                         <id>install monaco deps</id>
                         <goals>
                             <goal>yarn</goal>
@@ -652,7 +677,6 @@
                             <workingDirectory>${studio.ui.path}/ui/monaco</workingDirectory>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>build monaco editor</id>
                         <goals>
@@ -664,6 +688,8 @@
                             <arguments>build</arguments>
                         </configuration>
                     </execution>
+                    -->
+
                 </executions>
             </plugin>
             <plugin>
