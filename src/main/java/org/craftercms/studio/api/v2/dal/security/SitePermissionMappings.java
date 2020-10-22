@@ -16,12 +16,71 @@
 
 package org.craftercms.studio.api.v2.dal.security;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.studio.api.v2.dal.Group;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SitePermissionMappings {
 
     private String siteId;
-    private Map<String, RolePermissionMappings> rolePermissions;
+    private Map<String, RolePermissionMappings> rolePermissions = new HashMap<String, RolePermissionMappings>();
+    private Map<String, List<String>> groupToRolesMapping = new HashMap<String, List<String>>();
+
+    public long getAvailableActions(String username, List<Group> groups, String path) {
+        List<String> rolesList = new ArrayList<String>();
+        List<String> userRoles = groupToRolesMapping.get(username);
+        if (CollectionUtils.isNotEmpty(userRoles)) {
+            CollectionUtils.addAll(rolesList, userRoles);
+        }
+        groups.forEach(g -> {
+            List<String> groupRoles = groupToRolesMapping.get(g.getGroupName());
+            if (CollectionUtils.isNotEmpty(groupRoles)) {
+                CollectionUtils.addAll(rolesList, groupRoles);
+            }
+        });
+
+        long availableActions = 0L;
+        for (String role : rolesList) {
+            RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
+            Map<String, Long> rulePermissions = rolePermissionMappings.getRulePermissions();
+            for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {
+                Pattern pattern = Pattern.compile(entry.getKey());
+                Matcher matcher = pattern.matcher(path);
+                if (matcher.matches()) {
+                    availableActions = availableActions | entry.getValue();
+                }
+            }
+        }
+        return availableActions;
+    }
+
+    public void addGroupToRolesMapping(String group, List<String> roles) {
+        groupToRolesMapping.put(group, roles);
+    }
+
+    public void addRoleToGroupMapping(String group, String role) {
+        List<String> roles = groupToRolesMapping.get(group);
+        if (Objects.isNull(roles)) {
+            roles = new ArrayList<String>();
+            groupToRolesMapping.put(group, roles);
+        }
+        roles.add(role);
+    }
+
+    public List<String> getRolesForGroup(String group) {
+        return this.groupToRolesMapping.get(group);
+    }
+
+    public void addRolePermissionMapping(String role, RolePermissionMappings rolePermissionMappings) {
+        rolePermissions.put(role, rolePermissionMappings);
+    }
 
     public String getSiteId() {
         return siteId;

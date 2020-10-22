@@ -17,6 +17,8 @@
 package org.craftercms.studio.api.v2.service.content.internal;
 
 import org.craftercms.core.service.Item;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.util.List;
@@ -55,7 +57,7 @@ public interface ContentServiceInternal {
      * @return list of children
      */
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy, String order,
-                                        int offset, int limit);
+                                        int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get total number of children for given path
@@ -82,7 +84,8 @@ public interface ContentServiceInternal {
      * @return list of children
      */
     GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
-                                      String order, int offset, int limit);
+                                      String order, int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get total number of children for given path

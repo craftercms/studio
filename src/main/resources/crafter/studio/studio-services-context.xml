@@ -232,6 +232,13 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
+    <bean id="studio.securityService" class="org.craftercms.studio.impl.v2.service.security.SecurityServiceImpl">
+        <constructor-arg name="configurationService" ref="configurationService" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
+        <constructor-arg name="contentService" ref="cstudioContentService" />
+    </bean>
+
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
@@ -454,6 +461,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityServiceV2" ref="studio.securityService" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"

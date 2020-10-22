@@ -85,11 +85,14 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -117,6 +120,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private EventService eventService;
     private EncryptionAwareConfigurationReader configurationReader;
     private ItemServiceInternal itemServiceInternal;
+    private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
 
     private String translationConfig;
 
@@ -244,6 +248,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                                    String path, String environment, InputStream content)
             throws ServiceLayerException {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
+        if (StringUtils.endsWithAny(path, FILE_SEPARATOR +
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME), FILE_SEPARATOR +
+                studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME))) {
+            securityServiceV2.invalidateAvailableActions(siteId);
+        }
     }
 
     @Override
@@ -375,6 +384,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
             throws ServiceLayerException {
         contentService.writeContent(StringUtils.EMPTY, path, content);
+        if (StringUtils.endsWithAny(path, FILE_SEPARATOR +
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME) +
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME))) {
+            securityServiceV2.invalidateAvailableActions();
+        }
         String currentUser = securityService.getCurrentUser();
         generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
     }

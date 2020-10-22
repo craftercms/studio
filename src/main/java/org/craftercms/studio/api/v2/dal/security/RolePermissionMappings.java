@@ -16,12 +16,17 @@
 
 package org.craftercms.studio.api.v2.dal.security;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class RolePermissionMappings {
 
     private String role;
-    private Map<String, RulePermissionMapping> rulePermissions;
+    private Map<String, Long> rulePermissions = new HashMap<String, Long>();
+
+    public void addRulePermissionsMapping(String rule, Long availableActions) {
+        rulePermissions.put(rule, availableActions);
+    }
 
     public String getRole() {
         return role;
@@ -31,11 +36,11 @@ public class RolePermissionMappings {
         this.role = role;
     }
 
-    public Map<String, RulePermissionMapping> getRulePermissions() {
+    public Map<String, Long> getRulePermissions() {
         return rulePermissions;
     }
 
-    public void setRulePermissions(Map<String, RulePermissionMapping> rulePermissions) {
+    public void setRulePermissions(Map<String, Long> rulePermissions) {
         this.rulePermissions = rulePermissions;
     }
 }

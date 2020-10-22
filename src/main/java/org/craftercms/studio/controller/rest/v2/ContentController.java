@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
@@ -139,7 +140,8 @@ public class ContentController {
                                           @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
                                                   defaultValue = "0") int offset,
                                           @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
-                                                  defaultValue = "10") int limit) {
+                                                  defaultValue = "10") int limit)
+            throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
                 contentService.getChildrenByPath(siteId, path, localeCode, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
@@ -158,7 +160,8 @@ public class ContentController {
                                           @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
                                                   defaultValue = "0") int offset,
                                           @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
-                                                  defaultValue = "10") int limit) {
+                                                  defaultValue = "10") int limit)
+            throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
                 contentService.getChildrenById(siteId, id, localeCode, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
