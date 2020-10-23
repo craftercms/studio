@@ -18,13 +18,17 @@ package org.craftercms.studio.impl.v1.service.deployment.job;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -52,6 +56,11 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected ServicesConfig servicesConfig;
     protected TaskExecutor taskExecutor;
     protected AuditServiceInternal auditServiceInternal;
+    protected ClusterDAO clusterDao;
+    protected TextEncryptor encryptor;
+    protected Deployer deployer;
+    protected DeploymentService deploymentService;
+    protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
 
     public static synchronized void signalToStop(boolean toStop) {
         stopSignaled = toStop;
@@ -88,7 +97,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             if (siteNames != null && siteNames.size() > 0) {
                 for (String site : siteNames) {
                     PublisherTask publisherTask = new PublisherTask(site, studioConfiguration, siteService,
-                            publishingManager, servicesConfig, contentRepository, notificationService, auditServiceInternal);
+                            publishingManager, servicesConfig, contentRepository, notificationService,
+                            auditServiceInternal, clusterDao, encryptor, deployer, deploymentService, eventService,
+                            contentRepositoryV1);
                     taskExecutor.execute(publisherTask);
                 }
             }
@@ -178,5 +189,45 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public TextEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
+    public Deployer getDeployer() {
+        return deployer;
+    }
+
+    public void setDeployer(Deployer deployer) {
+        this.deployer = deployer;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
+
+    public org.craftercms.studio.api.v1.repository.ContentRepository getContentRepositoryV1() {
+        return contentRepositoryV1;
+    }
+
+    public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
+        this.contentRepositoryV1 = contentRepositoryV1;
     }
 }

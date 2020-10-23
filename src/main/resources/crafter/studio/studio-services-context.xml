@@ -563,6 +563,11 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="taskExecutor" ref="studioPublisherTaskExecutor" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="encryptor" ref="crafter.textEncryptor" />
+        <property name="deployer" ref="previewDeployer" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="contentRepositoryV1" ref="contentRepository" />
     </bean>
 
     <bean id="studioNodeSyncTaskExecutor"

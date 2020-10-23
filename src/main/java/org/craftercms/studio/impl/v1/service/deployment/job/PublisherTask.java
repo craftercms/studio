@@ -20,6 +20,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -29,15 +30,20 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.service.cluster.SyncClusterTask;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -89,6 +95,12 @@ public class PublisherTask extends Thread {
     private ContentRepository contentRepository;
     private NotificationService notificationService;
     private AuditServiceInternal auditServiceInternal;
+    private ClusterDAO clusterDao;
+    private TextEncryptor encryptor;
+    private Deployer deployer;
+    private DeploymentService deploymentService;
+    private EventService eventService;
+    private org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
 
     public PublisherTask(String site,
                          StudioConfiguration studioConfiguration,
@@ -97,7 +109,13 @@ public class PublisherTask extends Thread {
                          ServicesConfig servicesConfig,
                          ContentRepository contentRepository,
                          NotificationService notificationService,
-                         AuditServiceInternal auditServiceInternal) {
+                         AuditServiceInternal auditServiceInternal,
+                         ClusterDAO clusterDao,
+                         TextEncryptor encryptor,
+                         Deployer deployer,
+                         DeploymentService deploymentService,
+                         EventService eventService,
+                         org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
         this.site = site;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
@@ -106,6 +124,12 @@ public class PublisherTask extends Thread {
         this.contentRepository = contentRepository;
         this.notificationService = notificationService;
         this.auditServiceInternal = auditServiceInternal;
+        this.clusterDao = clusterDao;
+        this.encryptor = encryptor;
+        this.deployer = deployer;
+        this.deploymentService = deploymentService;
+        this.eventService = eventService;
+        this.contentRepositoryV1 = contentRepositoryV1;
     }
 
     @Override
@@ -127,6 +151,12 @@ public class PublisherTask extends Thread {
                 // Check publishing lock status
                 logger.debug("Try to lock site " + site + " for publishing by lock owner " + getLockOwnerId());
                 if (siteService.tryLockPublishingForSite(site, getLockOwnerId(), getLockTTL())) {
+                    try {
+                        syncCluster(site);
+                    } catch (Exception e) {
+                        logger.error("Failed to sync with other cluster nodes for site " + site, e);
+                    }
+
                     try {
                         syncRepository(site);
                     } catch (Exception e) {
@@ -204,6 +234,12 @@ public class PublisherTask extends Thread {
                 singleWorkerLock.unlock();
             }
         }
+    }
+
+    private void syncCluster(String site) {
+        SyncClusterTask syncClusterTask = new SyncClusterTask(studioConfiguration, clusterDao, contentRepositoryV1,
+                encryptor, siteService, deployer, servicesConfig, deploymentService, eventService);
+        syncClusterTask.execute();
     }
 
     private void syncRepository(String site) throws SiteNotFoundException {
