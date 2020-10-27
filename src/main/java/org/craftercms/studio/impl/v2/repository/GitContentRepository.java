@@ -1297,6 +1297,30 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
+    private void removeRemote(Git git, String remoteName) throws GitAPIException {
+        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+        remoteRemoveCommand.setRemoteName(remoteName);
+        remoteRemoveCommand.call();
+
+        List<Ref> resultRemoteBranches = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE)
+                .call();
+
+        List<String> branchesToDelete = new ArrayList<String>();
+        for (Ref remoteBranchRef : resultRemoteBranches) {
+            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                branchesToDelete.add(remoteBranchRef.getName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+            DeleteBranchCommand delBranch = git.branchDelete();
+            String[] array = new String[branchesToDelete.size()];
+            delBranch.setBranchNames(branchesToDelete.toArray(array));
+            delBranch.setForce(true);
+            delBranch.call();
+        }
+    }
+
     private void insertRemoteToDb(String siteId, String remoteName, String remoteUrl,
                                   String authenticationType, String remoteUsername, String remotePassword,
                                   String remoteToken, String remotePrivateKey) throws CryptoException {
