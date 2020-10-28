@@ -99,17 +99,17 @@ public class StudioClockExecutor implements Job {
     @Override
     public void execute() {
         if (!stopSignaled) {
-            setRunning(true);
             if (singleWorkerLock.tryLock()) {
                 try {
+                    setRunning(true);
                     executeTasks();
                 } catch (Exception e) {
                     logger.error("Error executing Studio Clock Job", e);
                 } finally {
+                    setRunning(false);
                     singleWorkerLock.unlock();
                 }
             }
-            setRunning(false);
         }
     }
 

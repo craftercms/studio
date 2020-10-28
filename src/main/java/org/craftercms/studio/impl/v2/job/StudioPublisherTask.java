@@ -133,11 +133,13 @@ public class StudioPublisherTask extends StudioClockTask {
                                             .distinct().collect(Collectors.toList());
 
                                     boolean allCommitsPresent = true;
+                                    StringBuilder sbMissingCommits = new StringBuilder();
                                     for (String commit : commitIds) {
                                         if (StringUtils.isNotEmpty(commit)) {
                                             boolean commitPresent = contentRepository.commitIdExists(siteId,
                                                     commit);
                                             if (!commitPresent) {
+                                                sbMissingCommits.append(commit).append("; ");
                                                 logger.debug("Commit with ID: " + commit + " is not present in " +
                                                         "local repo for site " + siteId + ". " +
                                                         "Publisher task will skip this cycle.");
@@ -154,18 +156,26 @@ public class StudioPublisherTask extends StudioClockTask {
 
                                         doPublishing(siteId, itemsToDeploy, environment);
                                         retryCounter.remove(siteId);
+                                        siteService.updatePublishingLockHeartbeatForSite(siteId);
+                                        itemsToDeploy =
+                                                publishingManager.getItemsReadyForDeployment(siteId, environment);
                                     } else {
                                         publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
                                         int retriesLeft = retryCounter.get(siteId) - 1;
                                         if (retriesLeft > 0) {
                                             retryCounter.put(siteId, retriesLeft);
+                                            logger.info("Following commits are not present in local " +
+                                                    "repository " + sbMissingCommits.toString() + " Publisher task " +
+                                                    "will retry in next cycle. Number of retries left: " + retriesLeft);
                                         } else {
+                                            retryCounter.remove(siteId);
                                             siteService.enablePublishing(siteId, false);
+                                            throw new DeploymentException("Deployment failed after " + maxRetryCounter
+                                                    + " retries. Following commits are not present in local " +
+                                                    "repository " + sbMissingCommits.toString());
                                         }
                                     }
-                                    siteService.updatePublishingLockHeartbeatForSite(siteId);
-                                    itemsToDeploy =
-                                            publishingManager.getItemsReadyForDeployment(siteId, environment);
+
                                 }
                             }
                         } catch (Exception err) {
