@@ -162,6 +162,7 @@ public class StudioPublisherTask extends StudioClockTask {
                                     } else {
                                         publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
                                         int retriesLeft = retryCounter.get(siteId) - 1;
+                                        itemsToDeploy = null;
                                         if (retriesLeft > 0) {
                                             retryCounter.put(siteId, retriesLeft);
                                             logger.info("Following commits are not present in local " +

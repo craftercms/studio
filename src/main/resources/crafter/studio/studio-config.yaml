@@ -849,7 +849,7 @@ studio.clockJob.taskExecutor.queueCapacity: 200
 studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
 # Cluster Site Sandbox sync execute every N cycles
 studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 5
-# Cluster Site Sandbox sync execute every N cycles
+# Cluster Site Published sync execute every N cycles
 studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 20
 # Sync repository execute every N cycles
 studio.clockJob.task.syncRepository.executeEveryNCycles: 2
