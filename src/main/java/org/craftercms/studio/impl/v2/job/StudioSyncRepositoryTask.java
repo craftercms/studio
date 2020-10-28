@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.io.IOException;
@@ -38,42 +37,47 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
-public class StudioSyncRepositoryTask implements SiteJob {
+public class StudioSyncRepositoryTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
 
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
 
-    private StudioConfiguration studioConfiguration;
-    private SiteService siteService;
-
-    public StudioSyncRepositoryTask(StudioConfiguration studioConfiguration, SiteService siteService) {
-        this.studioConfiguration = studioConfiguration;
-        this.siteService = siteService;
+    public StudioSyncRepositoryTask(int executeEveryNCycles,
+                                    StudioConfiguration studioConfiguration,
+                                    SiteService siteService) {
+        super(executeEveryNCycles, studioConfiguration, siteService);
     }
 
     @Override
-    public void execute(String site) {
-        logger.error("Running Sync Repository Task for site " + site);
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(site);
-        if (singleWorkerLock == null) {
-            singleWorkerLock = new ReentrantLock();
-            singleWorkerLockMap.put(site, singleWorkerLock);
-        }
-
-        if (singleWorkerLock.tryLock()) {
+    protected void executeInternal(String site) {
+        try {
             try {
-                try {
-                    syncRepository(site);
-                } catch (Exception e) {
-                    logger.error("Failed to sync database from repository for site " + site, e);
-                    siteService.enablePublishing(site, false);
-                }
+                syncRepository(site);
             } catch (Exception e) {
                 logger.error("Failed to sync database from repository for site " + site, e);
-            } finally {
-                singleWorkerLock.unlock();
+                siteService.enablePublishing(site, false);
             }
+        } catch (Exception e) {
+            logger.error("Failed to sync database from repository for site " + site, e);
+        }
+    }
+
+    @Override
+    protected boolean lockSiteInternal(String siteId) {
+        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
+        if (singleWorkerLock == null) {
+            singleWorkerLock = new ReentrantLock();
+            singleWorkerLockMap.put(siteId, singleWorkerLock);
+        }
+        return singleWorkerLock.tryLock();
+    }
+
+    @Override
+    protected void unlockSiteInternal(String siteId) {
+        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
+        if (singleWorkerLock != null) {
+            singleWorkerLock.unlock();
         }
     }
 

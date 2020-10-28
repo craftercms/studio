@@ -16,43 +16,29 @@
 
 package org.craftercms.studio.impl.v2.job;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.deployment.Deployer;
-import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -78,13 +64,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
@@ -94,7 +78,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
-public class StudioClusterPublishedRepoSyncTask extends StudioClockTask {
+public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClusterPublishedRepoSyncTask.class);
 
@@ -102,6 +86,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockTask {
     protected static final List<String> createdSites = new ArrayList<String>();
     protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
+    private StudioClusterUtils studioClusterUtils;
+    private ClusterDAO clusterDao;
     private ServicesConfig servicesConfig;
 
     public StudioClusterPublishedRepoSyncTask(int executeEveryNCycles,
@@ -112,14 +98,15 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockTask {
                                               ClusterDAO clusterDao,
                                               ServicesConfig servicesConfig) {
 
-        super(executeEveryNCycles, studioClusterUtils, studioConfiguration, contentRepository, siteService, clusterDao);
+        super(executeEveryNCycles, studioConfiguration, siteService, contentRepository);
+        this.studioClusterUtils = studioClusterUtils;
+        this.clusterDao = clusterDao;
         this.servicesConfig = servicesConfig;
+
     }
 
     @Override
     protected void executeInternal(String siteId) {
-        logger.error("Starting Cluster Node Sync Published task for site " + siteId);
-
         // Lock site and begin sync
         if (lockSiteInternal(siteId)) {
             // Log start time

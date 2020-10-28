@@ -833,3 +833,27 @@ studio.cache.templates: true
 # Indicates if Forwarded or X-Forwarded headers should be used when resolving the client-originated protocol and
 # address. Enable when Studio is behind a reverse proxy or load balancer that sends these
 studio.forwarded.headers.enabled: false
+
+##################################################
+##             Studio Clock Tasks               ##
+##################################################
+# Studio Clock job ticking frequency
+studio.clockJob.frequency: 1000
+# Studio Clock Job thread pool core size
+studio.clockJob.taskExecutor.corePoolSize: 10
+# Studio Clock Job thread pool maximum size
+studio.clockJob.taskExecutor.maxPoolSize: 100
+# Studio Clock Job thread pool queue capacity
+studio.clockJob.taskExecutor.queueCapacity: 200
+# Cluster Global Repo sync execute every N cycles
+studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
+# Cluster Site Sandbox sync execute every N cycles
+studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 5
+# Cluster Site Sandbox sync execute every N cycles
+studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 20
+# Sync repository execute every N cycles
+studio.clockJob.task.syncRepository.executeEveryNCycles: 2
+# Publisher execute every N cycles
+studio.clockJob.task.publisher.executeEveryNCycles: 10
+# Publisher max retry count in case if content not found
+studio.clockJob.task.publisher.maxRetryCount: 5
