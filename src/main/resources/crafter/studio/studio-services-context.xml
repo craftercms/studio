@@ -1413,5 +1413,4 @@
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
-    <import resource="classpath:crafter/studio/studio-tasks-context.xml"/>
 </beans>
