@@ -14,43 +14,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v1.service.deployment.job;
+package org.craftercms.studio.impl.v2.job;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
-import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.deployment.Deployer;
+import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -68,105 +59,81 @@ import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_PUBLISHING_LOCK_OWNER_ID;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
-public class PublisherTask extends Thread {
+public class StudioPublisherTask implements SiteJob {
 
-    private static final Logger logger = LoggerFactory.getLogger(PublisherTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(StudioPublisherTask.class);
 
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
+    protected static final Map<String, Integer> retryCounter = new HashMap<String, Integer>();
 
-    private String site;
     private StudioConfiguration studioConfiguration;
     private SiteService siteService;
+    private ContentRepository contentRepository;
     private PublishingManager publishingManager;
     private ServicesConfig servicesConfig;
-    private ContentRepository contentRepository;
     private NotificationService notificationService;
     private AuditServiceInternal auditServiceInternal;
-    private ClusterDAO clusterDao;
-    private TextEncryptor encryptor;
-    private Deployer deployer;
-    private DeploymentService deploymentService;
-    private EventService eventService;
-    private org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
+    private int maxRetryCounter;
 
-    public PublisherTask(String site,
-                         StudioConfiguration studioConfiguration,
-                         SiteService siteService,
-                         PublishingManager publishingManager,
-                         ServicesConfig servicesConfig,
-                         ContentRepository contentRepository,
-                         NotificationService notificationService,
-                         AuditServiceInternal auditServiceInternal,
-                         ClusterDAO clusterDao,
-                         TextEncryptor encryptor,
-                         Deployer deployer,
-                         DeploymentService deploymentService,
-                         EventService eventService,
-                         org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
-        this.site = site;
+    public StudioPublisherTask(StudioConfiguration studioConfiguration,
+                               SiteService siteService,
+                               ContentRepository contentRepository,
+                               PublishingManager publishingManager,
+                               ServicesConfig servicesConfig,
+                               NotificationService notificationService,
+                               AuditServiceInternal auditServiceInternal,
+                               int maxRetryCounter) {
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
+        this.contentRepository = contentRepository;
         this.publishingManager = publishingManager;
         this.servicesConfig = servicesConfig;
-        this.contentRepository = contentRepository;
         this.notificationService = notificationService;
         this.auditServiceInternal = auditServiceInternal;
-        this.clusterDao = clusterDao;
-        this.encryptor = encryptor;
-        this.deployer = deployer;
-        this.deploymentService = deploymentService;
-        this.eventService = eventService;
-        this.contentRepositoryV1 = contentRepositoryV1;
+        this.maxRetryCounter = maxRetryCounter;
     }
 
     @Override
-    public void run() {
-        logger.debug("Running Publisher Task for site " + site);
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(site);
+    public void execute(String siteId) {
+        logger.error("Running Publisher Task for site " + siteId);
+        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
         if (singleWorkerLock == null) {
             singleWorkerLock = new ReentrantLock();
-            singleWorkerLockMap.put(site, singleWorkerLock);
+            singleWorkerLockMap.put(siteId, singleWorkerLock);
         }
         String env = null;
         if (singleWorkerLock.tryLock()) {
             try {
                 // Check publishing lock status
-                logger.debug("Try to lock site " + site + " for publishing by lock owner " + getLockOwnerId());
-                if (siteService.tryLockPublishingForSite(site, getLockOwnerId(), getLockTTL())) {
-                    try {
-                        syncRepository(site);
-                    } catch (Exception e) {
-                        logger.error("Failed to sync database from repository for site " + site, e);
-                        siteService.enablePublishing(site, false);
-                    }
+                logger.debug("Try to lock site " + siteId + " for publishing by lock owner " + getLockOwnerId());
+                if (siteService.tryLockPublishingForSite(siteId, getLockOwnerId(), getLockTTL())) {
 
-                    if (contentRepository.repositoryExists(site) && siteService.isPublishingEnabled(site)) {
-                        if (!publishingManager.isPublishingBlocked(site)) {
+                    if (contentRepository.repositoryExists(siteId) && siteService.isPublishingEnabled(siteId)) {
+                        if (!publishingManager.isPublishingBlocked(siteId)) {
                             try {
-                                Set<String> environments = getAllPublishingEnvironments(site);
+                                if (!retryCounter.containsKey(siteId)) {
+                                    retryCounter.put(siteId, maxRetryCounter);
+                                }
+                                Set<String> environments = getAllPublishingEnvironments(siteId);
                                 for (String environment : environments) {
                                     env = environment;
-                                    logger.debug("Processing content ready for deployment for site \"{0}\"", site);
+                                    logger.debug("Processing content ready for deployment for site \"{0}\"", siteId);
                                     List<PublishRequest> itemsToDeploy =
-                                            publishingManager.getItemsReadyForDeployment(site, environment);
+                                            publishingManager.getItemsReadyForDeployment(siteId, environment);
                                     while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
                                         logger.debug("Deploying " + itemsToDeploy.size() + " items for " +
-                                                "site " + site);
-                                        publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
+                                                "site " + siteId);
+                                        publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
                                         List<String> commitIds = itemsToDeploy.stream()
                                                 .map(PublishRequest::getCommitId)
                                                 .distinct().collect(Collectors.toList());
@@ -174,10 +141,11 @@ public class PublisherTask extends Thread {
                                         boolean allCommitsPresent = true;
                                         for (String commit : commitIds) {
                                             if (StringUtils.isNotEmpty(commit)) {
-                                                boolean commitPresent = contentRepository.commitIdExists(site, commit);
+                                                boolean commitPresent = contentRepository.commitIdExists(siteId,
+                                                        commit);
                                                 if (!commitPresent) {
                                                     logger.debug("Commit with ID: " + commit + " is not present in " +
-                                                            "local repo for site " + site + ". " +
+                                                            "local repo for site " + siteId + ". " +
                                                             "Publisher task will skip this cycle.");
                                                     allCommitsPresent = false;
                                                 }
@@ -186,93 +154,54 @@ public class PublisherTask extends Thread {
 
                                         if (allCommitsPresent) {
                                             logger.info("Starting publishing on environment " + environment +
-                                                    " for site " + site);
+                                                    " for site " + siteId);
                                             logger.debug("Site \"{0}\" has {1} items ready for deployment",
-                                                    site, itemsToDeploy.size());
+                                                    siteId, itemsToDeploy.size());
 
-                                            doPublishing(itemsToDeploy, environment);
+                                            doPublishing(siteId, itemsToDeploy, environment);
+                                            retryCounter.remove(siteId);
                                         } else {
-                                            publishingManager.markItemsReady(site, environment, itemsToDeploy);
+                                            publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
+                                            int retriesLeft = retryCounter.get(siteId) - 1;
+                                            if (retriesLeft > 0) {
+                                                retryCounter.put(siteId, retriesLeft);
+                                            } else {
+                                                siteService.enablePublishing(siteId, false);
+                                            }
                                         }
-                                        siteService.updatePublishingLockHeartbeatForSite(site);
+                                        siteService.updatePublishingLockHeartbeatForSite(siteId);
                                         itemsToDeploy =
-                                                publishingManager.getItemsReadyForDeployment(site, environment);
+                                                publishingManager.getItemsReadyForDeployment(siteId, environment);
                                     }
                                 }
                             } catch (Exception err) {
                                 logger.error("Error while executing deployment to environment store for site: "
-                                        + site, err);
-                                publishingManager.resetProcessingQueue(site, env);
-                                notificationService.notifyDeploymentError(site, err);
+                                        + siteId, err);
+                                publishingManager.resetProcessingQueue(siteId, env);
+                                notificationService.notifyDeploymentError(siteId, err);
                                 logger.info("Continue executing deployment for other sites.");
                             }
                         } else {
-                            logger.info("Publishing is blocked for site " + site);
+                            logger.info("Publishing is blocked for site " + siteId);
                         }
                     } else {
-                        logger.info("Publishing is disabled for site " + site);
+                        logger.info("Publishing is disabled for site " + siteId);
                     }
                 }
             } catch (Exception err) {
                 logger.error("Error while executing deployment to environment store", err);
-                notificationService.notifyDeploymentError(site, err);
-                publishingManager.resetProcessingQueue(site, env);
+                notificationService.notifyDeploymentError(siteId, err);
+                publishingManager.resetProcessingQueue(siteId, env);
             } finally {
                 // Unlock publishing if queue does not have packages ready for publishing
-                logger.debug("Unlocking publishing for site " + site + " by lock owner " + getLockOwnerId());
-                siteService.unlockPublishingForSite(site, getLockOwnerId());
+                logger.debug("Unlocking publishing for site " + siteId + " by lock owner " + getLockOwnerId());
+                siteService.unlockPublishingForSite(siteId, getLockOwnerId());
                 singleWorkerLock.unlock();
             }
         }
     }
 
-    private void syncCluster(String site) {
-        SyncClusterTask syncClusterTask = new SyncClusterTask(studioConfiguration, clusterDao, contentRepositoryV1,
-                encryptor, siteService, deployer, servicesConfig, deploymentService, eventService);
-        syncClusterTask.execute();
-    }
-
-    private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
-        logger.debug("Getting last verified commit for site: " + site);
-        SiteFeed siteFeed = siteService.getSite(site);
-        if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
-            String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
-            if (StringUtils.isNotEmpty(lastProcessedCommit)) {
-                logger.debug("Syncing database with repository for site " + site + " from last processed commit "
-                        + lastProcessedCommit);
-                siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
-            }
-        }
-    }
-
-    private boolean checkSiteUuid(String siteId, String siteUuid) {
-        boolean toRet = false;
-        try {
-            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
-            List<String> lines = Files.readAllLines(path);
-            for (String line : lines) {
-                if (!StringUtils.startsWith(line, "#") && StringUtils.equals(line, siteUuid)) {
-                    toRet = true;
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            logger.info("Invalid site UUID. Local copy will not be deleted");
-        }
-        return toRet;
-    }
-
-    private Set<String> getAllPublishingEnvironments(String site) {
-        Set<String> environments = new HashSet<String>();
-        environments.add(servicesConfig.getLiveEnvironment(site));
-        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
-            environments.add(servicesConfig.getStagingEnvironment(site));
-        }
-        return environments;
-    }
-
-    private void doPublishing(List<PublishRequest> itemsToDeploy, String environment) {
+    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment) {
         try {
             String statusMessage = StringUtils.EMPTY;
             String author = itemsToDeploy.get(0).getUser();
@@ -284,7 +213,7 @@ public class PublisherTask extends Thread {
             String messagePath = StringUtils.EMPTY;
             String currentPackageId = StringUtils.EMPTY;
             try {
-                logger.debug("Mark items as processing for site \"{0}\"", site);
+                logger.debug("Mark items as processing for site \"{0}\"", siteId);
                 Set<String> packageIds = new HashSet<String>();
                 for (PublishRequest item : itemsToDeploy) {
                     if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
@@ -295,25 +224,25 @@ public class PublisherTask extends Thread {
                                 statusMessage.replace("{package_id}", currentPackageId)
                                         .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
                                                 .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-                        siteService.updatePublishingStatusMessage(site, statusMessage);
+                        siteService.updatePublishingStatusMessage(siteId, statusMessage);
                     }
-                    processPublishingRequest(site, environment, item, completeDeploymentItemList, processedPaths);
+                    processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
                     if (packageIds.add(item.getPackageId())) {
                         sbComment.append(item.getSubmissionComment()).append("\n");
                     }
                 }
-                deploy(site, environment, completeDeploymentItemList, author,
+                deploy(siteId, environment, completeDeploymentItemList, author,
                         sbComment.toString());
                 StringBuilder sbPackIds = new StringBuilder("Package(s): ");
                 for (String packageId : packageIds) {
                     sbPackIds.append(packageId).append(";");
                 }
-                generateWorkflowActivity(site, environment, packageIds,  author, OPERATION_PUBLISHED);
-                publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
-                logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
-                logger.info("Finished publishing environment " + environment + " for site " + site);
+                generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
+                publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
+                logger.debug("Mark deployment completed for processed items for site \"{0}\"", siteId);
+                logger.info("Finished publishing environment " + environment + " for site " + siteId);
 
-                if (publishingManager.isPublishingQueueEmpty(site)) {
+                if (publishingManager.isPublishingQueueEmpty(siteId)) {
                     statusMessage = studioConfiguration.getProperty
                             (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY);
                     statusMessage = statusMessage.replace("{package_id}", currentPackageId)
@@ -326,43 +255,43 @@ public class PublisherTask extends Thread {
                             studioConfiguration.getProperty
                                     (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
                 }
-                siteService.updatePublishingStatusMessage(site, statusMessage);
+                siteService.updatePublishingStatusMessage(siteId, statusMessage);
             } catch (DeploymentException err) {
                 logger.error("Error while executing deployment to environment store " +
-                                "for site \"{0}\", number of items \"{1}\"", err, site,
+                                "for site \"{0}\", number of items \"{1}\"", err, siteId,
                         itemsToDeploy.size());
-                publishingManager.markItemsReady(site, environment, itemsToDeploy);
-                siteService.enablePublishing(site, false);
+                publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
+                siteService.enablePublishing(siteId, false);
                 statusMessage = studioConfiguration.getProperty
                         (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
                 statusMessage = statusMessage.replace("{item_path}", messagePath)
                         .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
                                 .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-                siteService.updatePublishingStatusMessage(site, statusMessage);
+                siteService.updatePublishingStatusMessage(siteId, statusMessage);
                 throw err;
             } catch (Exception err) {
                 logger.error("Unexpected error while executing deployment to environment " +
-                                "store for site \"{0}\", number of items \"{1}\"", err, site,
+                                "store for site \"{0}\", number of items \"{1}\"", err, siteId,
                         itemsToDeploy.size());
-                publishingManager.markItemsReady(site, environment, itemsToDeploy);
-                siteService.enablePublishing(site, false);
+                publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
+                siteService.enablePublishing(siteId, false);
                 statusMessage = studioConfiguration.getProperty
                         (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
                 statusMessage = statusMessage.replace("{item_path}", messagePath)
                         .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
                                 .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-                siteService.updatePublishingStatusMessage(site, statusMessage);
+                siteService.updatePublishingStatusMessage(siteId, statusMessage);
                 throw err;
             }
         } catch (Exception err) {
             logger.error("Error while executing deployment to environment store for site: "
-                    + site, err);
-            notificationService.notifyDeploymentError(site, err);
+                    + siteId, err);
+            notificationService.notifyDeploymentError(siteId, err);
             logger.info("Continue executing deployment for other sites.");
         }
     }
 
-    private void processPublishingRequest(String site, String environment, PublishRequest item,
+    private void processPublishingRequest(String siteId, String environment, PublishRequest item,
                                           List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
             throws ServiceLayerException, DeploymentException {
         List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
@@ -375,44 +304,44 @@ public class PublisherTask extends Thread {
 
 
             logger.debug("Processing [{0}] content item for site \"{1}\"", item
-                    .getPath(), site);
+                    .getPath(), siteId);
             DeploymentItemTO deploymentItem = publishingManager.processItem(item);
             if (deploymentItem != null) {
                 deploymentItemList.add(deploymentItem);
             }
             logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
-                    item.getPath(), site);
+                    item.getPath(), siteId);
 
             if (isMandatoryDependenciesCheckEnabled()) {
                 logger.debug("Processing Mandatory Deps [{0}] content item for site "
-                        + "\"{1}\"", item.getPath(), site);
+                        + "\"{1}\"", item.getPath(), siteId);
                 missingDependencies.addAll(publishingManager
                         .processMandatoryDependencies(item, processedPaths, missingDependenciesPaths));
                 logger.debug("Processing Mandatory Dependencies COMPLETE [{0}]"
-                        + " content item for site \"{1}\"", item.getPath(), site);
+                        + " content item for site \"{1}\"", item.getPath(), siteId);
             }
             deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
         } catch (DeploymentException err) {
-            logger.error("Error while executing deployment to environment store for site \"{0}\",", err, site);
-            publishingManager.markItemsReady(site, environment, Arrays.asList(item));
-            siteService.enablePublishing(site, false);
+            logger.error("Error while executing deployment to environment store for site \"{0}\",", err, siteId);
+            publishingManager.markItemsReady(siteId, environment, Arrays.asList(item));
+            siteService.enablePublishing(siteId, false);
             statusMessage = studioConfiguration.getProperty(
                     JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
             statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-            siteService.updatePublishingStatusMessage(site, statusMessage);
+            siteService.updatePublishingStatusMessage(siteId, statusMessage);
             throw err;
         } catch (Exception err){
             logger.error("Unexpected error while executing deployment to environment " +
-                    "store for site \"{0}\", ", err, site);
-            publishingManager.markItemsReady(site, environment, Arrays.asList(item));
-            siteService.enablePublishing(site, false);
+                    "store for site \"{0}\", ", err, siteId);
+            publishingManager.markItemsReady(siteId, environment, Arrays.asList(item));
+            siteService.enablePublishing(siteId, false);
             statusMessage = studioConfiguration.getProperty(
                     JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
             statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-            siteService.updatePublishingStatusMessage(site, statusMessage);
+            siteService.updatePublishingStatusMessage(siteId, statusMessage);
             throw err;
         }
     }
@@ -454,7 +383,7 @@ public class PublisherTask extends Thread {
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
-    public boolean isMandatoryDependenciesCheckEnabled() {
+    private boolean isMandatoryDependenciesCheckEnabled() {
         boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(
                 JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
         return toReturn;
@@ -479,5 +408,14 @@ public class PublisherTask extends Thread {
 
     private int getLockTTL() {
         return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
+    }
+
+    private Set<String> getAllPublishingEnvironments(String site) {
+        Set<String> environments = new HashSet<String>();
+        environments.add(servicesConfig.getLiveEnvironment(site));
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            environments.add(servicesConfig.getStagingEnvironment(site));
+        }
+        return environments;
     }
 }

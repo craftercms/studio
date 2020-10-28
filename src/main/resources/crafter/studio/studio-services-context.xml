@@ -594,6 +594,11 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="taskExecutor" ref="studioPublisherTaskExecutor" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="encryptor" ref="crafter.textEncryptor" />
+        <property name="deployer" ref="previewDeployer" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="contentRepositoryV1" ref="contentRepository" />
     </bean>
 
     <bean id="studioNodeSyncTaskExecutor"
@@ -666,7 +671,7 @@
         <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
-    <!-- scheduled actions -->
+    <!-- scheduled actions >
     <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
@@ -719,7 +724,7 @@
         <property name="repeatInterval"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_GLOBAL_REPO_SYNC_JOB_INTERVAL)}" />
         <property name="startDelay" value="0" />
-    </bean>
+    </bean -->
 
     <bean id="cstudioClusterNodeHeartbeatJobsScheduled"
           class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
@@ -761,15 +766,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_CLEANUP_CRON)}"/>
     </bean>
 
-    <util:list id="crafter.jobTriggers">
-        <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
-        <ref bean="studioRepositoryCleanupJobTrigger"/>
-        <ref bean="cstudioClusterSandboxSyncJobsScheduled" />
-        <ref bean="cstudioClusterPublishedSyncJobsScheduled" />
-        <ref bean="cstudioClusterGlobalRepoSyncJobsScheduled" />
-        <ref bean="cstudioClusterNodeHeartbeatJobsScheduled" />
-        <ref bean="cstudioClusterNodeInactivityCheckJobsScheduled" />
-    </util:list>
+
 
     <!-- ////////////////////////////////////// -->
     <!--         workflow                       -->
@@ -1301,6 +1298,11 @@
         <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
+    <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
+        <constructor-arg name="clusterDao" ref="clusterDao" />
+        <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--         Asset Processing               -->
     <!-- ////////////////////////////////////// -->
@@ -1399,4 +1401,5 @@
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-tasks-context.xml"/>
 </beans>
