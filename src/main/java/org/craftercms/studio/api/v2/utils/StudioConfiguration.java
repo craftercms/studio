@@ -272,9 +272,6 @@ public interface StudioConfiguration {
     String AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_URL = "logoutUrl";
 
     /** Publishing Thread Pool **/
-    String PUBLISHING_THREAD_POOL_NAME_PREFIX = "studio.publishing.threadPool.namePrefix";
-    String PUBLISHING_THREAD_POOL_CORE_POOL_SIZE = "studio.publishing.threadPool.corePoolSize";
-    String PUBLISHING_THREAD_POOL_MAX_POOL_SIZE = "studio.publishing.threadPool.maxPoolSize";
     String PUBLISHING_SITE_LOCK_TTL = "studio.publishing.siteLock.ttl";
 
     /** Clustering **/
@@ -286,9 +283,6 @@ public interface StudioConfiguration {
     String CLUSTERING_GLOBAL_REPO_SYNC_JOB_INTERVAL = "studio.clustering.globalRepoSyncJob.interval";
     String CLUSTERING_HEARTBEAT_JOB_INTERVAL = "studio.clustering.heartbeatJob.interval";
     String CLUSTERING_INACTIVITY_CHECK_JOB_INTERVAL = "studio.clustering.inactivityCheckJob.interval";
-    String CLUSTERING_THREAD_POOL_NAME_PREFIX = "studio.clustering.threadPool.namePrefix";
-    String CLUSTERING_THREAD_POOL_CORE_POOL_SIZE = "studio.clustering.threadPool.corePoolSize";
-    String CLUSTERING_THREAD_POOL_MAX_POOL_SIZE = "studio.clustering.threadPool.maxPoolSize";
     String CLUSTERING_HEARTBEAT_STALE_TIME_LIMIT = "studio.clustering.heartbeatStale.timeLimit";
     String CLUSTERING_INACTIVITY_TIME_LIMIT = "studio.clustering.inactivity.timeLimit";
 
