@@ -332,6 +332,24 @@ public interface StudioConfiguration {
     String CONTENT_FILENAME_MAX_SIZE = "studio.content.filename.maxSize";
     String CONTENT_FULLPATH_MAX_SIZE = "studio.content.fullPath.maxSize";
 
+    /** Studio Clock Tasks **/
+    String CLOCK_JOB_FREQUENCY = "studio.clockJob.frequency";
+    String CLOCK_JOB_TASK_EXECUTOR_CORE_POOL_SIZE = "studio.clockJob.taskExecutor.corePoolSize";
+    String CLOCK_JOB_TASK_EXECUTOR_MAX_POOL_SIZE = "studio.clockJob.taskExecutor.maxPoolSize";
+    String CLOCK_JOB_TASK_EXECUTOR_QUEUE_CAPACITY = "studio.clockJob.taskExecutor.queueCapacity";
+    String CLOCK_JOB_TASK_CLUSTER_GLOBAL_REPO_SYNC_EXECUTE_EVERY_N_CYCLES =
+            "studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles";
+    String CLOCK_JOB_TASK_CLUSTER_SITE_SANDBOX_REPO_SYNC_EXECUTE_EVERY_N_CYCLES =
+            "studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles";
+    String CLOCK_JOB_TASK_CLUSTER_SITE_PUBLISHED_REPO_SYNC_EXECUTE_EVERY_N_CYCLES =
+            "studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles";
+    String CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES =
+            "studio.clockJob.task.syncRepository.executeEveryNCycles";
+    String CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES =
+            "studio.clockJob.task.publisher.executeEveryNCycles";
+    String CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT =
+            "studio.clockJob.task.publisher.maxRetryCount";
+
     void loadConfig();
 
     String getProperty(String key);

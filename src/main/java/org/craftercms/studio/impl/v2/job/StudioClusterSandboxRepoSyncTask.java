@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.job;
 
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -41,14 +40,11 @@ import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -89,7 +85,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
-public class StudioClusterSandboxRepoSyncTask extends StudioClockTask {
+public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClusterSandboxRepoSyncTask.class);
 
@@ -97,9 +93,11 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockTask {
     protected static final List<String> createdSites = new ArrayList<String>();
     protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
+    private StudioClusterUtils studioClusterUtils;
     private Deployer deployer;
     private DeploymentService deploymentService;
     private EventService eventService;
+    private ClusterDAO clusterDao;
 
     public StudioClusterSandboxRepoSyncTask(int executeEveryNCycles,
                                             StudioClusterUtils studioClusterUtils,
@@ -110,17 +108,16 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockTask {
                                             DeploymentService deploymentService,
                                             EventService eventService,
                                             ClusterDAO clusterDao) {
-        super(executeEveryNCycles, studioClusterUtils, studioConfiguration, contentRepository, siteService, clusterDao);
-
+        super(executeEveryNCycles, studioConfiguration, siteService, contentRepository);
+        this.studioClusterUtils = studioClusterUtils;
         this.deployer = deployer;
         this.deploymentService = deploymentService;
         this.eventService = eventService;
+        this.clusterDao = clusterDao;
     }
 
     @Override
     protected void executeInternal(String siteId) {
-        logger.error("Starting Cluster Node Sync Sandbox task for site " + siteId);
-
         // Lock site and begin sync
         if (lockSiteInternal(siteId)) {
             // Log start time

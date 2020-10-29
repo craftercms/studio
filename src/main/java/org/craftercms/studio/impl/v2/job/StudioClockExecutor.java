@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.job;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
@@ -34,21 +33,12 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.service.cluster.StudioNodeSyncPublishedTask;
-import org.eclipse.jgit.api.DeleteBranchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.Ref;
 import org.springframework.core.task.TaskExecutor;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +59,6 @@ public class StudioClockExecutor implements Job {
 
     private static boolean stopSignaled = false;
     private static boolean running = false;
-    private static long cycleCounter = 0;
-
-    public static synchronized void resetCounter() {
-        cycleCounter = 0;
-    }
 
     public static synchronized void signalToStop() {
         stopSignaled = true;
@@ -113,19 +98,18 @@ public class StudioClockExecutor implements Job {
 
     @Override
     public void execute() {
-        logger.error("RUNNING !!!!!");
         if (!stopSignaled) {
-            setRunning(true);
-            ++cycleCounter;
             if (singleWorkerLock.tryLock()) {
                 try {
+                    setRunning(true);
                     executeTasks();
                 } catch (Exception e) {
+                    logger.error("Error executing Studio Clock Job", e);
                 } finally {
+                    setRunning(false);
                     singleWorkerLock.unlock();
                 }
             }
-            setRunning(false);
         }
     }
 

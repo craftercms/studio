@@ -671,60 +671,114 @@
         <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
-    <!-- scheduled actions >
-    <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
+    <bean id="studioClockJob" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
-                <property name="targetObject" ref="cstudioDeployContentToEnvironmentJobs"/>
+                <property name="targetObject" ref="studio.clockExecutor"/>
                 <property name="targetMethod" value="execute"/>
                 <property name="concurrent" value="false"/>
             </bean>
         </property>
-        <property name="repeatInterval" value="10000" />
-        <property name="startDelay" value="2000" />
+        <property name="repeatInterval"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_FREQUENCY)}" />
     </bean>
 
-    <bean id="cstudioClusterSandboxSyncJobsScheduled"
-          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
-        <property name="jobDetail">
-            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
-                <property name="targetObject" ref="studioClusterSandboxSyncJob"/>
-                <property name="targetMethod" value="run"/>
-                <property name="concurrent" value="false"/>
-            </bean>
-        </property>
-        <property name="repeatInterval"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_SANDBOX_SYNC_JOB_INTERVAL)}" />
-        <property name="startDelay" value="0" />
+    <bean id="studio.clockExecutor" class="org.craftercms.studio.impl.v2.job.StudioClockExecutor">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="taskExecutor" ref="studio.clockTaskExecutor" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="deployer" ref="allDeployers" />
+        <constructor-arg name="globalTasks" ref="studio.clockTasksGlobal" />
+        <constructor-arg name="siteTasks" ref="studio.clockTasksSite" />
     </bean>
 
-    <bean id="cstudioClusterPublishedSyncJobsScheduled"
-          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
-        <property name="jobDetail">
-            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
-                <property name="targetObject" ref="studioClusterPublishedSyncJob"/>
-                <property name="targetMethod" value="run"/>
-                <property name="concurrent" value="false"/>
-            </bean>
-        </property>
-        <property name="repeatInterval"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_PUBLISHED_SYNC_JOB_INTERVAL)}" />
-        <property name="startDelay" value="0" />
+    <bean id="studio.clockTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"
+          destroy-method="shutdown">
+        <property name="corePoolSize"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_EXECUTOR_CORE_POOL_SIZE)}"/>
+        <property name="maxPoolSize"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_EXECUTOR_MAX_POOL_SIZE)}"/>
+        <property name="queueCapacity"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_EXECUTOR_QUEUE_CAPACITY)}"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="false" />
     </bean>
 
-    <bean id="cstudioClusterGlobalRepoSyncJobsScheduled"
-          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
-        <property name="jobDetail">
-            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
-                <property name="targetObject" ref="studioClusterGlobalRepoSyncJob"/>
-                <property name="targetMethod" value="run"/>
-                <property name="concurrent" value="false"/>
-            </bean>
-        </property>
-        <property name="repeatInterval"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_GLOBAL_REPO_SYNC_JOB_INTERVAL)}" />
-        <property name="startDelay" value="0" />
-    </bean -->
+    <util:list id="studio.clockTasksGlobal" list-class="java.util.ArrayList"
+               value-type="org.craftercms.studio.api.v1.job.Job">
+        <ref bean="studio.clockClusterGlobalRepoSync" />
+    </util:list>
+
+    <bean id="studio.clockClusterGlobalRepoSync"
+          class="org.craftercms.studio.impl.v2.job.StudioClusterGlobalRepoSyncTask">
+        <constructor-arg name="executeEveryNCycles"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_GLOBAL_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+    </bean>
+
+    <util:list id="studio.clockTasksSite" list-class="java.util.ArrayList"
+               value-type="org.craftercms.studio.api.v2.job.SiteJob">
+        <ref bean="studio.clockClusterSiteSandboxRepoSync" />
+        <ref bean="studio.clockClusterSitePublishedRepoSync" />
+        <ref bean="studio.clockSyncRepositoryTask" />
+        <ref bean="studio.clockPublisherTask" />
+    </util:list>
+
+    <bean id="studio.clockClusterSiteSandboxRepoSync"
+          class="org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask">
+        <constructor-arg name="executeEveryNCycles"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_SITE_SANDBOX_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="deployer" ref="allDeployers" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="deploymentService" ref="cstudioDeploymentService" />
+        <constructor-arg name="eventService" ref="studioEventService" />
+        <constructor-arg name="clusterDao" ref="clusterDao" />
+    </bean>
+
+    <bean id="studio.clockClusterSitePublishedRepoSync"
+          class="org.craftercms.studio.impl.v2.job.StudioClusterPublishedRepoSyncTask">
+        <constructor-arg name="executeEveryNCycles"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_SITE_PUBLISHED_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="clusterDao" ref="clusterDao" />
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
+    </bean>
+
+    <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
+        <constructor-arg name="executeEveryNCycles"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+    </bean>
+
+    <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
+        <constructor-arg name="executeEveryNCycles"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="maxRetryCounter"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT)}" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="publishingManager" ref="cstudioPublishingManager" />
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
+        <constructor-arg name="notificationService" ref="cstudioNotificationService" />
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
+    </bean>
+
+    <util:list id="crafter.jobTriggers">
+        <ref bean="studioClockJob" />
+        <ref bean="studioRepositoryCleanupJobTrigger"/>
+        <ref bean="cstudioClusterNodeHeartbeatJobsScheduled" />
+        <ref bean="cstudioClusterNodeInactivityCheckJobsScheduled" />
+    </util:list>
 
     <bean id="cstudioClusterNodeHeartbeatJobsScheduled"
           class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
@@ -1401,5 +1455,4 @@
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
-    <import resource="classpath:crafter/studio/studio-tasks-context.xml"/>
 </beans>

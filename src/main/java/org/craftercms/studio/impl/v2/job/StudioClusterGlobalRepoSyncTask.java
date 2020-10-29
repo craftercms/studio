@@ -73,22 +73,39 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     private static ReentrantLock singleWorkerLock = new ReentrantLock();
     private static Map<String, String> existingRemotes = new HashMap<String, String>();
 
+    private int executeEveryNCycles;
+    private int counter;
     private StudioClusterUtils studioClusterUtils;
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
 
-    public StudioClusterGlobalRepoSyncTask(StudioClusterUtils studioClusterUtils,
+
+
+    public StudioClusterGlobalRepoSyncTask(int executeEveryNCycles,
+                                           StudioClusterUtils studioClusterUtils,
                                            StudioConfiguration studioConfiguration,
                                            ContentRepository contentRepository) {
+        this.executeEveryNCycles = executeEveryNCycles;
+        this.counter = executeEveryNCycles;
         this.studioClusterUtils = studioClusterUtils;
         this.studioConfiguration = studioConfiguration;
         this.contentRepository = contentRepository;
     }
 
+    private synchronized boolean checkCycleCounter() {
+        return !(--counter > 0);
+    }
+
     @Override
     public void execute() {
-        logger.error("Starting Cluster Node Sync Global repo task");
+        logger.error("Cycle counter: " + counter);
+        if (checkCycleCounter()) {
+            executeInternal();
+            counter = executeEveryNCycles;
+        }
+    }
 
+    private void executeInternal() {
         // Lock site and begin sync
         if (singleWorkerLock.tryLock()) {
             // Log start time
