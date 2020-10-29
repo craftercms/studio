@@ -45,10 +45,7 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClockClusterTask.class);
 
-    protected int counter;
-    protected StudioConfiguration studioConfiguration;
-    protected  ContentRepository contentRepository;
-    protected SiteService siteService;
+    protected ContentRepository contentRepository;
 
 
     protected abstract Path buildRepoPath(String site);

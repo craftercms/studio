@@ -98,7 +98,6 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
 
     @Override
     public void execute() {
-        logger.error("Cycle counter: " + counter);
         if (checkCycleCounter()) {
             executeInternal();
             counter = executeEveryNCycles;

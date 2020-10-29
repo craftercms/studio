@@ -554,12 +554,6 @@ studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-d
 ################################################################
 ##                   Publishing Thread Pool                   ##
 ################################################################
-# Thread name prefix
-studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
-# Thread pool size
-studio.publishing.threadPool.corePoolSize: 10
-# Thread pool max size
-studio.publishing.threadPool.maxPoolSize: 20
 # Publishing lock TTL in minutes
 studio.publishing.siteLock.ttl: 180
 
@@ -584,12 +578,6 @@ studio.clustering.globalRepoSyncJob.interval: 45000
 studio.clustering.heartbeatJob.interval: 10000
 # Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
 studio.clustering.inactivityCheckJob.interval: 30000
-# Thread name prefix
-studio.clustering.threadPool.namePrefix: Studio_Clustering_Thread_Pool
-# Thread pool size
-studio.clustering.threadPool.corePoolSize: 10
-# Thread pool max size
-studio.clustering.threadPool.maxPoolSize: 20
 # Cluster member after heartbeat stale for amount of minutes will be declared inactive
 studio.clustering.heartbeatStale.timeLimit: 5
 # Cluster member after being inactive for amount of minutes will be removed from cluster
