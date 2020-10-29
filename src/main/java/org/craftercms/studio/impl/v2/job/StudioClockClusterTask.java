@@ -59,34 +59,6 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
         this.contentRepository = contentRepository;
     }
 
-    protected boolean checkIfSiteRepoExists(String siteId) {
-        boolean toRet = false;
-        if (getCreatedSites().contains(siteId)) {
-            toRet = true;
-        } else {
-            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
-            if (!StringUtils.isEmpty(firstCommitId)) {
-                toRet = true;
-                getCreatedSites().add(siteId);
-            } else {
-                Repository repo = null;
-                FileRepositoryBuilder builder = new FileRepositoryBuilder();
-                try {
-                    repo = builder
-                            .setMustExist(true)
-                            .setGitDir(buildRepoPath(siteId).resolve(GIT_ROOT).toFile())
-                            .readEnvironment()
-                            .findGitDir()
-                            .build();
-                } catch (IOException e) {
-                    logger.info("Failed to open repo for site " + siteId);
-                }
-                toRet = Objects.nonNull(repo) && repo.getObjectDatabase().exists();
-            }
-        }
-        return toRet;
-    }
-
     protected void removeRemote(Git git, String remoteName) throws GitAPIException {
         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
         remoteRemoveCommand.setRemoteName(remoteName);
