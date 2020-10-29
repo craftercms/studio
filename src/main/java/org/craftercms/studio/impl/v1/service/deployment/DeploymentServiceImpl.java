@@ -65,7 +65,6 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.text.SimpleDateFormat;
@@ -119,7 +118,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DmPublishService dmPublishService;
     protected SecurityService securityService;
     protected EventService eventService;
-    protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
     protected NotificationService notificationService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected StudioConfiguration studioConfiguration;
@@ -417,27 +415,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     @ValidateParams
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
-        signalWorkersToStop();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         publishRequestMapper.deleteDeploymentDataForSite(params);
-        signalWorkersToContinue();
-    }
-
-
-    private void signalWorkersToContinue() {
-        DeployContentToEnvironmentStore.signalToStop(false);
-    }
-
-    private void signalWorkersToStop() {
-        DeployContentToEnvironmentStore.signalToStop(true);
-        while (DeployContentToEnvironmentStore.isRunning()) {
-            try {
-                wait(1000);
-            } catch (InterruptedException e) {
-                logger.info("Interrupted while waiting to stop workers", e);
-            }
-        }
     }
 
     @Override
@@ -1027,14 +1007,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.securityService = securityService;
     }
 
-    public DeployContentToEnvironmentStore getDeployContentToEnvironmentStoreJob() {
-        return deployContentToEnvironmentStoreJob;
-    }
-
-    public void setDeployContentToEnvironmentStoreJob(
-            DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob) {
-        this.deployContentToEnvironmentStoreJob = deployContentToEnvironmentStoreJob;
-    }
 
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;

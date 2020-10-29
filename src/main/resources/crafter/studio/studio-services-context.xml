@@ -169,7 +169,6 @@
          <property name="contentRepository" ref="contentRepository"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="securityService" ref="cstudioSecurityService"/>
-         <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
          <property name="notificationService" ref="cstudioNotificationService"/>
          <property name="eventService" ref="studioEventService"/>
          <property name="deploymentHistoryProvider" ref="contentRepository"/>
@@ -572,88 +571,6 @@
 
     <!-- continue refactoring -->
     <!-- Jobs -->
-
-    <bean id="studioPublisherTaskExecutor"
-          class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
-        <property name="corePoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).PUBLISHING_THREAD_POOL_CORE_POOL_SIZE)}" />
-        <property name="maxPoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).PUBLISHING_THREAD_POOL_MAX_POOL_SIZE)}" />
-        <property name="threadNamePrefix"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).PUBLISHING_THREAD_POOL_NAME_PREFIX)}" />
-    </bean>
-
-    <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore">
-        <property name="publishingManager" ref="cstudioPublishingManager" />
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="notificationService" ref="cstudioNotificationService"/>
-        <property name="eventService" ref="studioEventService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="taskExecutor" ref="studioPublisherTaskExecutor" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="encryptor" ref="crafter.textEncryptor" />
-        <property name="deployer" ref="previewDeployer" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
-        <property name="contentRepositoryV1" ref="contentRepository" />
-    </bean>
-
-    <bean id="studioNodeSyncTaskExecutor"
-          class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
-        <property name="corePoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_THREAD_POOL_CORE_POOL_SIZE)}" />
-        <property name="maxPoolSize"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_THREAD_POOL_MAX_POOL_SIZE)}" />
-        <property name="threadNamePrefix"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLUSTERING_THREAD_POOL_NAME_PREFIX)}" />
-    </bean>
-
-    <bean id="studioClusterSandboxSyncJob"
-          class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
-        <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="deployer" ref="allDeployers" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="repositoryType" value="SANDBOX" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
-        <property name="eventService" ref="studioEventService" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
-    </bean>
-
-    <bean id="studioClusterPublishedSyncJob"
-          class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
-        <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="deployer" ref="allDeployers" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="repositoryType" value="PUBLISHED" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
-    </bean>
-
-    <bean id="studioClusterGlobalRepoSyncJob"
-          class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
-        <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="deployer" ref="allDeployers" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="repositoryType" value="GLOBAL" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
-    </bean>
-
     <bean id="studioClusterNodeHeartbeatJob"
           class="org.craftercms.studio.impl.v2.service.cluster.StudioNodeHeartbeatJob">
         <property name="studioConfiguration" ref="studioConfiguration" />
