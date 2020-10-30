@@ -48,7 +48,7 @@
 
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
-        <studio.ui.node.version>v13.6.0</studio.ui.node.version>
+        <studio.ui.node.version>v15.0.1</studio.ui.node.version>
         <studio.ui.yarn.version>v1.22.4</studio.ui.yarn.version>
     </properties>
 
