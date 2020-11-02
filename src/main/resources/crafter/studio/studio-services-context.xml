@@ -636,6 +636,9 @@
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="clusterDao" ref="clusterDao" />
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
+        <constructor-arg name="encryptor" ref="internalTextEncryptor" />
     </bean>
 
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
