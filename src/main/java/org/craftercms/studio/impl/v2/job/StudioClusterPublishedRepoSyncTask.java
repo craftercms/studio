@@ -20,6 +20,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -28,9 +29,12 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -90,6 +94,9 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     private StudioClusterUtils studioClusterUtils;
     private ClusterDAO clusterDao;
     private ServicesConfig servicesConfig;
+    private SecurityService securityService;
+    private UserServiceInternal userServiceInternal;
+    private TextEncryptor encryptor;
 
     public StudioClusterPublishedRepoSyncTask(int executeEveryNCycles,
                                               StudioClusterUtils studioClusterUtils,
@@ -97,13 +104,18 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                               ContentRepository contentRepository,
                                               SiteService siteService,
                                               ClusterDAO clusterDao,
-                                              ServicesConfig servicesConfig) {
+                                              ServicesConfig servicesConfig,
+                                              SecurityService securityService,
+                                              UserServiceInternal userServiceInternal,
+                                              TextEncryptor encryptor) {
 
         super(executeEveryNCycles, studioConfiguration, siteService, contentRepository);
         this.studioClusterUtils = studioClusterUtils;
         this.clusterDao = clusterDao;
         this.servicesConfig = servicesConfig;
-
+        this.securityService = securityService;
+        this.userServiceInternal = userServiceInternal;
+        this.encryptor = encryptor;
     }
 
     @Override
@@ -128,7 +140,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
 
                         if (!siteCheck) {
                             // Site doesn't exist locally, create it
-                            success = createSite(siteId, siteFeed.getSiteUuid(), siteFeed.getSearchEngine(), clusterNodes);
+                            success = createSite(siteId, siteFeed.getSandboxBranch());
                         }
                     } else {
                         success = false;
@@ -230,17 +242,19 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         return createdSites;
     }
 
-    protected boolean createSite(String siteId, String siteUuid, String searchEngine, List<ClusterMember> clusterNodes) {
+    protected boolean createSite(String siteId, String sandboxBranch) {
         boolean result = true;
 
         if (result) {
             try {
                 logger.debug("Create " + PUBLISHED.name() + " repository from remote for site " + siteId);
-                result = createSiteFromRemote(siteId, clusterNodes);
+                GitRepositoryHelper helper =
+                        GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+                result = helper.createPublishedRepository(siteId, sandboxBranch);
                 if (result) {
                     createdSites.add(siteId);
                 }
-            } catch (ServiceLayerException | CryptoException  e) {
+            } catch (CryptoException e) {
                 logger.error("Error while creating site on cluster node for site : " + siteId +
                         ". Rolling back.", e);
                 result = false;
@@ -254,116 +268,6 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         }
 
         return result;
-    }
-
-    protected boolean createSiteFromRemote(String siteId, List<ClusterMember> clusterNodes)
-            throws CryptoException, ServiceLayerException {
-        // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
-        // we will eventually to catch up to the latest
-        boolean cloned = false;
-        int idx = 0;
-        while (!cloned && idx < clusterNodes.size()) {
-            ClusterMember remoteNode = clusterNodes.get(idx++);
-            logger.debug("Cloning PUBLISHED repository for site " + siteId +
-                    " from " + remoteNode.getLocalAddress());
-
-            // prepare a new folder for the cloned repository
-            Path siteSandboxPath = buildRepoPath(siteId);
-            File localPath = siteSandboxPath.toFile();
-            localPath.delete();
-            // then clone
-            logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
-            CloneCommand cloneCommand = Git.cloneRepository();
-            Git cloneResult = null;
-
-            try {
-                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                logger.debug("Add user credentials if provided");
-
-                studioClusterUtils.configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
-
-                String cloneUrl = remoteNode.getGitUrl().replace("{siteId}", siteId);
-                cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(PUBLISHED_PATH);
-
-                logger.debug("Executing clone command");
-                cloneResult = cloneCommand
-                        .setURI(cloneUrl)
-                        .setRemote(remoteNode.getGitRemoteName())
-                        .setDirectory(localPath)
-                        .setCloneAllBranches(true)
-                        .call();
-                Files.deleteIfExists(tempKey);
-
-                logger.debug("If cloned repo was published repo, than add local sandbox as origin");
-                try {
-                    addOriginRemote(siteId);
-                } catch (InvalidRemoteUrlException e) {
-                    logger.error("Failed to add sandbox as origin");
-                }
-                cloned = true;
-
-            } catch (InvalidRemoteException e) {
-                logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
-                        " (" + remoteNode.getGitUrl() + ")", e);
-            } catch (TransportException e) {
-                if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                    logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
-                            " (" + remoteNode.getGitUrl() + ")", e);
-                } else {
-                    logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
-                            " (" + remoteNode.getGitUrl() + ")", e);
-                }
-            } catch (GitAPIException | IOException e) {
-                logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
-            } finally {
-                if (cloneResult != null) {
-                    cloneResult.close();
-                }
-            }
-        }
-        return cloned;
-    }
-    protected void addOriginRemote(String siteId) throws IOException, InvalidRemoteUrlException, ServiceLayerException {
-        logger.debug("Add sandbox as origin to published repo");
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repo = builder
-                .setGitDir(buildRepoPath(siteId).resolve(GIT_ROOT).toFile())
-                .readEnvironment()
-                .findGitDir()
-                .build();
-        // Build a path for the site/sandbox
-        Path siteSandboxPath = buildSandboxRepoPath(siteId);
-        // Built a path for the site/published
-        Path sitePublishedPath = buildRepoPath(siteId);
-        String remoteUrl = sitePublishedPath.relativize(siteSandboxPath).toString();
-        try (Git git = new Git(repo)) {
-
-            Config storedConfig = repo.getConfig();
-            Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
-
-            if (remotes.contains(DEFAULT_REMOTE_NAME)) {
-                return;
-            }
-
-            RemoteAddCommand remoteAddCommand = git.remoteAdd();
-            remoteAddCommand.setName(DEFAULT_REMOTE_NAME);
-            remoteAddCommand.setUri(new URIish(remoteUrl));
-            remoteAddCommand.call();
-        } catch (URISyntaxException e) {
-            logger.error("Remote URL is invalid " + remoteUrl, e);
-            throw new InvalidRemoteUrlException();
-        } catch (GitAPIException e) {
-            logger.error("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl + ") for site " +
-                    siteId, e);
-            throw new ServiceLayerException("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl +
-                    ") for site " + siteId, e);
-        }
-    }
-
-    protected Path buildSandboxRepoPath(String siteId) {
-        return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                studioConfiguration.getProperty(SANDBOX_PATH));
     }
 
     protected void addRemotes(String siteId, List<ClusterMember> clusterNodes) throws InvalidRemoteUrlException,
