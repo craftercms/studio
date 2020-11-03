@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
@@ -122,12 +123,17 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                     // Check if site exists
                     logger.debug("Check if site " + siteId + " exists in local repository");
                     boolean success = true;
-                    boolean siteCheck = checkIfSiteRepoExists(siteId);
+                    if (siteFeed.isSitePublishedRepoCreated()) {
+                        boolean siteCheck = checkIfSiteRepoExists(siteId);
 
-                    if (!siteCheck) {
-                        // Site doesn't exist locally, create it
-                        success = createSite(siteId, siteFeed.getSiteUuid(), siteFeed.getSearchEngine(), clusterNodes);
+                        if (!siteCheck) {
+                            // Site doesn't exist locally, create it
+                            success = createSite(siteId, siteFeed.getSiteUuid(), siteFeed.getSearchEngine(), clusterNodes);
+                        }
+                    } else {
+                        success = false;
                     }
+
 
                     if (success) {
 
@@ -182,6 +188,34 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         if (singleWorkerLock != null) {
             singleWorkerLock.unlock();
         }
+    }
+
+    protected boolean checkIfSiteRepoExists(String siteId) {
+        boolean toRet = false;
+        if (getCreatedSites().contains(siteId)) {
+            toRet = true;
+        } else {
+            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
+            if (!StringUtils.isEmpty(firstCommitId)) {
+                Repository repo = null;
+                FileRepositoryBuilder builder = new FileRepositoryBuilder();
+                try {
+                    repo = builder
+                            .setMustExist(true)
+                            .setGitDir(buildRepoPath(siteId).resolve(GIT_ROOT).toFile())
+                            .readEnvironment()
+                            .findGitDir()
+                            .build();
+                } catch (IOException e) {
+                    logger.info("Failed to open PUBLISHED repo for site " + siteId);
+                }
+                toRet = Objects.nonNull(repo) && repo.getObjectDatabase().exists();
+                if (toRet) {
+                    createdSites.add(siteId);
+                }
+            }
+        }
+        return toRet;
     }
 
     @Override

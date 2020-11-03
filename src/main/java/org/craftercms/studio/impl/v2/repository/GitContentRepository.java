@@ -865,10 +865,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             GitRepositoryHelper helper =
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Repository repo = helper.getRepository(site, PUBLISHED);
+            boolean repoCreated = false;
             if (Objects.isNull(repo)) {
                 helper.createPublishedRepository(site, sandboxBranch);
                 repo = helper.getRepository(site, PUBLISHED);
-                siteFeedMapper.setPublishedRepoCreated(site);
+                repoCreated = Objects.nonNull(repo);
             }
             String path = EMPTY;
             String sandboxBranchName = sandboxBranch;
@@ -1102,6 +1103,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
                     git.close();
+                    if (repoCreated) {
+                        siteFeedMapper.setPublishedRepoCreated(site);
+                    }
                 }
             }
         } catch (Exception e) {
