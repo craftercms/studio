@@ -28,6 +28,8 @@ public abstract class QueryParameterNames {
     public static final String SORT = "sort";
 
     public static final String ORDER = "order";
+    // commit id
+    public static final String COMMIT_ID = "commitId";
 
     /* Organizations */
 
@@ -102,6 +104,10 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_ID = "clusterId";
     // remote repository id
     public static final String REMOTE_REPOSITORY_ID = "remoteRepositoryId";
+    // node last commit id
+    public static final String NODE_LAST_COMMIT_ID = "nodeLastCommitId";
+    // cluster id
+    public static final String NODE_LAST_VERIFIED_GITLOG_COMMIT_ID = "nodeLastVerifiedGitlogCommitId";
 
     /* Publish request */
     // Environment

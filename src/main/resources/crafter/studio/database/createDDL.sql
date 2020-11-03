@@ -117,6 +117,26 @@ BEGIN
     SELECT locked;
 END ;
 
+CREATE PROCEDURE tryLockSyncRepoForSite(
+    IN siteId VARCHAR(50),
+    IN lockOwnerId VARCHAR(255),
+    IN ttl INT,
+    OUT locked INT)
+BEGIN
+    DECLARE v_lock_owner_id VARCHAR(255);
+    DECLARE v_lock_heartbeat DATETIME;
+    SELECT site_repo_lock_owner, site_repo_lock_heartbeat INTO  v_lock_owner_id, v_lock_heartbeat FROM site
+    WHERE site_id = siteId and deleted = 0;
+    SET locked = 0;
+    IF (v_lock_owner_id IS NULL OR v_lock_owner_id = '' OR v_lock_owner_id = lockOwnerId OR DATE_ADD(v_lock_heartbeat, INTERVAL ttl MINUTE) < CURRENT_TIMESTAMP)
+    THEN
+        UPDATE site SET site_repo_lock_owner = lockOwnerId, site_repo_lock_heartbeat = CURRENT_TIMESTAMP WHERE
+                                                                                                               site_id = siteId and deleted = 0;
+        SET locked = 1;
+    END IF;
+    SELECT locked;
+END ;
+
 CREATE TABLE _meta (
   `version` VARCHAR(10) NOT NULL,
   `integrity` BIGINT(10),
@@ -124,7 +144,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.10.5', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.10.11', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -249,6 +269,8 @@ CREATE TABLE IF NOT EXISTS `site` (
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       DATETIME      NULL,
+  `sync_repo_lock_owner`            VARCHAR(255)  NULL,
+  `sync_repo_lock_heartbeat`        DATETIME      NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),
@@ -475,6 +497,22 @@ CREATE TABLE IF NOT EXISTS cluster_remote_repository
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
+(
+    `cluster_node_id`                 BIGINT(20)    NOT NULL,
+    `site_id`                         BIGINT(20)    NOT NULL,
+    `node_last_commit_id`                  VARCHAR(50)   NULL,
+    `node_last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
+    PRIMARY KEY (`cluster_node_id`, `site_id`),
+    FOREIGN KEY cluster_site_ix_cluster_id(`cluster_node_id`) REFERENCES `cluster` (`id`)
+        ON DELETE CASCADE,
+    FOREIGN KEY cluster_site_ix_remote_id(`site_id`) REFERENCES `site` (`id`)
+        ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 
 INSERT IGNORE INTO site (site_id, name, description, system)
