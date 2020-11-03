@@ -85,7 +85,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
-            String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
+            String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
             if (StringUtils.isNotEmpty(lastProcessedCommit)) {
                 logger.debug("Syncing database with repository for site " + site + " from last processed commit "
                         + lastProcessedCommit);

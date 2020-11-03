@@ -123,6 +123,8 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
+        <property name="studioClusterUtils" ref="studio.clusterUtils" />
+        <property name="clusterDao" ref="clusterDao" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -660,6 +662,7 @@
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
         <constructor-arg name="notificationService" ref="cstudioNotificationService" />
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
+        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
     </bean>
 
     <util:list id="crafter.jobTriggers">

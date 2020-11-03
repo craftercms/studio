@@ -17,8 +17,6 @@
 package org.craftercms.studio.impl.v2.job;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
@@ -38,9 +36,8 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -51,22 +48,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_PUBLISHING_LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
 
 public class StudioPublisherTask extends StudioClockTask {
 
@@ -83,6 +75,7 @@ public class StudioPublisherTask extends StudioClockTask {
     private NotificationService notificationService;
     private AuditServiceInternal auditServiceInternal;
     private int maxRetryCounter;
+    private StudioClusterUtils studioClusterUtils;
 
     public StudioPublisherTask(int executeEveryNCycles,
                                StudioConfiguration studioConfiguration,
@@ -92,7 +85,8 @@ public class StudioPublisherTask extends StudioClockTask {
                                ServicesConfig servicesConfig,
                                NotificationService notificationService,
                                AuditServiceInternal auditServiceInternal,
-                               int maxRetryCounter) {
+                               int maxRetryCounter,
+                               StudioClusterUtils studioClusterUtils) {
         super(executeEveryNCycles, studioConfiguration, siteService);
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
@@ -102,15 +96,19 @@ public class StudioPublisherTask extends StudioClockTask {
         this.notificationService = notificationService;
         this.auditServiceInternal = auditServiceInternal;
         this.maxRetryCounter = maxRetryCounter;
+        this.studioClusterUtils = studioClusterUtils;
     }
 
     @Override
     protected void executeInternal(String siteId) {
         String env = null;
+        String lockOwnerId = studioClusterUtils.getLockOwnerId();
+        int lockTTL = studioClusterUtils.getLockTTL();
         try {
+
             // Check publishing lock status
-            logger.debug("Try to lock site " + siteId + " for publishing by lock owner " + getLockOwnerId());
-            if (siteService.tryLockPublishingForSite(siteId, getLockOwnerId(), getLockTTL())) {
+            logger.debug("Try to lock site " + siteId + " for publishing by lock owner " + lockOwnerId);
+            if (siteService.tryLockPublishingForSite(siteId, lockOwnerId, lockTTL)) {
 
                 if (contentRepository.repositoryExists(siteId) && siteService.isPublishingEnabled(siteId)) {
                     if (!publishingManager.isPublishingBlocked(siteId)) {
@@ -199,8 +197,8 @@ public class StudioPublisherTask extends StudioClockTask {
             publishingManager.resetProcessingQueue(siteId, env);
         } finally {
             // Unlock publishing if queue does not have packages ready for publishing
-            logger.debug("Unlocking publishing for site " + siteId + " by lock owner " + getLockOwnerId());
-            siteService.unlockPublishingForSite(siteId, getLockOwnerId());
+            logger.debug("Unlocking publishing for site " + siteId + " by lock owner " + lockOwnerId);
+            siteService.unlockPublishingForSite(siteId, lockOwnerId);
         }
     }
 
@@ -408,27 +406,6 @@ public class StudioPublisherTask extends StudioClockTask {
         boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(
                 JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
         return toReturn;
-    }
-
-    private String getLockOwnerId() {
-        HierarchicalConfiguration<ImmutableNode> clusterConfig =
-                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
-        String clusterNodeId = StringUtils.EMPTY;
-        if (Objects.nonNull(clusterConfig)) {
-            clusterNodeId = clusterConfig.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-        }
-        if  (StringUtils.isEmpty(clusterNodeId)) {
-            try {
-                clusterNodeId = InetAddress.getLocalHost().toString();
-            } catch (UnknownHostException e) {
-                clusterNodeId = DEFAULT_PUBLISHING_LOCK_OWNER_ID;
-            }
-        }
-        return clusterNodeId;
-    }
-
-    private int getLockTTL() {
-        return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {

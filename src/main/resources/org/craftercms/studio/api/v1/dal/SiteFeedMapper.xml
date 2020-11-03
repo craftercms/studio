@@ -85,8 +85,20 @@
         UPDATE site SET last_commit_id = #{lastCommitId} WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
-    <select id="getLastCommitId" parameterType="java.util.Map" resultType="java.lang.String">
-        SELECT last_commit_id FROM site WHERE site_id = #{siteId} AND deleted = 0
+    <select id="getLastCommitId" resultType="java.lang.String">
+        SELECT IFNULL(cs.node_last_commit_id, s.last_commit_id)
+        FROM site s LEFT JOIN
+            (SELECT * FROM cluster c INNER JOIN cluster_site_sync_repo cssr ON c.id = cssr.cluster_node_id
+                WHERE c.local_address = #{localAddress}) AS cs ON s.id = cs.site_id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+    </select>
+
+    <select id="getLastVerifiedGitlogCommitId" resultType="java.lang.String">
+        SELECT IFNULL(cs.node_last_verified_gitlog_commit_id, s.last_verified_gitlog_commit_id)
+        FROM site s LEFT JOIN
+             (SELECT * FROM cluster c INNER JOIN cluster_site_sync_repo cssr ON c.id = cssr.cluster_node_id
+              WHERE c.local_address = #{localAddress}) AS cs ON s.id = cs.site_id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
 
     <select id="exists" parameterType="java.lang.String" resultType="int">
@@ -155,6 +167,10 @@
         call tryLockPublishingForSite(#{siteId}, #{lockOwnerId}, #{ttl},#{locked, jdbcType=INTEGER,mode=OUT,javaType=Integer})
     </select>
 
+    <select id="tryLockSyncRepoForSite" statementType="CALLABLE" resultType="int">
+        call tryLockSyncRepoForSite(#{siteId}, #{lockOwnerId}, #{ttl},#{locked, jdbcType=INTEGER,mode=OUT,javaType=Integer})
+    </select>
+
     <update id="unlockPublishingForSite">
         UPDATE site SET publishing_lock_owner = NULL, publishing_lock_heartbeat = NULL
         WHERE site_id = #{siteId} AND deleted = 0 AND publishing_lock_owner = #{lockOwnerId};
@@ -162,6 +178,16 @@
 
     <update id="updatePublishingLockHeartbeatForSite">
         UPDATE site SET publishing_lock_heartbeat = CURRENT_TIMESTAMP
+        WHERE site_id = #{siteId} AND deleted = 0;
+    </update>
+
+    <update id="unlockSyncRepoForSite">
+        UPDATE site SET sync_repo_lock_owner = NULL, sync_repo_lock_heartbeat = NULL
+        WHERE site_id = #{siteId} AND deleted = 0 AND sync_repo_lock_owner = #{lockOwnerId};
+    </update>
+
+    <update id="updateSyncRepoLockHeartbeatForSite">
+        UPDATE site SET sync_repo_lock_heartbeat = CURRENT_TIMESTAMP
         WHERE site_id = #{siteId} AND deleted = 0;
     </update>
 </mapper>
