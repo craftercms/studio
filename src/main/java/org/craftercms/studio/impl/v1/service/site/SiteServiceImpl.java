@@ -1080,8 +1080,6 @@ public class SiteServiceImpl implements SiteService {
 		if (!exists(site)) {
 			throw new SiteNotFoundException();
 		} else {
-			Map<String, Object> params = new HashMap<String, Object>();
-			params.put("siteId", site);
 			String lastDbCommitId =
                     siteFeedMapper.getLastCommitId(site, studioClusterUtils.getClusterNodeLocalAddress());
 			if (lastDbCommitId != null) {
