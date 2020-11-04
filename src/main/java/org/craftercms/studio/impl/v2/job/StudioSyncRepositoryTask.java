@@ -56,7 +56,6 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 syncRepository(site);
             } catch (Exception e) {
                 logger.error("Failed to sync database from repository for site " + site, e);
-                siteService.enablePublishing(site, false);
             }
         } catch (Exception e) {
             logger.error("Failed to sync database from repository for site " + site, e);
