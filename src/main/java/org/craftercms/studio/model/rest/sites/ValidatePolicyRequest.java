@@ -13,37 +13,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.exception.validation;
+package org.craftercms.studio.model.rest.sites;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.model.policy.Action;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
- * Base exception for all data validations
+ * Holds all data for requesting a site policy validation
  *
  * @author joseross
  * @since 3.2.0
  */
-public class ValidationException extends ServiceLayerException {
+public class ValidatePolicyRequest {
 
-    protected String modifiedValue;
+    /**
+     * List of actions to validate
+     */
+    @NotEmpty
+    protected List<@Valid Action> actions;
 
-    public ValidationException() {
+    public List<Action> getActions() {
+        return actions;
     }
 
-    public ValidationException(String message) {
-        super(message);
-    }
-
-    public ValidationException(String message, Exception e) {
-        super(message, e);
-    }
-
-    public String getModifiedValue() {
-        return modifiedValue;
-    }
-
-    public void setModifiedValue(String modifiedValue) {
-        this.modifiedValue = modifiedValue;
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 
 }

@@ -13,37 +13,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.exception.validation;
+package org.craftercms.studio.impl.v2.service.policy;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.studio.api.v2.exception.validation.ValidationException;
+import org.craftercms.studio.model.policy.Action;
 
 /**
- * Base exception for all data validations
+ * Validates actions against the given configuration
  *
  * @author joseross
  * @since 3.2.0
  */
-public class ValidationException extends ServiceLayerException {
+public interface PolicyValidator {
 
-    protected String modifiedValue;
-
-    public ValidationException() {
-    }
-
-    public ValidationException(String message) {
-        super(message);
-    }
-
-    public ValidationException(String message, Exception e) {
-        super(message, e);
-    }
-
-    public String getModifiedValue() {
-        return modifiedValue;
-    }
-
-    public void setModifiedValue(String modifiedValue) {
-        this.modifiedValue = modifiedValue;
-    }
+    /**
+     * Performs the validation of an action
+     *
+     * @param config the policy configuration
+     * @param action the action to validate
+     * @throws ValidationException if the validation fails
+     */
+    void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException;
 
 }

@@ -6491,6 +6491,10 @@ components:
               source:
                 type: string
                 description: The source value, only needed for recursive COPY, MOVE and RENAME actions
+              fileSize:
+                type: integer
+                format: int64
+                description: The size of the file in bytes, only needed for CREATE actions
               contentType:
                 type: string
                 description: The id of the crafter content type, only needed for CREATE actions
