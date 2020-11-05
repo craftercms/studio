@@ -139,6 +139,10 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                         // Site doesn't exist locally, create it
                         success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSiteUuid(),
                                 siteFeed.getSearchEngine(), clusterNodes);
+                    } else {
+                        if (clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
+                            clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), null, null);
+                        }
                     }
 
                     if (success) {

@@ -203,6 +203,7 @@ public interface ClusterDAO {
 
     /**
      * get last commit id for node
+     * @param clusterNodeId cluster node identifier
      * @param siteId site identifier
      * @return last commit id for local studio node
      */
@@ -210,8 +211,17 @@ public interface ClusterDAO {
 
     /**
      * get last verified git log commit id for site
+     * @param clusterNodeId cluster node identifier
      * @param siteId site identifier
      * @return last verified git log commit id for local studio node
      */
     String getNodeLastVerifiedGitlogCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
+
+    /**
+     * Check if sync markers exists in DB
+     * @param clusterNodeId cluster node identifier
+     * @param siteId site identifier
+     * @return
+     */
+    int existsClusterSiteSyncRepo(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
 }
