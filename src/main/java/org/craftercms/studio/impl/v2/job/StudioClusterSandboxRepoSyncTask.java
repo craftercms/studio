@@ -127,6 +127,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
                 if (registrationData != null && !registrationData.isEmpty()) {
                     String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                    ClusterMember localNode = clusterDao.getMemberByLocalAddress(localAddress);
                     List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
                     SiteFeed siteFeed = siteService.getSite(siteId);
                     // Check if site exists
@@ -136,7 +137,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
                     if (!siteCheck) {
                         // Site doesn't exist locally, create it
-                        success = createSite(siteId, siteFeed.getSiteUuid(), siteFeed.getSearchEngine(), clusterNodes);
+                        success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSiteUuid(),
+                                siteFeed.getSearchEngine(), clusterNodes);
                     }
 
                     if (success) {
@@ -161,7 +163,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                             try {
                                 // Sync with remote and update the local cache with the last commit ID to speed things up
                                 logger.debug("Update content for site " + siteId);
-                                updateContent(siteId, siteFeed.getLastCommitId(), clusterNodes);
+                                updateContent(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getLastCommitId(),
+                                        clusterNodes);
                             } catch (IOException | CryptoException | ServiceLayerException e) {
                                 logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                             }
@@ -217,7 +220,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         return toRet;
     }
 
-    private boolean createSite(String siteId, String siteUuid, String searchEngine, List<ClusterMember> clusterNodes) {
+    private boolean createSite(long localNodeId, long sId, String siteId, String siteUuid, String searchEngine,
+                               List<ClusterMember> clusterNodes) {
         boolean result = true;
 
         logger.debug("Create Deployer targets site " + siteId);
@@ -234,6 +238,9 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 logger.debug("Create site from remote for site " + siteId);
                 result = createSiteFromRemote(siteId, clusterNodes);
                 if (result) {
+                    String commitId = contentRepository.getRepoLastCommitId(siteId);
+
+                    clusterDao.insertClusterSiteSyncRepo(localNodeId, sId, commitId, commitId);
                     addSiteUuidFile(siteId, siteUuid);
                     deploymentService.syncAllContentToPreview(siteId, true);
                     createdSites.add(siteId);
@@ -482,7 +489,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         }
     }
 
-    protected void updateContent(String siteId, String lastCommitId, List<ClusterMember> clusterNodes)
+    protected void updateContent(long localNodeId, long sId, String siteId, String lastCommitId,
+                                 List<ClusterMember> clusterNodes)
             throws IOException, CryptoException, ServiceLayerException {
         logger.debug("Update sandbox for site " + siteId);
 
@@ -506,9 +514,13 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 if (StringUtils.isEmpty(remoteLastSyncCommit) ||
                         !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
                     updateBranch(siteId, git, remoteNode);
-                    remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), lastCommitId);
+                    String remoteLastCommitId = clusterDao.getNodeLastCommitId(remoteNode.getId(), sId);
+                    remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), remoteLastCommitId);
                 }
             }
+
+            String updatedCommitId = contentRepository.getRepoLastCommitId(siteId);
+            clusterDao.updateNodeLastCommitId(localNodeId, sId, updatedCommitId);
 
             PreviewEventContext context = new PreviewEventContext();
             context.setSite(siteId);

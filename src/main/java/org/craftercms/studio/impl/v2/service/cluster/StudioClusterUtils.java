@@ -47,18 +47,23 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_PUBLISHING_LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
 
 public class StudioClusterUtils {
 
@@ -224,5 +229,26 @@ public class StudioClusterUtils {
             config.put(PROP_STRICT_HOST_KEY_CHECKING, PROP_STRICT_HOST_KEY_CHECKING_VALUE);
             session.setConfig(config);
         }
+    }
+
+    public String getLockOwnerId() {
+        HierarchicalConfiguration<ImmutableNode> clusterConfig =
+                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+        String clusterNodeId = StringUtils.EMPTY;
+        if (Objects.nonNull(clusterConfig)) {
+            clusterNodeId = clusterConfig.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+        }
+        if  (StringUtils.isEmpty(clusterNodeId)) {
+            try {
+                clusterNodeId = InetAddress.getLocalHost().toString();
+            } catch (UnknownHostException e) {
+                clusterNodeId = DEFAULT_PUBLISHING_LOCK_OWNER_ID;
+            }
+        }
+        return clusterNodeId;
+    }
+
+    public int getLockTTL() {
+        return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
     }
 }

@@ -23,6 +23,10 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_NODE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_COMMIT_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_VERIFIED_GITLOG_COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.REMOTE_REPOSITORY_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
@@ -169,4 +173,47 @@ public interface ClusterDAO {
      * @return cluster member
      */
     ClusterMember getMemberByLocalAddress(@Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    /**
+     * Insert cluster node site sync repo record
+     * @param clusterNodeId cluster node identifier
+     * @param siteId site identifier
+     * @param nodeLastCommitId last commit id of local sandbox repository
+     * @param nodeLastVerifiedGitlogCommitId last verified git log commit id in local repo
+     */
+    void insertClusterSiteSyncRepo(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
+                                   @Param(NODE_LAST_COMMIT_ID) String nodeLastCommitId,
+                                   @Param(NODE_LAST_VERIFIED_GITLOG_COMMIT_ID) String nodeLastVerifiedGitlogCommitId);
+
+    /**
+     * Update local last verified git log commit id
+     * @param clusterNodeId cluster node identifier
+     * @param siteId site identifier
+     * @param commitId commit id
+     */
+    void updateNodeLastVerifiedGitlogCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
+                                              @Param(COMMIT_ID) String commitId);
+
+    /**
+     * Update local last git log commit id
+     * @param clusterNodeId cluster node identifier
+     * @param siteId site identifier
+     * @param commitId commit id
+     */
+    void updateNodeLastCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
+                                @Param(COMMIT_ID) String commitId);
+
+    /**
+     * get last commit id for node
+     * @param siteId site identifier
+     * @return last commit id for local studio node
+     */
+    String getNodeLastCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
+
+    /**
+     * get last verified git log commit id for site
+     * @param siteId site identifier
+     * @return last verified git log commit id for local studio node
+     */
+    String getNodeLastVerifiedGitlogCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
 }

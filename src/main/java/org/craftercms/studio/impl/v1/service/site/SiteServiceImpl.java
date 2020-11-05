@@ -101,6 +101,8 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
@@ -119,6 +121,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -197,6 +200,8 @@ public class SiteServiceImpl implements SiteService {
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
     protected ItemServiceInternal itemServiceInternal;
+    protected StudioClusterUtils studioClusterUtils;
+    protected ClusterDAO clusterDao;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -1095,9 +1100,8 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(site)) {
             throw new SiteNotFoundException();
         } else {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put("siteId", site);
-            String lastDbCommitId = siteFeedMapper.getLastCommitId(params);
+            String lastDbCommitId =
+                    siteFeedMapper.getLastCommitId(site, studioClusterUtils.getClusterNodeLocalAddress());
             if (lastDbCommitId != null) {
                 syncDatabaseWithRepository.execute(site, lastDbCommitId);
             } else {
@@ -1121,6 +1125,17 @@ public class SiteServiceImpl implements SiteService {
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
         siteFeedMapper.updateLastCommitId(params);
+
+        try {
+            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
+            if (Objects.nonNull(clusterMember)) {
+                SiteFeed siteFeed = getSite(site);
+                clusterDao.updateNodeLastCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found " + site);
+        }
+
     }
 
     @RetryingOperation
@@ -1129,6 +1144,16 @@ public class SiteServiceImpl implements SiteService {
         params.put("siteId", site);
         params.put("commitId", commitId);
         siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+
+        try {
+            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
+            if (Objects.nonNull(clusterMember)) {
+                SiteFeed siteFeed = getSite(site);
+                clusterDao.updateNodeLastVerifiedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found " + site);
+        }
     }
 
     @Override
@@ -1147,15 +1172,17 @@ public class SiteServiceImpl implements SiteService {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
         boolean toReturn = true;
-        String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
-        List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
-                repoLastCommitId);
-        List<RepoOperation> repoOperations = contentRepositoryV2.getOperations(site, fromCommitId, repoLastCommitId);
-        if (CollectionUtils.isEmpty(repoOperations)) {
-            logger.debug("Database is up to date with repository for site: " + site);
-            contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
-            return toReturn;
-        }
+		try {
+            if (tryLockSyncRepoForSite(site, studioClusterUtils.getLockOwnerId(), studioClusterUtils.getLockTTL())) {
+                String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
+                List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
+                        repoLastCommitId);
+                List<RepoOperation> repoOperations = contentRepositoryV2.getOperations(site, fromCommitId, repoLastCommitId);
+                if (CollectionUtils.isEmpty(repoOperations)) {
+                    logger.debug("Database is up to date with repository for site: " + site);
+                    contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
+                    return toReturn;
+                }
 
         logger.info("Syncing database with repository for site: " + site + " fromCommitId = " +
                 (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
@@ -1427,72 +1454,72 @@ public class SiteServiceImpl implements SiteService {
                         }
                         break;
 
-                    case UPDATE:
-                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_UPDATE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
-                        break;
+                            case UPDATE:
+                                contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                                if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                                    activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                                }
+                                if (generateAuditLog) {
+                                    logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                                    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                                    auditLog.setOperation(OPERATION_UPDATE);
+                                    auditLog.setSiteId(siteFeed.getId());
+                                    auditLog.setActorId(repoOperation.getAuthor());
+                                    auditLog.setActorDetails(repoOperation.getAuthor());
+                                    auditLog.setOrigin(ORIGIN_GIT);
+                                    auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                                    auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                                    auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                                    auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                            repoOperation.getPath()));
+                                    auditServiceInternal.insertAuditLog(auditLog);
+                                }
+                                break;
 
-                    case DELETE:
-                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_DELETE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
-                        break;
+                            case DELETE:
+                                contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                                if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                                    activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                                }
+                                if (generateAuditLog) {
+                                    logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                                    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                                    auditLog.setOperation(OPERATION_DELETE);
+                                    auditLog.setSiteId(siteFeed.getId());
+                                    auditLog.setOrigin(ORIGIN_GIT);
+                                    auditLog.setActorId(repoOperation.getAuthor());
+                                    auditLog.setActorDetails(repoOperation.getAuthor());
+                                    auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
+                                    auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                                    auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                                    auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                            repoOperation.getPath()));
+                                    auditServiceInternal.insertAuditLog(auditLog);
+                                }
+                                break;
 
-                    case MOVE:
-                        contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
-                        if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
-                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " +
-                                    repoOperation.getMoveToPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_MOVE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getMoveToPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getMoveToPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getMoveToPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
-                        break;
+                            case MOVE:
+                                contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
+                                if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
+                                    activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                                }
+                                if (generateAuditLog) {
+                                    logger.debug("Insert audit log for site: " + site + " path: " +
+                                            repoOperation.getMoveToPath());
+                                    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                                    auditLog.setOperation(OPERATION_MOVE);
+                                    auditLog.setSiteId(siteFeed.getId());
+                                    auditLog.setActorId(repoOperation.getAuthor());
+                                    auditLog.setActorDetails(repoOperation.getAuthor());
+                                    auditLog.setOrigin(ORIGIN_GIT);
+                                    auditLog.setPrimaryTargetId(site + ":" + repoOperation.getMoveToPath());
+                                    auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                                    auditLog.setPrimaryTargetValue(repoOperation.getMoveToPath());
+                                    auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
+                                            repoOperation.getMoveToPath()));
+                                    auditServiceInternal.insertAuditLog(auditLog);
+                                }
+                                break;
 
                     default:
                         logger.error("Error: Unknown repo operation for site " + site + " operation: " +
@@ -1798,6 +1825,19 @@ public class SiteServiceImpl implements SiteService {
 
     @RetryingOperation
     @Override
+    public boolean tryLockSyncRepoForSite(String siteId, String lockOwnerId, int ttl) {
+        logger.debug("Locking sync repo for site " + siteId + " with lock owner " + lockOwnerId);
+        int result = siteFeedMapper.tryLockPublishingForSite(siteId, lockOwnerId, ttl);
+        if (result == 1) {
+            logger.debug("Locked sync repo for site " + siteId + " with lock owner " + lockOwnerId);
+        } else {
+            logger.debug("Failed to sync repo for site " + siteId + " with lock owner " + lockOwnerId);
+        }
+        return result == 1;
+    }
+
+    @RetryingOperation
+    @Override
     public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
         logger.debug("Unlocking publishing for site " + siteId);
 	    siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId);
@@ -1806,9 +1846,34 @@ public class SiteServiceImpl implements SiteService {
 
     @RetryingOperation
     @Override
+    public boolean unlockSyncRepoForSite(String siteId, String lockOwnerId) {
+        logger.debug("Unlocking sync repo for site " + siteId + " lock owner " + lockOwnerId);
+        siteFeedMapper.unlockSyncRepoForSite(siteId, lockOwnerId);
+        return true;
+    }
+
+    @RetryingOperation
+    @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
         logger.debug("Update publishing lock heartbeat for site " + siteId);
         siteFeedMapper.updatePublishingLockHeartbeatForSite(siteId);
+    }
+
+    @RetryingOperation
+    @Override
+    public void updateSyncRepoLockHeartbeatForSite(String siteId) {
+        logger.debug("Update publishing lock heartbeat for site " + siteId);
+        siteFeedMapper.updateSyncRepoLockHeartbeatForSite(siteId);
+    }
+
+    @Override
+    public String getLastCommitId(String siteId) {
+	    return siteFeedMapper.getLastCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+    }
+
+    @Override
+    public String getLastVerifiedGitlogCommitId(String siteId) {
+        return siteFeedMapper.getLastVerifiedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
     }
 
     public String getGlobalConfigRoot() {
@@ -2047,5 +2112,21 @@ public class SiteServiceImpl implements SiteService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
     }
 }
