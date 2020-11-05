@@ -166,7 +166,12 @@
     </update>
 
     <update id="updateSite">
-        UPDATE site SET name = #{name}, description = #{description} WHERE site_id = #{siteId} AND deleted = 0
+        UPDATE site
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description}</if>
+        </set>
+        WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
 </mapper>
