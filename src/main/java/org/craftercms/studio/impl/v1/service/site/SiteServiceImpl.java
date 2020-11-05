@@ -449,6 +449,13 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
+                String localeAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                ClusterMember cm = clusterDao.getMemberByLocalAddress(localeAddress);
+                if (Objects.nonNull(cm)) {
+                    SiteFeed s = getSite(siteId);
+                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null);
+                }
+
                 logger.info("Upgrading site.");
                 upgradeManager.upgradeSite(siteId);
 
