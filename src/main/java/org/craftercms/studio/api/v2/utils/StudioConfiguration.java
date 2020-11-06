@@ -327,6 +327,8 @@ public interface StudioConfiguration {
     String CLOCK_JOB_TASK_EXECUTOR_CORE_POOL_SIZE = "studio.clockJob.taskExecutor.corePoolSize";
     String CLOCK_JOB_TASK_EXECUTOR_MAX_POOL_SIZE = "studio.clockJob.taskExecutor.maxPoolSize";
     String CLOCK_JOB_TASK_EXECUTOR_QUEUE_CAPACITY = "studio.clockJob.taskExecutor.queueCapacity";
+    String CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET =
+            "studio.clockJob.task.cluster.randomOffset";
     String CLOCK_JOB_TASK_CLUSTER_GLOBAL_REPO_SYNC_EXECUTE_EVERY_N_CYCLES =
             "studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles";
     String CLOCK_JOB_TASK_CLUSTER_SITE_SANDBOX_REPO_SYNC_EXECUTE_EVERY_N_CYCLES =

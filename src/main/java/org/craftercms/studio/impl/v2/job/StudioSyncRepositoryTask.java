@@ -44,9 +44,10 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
+                                    int offset,
                                     StudioConfiguration studioConfiguration,
                                     SiteService siteService) {
-        super(executeEveryNCycles, studioConfiguration, siteService);
+        super(executeEveryNCycles, offset, studioConfiguration, siteService);
     }
 
     @Override

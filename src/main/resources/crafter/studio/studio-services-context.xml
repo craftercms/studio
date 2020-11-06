@@ -618,6 +618,8 @@
           class="org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask">
         <constructor-arg name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_SITE_SANDBOX_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="offset"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
@@ -632,6 +634,8 @@
           class="org.craftercms.studio.impl.v2.job.StudioClusterPublishedRepoSyncTask">
         <constructor-arg name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_SITE_PUBLISHED_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="offset"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
@@ -646,6 +650,8 @@
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
         <constructor-arg name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="offset"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
@@ -653,6 +659,8 @@
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
         <constructor-arg name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="offset"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <constructor-arg name="maxRetryCounter"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT)}" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
