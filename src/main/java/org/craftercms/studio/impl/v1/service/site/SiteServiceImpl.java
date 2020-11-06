@@ -1188,6 +1188,8 @@ public class SiteServiceImpl implements SiteService {
                 if (CollectionUtils.isEmpty(repoOperations)) {
                     logger.debug("Database is up to date with repository for site: " + site);
                     contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
+                    updateLastCommitId(site, repoLastCommitId);
+                    updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
                     return toReturn;
                 }
 
