@@ -125,12 +125,12 @@ CREATE PROCEDURE tryLockSyncRepoForSite(
 BEGIN
     DECLARE v_lock_owner_id VARCHAR(255);
     DECLARE v_lock_heartbeat DATETIME;
-    SELECT site_repo_lock_owner, site_repo_lock_heartbeat INTO  v_lock_owner_id, v_lock_heartbeat FROM site
+    SELECT sync_repo_lock_owner, sync_repo_lock_heartbeat INTO  v_lock_owner_id, v_lock_heartbeat FROM site
     WHERE site_id = siteId and deleted = 0;
     SET locked = 0;
     IF (v_lock_owner_id IS NULL OR v_lock_owner_id = '' OR v_lock_owner_id = lockOwnerId OR DATE_ADD(v_lock_heartbeat, INTERVAL ttl MINUTE) < CURRENT_TIMESTAMP)
     THEN
-        UPDATE site SET site_repo_lock_owner = lockOwnerId, site_repo_lock_heartbeat = CURRENT_TIMESTAMP WHERE
+        UPDATE site SET sync_repo_lock_owner = lockOwnerId, sync_repo_lock_heartbeat = CURRENT_TIMESTAMP WHERE
                                                                                                                site_id = siteId and deleted = 0;
         SET locked = 1;
     END IF;
@@ -144,7 +144,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.10.11', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.11.1', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
