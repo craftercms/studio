@@ -172,4 +172,12 @@
         WHERE c.id = #{clusterNodeId}
         AND cssr.site_id = #{siteId} AND s.deleted = 0 limit 1
     </select>
+
+    <select id="existsClusterSiteSyncRepo" resultType="int">
+        SELECT count(1)
+        FROM site s INNER JOIN cluster_site_sync_repo cssr INNER JOIN cluster c
+        ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
+        WHERE s.id = #{siteId}
+        AND c.id = #{clusterNodeId}
+    </select>
 </mapper>

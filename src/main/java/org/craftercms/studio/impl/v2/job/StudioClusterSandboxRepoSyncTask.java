@@ -140,6 +140,10 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                         success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSiteUuid(),
                                 siteFeed.getSearchEngine(), clusterNodes);
                     }
+                    if (clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
+                        clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), null, null);
+                    }
+
 
                     if (success) {
                         syncRemoteRepositories(siteId, localAddress);

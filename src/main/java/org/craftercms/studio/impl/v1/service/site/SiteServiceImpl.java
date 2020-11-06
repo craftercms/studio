@@ -449,6 +449,13 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
+                String localeAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                ClusterMember cm = clusterDao.getMemberByLocalAddress(localeAddress);
+                if (Objects.nonNull(cm)) {
+                    SiteFeed s = getSite(siteId);
+                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null);
+                }
+
                 logger.info("Upgrading site.");
                 upgradeManager.upgradeSite(siteId);
 
@@ -1080,8 +1087,6 @@ public class SiteServiceImpl implements SiteService {
 		if (!exists(site)) {
 			throw new SiteNotFoundException();
 		} else {
-			Map<String, Object> params = new HashMap<String, Object>();
-			params.put("siteId", site);
 			String lastDbCommitId =
                     siteFeedMapper.getLastCommitId(site, studioClusterUtils.getClusterNodeLocalAddress());
 			if (lastDbCommitId != null) {
@@ -1162,6 +1167,8 @@ public class SiteServiceImpl implements SiteService {
                 if (CollectionUtils.isEmpty(repoOperations)) {
                     logger.debug("Database is up to date with repository for site: " + site);
                     contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
+                    updateLastCommitId(site, repoLastCommitId);
+                    updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
                     return toReturn;
                 }
 
