@@ -54,7 +54,7 @@
         <mariadb4j.version>2.4.8</mariadb4j.version>
         <jackson.version>2.10.5</jackson.version>
         <jackson.databind.version>2.10.5</jackson.databind.version>
-        <bouncycastle.version>1.60</bouncycastle.version>
+        <bouncycastle.version>1.61</bouncycastle.version>
         <sardine.version>5.9</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
         <apache.cxf.version>3.3.5</apache.cxf.version>
