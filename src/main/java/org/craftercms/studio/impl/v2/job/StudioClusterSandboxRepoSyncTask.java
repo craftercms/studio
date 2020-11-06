@@ -100,6 +100,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     private ClusterDAO clusterDao;
 
     public StudioClusterSandboxRepoSyncTask(int executeEveryNCycles,
+                                            int offset,
                                             StudioClusterUtils studioClusterUtils,
                                             StudioConfiguration studioConfiguration,
                                             ContentRepository contentRepository,
@@ -108,7 +109,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                                             DeploymentService deploymentService,
                                             EventService eventService,
                                             ClusterDAO clusterDao) {
-        super(executeEveryNCycles, studioConfiguration, siteService, contentRepository);
+        super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
         this.studioClusterUtils = studioClusterUtils;
         this.deployer = deployer;
         this.deploymentService = deploymentService;
