@@ -1795,7 +1795,7 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public boolean tryLockSyncRepoForSite(String siteId, String lockOwnerId, int ttl) {
         logger.debug("Locking sync repo for site " + siteId + " with lock owner " + lockOwnerId);
-        int result = siteFeedMapper.tryLockPublishingForSite(siteId, lockOwnerId, ttl);
+        int result = siteFeedMapper.tryLockSyncRepoForSite(siteId, lockOwnerId, ttl);
         if (result == 1) {
             logger.debug("Locked sync repo for site " + siteId + " with lock owner " + lockOwnerId);
         } else {
