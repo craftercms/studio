@@ -1612,8 +1612,6 @@ paths:
                 description:
                   description: The description of the site
                   type: string
-              required:
-                - name
       responses:
         '200':
           description: OK
