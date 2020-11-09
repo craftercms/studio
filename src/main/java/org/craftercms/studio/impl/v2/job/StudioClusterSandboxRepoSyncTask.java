@@ -50,9 +50,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -76,7 +74,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
@@ -169,7 +166,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                                 // Sync with remote and update the local cache with the last commit ID to speed things up
                                 logger.debug("Update content for site " + siteId);
                                 updateContent(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getLastCommitId(),
-                                        clusterNodes);
+                                        siteFeed.getSandboxBranch(), clusterNodes);
                             } catch (IOException | CryptoException | ServiceLayerException e) {
                                 logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                             }
@@ -339,8 +336,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     @Override
     protected Path buildRepoPath(String siteId) {
         return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                        studioConfiguration.getProperty(SANDBOX_PATH));
+                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
+                studioConfiguration.getProperty(SANDBOX_PATH));
     }
 
     private void addSiteUuidFile(String site, String siteUuid) throws IOException {
@@ -495,7 +492,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     }
 
     protected void updateContent(long localNodeId, long sId, String siteId, String lastCommitId,
-                                 List<ClusterMember> clusterNodes)
+                                 String sandboxBranchName, List<ClusterMember> clusterNodes)
             throws IOException, CryptoException, ServiceLayerException {
         logger.debug("Update sandbox for site " + siteId);
 
@@ -518,7 +515,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 String remoteLastSyncCommit = remoteLastSyncCommits.get(remoteNode.getGitRemoteName());
                 if (StringUtils.isEmpty(remoteLastSyncCommit) ||
                         !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
-                    updateBranch(siteId, git, remoteNode);
+                    updateBranch(siteId, git, remoteNode, sandboxBranchName);
                     String remoteLastCommitId = clusterDao.getNodeLastCommitId(remoteNode.getId(), sId);
                     remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), remoteLastCommitId);
                 }
@@ -535,33 +532,25 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         }
     }
 
-    private void updateBranch(String siteId, Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
-            IOException, ServiceLayerException {
+    private void updateBranch(String siteId, Git git, ClusterMember remoteNode, String sandboxBranchName)
+            throws CryptoException, GitAPIException, IOException, ServiceLayerException {
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
         fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
         FetchResult fetchResult = fetchCommand.call();
 
-        ObjectId commitToMerge;
-        Ref r;
         if (fetchResult != null) {
-            r = fetchResult.getAdvertisedRef(REPO_SANDBOX_BRANCH);
-            if (r == null) {
-                r = fetchResult.getAdvertisedRef(Constants.R_HEADS +
-                        studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
-            }
-            if (r != null) {
-                commitToMerge = r.getObjectId();
+            ObjectId refToMerge =
+                    git.getRepository().resolve(remoteNode.getGitRemoteName() + "/" + sandboxBranchName);
 
-                MergeCommand mergeCommand = git.merge();
-                mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
-                mergeCommand.setCommit(true);
-                mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
-                mergeCommand.setStrategy(MergeStrategy.THEIRS);
-                MergeResult result = mergeCommand.call();
-                if (result.getMergeStatus().isSuccessful()) {
-                    deploymentService.syncAllContentToPreview(siteId, true);
-                }
+            MergeCommand mergeCommand = git.merge();
+            mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
+            mergeCommand.setCommit(true);
+            mergeCommand.include(refToMerge);
+            mergeCommand.setStrategy(MergeStrategy.THEIRS);
+            MergeResult result = mergeCommand.call();
+            if (result.getMergeStatus().isSuccessful()) {
+                deploymentService.syncAllContentToPreview(siteId, true);
             }
         }
 
