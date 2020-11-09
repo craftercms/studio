@@ -865,10 +865,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             GitRepositoryHelper helper =
                     GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
             Repository repo = helper.getRepository(site, PUBLISHED);
+            boolean repoCreated = false;
             if (Objects.isNull(repo)) {
                 helper.createPublishedRepository(site, sandboxBranch);
                 repo = helper.getRepository(site, PUBLISHED);
-                siteFeedMapper.setPublishedRepoCreated(site);
+                repoCreated = Objects.nonNull(repo);
             }
             String path = EMPTY;
             String sandboxBranchName = sandboxBranch;
@@ -1102,6 +1103,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
                     git.close();
+                    if (repoCreated) {
+                        siteFeedMapper.setPublishedRepoCreated(site);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -1300,6 +1304,30 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         } catch (CryptoException e) {
             logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
             return false;
+        }
+    }
+
+    private void removeRemote(Git git, String remoteName) throws GitAPIException {
+        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+        remoteRemoveCommand.setRemoteName(remoteName);
+        remoteRemoveCommand.call();
+
+        List<Ref> resultRemoteBranches = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE)
+                .call();
+
+        List<String> branchesToDelete = new ArrayList<String>();
+        for (Ref remoteBranchRef : resultRemoteBranches) {
+            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                branchesToDelete.add(remoteBranchRef.getName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+            DeleteBranchCommand delBranch = git.branchDelete();
+            String[] array = new String[branchesToDelete.size()];
+            delBranch.setBranchNames(branchesToDelete.toArray(array));
+            delBranch.setForce(true);
+            delBranch.call();
         }
     }
 

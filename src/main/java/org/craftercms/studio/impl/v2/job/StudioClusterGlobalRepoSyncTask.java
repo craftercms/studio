@@ -14,33 +14,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v2.service.cluster;
+package org.craftercms.studio.impl.v2.job;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
-import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -52,12 +46,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,11 +54,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
@@ -80,44 +67,68 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
-public class StudioNodeSyncGlobalRepoTask implements Runnable {
+public class StudioClusterGlobalRepoSyncTask implements Job {
 
-    private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncGlobalRepoTask.class);
-
-    private static final String NON_SSH_GIT_URL_REGEX = "(file|https?|git)://.+";
-
+    private static final Logger logger = LoggerFactory.getLogger(StudioClusterGlobalRepoSyncTask.class);
     private static ReentrantLock singleWorkerLock = new ReentrantLock();
     private static Map<String, String> existingRemotes = new HashMap<String, String>();
 
-    private List<ClusterMember> clusterNodes;
-    private ContentRepository contentRepository;
+    private int executeEveryNCycles;
+    private int counter;
+    private StudioClusterUtils studioClusterUtils;
     private StudioConfiguration studioConfiguration;
-    private TextEncryptor encryptor;
+    private ContentRepository contentRepository;
+
+
+
+    public StudioClusterGlobalRepoSyncTask(int executeEveryNCycles,
+                                           StudioClusterUtils studioClusterUtils,
+                                           StudioConfiguration studioConfiguration,
+                                           ContentRepository contentRepository) {
+        this.executeEveryNCycles = executeEveryNCycles;
+        this.counter = executeEveryNCycles;
+        this.studioClusterUtils = studioClusterUtils;
+        this.studioConfiguration = studioConfiguration;
+        this.contentRepository = contentRepository;
+    }
+
+    private synchronized boolean checkCycleCounter() {
+        return !(--counter > 0);
+    }
 
     @Override
-    public void run() {
-        logger.debug("Starting Cluster Node Sync Global repo task");
+    public void execute() {
+        if (checkCycleCounter()) {
+            executeInternal();
+            counter = executeEveryNCycles;
+        }
+    }
 
+    private void executeInternal() {
         // Lock site and begin sync
         if (singleWorkerLock.tryLock()) {
             // Log start time
             long startTime = System.currentTimeMillis();
             logger.debug("Worker starts syncing cluster node global repo");
             try {
-                // Check if repo exists
-                logger.debug("Check if global repository exists");
-                boolean success = true;
+                HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
+                if (registrationData != null && !registrationData.isEmpty()) {
+                    String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                    List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
+                    // Check if repo exists
+                    logger.debug("Check if global repository exists");
+                    boolean success = true;
 
-                if (!checkIfRepoExists()) {
-                    // Site doesn't exist locally, create it
-                    success = cloneRepository();
-                }
+                    if (!checkIfRepoExists()) {
+                        // Site doesn't exist locally, create it
+                        success = cloneRepository(clusterNodes);
+                    }
 
-                if (success) {
+                    if (success) {
                         try {
                             // Add the remote repositories to the local repository to sync from if not added already
                             logger.debug("Add remotes for global repository");
-                            addRemotes();
+                            addRemotes(clusterNodes);
 
                         } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
                             logger.error("Error while adding remotes on cluster node for global repo", e);
@@ -126,11 +137,12 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
                         try {
                             // Sync with remote and update the local cache with the last commit ID to speed things up
                             logger.debug("Update content for global repo");
-                            updateContent();
+                            updateContent(clusterNodes);
                         } catch (IOException | CryptoException | ServiceLayerException e) {
                             logger.error("Error while updating content for global repo on cluster node.", e);
                         }
 
+                    }
                 }
             } catch (ServiceLayerException | CryptoException e) {
                 logger.error("Error while cloning global repository from other nodes", e);
@@ -160,7 +172,7 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
         }
     }
 
-    private boolean cloneRepository()
+    private boolean cloneRepository(List<ClusterMember> clusterNodes)
             throws CryptoException, ServiceLayerException {
         // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
         // we will eventually to catch up to the latest
@@ -184,7 +196,7 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
                 final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                 logger.debug("Add user credentials if provided");
 
-                configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
+                studioClusterUtils.configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
 
                 String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
 
@@ -220,105 +232,8 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
         return cloned;
     }
 
-    private <T extends TransportCommand> T configureAuthenticationForCommand(ClusterMember remoteNode, T gitCommand,
-                                                                             final Path tempKey)
-            throws CryptoException, IOException, ServiceLayerException {
-        boolean sshProtocol = !remoteNode.getGitUrl().matches(NON_SSH_GIT_URL_REGEX);
-
-        switch (remoteNode.getGitAuthType()) {
-            case RemoteRepository.AuthenticationType.NONE:
-                logger.debug("No authentication");
-                break;
-            case RemoteRepository.AuthenticationType.BASIC:
-                logger.debug("Basic Authentication");
-                configureBasicAuthentication(remoteNode, gitCommand, encryptor, sshProtocol);
-                break;
-            case RemoteRepository.AuthenticationType.TOKEN:
-                logger.debug("Token based Authentication");
-                configureTokenAuthentication(remoteNode, gitCommand, encryptor, sshProtocol);
-                break;
-            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                if (!sshProtocol) {
-                    throw new ServiceLayerException("Can't do private key authentication with non-ssh URLs");
-                }
-
-                logger.debug("Private Key Authentication");
-                configurePrivateKeyAuthentication(remoteNode, gitCommand, encryptor, tempKey);
-                break;
-            default:
-                throw new ServiceLayerException("Unsupported authentication type " + remoteNode.getGitAuthType());
-        }
-
-        return gitCommand;
-    }
-
-    private <T extends TransportCommand> void configureBasicAuthentication(
-            ClusterMember remoteNode, T gitCommand, TextEncryptor encryptor, boolean sshProtocol) throws CryptoException {
-        String password = encryptor.decrypt(remoteNode.getGitPassword());
-        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(
-                remoteNode.getGitUsername(), password);
-
-        if (sshProtocol) {
-            gitCommand.setTransportConfigCallback(transport -> {
-                SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(new StrictHostCheckingOffSshSessionFactory() {
-
-                    @Override
-                    protected void configure(OpenSshConfig.Host host, Session session) {
-                        super.configure(host, session);
-                        session.setPassword(password);
-                    }
-
-                });
-            });
-        }
-
-        gitCommand.setCredentialsProvider(credentialsProvider);
-    }
-
-    private <T extends TransportCommand> void configureTokenAuthentication(
-            ClusterMember remoteNode, T gitCommand, TextEncryptor encryptor, boolean sshProtocol) throws CryptoException {
-        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(
-                encryptor.decrypt(remoteNode.getGitToken()), StringUtils.EMPTY);
-
-        if (sshProtocol) {
-            gitCommand.setTransportConfigCallback(transport -> {
-                SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(new StrictHostCheckingOffSshSessionFactory());
-            });
-        }
-
-        gitCommand.setCredentialsProvider(credentialsProvider);
-    }
-
-    private <T extends TransportCommand> void configurePrivateKeyAuthentication(
-            ClusterMember remoteNode, T gitCommand, TextEncryptor encryptor, final Path tempKey)
-            throws CryptoException, IOException  {
-        String privateKey = encryptor.decrypt(remoteNode.getGitPrivateKey());
-        try {
-            Files.write(tempKey, privateKey.getBytes());
-        } catch (IOException e) {
-            throw new IOException("Failed to write private key for SSH connection to temp location", e);
-        }
-
-        tempKey.toFile().deleteOnExit();
-
-        gitCommand.setTransportConfigCallback(transport -> {
-            SshTransport sshTransport = (SshTransport)transport;
-            sshTransport.setSshSessionFactory(new StrictHostCheckingOffSshSessionFactory() {
-
-                @Override
-                protected JSch createDefaultJSch(FS fs) throws JSchException {
-                    JSch defaultJSch = super.createDefaultJSch(fs);
-                    defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
-                    return defaultJSch;
-                }
-
-            });
-        });
-    }
-
-    protected void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+    protected void addRemotes(List<ClusterMember> clusterNodes)
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         logger.debug("Add cluster members as remotes to local sandbox repository");
         for (ClusterMember member : clusterNodes) {
             if (existingRemotes != null && existingRemotes.containsKey(member.getGitRemoteName())) {
@@ -339,7 +254,6 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
             }
         }
     }
-
     protected void addRemoteRepository(ClusterMember member, String remoteUrl)
             throws IOException, InvalidRemoteUrlException, ServiceLayerException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -359,7 +273,8 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
 
             if (remotes.contains(member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""))) {
                 try {
-                    removeRemote(git, member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""));
+                    studioClusterUtils.removeRemote(git,
+                            member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""));
                 } catch (GitAPIException e) {
                     logger.debug("Error while cleaning remote repositories for global repo", e);
                 }
@@ -394,31 +309,8 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
         }
     }
 
-    private void removeRemote(Git git, String remoteName) throws GitAPIException {
-        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
-        remoteRemoveCommand.setRemoteName(remoteName);
-        remoteRemoveCommand.call();
-
-        List<Ref> resultRemoteBranches = git.branchList()
-                .setListMode(ListBranchCommand.ListMode.REMOTE)
-                .call();
-
-        List<String> branchesToDelete = new ArrayList<String>();
-        for (Ref remoteBranchRef : resultRemoteBranches) {
-            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
-                branchesToDelete.add(remoteBranchRef.getName());
-            }
-        }
-        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
-            DeleteBranchCommand delBranch = git.branchDelete();
-            String[] array = new String[branchesToDelete.size()];
-            delBranch.setBranchNames(branchesToDelete.toArray(array));
-            delBranch.setForce(true);
-            delBranch.call();
-        }
-    }
-
-    protected void updateContent() throws IOException, CryptoException, ServiceLayerException {
+    protected void updateContent(List<ClusterMember> clusterNodes)
+            throws IOException, CryptoException, ServiceLayerException {
         logger.debug("Update global repo");
 
         Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
@@ -444,7 +336,7 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
             IOException, ServiceLayerException {
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
-        fetchCommand = configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
+        fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
         FetchResult fetchResult = fetchCommand.call();
 
         ObjectId commitToMerge;
@@ -467,45 +359,5 @@ public class StudioNodeSyncGlobalRepoTask implements Runnable {
         }
 
         Files.delete(tempKey);
-    }
-
-    public List<ClusterMember> getClusterNodes() {
-        return clusterNodes;
-    }
-
-    public void setClusterNodes(List<ClusterMember> clusterNodes) {
-        this.clusterNodes = clusterNodes;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    //TODO: Check uses
-    public void setEncryptor(TextEncryptor encryptor) {
-        this.encryptor = encryptor;
-    }
-
-    private static class StrictHostCheckingOffSshSessionFactory extends JschConfigSessionFactory {
-
-        @Override
-        protected void configure(OpenSshConfig.Host hc, Session session) {
-            Properties config = new Properties();
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
-        }
-
     }
 }
