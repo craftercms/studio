@@ -93,6 +93,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     private TextEncryptor encryptor;
 
     public StudioClusterPublishedRepoSyncTask(int executeEveryNCycles,
+                                              int offset,
                                               StudioClusterUtils studioClusterUtils,
                                               StudioConfiguration studioConfiguration,
                                               ContentRepository contentRepository,
@@ -103,7 +104,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                               UserServiceInternal userServiceInternal,
                                               TextEncryptor encryptor) {
 
-        super(executeEveryNCycles, studioConfiguration, siteService, contentRepository);
+        super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
         this.studioClusterUtils = studioClusterUtils;
         this.clusterDao = clusterDao;
         this.servicesConfig = servicesConfig;

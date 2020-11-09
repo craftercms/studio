@@ -28,14 +28,17 @@ public abstract class StudioClockTask implements SiteJob {
 
     private int executeEveryNCycles;
     protected int counter;
+    protected int offset;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
 
     public StudioClockTask(int executeEveryNCycles,
+                           int offset,
                            StudioConfiguration studioConfiguration,
                            SiteService siteService) {
         this.executeEveryNCycles = executeEveryNCycles;
         this.counter = executeEveryNCycles;
+        this.offset = offset;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
     }
@@ -53,6 +56,11 @@ public abstract class StudioClockTask implements SiteJob {
         if (checkCycleCounter()) {
             if (lockSiteInternal(site)) {
                 try {
+                    try {
+                        Thread.sleep((long) (Math.random() * offset));
+                    } catch (InterruptedException e) {
+                        logger.debug("Woke up from random offset");
+                    }
                     executeInternal(site);
                     counter = executeEveryNCycles;
                 } finally {

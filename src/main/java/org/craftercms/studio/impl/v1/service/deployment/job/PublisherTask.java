@@ -226,12 +226,6 @@ public class PublisherTask extends Thread {
         }
     }
 
-    private void syncCluster(String site) {
-        SyncClusterTask syncClusterTask = new SyncClusterTask(studioConfiguration, clusterDao, contentRepositoryV1,
-                encryptor, siteService, deployer, servicesConfig, deploymentService, eventService);
-        syncClusterTask.execute();
-    }
-
     private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
         logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);

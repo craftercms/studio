@@ -18,7 +18,9 @@ package org.craftercms.studio.impl.v2.job;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -44,9 +46,10 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
+                                    int offset,
                                     StudioConfiguration studioConfiguration,
                                     SiteService siteService) {
-        super(executeEveryNCycles, studioConfiguration, siteService);
+        super(executeEveryNCycles, offset, studioConfiguration, siteService);
     }
 
     @Override
@@ -80,7 +83,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         }
     }
 
-    private void syncRepository(String site) throws SiteNotFoundException {
+    private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
         logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {

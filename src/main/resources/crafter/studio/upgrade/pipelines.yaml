@@ -79,6 +79,11 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/3.2.x/3.2.0.12/system/global-permission-mappings-config.xslt
             commitDetails: Add new permission 'edit_site'
+      - currentVersion: 3.2.0.12
+        nextVersion: 3.2.0.13
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.12-to-3.2.0.13.sql
 
   # Pipeline to upgrade site repositories
   site:

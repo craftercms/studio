@@ -78,6 +78,7 @@ public class StudioPublisherTask extends StudioClockTask {
     private StudioClusterUtils studioClusterUtils;
 
     public StudioPublisherTask(int executeEveryNCycles,
+                               int offset,
                                StudioConfiguration studioConfiguration,
                                SiteService siteService,
                                ContentRepository contentRepository,
@@ -87,7 +88,7 @@ public class StudioPublisherTask extends StudioClockTask {
                                AuditServiceInternal auditServiceInternal,
                                int maxRetryCounter,
                                StudioClusterUtils studioClusterUtils) {
-        super(executeEveryNCycles, studioConfiguration, siteService);
+        super(executeEveryNCycles, offset, studioConfiguration, siteService);
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.contentRepository = contentRepository;

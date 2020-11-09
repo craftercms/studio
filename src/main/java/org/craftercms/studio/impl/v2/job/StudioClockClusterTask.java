@@ -52,10 +52,11 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
     protected abstract List<String> getCreatedSites();
 
     public StudioClockClusterTask(int executeEveryNCycles,
+                                  int offset,
                                   StudioConfiguration studioConfiguration,
                                   SiteService siteService,
                                   ContentRepository contentRepository) {
-        super(executeEveryNCycles, studioConfiguration, siteService);
+        super(executeEveryNCycles, offset, studioConfiguration, siteService);
         this.contentRepository = contentRepository;
     }
 

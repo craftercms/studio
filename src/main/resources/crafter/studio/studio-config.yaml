@@ -836,6 +836,8 @@ studio.forwarded.headers.enabled: false
 ##################################################
 # Studio Clock job ticking frequency
 studio.clockJob.frequency: 1000
+# Random offset to time shift cluster members in milliseconds
+studio.clockJob.task.cluster.randomOffset: 10
 # Studio Clock Job thread pool core size
 studio.clockJob.taskExecutor.corePoolSize: 10
 # Studio Clock Job thread pool maximum size
