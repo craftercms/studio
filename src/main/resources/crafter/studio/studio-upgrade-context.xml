@@ -67,6 +67,7 @@
         <property name="commitMessage"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_COMMIT_MESSAGE)}"/>
         <property name="encryptor" ref="internalTextEncryptor" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="pipelineFactory" abstract="true">
@@ -122,6 +123,7 @@
         <property name="dataSource" ref="dataSource"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="dbScriptUpgrader" scope="prototype" parent="upgradeOperation"
@@ -140,6 +142,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="encryptor" ref="internalTextEncryptor" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"

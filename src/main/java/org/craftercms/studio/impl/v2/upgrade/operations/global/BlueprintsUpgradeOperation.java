@@ -32,6 +32,7 @@ import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
@@ -48,6 +49,8 @@ import org.springframework.beans.factory.annotation.Required;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
@@ -67,6 +70,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
     protected SecurityService securityService;
     protected UserServiceInternal userServiceInternal;
     protected TextEncryptor encryptor;
+    protected GeneralLockService generalLockService;
 
     @Required
     public void setServicesConfig(final ServicesConfig servicesConfig) {
@@ -97,11 +101,21 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
         this.encryptor = encryptor;
     }
 
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
     @Override
     public void execute(final String site) throws UpgradeException {
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
             Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                 studioConfiguration.getProperty(BLUE_PRINTS_PATH));
@@ -165,6 +179,8 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
             }
         } catch (Exception e) {
             throw new UpgradeException("Error upgrading blueprints in the global repo", e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 

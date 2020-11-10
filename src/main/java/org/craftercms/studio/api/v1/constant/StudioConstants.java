@@ -205,4 +205,9 @@ package org.craftercms.studio.api.v1.constant;
     String DEFAULT_CONFIG_URL = "http://localhost:8080";
 
     String DEFAULT_PUBLISHING_LOCK_OWNER_ID = "STANDALONE STUDIO";
+
+    // General Lock Service
+    String GLOBAL_REPOSITORY_GIT_LOCK = "GLOBAL_REPOSITORY_GIT_LOCK";
+    String SITE_SANDBOX_REPOSITORY_GIT_LOCK = "{site}_SANDBOX_REPOSITORY_GIT_LOCK";
+    String SITE_PUBLISHED_REPOSITORY_GIT_LOCK = "{site}_PUBLISHED_REPOSITORY_GIT_LOCK";
 }
