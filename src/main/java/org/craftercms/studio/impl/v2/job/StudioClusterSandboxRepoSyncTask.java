@@ -538,7 +538,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
                     mergeCommand.setCommit(true);
                     mergeCommand.include(refToMerge);
-                    mergeCommand.setStrategy(MergeStrategy.THEIRS);
+                    //mergeCommand.setStrategy(MergeStrategy.THEIRS);
                     MergeResult result = mergeCommand.call();
                     if (result.getMergeStatus().isSuccessful()) {
                         deploymentService.syncAllContentToPreview(siteId, true);
