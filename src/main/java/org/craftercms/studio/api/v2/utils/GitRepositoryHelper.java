@@ -1061,10 +1061,10 @@ public class GitRepositoryHelper {
         // Get a file handle to the parent and delete it
         File siteFolder = sitePath.toFile();
 
-        String gitLockKey1 = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
-        String gitLockKey2 = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
-        generalLockService.lock(gitLockKey1);
-        generalLockService.lock(gitLockKey2);
+        String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKeySandbox);
+        generalLockService.lock(gitLockKeyPublished);
         try {
             Repository sboxRepo = sandboxes.get(site);
             if (sboxRepo != null) {
@@ -1090,8 +1090,8 @@ public class GitRepositoryHelper {
                     e.toString());
             toReturn = false;
         } finally {
-            generalLockService.unlock(gitLockKey1);
-            generalLockService.unlock(gitLockKey2);
+            generalLockService.unlock(gitLockKeyPublished);
+            generalLockService.unlock(gitLockKeySandbox);
         }
 
         return toReturn;
