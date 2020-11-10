@@ -55,6 +55,8 @@ public class StudioClockExecutor implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClockExecutor.class);
     private static final ReentrantLock singleWorkerLock = new ReentrantLock();
+    private static final Map<String, ReentrantLock> singleWorkerSiteTasksLockMap = new HashMap<String, ReentrantLock>();
+
     private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
 
     private static boolean stopSignaled = false;
@@ -115,12 +117,7 @@ public class StudioClockExecutor implements Job {
 
     private void executeTasks() {
         for (Job job : globalTasks) {
-            taskExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    job.execute();
-                }
-            });
+            job.execute();
         }
 
         cleanupDeletedSites();
@@ -130,8 +127,15 @@ public class StudioClockExecutor implements Job {
             taskExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    for (SiteJob siteTask : siteTasks) {
-                        siteTask.execute(site);
+                    if (lockSiteInternal(site)) {
+                        try {
+
+                            for (SiteJob siteTask : siteTasks) {
+                                siteTask.execute(site);
+                            }
+                        } finally {
+                            unlockSiteInternal(site);
+                        }
                     }
                 }
             });
@@ -205,5 +209,21 @@ public class StudioClockExecutor implements Job {
         String url = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL);
         url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
         return url;
+    }
+
+    private synchronized boolean lockSiteInternal(String siteId) {
+        ReentrantLock swl = singleWorkerSiteTasksLockMap.get(siteId);
+        if (swl == null) {
+            swl = new ReentrantLock();
+            singleWorkerSiteTasksLockMap.put(siteId, swl);
+        }
+        return swl.tryLock();
+    }
+
+    private synchronized void unlockSiteInternal(String siteId) {
+        ReentrantLock swl = singleWorkerSiteTasksLockMap.get(siteId);
+        if (swl != null) {
+            swl.unlock();
+        }
     }
 }

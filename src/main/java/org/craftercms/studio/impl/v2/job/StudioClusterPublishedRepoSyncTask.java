@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -38,15 +39,12 @@ import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -57,7 +55,6 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.URIish;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -71,23 +68,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
 public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClusterPublishedRepoSyncTask.class);
 
-    protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
     protected static final List<String> createdSites = new ArrayList<String>();
     protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
@@ -97,6 +92,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     private SecurityService securityService;
     private UserServiceInternal userServiceInternal;
     private TextEncryptor encryptor;
+    private GeneralLockService generalLockService;
 
     public StudioClusterPublishedRepoSyncTask(int executeEveryNCycles,
                                               int offset,
@@ -108,7 +104,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                               ServicesConfig servicesConfig,
                                               SecurityService securityService,
                                               UserServiceInternal userServiceInternal,
-                                              TextEncryptor encryptor) {
+                                              TextEncryptor encryptor,
+                                              GeneralLockService generalLockService) {
 
         super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
         this.studioClusterUtils = studioClusterUtils;
@@ -117,90 +114,64 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         this.securityService = securityService;
         this.userServiceInternal = userServiceInternal;
         this.encryptor = encryptor;
+        this.generalLockService = generalLockService;
     }
 
     @Override
     protected void executeInternal(String siteId) {
-        // Lock site and begin sync
-        if (lockSiteInternal(siteId)) {
-            // Log start time
-            long startTime = System.currentTimeMillis();
-            logger.debug("Worker starts syncing cluster node published for site " + siteId);
-            try {
-                HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
-                if (registrationData != null && !registrationData.isEmpty()) {
-                    String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
-                    List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
-                    SiteFeed siteFeed = siteService.getSite(siteId);
+        // Log start time
+        long startTime = System.currentTimeMillis();
+        logger.debug("Worker starts syncing cluster node published for site " + siteId);
+        try {
+            HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
+            if (registrationData != null && !registrationData.isEmpty()) {
+                String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
+                SiteFeed siteFeed = siteService.getSite(siteId);
 
-                    // Check if site exists
-                    logger.debug("Check if site " + siteId + " exists in local repository");
-                    boolean success = true;
-                    if (siteFeed.isSitePublishedRepoCreated()) {
-                        boolean siteCheck = checkIfSiteRepoExists(siteId);
+                // Check if site exists
+                logger.debug("Check if site " + siteId + " exists in local repository");
+                boolean success = true;
+                if (siteFeed.isSitePublishedRepoCreated()) {
+                    boolean siteCheck = checkIfSiteRepoExists(siteId);
 
-                        if (!siteCheck) {
-                            // Site doesn't exist locally, create it
-                            success = createSite(siteId, siteFeed.getSandboxBranch());
-                        }
-                    } else {
-                        success = false;
+                    if (!siteCheck) {
+                        // Site doesn't exist locally, create it
+                        success = createSite(siteId, siteFeed.getSandboxBranch());
+                    }
+                } else {
+                    success = false;
+                }
+
+
+                if (success) {
+
+                    try {
+                        // Add the remote repositories to the local repository to sync from if not added already
+                        logger.debug("Add remotes for site " + siteId);
+                        addRemotes(siteId, clusterNodes);
+
+                    } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
+                        logger.error("Error while adding remotes on cluster node for site " + siteId);
                     }
 
-
-                    if (success) {
-
-                        try {
-                            // Add the remote repositories to the local repository to sync from if not added already
-                            logger.debug("Add remotes for site " + siteId);
-                            addRemotes(siteId, clusterNodes);
-
-                        } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
-                            logger.error("Error while adding remotes on cluster node for site " + siteId);
-                        }
-
-                        try {
-                            // Sync with remote and update the local cache with the last commit ID to speed things up
-                            logger.debug("Update content for site " + siteId);
-                            updateContent(siteId, clusterNodes);
-                        } catch (IOException | CryptoException | ServiceLayerException e) {
-                            logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
-                        }
+                    try {
+                        // Sync with remote and update the local cache with the last commit ID to speed things up
+                        logger.debug("Update content for site " + siteId);
+                        updateContent(siteId, clusterNodes);
+                    } catch (IOException | CryptoException | ServiceLayerException e) {
+                        logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                     }
                 }
-            } catch (SiteNotFoundException e) {
-                logger.error("Error while executing Cluster Node Sync Published for site " + siteId, e);
-            } finally {
-                unlockSiteInternal(siteId);
             }
-
-            // Compute execution duration and log it
-            long duration = System.currentTimeMillis() - startTime;
-            logger.debug("Worker finished syncing cluster node for site " + siteId);
-            logger.debug("Worker performed cluster node sync for site " + siteId + " in " + duration + "ms");
-        } else {
-            // Couldn't get the site lock, another worker is active, abandoning this cycle
-            logger.debug("Unable to get cluster lock, another worker is holding the lock for site " + siteId);
+        } catch (SiteNotFoundException e) {
+            logger.error("Error while executing Cluster Node Sync Published for site " + siteId, e);
         }
+        // Compute execution duration and log it
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("Worker finished syncing cluster node for site " + siteId);
+        logger.debug("Worker performed cluster node sync for site " + siteId + " in " + duration + "ms");
         logger.debug("Finished Cluster Node Sync task for site " + siteId);
-    }
-
-    @Override
-    protected boolean lockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock == null) {
-            singleWorkerLock = new ReentrantLock();
-            singleWorkerLockMap.put(siteId, singleWorkerLock);
-        }
-        return singleWorkerLock.tryLock();
-    }
-
-    @Override
-    protected void unlockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock != null) {
-            singleWorkerLock.unlock();
-        }
     }
 
     protected boolean checkIfSiteRepoExists(String siteId) {
@@ -234,8 +205,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     @Override
     protected Path buildRepoPath(String siteId) {
         return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                        studioConfiguration.getProperty(PUBLISHED_PATH));
+                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
+                studioConfiguration.getProperty(PUBLISHED_PATH));
     }
 
     @Override
@@ -249,8 +220,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         if (result) {
             try {
                 logger.debug("Create " + PUBLISHED.name() + " repository from remote for site " + siteId);
-                GitRepositoryHelper helper =
-                        GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+                GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                        userServiceInternal, encryptor, generalLockService);
                 result = helper.createPublishedRepository(siteId, sandboxBranch);
                 if (result) {
                     createdSites.add(siteId);
@@ -335,7 +306,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                     remoteSetUrlCommand.call();
                 }
             } else {
-                logger.debug("Add " + member.getLocalAddress() + " as remote to PUBLISHED" );
+                logger.debug("Add " + member.getLocalAddress() + " as remote to PUBLISHED");
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(member.getGitRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteUrl));
@@ -365,33 +336,42 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 .findGitDir()
                 .build();
 
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
         try (Git git = new Git(repo)) {
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
-            for (ClusterMember remoteNode : clusterNodes) {
+            if (generalLockService.tryLock(gitLockKey)) {
                 try {
-                    logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
-                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                    FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
-                    fetch = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetch, tempKey);
-                    fetch.call();
-                    Files.delete(tempKey);
-                } catch (GitAPIException e) {
-                    logger.error("Error while fetching published repo for site " + siteId + " from remote " +
-                            remoteNode.getGitRemoteName());
-                    logger.error(e.getMessage());
-                }
-                logger.debug("Update all environments for site " + siteId + " from cluster member " +
-                        remoteNode.getLocalAddress());
-                for (String branch : environments) {
-                    try {
-                        updatePublishedBranch(siteId, git, remoteNode, branch);
-                    } catch (GitAPIException e) {
-                        logger.error("Error while updating published repo for site " + siteId + " from remote " +
-                                remoteNode.getGitRemoteName() + " environment " + branch);
-                        logger.error(e.getMessage());
+                    for (ClusterMember remoteNode : clusterNodes) {
+                        try {
+                            logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
+                            final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                            FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
+                            fetch = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetch, tempKey);
+                            fetch.call();
+                            Files.delete(tempKey);
+                        } catch (GitAPIException e) {
+                            logger.error("Error while fetching published repo for site " + siteId + " from remote " +
+                                    remoteNode.getGitRemoteName());
+                            logger.error(e.getMessage());
+                        }
+                        logger.debug("Update all environments for site " + siteId + " from cluster member " +
+                                remoteNode.getLocalAddress());
+                        for (String branch : environments) {
+                            try {
+                                updatePublishedBranch(siteId, git, remoteNode, branch);
+                            } catch (GitAPIException e) {
+                                logger.error("Error while updating published repo for site " + siteId + " from remote " +
+                                        remoteNode.getGitRemoteName() + " environment " + branch);
+                                logger.error(e.getMessage());
+                            }
+                        }
                     }
+                } finally {
+                    generalLockService.unlock(gitLockKey);
                 }
+            } else {
+                logger.debug("Failed to get lock " + gitLockKey);
             }
         }
 

@@ -28,10 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
@@ -40,8 +37,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
 public class StudioSyncRepositoryTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
-
-    protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
                                     int offset,
@@ -60,24 +55,6 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
             }
         } catch (Exception e) {
             logger.error("Failed to sync database from repository for site " + site, e);
-        }
-    }
-
-    @Override
-    protected boolean lockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock == null) {
-            singleWorkerLock = new ReentrantLock();
-            singleWorkerLockMap.put(siteId, singleWorkerLock);
-        }
-        return singleWorkerLock.tryLock();
-    }
-
-    @Override
-    protected void unlockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock != null) {
-            singleWorkerLock.unlock();
         }
     }
 

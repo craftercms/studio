@@ -48,27 +48,19 @@ public abstract class StudioClockTask implements SiteJob {
     }
 
     protected abstract void executeInternal(String site);
-    protected abstract boolean lockSiteInternal(String site);
-    protected abstract void unlockSiteInternal(String site);
 
     @Override
     public final void execute(String site) {
         if (checkCycleCounter()) {
-            if (lockSiteInternal(site)) {
-                try {
-                    try {
-                        long sleepTime = (long) (Math.random() * offset);
-                        logger.debug("Sleeping for offset " + sleepTime + " milliseconds");
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
-                        logger.debug("Woke up from random offset");
-                    }
-                    executeInternal(site);
-                    counter = executeEveryNCycles;
-                } finally {
-                    unlockSiteInternal(site);
-                }
+            try {
+                long sleepTime = (long) (Math.random() * offset);
+                logger.debug("Sleeping for offset " + sleepTime + " milliseconds");
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                logger.debug("Woke up from random offset");
             }
+            executeInternal(site);
+            counter = executeEveryNCycles;
         }
     }
 }

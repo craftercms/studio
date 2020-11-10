@@ -49,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
@@ -64,7 +63,6 @@ public class StudioPublisherTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioPublisherTask.class);
 
-    protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
     protected static final Map<String, Integer> retryCounter = new HashMap<String, Integer>();
 
     private StudioConfiguration studioConfiguration;
@@ -200,24 +198,6 @@ public class StudioPublisherTask extends StudioClockTask {
             // Unlock publishing if queue does not have packages ready for publishing
             logger.debug("Unlocking publishing for site " + siteId + " by lock owner " + lockOwnerId);
             siteService.unlockPublishingForSite(siteId, lockOwnerId);
-        }
-    }
-
-    @Override
-    protected boolean lockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock == null) {
-            singleWorkerLock = new ReentrantLock();
-            singleWorkerLockMap.put(siteId, singleWorkerLock);
-        }
-        return singleWorkerLock.tryLock();
-    }
-
-    @Override
-    protected void unlockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock != null) {
-            singleWorkerLock.unlock();
         }
     }
 
