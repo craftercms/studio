@@ -1077,8 +1077,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (StringUtils.isEmpty(sandboxBranchName)) {
             sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
         }
+        generalLockService.lock(gitLockKey);
         synchronized (repo) {
-            generalLockService.lock(gitLockKey);
+
             try (Git git = new Git(repo)) {
 
                 // fetch "origin/master"
@@ -1917,8 +1918,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String stagingName = servicesConfig.getStagingEnvironment(siteId);
         String liveName = servicesConfig.getLiveEnvironment(siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         synchronized (repo) {
-            generalLockService.lock(gitLockKey);
             try (Git git = new Git(repo)) {
                 logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");
                 git.checkout().setName(liveName).call();
@@ -1980,19 +1981,19 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
         } else {
             logger.info("Cleaning up repositories for site {0}", siteId);
-            String gitLockKey1 = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
-            String gitLockKey2 = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
-            generalLockService.lock(gitLockKey1);
+            String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+            String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+            generalLockService.lock(gitLockKeySandbox);
             try {
                 cleanup(siteId, SANDBOX);
             } finally {
-                generalLockService.unlock(gitLockKey1);
+                generalLockService.unlock(gitLockKeySandbox);
             }
-            generalLockService.lock(gitLockKey2);
+            generalLockService.lock(gitLockKeyPublished);
             try {
                 cleanup(siteId, PUBLISHED);
             } finally {
-                generalLockService.unlock(gitLockKey2);
+                generalLockService.unlock(gitLockKeyPublished);
             }
         }
     }
