@@ -71,7 +71,7 @@ import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
@@ -336,7 +336,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 .findGitDir()
                 .build();
 
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
         try (Git git = new Git(repo)) {
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
