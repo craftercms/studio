@@ -226,6 +226,8 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
+        } else {
+            logger.debug("Failed to get lock " + gitLockKey);
         }
         return cloned;
     }
@@ -363,6 +365,8 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
             } finally {
                 generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
             }
+        } else {
+            logger.debug("Failed to get lock " + GLOBAL_REPOSITORY_GIT_LOCK);
         }
     }
 }

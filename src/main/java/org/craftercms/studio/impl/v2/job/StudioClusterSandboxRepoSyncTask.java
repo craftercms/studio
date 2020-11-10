@@ -314,6 +314,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
+        } else {
+            logger.debug("Failed to get lock " + gitLockKey);
         }
         return cloned;
     }
@@ -545,6 +547,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
+        } else {
+            logger.debug("Failed to get lock " + gitLockKey);
         }
 
         Files.delete(tempKey);

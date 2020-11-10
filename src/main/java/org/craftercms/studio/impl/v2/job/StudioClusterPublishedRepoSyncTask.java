@@ -370,6 +370,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 } finally {
                     generalLockService.unlock(gitLockKey);
                 }
+            } else {
+                logger.debug("Failed to get lock " + gitLockKey);
             }
         }
 
