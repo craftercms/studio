@@ -530,7 +530,6 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 PullCommand pullCommand = git.pull();
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand.setRemoteBranchName(sandboxBranchName);
-                pullCommand.setStrategy(MergeStrategy.THEIRS);
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
                 pullCommand.call();
 

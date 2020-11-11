@@ -838,11 +838,11 @@ studio.clockJob.taskExecutor.queueCapacity: 200
 # Cluster Global Repo sync execute every N cycles
 studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
 # Cluster Site Sandbox sync execute every N cycles
-studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 5
+studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 10
 # Cluster Site Published sync execute every N cycles
 studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 20
 # Sync repository execute every N cycles
-studio.clockJob.task.syncRepository.executeEveryNCycles: 2
+studio.clockJob.task.syncRepository.executeEveryNCycles: 5
 # Publisher execute every N cycles
 studio.clockJob.task.publisher.executeEveryNCycles: 10
 # Publisher max retry count in case if content not found
