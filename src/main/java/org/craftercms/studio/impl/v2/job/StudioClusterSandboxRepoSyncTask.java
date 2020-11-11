@@ -530,28 +530,10 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 PullCommand pullCommand = git.pull();
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand.setRemoteBranchName(sandboxBranchName);
+                pullCommand.setStrategy(MergeStrategy.THEIRS);
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
                 pullCommand.call();
 
-                /*
-                FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
-                fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
-                FetchResult fetchResult = fetchCommand.call();
-
-                if (fetchResult != null) {
-                    ObjectId refToMerge =
-                            git.getRepository().resolve(remoteNode.getGitRemoteName() + "/" + sandboxBranchName);
-
-                    MergeCommand mergeCommand = git.merge();
-                    mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
-                    mergeCommand.setCommit(true);
-                    mergeCommand.include(refToMerge);
-                    //mergeCommand.setStrategy(MergeStrategy.THEIRS);
-                    MergeResult result = mergeCommand.call();
-                    if (result.getMergeStatus().isSuccessful()) {
-                        deploymentService.syncAllContentToPreview(siteId, true);
-                    }
-                }*/
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
