@@ -45,6 +45,7 @@ import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -500,7 +501,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             logger.debug("Update content from each active cluster memeber");
             for (ClusterMember remoteNode : clusterNodes) {
                 String remoteLastSyncCommit = remoteLastSyncCommits.get(remoteNode.getGitRemoteName());
-                if (StringUtils.isEmpty(remoteLastSyncCommit) ||
+                if (true ||StringUtils.isEmpty(remoteLastSyncCommit) ||
                         !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
                     updateBranch(siteId, git, remoteNode, sandboxBranchName);
                     String remoteLastCommitId = clusterDao.getNodeLastCommitId(remoteNode.getId(), sId);
@@ -526,6 +527,12 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         if (generalLockService.tryLock(gitLockKey)) {
             try {
 
+                PullCommand pullCommand = git.pull();
+                pullCommand.setRemote(remoteNode.getGitRemoteName());
+                pullCommand.setRemoteBranchName(sandboxBranchName);
+                pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+
+                /*
                 FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
                 fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
                 FetchResult fetchResult = fetchCommand.call();
@@ -543,7 +550,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     if (result.getMergeStatus().isSuccessful()) {
                         deploymentService.syncAllContentToPreview(siteId, true);
                     }
-                }
+                }*/
             } finally {
                 generalLockService.unlock(gitLockKey);
             }

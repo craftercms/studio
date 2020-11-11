@@ -129,7 +129,6 @@ public class StudioClockExecutor implements Job {
                 public void run() {
                     if (lockSiteInternal(site)) {
                         try {
-
                             for (SiteJob siteTask : siteTasks) {
                                 siteTask.execute(site);
                             }
