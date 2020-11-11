@@ -501,7 +501,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             logger.debug("Update content from each active cluster memeber");
             for (ClusterMember remoteNode : clusterNodes) {
                 String remoteLastSyncCommit = remoteLastSyncCommits.get(remoteNode.getGitRemoteName());
-                if (true ||StringUtils.isEmpty(remoteLastSyncCommit) ||
+                if (StringUtils.isEmpty(remoteLastSyncCommit) ||
                         !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
                     updateBranch(siteId, git, remoteNode, sandboxBranchName);
                     String remoteLastCommitId = clusterDao.getNodeLastCommitId(remoteNode.getId(), sId);
