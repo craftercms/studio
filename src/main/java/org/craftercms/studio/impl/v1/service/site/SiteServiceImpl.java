@@ -1794,6 +1794,8 @@ public class SiteServiceImpl implements SiteService {
     @RetryingOperation
     @Override
     public boolean tryLockSyncRepoForSite(String siteId, String lockOwnerId, int ttl) {
+	    return true;
+	    /*
         logger.debug("Locking sync repo for site " + siteId + " with lock owner " + lockOwnerId);
         int result = siteFeedMapper.tryLockSyncRepoForSite(siteId, lockOwnerId, ttl);
         if (result == 1) {
@@ -1801,7 +1803,7 @@ public class SiteServiceImpl implements SiteService {
         } else {
             logger.debug("Failed to sync repo for site " + siteId + " with lock owner " + lockOwnerId);
         }
-        return result == 1;
+        return result == 1;*/
     }
 
     @RetryingOperation
@@ -1815,8 +1817,10 @@ public class SiteServiceImpl implements SiteService {
     @RetryingOperation
     @Override
     public boolean unlockSyncRepoForSite(String siteId, String lockOwnerId) {
+	    /*
         logger.debug("Unlocking sync repo for site " + siteId + " lock owner " + lockOwnerId);
         siteFeedMapper.unlockSyncRepoForSite(siteId, lockOwnerId);
+	     */
         return true;
     }
 
@@ -1830,8 +1834,10 @@ public class SiteServiceImpl implements SiteService {
     @RetryingOperation
     @Override
     public void updateSyncRepoLockHeartbeatForSite(String siteId) {
+	    /*
         logger.debug("Update publishing lock heartbeat for site " + siteId);
         siteFeedMapper.updateSyncRepoLockHeartbeatForSite(siteId);
+	     */
     }
 
     @Override
