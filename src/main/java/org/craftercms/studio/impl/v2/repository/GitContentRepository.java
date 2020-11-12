@@ -722,7 +722,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
                                            Map<String, String> params) {
         boolean toReturn;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -865,7 +865,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             return;
         }
         String commitId = EMPTY;
-        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -1222,7 +1222,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         // clone remote git repository for site content
         logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
                 " (" + remoteUrl + ").");
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,

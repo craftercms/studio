@@ -290,7 +290,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String writeContent(String site, String path, InputStream content) {
         // Write content to git and commit it
         String commitId = null;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -327,7 +327,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
         String commitId = null;
         boolean result;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -395,7 +395,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String deleteContent(String site, String path, String approver) {
         String commitId = null;
         boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -475,7 +475,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
         Map<String, String> toRet = new TreeMap<String, String>();
         String commitId;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -564,7 +564,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String copyContent(String site, String fromPath, String toPath) {
         String commitId = null;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -746,7 +746,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // SJ: Major revisions become git tags
         // TODO: SJ: Redesign/refactor the whole approach in 3.1+
         String toReturn = EMPTY;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -793,7 +793,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String revertContent(String site, String path, String version, boolean major, String comment) {
         // TODO: SJ: refactor to remove the notion of a major/minor for 3.1+
         String commitId = null;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             InputStream versionContent = getContentVersion(site, path, version);
@@ -1026,7 +1026,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean deleteSite(String site) {
         boolean toReturn;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -1067,7 +1067,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
             throws DeploymentException, CryptoException {
-        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(site, PUBLISHED);
@@ -1287,7 +1287,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, ServiceLayerException {
         boolean toRet = true;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -1804,7 +1804,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             PullResult pullResult = null;
@@ -1917,7 +1917,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         String stagingName = servicesConfig.getStagingEnvironment(siteId);
         String liveName = servicesConfig.getLiveEnvironment(siteId);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         synchronized (repo) {
             try (Git git = new Git(repo)) {
@@ -1981,8 +1981,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
         } else {
             logger.info("Cleaning up repositories for site {0}", siteId);
-            String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
-            String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+            String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+            String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
             generalLockService.lock(gitLockKeySandbox);
             try {
                 cleanup(siteId, SANDBOX);

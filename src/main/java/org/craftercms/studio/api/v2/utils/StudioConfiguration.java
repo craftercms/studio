@@ -278,9 +278,6 @@ public interface StudioConfiguration {
     String CLUSTERING_SYNC_URL_FORMAT = "studio.clustering.sync.urlFormat";
 
     /** Clustering Thread Pool **/
-    String CLUSTERING_SANDBOX_SYNC_JOB_INTERVAL = "studio.clustering.sandboxSyncJob.interval";
-    String CLUSTERING_PUBLISHED_SYNC_JOB_INTERVAL = "studio.clustering.publishedSyncJob.interval";
-    String CLUSTERING_GLOBAL_REPO_SYNC_JOB_INTERVAL = "studio.clustering.globalRepoSyncJob.interval";
     String CLUSTERING_HEARTBEAT_JOB_INTERVAL = "studio.clustering.heartbeatJob.interval";
     String CLUSTERING_INACTIVITY_CHECK_JOB_INTERVAL = "studio.clustering.inactivityCheckJob.interval";
     String CLUSTERING_HEARTBEAT_STALE_TIME_LIMIT = "studio.clustering.heartbeatStale.timeLimit";

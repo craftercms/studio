@@ -85,6 +85,7 @@ public class StudioClockExecutor implements Job {
     private Deployer deployer;
     private List<Job> globalTasks;
     private List<SiteJob> siteTasks;
+    private static int threadCounter = 0;
 
     public StudioClockExecutor(StudioConfiguration studioConfiguration, TaskExecutor taskExecutor,
                                SiteService siteService, ContentRepository contentRepository,
@@ -100,10 +101,12 @@ public class StudioClockExecutor implements Job {
 
     @Override
     public void execute() {
+        threadCounter++;
         if (!stopSignaled) {
             if (singleWorkerLock.tryLock()) {
                 try {
                     setRunning(true);
+                    logger.debug("Executing tasks thread num " + threadCounter);
                     executeTasks();
                 } catch (Exception e) {
                     logger.error("Error executing Studio Clock Job", e);
@@ -211,18 +214,31 @@ public class StudioClockExecutor implements Job {
     }
 
     private synchronized boolean lockSiteInternal(String siteId) {
+        logger.debug("Locking site " + Thread.currentThread().getId());
         ReentrantLock swl = singleWorkerSiteTasksLockMap.get(siteId);
         if (swl == null) {
             swl = new ReentrantLock();
             singleWorkerSiteTasksLockMap.put(siteId, swl);
         }
-        return swl.tryLock();
+        boolean toRet = swl.tryLock();
+        if (toRet) {
+            logger.debug("Site " + siteId + " is locked for single thread execution of clock tasks");
+        } else {
+            logger.debug("Site " + siteId + " is locked BY ANOTHER THREAD for single thread execution of clock tasks");
+        }
+        logger.debug("Site " + siteId + " is lock counter = " + swl.getHoldCount());
+        return toRet;
     }
 
     private synchronized void unlockSiteInternal(String siteId) {
+        logger.debug("Unlocking site " + Thread.currentThread().getId());
         ReentrantLock swl = singleWorkerSiteTasksLockMap.get(siteId);
         if (swl != null) {
             swl.unlock();
+            logger.debug("Site " + siteId + " is unlocked for single thread execution of clock tasks");
+            logger.debug("Site " + siteId + " is lock counter = " + swl.getHoldCount());
+        } else {
+            logger.debug("Site " + siteId + " is locked for single thread execution of clock tasks");
         }
     }
 }

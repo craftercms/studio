@@ -185,7 +185,7 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
     }
 
     protected void writeToRepo(String site, String path, InputStream content) {
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             Path repositoryPath = getRepositoryPath(site);
@@ -257,7 +257,7 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
     }
 
     protected void commitAllChanges(String site) throws UpgradeException {
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             Path repositoryPath = getRepositoryPath(site);
