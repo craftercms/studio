@@ -578,6 +578,7 @@
         <constructor-arg name="taskExecutor" ref="studio.clockTaskExecutor" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
         <constructor-arg name="deployer" ref="allDeployers" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
         <constructor-arg name="globalTasks" ref="studio.clockTasksGlobal" />
         <constructor-arg name="siteTasks" ref="studio.clockTasksSite" />
     </bean>

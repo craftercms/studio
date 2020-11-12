@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.job.SiteJob;
@@ -46,7 +47,9 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.STUDIO_CLOCK_EXECUTOR_SITE_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
@@ -83,18 +86,26 @@ public class StudioClockExecutor implements Job {
     private SiteService siteService;
     private ContentRepository contentRepository;
     private Deployer deployer;
+    private GeneralLockService generalLockService;
     private List<Job> globalTasks;
     private List<SiteJob> siteTasks;
     private static int threadCounter = 0;
 
-    public StudioClockExecutor(StudioConfiguration studioConfiguration, TaskExecutor taskExecutor,
-                               SiteService siteService, ContentRepository contentRepository,
-                               Deployer deployer, List<Job> globalTasks, List<SiteJob> siteTasks) {
+    public StudioClockExecutor(StudioConfiguration studioConfiguration,
+                               TaskExecutor taskExecutor,
+                               SiteService siteService,
+                               ContentRepository contentRepository,
+                               Deployer deployer,
+                               GeneralLockService generalLockService,
+                               List<Job> globalTasks,
+                               List<SiteJob> siteTasks) {
+
         this.studioConfiguration = studioConfiguration;
         this.taskExecutor = taskExecutor;
         this.siteService = siteService;
         this.contentRepository = contentRepository;
         this.deployer = deployer;
+        this.generalLockService = generalLockService;
         this.globalTasks = globalTasks;
         this.siteTasks = siteTasks;
     }
@@ -130,13 +141,14 @@ public class StudioClockExecutor implements Job {
             taskExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    if (lockSiteInternal(site)) {
+                    String tasksLock = STUDIO_CLOCK_EXECUTOR_SITE_LOCK.replaceAll(PATTERN_SITE, site);
+                    if (generalLockService.tryLock(tasksLock)) {
                         try {
                             for (SiteJob siteTask : siteTasks) {
                                 siteTask.execute(site);
                             }
                         } finally {
-                            unlockSiteInternal(site);
+                            generalLockService.unlock(tasksLock);
                         }
                     }
                 }
@@ -211,34 +223,5 @@ public class StudioClockExecutor implements Job {
         String url = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL);
         url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
         return url;
-    }
-
-    private synchronized boolean lockSiteInternal(String siteId) {
-        logger.debug("Locking site " + Thread.currentThread().getId());
-        ReentrantLock swl = singleWorkerSiteTasksLockMap.get(siteId);
-        if (swl == null) {
-            swl = new ReentrantLock();
-            singleWorkerSiteTasksLockMap.put(siteId, swl);
-        }
-        boolean toRet = swl.tryLock();
-        if (toRet) {
-            logger.debug("Site " + siteId + " is locked for single thread execution of clock tasks");
-        } else {
-            logger.debug("Site " + siteId + " is locked BY ANOTHER THREAD for single thread execution of clock tasks");
-        }
-        logger.debug("Site " + siteId + " is lock counter = " + swl.getHoldCount());
-        return toRet;
-    }
-
-    private synchronized void unlockSiteInternal(String siteId) {
-        logger.debug("Unlocking site " + Thread.currentThread().getId());
-        ReentrantLock swl = singleWorkerSiteTasksLockMap.get(siteId);
-        if (swl != null) {
-            swl.unlock();
-            logger.debug("Site " + siteId + " is unlocked for single thread execution of clock tasks");
-            logger.debug("Site " + siteId + " is lock counter = " + swl.getHoldCount());
-        } else {
-            logger.debug("Site " + siteId + " is locked for single thread execution of clock tasks");
-        }
     }
 }

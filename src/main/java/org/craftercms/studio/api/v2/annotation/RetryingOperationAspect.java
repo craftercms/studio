@@ -64,7 +64,9 @@ public class RetryingOperationAspect {
             numAttempts++;
             try {
 				 // Execute the business code again
-                logger.debug("Retrying operation attempt " + numAttempts);
+                if (numAttempts > 1) {
+                    logger.debug("Retrying operation attempt " + (numAttempts - 1));
+                }
                 return pjp.proceed();
             } catch (DeadlockLoserDataAccessException | JGitInternalException ex) {
                 logger.info("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);

@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
@@ -330,15 +329,6 @@ public interface SiteService {
 	 */
 	boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl);
 
-	/**
-	 * Lock sync repo for site
-	 * @param siteId site identifier
-	 * @param lockOwnerId lock owner identifier
-	 * @param ttl TTL for lock
-	 * @return true if locking was successful
-	 */
-    boolean tryLockSyncRepoForSite(String siteId, String lockOwnerId, int ttl);
-
     /**
 	 * Unlock publishing for site
 	 * @param siteId site identifier
@@ -346,24 +336,11 @@ public interface SiteService {
 	 */
     boolean unlockPublishingForSite(String siteId, String lockOwnerId);
 
-	/**
-	 * Unlock sync repo for site
-	 * @param siteId site identifier
-	 * @return true if unlocking was successful
-	 */
-    boolean unlockSyncRepoForSite(String siteId, String lockOwnerId);
-
     /**
 	 * update publishing lock heartbeat for site
 	 * @param siteId site identifier
 	 */
 	void updatePublishingLockHeartbeatForSite(String siteId);
-
-	/**
-	 * update sync repo lock heartbeat for site
-	 * @param siteId
-	 */
-	void updateSyncRepoLockHeartbeatForSite(String siteId);
 
 	/**
 	 * get last commit id for site

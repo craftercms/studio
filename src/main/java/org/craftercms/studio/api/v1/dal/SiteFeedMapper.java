@@ -90,29 +90,6 @@ public interface SiteFeedMapper {
     void updatePublishingLockHeartbeatForSite(@Param(SITE_ID) String siteId);
 
     /**
-     * Lock sync repo task for site
-     * @param siteId site identifier
-     * @param lockOwnerId lock owner identifier
-     * @param ttl TTL for lock
-     * @return 1 if sync repo was locked, otherwise 0
-     */
-    int tryLockSyncRepoForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId,
-                                 @Param(TTL) int ttl);
-
-    /**
-     * unlock sync repo task for site
-     * @param siteId site identifier
-     * @param lockOwnerId lock owner identifier
-     */
-    void unlockSyncRepoForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId);
-
-    /**
-     * update sync repo lock heartbeat for site
-     * @param siteId site identifier
-     */
-    void updateSyncRepoLockHeartbeatForSite(@Param(SITE_ID) String siteId);
-
-    /**
      * Get last commit id for local studio node
      * @param siteId site identifier
      * @param localAddress local address
