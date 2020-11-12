@@ -336,7 +336,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 .findGitDir()
                 .build();
 
-        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         try (Git git = new Git(repo)) {
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");

@@ -135,7 +135,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                             siteFeed.getSearchEngine(), clusterNodes);
                 }
                 if (clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
-                    clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), null, null);
+                    String commitId = contentRepository.getRepoFirstCommitId(siteId);
+                    clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), commitId, commitId);
                 }
 
 
@@ -249,7 +250,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         // we will eventually to catch up to the latest
         boolean cloned = false;
         int idx = 0;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         if (generalLockService.tryLock(gitLockKey)) {
             try {
                 while (!cloned && idx < clusterNodes.size()) {
@@ -515,7 +516,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
     private void updateBranch(String siteId, Git git, ClusterMember remoteNode, String sandboxBranchName)
             throws CryptoException, GitAPIException, IOException, ServiceLayerException {
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         if (generalLockService.tryLock(gitLockKey)) {
             try {
