@@ -110,7 +110,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,

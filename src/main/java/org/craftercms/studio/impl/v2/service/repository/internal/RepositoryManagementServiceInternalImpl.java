@@ -126,7 +126,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
         boolean isValid = false;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
             logger.debug("Add remote " + remoteRepository.getRemoteName() + " to the sandbox repo for the site " + siteId);
@@ -377,7 +377,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
         logger.debug("Prepare pull command");
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -518,7 +518,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
@@ -599,7 +599,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             switch (resolution.toLowerCase()) {
@@ -702,7 +702,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         logger.debug("Commit resolution for merge conflict for site " + siteId);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             Status status = git.status().call();
@@ -745,7 +745,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             git.reset().setMode(ResetCommand.ResetType.HARD).call();

@@ -526,7 +526,7 @@ public class GitRepositoryHelper {
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
 
         // Create Sandbox
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             sandboxRepo = createGitRepository(siteSandboxPath);
@@ -559,7 +559,7 @@ public class GitRepositoryHelper {
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
         // Built a path for the site/published
         Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, siteId);
-        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git publishedGit = Git.cloneRepository()
                 .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
@@ -785,7 +785,7 @@ public class GitRepositoryHelper {
         boolean toReturn = true;
 
         Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
 
@@ -835,7 +835,7 @@ public class GitRepositoryHelper {
         logger.debug("Cloning from " + remoteUrl + " to " + localPath);
         CloneCommand cloneCommand = Git.cloneRepository();
         Git cloneResult = null;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
             final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
@@ -1061,8 +1061,8 @@ public class GitRepositoryHelper {
         // Get a file handle to the parent and delete it
         File siteFolder = sitePath.toFile();
 
-        String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
-        String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKeySandbox);
         generalLockService.lock(gitLockKeyPublished);
         try {
@@ -1164,7 +1164,7 @@ public class GitRepositoryHelper {
         String gitPath = getGitPath(path);
         Status status;
 
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replace(PATTERN_SITE, site);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             status = git.status().addPath(gitPath).call();

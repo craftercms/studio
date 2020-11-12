@@ -37,18 +37,22 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
 public class StudioSyncRepositoryTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
+    private static int threadCounter = 0;
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
                                     int offset,
                                     StudioConfiguration studioConfiguration,
                                     SiteService siteService) {
         super(executeEveryNCycles, offset, studioConfiguration, siteService);
+        threadCounter++;
     }
 
     @Override
     protected void executeInternal(String site) {
         try {
             try {
+                logger.debug("Executing sync repository thread ID = " + threadCounter + "; " +
+                        Thread.currentThread().getId());
                 syncRepository(site);
             } catch (Exception e) {
                 logger.error("Failed to sync database from repository for site " + site, e);
