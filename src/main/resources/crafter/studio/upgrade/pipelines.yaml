@@ -84,6 +84,11 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.2.0.12-to-3.2.0.13.sql
+      - currentVersion: 3.2.0.13
+        nextVersion: 3.2.0.14
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.13-to-3.2.0.14.sql
 
   # Pipeline to upgrade site repositories
   site:

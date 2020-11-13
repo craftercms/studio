@@ -155,6 +155,7 @@
         <constructor-arg name="securityService" ref="cstudioSecurityService" />
         <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
         <constructor-arg name="encryptor" ref="internalTextEncryptor" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"

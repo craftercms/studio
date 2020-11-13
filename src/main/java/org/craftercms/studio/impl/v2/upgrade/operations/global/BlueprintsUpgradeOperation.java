@@ -71,19 +71,15 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
     protected TextEncryptor encryptor;
     protected GeneralLockService generalLockService;
 
-    public BlueprintsUpgradeOperation(StudioConfiguration studioConfiguration, SecurityService securityService,
-                                      UserServiceInternal userServiceInternal, TextEncryptor encryptor) {
+    public BlueprintsUpgradeOperation(StudioConfiguration studioConfiguration,
+                                      SecurityService securityService,
+                                      UserServiceInternal userServiceInternal,
+                                      TextEncryptor encryptor,
+                                      GeneralLockService generalLockService) {
         super(studioConfiguration);
         this.securityService = securityService;
         this.userServiceInternal = userServiceInternal;
         this.encryptor = encryptor;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
 
