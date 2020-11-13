@@ -457,7 +457,7 @@ studio.db.schema: crafter
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
 # Note that a relative path is not suitable for a production deployment
-studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter
+studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter&socketTimeout=60000
 # Defines initial number of database connections in database connection pool
 studio.db.pool.initialConnections: 10
 # Defines maximum number of active database connections in database connection pool
