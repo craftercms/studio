@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
 
@@ -178,7 +179,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     @Override
     public void updateSite(String siteId, String name, String description)
             throws SiteNotFoundException, SiteAlreadyExistsException {
-        if (siteFeedMapper.existsByName(name) > 0) {
+        if (isNotEmpty(name) && siteFeedMapper.existsByName(name) > 0) {
             throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
         }
         int updated = siteFeedMapper.updateSite(siteId, name, description);

@@ -41,6 +41,8 @@
 
         <extendedElements></extendedElements>   <!-- elements whitelist (won't be stripped out) -->
 
+        <!-- <validChildren></validChildren> -->
+
         <toolbarItems1>
             formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat
         </toolbarItems1>

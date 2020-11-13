@@ -141,4 +141,43 @@
         WHERE local_address = #{localAddress}
         LIMIT 1
     </select>
+
+    <insert id="insertClusterSiteSyncRepo">
+        INSERT INTO cluster_site_sync_repo (cluster_node_id, site_id, node_last_commit_id, node_last_verified_gitlog_commit_id)
+        VALUES (#{clusterNodeId}, #{siteId}, #{nodeLastCommitId}, #{nodeLastVerifiedGitlogCommitId})
+    </insert>
+
+    <update id="updateNodeLastVerifiedGitlogCommitId" >
+        UPDATE cluster_site_sync_repo SET node_last_verified_gitlog_commit_id = #{commitId}
+        WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
+    </update>
+
+    <update id="updateNodeLastCommitId" >
+        UPDATE cluster_site_sync_repo SET node_last_commit_id = #{commitId}
+        WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
+    </update>
+
+    <select id="getNodeLastCommitId" resultType="java.lang.String">
+        SELECT cssr.node_last_commit_id
+        FROM cluster c INNER JOIN cluster_site_sync_repo cssr ON c.id = cssr.cluster_node_id
+                       INNER JOIN site s on s.id = cssr.site_id
+        WHERE c.id = #{clusterNodeId}
+        AND cssr.site_id = #{siteId} AND s.deleted = 0 limit 1
+    </select>
+
+    <select id="getNodeLastVerifiedGitlogCommitId" resultType="java.lang.String">
+        SELECT cssr.node_last_verified_gitlog_commit_id
+        FROM cluster c INNER JOIN cluster_site_sync_repo cssr ON c.id = cssr.cluster_node_id
+                       INNER JOIN site s on s.id = cssr.site_id
+        WHERE c.id = #{clusterNodeId}
+        AND cssr.site_id = #{siteId} AND s.deleted = 0 limit 1
+    </select>
+
+    <select id="existsClusterSiteSyncRepo" resultType="int">
+        SELECT count(1)
+        FROM site s INNER JOIN cluster_site_sync_repo cssr INNER JOIN cluster c
+        ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
+        WHERE s.id = #{siteId}
+        AND c.id = #{clusterNodeId}
+    </select>
 </mapper>
