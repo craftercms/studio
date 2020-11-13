@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.job;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -30,10 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
@@ -42,44 +38,28 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
 public class StudioSyncRepositoryTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
-
-    protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
+    private static int threadCounter = 0;
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
                                     int offset,
                                     StudioConfiguration studioConfiguration,
                                     SiteService siteService) {
         super(executeEveryNCycles, offset, studioConfiguration, siteService);
+        threadCounter++;
     }
 
     @Override
     protected void executeInternal(String site) {
         try {
             try {
+                logger.debug("Executing sync repository thread ID = " + threadCounter + "; " +
+                        Thread.currentThread().getId());
                 syncRepository(site);
             } catch (Exception e) {
                 logger.error("Failed to sync database from repository for site " + site, e);
             }
         } catch (Exception e) {
             logger.error("Failed to sync database from repository for site " + site, e);
-        }
-    }
-
-    @Override
-    protected boolean lockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock == null) {
-            singleWorkerLock = new ReentrantLock();
-            singleWorkerLockMap.put(siteId, singleWorkerLock);
-        }
-        return singleWorkerLock.tryLock();
-    }
-
-    @Override
-    protected void unlockSiteInternal(String siteId) {
-        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
-        if (singleWorkerLock != null) {
-            singleWorkerLock.unlock();
         }
     }
 

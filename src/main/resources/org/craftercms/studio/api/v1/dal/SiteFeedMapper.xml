@@ -91,7 +91,7 @@
              (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
               WHERE c.local_address = #{localAddress}
              ) AS cs ON s.id = cs.site_id
-        WHERE s.site_id = #{siteId}
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
 
     <select id="getLastVerifiedGitlogCommitId" resultType="java.lang.String">
@@ -100,7 +100,7 @@
             (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
                 WHERE c.local_address = #{localAddress}
             ) AS cs ON s.id = cs.site_id
-        WHERE s.site_id = #{siteId}
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
 
     <select id="exists" parameterType="java.lang.String" resultType="int">
@@ -167,10 +167,6 @@
 
     <select id="tryLockPublishingForSite" statementType="CALLABLE" resultType="int">
         call tryLockPublishingForSite(#{siteId}, #{lockOwnerId}, #{ttl},#{locked, jdbcType=INTEGER,mode=OUT,javaType=Integer})
-    </select>
-
-    <select id="tryLockSyncRepoForSite" statementType="CALLABLE" resultType="int">
-        call tryLockSyncRepoForSite(#{siteId}, #{lockOwnerId}, #{ttl},#{locked, jdbcType=INTEGER,mode=OUT,javaType=Integer})
     </select>
 
     <update id="unlockPublishingForSite">
