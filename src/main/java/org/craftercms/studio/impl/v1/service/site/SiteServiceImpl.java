@@ -386,12 +386,13 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintId") String blueprintId,
-                                        @ValidateStringParam(name = "siteId") String siteId,
-                                        @ValidateNoTagsParam(name = "siteName") String siteName,
-                                        @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-                                        @ValidateNoTagsParam(name = "desc") String desc,
-                                        Map<String, String> params, boolean createAsOrphan)
+    public void createSiteFromBlueprint(
+            @ValidateStringParam(name = "blueprintId") String blueprintId,
+            @ValidateStringParam(name = "siteId", maxLength = 50, whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
+            @ValidateNoTagsParam(name = "siteName") String siteName,
+            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
+            @ValidateNoTagsParam(name = "desc") String desc,
+            Map<String, String> params, boolean createAsOrphan)
             throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
             BlueprintNotFoundException, MissingPluginParameterException {
         if (exists(siteId) || existsByName(siteName)) {
@@ -609,18 +610,19 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId,
-                                           @ValidateStringParam(name = "siteName") String siteName,
-                                           @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-                                           @ValidateNoTagsParam(name = "description") String description,
-                                           String blueprintName,
-                                           @ValidateStringParam(name = "remoteName") String remoteName,
-                                           @ValidateStringParam(name = "remoteUrl") String remoteUrl,
-                                           String remoteBranch, boolean singleBranch, String authenticationType,
-                                           String remoteUsername, String remotePassword, String remoteToken,
-                                           String remotePrivateKey,
-                                           @ValidateStringParam(name = "createOption") String createOption,
-                                           Map<String, String> params, boolean createAsOrphan)
+    public void createSiteWithRemoteOption(
+            @ValidateStringParam(name = "siteId", maxLength = 50, whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
+            @ValidateStringParam(name = "siteName") String siteName,
+            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
+            @ValidateNoTagsParam(name = "description") String description,
+            String blueprintName,
+            @ValidateStringParam(name = "remoteName") String remoteName,
+            @ValidateStringParam(name = "remoteUrl") String remoteUrl,
+            String remoteBranch, boolean singleBranch, String authenticationType,
+            String remoteUsername, String remotePassword, String remoteToken,
+            String remotePrivateKey,
+            @ValidateStringParam(name = "createOption") String createOption,
+            Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId) || existsByName(siteName)) {
