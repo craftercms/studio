@@ -18,8 +18,9 @@ package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 public interface ImportService {
 
-    void importSite(String configLocation) throws ServiceLayerException, ValidationException;
+    void importSite(String configLocation) throws ServiceLayerException, ValidationException, UserNotFoundException;
 }
