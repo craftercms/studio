@@ -16,6 +16,7 @@
 package org.craftercms.studio.api.v1.content.pipeline;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 public interface DmContentProcessor {
@@ -28,7 +29,8 @@ public interface DmContentProcessor {
      * @param isPreview
      * @return last child folder in the path
      */
-    ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) throws ServiceLayerException;
+    ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * change file to folder content. See WcmClipboardServiceImpl when updating this logic.
@@ -38,5 +40,5 @@ public interface DmContentProcessor {
      * @param path content path
      * @return new content path
      */
-    String fileToFolder(String site, String path) throws ServiceLayerException;
+    String fileToFolder(String site, String path) throws ServiceLayerException, UserNotFoundException;
 }
