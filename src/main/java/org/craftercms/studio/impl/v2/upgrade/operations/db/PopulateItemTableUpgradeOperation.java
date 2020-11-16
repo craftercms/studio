@@ -29,6 +29,7 @@ import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -108,18 +109,21 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
     private SecurityService securityService;
     private UserServiceInternal userServiceInternal;
     private TextEncryptor encryptor;
+    private GeneralLockService generalLockService;
 
     public PopulateItemTableUpgradeOperation(StudioConfiguration studioConfiguration, String scriptFolder,
                                              DbIntegrityValidator integrityValidator,
                                              ItemServiceInternal itemServiceInternal, ContentService contentService,
                                              SecurityService securityService, UserServiceInternal userServiceInternal,
-                                             TextEncryptor encryptor) {
+                                             TextEncryptor encryptor,
+                                             GeneralLockService generalLockService) {
         super(studioConfiguration, scriptFolder, integrityValidator);
         this.itemServiceInternal = itemServiceInternal;
         this.contentService = contentService;
         this.securityService = securityService;
         this.userServiceInternal = userServiceInternal;
         this.encryptor = encryptor;
+        this.generalLockService = generalLockService;
     }
 
     @Override
@@ -241,8 +245,8 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
     }
 
     private Repository getRepository(String site) throws CryptoException {
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         return helper.getRepository(site, GitRepositories.SANDBOX);
     }
 
