@@ -922,12 +922,6 @@ public class SecurityServiceImpl implements SecurityService {
         return ticket;
     }
 
-    @Override
-    public long getAvailableActions(String site, String path, String user) {
-        List<String> permissions = new ArrayList<>(getUserPermissions(site, path, user, new ArrayList<String>()));
-        return AvailableActions.mapPermissionsToAvailableActions(permissions);
-    }
-
     public String getRoleMappingsFileName() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
     }
