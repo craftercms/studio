@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
@@ -102,7 +103,11 @@ import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SANDBOX;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
@@ -135,6 +140,7 @@ public class GitRepositoryHelper {
     private TextEncryptor encryptor;
     private SecurityService securityService;
     private UserServiceInternal userServiceInternal;
+    private GeneralLockService generalLockService;
 
     private Map<String, Repository> sandboxes = new HashMap<>();
     private Map<String, Repository> published = new HashMap<>();
@@ -145,7 +151,8 @@ public class GitRepositoryHelper {
     public static GitRepositoryHelper getHelper(StudioConfiguration studioConfiguration,
                                                 SecurityService securityService,
                                                 UserServiceInternal userServiceInternal,
-                                                TextEncryptor textEncryptor)
+                                                TextEncryptor textEncryptor,
+                                                GeneralLockService generalLockService)
             throws CryptoException {
         if (instance == null) {
             instance = new GitRepositoryHelper();
@@ -153,6 +160,7 @@ public class GitRepositoryHelper {
             instance.encryptor = textEncryptor;
             instance.securityService = securityService;
             instance.userServiceInternal = userServiceInternal;
+            instance.generalLockService = generalLockService;
         }
         return instance;
     }
@@ -518,15 +526,21 @@ public class GitRepositoryHelper {
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
 
         // Create Sandbox
-        sandboxRepo = createGitRepository(siteSandboxPath);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
+        try {
+            sandboxRepo = createGitRepository(siteSandboxPath);
 
-        toReturn = (sandboxRepo != null);
+            toReturn = (sandboxRepo != null);
 
-        if (toReturn) {
-            toReturn = checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
             if (toReturn) {
-                sandboxes.put(site, sandboxRepo);
+                toReturn = checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
+                if (toReturn) {
+                    sandboxes.put(site, sandboxRepo);
+                }
             }
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
 
         return toReturn;
@@ -545,6 +559,8 @@ public class GitRepositoryHelper {
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
         // Built a path for the site/published
         Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, siteId);
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try (Git publishedGit = Git.cloneRepository()
                 .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                 .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
@@ -557,6 +573,8 @@ public class GitRepositoryHelper {
             toRet = true;
         } catch (GitAPIException | IOException e) {
             logger.error("Error adding origin (sandbox) to published repository", e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
         return toRet;
     }
@@ -768,7 +786,8 @@ public class GitRepositoryHelper {
         boolean toReturn = true;
 
         Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
-
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
 
             Status status = git.status().call();
@@ -793,6 +812,8 @@ public class GitRepositoryHelper {
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException err) {
             logger.error("error creating initial commit for site:  " + site, err);
             toReturn = false;
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
 
         return toReturn;
@@ -815,7 +836,8 @@ public class GitRepositoryHelper {
         logger.debug("Cloning from " + remoteUrl + " to " + localPath);
         CloneCommand cloneCommand = Git.cloneRepository();
         Git cloneResult = null;
-
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try {
             final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
             switch (authenticationType) {
@@ -887,6 +909,7 @@ public class GitRepositoryHelper {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             toRet = false;
         } finally {
+            generalLockService.unlock(gitLockKey);
             if (cloneResult != null) {
                 cloneResult.close();
             }
@@ -998,25 +1021,30 @@ public class GitRepositoryHelper {
     public boolean createGlobalRepo() {
         boolean toReturn = false;
         Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+        String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
+        generalLockService.lock(gitLockKey);
+        try {
+            if (!Files.exists(globalConfigRepoPath)) {
+                // Git repository doesn't exist for global, but the folder might be present, let's delete if exists
+                Path globalConfigPath = globalConfigRepoPath.getParent();
 
-        if (!Files.exists(globalConfigRepoPath)) {
-            // Git repository doesn't exist for global, but the folder might be present, let's delete if exists
-            Path globalConfigPath = globalConfigRepoPath.getParent();
-
-            // Create the global repository folder
-            try {
-                Files.deleteIfExists(globalConfigPath);
-                logger.info("Bootstrapping repository...");
-                Files.createDirectories(globalConfigPath);
-                globalRepo = createGitRepository(globalConfigPath);
-                toReturn = true;
-            } catch (IOException e) {
-                // Something very wrong has happened
-                logger.error("Bootstrapping repository failed", e);
+                // Create the global repository folder
+                try {
+                    Files.deleteIfExists(globalConfigPath);
+                    logger.info("Bootstrapping repository...");
+                    Files.createDirectories(globalConfigPath);
+                    globalRepo = createGitRepository(globalConfigPath);
+                    toReturn = true;
+                } catch (IOException e) {
+                    // Something very wrong has happened
+                    logger.error("Bootstrapping repository failed", e);
+                }
+            } else {
+                logger.info("Detected existing global repository, will not create new one.");
+                toReturn = false;
             }
-        } else {
-            logger.info("Detected existing global repository, will not create new one.");
-            toReturn = false;
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
 
         return toReturn;
@@ -1032,6 +1060,10 @@ public class GitRepositoryHelper {
         // Get a file handle to the parent and delete it
         File siteFolder = sitePath.toFile();
 
+        String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKeySandbox);
+        generalLockService.lock(gitLockKeyPublished);
         try {
             Repository sboxRepo = sandboxes.get(site);
             if (sboxRepo != null) {
@@ -1056,6 +1088,9 @@ public class GitRepositoryHelper {
             logger.error("Failed to delete site: " + site + " at path: " + sitePath + " exception " +
                     e.toString());
             toReturn = false;
+        } finally {
+            generalLockService.unlock(gitLockKeyPublished);
+            generalLockService.unlock(gitLockKeySandbox);
         }
 
         return toReturn;
@@ -1128,6 +1163,8 @@ public class GitRepositoryHelper {
         String gitPath = getGitPath(path);
         Status status;
 
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             status = git.status().addPath(gitPath).call();
 
@@ -1141,6 +1178,8 @@ public class GitRepositoryHelper {
             git.close();
         } catch (GitAPIException e) {
             logger.error("error adding and committing file to git: site: " + site + " path: " + path, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
 
         return commitId;

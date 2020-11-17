@@ -485,7 +485,7 @@ studio.db.pool.maxWaitTime: 10000
 # for any reason, initializer needs to be turned on.
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
-studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=${env:MARIADB_ROOT_PASSWD}
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=${env:MARIADB_ROOT_PASSWD}&socketTimeout=60000
 # Create schema SQL script location
 studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
 # Create database SQL script location
@@ -576,12 +576,6 @@ studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
 ################################################################
 ##                   Clustering Thread Pool                   ##
 ################################################################
-# Sandbox Sync Job interval in milliseconds which is how often to sync the work-area
-studio.clustering.sandboxSyncJob.interval: 5000
-# Published Sync Job interval in milliseconds which is how often to sync the published repos
-studio.clustering.publishedSyncJob.interval: 60000
-# Global Repo Sync Job interval in milliseconds which is how often to sync the global repo
-studio.clustering.globalRepoSyncJob.interval: 45000
 # Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
 studio.clustering.heartbeatJob.interval: 10000
 # Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
@@ -847,11 +841,11 @@ studio.clockJob.taskExecutor.queueCapacity: 200
 # Cluster Global Repo sync execute every N cycles
 studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
 # Cluster Site Sandbox sync execute every N cycles
-studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 5
+studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 10
 # Cluster Site Published sync execute every N cycles
 studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 20
 # Sync repository execute every N cycles
-studio.clockJob.task.syncRepository.executeEveryNCycles: 2
+studio.clockJob.task.syncRepository.executeEveryNCycles: 5
 # Publisher execute every N cycles
 studio.clockJob.task.publisher.executeEveryNCycles: 10
 # Publisher max retry count in case if content not found

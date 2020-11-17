@@ -432,6 +432,23 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
+                                             String commitId)
+            throws ServiceLayerException, UserNotFoundException {
+        User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+        Item item = instantiateItem(siteId, folderPath)
+                .withPreviewUrl(getBrowserUrl(siteId, folderPath))
+                .withLastModifiedBy(userObj.getId())
+                .withLastModifiedOn(ZonedDateTime.now())
+                .withLabel(folderName)
+                .withCommitId(commitId)
+                .build();
+        item.setState(ItemState.savedAndClosed(item.getState()));
+        item.setSystemType("folder");
+        upsertEntry(siteId, item);
+    }
+
+    @Override
     public void moveItem(String siteId, String oldPath, String newPath) {
         itemDao.moveItem(siteId, oldPath, newPath);
     }

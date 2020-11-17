@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
@@ -59,8 +60,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
@@ -70,7 +71,6 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public class StudioClusterGlobalRepoSyncTask implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClusterGlobalRepoSyncTask.class);
-    private static ReentrantLock singleWorkerLock = new ReentrantLock();
     private static Map<String, String> existingRemotes = new HashMap<String, String>();
 
     private int executeEveryNCycles;
@@ -78,18 +78,19 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     private StudioClusterUtils studioClusterUtils;
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
-
-
+    private GeneralLockService generalLockService;
 
     public StudioClusterGlobalRepoSyncTask(int executeEveryNCycles,
                                            StudioClusterUtils studioClusterUtils,
                                            StudioConfiguration studioConfiguration,
-                                           ContentRepository contentRepository) {
+                                           ContentRepository contentRepository,
+                                           GeneralLockService generalLockService) {
         this.executeEveryNCycles = executeEveryNCycles;
         this.counter = executeEveryNCycles;
         this.studioClusterUtils = studioClusterUtils;
         this.studioConfiguration = studioConfiguration;
         this.contentRepository = contentRepository;
+        this.generalLockService = generalLockService;
     }
 
     private synchronized boolean checkCycleCounter() {
@@ -105,61 +106,51 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     }
 
     private void executeInternal() {
-        // Lock site and begin sync
-        if (singleWorkerLock.tryLock()) {
-            // Log start time
-            long startTime = System.currentTimeMillis();
-            logger.debug("Worker starts syncing cluster node global repo");
-            try {
-                HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
-                if (registrationData != null && !registrationData.isEmpty()) {
-                    String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
-                    List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
-                    // Check if repo exists
-                    logger.debug("Check if global repository exists");
-                    boolean success = true;
+        // Log start time
+        long startTime = System.currentTimeMillis();
+        logger.debug("Worker starts syncing cluster node global repo");
+        try {
+            HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
+            if (registrationData != null && !registrationData.isEmpty()) {
+                String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
+                // Check if repo exists
+                logger.debug("Check if global repository exists");
+                boolean success = true;
 
-                    if (!checkIfRepoExists()) {
-                        // Site doesn't exist locally, create it
-                        success = cloneRepository(clusterNodes);
-                    }
-
-                    if (success) {
-                        try {
-                            // Add the remote repositories to the local repository to sync from if not added already
-                            logger.debug("Add remotes for global repository");
-                            addRemotes(clusterNodes);
-
-                        } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
-                            logger.error("Error while adding remotes on cluster node for global repo", e);
-                        }
-
-                        try {
-                            // Sync with remote and update the local cache with the last commit ID to speed things up
-                            logger.debug("Update content for global repo");
-                            updateContent(clusterNodes);
-                        } catch (IOException | CryptoException | ServiceLayerException e) {
-                            logger.error("Error while updating content for global repo on cluster node.", e);
-                        }
-
-                    }
+                if (!checkIfRepoExists()) {
+                    // Site doesn't exist locally, create it
+                    success = cloneRepository(clusterNodes);
                 }
-            } catch (ServiceLayerException | CryptoException e) {
-                logger.error("Error while cloning global repository from other nodes", e);
-            } finally {
-                if (singleWorkerLock != null) {
-                    singleWorkerLock.unlock();
+
+                if (success) {
+                    try {
+                        // Add the remote repositories to the local repository to sync from if not added already
+                        logger.debug("Add remotes for global repository");
+                        addRemotes(clusterNodes);
+
+                    } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
+                        logger.error("Error while adding remotes on cluster node for global repo", e);
+                    }
+
+                    try {
+                        // Sync with remote and update the local cache with the last commit ID to speed things up
+                        logger.debug("Update content for global repo");
+                        updateContent(clusterNodes);
+                    } catch (IOException | CryptoException | ServiceLayerException e) {
+                        logger.error("Error while updating content for global repo on cluster node.", e);
+                    }
+
                 }
             }
-
-            // Compute execution duration and log it
-            long duration = System.currentTimeMillis() - startTime;
-            logger.debug("Worker finished syncing cluster node for global repo");
-            logger.debug("Worker performed cluster node sync for global repo in " + duration + "ms");
-        } else {
-            // Couldn't get the site lock, another worker is active, abandoning this cycle
-            logger.debug("Unable to get cluster lock, another worker is holding the lock for global repo");
+        } catch (ServiceLayerException | CryptoException e) {
+            logger.error("Error while cloning global repository from other nodes", e);
         }
+
+        // Compute execution duration and log it
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("Worker finished syncing cluster node for global repo");
+        logger.debug("Worker performed cluster node sync for global repo in " + duration + "ms");
         logger.debug("Finished Cluster Node Sync task for global repo");
     }
 
@@ -178,56 +169,65 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
         // we will eventually to catch up to the latest
         boolean cloned = false;
         int idx = 0;
-        while (!cloned && idx < clusterNodes.size()) {
-            ClusterMember remoteNode = clusterNodes.get(idx++);
-            logger.debug("Cloning global repository from " + remoteNode.getLocalAddress());
-
-            // prepare a new folder for the cloned repository
-            Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                    studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH));
-            File localPath = siteSandboxPath.toFile();
-            localPath.delete();
-            // then clone
-            logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
-            CloneCommand cloneCommand = Git.cloneRepository();
-            Git cloneResult = null;
-
+        String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
+        if (generalLockService.tryLock(gitLockKey)) {
             try {
-                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                logger.debug("Add user credentials if provided");
+                while (!cloned && idx < clusterNodes.size()) {
+                    ClusterMember remoteNode = clusterNodes.get(idx++);
+                    logger.debug("Cloning global repository from " + remoteNode.getLocalAddress());
 
-                studioClusterUtils.configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
+                    // prepare a new folder for the cloned repository
+                    Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH));
+                    File localPath = siteSandboxPath.toFile();
+                    localPath.delete();
+                    // then clone
+                    logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
+                    CloneCommand cloneCommand = Git.cloneRepository();
+                    Git cloneResult = null;
 
-                String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
+                    try {
+                        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                        logger.debug("Add user credentials if provided");
 
-                logger.debug("Executing clone command");
-                cloneResult = cloneCommand
-                        .setURI(cloneUrl)
-                        .setRemote(remoteNode.getGitRemoteName())
-                        .setDirectory(localPath)
-                        .setCloneAllBranches(true)
-                        .call();
-                Files.deleteIfExists(tempKey);
-                cloned = true;
+                        studioClusterUtils.configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
 
-            } catch (InvalidRemoteException e) {
-                logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
-                        " (" + remoteNode.getGitUrl() + ")", e);
-            } catch (TransportException e) {
-                if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                    logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
-                            " (" + remoteNode.getGitUrl() + ")", e);
-                } else {
-                    logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
-                            " (" + remoteNode.getGitUrl() + ")", e);
+                        String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
+
+                        logger.debug("Executing clone command");
+                        cloneResult = cloneCommand
+                                .setURI(cloneUrl)
+                                .setRemote(remoteNode.getGitRemoteName())
+                                .setDirectory(localPath)
+                                .setCloneAllBranches(true)
+                                .call();
+                        Files.deleteIfExists(tempKey);
+                        cloned = true;
+
+                    } catch (InvalidRemoteException e) {
+                        logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
+                                " (" + remoteNode.getGitUrl() + ")", e);
+                    } catch (TransportException e) {
+                        if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                            logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
+                                    " (" + remoteNode.getGitUrl() + ")", e);
+                        } else {
+                            logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
+                                    " (" + remoteNode.getGitUrl() + ")", e);
+                        }
+                    } catch (GitAPIException | IOException e) {
+                        logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+                    } finally {
+                        if (cloneResult != null) {
+                            cloneResult.close();
+                        }
+                    }
                 }
-            } catch (GitAPIException | IOException e) {
-                logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             } finally {
-                if (cloneResult != null) {
-                    cloneResult.close();
-                }
+                generalLockService.unlock(gitLockKey);
             }
+        } else {
+            logger.debug("Failed to get lock " + gitLockKey);
         }
         return cloned;
     }
@@ -254,6 +254,7 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
             }
         }
     }
+
     protected void addRemoteRepository(ClusterMember member, String remoteUrl)
             throws IOException, InvalidRemoteUrlException, ServiceLayerException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -334,30 +335,38 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
 
     private void updateBranch(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
             IOException, ServiceLayerException {
-        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-        FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
-        fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
-        FetchResult fetchResult = fetchCommand.call();
+        if (generalLockService.tryLock(GLOBAL_REPOSITORY_GIT_LOCK)) {
+            try {
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
+                fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
+                FetchResult fetchResult = fetchCommand.call();
 
-        ObjectId commitToMerge;
-        Ref r;
-        if (fetchResult != null) {
-            r = fetchResult.getAdvertisedRef(Constants.MASTER);
-            if (r == null) {
-                r = fetchResult.getAdvertisedRef(Constants.R_HEADS + Constants.MASTER);
-            }
-            if (r != null) {
-                commitToMerge = r.getObjectId();
+                ObjectId commitToMerge;
+                Ref r;
+                if (fetchResult != null) {
+                    r = fetchResult.getAdvertisedRef(Constants.MASTER);
+                    if (r == null) {
+                        r = fetchResult.getAdvertisedRef(Constants.R_HEADS + Constants.MASTER);
+                    }
+                    if (r != null) {
+                        commitToMerge = r.getObjectId();
 
-                MergeCommand mergeCommand = git.merge();
-                mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
-                mergeCommand.setCommit(true);
-                mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
-                mergeCommand.setStrategy(MergeStrategy.THEIRS);
-                mergeCommand.call();
+                        MergeCommand mergeCommand = git.merge();
+                        mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
+                        mergeCommand.setCommit(true);
+                        mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
+                        mergeCommand.setStrategy(MergeStrategy.THEIRS);
+                        mergeCommand.call();
+                    }
+                }
+
+                Files.delete(tempKey);
+            } finally {
+                generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
             }
+        } else {
+            logger.debug("Failed to get lock " + GLOBAL_REPOSITORY_GIT_LOCK);
         }
-
-        Files.delete(tempKey);
     }
 }

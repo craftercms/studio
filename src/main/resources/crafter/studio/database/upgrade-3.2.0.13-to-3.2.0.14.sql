@@ -14,13 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.content;
+DROP PROCEDURE tryLockSyncRepoForSite ;
 
-import org.craftercms.commons.validation.ValidationException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+ALTER TABLE `site` DROP COLUMN `sync_repo_lock_owner` ;
 
-public interface ImportService {
+ALTER TABLE `site` DROP COLUMN `sync_repo_lock_heartbeat` ;
 
-    void importSite(String configLocation) throws ServiceLayerException, ValidationException, UserNotFoundException;
-}
+UPDATE _meta SET version = '3.2.0.14' ;

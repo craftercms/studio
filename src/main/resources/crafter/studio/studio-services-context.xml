@@ -438,6 +438,7 @@
         <property name="contentRepository" ref="contentRepository" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="clusterDao" ref="clusterDao"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -613,6 +614,7 @@
         <constructor-arg name="taskExecutor" ref="studio.clockTaskExecutor" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
         <constructor-arg name="deployer" ref="allDeployers" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
         <constructor-arg name="globalTasks" ref="studio.clockTasksGlobal" />
         <constructor-arg name="siteTasks" ref="studio.clockTasksSite" />
     </bean>
@@ -640,6 +642,7 @@
         <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <util:list id="studio.clockTasksSite" list-class="java.util.ArrayList"
@@ -664,6 +667,7 @@
         <constructor-arg name="deploymentService" ref="cstudioDeploymentService" />
         <constructor-arg name="eventService" ref="studioEventService" />
         <constructor-arg name="clusterDao" ref="clusterDao" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="studio.clockClusterSitePublishedRepoSync"
@@ -681,6 +685,7 @@
         <constructor-arg name="securityService" ref="cstudioSecurityService" />
         <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
         <constructor-arg name="encryptor" ref="internalTextEncryptor" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
@@ -817,6 +822,7 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
         <property name="clusterDao" ref="clusterDao" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -830,6 +836,7 @@
         <property name="contextManager" ref="contextManager"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="clusterDao" ref="clusterDao" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <!-- /////// -->
