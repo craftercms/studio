@@ -3177,9 +3177,9 @@ paths:
           description: filter children by keyword
           schema:
             type: string
-        - name: excludes
+        - name: exclude
           in: query
-          description: exclude items by regular expression patterns
+          description: exclude items by regular expression
           schema:
             type: array
             items:
