@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.service.clipboard;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -59,16 +60,16 @@ implements ClipboardService {
 
     @Override
     @ValidateParams
-    public boolean cut(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, HttpSession session)
-    throws ServiceLayerException {
+    public boolean cut(@ValidateStringParam(name = "site") String site,
+                       @ValidateSecurePathParam(name = "path") String path, HttpSession session) {
         ClipboardItem clipItem = new ClipboardItem(path, true);
         return clip(site, clipItem, true, session);
     }
 
     @Override
     @ValidateParams
-    public boolean copy(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, HttpSession session)
-    throws ServiceLayerException {
+    public boolean copy(@ValidateStringParam(name = "site") String site,
+                        @ValidateSecurePathParam(name = "path") String path, HttpSession session) {
 
         ClipboardItem clipItem = new ClipboardItem(path, false);
 
@@ -78,14 +79,16 @@ implements ClipboardService {
     @Override
     @ValidateParams
     public boolean copy(@ValidateStringParam(name = "site") String site, ClipboardItem clipItem, HttpSession session)
-    throws ServiceLayerException {
+            throws ServiceLayerException {
         return clip(site, clipItem, false, session);
     }
 
     @Override
     @ValidateParams
-    public Set<String> paste(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "destinationPath") String destinationPath, HttpSession session)
-    throws ServiceLayerException {
+    public Set<String> paste(@ValidateStringParam(name = "site") String site,
+                             @ValidateStringParam(name = "destinationPath") String destinationPath,
+                             HttpSession session)
+            throws ServiceLayerException, UserNotFoundException {
         Set<String> pastedItems = new HashSet<String>();
 
         ClipboardItem clipOp = getItems(site, session);
@@ -107,8 +110,8 @@ implements ClipboardService {
      * @param clipOps ops to be pasted
      * @param pastedItems collection of (new) pasted paths
      */
-    protected void pasteItems(String site, String destinationPath, Set<ClipboardItem> clipOps, Set<String> pastedItems) 
-    throws ServiceLayerException {
+    protected void pasteItems(String site, String destinationPath, Set<ClipboardItem> clipOps, Set<String> pastedItems)
+            throws ServiceLayerException, UserNotFoundException {
         for(ClipboardItem op : clipOps) {
             try {
                 String newPath = null;

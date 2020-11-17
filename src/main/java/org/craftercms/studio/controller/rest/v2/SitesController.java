@@ -18,12 +18,14 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -43,6 +45,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_BLUEPRINTS;
 
 @RestController
@@ -87,7 +90,11 @@ public class SitesController {
 
     @PostMapping("/{siteId}")
     public ResponseBody updateSite(@PathVariable String siteId, @Valid @RequestBody UpdateSiteRequest request)
-            throws SiteNotFoundException {
+            throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
+        if (isEmpty(request.getName()) && isEmpty(request.getDescription())) {
+            throw new InvalidParametersException("The request needs to include a name or a description");
+        }
+
         sitesService.updateSite(siteId, request.getName(), request.getDescription());
 
         var result = new Result();

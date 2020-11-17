@@ -178,8 +178,8 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                        @ValidateSecurePathParam String path) {
-        return contentServiceInternal.getItem(siteId, path);
+                        @ValidateSecurePathParam String path, boolean flatten) {
+        return contentServiceInternal.getItem(siteId, path, flatten);
     }
 
     public ContentServiceInternal getContentServiceInternal() {

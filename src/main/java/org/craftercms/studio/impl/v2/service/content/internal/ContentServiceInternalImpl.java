@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -42,6 +43,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
     private SiteFeedMapper siteFeedMapper;
+    private SecurityService securityService;
 
     @Override
     public List<String> getSubtreeItems(String siteId, String path) {
@@ -77,11 +79,15 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private GetChildrenResult processResultSet(String siteId, List<Item> resultSet) {
         GetChildrenResult toRet = new GetChildrenResult();
+        String user = securityService.getCurrentUser();
         if (resultSet != null && resultSet.size() > 0) {
-            toRet.setParent(SandboxItem.getInstance(resultSet.get(0)));
+            Item parent = resultSet.get(0);
+            parent.setAvailableActions(securityService.getAvailableActions(siteId, parent.getPath(), user));
+            toRet.setParent(SandboxItem.getInstance(parent));
             if (resultSet.size() > 1) {
                 int idx = 1;
                 Item item = resultSet.get(idx);
+                item.setAvailableActions(securityService.getAvailableActions(siteId, item.getPath(), user));
                 if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
                         servicesConfig.getLevelDescriptorName(siteId))) {
                     toRet.setLevelDescriptor(SandboxItem.getInstance(item));
@@ -89,7 +95,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 }
                 List<SandboxItem> children = new ArrayList<SandboxItem>();
                 while (idx < resultSet.size()) {
-                    children.add(SandboxItem.getInstance(resultSet.get(idx)));
+                    Item child = resultSet.get(idx);
+                    child.setAvailableActions(securityService.getAvailableActions(siteId, child.getPath(), user));
+                    children.add(SandboxItem.getInstance(child));
                     idx++;
                 }
                 toRet.setChildren(children);
@@ -127,8 +135,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public org.craftercms.core.service.Item getItem(String siteId, String path) {
-        return contentRepository.getItem(siteId, path);
+    public org.craftercms.core.service.Item getItem(String siteId, String path, boolean flatten) {
+        return contentRepository.getItem(siteId, path, flatten);
     }
 
     @Override
@@ -166,5 +174,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 }

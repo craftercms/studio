@@ -24,6 +24,7 @@ import org.craftercms.commons.plugin.model.Parameter;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
 
@@ -175,7 +177,11 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    public void updateSite(String siteId, String name, String description) throws SiteNotFoundException {
+    public void updateSite(String siteId, String name, String description)
+            throws SiteNotFoundException, SiteAlreadyExistsException {
+        if (isNotEmpty(name) && siteFeedMapper.existsByName(name) > 0) {
+            throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
+        }
         int updated = siteFeedMapper.updateSite(siteId, name, description);
         if (updated != 1) {
             throw new SiteNotFoundException();

@@ -17,7 +17,7 @@ package org.craftercms.studio.model.rest.sites;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
 /**
  * Holds the data required to update a site
@@ -31,7 +31,7 @@ public class UpdateSiteRequest {
     /**
      * The name of the site
      */
-    @NotEmpty
+    @Size(max = 255)
     private String name;
 
     /**

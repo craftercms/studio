@@ -485,7 +485,7 @@ studio.db.pool.maxWaitTime: 10000
 # for any reason, initializer needs to be turned on.
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
-studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=${env:MARIADB_ROOT_PASSWD}
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=${env:MARIADB_ROOT_PASSWD}&socketTimeout=60000
 # Create schema SQL script location
 studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
 # Create database SQL script location
@@ -562,12 +562,6 @@ studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-d
 ################################################################
 ##                   Publishing Thread Pool                   ##
 ################################################################
-# Thread name prefix
-studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
-# Thread pool size
-studio.publishing.threadPool.corePoolSize: 10
-# Thread pool max size
-studio.publishing.threadPool.maxPoolSize: 20
 # Publishing lock TTL in minutes
 studio.publishing.siteLock.ttl: 180
 
@@ -582,22 +576,10 @@ studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
 ################################################################
 ##                   Clustering Thread Pool                   ##
 ################################################################
-# Sandbox Sync Job interval in milliseconds which is how often to sync the work-area
-studio.clustering.sandboxSyncJob.interval: 5000
-# Published Sync Job interval in milliseconds which is how often to sync the published repos
-studio.clustering.publishedSyncJob.interval: 60000
-# Global Repo Sync Job interval in milliseconds which is how often to sync the global repo
-studio.clustering.globalRepoSyncJob.interval: 45000
 # Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
 studio.clustering.heartbeatJob.interval: 10000
 # Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
 studio.clustering.inactivityCheckJob.interval: 30000
-# Thread name prefix
-studio.clustering.threadPool.namePrefix: Studio_Clustering_Thread_Pool
-# Thread pool size
-studio.clustering.threadPool.corePoolSize: 10
-# Thread pool max size
-studio.clustering.threadPool.maxPoolSize: 20
 # Cluster member after heartbeat stale for amount of minutes will be declared inactive
 studio.clustering.heartbeatStale.timeLimit: 5
 # Cluster member after being inactive for amount of minutes will be removed from cluster
@@ -842,3 +824,29 @@ studio.cache.templates: true
 # Indicates if Forwarded or X-Forwarded headers should be used when resolving the client-originated protocol and
 # address. Enable when Studio is behind a reverse proxy or load balancer that sends these
 studio.forwarded.headers.enabled: false
+
+##################################################
+##             Studio Clock Tasks               ##
+##################################################
+# Studio Clock job ticking frequency
+studio.clockJob.frequency: 1000
+# Random offset to time shift cluster members in milliseconds
+studio.clockJob.task.cluster.randomOffset: 10
+# Studio Clock Job thread pool core size
+studio.clockJob.taskExecutor.corePoolSize: 10
+# Studio Clock Job thread pool maximum size
+studio.clockJob.taskExecutor.maxPoolSize: 100
+# Studio Clock Job thread pool queue capacity
+studio.clockJob.taskExecutor.queueCapacity: 200
+# Cluster Global Repo sync execute every N cycles
+studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
+# Cluster Site Sandbox sync execute every N cycles
+studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 10
+# Cluster Site Published sync execute every N cycles
+studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 20
+# Sync repository execute every N cycles
+studio.clockJob.task.syncRepository.executeEveryNCycles: 5
+# Publisher execute every N cycles
+studio.clockJob.task.publisher.executeEveryNCycles: 10
+# Publisher max retry count in case if content not found
+studio.clockJob.task.publisher.maxRetryCount: 5

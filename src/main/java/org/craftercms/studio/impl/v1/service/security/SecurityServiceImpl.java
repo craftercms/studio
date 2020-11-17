@@ -62,6 +62,7 @@ import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.security.AvailableActions;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
@@ -683,15 +684,10 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public boolean logout() throws SiteNotFoundException {
         String username = getCurrentUser();
-        deleteAuthentication();
         RequestContext context = RequestContext.getCurrent();
         if (context != null) {
             HttpServletRequest httpServletRequest = context.getRequest();
             String ipAddress = httpServletRequest.getRemoteAddr();
-
-            HttpSession httpSession = httpServletRequest.getSession();
-            httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
-            httpSession.invalidate();
 
             SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -706,14 +702,6 @@ public class SecurityServiceImpl implements SecurityService {
             logger.info("User " + username + " logged out from IP: " + ipAddress);
         }
         return true;
-    }
-
-    protected void deleteAuthentication() {
-        RequestContext context = RequestContext.getCurrent();
-        if(context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            httpSession.removeAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
-        }
     }
 
 
@@ -932,6 +920,12 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         return ticket;
+    }
+
+    @Override
+    public long getAvailableActions(String site, String path, String user) {
+        List<String> permissions = new ArrayList<>(getUserPermissions(site, path, user, new ArrayList<String>()));
+        return AvailableActions.mapPermissionsToAvailableActions(permissions);
     }
 
     public String getRoleMappingsFileName() {

@@ -40,6 +40,7 @@
         <security:intercept-url pattern="/**" access="isAuthenticated()" />
         <security:form-login login-page="/login"
                              authentication-success-handler-ref="studioRedirectAuthenticationSuccessHandler"/>
+        <security:custom-filter position="LOGOUT_FILTER" ref="logoutFilter"/>
     </security:http>
 
     <bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">
@@ -109,6 +110,10 @@
     </bean>
 
     <bean id="crafter.csrfFilter" class="org.springframework.security.web.csrf.CsrfFilter">
+        <constructor-arg ref="crafter.csrfTokenRepository"/>
+    </bean>
+
+    <bean id="csrfLogoutHandler" class="org.springframework.security.web.csrf.CsrfLogoutHandler">
         <constructor-arg ref="crafter.csrfTokenRepository"/>
     </bean>
 
@@ -187,5 +192,24 @@
             </list>
         </constructor-arg>
     </bean>
+
+    <!-- Logout -->
+    <bean id="logoutFilter" class="org.craftercms.studio.impl.v1.web.security.access.StudioLogoutFilter">
+        <constructor-arg ref="cstudioSecurityService"/>
+        <constructor-arg ref="logoutSuccessHandler"/>
+        <constructor-arg>
+            <list>
+                <ref bean="csrfLogoutHandler"/>
+                <ref bean="securityContextLogoutHandler"/>
+            </list>
+        </constructor-arg>
+        <property name="filterProcessesUrl" value="/api/1/services/api/1/security/logout.json"/>
+    </bean>
+
+    <bean id="logoutSuccessHandler"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioLogoutSuccessHandler"/>
+
+    <bean id="securityContextLogoutHandler"
+          class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
 
 </beans>

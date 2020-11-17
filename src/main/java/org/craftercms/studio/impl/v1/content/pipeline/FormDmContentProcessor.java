@@ -195,7 +195,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      */
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType,
                                           InputStream input, String user, boolean unlock, ResultTO result)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         ContentItemTO fileItem = null;
 
         if (parentItem != null) {
@@ -353,7 +353,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     @Override
     public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         // create parent folders if missing
         String [] levels = path.split(FILE_SEPARATOR);
         String parentPath = "";
@@ -373,7 +373,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
 
     @Override
-    public String fileToFolder(String site, String path) throws ServiceLayerException {
+    public String fileToFolder(String site, String path) throws ServiceLayerException, UserNotFoundException {
         // Check if it is already a folder
 
         if (contentService.contentExists(site, path)) {

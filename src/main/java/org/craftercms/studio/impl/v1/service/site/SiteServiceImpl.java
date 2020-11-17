@@ -101,6 +101,8 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
@@ -119,6 +121,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -197,6 +200,8 @@ public class SiteServiceImpl implements SiteService {
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
     protected ItemServiceInternal itemServiceInternal;
+    protected StudioClusterUtils studioClusterUtils;
+    protected ClusterDAO clusterDao;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -381,15 +386,16 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintId") String blueprintId,
-                                        @ValidateStringParam(name = "siteId") String siteId,
-                                        @ValidateNoTagsParam(name = "siteName") String siteName,
-                                        @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-                                        @ValidateNoTagsParam(name = "desc") String desc,
-                                        Map<String, String> params, boolean createAsOrphan)
+    public void createSiteFromBlueprint(
+            @ValidateStringParam(name = "blueprintId") String blueprintId,
+            @ValidateStringParam(name = "siteId", maxLength = 50, whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
+            @ValidateNoTagsParam(name = "siteName") String siteName,
+            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
+            @ValidateNoTagsParam(name = "desc") String desc,
+            Map<String, String> params, boolean createAsOrphan)
             throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
             BlueprintNotFoundException, MissingPluginParameterException {
-        if (exists(siteId)) {
+        if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
 
@@ -456,6 +462,13 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSandboxBranch(sandboxBranch);
                 siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
+
+                String localeAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                ClusterMember cm = clusterDao.getMemberByLocalAddress(localeAddress);
+                if (Objects.nonNull(cm)) {
+                    SiteFeed s = getSite(siteId);
+                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null);
+                }
 
                 logger.info("Upgrading site.");
                 upgradeManager.upgrade(siteId);
@@ -597,21 +610,22 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId,
-                                           @ValidateStringParam(name = "siteName") String siteName,
-                                           @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-                                           @ValidateNoTagsParam(name = "description") String description,
-                                           String blueprintName,
-                                           @ValidateStringParam(name = "remoteName") String remoteName,
-                                           @ValidateStringParam(name = "remoteUrl") String remoteUrl,
-                                           String remoteBranch, boolean singleBranch, String authenticationType,
-                                           String remoteUsername, String remotePassword, String remoteToken,
-                                           String remotePrivateKey,
-                                           @ValidateStringParam(name = "createOption") String createOption,
-                                           Map<String, String> params, boolean createAsOrphan)
+    public void createSiteWithRemoteOption(
+            @ValidateStringParam(name = "siteId", maxLength = 50, whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
+            @ValidateStringParam(name = "siteName") String siteName,
+            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
+            @ValidateNoTagsParam(name = "description") String description,
+            String blueprintName,
+            @ValidateStringParam(name = "remoteName") String remoteName,
+            @ValidateStringParam(name = "remoteUrl") String remoteUrl,
+            String remoteBranch, boolean singleBranch, String authenticationType,
+            String remoteUsername, String remotePassword, String remoteToken,
+            String remotePrivateKey,
+            @ValidateStringParam(name = "createOption") String createOption,
+            Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
-        if (exists(siteId)) {
+        if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
 
@@ -796,7 +810,7 @@ public class SiteServiceImpl implements SiteService {
                                         String remoteToken, String remotePrivateKey, Map<String, String> params,
                                         boolean createAsOrphan)
             throws ServiceLayerException {
-        if (exists(siteId)) {
+        if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
 
@@ -1095,9 +1109,8 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(site)) {
             throw new SiteNotFoundException();
         } else {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put("siteId", site);
-            String lastDbCommitId = siteFeedMapper.getLastCommitId(params);
+            String lastDbCommitId =
+                    siteFeedMapper.getLastCommitId(site, studioClusterUtils.getClusterNodeLocalAddress());
             if (lastDbCommitId != null) {
                 syncDatabaseWithRepository.execute(site, lastDbCommitId);
             } else {
@@ -1121,6 +1134,17 @@ public class SiteServiceImpl implements SiteService {
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
         siteFeedMapper.updateLastCommitId(params);
+
+        try {
+            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
+            if (Objects.nonNull(clusterMember)) {
+                SiteFeed siteFeed = getSite(site);
+                clusterDao.updateNodeLastCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found " + site);
+        }
+
     }
 
     @RetryingOperation
@@ -1129,6 +1153,16 @@ public class SiteServiceImpl implements SiteService {
         params.put("siteId", site);
         params.put("commitId", commitId);
         siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+
+        try {
+            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
+            if (Objects.nonNull(clusterMember)) {
+                SiteFeed siteFeed = getSite(site);
+                clusterDao.updateNodeLastVerifiedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found " + site);
+        }
     }
 
     @Override
@@ -1147,6 +1181,7 @@ public class SiteServiceImpl implements SiteService {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
         boolean toReturn = true;
+
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
                 repoLastCommitId);
@@ -1154,6 +1189,8 @@ public class SiteServiceImpl implements SiteService {
         if (CollectionUtils.isEmpty(repoOperations)) {
             logger.debug("Database is up to date with repository for site: " + site);
             contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
+            updateLastCommitId(site, repoLastCommitId);
+            updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
             return toReturn;
         }
 
@@ -1787,8 +1824,8 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl) {
         logger.debug("Locking publishing for site " + siteId + " with lock owner " + lockOwnerId);
-	    int result = siteFeedMapper.tryLockPublishingForSite(siteId, lockOwnerId, ttl);
-	    if (result == 1) {
+        int result = siteFeedMapper.tryLockPublishingForSite(siteId, lockOwnerId, ttl);
+        if (result == 1) {
             logger.debug("Locked publishing for site " + siteId + " with lock owner " + lockOwnerId);
         } else {
             logger.debug("Failed to publishing for site " + siteId + " with lock owner " + lockOwnerId);
@@ -1800,7 +1837,7 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
         logger.debug("Unlocking publishing for site " + siteId);
-	    siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId);
+        siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId);
         return true;
     }
 
@@ -1809,6 +1846,16 @@ public class SiteServiceImpl implements SiteService {
     public void updatePublishingLockHeartbeatForSite(String siteId) {
         logger.debug("Update publishing lock heartbeat for site " + siteId);
         siteFeedMapper.updatePublishingLockHeartbeatForSite(siteId);
+    }
+
+    @Override
+    public String getLastCommitId(String siteId) {
+        return siteFeedMapper.getLastCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+    }
+
+    @Override
+    public String getLastVerifiedGitlogCommitId(String siteId) {
+        return siteFeedMapper.getLastVerifiedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
     }
 
     public String getGlobalConfigRoot() {
@@ -2005,9 +2052,9 @@ public class SiteServiceImpl implements SiteService {
         this.userServiceInternal = userServiceInternal;
     }
 
-	public void setUpgradeManager(final StudioUpgradeManager upgradeManager) {
-		this.upgradeManager = upgradeManager;
-	}
+    public void setUpgradeManager(final StudioUpgradeManager upgradeManager) {
+        this.upgradeManager = upgradeManager;
+    }
 
     public SitesServiceInternal getSitesServiceInternal() {
         return sitesServiceInternal;
@@ -2037,7 +2084,8 @@ public class SiteServiceImpl implements SiteService {
         return contentRepositoryV2;
     }
 
-    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
+    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository
+                                               contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
     }
 
@@ -2047,5 +2095,21 @@ public class SiteServiceImpl implements SiteService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
     }
 }

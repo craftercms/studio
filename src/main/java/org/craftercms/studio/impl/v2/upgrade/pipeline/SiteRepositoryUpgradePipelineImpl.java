@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -40,6 +41,9 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.UpgradePipeline} that handles a git repository
@@ -70,6 +74,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected UserServiceInternal userServiceInternal;
     protected SiteService siteService;
     protected TextEncryptor encryptor;
+    protected GeneralLockService generalLockService;
 
     public SiteRepositoryUpgradePipelineImpl(String name, List<UpgradeOperation<String>> upgradeOperations) {
         super(name, upgradeOperations);
@@ -110,9 +115,11 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     @Override
     public void execute(final UpgradeContext<String> context) throws UpgradeException {
         var site = context.getTarget();
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
 
             Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
             String sandboxBranch = siteSandboxBranch;
@@ -147,6 +154,8 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
             }
         } catch (CryptoException e) {
             throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 
@@ -180,5 +189,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }

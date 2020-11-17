@@ -51,6 +51,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -655,13 +656,16 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
     public boolean createFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
                                 @ValidateStringParam(name = "name") String name)
-            throws SiteNotFoundException, ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         //TODO: Replace with a call to the site policy validator when implemented
         validateContent(path, name);
 
+        String folderPath = path + FILE_SEPARATOR + name;
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
+            itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
+                    commitId);
             contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
 
@@ -670,9 +674,9 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
             auditLog.setOperation(OPERATION_CREATE);
             auditLog.setSiteId(siteFeed.getId());
             auditLog.setActorId(securityService.getCurrentUser());
-            auditLog.setPrimaryTargetId(site + ":" + path + FILE_SEPARATOR + name);
+            auditLog.setPrimaryTargetId(site + ":" + folderPath);
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
-            auditLog.setPrimaryTargetValue(path + FILE_SEPARATOR + name);
+            auditLog.setPrimaryTargetValue(folderPath);
             auditServiceInternal.insertAuditLog(auditLog);
             toRet = true;
         }
@@ -772,7 +776,8 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
     @ValidateParams
     public String copyContent(@ValidateStringParam(name = "site") String site,
                               @ValidateSecurePathParam(name = "fromPath") String fromPath,
-                              @ValidateSecurePathParam(name = "toPath") String toPath) throws ServiceLayerException {
+                              @ValidateSecurePathParam(name = "toPath") String toPath)
+            throws ServiceLayerException, UserNotFoundException {
         return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
 
@@ -780,7 +785,8 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
      * internal method copy that handles
      * Get dependencies is already recursive
      */
-    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) throws ServiceLayerException {
+    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths)
+            throws ServiceLayerException, UserNotFoundException {
         String retNewFileName = null;
 
         String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
@@ -916,7 +922,7 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
                 // no need to process
                 retNewFileName = copyPath;
             }
-        } catch(ServiceLayerException eServiceLayerException) {
+        } catch(ServiceLayerException | UserNotFoundException eServiceLayerException) {
             logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
                 eServiceLayerException, site, fromPath, toPath, copyPath);
             throw eServiceLayerException;
@@ -2054,8 +2060,7 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
     @ValidateParams
     public String getContentVersionAsString(@ValidateStringParam(name = "site") String site,
                                             @ValidateSecurePathParam(name = "path") String path,
-                                            @ValidateStringParam(name = "version") String version)
-            throws ContentNotFoundException {
+                                            @ValidateStringParam(name = "version") String version) {
         String content = null;
 
         try {
@@ -2375,18 +2380,12 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
         return matchingDep;
     }
 
-    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath,
-                                                                    boolean isInLiveRepo) throws ServiceLayerException {
+    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath) {
         List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<DeleteDependencyConfigTO>();
         ContentItemTO dependencyItem = getContentItem(site, relativePath, 0);
         String contentType = dependencyItem.getContentType();
         deleteAssociations  = servicesConfig.getDeleteDependencyPatterns(site, contentType);
         return deleteAssociations;
-    }
-
-    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath)
-            throws ServiceLayerException {
-        return getDeletePatternConfig(site,relativePath,false);
     }
 
     @Override
@@ -2416,8 +2415,7 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
     @Override
     @ValidateParams
     public List<DmOrderTO> getItemOrders(@ValidateStringParam(name = "site") String site,
-                                         @ValidateSecurePathParam(name = "path") String path)
-            throws ContentNotFoundException {
+                                         @ValidateSecurePathParam(name = "path") String path) {
         List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
         for (DmOrderTO dmOrderTO : dmOrderTOs) {
             dmOrderTO.setName(StringEscapeUtils.escapeJava(dmOrderTO.getName()));
@@ -2487,7 +2485,7 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
                                @ValidateSecurePathParam(name = "relativePath") String relativePath,
                                @ValidateSecurePathParam(name = "before") String before,
                                @ValidateSecurePathParam(name = "after") String after,
-                               @ValidateStringParam(name = "orderName") String orderName) throws ServiceLayerException {
+                               @ValidateStringParam(name = "orderName") String orderName) {
         Double beforeOrder = null;
         Double afterOrder = null;
         DmOrderTO beforeOrderTO = null;
@@ -2539,7 +2537,7 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
      * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
      */
     protected double computeReorder(String site, String relativePath, DmOrderTO beforeOrderTO, DmOrderTO afterOrderTO,
-                                    String orderName) throws ContentNotFoundException {
+                                    String orderName) {
         // TODO: SJ: This seems excessive, all we need is: double result = (getBefore + getAfter) / 2; return result;
 
         List<DmOrderTO> orderTO = getOrders(site, relativePath, orderName, true);

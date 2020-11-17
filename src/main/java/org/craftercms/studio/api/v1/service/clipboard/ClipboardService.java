@@ -16,6 +16,7 @@
 package org.craftercms.studio.api.v1.service.clipboard;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import javax.servlet.http.HttpSession;
 
@@ -77,7 +78,8 @@ public interface ClipboardService {
      * @return a list of pasted items (new paths)
      * @throws ServiceLayerException general service error
      */
-    Set<String> paste(String site, String destination, HttpSession session) throws ServiceLayerException;
+    Set<String> paste(String site, String destination, HttpSession session)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * get the items on clipboard

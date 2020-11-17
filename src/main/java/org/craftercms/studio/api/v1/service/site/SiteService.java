@@ -380,7 +380,7 @@ public interface SiteService {
 	 */
 	boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl);
 
-	/**
+    /**
 	 * Unlock publishing for site
 	 * @param siteId site identifier
 	 * @param lockOwnerId lock owner identifier
@@ -388,9 +388,23 @@ public interface SiteService {
 	 */
     boolean unlockPublishingForSite(String siteId, String lockOwnerId);
 
-	/**
+    /**
 	 * update publishing lock heartbeat for site
 	 * @param siteId site identifier
 	 */
 	void updatePublishingLockHeartbeatForSite(String siteId);
+
+	/**
+	 * get last commit id for site
+	 * @param siteId site identifier
+	 * @return last commit id for local studio node
+	 */
+	String getLastCommitId(String siteId);
+
+	/**
+	 * get last verified git log commit id for site
+	 * @param siteId site identifier
+	 * @return last verified git log commit id for local studio node
+	 */
+	String getLastVerifiedGitlogCommitId(String siteId);
 }

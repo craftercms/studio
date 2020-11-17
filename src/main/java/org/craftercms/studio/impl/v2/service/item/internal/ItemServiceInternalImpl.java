@@ -408,7 +408,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                                       Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-        org.craftercms.core.service.Item descriptor = contentServiceInternal.getItem(siteId, path);
+        var descriptor = contentServiceInternal.getItem(siteId, path, false);
         String disabledStr = descriptor.queryDescriptorValue(DISABLED);
         boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
         Item item = instantiateItem(siteId, path)
@@ -428,6 +428,23 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         } else {
             item.setState(ItemState.savedAndClosed(item.getState()));
         }
+        upsertEntry(siteId, item);
+    }
+
+    @Override
+    public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
+                                             String commitId)
+            throws ServiceLayerException, UserNotFoundException {
+        User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+        Item item = instantiateItem(siteId, folderPath)
+                .withPreviewUrl(getBrowserUrl(siteId, folderPath))
+                .withLastModifiedBy(userObj.getId())
+                .withLastModifiedOn(ZonedDateTime.now())
+                .withLabel(folderName)
+                .withCommitId(commitId)
+                .build();
+        item.setState(ItemState.savedAndClosed(item.getState()));
+        item.setSystemType("folder");
         upsertEntry(siteId, item);
     }
 
