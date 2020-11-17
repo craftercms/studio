@@ -16,5 +16,16 @@
 
 package org.craftercms.studio.api.v2.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
+
 public interface AvailableActionsResolver {
+
+    long getAvailableActions(String username, String site, String path)
+            throws ServiceLayerException, UserNotFoundException;
+
+    void invalidateAvailableActions(String site);
+
+    void invalidateAvailableActions();
 }

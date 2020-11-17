@@ -212,4 +212,9 @@
     <bean id="securityContextLogoutHandler"
           class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
 
+    <bean id="studio.availableActionsResolver"
+          class="org.craftercms.studio.impl.v2.security.AvailableActionsResolverImpl" >
+
+    </bean>
+
 </beans>

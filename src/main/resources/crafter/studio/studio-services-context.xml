@@ -234,10 +234,7 @@
     </bean>
 
     <bean id="studio.securityService" class="org.craftercms.studio.impl.v2.service.security.SecurityServiceImpl">
-        <constructor-arg name="configurationService" ref="configurationService" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="contentService" ref="cstudioContentService" />
+        <constructor-arg name="availableActionsResolver" ref="studio.availableActionsResolver" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
