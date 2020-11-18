@@ -22,6 +22,8 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.objectstate.State;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.QueryParameterNames;
@@ -54,10 +56,16 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OPERATIONS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORIGIN;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TARGET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
+import static org.craftercms.studio.api.v2.security.AvailableActions.AUDIT_LOG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.AUDIT_LOG_CONST;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_AUDIT_LOG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_AUDIT_LOG_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_ONLY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 
 public class AuditServiceInternalImpl implements AuditServiceInternal {
@@ -66,6 +74,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     private StudioConfiguration studioConfiguration;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_ONLY)
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
             throws SiteNotFoundException {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -96,10 +105,11 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
 
     @Override
-    public List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
-                                      List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
-                                      ZonedDateTime dateTo, String target, String origin, String clusterNodeId,
-                                      String sort, String order) {
+    @IsActionAllowed(allowedActionsMask = READ_ONLY)
+    public List<AuditLog> getAuditLog(@IsActionAllowedParameter(SITE) String siteId, String siteName, int offset,
+                                      int limit, String user, List<String> operations, boolean includeParameters,
+                                      ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String origin,
+                                      String clusterNodeId, String sort, String order) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);

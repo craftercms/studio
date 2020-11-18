@@ -146,8 +146,7 @@ public enum AvailableActions {
     RESERVED_12("Reserved 12", 59),
     RESERVED_13("Reserved 13", 60),
     RESERVED_14("Reserved 14", 61),
-    RESERVED_15("Reserved 15", 62),
-    RESERVED_16("Reserved 16", 63);
+    RESERVED_15("Reserved 15", 62);
 
     public final long value;
     public final String label;
@@ -164,6 +163,7 @@ public enum AvailableActions {
     public static final long ADD_REMOTE = ADD_REMOTE_REPOSITORY.value;
     // audit_log
     public static final long AUDIT_LOG = READ_AUDIT_LOG.value;
+    public static final long AUDIT_LOG_CONST = Math.round(Math.pow(2, 25));
     // cancel_failed_pull
     public static final long CANCEL_FAILED_PULL = RESOLVE_CONFLICTS.value;
     // cancel_publish
@@ -260,6 +260,10 @@ public enum AvailableActions {
     public static final long WRITE_CONFIGURATION = CONTENT_CREATE.value + CONTENT_UPDATE.value;
     // write_global_configuration
     public static final long WRITE_GLOBAL_CONFIGURATION = SYSTEM_CREATE.value + SYSTEM_UPDATE.value;
+
+    public static final long READ_ONLY = 0L;
+
+    public static final long EVERYTHING_ALLOWED = -1L;
 
     public static long mapPermissionToAvailableActions(String permission) {
         long result = 0L;
@@ -421,4 +425,172 @@ public enum AvailableActions {
     public static long mapPermissionsToAvailableActions(List<String> permissions) {
         return permissions.stream().mapToLong(AvailableActions::mapPermissionToAvailableActions).sum();
     }
+
+
+    // Constants number required by annotations
+    public static final long CONTENT_CREATE_CONST_LONG = 1L;
+    public static final long CONTENT_UPDATE_CONST_LONG = 2L;
+    public static final long CONTENT_DELETE_CONST_LONG = 4L;
+    public static final long CONTENT_CUT_CONST_LONG= 8L;
+    public static final long CONTENT_COPY_CONST_LONG = 16L;
+    public static final long CONTENT_PASTE_CONST_LONG= 32L;
+    public static final long CONTENT_MOVE_RENAME_CONST_LONG = 64L;
+    public static final long CONTENT_DUPLICATE_CONST_LONG = 128L;
+    public static final long CONTENT_TRANSLATE_CONST_LONG = 256L;
+    public static final long CONTENT_RESERVED_1_CONST_LONG = 512L;
+    public static final long CONTENT_RESERVED_2_CONST_LONG = 1024L;
+    public static final long CONTENT_RESERVED_3_CONST_LONG = 2048L;
+    public static final long REQUEST_PUBLISH_CONST_LONG = 4096L;
+    public static final long APPROVE_PUBLISH_CONST_LONG = 8192L;
+    public static final long REJECT_PUBLISH_CONST_LONG = 16384L;
+    public static final long CANCEL_PUBLISH_CONST_LONG = 32768L;
+    public static final long BULK_PUBLISH_CONST_LONG = 65536L;
+    public static final long READ_PUBLISHING_QUEUE_CONST_LONG = 131072L;
+    public static final long READ_PUBLISHING_STATUS_CONST_LONG = 262144L;
+    public static final long START_PUBLISHING_CONST_LONG = 524288L;
+    public static final long STOP_PUBLISHING_CONST_LONG = 1048576L;
+    public static final long PUBLISH_BY_COMMIT_ID_CONST_LONG = 2097152L;
+    public static final long PUBLISHING_RESERVED_1_CONST_LONG = 4194304L;
+    public static final long PUBLISHING_RESERVED_2_CONST_LONG = 8388608L;
+    public static final long SET_WORKFLOW_STATE_CONST_LONG = 16777216L;
+    public static final long READ_AUDIT_LOG_CONST_LONG = 33554432L;
+    public static final long READ_SITE_LOG_CONST_LONG = 67108864L;
+    public static final long SITE_ADMIN_RESERVED_1_CONST_LONG = 134217728L;
+    public static final long SITE_ADMIN_RESERVED_2_CONST_LONG = 268435456L;
+    public static final long SITE_ADMIN_RESERVED_3_CONST_LONG = 536870912L;
+    public static final long SITE_ADMIN_RESERVED_4_CONST_LONG = 1073741824L;
+    public static final long SITE_ADMIN_RESERVED_5_CONST_LONG = 2147483648L;
+    public static final long ADD_REMOTE_REPOSITORY_CONST_LONG = 4294967296L;
+    public static final long REMOVE_REMOTE_REPOSITORY_CONST_LONG = 8589934592L;
+    public static final long PULL_FROM_REMOTE_REPOSITORY_CONST_LONG = 17179869184L;
+    public static final long PUSH_TO_REMOTE_REPOSITORY_CONST_LONG = 34359738368L;
+    public static final long RESOLVE_CONFLICTS_CONST_LONG = 68719476736L;
+    public static final long GIT_RESERVED_1_CONST_LONG = 137438953472L;
+    public static final long GIT_RESERVED_2_CONST_LONG = 274877906944L;
+    public static final long GIT_RESERVED_3_CONST_LONG = 549755813888L;
+    public static final long SYSTEM_CREATE_CONST_LONG = 1099511627776L;
+    public static final long SYSTEM_READ_CONST_LONG = 2199023255552L;
+    public static final long SYSTEM_UPDATE_CONST_LONG = 4398046511104L;
+    public static final long SYSTEM_DELETE_CONST_LONG = 8796093022208L;
+    public static final long READ_STUDIO_LOG_SETTINGS_CONST_LONG = 17592186044416L;
+    public static final long UPDATE_STUDIO_LOG_SETTINGS_CONST_LONG = 35184372088832L;
+    public static final long ADMIN_RESERVED_1_CONST_LONG = 70368744177664L;
+    public static final long ADMIN_RESERVED_2_CONST_LONG = 140737488355328L;
+    public static final long RESERVED_1_CONST_LONG = 281474976710656L;
+    public static final long RESERVED_2_CONST_LONG = 562949953421312L;
+    public static final long RESERVED_3_CONST_LONG = 1125899906842620L;
+    public static final long RESERVED_4_CONST_LONG = 2251799813685250L;
+    public static final long RESERVED_5_CONST_LONG = 4503599627370500L;
+    public static final long RESERVED_6_CONST_LONG = 9007199254740990L;
+    public static final long RESERVED_7_CONST_LONG = 18014398509482000L;
+    public static final long RESERVED_8_CONST_LONG = 36028797018964000L;
+    public static final long RESERVED_9_CONST_LONG = 72057594037927900L;
+    public static final long RESERVED_10_CONST_LONG = 144115188075856000L;
+    public static final long RESERVED_11_CONST_LONG = 288230376151712000L;
+    public static final long RESERVED_12_CONST_LONG = 576460752303424000L;
+    public static final long RESERVED_13_CONST_LONG = 1152921504606850000L;
+    public static final long RESERVED_14_CONST_LONG = 2305843009213690000L;
+    public static final long RESERVED_15_CONST_LONG = 4611686018427390000L;
+
+    // Map permissions to available actions
+    // add_remote
+    public static final long ADD_REMOTE_CONST_LONG = ADD_REMOTE_REPOSITORY_CONST_LONG;
+    // audit_log
+    public static final long AUDIT_LOG_CONST_LONG = READ_AUDIT_LOG_CONST_LONG;
+    // cancel_failed_pull
+    public static final long CANCEL_FAILED_PULL_CONST_LONG = RESOLVE_CONFLICTS_CONST_LONG;
+    // cancel_publish
+    public static final long CANCEL_PUBLISH_PERMISSION_CONST_LONG = CANCEL_PUBLISH_CONST_LONG;
+    // Change Content Type
+    public static final long CHANGE_CONTENT_TYPE_CONST_LONG = CONTENT_UPDATE_CONST_LONG;
+    // clone_content_cmis
+    public static final long CLONE_CONTENT_CMIS_CONST_LONG = CONTENT_CREATE_CONST_LONG + CONTENT_UPDATE_CONST_LONG;
+    // commit_resolution
+    public static final long COMMIT_RESOLUTION_CONST_LONG = RESOLVE_CONFLICTS_CONST_LONG;
+    // Create Content
+    public static final long CREATE_CONTENT_CONST_LONG = CONTENT_CREATE_CONST_LONG;
+    // Create Folder
+    public static final long CREATE_FOLDER_CONST_LONG = CONTENT_CREATE_CONST_LONG;
+    // create_cluster
+    public static final long CREATE_CLUSTER_CONST_LONG = SYSTEM_CREATE_CONST_LONG;
+    // create_groups
+    public static final long CREATE_GROUPS_CONST_LONG = SYSTEM_CREATE_CONST_LONG;
+    // create_users
+    public static final long CREATE_USERS_CONST_LONG = SYSTEM_CREATE_CONST_LONG;
+    // create-site
+    public static final long CREATE_SITE_CONST_LONG = SYSTEM_CREATE_CONST_LONG;
+    // Delete
+    public static final long DELETE_CONST_LONG = CONTENT_DELETE_CONST_LONG;
+    // delete_cluster
+    public static final long DELETE_CLUSTER_CONST_LONG = SYSTEM_DELETE_CONST_LONG;
+    // delete_content
+    public static final long DELETE_CONTENT_CONST_LONG = CONTENT_DELETE_CONST_LONG;
+    // delete_groups
+    public static final long DELETE_GROUPS_CONST_LONG = SYSTEM_DELETE_CONST_LONG;
+    // delete_users
+    public static final long DELETE_USERS_CONST_LONG = SYSTEM_DELETE_CONST_LONG;
+    // edit_site
+    public static final long EDIT_SITE_CONST_LONG = SYSTEM_UPDATE_CONST_LONG;
+    // encryption_tool
+    public static final long ENCRYPTION_TOOL_CONST_LONG = CONTENT_UPDATE_CONST_LONG + SYSTEM_UPDATE_CONST_LONG;
+    // get_children
+    public static final long GET_CHILDREN_CONST_LONG = 0L;
+    // get_publishing_queue
+    public static final long GET_PUBLISHING_QUEUE_CONST_LONG = READ_PUBLISHING_QUEUE_CONST_LONG;
+    // list_cmis
+    public static final long LIST_CMIS_CONST_LONG = 0L;
+    // list_remotes
+    public static final long LIST_REMOTES_CONST_LONG = ADD_REMOTE_REPOSITORY_CONST_LONG;
+    // Publish
+    public static final long PUBLISH_CONST_LONG = APPROVE_PUBLISH_CONST_LONG + REJECT_PUBLISH_CONST_LONG;
+    // pull_from_remote
+    public static final long PULL_FROM_REMOTE_CONST_LONG = PULL_FROM_REMOTE_REPOSITORY_CONST_LONG;
+    // push_to_remote
+    public static final long PUSH_TO_REMOTE_CONST_LONG = PUSH_TO_REMOTE_REPOSITORY_CONST_LONG;
+    // Read
+    public static final long READ_CONST_LONG = 0L;
+    // read_cluster
+    public static final long READ_CLUSTER_CONST_LONG = SYSTEM_READ_CONST_LONG;
+    // read_groups
+    public static final long READ_GROUPS_CONST_LONG = SYSTEM_READ_CONST_LONG;
+    // read_logs
+    public static final long READ_LOGS_CONST_LONG = READ_SITE_LOG_CONST_LONG;
+    // read_users
+    public static final long READ_USERS_CONST_LONG = SYSTEM_READ_CONST_LONG;
+    // rebuild_database
+    public static final long REBUILD_DATABASE_CONST_LONG = SYSTEM_UPDATE_CONST_LONG;
+    // remove_remote
+    public static final long REMOVE_REMOTE_CONST_LONG = REMOVE_REMOTE_REPOSITORY_CONST_LONG;
+    // resolve_conflict
+    public static final long RESOLVE_CONFLICT_CONST_LONG = RESOLVE_CONFLICTS_CONST_LONG;
+    // S3 Read
+    public static final long S3_READ_CONST_LONG = 0L;
+    // S3 Write
+    public static final long S3_WRITE_CONST_LONG = CONTENT_CREATE_CONST_LONG + CONTENT_UPDATE_CONST_LONG;
+    // search_cmis
+    public static final long SEARCH_CMIS_CONST_LONG = 0L;
+    // site_diff_conflicted_file
+    public static final long SITE_DIFF_CONFLICTED_FILE_CONST_LONG = RESOLVE_CONFLICTS_CONST_LONG;
+    // site_status
+    public static final long SITE_STATUS_CONST_LONG = SYSTEM_READ_CONST_LONG;
+    // update_cluster
+    public static final long UPDATE_CLUSTER_CONST_LONG = SYSTEM_UPDATE_CONST_LONG;
+    // update_groups
+    public static final long UPDATE_GROUPS_CONST_LONG = SYSTEM_UPDATE_CONST_LONG;
+    // update_users
+    public static final long UPDATE_USERS_CONST_LONG = SYSTEM_UPDATE_CONST_LONG;
+    // upload_content_cmis
+    public static final long UPLOAD_CONTENT_CMIS_CONST_LONG = CONTENT_CREATE_CONST_LONG + CONTENT_UPDATE_CONST_LONG;
+    // webdav_read
+    public static final long WEBDAV_READ_CONST_LONG = 0L;
+    // webdav_write
+    public static final long WEBDAV_WRITE_CONST_LONG = CONTENT_CREATE_CONST_LONG + CONTENT_UPDATE_CONST_LONG;
+    // Write
+    public static final long WRITE_CONST_LONG =
+            CONTENT_CREATE_CONST_LONG + CONTENT_UPDATE_CONST_LONG + CONTENT_CUT_CONST_LONG + CONTENT_COPY_CONST_LONG +
+                    CONTENT_PASTE_CONST_LONG + CONTENT_MOVE_RENAME_CONST_LONG + CONTENT_DUPLICATE_CONST_LONG;
+    // write_configuration
+    public static final long WRITE_CONFIGURATION_CONST_LONG = CONTENT_CREATE_CONST_LONG + CONTENT_UPDATE_CONST_LONG;
+    // write_global_configuration
+    public static final long WRITE_GLOBAL_CONFIGURATION_CONST_LONG = SYSTEM_CREATE_CONST_LONG + SYSTEM_UPDATE_CONST_LONG;
 }
