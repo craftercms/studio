@@ -46,6 +46,17 @@
         <result property="remotePrivateKey" column="remote_private_key"/>
     </resultMap>
 
+    <resultMap id="ClusterSiteRecordMap" type="org.craftercms.studio.api.v2.dal.ClusterSiteRecord">
+        <id property="clusterNodeId" column="cluster_node_id"/>
+        <id property="siteId" column="site_id" />
+        <result property="clusterNodeLocalAddress" column="cluster_node_local_address" />
+        <result property="siteIdString" column="site_id_string" />
+        <result property="nodeLastCommitId" column="node_last_commit_id" />
+        <result property="nodeLastVerifiedGitlogCommitId" column="node_last_verified_gitlog_commit_id" />
+        <result property="state" column="site_state" />
+        <result property="publishedRepoCreated" column="site_published_repo_crearted" />
+    </resultMap>
+
     <select id="getAllMembers" resultMap="ClusterMap">
         SELECT * FROM cluster
     </select>
@@ -179,5 +190,29 @@
         ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
         WHERE s.id = #{siteId}
         AND c.id = #{clusterNodeId}
+    </select>
+
+    <update id="setSiteState" >
+        UPDATE cluster_site_sync_repo SET site_state = #{state}
+        WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
+    </update>
+
+    <update id="setPublishedRepoCreated" >
+        UPDATE cluster_site_sync_repo SET site_published_repo_created = 1
+        WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
+    </update>
+
+    <select id="getSiteStateAcrossCluster" resultMap="ClusterSiteRecordMap">
+        SELECT cssr.*, s.site_id AS site_id_string, c.local_address as cluster_node_local_address
+        FROM site s INNER JOIN cluster_site_sync_repo cssr INNER JOIN cluster c
+            ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
+        WHERE s.site_id = #{siteId}
+    </select>
+
+    <select id="getClusterSiteRecord" resultMap="ClusterSiteRecordMap">
+        SELECT cssr.*, s.site_id AS site_id_string, c.local_address as cluster_node_local_address
+        FROM site s INNER JOIN cluster_site_sync_repo cssr INNER JOIN cluster c
+            ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
+        WHERE s.id = #{siteId} AND cluster_node_id = #{clusterNodeId}
     </select>
 </mapper>

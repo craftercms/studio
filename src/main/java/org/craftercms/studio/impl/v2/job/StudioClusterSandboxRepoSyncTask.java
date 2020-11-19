@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -59,16 +60,18 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATING;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
@@ -82,7 +85,6 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClusterSandboxRepoSyncTask.class);
 
-    protected static final List<String> createdSites = new ArrayList<String>();
     protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
     private StudioClusterUtils studioClusterUtils;
@@ -124,6 +126,13 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 ClusterMember localNode = clusterDao.getMemberByLocalAddress(localAddress);
                 List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
                 SiteFeed siteFeed = siteService.getSite(siteId);
+                List<ClusterSiteRecord> clusterSiteRecords = clusterDao.getSiteStateAcrossCluster(siteId);
+                long nodesCreated = clusterSiteRecords.stream()
+                        .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED)).count();
+                if (nodesCreated < 1) {
+                    return;
+                }
+
                 // Check if site exists
                 logger.debug("Check if site " + siteId + " exists in local repository");
                 boolean success = true;
@@ -132,7 +141,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 if (!siteCheck) {
                     // Site doesn't exist locally, create it
                     success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSiteUuid(),
-                            siteFeed.getSearchEngine(), clusterNodes);
+                            siteFeed.getSearchEngine(), clusterNodes, clusterSiteRecords);
                 }
                 if (clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
                     String commitId = contentRepository.getRepoFirstCommitId(siteId);
@@ -162,8 +171,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                         try {
                             // Sync with remote and update the local cache with the last commit ID to speed things up
                             logger.debug("Update content for site " + siteId);
-                            updateContent(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getLastCommitId(),
-                                    siteFeed.getSandboxBranch(), clusterNodes);
+                            updateContent(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSandboxBranch(),
+                                    clusterNodes);
                         } catch (IOException | CryptoException | ServiceLayerException e) {
                             logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                         }
@@ -182,22 +191,19 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     }
 
     protected boolean checkIfSiteRepoExists(String siteId) {
-        boolean toRet = false;
-        if (createdSites.contains(siteId)) {
+    boolean toRet = false;
+        String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
+        if (!StringUtils.isEmpty(firstCommitId)) {
             toRet = true;
-        } else {
-            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
-            if (!StringUtils.isEmpty(firstCommitId)) {
-                toRet = true;
-                createdSites.add(siteId);
-            }
         }
         return toRet;
     }
 
     private boolean createSite(long localNodeId, long sId, String siteId, String siteUuid, String searchEngine,
-                               List<ClusterMember> clusterNodes) {
+                               List<ClusterMember> clusterNodes, List<ClusterSiteRecord> clusterSiteRecords) {
         boolean result = true;
+
+        clusterDao.setSiteState(localNodeId, sId, STATE_CREATING);
 
         logger.debug("Create Deployer targets site " + siteId);
         try {
@@ -211,14 +217,13 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         if (result) {
             try {
                 logger.debug("Create site from remote for site " + siteId);
-                result = createSiteFromRemote(siteId, clusterNodes);
+                result = createSiteFromRemote(siteId, localNodeId, clusterSiteRecords);
                 if (result) {
                     String commitId = contentRepository.getRepoLastCommitId(siteId);
 
                     clusterDao.insertClusterSiteSyncRepo(localNodeId, sId, commitId, commitId);
                     addSiteUuidFile(siteId, siteUuid);
                     deploymentService.syncAllContentToPreview(siteId, true);
-                    createdSites.add(siteId);
                 }
             } catch (ServiceLayerException | CryptoException | IOException e) {
                 logger.error("Error while creating site on cluster node for site : " + siteId +
@@ -226,8 +231,9 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 result = false;
             }
 
-            if (!result) {
-                createdSites.remove(siteId);
+            if (result) {
+                clusterDao.setSiteState(localNodeId, sId, STATE_CREATED);
+            } else {
                 remotesMap.remove(siteId);
                 contentRepository.deleteSite(siteId);
 
@@ -244,7 +250,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         return result;
     }
 
-    protected boolean createSiteFromRemote(String siteId, List<ClusterMember> clusterNodes)
+    protected boolean createSiteFromRemote(String siteId, long localNodeId,
+                                           List<ClusterSiteRecord> clusterSiteRecords)
             throws CryptoException, ServiceLayerException {
         // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
         // we will eventually to catch up to the latest
@@ -253,8 +260,12 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         if (generalLockService.tryLock(gitLockKey)) {
             try {
-                while (!cloned && idx < clusterNodes.size()) {
-                    ClusterMember remoteNode = clusterNodes.get(idx++);
+                Optional<ClusterSiteRecord> csr = clusterSiteRecords.stream()
+                        .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED) &&
+                                !(x.getClusterNodeId() == localNodeId))
+                        .findFirst();
+                if (csr.isPresent()) {
+                    ClusterMember remoteNode = clusterDao.getMemberById(csr.get().getClusterNodeId());
                     logger.debug("Cloning " + SANDBOX.toString() + " repository for site " + siteId +
                             " from " + remoteNode.getLocalAddress());
 
@@ -473,8 +484,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         }
     }
 
-    protected void updateContent(long localNodeId, long sId, String siteId, String lastCommitId,
-                                 String sandboxBranchName, List<ClusterMember> clusterNodes)
+    protected void updateContent(long localNodeId, long sId, String siteId, String sandboxBranchName,
+                                 List<ClusterMember> clusterNodes)
             throws IOException, CryptoException, ServiceLayerException {
         logger.debug("Update sandbox for site " + siteId);
 
@@ -494,12 +505,9 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         try (Git git = new Git(repo)) {
             logger.debug("Update content from each active cluster memeber");
             for (ClusterMember remoteNode : clusterNodes) {
-                String remoteLastSyncCommit = remoteLastSyncCommits.get(remoteNode.getGitRemoteName());
-                if (StringUtils.isEmpty(remoteLastSyncCommit) ||
-                        !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
+                ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
+                if (StringUtils.equals(csr.getState(), STATE_CREATED)) {
                     updateBranch(siteId, git, remoteNode, sandboxBranchName);
-                    String remoteLastCommitId = clusterDao.getNodeLastCommitId(remoteNode.getId(), sId);
-                    remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), remoteLastCommitId);
                 }
             }
 
@@ -537,8 +545,4 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         Files.delete(tempKey);
     }
 
-    @Override
-    protected List<String> getCreatedSites() {
-        return createdSites;
-    }
 }

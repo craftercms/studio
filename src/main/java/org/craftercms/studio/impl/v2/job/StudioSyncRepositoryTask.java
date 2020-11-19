@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
@@ -53,7 +54,10 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
             try {
                 logger.debug("Executing sync repository thread ID = " + threadCounter + "; " +
                         Thread.currentThread().getId());
-                syncRepository(site);
+                String siteState = siteService.getSiteState(site);
+                if (StringUtils.equals(siteState, STATE_CREATED)) {
+                    syncRepository(site);
+                }
             } catch (Exception e) {
                 logger.error("Failed to sync database from repository for site " + site, e);
             }

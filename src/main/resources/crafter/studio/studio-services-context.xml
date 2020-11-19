@@ -797,6 +797,7 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- /////// -->

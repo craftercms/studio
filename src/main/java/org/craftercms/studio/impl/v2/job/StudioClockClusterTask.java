@@ -41,7 +41,6 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
 
 
     protected abstract Path buildRepoPath(String site);
-    protected abstract List<String> getCreatedSites();
 
     public StudioClockClusterTask(int executeEveryNCycles,
                                   int offset,
