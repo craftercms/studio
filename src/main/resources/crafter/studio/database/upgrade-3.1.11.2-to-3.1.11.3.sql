@@ -8,11 +8,9 @@ ALTER TABLE `cluster_site_sync_repo` ADD COLUMN `site_state` VARCHAR(50) NOT NUL
 
 ALTER TABLE `cluster_site_sync_repo` ADD COLUMN `site_published_repo_created` INT NOT NULL DEFAULT 0 ;
 
-UPDATE `cluster_site_sync_repo` SET `site_state` = 'CREATED' WHERE `site_id` IN (SELECT `id` FROM `site` WHERE
-                                                                                                               `deleted` = 0 );
+UPDATE `cluster_site_sync_repo` SET `site_state` = 'CREATED' WHERE `site_id` IN (SELECT `id` FROM `site` WHERE `deleted` = 0 );
 
-UPDATE `cluster_site_sync_repo` SET `site_state` = 'DELETED' WHERE `site_id` IN (SELECT `id` FROM `site` WHERE
-                                                                                                               `deleted` = 1 ) ;
+UPDATE `cluster_site_sync_repo` SET `site_state` = 'DELETED' WHERE `site_id` IN (SELECT `id` FROM `site` WHERE `deleted` = 1 ) ;
 
 UPDATE `cluster_site_sync_repo` cssr INNER JOIN `site` s ON cssr.`site_id` = s.`id` SET cssr.`site_published_repo_created` = s.`published_repo_created` ;
 
