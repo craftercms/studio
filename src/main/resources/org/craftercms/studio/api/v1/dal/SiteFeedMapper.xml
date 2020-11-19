@@ -164,7 +164,7 @@
     </select>
 
     <update id="setPublishedRepoCreated">
-        UPDATE site SET site_published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
+        UPDATE site SET published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <select id="tryLockPublishingForSite" statementType="CALLABLE" resultType="int">
