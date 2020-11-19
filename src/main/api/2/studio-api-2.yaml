@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.2'
+  version: '3.2.0.3'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -5117,6 +5117,9 @@ components:
         sortOrder:
           type: string
           description: The order to sort the results (defaults to DESC)
+        orOperator:
+          type: boolean
+          description: Indicates if the filters should use an OR instead of an AND operator (defaults to false)
         filters:
           type: object
           description: >-
