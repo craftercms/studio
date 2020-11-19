@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -60,18 +61,19 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
@@ -83,7 +85,6 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClusterPublishedRepoSyncTask.class);
 
-    protected static final List<String> createdSites = new ArrayList<String>();
     protected static final Map<String, Map<String, String>> remotesMap = new HashMap<String, Map<String, String>>();
 
     private StudioClusterUtils studioClusterUtils;
@@ -126,18 +127,27 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
             if (registrationData != null && !registrationData.isEmpty()) {
                 String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+                ClusterMember localNode = clusterDao.getMemberByLocalAddress(localAddress);
                 List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
                 SiteFeed siteFeed = siteService.getSite(siteId);
-
+                List<ClusterSiteRecord> clusterSiteRecords = clusterDao.getSiteStateAcrossCluster(siteId);
+                long nodesCreated = clusterSiteRecords.stream()
+                        .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED)).count();
+                if (nodesCreated < 1) {
+                    return;
+                }
                 // Check if site exists
                 logger.debug("Check if site " + siteId + " exists in local repository");
                 boolean success = true;
-                if (siteFeed.isSitePublishedRepoCreated()) {
+                int publishedReposCreated = clusterSiteRecords.stream()
+                        .mapToInt(ClusterSiteRecord::getPublishedRepoCreated)
+                        .sum();
+                if (publishedReposCreated > 0 || siteFeed.getPublishedRepoCreated() > 0) {
                     boolean siteCheck = checkIfSiteRepoExists(siteId);
 
                     if (!siteCheck) {
                         // Site doesn't exist locally, create it
-                        success = createSite(siteId, siteFeed.getSandboxBranch());
+                        success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSandboxBranch());
                     }
                 } else {
                     success = false;
@@ -158,7 +168,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                     try {
                         // Sync with remote and update the local cache with the last commit ID to speed things up
                         logger.debug("Update content for site " + siteId);
-                        updateContent(siteId, clusterNodes);
+                        updateContent(siteId, clusterNodes, clusterSiteRecords);
                     } catch (IOException | CryptoException | ServiceLayerException e) {
                         logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                     }
@@ -176,28 +186,21 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
 
     protected boolean checkIfSiteRepoExists(String siteId) {
         boolean toRet = false;
-        if (getCreatedSites().contains(siteId)) {
-            toRet = true;
-        } else {
-            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
-            if (!StringUtils.isEmpty(firstCommitId)) {
-                Repository repo = null;
-                FileRepositoryBuilder builder = new FileRepositoryBuilder();
-                try {
-                    repo = builder
-                            .setMustExist(true)
-                            .setGitDir(buildRepoPath(siteId).resolve(GIT_ROOT).toFile())
-                            .readEnvironment()
-                            .findGitDir()
-                            .build();
-                } catch (IOException e) {
-                    logger.info("Failed to open PUBLISHED repo for site " + siteId);
-                }
-                toRet = Objects.nonNull(repo) && repo.getObjectDatabase().exists();
-                if (toRet) {
-                    createdSites.add(siteId);
-                }
+        String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
+        if (!StringUtils.isEmpty(firstCommitId)) {
+            Repository repo = null;
+            FileRepositoryBuilder builder = new FileRepositoryBuilder();
+            try {
+                repo = builder
+                        .setMustExist(true)
+                        .setGitDir(buildRepoPath(siteId).resolve(GIT_ROOT).toFile())
+                        .readEnvironment()
+                        .findGitDir()
+                        .build();
+            } catch (IOException e) {
+                logger.info("Failed to open PUBLISHED repo for site " + siteId);
             }
+            toRet = Objects.nonNull(repo) && repo.getObjectDatabase().exists();
         }
         return toRet;
     }
@@ -209,12 +212,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 studioConfiguration.getProperty(PUBLISHED_PATH));
     }
 
-    @Override
-    protected List<String> getCreatedSites() {
-        return createdSites;
-    }
-
-    protected boolean createSite(String siteId, String sandboxBranch) {
+    protected boolean createSite(long localNodeId, long sId, String siteId, String sandboxBranch) {
         boolean result = true;
 
         if (result) {
@@ -224,7 +222,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                         userServiceInternal, encryptor, generalLockService);
                 result = helper.createPublishedRepository(siteId, sandboxBranch);
                 if (result) {
-                    createdSites.add(siteId);
+                    clusterDao.setPublishedRepoCreated(localNodeId, sId);
                 }
             } catch (CryptoException e) {
                 logger.error("Error while creating site on cluster node for site : " + siteId +
@@ -233,7 +231,6 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             }
 
             if (!result) {
-                createdSites.remove(siteId);
                 remotesMap.remove(siteId);
                 contentRepository.deleteSite(siteId);
             }
@@ -324,7 +321,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         }
     }
 
-    protected void updateContent(String siteId, List<ClusterMember> clusterNodes) throws IOException,
+    protected void updateContent(String siteId, List<ClusterMember> clusterNodes,
+                                 List<ClusterSiteRecord> clusterSiteRecords) throws IOException,
             CryptoException,
             ServiceLayerException {
         logger.debug("Update published repo for site " + siteId);
@@ -343,27 +341,31 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             if (generalLockService.tryLock(gitLockKey)) {
                 try {
                     for (ClusterMember remoteNode : clusterNodes) {
-                        try {
-                            logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
-                            final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                            FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
-                            fetch = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetch, tempKey);
-                            fetch.call();
-                            Files.delete(tempKey);
-                        } catch (GitAPIException e) {
-                            logger.error("Error while fetching published repo for site " + siteId + " from remote " +
-                                    remoteNode.getGitRemoteName());
-                            logger.error(e.getMessage());
-                        }
-                        logger.debug("Update all environments for site " + siteId + " from cluster member " +
-                                remoteNode.getLocalAddress());
-                        for (String branch : environments) {
+                        Optional<ClusterSiteRecord> csr = clusterSiteRecords.stream()
+                                .filter(x -> x.getClusterNodeId() == remoteNode.getId()).findFirst();
+                        if (csr.isPresent() && csr.get().getPublishedRepoCreated() > 0) {
                             try {
-                                updatePublishedBranch(siteId, git, remoteNode, branch);
+                                logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
+                                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                                FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
+                                fetch = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetch, tempKey);
+                                fetch.call();
+                                Files.delete(tempKey);
                             } catch (GitAPIException e) {
-                                logger.error("Error while updating published repo for site " + siteId + " from remote " +
-                                        remoteNode.getGitRemoteName() + " environment " + branch);
+                                logger.error("Error while fetching published repo for site " + siteId + " from remote " +
+                                        remoteNode.getGitRemoteName());
                                 logger.error(e.getMessage());
+                            }
+                            logger.debug("Update all environments for site " + siteId + " from cluster member " +
+                                    remoteNode.getLocalAddress());
+                            for (String branch : environments) {
+                                try {
+                                    updatePublishedBranch(siteId, git, remoteNode, branch);
+                                } catch (GitAPIException e) {
+                                    logger.error("Error while updating published repo for site " + siteId + " from remote " +
+                                            remoteNode.getGitRemoteName() + " environment " + branch);
+                                    logger.error(e.getMessage());
+                                }
                             }
                         }
                     }

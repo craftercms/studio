@@ -37,6 +37,7 @@
         <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
         <result property="publishingLockOwner" column="publishing_lock_owner" />
         <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat" />
+        <result property="state" column="state" />
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -56,6 +57,7 @@
         <parameter property="publishedRepoCreated" jdbcType="INTEGER" />
         <parameter property="publishingLockOwner" jdbcType="VARCHAR" />
         <parameter property="publishingLockHeartbeat" jdbcType="TIMESTAMP" />
+        <parameter property="state" jdbcType="VARCHAR" />
     </parameterMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
@@ -178,4 +180,31 @@
         UPDATE site SET publishing_lock_heartbeat = CURRENT_TIMESTAMP
         WHERE site_id = #{siteId} AND deleted = 0;
     </update>
+
+    <update id="setSiteState">
+        UPDATE site SET state = #{state}
+        WHERE site_id = #{siteId} AND deleted = 0;
+    </update>
+
+    <select id="getAllCreatedSites" resultType="String">
+        SELECT site_id FROM site WHERE state = #{state} AND deleted = 0
+    </select>
+
+    <select id="getSiteState" resultType="java.lang.String">
+        SELECT IFNULL(NULLIF(TRIM(cs.state), ''), s.state)
+        FROM site s LEFT OUTER JOIN
+             (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
+              WHERE c.local_address = #{localAddress}
+             ) AS cs ON s.id = cs.site_id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+    </select>
+
+    <select id="getPublishedRepoCreated" resultType="int">
+        SELECT IFNULL(cs.published_repo_created, s.published_repo_created)
+        FROM site s LEFT OUTER JOIN
+             (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
+              WHERE c.local_address = #{localAddress}
+             ) AS cs ON s.id = cs.site_id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+    </select>
 </mapper>

@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
@@ -154,6 +155,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private TextEncryptor encryptor;
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
+    private SiteService siteService;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -1109,7 +1111,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
                     git.close();
                     if (repoCreated) {
-                        siteFeedMapper.setPublishedRepoCreated(site);
+                        siteService.setPublishedRepoCreated(site);
                     }
                 }
             }
@@ -1520,5 +1522,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }
