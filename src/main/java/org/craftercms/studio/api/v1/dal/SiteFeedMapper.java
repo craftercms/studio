@@ -48,6 +48,15 @@ public interface SiteFeedMapper {
 
     Integer existsByName(String name);
 
+    /**
+     * Checks if there is a site, different than the siteId, using the given name
+     *
+     * @param siteId the id of the site
+     * @param name the name of the site
+     * @return true if the name is being used by another site
+     */
+    boolean isNameUsed(@Param(SITE_ID) String siteId, @Param(NAME) String name);
+
     int getSitesPerUserQueryTotal(Map params);
 
     List<String> getSitesPerUserQuery(Map params);
