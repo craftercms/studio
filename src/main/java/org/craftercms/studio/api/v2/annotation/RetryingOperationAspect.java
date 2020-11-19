@@ -69,7 +69,7 @@ public class RetryingOperationAspect {
                 }
                 return pjp.proceed();
             } catch (DeadlockLoserDataAccessException | JGitInternalException ex) {
-                logger.info("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+                logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
                 if (numAttempts > maxRetries) {
                     //log failure information, and throw exception
                     // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
