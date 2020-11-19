@@ -37,7 +37,7 @@
     </xsl:template>
 
     <!-- Add the new permission to any role that has the 'create-site' permission -->
-    <xsl:template match="permissions/role/rule/allowed-permissions">
+    <xsl:template match="permissions/role[@name!='admin']/rule/allowed-permissions">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates/>
