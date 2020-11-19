@@ -131,6 +131,12 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
                 SiteFeed siteFeed = siteService.getSite(siteId);
                 List<ClusterSiteRecord> clusterSiteRecords = clusterDao.getSiteStateAcrossCluster(siteId);
+                Optional<ClusterSiteRecord> localNodeRecord = clusterSiteRecords.stream()
+                        .filter(x -> x.getClusterNodeId() == localNode.getId() && StringUtils.equals(x.getState(),
+                                STATE_CREATED)).findFirst();
+                if (!localNodeRecord.isPresent()) {
+                    return;
+                }
                 long nodesCreated = clusterSiteRecords.stream()
                         .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED)).count();
                 if (nodesCreated < 1) {

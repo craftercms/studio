@@ -53,8 +53,8 @@
         <result property="siteIdString" column="site_id_string" />
         <result property="nodeLastCommitId" column="node_last_commit_id" />
         <result property="nodeLastVerifiedGitlogCommitId" column="node_last_verified_gitlog_commit_id" />
-        <result property="state" column="state" />
-        <result property="publishedRepoCreated" column="published_repo_crearted" />
+        <result property="state" column="site_state" />
+        <result property="publishedRepoCreated" column="site_published_repo_crearted" />
     </resultMap>
 
     <select id="getAllMembers" resultMap="ClusterMap">
@@ -193,12 +193,12 @@
     </select>
 
     <update id="setSiteState" >
-        UPDATE cluster_site_sync_repo SET state = #{state}
+        UPDATE cluster_site_sync_repo SET site_state = #{state}
         WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
     </update>
 
     <update id="setPublishedRepoCreated" >
-        UPDATE cluster_site_sync_repo SET published_repo_created = 1
+        UPDATE cluster_site_sync_repo SET site_published_repo_created = 1
         WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
     </update>
 

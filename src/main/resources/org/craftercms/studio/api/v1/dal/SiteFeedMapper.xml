@@ -164,7 +164,7 @@
     </select>
 
     <update id="setPublishedRepoCreated">
-        UPDATE site SET published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
+        UPDATE site SET site_published_repo_created = 1 WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <select id="tryLockPublishingForSite" statementType="CALLABLE" resultType="int">
@@ -191,7 +191,7 @@
     </select>
 
     <select id="getSiteState" resultType="java.lang.String">
-        SELECT IFNULL(NULLIF(TRIM(cs.state), ''), s.state)
+        SELECT IFNULL(NULLIF(TRIM(cs.site_state), ''), s.state)
         FROM site s LEFT OUTER JOIN
              (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
               WHERE c.local_address = #{localAddress}
@@ -200,7 +200,7 @@
     </select>
 
     <select id="getPublishedRepoCreated" resultType="int">
-        SELECT IFNULL(cs.published_repo_created, s.published_repo_created)
+        SELECT IFNULL(cs.site_published_repo_created, s.published_repo_created)
         FROM site s LEFT OUTER JOIN
              (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
               WHERE c.local_address = #{localAddress}

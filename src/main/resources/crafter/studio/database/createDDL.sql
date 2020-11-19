@@ -483,8 +483,8 @@ CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
     `site_id`                               BIGINT(20)      NOT NULL,
     `node_last_commit_id`                   VARCHAR(50)     NULL,
     `node_last_verified_gitlog_commit_id`   VARCHAR(50)     NULL,
-    `state`                                 VARCHAR(50)     NOT NULL DEFAULT 'CREATING',
-    `published_repo_created`                INT             NOT NULL DEFAULT 0,
+    `site_state`                                 VARCHAR(50)     NOT NULL DEFAULT 'CREATING',
+    `site_published_repo_created`                INT             NOT NULL DEFAULT 0,
     PRIMARY KEY (`cluster_node_id`, `site_id`),
     FOREIGN KEY cluster_site_ix_cluster_id(`cluster_node_id`) REFERENCES `cluster` (`id`)
         ON DELETE CASCADE,
