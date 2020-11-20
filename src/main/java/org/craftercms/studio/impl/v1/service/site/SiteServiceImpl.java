@@ -906,6 +906,7 @@ public class SiteServiceImpl implements SiteService {
                     syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
                     objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
+                    setSiteState(siteId, STATE_CREATED);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
