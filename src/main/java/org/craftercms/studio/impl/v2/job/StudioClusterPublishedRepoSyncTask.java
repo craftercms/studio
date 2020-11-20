@@ -43,6 +43,7 @@ import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -73,6 +74,7 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
@@ -398,42 +400,37 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             throws CryptoException, GitAPIException, IOException, ServiceLayerException {
         logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalAddress() +
                 " for site " + siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+        if (generalLockService.tryLock(gitLockKey)) {
+            try {
 
-        Repository repo = git.getRepository();
-        Ref ref = repo.exactRef(Constants.R_HEADS + branch);
-        boolean createBranch = (ref == null);
 
-        logger.debug("Checkout " + branch);
-        CheckoutCommand checkoutCommand = git.checkout()
-                .setName(branch)
-                .setCreateBranch(createBranch);
-        if (createBranch) {
-            checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
-        }
-        checkoutCommand.call();
 
-        FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
-        fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
-        FetchResult fetchResult = fetchCommand.call();
+                Repository repo = git.getRepository();
+                Ref ref = repo.exactRef(Constants.R_HEADS + branch);
+                boolean createBranch = (ref == null);
 
-        ObjectId commitToMerge;
-        Ref r;
-        if (fetchResult != null) {
-            r = fetchResult.getAdvertisedRef(branch);
-            if (r == null) {
-                r = fetchResult.getAdvertisedRef(Constants.R_HEADS + branch);
+                logger.debug("Checkout " + branch);
+                CheckoutCommand checkoutCommand = git.checkout()
+                        .setName(branch)
+                        .setCreateBranch(createBranch);
+                if (createBranch) {
+                    checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
+                }
+                checkoutCommand.call();
+
+                PullCommand pullCommand = git.pull();
+                pullCommand.setRemote(remoteNode.getGitRemoteName());
+                pullCommand.setRemoteBranchName(branch);
+                pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+                pullCommand.call();
+                
+            } finally {
+                generalLockService.unlock(gitLockKey);
             }
-            if (r != null) {
-                commitToMerge = r.getObjectId();
-
-                MergeCommand mergeCommand = git.merge();
-                mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
-                mergeCommand.setCommit(true);
-                mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
-                mergeCommand.setStrategy(MergeStrategy.THEIRS);
-                mergeCommand.call();
-            }
+        } else {
+            logger.debug("Failed to get lock " + gitLockKey);
         }
 
         Files.delete(tempKey);
