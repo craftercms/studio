@@ -822,13 +822,13 @@ studio.forwarded.headers.enabled: false
 # Studio Clock job ticking frequency
 studio.clockJob.frequency: 1000
 # Random offset to time shift cluster members in milliseconds
-studio.clockJob.task.cluster.randomOffset: 10
+studio.clockJob.task.cluster.randomOffset: 100
 # Studio Clock Job thread pool core size
-studio.clockJob.taskExecutor.corePoolSize: 10
+studio.clockJob.taskExecutor.corePoolSize: 50
 # Studio Clock Job thread pool maximum size
-studio.clockJob.taskExecutor.maxPoolSize: 100
+studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
-studio.clockJob.taskExecutor.queueCapacity: 200
+studio.clockJob.taskExecutor.queueCapacity: 2000
 # Cluster Global Repo sync execute every N cycles
 studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
 # Cluster Site Sandbox sync execute every N cycles

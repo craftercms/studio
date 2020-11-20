@@ -78,7 +78,7 @@ public class RetryingOperationAspect {
                 } else {
 					 // If the maximum number of retries is not reached, it will be executed again
                     long sleep = (long)(Math.random() * maxSleep);
-                    logger.info("Wait for " + sleep + " before next retry");
+                    logger.debug("Wait for " + sleep + " before next retry" + method.getName());
                     Thread.sleep(sleep);
                 }
             }
