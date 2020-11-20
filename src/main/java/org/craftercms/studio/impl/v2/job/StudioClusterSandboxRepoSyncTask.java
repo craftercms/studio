@@ -129,7 +129,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 List<ClusterSiteRecord> clusterSiteRecords = clusterDao.getSiteStateAcrossCluster(siteId);
                 long nodesCreated = clusterSiteRecords.stream()
                         .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED)).count();
-                if (nodesCreated < 1) {
+                if (nodesCreated < 1 && !StringUtils.equals(siteFeed.getState(), STATE_CREATED)) {
                     return;
                 }
 
@@ -146,6 +146,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 if (clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
                     String commitId = contentRepository.getRepoFirstCommitId(siteId);
                     clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), commitId, commitId);
+                    clusterDao.setSiteState(localNode.getId(), siteFeed.getId(), STATE_CREATED);
                 }
 
 
@@ -222,6 +223,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     String commitId = contentRepository.getRepoLastCommitId(siteId);
 
                     clusterDao.insertClusterSiteSyncRepo(localNodeId, sId, commitId, commitId);
+                    clusterDao.setSiteState(localNodeId, sId, STATE_CREATED);
                     addSiteUuidFile(siteId, siteUuid);
                     deploymentService.syncAllContentToPreview(siteId, true);
                 }
