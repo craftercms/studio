@@ -204,8 +204,6 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                                List<ClusterMember> clusterNodes, List<ClusterSiteRecord> clusterSiteRecords) {
         boolean result = true;
 
-        clusterDao.setSiteState(localNodeId, sId, STATE_CREATING);
-
         logger.debug("Create Deployer targets site " + siteId);
         try {
             deployer.createTargets(siteId, searchEngine);

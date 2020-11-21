@@ -99,6 +99,7 @@ import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -1192,10 +1193,19 @@ public class SiteServiceImpl implements SiteService {
             String contentClass;
             Map<String, Object> properties;
             ItemMetadata metadata;
+            String lastEditCommitId;
             switch (repoOperation.getAction()) {
                 case CREATE:
                 case COPY:
                     ItemState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+
+                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                    } else {
+                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
+                    }
+                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
 
                     if (state == null) {
                         logger.debug("Insert item state for site: " + site + " path: " + repoOperation.getPath());
@@ -1209,16 +1219,12 @@ public class SiteServiceImpl implements SiteService {
                                 !StringUtils.equals(state.getPath(), repoOperation.getPath())) {
                             objectStateService.updateObjectPath(site, state.getPath(), repoOperation.getPath());
                         }
-                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        }
                     }
 
                     logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-                    } else {
-                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
-                    }
-                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
                     if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
                         properties = new HashMap<String, Object>();
                         properties.put(ItemMetadata.PROP_SITE, site);
@@ -1239,8 +1245,17 @@ public class SiteServiceImpl implements SiteService {
 
                 case UPDATE:
                     logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
-                    objectStateService.getObjectState(site, repoOperation.getPath());
-                    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                    } else {
+                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
+                    }
+                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
+
+                    if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    }
 
                     logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
                     if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
@@ -1254,7 +1269,7 @@ public class SiteServiceImpl implements SiteService {
                         properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
                         properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
                         properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        objectMetadataManager.setObjectMetadata(site, repoOperation.getPath(), properties);
                     }
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
@@ -1286,12 +1301,31 @@ public class SiteServiceImpl implements SiteService {
                     ItemState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
                     logger.debug("Set item state for site: " + site + " path: " + repoOperation.getMoveToPath());
                     if (stateRename == null) {
-                        objectStateService.getObjectState(site, repoOperation.getMoveToPath());
-                        objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+                        } else {
+                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(),
+                                    repoOperation.getMoveToPath());
+                        }
+                        metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
+                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
+                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        }
                     } else {
                         objectStateService.updateObjectPath(site, repoOperation.getPath(),
                                 repoOperation.getMoveToPath());
-                        objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+                        } else {
+                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(),
+                                    repoOperation.getMoveToPath());
+                        }
+                        metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
+                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
+                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        }
                     }
 
                     logger.debug("Set item metadata for site: " + site + " path: " +
