@@ -156,6 +156,10 @@
     <insert id="insertClusterSiteSyncRepo">
         INSERT INTO cluster_site_sync_repo (cluster_node_id, site_id, node_last_commit_id, node_last_verified_gitlog_commit_id)
         VALUES (#{clusterNodeId}, #{siteId}, #{nodeLastCommitId}, #{nodeLastVerifiedGitlogCommitId})
+        ON DUPLICATE KEY
+        UPDATE
+            node_last_commit_id = #{nodeLastCommitId},
+            node_last_verified_gitlog_commit_id = #{nodeLastVerifiedGitlogCommitId}
     </insert>
 
     <update id="updateNodeLastVerifiedGitlogCommitId" >

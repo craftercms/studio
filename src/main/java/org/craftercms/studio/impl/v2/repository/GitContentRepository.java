@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -1452,6 +1453,36 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             }
         } catch (IOException | CryptoException e) {
             logger.error("Error getting last commit ID for site " + site, e);
+        }
+        return toReturn;
+    }
+
+    @Override
+    public String getLastEditCommitId(String siteId, String path) {
+        String toReturn = EMPTY;
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
+            Repository repository =
+                    helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+            if (repository != null) {
+                synchronized (repository) {
+                    ObjectId head = repository.resolve(HEAD);
+                    String gitPath = helper.getGitPath(path);
+                    try (Git git = new Git(repository)) {
+                        Iterable<RevCommit> commits = git.log().add(head).addPath(gitPath).call();
+                        Iterator<RevCommit> iterator = commits.iterator();
+                        if (iterator.hasNext()) {
+                            RevCommit revCommit = iterator.next();
+                            toReturn = revCommit.getName();
+                        }
+                    } catch (IOException | GitAPIException e) {
+                        logger.error("error while getting history for content item " + path);
+                    }
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error getting last commit ID for site " + siteId + " path " + path, e);
         }
         return toReturn;
     }
