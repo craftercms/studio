@@ -21,6 +21,10 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+
+import java.io.IOException;
 
 public abstract class StudioClockTask implements SiteJob {
 
@@ -62,5 +66,15 @@ public abstract class StudioClockTask implements SiteJob {
             executeInternal(site);
             counter = executeEveryNCycles;
         }
+    }
+
+    protected boolean validateRepository(Repository repository) throws IOException {
+        for (Ref ref : repository.getRefDatabase().getRefs()) {
+            if (ref.getObjectId() == null)
+                continue;
+            return true;
+        }
+
+        return false;
     }
 }

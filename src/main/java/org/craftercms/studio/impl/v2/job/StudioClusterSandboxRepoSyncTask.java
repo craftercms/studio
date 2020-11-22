@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.job;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -71,7 +72,6 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATING;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
@@ -147,6 +147,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     String commitId = contentRepository.getRepoFirstCommitId(siteId);
                     clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), commitId, commitId);
                     clusterDao.setSiteState(localNode.getId(), siteFeed.getId(), STATE_CREATED);
+                    addSiteUuidFile(siteId, siteFeed.getSiteUuid());
                 }
 
 
@@ -180,7 +181,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     }
                 }
             }
-        } catch (SiteNotFoundException e) {
+        } catch (SiteNotFoundException | IOException e) {
             logger.error("Error while executing Cluster Node Sync Sandbox for site " + siteId, e);
         }
 
@@ -272,13 +273,16 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     // prepare a new folder for the cloned repository
                     Path siteSandboxPath = buildRepoPath(siteId);
                     File localPath = siteSandboxPath.toFile();
-                    localPath.delete();
+
                     // then clone
                     logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
                     CloneCommand cloneCommand = Git.cloneRepository();
                     Git cloneResult = null;
 
                     try {
+                        if (localPath.exists()) {
+                            FileUtils.forceDelete(localPath);
+                        }
                         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                         logger.debug("Add user credentials if provided");
 
@@ -288,7 +292,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                         cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(SANDBOX_PATH);
 
                         logger.debug("Executing clone command");
-                        cloneResult = cloneCommand
+                        Git gitClone = cloneResult = cloneCommand
                                 .setURI(cloneUrl)
                                 .setRemote(remoteNode.getGitRemoteName())
                                 .setDirectory(localPath)
@@ -296,8 +300,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                                 .call();
                         Files.deleteIfExists(tempKey);
 
-                        cloned = true;
-
+                        cloned = validateRepository(gitClone.getRepository());
                     } catch (InvalidRemoteException e) {
                         logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
                                 " (" + remoteNode.getGitUrl() + ")", e);
@@ -325,6 +328,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         }
         return cloned;
     }
+
 
     @Override
     protected Path buildRepoPath(String siteId) {
