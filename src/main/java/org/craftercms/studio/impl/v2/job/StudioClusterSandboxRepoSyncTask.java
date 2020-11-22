@@ -143,7 +143,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSiteUuid(),
                             siteFeed.getSearchEngine(), clusterNodes, clusterSiteRecords);
                 }
-                
+
                 if (success && clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
                     String commitId = contentRepository.getRepoFirstCommitId(siteId);
                     clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), commitId, commitId);
