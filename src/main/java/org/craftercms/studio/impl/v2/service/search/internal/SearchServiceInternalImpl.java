@@ -434,7 +434,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         String rawKeywords = params.getKeywords();
         if (StringUtils.isNotEmpty(rawKeywords)) {
             rawKeywords = rawKeywords
-                .replaceAll("[^\\p{IsAlphabetic}\\p{Digit}\\s]", StringUtils.EMPTY)
+                .replaceAll("[^\\p{IsAlphabetic}\\p{Digit}\\s]", StringUtils.SPACE)
                 .trim();
             BoolQueryBuilder keywordsQuery = QueryBuilders.boolQuery();
             String[] keywords = rawKeywords.split(" ");
