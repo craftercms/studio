@@ -514,7 +514,7 @@
                         <id>git get ui</id>
                         <phase>prepare-package</phase>
                         <configuration>
-                            <executable>clone-ui.sh</executable>
+                            <executable>update-ui.sh</executable>
                             <arguments>
                                 <argument>${studio.ui.version}</argument>
                                 <argument>${studio.ui.path}</argument>
