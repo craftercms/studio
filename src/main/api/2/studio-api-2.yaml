@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.3'
+  version: '3.2.0.4'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -60,6 +60,8 @@ tags:
     description: Translation operations
   - name: workflow
     description: Workflow operations
+  - name: clipboard
+    description: Clipboard operations
 
 paths:
 
@@ -4561,7 +4563,7 @@ paths:
                   description: path(s) of the item(s)
                   items:
                     type: string
-                  
+
                 locales:
                   type: array
                   description: locale codes
@@ -4581,6 +4583,131 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /clipboard/copy:
+    post:
+      tags:
+        - clipboard
+      summary: Copy the given items to the target path
+      description: 'Required permission "Write"'
+      operationId: copyItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClipboardRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    description: The list of the new items
+                    type: array
+                    items:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /clipboard/cut:
+    post:
+      tags:
+        - clipboard
+      summary: Move the given items to the target path
+      description: 'Required permission "Write"'
+      operationId: cutItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClipboardRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    description: The list of the new items
+                    type: array
+                    items:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /clipboard/duplicate:
+    post:
+      tags:
+        - clipboard
+      summary: Duplicate the given item in the same location
+      description: 'Required permission "Write"'
+      operationId: duplicateItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                path:
+                  type: string
+                  description: The path of the item to duplicate
+              required:
+                - siteId
+                - path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    description: the path of the new item
+                    type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -6167,6 +6294,36 @@ components:
               modifiedValue:
                 type: string
                 description: The adjusted value if available
+
+    ClipboardItem:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The path of the item
+        children:
+          type: array
+          description: The child items
+          items:
+            $ref: '#/components/schemas/ClipboardItem'
+      required:
+        - path
+
+    ClipboardRequest:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: The id of the site
+        targetPath:
+          type: string
+          description: The target path for the operation
+        item:
+          $ref: '#/components/schemas/ClipboardItem'
+      required:
+        - siteId
+        - target
+        - item
 
   responses:
     NotFound:
