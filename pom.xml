@@ -514,14 +514,9 @@
                         <id>git get ui</id>
                         <phase>prepare-package</phase>
                         <configuration>
-                            <executable>git</executable>
+                            <executable>clone-ui.sh</executable>
                             <arguments>
-                                <argument>clone</argument>
-                                <argument>--depth</argument>
-                                <argument>1</argument>
-                                <argument>-b</argument>
                                 <argument>${studio.ui.version}</argument>
-                                <argument>https://github.com/craftercms/studio-ui.git</argument>
                                 <argument>${studio.ui.path}</argument>
                             </arguments>
                         </configuration>
