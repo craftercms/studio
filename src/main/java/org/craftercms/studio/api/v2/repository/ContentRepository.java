@@ -209,4 +209,6 @@ public interface ContentRepository {
      * @return last commit id (current HEAD)
      */
     String getRepoLastCommitId(String site);
+
+    String getLastEditCommitId(String siteId, String path);
 }

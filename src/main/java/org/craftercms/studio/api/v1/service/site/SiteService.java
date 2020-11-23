@@ -329,16 +329,44 @@ public interface SiteService {
 	 */
 	boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl);
 
-	/**
+    /**
 	 * Unlock publishing for site
 	 * @param siteId site identifier
 	 * @return true if unlocking was successful
 	 */
     boolean unlockPublishingForSite(String siteId, String lockOwnerId);
 
-	/**
+    /**
 	 * update publishing lock heartbeat for site
 	 * @param siteId site identifier
 	 */
 	void updatePublishingLockHeartbeatForSite(String siteId);
+
+	/**
+	 * get last commit id for site
+	 * @param siteId site identifier
+	 * @return last commit id for local studio node
+	 */
+	String getLastCommitId(String siteId);
+
+	String getSiteState(String siteId);
+
+	/**
+	 * get last verified git log commit id for site
+	 * @param siteId site identifier
+	 * @return last verified git log commit id for local studio node
+	 */
+	String getLastVerifiedGitlogCommitId(String siteId);
+
+	/**
+	 * Get list of all sites with state = CREATED
+	 * @return list of sites
+	 */
+	List<String> getAllCreatedSites();
+
+	void setSiteState(String siteId, String state);
+
+	boolean isPublishedRepoCreated(String siteId);
+
+    void setPublishedRepoCreated(String siteId);
 }
