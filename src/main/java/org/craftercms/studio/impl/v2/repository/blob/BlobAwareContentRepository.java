@@ -606,4 +606,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         return localRepositoryV2.getItem(siteId, path, flatten);
     }
 
+    @Override
+    public String getLastEditCommitId(String siteId, String path) {
+        return localRepositoryV2.getLastEditCommitId(siteId, path);
+    }
 }

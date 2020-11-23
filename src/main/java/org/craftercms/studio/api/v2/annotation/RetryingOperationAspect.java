@@ -69,7 +69,7 @@ public class RetryingOperationAspect {
                 }
                 return pjp.proceed();
             } catch (DeadlockLoserDataAccessException | JGitInternalException ex) {
-                logger.info("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+                logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
                 if (numAttempts > maxRetries) {
                     //log failure information, and throw exception
                     // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
@@ -78,7 +78,7 @@ public class RetryingOperationAspect {
                 } else {
 					 // If the maximum number of retries is not reached, it will be executed again
                     long sleep = (long)(Math.random() * maxSleep);
-                    logger.info("Wait for " + sleep + " before next retry");
+                    logger.debug("Wait for " + sleep + " before next retry" + method.getName());
                     Thread.sleep(sleep);
                 }
             }

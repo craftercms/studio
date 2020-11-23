@@ -467,7 +467,7 @@ studio.db.schema: crafter
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
 # Note that a relative path is not suitable for a production deployment
-studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter
+studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter&socketTimeout=60000
 # Defines initial number of database connections in database connection pool
 studio.db.pool.initialConnections: 10
 # Defines maximum number of active database connections in database connection pool
@@ -831,13 +831,13 @@ studio.forwarded.headers.enabled: false
 # Studio Clock job ticking frequency
 studio.clockJob.frequency: 1000
 # Random offset to time shift cluster members in milliseconds
-studio.clockJob.task.cluster.randomOffset: 10
+studio.clockJob.task.cluster.randomOffset: 500
 # Studio Clock Job thread pool core size
-studio.clockJob.taskExecutor.corePoolSize: 10
+studio.clockJob.taskExecutor.corePoolSize: 50
 # Studio Clock Job thread pool maximum size
-studio.clockJob.taskExecutor.maxPoolSize: 100
+studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
-studio.clockJob.taskExecutor.queueCapacity: 200
+studio.clockJob.taskExecutor.queueCapacity: 2000
 # Cluster Global Repo sync execute every N cycles
 studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
 # Cluster Site Sandbox sync execute every N cycles

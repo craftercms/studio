@@ -31,22 +31,16 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.URIish;
 
 import java.io.File;
@@ -62,7 +56,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
@@ -338,28 +331,10 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
         if (generalLockService.tryLock(GLOBAL_REPOSITORY_GIT_LOCK)) {
             try {
                 final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
-                fetchCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
-                FetchResult fetchResult = fetchCommand.call();
-
-                ObjectId commitToMerge;
-                Ref r;
-                if (fetchResult != null) {
-                    r = fetchResult.getAdvertisedRef(Constants.MASTER);
-                    if (r == null) {
-                        r = fetchResult.getAdvertisedRef(Constants.R_HEADS + Constants.MASTER);
-                    }
-                    if (r != null) {
-                        commitToMerge = r.getObjectId();
-
-                        MergeCommand mergeCommand = git.merge();
-                        mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
-                        mergeCommand.setCommit(true);
-                        mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
-                        mergeCommand.setStrategy(MergeStrategy.THEIRS);
-                        mergeCommand.call();
-                    }
-                }
+                PullCommand pullCommand = git.pull();
+                pullCommand.setRemote(remoteNode.getGitRemoteName());
+                pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+                pullCommand.call();
 
                 Files.delete(tempKey);
             } finally {

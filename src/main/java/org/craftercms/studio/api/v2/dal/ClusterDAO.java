@@ -29,6 +29,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_COM
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_VERIFIED_GITLOG_COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.REMOTE_REPOSITORY_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 
 public interface ClusterDAO {
 
@@ -226,4 +227,13 @@ public interface ClusterDAO {
      * @return
      */
     int existsClusterSiteSyncRepo(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
+
+    void setSiteState(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
+                      @Param(STATE) String state);
+
+    List<ClusterSiteRecord> getSiteStateAcrossCluster(@Param(SITE_ID) String siteId);
+
+    ClusterSiteRecord getClusterSiteRecord(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
+
+    void setPublishedRepoCreated(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
 }

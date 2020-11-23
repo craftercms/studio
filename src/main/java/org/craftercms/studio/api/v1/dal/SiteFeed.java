@@ -20,6 +20,10 @@ import java.time.ZonedDateTime;
 
 public class SiteFeed {
 
+    public static final String STATE_CREATING = "CREATING";
+    public static final String STATE_CREATED = "CREATED";
+    public static final String STATE_DELETED = "DELETED";
+
     protected long id;
     protected String siteUuid;
     protected String siteId;
@@ -37,6 +41,7 @@ public class SiteFeed {
     protected int publishedRepoCreated;
     protected String publishingLockOwner;
     protected ZonedDateTime publishingLockHeartbeat;
+    protected String state;
 
     public long getId() {
         return id;
@@ -181,5 +186,13 @@ public class SiteFeed {
 
     public void setPublishingLockHeartbeat(ZonedDateTime publishingLockHeartbeat) {
         this.publishingLockHeartbeat = publishingLockHeartbeat;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }
