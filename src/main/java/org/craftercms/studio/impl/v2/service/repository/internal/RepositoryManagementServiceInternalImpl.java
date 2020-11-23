@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -96,6 +97,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
@@ -117,15 +120,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private ContentRepository contentRepository;
     private TextEncryptor encryptor;
     private ClusterDAO clusterDao;
+    private GeneralLockService generalLockService;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
         boolean isValid = false;
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try {
             logger.debug("Add remote " + remoteRepository.getRemoteName() + " to the sandbox repo for the site " + siteId);
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repo = helper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
 
@@ -188,6 +194,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
         } catch (CryptoException e) {
             throw new ServiceLayerException(e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
         return isValid;
     }
@@ -233,8 +241,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             throws ServiceLayerException, CryptoException {
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
         Map<String, String> unreachableRemotes = new HashMap<String, String>();
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration,securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration,securityService,
+                userServiceInternal, encryptor, generalLockService);
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
                 List<RemoteConfig> resultRemotes = git.remoteList().call();
@@ -263,8 +271,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     private void fetchRemote(String siteId, Git git, RemoteConfig conf)
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, conf.getName());
         if (remoteRepository != null) {
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
@@ -369,11 +377,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
         logger.debug("Prepare pull command");
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
+        generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
@@ -421,6 +431,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     + remoteBranch + " for site " + siteId, e);
         } catch (CryptoException | IOException e) {
             throw new ServiceLayerException(e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 
@@ -431,8 +443,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
 
         logger.debug("Prepare push command.");
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             Iterable<PushResult> pushResultIterable = null;
@@ -503,9 +515,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
         }
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
             remoteRemoveCommand.setRemoteName(remoteName);
@@ -531,6 +545,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } catch (GitAPIException  e) {
             logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
             return false;
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
 
         logger.debug("Remove remote record from database for remote " + remoteName + " and site " + siteId);
@@ -560,8 +576,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public RepositoryStatus getRepositoryStatus(String siteId) throws CryptoException, ServiceLayerException {
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         RepositoryStatus repositoryStatus = new RepositoryStatus();
         logger.debug("Execute git status and return conflicting paths and uncommitted changes");
@@ -580,9 +596,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     @Override
     public boolean resolveConflict(String siteId, String path, String resolution)
             throws CryptoException, ServiceLayerException {
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             switch (resolution.toLowerCase()) {
                 case "ours" :
@@ -625,6 +643,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     "strategy", e);
             throw new ServiceLayerException("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
                     "strategy", e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
         return true;
     }
@@ -633,8 +653,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
             throws ServiceLayerException, CryptoException {
         DiffConflictedFile diffResult = new DiffConflictedFile();
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             List<ObjectId> mergeHeads = repo.readMergeHeads();
@@ -678,10 +698,12 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean commitResolution(String siteId, String commitMessage) throws CryptoException, ServiceLayerException {
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         logger.debug("Commit resolution for merge conflict for site " + siteId);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             Status status = git.status().call();
 
@@ -712,20 +734,26 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
             logger.error("Error while committing conflict resolution for site " + siteId, e);
             throw new ServiceLayerException("Error while committing conflict resolution for site " + siteId, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 
     @Override
     public boolean cancelFailedPull(String siteId) throws ServiceLayerException, CryptoException {
         logger.debug("To cancel failed pull, reset hard needs to be executed");
-        GitRepositoryHelper helper =
-                GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService);
         Repository repo = helper.getRepository(siteId, SANDBOX);
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             git.reset().setMode(ResetCommand.ResetType.HARD).call();
         } catch (GitAPIException e) {
             logger.error("Error while canceling failed pull for site " + siteId, e);
             throw new ServiceLayerException("Reset hard failed for site " + siteId, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
         return true;
     }
@@ -793,5 +821,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }

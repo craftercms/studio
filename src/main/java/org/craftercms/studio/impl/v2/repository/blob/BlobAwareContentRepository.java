@@ -598,4 +598,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                                                             ZonedDateTime toDate, int limit) {
         return localRepositoryV2.getPublishingHistory(siteId, environment, path, publisher, fromDate, toDate, limit);
     }
+
+    @Override
+    public String getLastEditCommitId(String siteId, String path) {
+        return localRepositoryV2.getLastEditCommitId(siteId, path);
+    }
 }

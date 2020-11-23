@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.10-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.11-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -46,7 +46,7 @@
         <studio.ui.node.version>v13.6.0</studio.ui.node.version>
         <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
         <spring.version>4.3.29.RELEASE</spring.version>
-        <spring.security.version>4.2.13.RELEASE</spring.security.version>
+        <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
         <box.sdk.version>2.25.1</box.sdk.version>
@@ -54,7 +54,7 @@
         <mariadb4j.version>2.4.8</mariadb4j.version>
         <jackson.version>2.10.5</jackson.version>
         <jackson.databind.version>2.10.5</jackson.databind.version>
-        <bouncycastle.version>1.60</bouncycastle.version>
+        <bouncycastle.version>1.61</bouncycastle.version>
         <sardine.version>5.9</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
         <apache.cxf.version>3.3.5</apache.cxf.version>

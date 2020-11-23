@@ -38,6 +38,7 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -53,6 +54,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.GLOBAL_REPO_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
@@ -120,6 +123,8 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
      */
     protected ApplicationContext applicationContext;
 
+    protected GeneralLockService generalLockService;
+
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
@@ -153,6 +158,14 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
         this.applicationContext = applicationContext;
     }
 
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
     @Override
     public void init(final String sourceVersion, final String targetVersion,
                      final HierarchicalConfiguration<ImmutableNode> config) throws UpgradeException {
@@ -172,6 +185,8 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
     }
 
     protected void writeToRepo(String site, String path, InputStream content) {
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try {
             Path repositoryPath = getRepositoryPath(site);
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -236,10 +251,14 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
 
         } catch (IOException e) {
             logger.error("error writing file: site: " + site + " path: " + path, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 
     protected void commitAllChanges(String site) throws UpgradeException {
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try {
             Path repositoryPath = getRepositoryPath(site);
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -263,6 +282,8 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
             }
         } catch (IOException | GitAPIException e) {
             throw new UpgradeException("Error committing changes for site " + site, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 

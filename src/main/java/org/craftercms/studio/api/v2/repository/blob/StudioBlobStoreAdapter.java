@@ -292,4 +292,10 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    default String getLastEditCommitId(String siteId, String path) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
 }

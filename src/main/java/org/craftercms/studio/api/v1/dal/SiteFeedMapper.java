@@ -17,12 +17,15 @@
 package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.access.method.P;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TTL;
 
 public interface SiteFeedMapper {
@@ -38,8 +41,6 @@ public interface SiteFeedMapper {
     boolean deleteSite(String siteId);
 
     void updateLastCommitId(Map params);
-
-    String getLastCommitId(Map params);
 
     Integer exists(String siteId);
 
@@ -89,4 +90,31 @@ public interface SiteFeedMapper {
      * @param siteId site identifier
      */
     void updatePublishingLockHeartbeatForSite(@Param(SITE_ID) String siteId);
+
+    /**
+     * Get last commit id for local studio node
+     * @param siteId site identifier
+     * @param localAddress local address
+     * @return commit id
+     */
+    String getLastCommitId(@Param(SITE_ID) String siteId, @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    /**
+     * Get last verified  git log commit id for local studio node
+     * @param siteId site identifier
+     * @param localAddress local address
+     * @return commit id
+     */
+    String getLastVerifiedGitlogCommitId(@Param(SITE_ID) String siteId,
+                                         @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);
+
+    List<String> getAllCreatedSites(@Param(STATE) String state);
+
+    String getSiteState(@Param(SITE_ID) String siteId,
+                        @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    int getPublishedRepoCreated(@Param(SITE_ID) String siteId,
+                                @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
 }

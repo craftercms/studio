@@ -205,5 +205,4 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         }
     }
 
-
 }

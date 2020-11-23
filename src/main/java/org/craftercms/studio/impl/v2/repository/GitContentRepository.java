@@ -34,9 +34,12 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -112,6 +115,9 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMB
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.IN_PROGRESS_BRANCH_NAME_SUFFIX;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.COPY;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
@@ -149,6 +155,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private RemoteRepositoryDAO remoteRepositoryDAO;
     private TextEncryptor encryptor;
     private ClusterDAO clusterDao;
+    private GeneralLockService generalLockService;
+    private SiteService siteService;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -161,8 +169,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             rootPath = path;
         }
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -222,8 +230,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo) {
         List<RepoOperation> operations = new ArrayList<>();
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
@@ -367,8 +375,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         List<RepoOperation> operations = new ArrayList<>();
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
@@ -468,8 +476,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public String getRepoFirstCommitId(final String site) {
         String toReturn = EMPTY;
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 synchronized (repository) {
@@ -635,8 +643,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                                             ZonedDateTime toDate, int limit) {
         List<PublishingHistoryItem> toRet = new ArrayList<PublishingHistoryItem>();
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository publishedRepo = helper.getRepository(siteId, PUBLISHED);
             if (publishedRepo != null) {
                 int counter = 0;
@@ -717,9 +725,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
                                            Map<String, String> params) {
         boolean toReturn;
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
 
             // create git repository for site content
             toReturn = helper.createSandboxRepository(site, sandboxBranch);
@@ -750,6 +760,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         } catch (CryptoException e) {
             logger.error("Error creating site from blueprint", e);
             toReturn = false;
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
 
         return toReturn;
@@ -762,8 +774,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                                             String filterType, int numberOfItems) {
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository publishedRepo = helper.getRepository(site, PUBLISHED);
             if (Objects.nonNull(publishedRepo)) {
                 int counter = 0;
@@ -824,8 +836,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public ZonedDateTime getLastDeploymentDate(String site, String path) {
         ZonedDateTime toRet = null;
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository publishedRepo = helper.getRepository(site, PUBLISHED);
             if (Objects.nonNull(publishedRepo)) {
                 try (Git git = new Git(publishedRepo)) {
@@ -856,14 +868,17 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             return;
         }
         String commitId = EMPTY;
+        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        generalLockService.lock(gitLockKey);
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repo = helper.getRepository(site, PUBLISHED);
+            boolean repoCreated = false;
             if (Objects.isNull(repo)) {
                 helper.createPublishedRepository(site, sandboxBranch);
                 repo = helper.getRepository(site, PUBLISHED);
-                siteFeedMapper.setPublishedRepoCreated(site);
+                repoCreated = Objects.nonNull(repo);
             }
             String path = EMPTY;
             String sandboxBranchName = sandboxBranch;
@@ -1096,12 +1111,17 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
                     git.close();
+                    if (repoCreated) {
+                        siteService.setPublishedRepoCreated(site);
+                    }
                 }
             }
         } catch (Exception e) {
             logger.error("Error when publishing site " + site + " to environment " + environment, e);
             throw new DeploymentException("Error when publishing site " + site + " to environment " +
                     environment + " [commit ID = " + commitId + "]");
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 
@@ -1120,8 +1140,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         String parent = parentFolder.toString();
         String toRet = parent;
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             String folderToDelete = helper.getGitPath(parent);
             Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
             if (Files.exists(toDelete)) {
@@ -1174,8 +1194,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
         boolean toRet = false;
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             try (Repository repo = helper.getRepository(site, repoType)) {
                 if (repo != null) {
                     ObjectId objCommitId = repo.resolve(commitId);
@@ -1205,9 +1225,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         // clone remote git repository for site content
         logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
                 " (" + remoteUrl + ").");
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
                     singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
                     createAsOrphan);
@@ -1244,6 +1266,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         } catch (CryptoException e) {
             logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
                     " (" + remoteUrl + ").", e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
         return toReturn;
     }
@@ -1253,8 +1277,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public boolean removeRemote(String siteId, String remoteName) {
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repo = helper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
                 RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
@@ -1294,6 +1318,30 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         } catch (CryptoException e) {
             logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
             return false;
+        }
+    }
+
+    private void removeRemote(Git git, String remoteName) throws GitAPIException {
+        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+        remoteRemoveCommand.setRemoteName(remoteName);
+        remoteRemoveCommand.call();
+
+        List<Ref> resultRemoteBranches = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE)
+                .call();
+
+        List<String> branchesToDelete = new ArrayList<String>();
+        for (Ref remoteBranchRef : resultRemoteBranches) {
+            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
+                branchesToDelete.add(remoteBranchRef.getName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+            DeleteBranchCommand delBranch = git.branchDelete();
+            String[] array = new String[branchesToDelete.size()];
+            delBranch.setBranchNames(branchesToDelete.toArray(array));
+            delBranch.setForce(true);
+            delBranch.call();
         }
     }
 
@@ -1358,8 +1406,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repo != null ) {
 
@@ -1390,8 +1438,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public String getRepoLastCommitId(final String site) {
         String toReturn = EMPTY;
         try {
-            GitRepositoryHelper helper =
-                    GitRepositoryHelper.getHelper(studioConfiguration, securityService, userServiceInternal, encryptor);
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
@@ -1405,6 +1453,36 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             }
         } catch (IOException | CryptoException e) {
             logger.error("Error getting last commit ID for site " + site, e);
+        }
+        return toReturn;
+    }
+
+    @Override
+    public String getLastEditCommitId(String siteId, String path) {
+        String toReturn = EMPTY;
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
+            Repository repository =
+                    helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+            if (repository != null) {
+                synchronized (repository) {
+                    ObjectId head = repository.resolve(HEAD);
+                    String gitPath = helper.getGitPath(path);
+                    try (Git git = new Git(repository)) {
+                        Iterable<RevCommit> commits = git.log().add(head).addPath(gitPath).call();
+                        Iterator<RevCommit> iterator = commits.iterator();
+                        if (iterator.hasNext()) {
+                            RevCommit revCommit = iterator.next();
+                            toReturn = revCommit.getName();
+                        }
+                    } catch (IOException | GitAPIException e) {
+                        logger.error("error while getting history for content item " + path);
+                    }
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error getting last commit ID for site " + siteId + " path " + path, e);
         }
         return toReturn;
     }
@@ -1467,5 +1545,21 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }
