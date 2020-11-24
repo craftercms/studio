@@ -1,17 +1,7 @@
-ALTER TABLE `site` ADD COLUMN `state` VARCHAR(50) NOT NULL DEFAULT 'CREATING' ;
+DROP PROCEDURE tryLockSyncRepoForSite ;
 
-UPDATE `site` SET `state` = 'CREATED' WHERE `deleted` = 0 ;
+call dropColumnIfExists('crafter', 'site', 'sync_repo_lock_owner') ;
 
-UPDATE `site` SET `state` = 'DELETED' WHERE `deleted` = 1 ;
-
-ALTER TABLE `cluster_site_sync_repo` ADD COLUMN `site_state` VARCHAR(50) NOT NULL DEFAULT 'CREATING' ;
-
-ALTER TABLE `cluster_site_sync_repo` ADD COLUMN `site_published_repo_created` INT NOT NULL DEFAULT 0 ;
-
-UPDATE `cluster_site_sync_repo` SET `site_state` = 'CREATED' WHERE `site_id` IN (SELECT `id` FROM `site` WHERE `deleted` = 0 );
-
-UPDATE `cluster_site_sync_repo` SET `site_state` = 'DELETED' WHERE `site_id` IN (SELECT `id` FROM `site` WHERE `deleted` = 1 ) ;
-
-UPDATE `cluster_site_sync_repo` cssr INNER JOIN `site` s ON cssr.`site_id` = s.`id` SET cssr.`site_published_repo_created` = s.`published_repo_created` ;
+call dropColumnIfExists('crafter', 'site', 'sync_repo_lock_heartbeat') ;
 
 UPDATE _meta SET version = '3.1.11.3' ;
