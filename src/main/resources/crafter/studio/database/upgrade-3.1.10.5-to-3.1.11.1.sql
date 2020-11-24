@@ -1,6 +1,6 @@
-ALTER TABLE `site` ADD COLUMN `sync_repo_lock_owner` VARCHAR(255) NULL ;
+call addColumnIfNotExists('crafter', 'site', 'sync_repo_lock_owner', 'VARCHAR(255) NULL') ;
 
-ALTER TABLE `site` ADD COLUMN `sync_repo_lock_heartbeat` DATETIME NULL ;
+call addColumnIfNotExists('crafter', 'site', 'sync_repo_lock_heartbeat', 'DATETIME NULL') ;
 
 CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
 (
@@ -37,4 +37,4 @@ BEGIN
     SELECT locked;
 END ;
 
-UPDATE _meta SET version = '3.1.10.11' ;
+UPDATE _meta SET version = '3.1.10.1' ;
