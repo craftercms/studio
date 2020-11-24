@@ -49,7 +49,7 @@
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
         <studio.ui.node.version>v15.0.1</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.22.4</studio.ui.yarn.version>
+        <studio.ui.yarn.version>v1.22.10</studio.ui.yarn.version>
     </properties>
 
     <dependencies>
@@ -537,8 +537,9 @@
                     <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
+
                     <execution>
-                        <id>install node and yarn</id>
+                        <id>UI build prep</id>
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
@@ -546,7 +547,7 @@
                     </execution>
 
                     <execution>
-                        <id>yarn install sass</id>
+                        <id>UI styles: dependencies</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -555,9 +556,8 @@
                             <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
                         </configuration>
                     </execution>
-
                     <execution>
-                        <id>yarn build sass</id>
+                        <id>UI styles: build sass</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -569,7 +569,7 @@
                     </execution>
 
                     <execution>
-                        <id>yarn install ui next</id>
+                        <id>UI next: dependencies</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -578,21 +578,20 @@
                             <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
                         </configuration>
                     </execution>
-
                     <execution>
-                        <id>yarn build ui next</id>
+                        <id>UI next: build</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                            <arguments>build</arguments>
+                            <arguments>build-if-changed</arguments>
                         </configuration>
                     </execution>
 
                     <execution>
-                        <id>install legacy hybrid deps</id>
+                        <id>UI legacy: dependencies</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -601,9 +600,8 @@
                             <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
                         </configuration>
                     </execution>
-
                     <execution>
-                        <id>build legacy hybrid files</id>
+                        <id>UI legacy: build</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -615,7 +613,7 @@
                     </execution>
 
                     <execution>
-                        <id>install guest deps</id>
+                        <id>UI guest: dependencies</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -624,9 +622,8 @@
                             <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
                         </configuration>
                     </execution>
-
                     <execution>
-                        <id>build guest</id>
+                        <id>UI guest: build</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -638,7 +635,7 @@
                     </execution>
 
                     <execution>
-                        <id>install ace deps</id>
+                        <id>Ace editor: dependencies</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -648,7 +645,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>build ace editor</id>
+                        <id>Ace editor: build</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -663,7 +660,7 @@
                     Disabled until we implement the history dialog or otherwise use monaco
                     editor (possibly in Crafter 3.2.1+)
                     <execution>
-                        <id>install monaco deps</id>
+                        <id>Monaco editor: dependencies</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
@@ -673,7 +670,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>build monaco editor</id>
+                        <id>Monaco editor: build</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
