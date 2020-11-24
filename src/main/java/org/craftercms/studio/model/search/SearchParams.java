@@ -16,12 +16,15 @@
 
 package org.craftercms.studio.model.search;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.Map;
 
 /**
  * Holds the data needed to perform a search operation
  * @author joseross
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchParams {
 
     /**
@@ -63,6 +66,8 @@ public class SearchParams {
      * The filters to search the files
      */
     protected Map<String, Object> filters;
+
+    protected boolean orOperator;
 
     public String getKeywords() {
         return keywords;
@@ -126,6 +131,14 @@ public class SearchParams {
 
     public void setFilters(final Map<String, Object> filters) {
         this.filters = filters;
+    }
+
+    public boolean isOrOperator() {
+        return orOperator;
+    }
+
+    public void setOrOperator(boolean orOperator) {
+        this.orOperator = orOperator;
     }
 
 }

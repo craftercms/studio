@@ -25,6 +25,7 @@ import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
 import org.dom4j.Node;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
@@ -131,6 +132,9 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
 
         if (document != null) {
             Node versionNode = document.selectSingleNode(xpath);
+            if (versionNode == null) {
+                versionNode = DocumentHelper.makeElement(document, xpath);
+            }
             versionNode.setText(newVersion);
 
             try(Writer writer = Files.newBufferedWriter(file)) {
