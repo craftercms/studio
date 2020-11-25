@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.3'
+  version: '3.2.0.4'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3486,6 +3486,94 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/paste:
+    post:
+      tags:
+        - content
+      summary: |-
+        Paste a tree of items to a target path (copy content or move content).
+        To be used by the UI in the clipboard implementation.
+      description: 'Required permission "Write"'
+      operationId: pasteItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasteRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    description: The list of pasted items
+                    type: array
+                    items:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/duplicate:
+    post:
+      tags:
+        - content
+      summary: Duplicate the given item in the same location
+      description: 'Required permission "Write"'
+      operationId: duplicateItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                path:
+                  type: string
+                  description: The path of the item to duplicate
+              required:
+                - siteId
+                - path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    description: the path of the new item
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dependency/dependencies:
     get:
       tags:
@@ -4561,7 +4649,7 @@ paths:
                   description: path(s) of the item(s)
                   items:
                     type: string
-                  
+
                 locales:
                   type: array
                   description: locale codes
@@ -6167,6 +6255,42 @@ components:
               modifiedValue:
                 type: string
                 description: The adjusted value if available
+
+    PasteItem:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The path of the item
+        children:
+          type: array
+          description: The child items
+          items:
+            $ref: '#/components/schemas/PasteItem'
+      required:
+        - path
+
+    PasteRequest:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: The id of the site
+        operation:
+          type: string
+          description: Indicate the type of operation
+          enum:
+            - COPY
+            - CUT
+        targetPath:
+          type: string
+          description: The target path for the operation
+        item:
+          $ref: '#/components/schemas/PasteItem'
+      required:
+        - siteId
+        - target
+        - item
 
   responses:
     NotFound:
