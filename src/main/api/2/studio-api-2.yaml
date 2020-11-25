@@ -3490,7 +3490,9 @@ paths:
     post:
       tags:
         - content
-      summary: Copy or cut the given items to the target path
+      summary: |-
+        Paste a tree of items to a target path (copy content or move content).
+        To be used by the UI in the clipboard implementation.
       description: 'Required permission "Write"'
       operationId: pasteItems
       requestBody:
@@ -3510,7 +3512,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   items:
-                    description: The list of the new items
+                    description: The list of pasted items
                     type: array
                     items:
                       type: string
