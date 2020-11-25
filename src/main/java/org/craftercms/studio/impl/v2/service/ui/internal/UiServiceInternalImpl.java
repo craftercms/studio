@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ConfigUtils;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_MENU_FILE_NAME;
 
@@ -67,6 +69,7 @@ public class UiServiceInternalImpl implements UiServiceInternal {
 
     @Override
     @SuppressWarnings("unchecked")
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException {
         if (CollectionUtils.isNotEmpty(permissions)) {
             HierarchicalConfiguration menuConfig = getGlobalMenuConfig();

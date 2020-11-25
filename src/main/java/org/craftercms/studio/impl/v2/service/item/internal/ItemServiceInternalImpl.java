@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -50,6 +51,11 @@ import java.util.Optional;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
+import static org.craftercms.studio.api.v2.security.AvailableActions.CREATE_FOLDER_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_CONTENT_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.EVERYTHING_ALLOWED;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.WRITE_CONST_LONG;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
 
@@ -77,6 +83,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void upsertEntry(String siteId, Item item) {
         List<Item> items = new ArrayList<Item>();
         items.addAll(getAncestors(item));
@@ -110,6 +117,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void upsertEntries(String siteId, List<Item> items) {
         if (CollectionUtils.isNotEmpty(items)) {
             itemDao.upsertEntries(items);
@@ -117,6 +125,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void updateParentIds(String siteId, String rootPath) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
@@ -125,11 +134,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public Item getItem(long id) {
         return itemDao.getItemById(id);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public Item getItem(String siteId, String path) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
@@ -142,11 +153,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_CONTENT_CONST_LONG)
     public void deleteItem(long itemId) {
         itemDao.deleteById(itemId);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_CONTENT_CONST_LONG)
     public void deleteItem(String siteId, String path) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
@@ -155,11 +168,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void updateItem(Item item) {
         itemDao.updateItem(item);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void setSystemProcessing(String siteId, String path, boolean isSystemProcessing) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
@@ -167,6 +182,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing) {
         if (isSystemProcessing) {
             setStatesBySiteAndPathBulk(siteId, paths, ItemState.SYSTEM_PROCESSING.value);
@@ -206,6 +222,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void setStateBits(String siteId, String path, long statesBitMask) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
@@ -213,11 +230,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void setStateBitsBulk(String siteId, List<String> paths, long statesBitMask) {
         setStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void resetStateBits(String siteId, String path, long statesBitMask) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
@@ -225,11 +244,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void resetStateBitsBulk(String siteId, List<String> paths, long statesBitMask) {
         resetStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void setStateBits(long itemId, long statesBitMask) {
         List<Long> ids = new ArrayList<Long>();
         ids.add(itemId);
@@ -237,6 +258,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void resetStateBits(long itemId, long statesBitMask) {
         List<Long> ids = new ArrayList<Long>();
         ids.add(itemId);
@@ -244,6 +266,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
@@ -251,6 +274,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void updateStateBits(long itemId, long onStateBitMap, long offStateBitMap) {
         List<Long> ids = new ArrayList<Long>();
         ids.add(itemId);
@@ -258,11 +282,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void updateStateBitsBulk(String siteId, List<String> paths, long onStateBitMap, long offStateBitMap) {
         updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void updateStateBitsBulk(List<Long> itemIds, long onStateBitMap, long offStateBitMap) {
         if (CollectionUtils.isNotEmpty(itemIds)) {
             itemDao.updateStatesByIdBulk(itemIds, onStateBitMap, offStateBitMap);
@@ -280,6 +306,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public Item.Builder instantiateItem(String siteName, String path) {
         Item item = getItem(siteName, path);
         if (Objects.isNull(item))  {
@@ -296,6 +323,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, Long ownedBy,
                                 String owner, Long createdBy, String creator, ZonedDateTime createdOn,
                                 Long lastModifiedBy, String modifier, ZonedDateTime lastModifiedOn, String label,
@@ -314,6 +342,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
                                           String label, String contentTypeId, String locale, String commitId, long size,
                                           Optional<Boolean> unlock)
@@ -339,11 +368,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_CONTENT_CONST_LONG)
     public void deleteItemsForSite(long siteId) {
         itemDao.deleteItemsForSite(siteId);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_CONTENT_CONST_LONG)
     public void deleteItemsById(List<Long> itemIds) {
         if (CollectionUtils.isNotEmpty(itemIds)) {
             itemDao.deleteItemsById(itemIds);
@@ -351,6 +382,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_CONTENT_CONST_LONG)
     public void deleteItemsForSiteAndPaths(long siteId, List<String> paths) {
         if (CollectionUtils.isNotEmpty(paths)) {
             itemDao.deleteItemsForSiteAndPath(siteId, paths);
@@ -358,12 +390,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public int getContentDashboardTotal(String siteId, String path, String modifier, String contentType, long state,
                                         ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         return itemDao.getContentDashboardTotal(siteId, path, modifier, contentType, state, dateFrom, dateTo);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<Item> getContentDashboard(String siteId, String path, String modifier, String contentType, long state,
                                           ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy, String order,
                                           int offset, int limit) {
@@ -372,6 +406,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = EVERYTHING_ALLOWED)
     public String getBrowserUrl(String site, String path) {
         String replacePattern;
         boolean isPage = false;
@@ -404,6 +439,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void persistItemAfterWrite(String siteId, String path, String username, String commitId,
                                       Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException {
@@ -432,6 +468,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = CREATE_FOLDER_CONST_LONG)
     public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
                                              String commitId)
             throws ServiceLayerException, UserNotFoundException {
@@ -449,6 +486,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONST_LONG)
     public void moveItem(String siteId, String oldPath, String newPath) {
         itemDao.moveItem(siteId, oldPath, newPath);
     }

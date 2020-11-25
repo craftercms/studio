@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.cluster.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
@@ -29,6 +30,8 @@ import java.util.Map;
 import static org.craftercms.studio.api.v2.dal.ClusterMember.State.INACTIVE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVE_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_MEMBER_IDS;
+import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_CLUSTER_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CLUSTER_CONST_LONG;
 
 public class ClusterManagementServiceInternalImpl implements ClusterManagementServiceInternal {
 
@@ -36,11 +39,13 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
     private StudioConfiguration studioConfiguration;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CLUSTER_CONST_LONG)
     public List<ClusterMember> getAllMembers() {
         return clusterDao.getAllMembers();
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_CLUSTER_CONST_LONG)
     public boolean removeMembers(List<Long> memberIds) {
         if (CollectionUtils.isNotEmpty(memberIds)) {
             Map<String, Object> params = new HashMap<String, Object>();

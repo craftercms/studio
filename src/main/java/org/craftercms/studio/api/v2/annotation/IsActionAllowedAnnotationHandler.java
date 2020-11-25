@@ -33,7 +33,6 @@ import java.util.Map;
 import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATH;
 import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
 import static org.craftercms.studio.api.v2.security.AvailableActions.EVERYTHING_ALLOWED;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_ONLY;
 
 @Aspect
 public class IsActionAllowedAnnotationHandler {

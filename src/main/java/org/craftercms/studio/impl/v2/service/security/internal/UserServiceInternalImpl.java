@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedExce
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -61,6 +62,11 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import static org.craftercms.studio.api.v2.security.AvailableActions.CREATE_USERS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_USERS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_GROUPS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_USERS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.UPDATE_USERS_CONST_LONG;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 
@@ -73,6 +79,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private StudioConfiguration studioConfiguration;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
                                                                            UserNotFoundException {
         Map<String, Object> params = new HashMap<>();
@@ -94,6 +101,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public List<User> getUsersByIdOrUsername(List<Long> userIds,
                                              List<String> usernames) throws ServiceLayerException,
                                                                               UserNotFoundException {
@@ -112,6 +120,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit,
                                          String sort) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
@@ -128,6 +137,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(OFFSET, offset);
@@ -142,6 +152,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
 
@@ -156,6 +167,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public int getAllUsersTotal() throws ServiceLayerException {
         try {
             return userDao.getAllUsersTotal();
@@ -165,6 +177,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = CREATE_USERS_CONST_LONG)
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         if (userExists(-1, user.getUsername())) {
             throw new UserAlreadyExistsException("User '" + user.getUsername() + "' already exists");
@@ -196,6 +209,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public boolean userExists(long userId, String username) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
@@ -211,6 +225,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = UPDATE_USERS_CONST_LONG)
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
         long userId = user.getId();
         String username = user.getUsername() != null ? user.getUsername() : StringUtils.EMPTY;
@@ -234,6 +249,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_USERS_CONST_LONG)
     public void deleteUsers(List<Long> userIds,
                             List<String> usernames) throws UserNotFoundException, ServiceLayerException {
         List<User> users = getUsersByIdOrUsername(userIds, usernames);
@@ -250,6 +266,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = UPDATE_USERS_CONST_LONG)
     public List<User> enableUsers(List<Long> userIds, List<String> usernames,
                                   boolean enabled) throws ServiceLayerException, UserNotFoundException {
         List<User> users = getUsersByIdOrUsername(userIds, usernames);
@@ -268,6 +285,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG + READ_GROUPS_CONST_LONG)
     public List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException {
         if (!userExists(userId, username)) {
             throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
@@ -285,6 +303,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG + READ_GROUPS_CONST_LONG)
     public boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException,
                                                                                  ServiceLayerException {
         if (!userExists(-1, username)) {
@@ -305,6 +324,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = UPDATE_USERS_CONST_LONG)
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -337,6 +357,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = UPDATE_USERS_CONST_LONG)
     public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
         if (!userExists(-1, username)) {
@@ -378,6 +399,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
     public User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException {
         User user =  userDao.getUserByGitName(gitName);
         if (Objects.isNull(user)) {

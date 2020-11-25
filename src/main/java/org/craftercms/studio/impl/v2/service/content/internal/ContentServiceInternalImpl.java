@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -38,6 +39,7 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
 
@@ -49,11 +51,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getSubtreeItems(String siteId, String path) {
         return contentRepository.getSubtreeItems(siteId, path);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getSubtreeItems(String siteId, List<String> paths) {
         List<String> subtreeItems = new ArrayList<String>();
         for (String path : paths) {
@@ -63,6 +67,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy,
                                                String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
@@ -112,6 +117,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public int getChildrenByPathTotal(String siteId, String path, String locale) {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         Map<String, String> params = new HashMap<String, String>();
@@ -122,6 +128,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
                                              String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
@@ -134,17 +141,20 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale) {
         return itemDao.getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId),
                 locale);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public org.craftercms.core.service.Item getItem(String siteId, String path, boolean flatten) {
         return contentRepository.getItem(siteId, path, flatten);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public long getContentSize(String siteId, String path) {
         return contentRepository.getContentSize(siteId, path);
     }

@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
@@ -57,6 +58,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.craftercms.studio.api.v2.security.AvailableActions.CREATE_SITE_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.EVERYTHING_ALLOWED;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.PLUGIN_REF;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.PLUGIN_URL;
 
@@ -125,6 +128,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = CREATE_SITE_CONST_LONG)
     public void afterPropertiesSet() throws IOException {
         VersionInfo versionInfo = VersionInfo.getVersion(MarketplaceServiceInternalImpl.class);
         if (versionInfo == null) {
@@ -151,6 +155,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = EVERYTHING_ALLOWED)
     public Map<String, Object> searchPlugins(final String type, final String keywords, final boolean showIncompatible,
                                              final long offset, final long limit)
         throws MarketplaceException {
@@ -216,6 +221,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = CREATE_SITE_CONST_LONG)
     public void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
         InvalidRemoteRepositoryException, RemoteRepositoryNotBareException, InvalidRemoteUrlException,
         ServiceLayerException, InvalidRemoteRepositoryCredentialsException {

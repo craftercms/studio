@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -99,6 +100,14 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v2.security.AvailableActions.ADD_REMOTE_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.CANCEL_FAILED_PULL_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.LIST_REMOTES_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.PULL_FROM_REMOTE_REPOSITORY_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.PUSH_TO_REMOTE_REPOSITORY_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.REMOVE_REMOTE_REPOSITORY_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.RESOLVE_CONFLICTS_CONST_LONG;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
@@ -123,6 +132,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private GeneralLockService generalLockService;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = ADD_REMOTE_CONST_LONG)
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
         boolean isValid = false;
@@ -237,6 +247,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = LIST_REMOTES_CONST_LONG)
     public List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch)
             throws ServiceLayerException, CryptoException {
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
@@ -374,6 +385,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = PULL_FROM_REMOTE_REPOSITORY_CONST_LONG)
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
@@ -437,6 +449,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = PUSH_TO_REMOTE_REPOSITORY_CONST_LONG)
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
             throws CryptoException, ServiceLayerException, InvalidRemoteUrlException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
@@ -510,6 +523,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = REMOVE_REMOTE_REPOSITORY_CONST_LONG)
     public boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException {
         if (!isRemovableRemote(siteId, remoteName)) {
             throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
@@ -575,6 +589,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public RepositoryStatus getRepositoryStatus(String siteId) throws CryptoException, ServiceLayerException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService);
@@ -594,6 +609,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS_CONST_LONG)
     public boolean resolveConflict(String siteId, String path, String resolution)
             throws CryptoException, ServiceLayerException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -650,6 +666,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS_CONST_LONG)
     public DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
             throws ServiceLayerException, CryptoException {
         DiffConflictedFile diffResult = new DiffConflictedFile();
@@ -697,6 +714,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS_CONST_LONG)
     public boolean commitResolution(String siteId, String commitMessage) throws CryptoException, ServiceLayerException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService);
@@ -740,6 +758,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = CANCEL_FAILED_PULL_CONST_LONG)
     public boolean cancelFailedPull(String siteId) throws ServiceLayerException, CryptoException {
         logger.debug("To cancel failed pull, reset hard needs to be executed");
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,

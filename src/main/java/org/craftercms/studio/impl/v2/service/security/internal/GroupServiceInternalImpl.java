@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
@@ -47,6 +48,12 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import static org.craftercms.studio.api.v2.security.AvailableActions.CREATE_GROUPS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_GROUPS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_GROUPS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_USERS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.UPDATE_GROUPS_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.UPDATE_USERS_CONST_LONG;
 
 public class GroupServiceInternalImpl implements GroupServiceInternal {
 
@@ -55,6 +62,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     private ConfigurationService configurationService;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG)
     public Group getGroup(long groupId) throws GroupNotFoundException, ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_ID, groupId);
@@ -74,6 +82,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG)
     public List<Group> getGroups(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_IDS, groupIds);
@@ -93,6 +102,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG)
     public Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAME, groupName);
@@ -112,6 +122,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG)
     public boolean groupExists(long groupId, String groupName) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_ID, groupId);
@@ -126,6 +137,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG)
     public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         // Prepare parameters
         Map<String, Object> params = new HashMap<>();
@@ -142,6 +154,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG)
     public int getAllGroupsTotal(long orgId) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(ORG_ID, orgId);
@@ -154,6 +167,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = CREATE_GROUPS_CONST_LONG)
     public Group createGroup(long orgId, String groupName, String groupDescription)
             throws GroupAlreadyExistsException, ServiceLayerException {
         if (groupExists(-1, groupName)) {
@@ -181,6 +195,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = UPDATE_GROUPS_CONST_LONG)
     public Group updateGroup(long orgId, Group group) throws GroupNotFoundException, ServiceLayerException {
         if (!groupExists(group.getId(), StringUtils.EMPTY)) {
             throw new GroupNotFoundException("No group found for id '" + group.getId() + "'");
@@ -203,6 +218,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = DELETE_GROUPS_CONST_LONG)
     public void deleteGroup(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException {
         for (Long groupId : groupIds) {
             if (!groupExists(groupId, StringUtils.EMPTY)) {
@@ -221,6 +237,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG + READ_USERS_CONST_LONG)
     public List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
             throws GroupNotFoundException, ServiceLayerException {
         if (!groupExists(groupId, StringUtils.EMPTY)) {
@@ -241,6 +258,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG + READ_USERS_CONST_LONG)
     public int getGroupMembersTotal(final long groupId) throws GroupNotFoundException, ServiceLayerException {
 
         if(!groupExists(groupId, StringUtils.EMPTY)) {
@@ -255,6 +273,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = UPDATE_GROUPS_CONST_LONG + UPDATE_USERS_CONST_LONG)
     public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
         if (!groupExists(groupId, StringUtils.EMPTY)) {
@@ -277,6 +296,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = UPDATE_GROUPS_CONST_LONG + UPDATE_USERS_CONST_LONG)
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
         if (!groupExists(groupId, StringUtils.EMPTY)) {
@@ -297,6 +317,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_GROUPS_CONST_LONG)
     public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
         Map<String, List<String>> groupRoleMapping;
         try {

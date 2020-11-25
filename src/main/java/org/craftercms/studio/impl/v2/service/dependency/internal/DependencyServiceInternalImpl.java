@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -42,6 +43,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
@@ -54,6 +56,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private ItemStateMapper itemStateMapper;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getSoftDependencies(String site, String path) throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
@@ -65,6 +68,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getSoftDependencies(String site, List<String> paths) throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
@@ -121,6 +125,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getHardDependencies(String site, String path) throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
@@ -132,6 +137,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getHardDependencies(String site, List<String> paths) throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
@@ -220,6 +226,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getDependentItems(String siteId, String path) {
         List<String> paths = new ArrayList<String>(1);
         paths.add(path);
@@ -227,6 +234,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getDependentItems(String siteId, List<String> paths) {
         if (CollectionUtils.isEmpty(paths)) {
             return new ArrayList<String>();
@@ -235,6 +243,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getItemSpecificDependencies(String siteId, String path) {
         List<String> paths = new ArrayList<>(1);
         paths.add(path);
@@ -242,6 +251,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
     public List<String> getItemSpecificDependencies(String siteId, List<String> paths) {
         if (CollectionUtils.isNotEmpty(paths)) {
             return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());

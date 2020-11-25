@@ -261,8 +261,6 @@ public enum AvailableActions {
     // write_global_configuration
     public static final long WRITE_GLOBAL_CONFIGURATION = SYSTEM_CREATE.value + SYSTEM_UPDATE.value;
 
-    public static final long READ_ONLY = 0L;
-
     public static final long EVERYTHING_ALLOWED = -1L;
 
     public static long mapPermissionToAvailableActions(String permission) {

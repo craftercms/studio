@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
@@ -31,6 +32,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
+import static org.craftercms.studio.api.v2.security.AvailableActions.CANCEL_PUBLISH_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.EVERYTHING_ALLOWED;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_PUBLISHING_QUEUE_CONST_LONG;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal {
 
@@ -38,17 +42,20 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     private ContentRepository contentRepository;
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE_CONST_LONG)
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
         return publishRequestDao.getPublishingPackagesTotal(siteId, environment, path, states);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE_CONST_LONG)
     public List<PublishingPackage> getPublishingPackages(String siteId, String environment, String path,
                                                          List<String> states, int offset, int limit) {
         return publishRequestDao.getPublishingPackages(siteId, environment, path, states, offset, limit);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE_CONST_LONG)
     public PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) {
         List<PublishRequest> publishingRequests = publishRequestDao.getPublishingPackageDetails(siteId, packageId);
         PublishingPackageDetails publishingPackageDetails = new PublishingPackageDetails();
@@ -76,17 +83,20 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     @RetryingOperation
     @Override
+    @IsActionAllowed(allowedActionsMask = CANCEL_PUBLISH_CONST_LONG)
     public void cancelPublishingPackages(String siteId, List<String> packageIds) {
         publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED);
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = EVERYTHING_ALLOWED)
     public int getPublishingHistoryTotal(String siteId, String environment, String path, String publisher,
                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state) {
         return 0;
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = EVERYTHING_ALLOWED)
     public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
                                                             String publisher, ZonedDateTime dateFrom,
                                                             ZonedDateTime dateTo, String contentType, long state,

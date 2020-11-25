@@ -20,8 +20,11 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.security.internal.EncryptionServiceInternal;
+
+import static org.craftercms.studio.api.v2.security.AvailableActions.WRITE_CONFIGURATION_CONST_LONG;
 
 /**
  * @author joseross
@@ -41,6 +44,7 @@ public class EncryptionServiceInternalImpl implements EncryptionServiceInternal 
     }
 
     @Override
+    @IsActionAllowed(allowedActionsMask = WRITE_CONFIGURATION_CONST_LONG)
     public String encrypt(final String text) throws ServiceLayerException {
         if (StringUtils.isEmpty(text) || text.length() > maxLength) {
             throw new InvalidParametersException("The provided text is invalid");
