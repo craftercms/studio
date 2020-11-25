@@ -42,7 +42,6 @@ import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
@@ -152,6 +151,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                     if (!siteCheck) {
                         // Site doesn't exist locally, create it
                         success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSandboxBranch());
+                    } else {
+                        clusterDao.setPublishedRepoCreated(localNode.getId(), siteFeed.getId());
                     }
                 } else {
                     success = false;
@@ -172,7 +173,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                     try {
                         // Sync with remote and update the local cache with the last commit ID to speed things up
                         logger.debug("Update content for site " + siteId);
-                        updateContent(siteId, clusterNodes, clusterSiteRecords);
+                        updateContent(siteFeed.getId(), siteId, clusterNodes, clusterSiteRecords);
                     } catch (IOException | CryptoException | ServiceLayerException e) {
                         logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                     }
@@ -325,7 +326,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         }
     }
 
-    protected void updateContent(String siteId, List<ClusterMember> clusterNodes,
+    protected void updateContent(long sId, String siteId, List<ClusterMember> clusterNodes,
                                  List<ClusterSiteRecord> clusterSiteRecords) throws IOException,
             CryptoException,
             ServiceLayerException {
@@ -345,9 +346,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             if (generalLockService.tryLock(gitLockKey)) {
                 try {
                     for (ClusterMember remoteNode : clusterNodes) {
-                        Optional<ClusterSiteRecord> csr = clusterSiteRecords.stream()
-                                .filter(x -> x.getClusterNodeId() == remoteNode.getId()).findFirst();
-                        if (csr.isPresent() && csr.get().getPublishedRepoCreated() > 0) {
+                        ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
+                        if (Objects.nonNull(csr) && csr.getPublishedRepoCreated() > 0) {
                             try {
                                 logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
                                 final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
