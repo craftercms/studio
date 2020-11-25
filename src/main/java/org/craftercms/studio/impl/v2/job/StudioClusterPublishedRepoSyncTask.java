@@ -151,6 +151,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                     if (!siteCheck) {
                         // Site doesn't exist locally, create it
                         success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSandboxBranch());
+                    } else {
+                        clusterDao.setPublishedRepoCreated(localNode.getId(), siteFeed.getId());
                     }
                 } else {
                     success = false;
@@ -419,7 +421,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 pullCommand.setRemoteBranchName(branch);
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
                 pullCommand.call();
-                
+
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
