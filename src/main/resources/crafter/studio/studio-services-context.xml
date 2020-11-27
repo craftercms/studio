@@ -280,10 +280,14 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
-    <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
-            parent="cstudioRegistrableService">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="workflowService" ref="cstudioWorkflowService" />
+    <bean id="clipboardServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
+        <constructor-arg ref="cstudioContentService"/>
+        <constructor-arg ref="cstudioWorkflowService"/>
+    </bean>
+
+    <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
+        <constructor-arg ref="clipboardServiceInternal"/>
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />

@@ -40,6 +40,8 @@ public interface RequestMappingConstants {
     String GET_CHILDREN_BY_PATH = "/children_by_path";
     String GET_CHILDREN_BY_ID = "/children_by_id";
     String GET_DESCRIPTOR = "/descriptor";
+    String PASTE_ITEMS = "/paste";
+    String DUPLICATE_ITEM = "/duplicate";
 
     /** Users controller */
     String USERS = "/users";

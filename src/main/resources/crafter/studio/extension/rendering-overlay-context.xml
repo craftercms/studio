@@ -99,9 +99,10 @@
     </bean>
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
-        <property name="contentService" ref="contentService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="dependencyService" ref="dependencyService" />
+        <constructor-arg ref="contentService"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="dependencyService"/>
+        <constructor-arg ref="clipboardService"/>
     </bean>
 
     <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
