@@ -401,10 +401,24 @@ public interface SiteService {
 	 */
 	String getLastCommitId(String siteId);
 
+	String getSiteState(String siteId);
+
 	/**
 	 * get last verified git log commit id for site
 	 * @param siteId site identifier
 	 * @return last verified git log commit id for local studio node
 	 */
 	String getLastVerifiedGitlogCommitId(String siteId);
+
+	/**
+	 * Get list of all sites with state = CREATED
+	 * @return list of sites
+	 */
+	List<String> getAllCreatedSites();
+
+	void setSiteState(String siteId, String state);
+
+	boolean isPublishedRepoCreated(String siteId);
+
+    void setPublishedRepoCreated(String siteId);
 }

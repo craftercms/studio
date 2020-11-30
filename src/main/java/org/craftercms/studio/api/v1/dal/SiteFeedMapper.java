@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.access.method.P;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DESC;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TTL;
 
 public interface SiteFeedMapper {
@@ -149,4 +151,14 @@ public interface SiteFeedMapper {
      */
     String getLastVerifiedGitlogCommitId(@Param(SITE_ID) String siteId,
                                          @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);
+
+    List<String> getAllCreatedSites(@Param(STATE) String state);
+
+    String getSiteState(@Param(SITE_ID) String siteId,
+                        @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    int getPublishedRepoCreated(@Param(SITE_ID) String siteId,
+                                @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
 }

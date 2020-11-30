@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.job;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -32,6 +33,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
@@ -54,7 +56,10 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
             try {
                 logger.debug("Executing sync repository thread ID = " + threadCounter + "; " +
                         Thread.currentThread().getId());
-                syncRepository(site);
+                String siteState = siteService.getSiteState(site);
+                if (StringUtils.equals(siteState, STATE_CREATED)) {
+                    syncRepository(site);
+                }
             } catch (Exception e) {
                 logger.error("Failed to sync database from repository for site " + site, e);
             }

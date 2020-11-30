@@ -83,6 +83,14 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
         this.generalLockService = generalLockService;
     }
 
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();

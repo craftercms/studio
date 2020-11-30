@@ -40,6 +40,8 @@ public abstract class QueryParameterNames {
     public static final String NEW_PATH = "newPath";
     // commit id
     public static final String COMMIT_ID = "commitId";
+    // state
+    public static final String STATE = "state";
 
     /* Organizations */
 
@@ -58,6 +60,7 @@ public abstract class QueryParameterNames {
     public static final String NAME = "name";
 
     public static final String DESC = "description";
+
 
     /* Groups */
 
@@ -172,8 +175,6 @@ public abstract class QueryParameterNames {
     public static final String ITEM_IDS = "itemIds";
 
     public static final String CONTENT_TYPE = "contentType";
-
-    public static final String STATE = "state";
 
     private QueryParameterNames() { }
 }

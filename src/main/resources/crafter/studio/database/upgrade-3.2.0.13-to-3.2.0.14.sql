@@ -14,10 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-DROP PROCEDURE tryLockSyncRepoForSite ;
+DROP PROCEDURE IF EXISTS tryLockSyncRepoForSite ;
 
-ALTER TABLE `site` DROP COLUMN `sync_repo_lock_owner` ;
+call dropColumnIfExists('crafter', 'site', 'sync_repo_lock_owner') ;
 
-ALTER TABLE `site` DROP COLUMN `sync_repo_lock_heartbeat` ;
+call dropColumnIfExists('crafter', 'site', 'sync_repo_lock_heartbeat') ;
 
 UPDATE _meta SET version = '3.2.0.14' ;

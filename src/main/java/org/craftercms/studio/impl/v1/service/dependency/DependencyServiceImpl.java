@@ -113,7 +113,7 @@ public class DependencyServiceImpl implements DependencyService {
                 logger.debug("Committing transaction.");
                 transactionManager.commit(txStatus);
             } catch (Exception e) {
-                logger.debug("Rolling back transaction.");
+                logger.debug("Rolling back transaction.", e);
                 transactionManager.rollback(txStatus);
                 throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " path: " + path, e);
             }
@@ -156,7 +156,7 @@ public class DependencyServiceImpl implements DependencyService {
             logger.debug("Committing transaction.");
             transactionManager.commit(txStatus);
         } catch (Exception e) {
-            logger.debug("Rolling back transaction.");
+            logger.debug("Rolling back transaction.", e);
             transactionManager.rollback(txStatus);
             throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " paths: " +
                     sbPaths.toString(), e);
@@ -174,7 +174,8 @@ public class DependencyServiceImpl implements DependencyService {
         dependencyMapper.deleteAllSourceDependencies(params);
     }
 
-    private List<DependencyEntity> createDependencyEntities(String site, String path, Set<String> dependencyPaths,
+    @RetryingOperation
+    public List<DependencyEntity> createDependencyEntities(String site, String path, Set<String> dependencyPaths,
                                                             String dependencyType, Set<String> extractedPaths) {
         logger.debug("Create dependency entity TO for site: " + site + " path: " + path);
         List<DependencyEntity> dependencyEntities = new ArrayList<>();
@@ -196,7 +197,8 @@ public class DependencyServiceImpl implements DependencyService {
         return path.replaceAll("//", "/");
     }
 
-    private void insertDependenciesIntoDatabase(List<DependencyEntity> dependencyEntities) {
+    @RetryingOperation
+    public void insertDependenciesIntoDatabase(List<DependencyEntity> dependencyEntities) {
         logger.debug("Insert list of dependency entities into database");
         if (CollectionUtils.isNotEmpty(dependencyEntities)) {
             Map<String, Object> params = new HashMap<>();

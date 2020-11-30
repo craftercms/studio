@@ -97,6 +97,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-urlrewrite.xml
                 dest: configuration/samples/sample-urlrewrite.xml
             commitDetails: Update sample file for urlrewrite.xml
+      - currentVersion: 3.2.0.15
+        nextVersion: 3.2.0.16
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.15-to-3.2.0.16.sql
 
   # Pipeline to upgrade site repositories
   site:
