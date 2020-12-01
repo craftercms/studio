@@ -20,7 +20,6 @@ import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices
 import scripts.api.impl.content.SpringContentTypeServices
 import scripts.api.impl.content.SpringPageNavigationOrderServices
-import scripts.api.impl.clipboard.SpringClipboardServices
 import scripts.api.impl.deployment.SpringDeploymentServices
 import scripts.api.impl.activity.SpringActivityServices
 import scripts.api.impl.workflow.SpringWorkflowServices
@@ -66,16 +65,6 @@ class ServiceFactory {
 	static getContentTypeServices(context) {
 		return new SpringContentTypeServices(context)
 	}
-
-    /**
-     * return the implementation for clipboard services
-     *
-     * @param context site context
-     * @return ClipboardServices
-     */
-    static getClipboardServices(context) {
-        return new SpringClipboardServices(context)
-    }
 
 	/**
 	 * return the implementation for deployment services

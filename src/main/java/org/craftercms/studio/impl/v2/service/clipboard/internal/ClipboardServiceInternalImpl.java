@@ -102,7 +102,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
         // TODO: Find a better way to do this?
         var parentUrl = "index.xml".equals(filename)? getFullPathNoEndSeparator(getFullPathNoEndSeparator(path))
                                                             : getFullPathNoEndSeparator(path);
-        var item = contentService.getContentItem(siteId, parentUrl);
+        var item = contentService.getContentItem(siteId, parentUrl, 0);
         return contentService.copyContent(siteId, path, item.uri);
     }
 
