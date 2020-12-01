@@ -24,19 +24,25 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
+import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,14 +60,17 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DUPLICATE_ITEM;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_XML;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
@@ -75,6 +84,17 @@ public class ContentController {
     private ContentService contentService;
     private SiteService siteService;
     private DependencyService dependencyService;
+
+    //TODO: Migrate logic to new content service
+    private ClipboardService clipboardService;
+
+    public ContentController(ContentService contentService, SiteService siteService,
+                             DependencyService dependencyService, ClipboardService clipboardService) {
+        this.contentService = contentService;
+        this.siteService = siteService;
+        this.dependencyService = dependencyService;
+        this.clipboardService = clipboardService;
+    }
 
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
     public ResponseBody listQuickCreateContent(@RequestParam(name = "siteId", required = true) String siteId)
@@ -187,27 +207,31 @@ public class ContentController {
         return response;
     }
 
-    public ContentService getContentService() {
-        return contentService;
+    @PostMapping(value = PASTE_ITEMS, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody pasteItems(@Valid @RequestBody PasteRequest request) throws Exception {
+        var result = new ResultList<String>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_ITEMS,
+                clipboardService.pasteItems(request.getSiteId(), request.getOperation(),
+                        request.getTargetPath(), request.getItem()));
+
+        var response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
     }
 
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
+    @PostMapping(value = DUPLICATE_ITEM, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody duplicateItem(@Valid @RequestBody DuplicateRequest request) throws Exception {
+        var result = new ResultOne<String>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_ITEM,
+                clipboardService.duplicateItem(request.getSiteId(), request.getPath()));
+
+        var response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public DependencyService getDependencyService() {
-        return dependencyService;
-    }
-
-    public void setDependencyService(DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
-    }
 }

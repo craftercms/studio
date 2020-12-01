@@ -14,51 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.apache.commons.lang3.StringUtils
-import scripts.api.ClipboardServices
-
 def result = [:]
-def site = params.site_id
+result.message = "This API has been deprecated"
+response.setStatus(503)
 
-/** Validate Parameters */
-def invalidParams = false
-def paramsList = []
-
-// site_id
-try {
-    if (StringUtils.isEmpty(site)) {
-        site = params.site
-        if (StringUtils.isEmpty(site)) {
-            invalidParams = true
-            paramsList.add("site_id")
-        }
-    }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("site_id")
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
-} else {
-
-    def context = ClipboardServices.createContext(applicationContext, request)
-    def clipboardOp = ClipboardServices.getItems(site, context)
-
-    result.count = 0
-    result.site = site
-
-    if (clipboardOp != null) {
-        result.count = 1 + clipboardOp.children.size()
-
-        result.item = []
-
-        def item = [:]
-        item.uri = clipboardOp.path
-        result.item.add(item)
-
-    }
-
-}
 return result
