@@ -337,6 +337,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      */
     @SuppressWarnings("unchecked")
     protected void updateFilters(BoolQueryBuilder query, SearchParams params, Map<String, FacetTO> siteFacets) {
+        var builder = params.isOrOperator()?
+                                    QueryBuilders.boolQuery() : query;
         params.getFilters().forEach((filter, value) -> {
             FacetTO facetConfig;
             if(MapUtils.isNotEmpty(siteFacets)) {
@@ -352,17 +354,35 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                     rangeQuery
                         .gte(range.get(FACET_RANGE_MIN))
                         .lt(range.get(FACET_RANGE_MAX));
-                    query.filter(rangeQuery);
+
+                    if (params.isOrOperator()) {
+                        builder.should(rangeQuery);
+                    } else {
+                        builder.filter(rangeQuery);
+                    }
                 } else if (facetConfig.isMultiple() && value instanceof List) {
                     List<Object> values = (List<Object>) value;
                     BoolQueryBuilder orQuery = QueryBuilders.boolQuery();
                     values.forEach(val -> orQuery.should(QueryBuilders.matchQuery(fieldName, val)));
-                    query.filter(QueryBuilders.boolQuery().must(orQuery));
+                    var qb = QueryBuilders.boolQuery().must(orQuery);
+                    if (params.isOrOperator()) {
+                        builder.should(qb);
+                    } else {
+                        builder.filter(qb);
+                    }
                 } else {
-                    query.filter(QueryBuilders.matchQuery(fieldName, value));
+                    var qb = QueryBuilders.matchQuery(fieldName, value);
+                    if (params.isOrOperator()) {
+                        builder.should(qb);
+                    } else {
+                        builder.filter(qb);
+                    }
                 }
             }
         });
+        if (params.isOrOperator()) {
+            query.filter(QueryBuilders.boolQuery().must(builder));
+        }
     }
 
     /**
@@ -414,7 +434,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         String rawKeywords = params.getKeywords();
         if (StringUtils.isNotEmpty(rawKeywords)) {
             rawKeywords = rawKeywords
-                .replaceAll("[^\\p{IsAlphabetic}\\p{Digit}\\s]", StringUtils.EMPTY)
+                .replaceAll("[^\\p{IsAlphabetic}\\p{Digit}\\s]", StringUtils.SPACE)
                 .trim();
             BoolQueryBuilder keywordsQuery = QueryBuilders.boolQuery();
             String[] keywords = rawKeywords.split(" ");
@@ -539,7 +559,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * @param response the Elasticsearch response to map
      * @return the list of search facet objects
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked, rawtypes")
     private List<SearchFacet> processAggregations(final SearchResponse response, Map<String, FacetTO> siteFacets) {
         Map<String, FacetTO> mergedFacets = new HashMap<>(facets);
         if(MapUtils.isNotEmpty(siteFacets)) {

@@ -13,9 +13,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.model.clipboard;
 
-def result = [:]
-result.message = "This API has been deprecated"
-response.setStatus(503)
-
-return result
+/**
+ * All supported clipboard operations
+ *
+ * @author joseross
+ * @since 3.2
+ */
+public enum Operation {
+    COPY, CUT
+}

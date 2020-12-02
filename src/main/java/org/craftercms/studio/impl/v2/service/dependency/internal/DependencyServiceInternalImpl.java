@@ -149,9 +149,6 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         Set<String> mandatoryParents = getMandatoryParents(site, paths);
         boolean exitCondition = false;
         Map<String, String> ancestors = new HashMap<String, String>();
-        for (String p : paths) {
-            ancestors.put(p, p);
-        }
         for (String p : mandatoryParents) {
             String prefix = p.replace(FILE_SEPARATOR + INDEX_FILE, "");
             for (String p2 : paths) {

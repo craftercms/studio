@@ -43,7 +43,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -136,11 +135,23 @@ public class StudioClockExecutor implements Job {
 
         cleanupDeletedSites();
 
-        Set<String> sites = siteService.getAllAvailableSites();
+        List<String> sites = siteService.getAllCreatedSites();
         for (String site : sites) {
-            for (SiteJob siteTask : siteTasks) {
-                siteTask.execute(site);
-            }
+            taskExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    String tasksLock = STUDIO_CLOCK_EXECUTOR_SITE_LOCK.replaceAll(PATTERN_SITE, site);
+                    if (generalLockService.tryLock(tasksLock)) {
+                        try {
+                            for (SiteJob siteTask : siteTasks) {
+                                siteTask.execute(site);
+                            }
+                        } finally {
+                            generalLockService.unlock(tasksLock);
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -156,9 +167,7 @@ public class StudioClockExecutor implements Job {
                     destroySitePreviewContext(siteFeed.getName());
                     contentRepository.deleteSite(siteFeed.getName());
                 }
-                StudioClusterSandboxRepoSyncTask.createdSites.remove(siteFeed.getSiteId());
                 StudioClusterSandboxRepoSyncTask.remotesMap.remove(siteFeed.getSiteId());
-                StudioClusterPublishedRepoSyncTask.createdSites.remove(siteFeed.getSiteId());
                 StudioClusterPublishedRepoSyncTask.remotesMap.remove(siteFeed.getSiteId());
                 deletedSitesMap.put(key, siteFeed.getName());
             }

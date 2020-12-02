@@ -89,6 +89,19 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.2.0.13-to-3.2.0.14.sql
+      - currentVersion: 3.2.0.14
+        nextVersion: 3.2.0.15
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-urlrewrite.xml
+                dest: configuration/samples/sample-urlrewrite.xml
+            commitDetails: Update sample file for urlrewrite.xml
+      - currentVersion: 3.2.0.15
+        nextVersion: 3.2.0.16
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.15-to-3.2.0.16.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -261,3 +274,14 @@ configurations:
       requires: '>=3'
       # Add new versions as needed, starting on 3
       # versions:
+
+  urlrewrite:
+    module: engine
+    path: urlrewrite.xml
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/copy.xslt
+            commitDetails: Remove doctype declaration

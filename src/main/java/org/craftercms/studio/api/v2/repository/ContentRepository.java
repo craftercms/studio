@@ -235,4 +235,7 @@ public interface ContentRepository {
      * @return Size in bytes
      */
     long getContentSize(String site, String path);
+
+
+    String getLastEditCommitId(String siteId, String path);
 }
