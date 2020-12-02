@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.4'
+  version: '3.2.0.5'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3215,6 +3215,13 @@ paths:
           description: filter children by keyword
           schema:
             type: string
+        - name: exclude
+          in: query
+          description: exclude items by regular expression
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: OK
@@ -3312,6 +3319,13 @@ paths:
           description: filter children by keyword
           schema:
             type: string
+        - name: excludes
+          in: query
+          description: exclude items by regular expression patterns
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: OK
