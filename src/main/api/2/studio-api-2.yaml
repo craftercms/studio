@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.5'
+  version: '3.2.0.6'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1126,8 +1126,10 @@ paths:
                   properties:
                     type: object
                     additionalProperties:
-                      type: string
-                    description: The properties of the current user
+                      type: object
+                      additionalProperties:
+                        type: string
+                    description: The properties of the current user grouped by site
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
