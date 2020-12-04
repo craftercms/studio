@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.5'
+  version: '3.2.0.6'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1093,6 +1093,91 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
                     $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/me/properties:
+    get:
+      tags:
+        - users
+      summary: Retrieve properties for the current user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: getUserProperties
+      parameters:
+        - name: siteId
+          schema:
+            type: string
+          in: query
+          description: The id of the site (defaults to global)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  properties:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    description: The properties of the current user grouped by site
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - users
+      summary: Update properties for the current user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: updateUserProperties
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site (defaults to global)
+                upsert:
+                  type: object
+                  additionalProperties:
+                    type : string
+                  description: Properties to update or add
+                delete:
+                  type: array
+                  items:
+                    type: string
+                  description: List of keys to delete
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  properties:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      The properties of the current user after the updates
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
