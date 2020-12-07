@@ -118,6 +118,29 @@ public class UserServiceImpl implements UserService {
     private InstanceService instanceService;
     private TextEncryptor encryptor;
 
+    public UserServiceImpl(UserServiceInternal userServiceInternal, ConfigurationService configurationService,
+                           GroupServiceInternal groupServiceInternal, SiteService siteService,
+                           EntitlementValidator entitlementValidator, GeneralLockService generalLockService,
+                           SecurityService securityService, StudioConfiguration studioConfiguration,
+                           AuditServiceInternal auditServiceInternal, ObjectFactory<FreeMarkerConfig> freeMarkerConfig,
+                           JavaMailSender emailService, JavaMailSender emailServiceNoAuth,
+                           InstanceService instanceService, TextEncryptor encryptor) {
+        this.userServiceInternal = userServiceInternal;
+        this.configurationService = configurationService;
+        this.groupServiceInternal = groupServiceInternal;
+        this.siteService = siteService;
+        this.entitlementValidator = entitlementValidator;
+        this.generalLockService = generalLockService;
+        this.securityService = securityService;
+        this.studioConfiguration = studioConfiguration;
+        this.auditServiceInternal = auditServiceInternal;
+        this.freeMarkerConfig = freeMarkerConfig;
+        this.emailService = emailService;
+        this.emailServiceNoAuth = emailServiceNoAuth;
+        this.instanceService = instanceService;
+        this.encryptor = encryptor;
+    }
+
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
@@ -603,112 +626,25 @@ public class UserServiceImpl implements UserService {
         return userServiceInternal.setUserPassword(username, newPassword);
     }
 
+    @Override
+    public Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException {
+        return userServiceInternal.getUserProperties(siteId);
+    }
+
+    @Override
+    public Map<String, String> updateUserProperties(String siteId, Map<String, String> propertiesToUpdate)
+            throws ServiceLayerException {
+        return userServiceInternal.updateUserProperties(siteId, propertiesToUpdate);
+    }
+
+    @Override
+    public Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
+            throws ServiceLayerException {
+        return userServiceInternal.deleteUserProperties(siteId, propertiesToDelete);
+    }
+
     private boolean isAuthenticatedSMTP() {
         return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
-
-    public GroupServiceInternal getGroupServiceInternal() {
-        return groupServiceInternal;
-    }
-
-    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-        this.groupServiceInternal = groupServiceInternal;
-    }
-
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
-    }
-
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
-        this.entitlementValidator = entitlementValidator;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() {
-        return freeMarkerConfig;
-    }
-
-    public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) {
-        this.freeMarkerConfig = freeMarkerConfig;
-    }
-
-    public JavaMailSender getEmailService() {
-        return emailService;
-    }
-
-    public void setEmailService(JavaMailSender emailService) {
-        this.emailService = emailService;
-    }
-
-    public JavaMailSender getEmailServiceNoAuth() {
-        return emailServiceNoAuth;
-    }
-
-    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
-        this.emailServiceNoAuth = emailServiceNoAuth;
-    }
-
-    public InstanceService getInstanceService() {
-        return instanceService;
-    }
-
-    public void setInstanceService(InstanceService instanceService) {
-        this.instanceService = instanceService;
-    }
-
-    public void setEncryptor(TextEncryptor encryptor) {
-        this.encryptor = encryptor;
     }
 
 }

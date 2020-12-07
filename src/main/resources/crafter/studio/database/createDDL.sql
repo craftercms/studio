@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.16', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.17', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -418,6 +418,22 @@ INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_na
                            externally_managed, timezone, locale, email, enabled, deleted)
 VALUES (2, CURRENT_TIMESTAMP, 'git_repo_user', '',
            'Git Repo', 'User', 0, 'EST5EDT', 'en/US', 'evalgit@example.com', 1, 0) ;
+
+CREATE TABLE IF NOT EXISTS `user_properties`
+(
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT(20) NOT NULL,
+  `site_id` BIGINT(20) NOT NULL,
+  `property_key` VARCHAR(255) NOT NULL,
+  `property_value` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY `user_property_ix_user_id` (`user_id`) REFERENCES `user` (`id`),
+  FOREIGN KEY `user_property_ix_site_id` (`site_id`) REFERENCES `site` (`id`),
+  UNIQUE INDEX `user_property_ix_property_key` (`user_id`, `site_id`, `property_key`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `organization`
 (

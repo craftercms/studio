@@ -1185,21 +1185,20 @@ paths:
       summary: Delete properties for the current user
       description: 'Required Permission: "LOGGED_IN"'
       operationId: deleteUserProperties
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: The id of the site (defaults to global)
-                properties:
-                  type: array
-                  items:
-                    type: string
-                  description: List of keys to delete
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: string
+          description: The id of the site (defaults to global)
+        - name: properties
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          description: List of keys to delete
       responses:
         '200':
           description: OK

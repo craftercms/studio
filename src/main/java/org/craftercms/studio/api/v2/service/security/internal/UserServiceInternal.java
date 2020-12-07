@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserServiceInternal {
 
@@ -70,4 +71,33 @@ public interface UserServiceInternal {
      * @return user
      */
     User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Get the properties for the given site & the current user
+     * @param siteId the id of the site
+     * @return the current properties
+     * @throws ServiceLayerException if there is any error fetching the properties
+     */
+    Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException;
+
+    /**
+     * Update or add properties for the given site & the current user
+     * @param siteId the id of the site
+     * @param propertiesToUpdate the properties to update or add
+     * @return the updated properties
+     * @throws ServiceLayerException if there is any error updating or fetching the properties
+     */
+    Map<String, String> updateUserProperties(String siteId, Map<String, String> propertiesToUpdate)
+            throws ServiceLayerException;
+
+    /**
+     * Delete properties for the given site & current user
+     * @param siteId the id of the site
+     * @param propertiesToDelete the list of keys to delete
+     * @return the updated properties
+     * @throws ServiceLayerException if there is any error deleting or fetching the properties
+     */
+    Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
+            throws ServiceLayerException;
+
 }
