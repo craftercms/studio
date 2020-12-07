@@ -115,7 +115,7 @@
         SELECT count(1) FROM site WHERE name = #{name} AND deleted = 0
     </select>
 
-    <select id="isNameTaken" resultType="boolean">
+    <select id="isNameUsed" resultType="boolean">
         SELECT count(1) FROM site WHERE name = #{name} AND site_id != #{siteId} AND deleted = 0
     </select>
 
