@@ -115,7 +115,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
-            clusterSandboxRepoSyncTask.execute();
+            clusterSandboxRepoSyncTask.execute(site);
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor, generalLockService);
 
