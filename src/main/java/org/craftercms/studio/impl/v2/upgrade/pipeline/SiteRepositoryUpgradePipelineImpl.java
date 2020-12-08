@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -75,6 +76,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected SiteService siteService;
     protected TextEncryptor encryptor;
     protected GeneralLockService generalLockService;
+    protected StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask;
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
@@ -113,6 +115,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
+            clusterSandboxRepoSyncTask.execute(site);
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor, generalLockService);
 
@@ -218,5 +221,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public StudioClusterSandboxRepoSyncTask getClusterSandboxRepoSyncTask() {
+        return clusterSandboxRepoSyncTask;
+    }
+
+    public void setClusterSandboxRepoSyncTask(StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask) {
+        this.clusterSandboxRepoSyncTask = clusterSandboxRepoSyncTask;
     }
 }
