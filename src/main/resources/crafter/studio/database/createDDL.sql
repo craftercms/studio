@@ -425,7 +425,7 @@ CREATE TABLE IF NOT EXISTS `user_properties`
   `user_id` BIGINT(20) NOT NULL,
   `site_id` BIGINT(20) NOT NULL,
   `property_key` VARCHAR(255) NOT NULL,
-  `property_value` VARCHAR(255) NOT NULL,
+  `property_value` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY `user_property_ix_user_id` (`user_id`) REFERENCES `user` (`id`),
   FOREIGN KEY `user_property_ix_site_id` (`site_id`) REFERENCES `site` (`id`),
