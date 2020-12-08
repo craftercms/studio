@@ -58,6 +58,7 @@ public interface RequestMappingConstants {
     String SET_PASSWORD = "/set_password";
     String RESET_PASSWORD = "/reset_password";
     String VALIDATE_TOKEN = "/validate_token";
+    String PROPERTIES = "/properties";
 
     /** Repository Management controller **/
     String REPOSITORY = "/repository";

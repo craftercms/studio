@@ -99,7 +99,6 @@ import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
-import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -108,6 +107,7 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -204,6 +204,7 @@ public class SiteServiceImpl implements SiteService {
     protected ItemServiceInternal itemServiceInternal;
     protected StudioClusterUtils studioClusterUtils;
     protected ClusterDAO clusterDao;
+    protected UserDAO userDao;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -1003,6 +1004,7 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("Deleting database records");
             SiteFeed siteFeed = getSite(siteId);
             siteFeedMapper.deleteSite(siteId);
+            userDao.deleteUserPropertiesBySiteId(siteFeed.getId());
             dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
@@ -2193,4 +2195,9 @@ public class SiteServiceImpl implements SiteService {
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
     }
+
+    public void setUserDao(UserDAO userDao) {
+        this.userDao = userDao;
+    }
+
 }
