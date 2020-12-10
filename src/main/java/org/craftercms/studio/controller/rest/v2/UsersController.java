@@ -89,6 +89,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.U
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.VALIDATE_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CURRENT_USER;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_LOGOUT_URL;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MESSAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ROLES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SITES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USER;
@@ -438,11 +439,15 @@ public class UsersController {
 
     @GetMapping(FORGOT_PASSWORD)
     public ResponseBody forgotPassword(@RequestParam(value = REQUEST_PARAM_USERNAME, required = true) String username)
-            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
-        userService.forgotPassword(username);
-
+            throws ServiceLayerException {
+        try {
+            userService.forgotPassword(username);
+        } catch (UserExternallyManagedException | UserNotFoundException e) {
+            logger.error("Error processing user's forgot password request", e);
+        }
         ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
+        ResultOne<String> result = new ResultOne<String>();
+        result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
