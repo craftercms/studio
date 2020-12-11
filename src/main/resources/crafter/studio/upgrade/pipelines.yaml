@@ -107,6 +107,15 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.2.0.16-to-3.2.0.17.sql
+      - currentVersion: 3.2.0.17
+        nextVersion: 3.2.0.18
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-webdav.xml
+                dest: configuration/samples/sample-webdav.xml
+            commitDetails: Update sample file for webdav.xml
+          - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
