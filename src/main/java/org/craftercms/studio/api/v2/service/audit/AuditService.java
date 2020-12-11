@@ -109,7 +109,6 @@ public interface AuditService {
      * Get user activities
      *
      * @param site site
-     * @param user username
      * @param limit limit
      * @param sort sort by
      * @param ascending true if ascending order, otherwise false
@@ -119,6 +118,6 @@ public interface AuditService {
      *
      * @throws ServiceLayerException general service error
      */
-    List<ContentItemTO> getUserActivities(String site, String user, int limit, String sort, boolean ascending,
+    List<ContentItemTO> getUserActivities(String site, int limit, String sort, boolean ascending,
                                       boolean excludeLive, String filterType) throws ServiceLayerException;
 }

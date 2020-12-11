@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -47,6 +48,19 @@ public class AuditServiceImpl implements AuditService {
     private SiteService siteService;
     private ContentService contentService;
     private DeploymentService deploymentService;
+    private SecurityService securityService;
+
+    public AuditServiceImpl(AuditServiceInternal auditServiceInternal,
+                            SiteService siteService,
+                            ContentService contentService,
+                            DeploymentService deploymentService,
+                            SecurityService securityService) {
+        this.auditServiceInternal = auditServiceInternal;
+        this.siteService = siteService;
+        this.contentService = contentService;
+        this.deploymentService = deploymentService;
+        this.securityService = securityService;
+    }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "audit_log")
@@ -92,10 +106,12 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    public List<ContentItemTO> getUserActivities(String site, String user, int limit, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceLayerException {
+    public List<ContentItemTO> getUserActivities(String site, int limit, String sort, boolean ascending,
+                                                 boolean excludeLive, String filterType) throws ServiceLayerException {
         int startPos = 0;
         List<ContentItemTO> contentItems = new ArrayList<ContentItemTO>();
         boolean hasMoreItems = true;
+        String user = securityService.getCurrentUser();
         while(contentItems.size() < limit && hasMoreItems){
             int remainingItems = limit - contentItems.size();
             hasMoreItems = getActivityFeeds(user, site, startPos, limit , filterType, excludeLive,contentItems,
@@ -164,37 +180,5 @@ public class AuditServiceImpl implements AuditService {
             logger.error("Error fetching content item for [" + id + "]", e.getMessage());
             return null;
         }
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
-    }
-
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
-
-    public DeploymentService getDeploymentService() {
-        return deploymentService;
-    }
-
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
     }
 }

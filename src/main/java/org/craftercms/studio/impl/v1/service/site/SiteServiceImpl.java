@@ -1669,6 +1669,13 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
+    public int getSitesPerUserTotal()
+            throws UserNotFoundException, ServiceLayerException {
+	    return getSitesPerUserTotal(securityService.getCurrentUser());
+    }
+
+    @Override
+    @ValidateParams
     public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username)
             throws UserNotFoundException, ServiceLayerException {
         if (securityService.userExists(username)) {
@@ -1678,6 +1685,14 @@ public class SiteServiceImpl implements SiteService {
         } else {
             throw new UserNotFoundException();
         }
+    }
+
+    @Override
+    @ValidateParams
+    public List<SiteFeed> getSitesPerUser(@ValidateIntegerParam(name = "start") int start,
+                                          @ValidateIntegerParam(name = "number") int number)
+            throws UserNotFoundException, ServiceLayerException {
+	    return getSitesPerUser(securityService.getCurrentUser(), start, number);
     }
 
     @Override
