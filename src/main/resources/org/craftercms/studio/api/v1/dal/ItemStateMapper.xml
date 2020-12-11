@@ -199,4 +199,21 @@
             #{state}
         </foreach>
     </select>
+
+    <select id="getExistingRenamedChildrenOfMandatoryParentsForPublishing" parameterType="java.util.Map" resultType="String">
+        SELECT is1.path
+        FROM item_state is1 INNER JOIN item_metadata im ON is1.site = im.site AND is1.path = im.path
+        WHERE is1.site = #{site}
+        AND im.renamed > 0
+        AND is1.state IN
+        <foreach item="state" index="index" collection="editedStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        AND
+        <foreach item="path" index="index" collection="parents"
+                 open="(" separator=" OR " close=")">
+            is1.path RLIKE(CONCAT(REPLACE(#{path}, 'index.xml', ''), '[^/]+/index\.xml|', REPLACE(#{path}, 'index.xml', ''),'(?!index\.xml)[^/]+$'))
+        </foreach>
+    </select>
 </mapper>
