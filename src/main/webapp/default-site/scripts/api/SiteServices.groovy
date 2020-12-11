@@ -111,14 +111,14 @@ class SiteServices {
         return siteServicesImpl.exists(site)
     }
 
-    static getSitesPerUserTotal(context, username) {
+    static getSitesPerUserTotal(context) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.getSitesPerUserTotal(username)
+        return siteServicesImpl.getSitesPerUserTotal()
     }
 
-    static getSitesPerUser(context, username, start, number) {
+    static getSitesPerUser(context, start, number) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.getSitesPerUser(username, start, number)
+        return siteServicesImpl.getSitesPerUser(start, number)
     }
 
     static getSite(context, siteId) {

@@ -23,7 +23,6 @@ import scripts.api.ActivityServices
 
 def result = [:]
 def site = params.site_id
-def user = params.user
 def num = 10
 def excludeLive = params.excludeLive
 def valid = true
@@ -67,10 +66,10 @@ if (invalidParams) {
     def context = ActivityServices.createContext(applicationContext, request)
     def activities
     if (excludeLive != null && excludeLive != "undefined" && excludeLive == "true") {
-        activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, true, filterType)
+        activities = ActivityServices.getActivities(context, site, num, "eventDate", false, true, filterType)
 
     } else {
-        activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType)
+        activities = ActivityServices.getActivities(context, site, num, "eventDate", false, false, filterType)
     }
     result.total = activities.size()
     result.sortedBy = "eventDate"

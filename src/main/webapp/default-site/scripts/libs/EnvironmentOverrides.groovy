@@ -65,7 +65,7 @@ class EnvironmentOverrides {
             if (result.user == null) {
                 response.sendRedirect("/studio/login")
             } else {
-                def sites = SiteServices.getSitesPerUser(context, result.user, 0, 25)
+                def sites = SiteServices.getSitesPerUser(context, 0, 25)
                 if (sites.isEmpty()) {
                     response.sendRedirect("/studio/?noSites")
                 } else {
@@ -76,7 +76,7 @@ class EnvironmentOverrides {
                     }
 
                     try {
-                        def roles = SecurityServices.getUserRoles(context, result.site, result.user)
+                        def roles = SecurityServices.getUserRoles(context, result.site)
                         if (roles != null && roles.size() > 0) {
                             if (roles.contains("admin")) {
                                 result.role = "admin"

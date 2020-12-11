@@ -21,7 +21,6 @@ import scripts.api.WorkflowServices
 // extract parameters
 def result = [:]
 def site = request.getParameter("site_id")
-def user = request.getParameter("user")
 def body = request.reader.text
 
 /** Validate Parameters */
@@ -47,6 +46,6 @@ if (invalidParams) {
     result.message = "Invalid parameter(s): " + paramsList
 } else {
     def context = WorkflowServices.createContext(applicationContext, request)
-    result = WorkflowServices.reject(context, site, user, body)
+    result = WorkflowServices.reject(context, site, body)
 }
 return result

@@ -254,6 +254,14 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site,
                                           @ValidateSecurePathParam(name = "path") String path,
+                                          List<String> groups) {
+        return this.getUserPermissions(site, path, getCurrentUser(), groups);
+    }
+
+    @Override
+    @ValidateParams
+    public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site,
+                                          @ValidateSecurePathParam(name = "path") String path,
                                           @ValidateStringParam(name = "user") String user, List<String> groups) {
         Set<String> permissions = new HashSet<String>();
         if (StringUtils.isNotEmpty(site)) {
@@ -396,6 +404,12 @@ public class SecurityServiceImpl implements SecurityService {
             logger.debug("Adding roles by user: " + userRoles);
             roles.addAll(userRoles);
         }
+    }
+
+    @Override
+    @ValidateParams
+    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site) {
+        return getUserRoles(site, getCurrentUser());
     }
 
     @Override

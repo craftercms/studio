@@ -387,10 +387,11 @@
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentService" ref="cstudioContentService" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentService" ref="cstudioContentService" />
+        <constructor-arg name="deploymentService" ref="cstudioDeploymentService" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="auditServiceInternal"
