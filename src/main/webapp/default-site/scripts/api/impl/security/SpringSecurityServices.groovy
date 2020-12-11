@@ -29,9 +29,9 @@ class SpringSecurityServices {
         this.context = context
     }
 
-    def getUserPermissions(site, path, user, groups) {
+    def getUserPermissions(site, path, groups) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUserPermissions(site, path, user, groups)
+        return springBackedService.getUserPermissions(site, path, groups)
     }
 
     def getCurrentUser(user) {
@@ -44,9 +44,9 @@ class SpringSecurityServices {
         return springBackedService.getUserProfile(user)
     }
 
-    def getUserRoles(site, user) {
+    def getUserRoles(site) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUserRoles(site, user)
+        return springBackedService.getUserRoles(site)
     }
 
     def authenticate(username, password) {

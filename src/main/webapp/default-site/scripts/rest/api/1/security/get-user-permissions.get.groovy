@@ -23,7 +23,6 @@ import scripts.api.SecurityServices
 
 def result = [:];
 // extract parameters
-def user = params.user
 def groups = params.groups
 def path = params.path
 def site = params.site_id
@@ -54,7 +53,7 @@ if (invalidParams) {
     result.message = "Invalid parameter(s): " + paramsList
 } else {
     def context = SecurityServices.createContext(applicationContext, request)
-    result.permissions = SecurityServices.getUserPermissions(context, site, path, user, groups)
+    result.permissions = SecurityServices.getUserPermissions(context, site, path, groups)
 }
 
 return result

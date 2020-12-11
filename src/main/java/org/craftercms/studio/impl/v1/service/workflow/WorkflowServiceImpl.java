@@ -733,8 +733,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     @ValidateParams
-    public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request,
-                             @ValidateStringParam(name = "user") String user) {
+    public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request) {
         return approve(site, request, Operation.DELETE);
     }
 
@@ -2208,15 +2207,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public ResultTO reject(@ValidateStringParam(name = "site") String site,
-                           @ValidateStringParam(name = "user") String user,
-                           String request) throws ServiceLayerException {
+    public ResultTO reject(@ValidateStringParam(name = "site") String site, String request) throws ServiceLayerException {
         ResultTO result = new ResultTO();
         try {
-            String approver = user;
-            if (StringUtils.isEmpty(approver)) {
-                approver = securityService.getCurrentUser();
-            }
+            String approver = securityService.getCurrentUser();
             JSONObject requestObject = JSONObject.fromObject(request);
             String reason = (requestObject.containsKey(JSON_KEY_REASON)) ? requestObject.getString(JSON_KEY_REASON) : "";
             JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);

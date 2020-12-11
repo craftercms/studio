@@ -111,14 +111,14 @@ class SpringSiteServices {
         return springBackedService.exists(site)
     }
 
-    def getSitesPerUserTotal(username) {
+    def getSitesPerUserTotal() {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.getSitesPerUserTotal(username)
+        return springBackedService.getSitesPerUserTotal()
     }
 
-    def getSitesPerUser(username, start, number) {
+    def getSitesPerUser(start, number) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.getSitesPerUser(username, start, number)
+        return springBackedService.getSitesPerUser(start, number)
     }
 
     def getSite(siteId) {
