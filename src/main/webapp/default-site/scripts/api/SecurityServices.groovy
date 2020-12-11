@@ -73,9 +73,9 @@ class SecurityServices {
 		return securityServicesImpl.getUserProfile(username)
 	}
 
-	static getUserPermissions(context, site, path, user, groups) {
+	static getUserPermissions(context, site, path, groups) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-		return securityServicesImpl.getUserPermissions(site, path, user, groups)
+		return securityServicesImpl.getUserPermissions(site, path, groups)
 	}
 
 	static getCurrentUser(context) {  
@@ -83,9 +83,9 @@ class SecurityServices {
 		return securityServicesImpl.getCurrentUser()
 	}
 
-	static getUserRoles(context, site, user) {  
+	static getUserRoles(context, site) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-		return securityServicesImpl.getUserRoles(site, user)
+		return securityServicesImpl.getUserRoles(site)
 	}
 
     static logout(context) {

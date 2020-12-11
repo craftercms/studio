@@ -19,7 +19,6 @@ import scripts.api.SecurityServices
 
 // extract parameters
 def result = [:]
-def user = params.user
 def site = params.site_id
 
 /** Validate Parameters */
@@ -45,7 +44,7 @@ if (invalidParams) {
     result.message = "Invalid parameter(s): " + paramsList
 } else {
     def context = SecurityServices.createContext(applicationContext, request)
-    result.roles = SecurityServices.getUserRoles(context, site, user)
+    result.roles = SecurityServices.getUserRoles(context, site)
 }
 return result
 
