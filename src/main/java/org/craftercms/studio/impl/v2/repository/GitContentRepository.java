@@ -1019,9 +1019,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         checkout.setStartPoint(commitId).addPath(path).call();
 
                         if (deploymentItem.isMove()) {
-                            String oldPath = helper.getGitPath(deploymentItem.getOldPath());
-                            git.rm().addFilepattern(oldPath).setCached(false).call();
-                            cleanUpMoveFolders(git, oldPath);
+                            if (!StringUtils.equals(deploymentItem.getPath(), deploymentItem.getOldPath())) {
+                                String oldPath = helper.getGitPath(deploymentItem.getOldPath());
+                                git.rm().addFilepattern(oldPath).setCached(false).call();
+                                cleanUpMoveFolders(git, oldPath);
+                            }
                         }
 
                         if (deploymentItem.isDelete()) {
