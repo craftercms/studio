@@ -76,17 +76,12 @@ public class IsActionAllowedAnnotationHandler {
     private Map<String, String> getAnnotatedParameters(Method method, ProceedingJoinPoint pjp) {
         Annotation[][] paramAnnotations = method.getParameterAnnotations();
         Object[] params = pjp.getArgs();
-        Map<String, String> annotatedParams = null;
+        Map<String, String> annotatedParams = new HashMap<String, String>();
 
         for (int i = 0; i < paramAnnotations.length; i++) {
             for (Annotation a : paramAnnotations[i]) {
                 if (a instanceof IsActionAllowedParameter) {
                     String idName = ((IsActionAllowedParameter) a).value();
-
-                    if (annotatedParams == null) {
-                        annotatedParams = new HashMap<>();
-                    }
-
                     annotatedParams.put(idName, params[i].toString());
                 }
             }
