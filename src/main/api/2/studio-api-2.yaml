@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.3'
+  version: '3.2.0.7'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1100,6 +1100,128 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /users/me/properties:
+    get:
+      tags:
+        - users
+      summary: Retrieve properties for the current user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: getUserProperties
+      parameters:
+        - name: siteId
+          schema:
+            type: string
+          in: query
+          description: The id of the site (defaults to global)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  properties:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    description: The properties of the current user grouped by site
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - users
+      summary: Update properties for the current user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: updateUserProperties
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site (defaults to global)
+                properties:
+                  type: object
+                  additionalProperties:
+                    type : string
+                  description: Properties to update or add
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  properties:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      The properties of the current user after the updates
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - users
+      summary: Delete properties for the current user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: deleteUserProperties
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: string
+          description: The id of the site (defaults to global)
+        - name: properties
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          description: List of keys to delete
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  properties:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      The properties of the current user after the updates
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /users/forgot_password:
     get:
       tags:
@@ -1126,8 +1248,6 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -3215,6 +3335,13 @@ paths:
           description: filter children by keyword
           schema:
             type: string
+        - name: exclude
+          in: query
+          description: exclude items by regular expression
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: OK
@@ -3312,6 +3439,13 @@ paths:
           description: filter children by keyword
           schema:
             type: string
+        - name: excludes
+          in: query
+          description: exclude items by regular expression patterns
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: OK
@@ -3474,6 +3608,94 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   xml:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/paste:
+    post:
+      tags:
+        - content
+      summary: |-
+        Paste a tree of items to a target path (copy content or move content).
+        To be used by the UI in the clipboard implementation.
+      description: 'Required permission "Write"'
+      operationId: pasteItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasteRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    description: The list of pasted items
+                    type: array
+                    items:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/duplicate:
+    post:
+      tags:
+        - content
+      summary: Duplicate the given item in the same location
+      description: 'Required permission "Write"'
+      operationId: duplicateItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                path:
+                  type: string
+                  description: The path of the item to duplicate
+              required:
+                - siteId
+                - path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    description: the path of the new item
                     type: string
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4561,7 +4783,7 @@ paths:
                   description: path(s) of the item(s)
                   items:
                     type: string
-                  
+
                 locales:
                   type: array
                   description: locale codes
@@ -6167,6 +6389,42 @@ components:
               modifiedValue:
                 type: string
                 description: The adjusted value if available
+
+    PasteItem:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The path of the item
+        children:
+          type: array
+          description: The child items
+          items:
+            $ref: '#/components/schemas/PasteItem'
+      required:
+        - path
+
+    PasteRequest:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: The id of the site
+        operation:
+          type: string
+          description: Indicate the type of operation
+          enum:
+            - COPY
+            - CUT
+        targetPath:
+          type: string
+          description: The target path for the operation
+        item:
+          $ref: '#/components/schemas/PasteItem'
+      required:
+        - siteId
+        - target
+        - item
 
   responses:
     NotFound:

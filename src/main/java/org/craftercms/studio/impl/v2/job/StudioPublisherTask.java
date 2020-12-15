@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
@@ -100,6 +101,10 @@ public class StudioPublisherTask extends StudioClockTask {
 
     @Override
     protected void executeInternal(String siteId) {
+        String siteState = siteService.getSiteState(siteId);
+        if (!StringUtils.equals(siteState, STATE_CREATED)) {
+            return;
+        }
         String env = null;
         String lockOwnerId = studioClusterUtils.getLockOwnerId();
         int lockTTL = studioClusterUtils.getLockTTL();

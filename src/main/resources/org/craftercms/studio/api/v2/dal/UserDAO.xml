@@ -50,6 +50,11 @@
         <result property="groupDescription" column="group_description"/>
     </resultMap>
 
+    <resultMap id="UserProperty" type="org.craftercms.studio.api.v2.dal.UserProperty">
+        <result property="key" column="property_key"/>
+        <result property="value" column="property_value"/>
+    </resultMap>
+
     <select id="getAllUsersForSite" parameterType="java.util.Map" resultMap="UserMap">
         SELECT u.*
         FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
@@ -171,4 +176,38 @@
         AND deleted = 0
         LIMIT 1
     </select>
+
+    <!-- TODO: Update to support multiple sites when needed -->
+    <select id="getUserProperties" resultMap="UserProperty" resultType="list">
+        SELECT property_key, property_value
+        FROM user_properties
+        WHERE site_id = #{siteId} AND user_id = #{userId}
+    </select>
+
+    <delete id="deleteUserProperties">
+        DELETE FROM user_properties WHERE user_id = #{userId} AND site_id = #{siteId} AND property_key IN
+        <foreach collection="keys" item="key" open="(" close=")" separator=",">
+            #{key}
+        </foreach>
+    </delete>
+
+    <insert id="updateUserProperties">
+        INSERT INTO user_properties (user_id, site_id, property_key, property_value) VALUES
+        <foreach collection="properties" index="key" item="value" separator=",">
+            (#{userId}, #{siteId}, #{key}, #{value})
+        </foreach>
+        ON DUPLICATE KEY UPDATE property_value = VALUES(property_value)
+    </insert>
+
+    <delete id="deleteUserPropertiesBySiteId">
+        DELETE FROM user_properties WHERE site_id = #{siteId}
+    </delete>
+
+    <delete id="deleteUserPropertiesByUserIds">
+        DELETE FROM user_properties WHERE user_id in
+        <foreach collection="userIds" item="userId" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+    </delete>
+
 </mapper>

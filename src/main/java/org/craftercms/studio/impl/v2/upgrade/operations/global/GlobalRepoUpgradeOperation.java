@@ -32,6 +32,7 @@ import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.job.StudioClusterGlobalRepoSyncTask;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.core.io.Resource;
@@ -73,6 +74,8 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      */
     protected boolean overwrite;
 
+    protected StudioClusterGlobalRepoSyncTask clusterGlobalRepoSyncTask;
+
     public GlobalRepoUpgradeOperation(StudioConfiguration studioConfiguration) {
         super(studioConfiguration);
     }
@@ -106,7 +109,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         logger.debug("Upgrading global repo files");
-
+        clusterGlobalRepoSyncTask.execute();
         for(Map.Entry<Resource, String> entry : files.entrySet()) {
             var path = entry.getValue();
             var file = context.getFile(path);
@@ -123,5 +126,13 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
                 logger.debug("File {0} already exists in global repo, it will not be changed", path);
             }
         }
+    }
+
+    public StudioClusterGlobalRepoSyncTask getClusterGlobalRepoSyncTask() {
+        return clusterGlobalRepoSyncTask;
+    }
+
+    public void setClusterGlobalRepoSyncTask(StudioClusterGlobalRepoSyncTask clusterGlobalRepoSyncTask) {
+        this.clusterGlobalRepoSyncTask = clusterGlobalRepoSyncTask;
     }
 }

@@ -20,66 +20,69 @@ package org.craftercms.studio.controller.rest.v2;
  * Keys used for the results in the Rest API.
  * @author joseross
  */
-public interface ResultConstants {
+public final class ResultConstants {
 
-    String RESULT_KEY_GROUP = "group";
-    String RESULT_KEY_GROUPS = "groups";
+    public static final String RESULT_KEY_MESSAGE = "message";
 
-    String RESULT_KEY_USER = "user";
-    String RESULT_KEY_USERS = "users";
-    String RESULT_KEY_CURRENT_USER = "authenticatedUser";
-    String RESULT_KEY_LOGOUT_URL = "logoutUrl";
+    public static final String RESULT_KEY_GROUP = "group";
+    public static final String RESULT_KEY_GROUPS = "groups";
 
-    String RESULT_KEY_SITES = "sites";
+    public static final String RESULT_KEY_USER = "user";
+    public static final String RESULT_KEY_USERS = "users";
+    public static final String RESULT_KEY_CURRENT_USER = "authenticatedUser";
+    public static final String RESULT_KEY_LOGOUT_URL = "logoutUrl";
 
-    String RESULT_KEY_ROLES = "roles";
+    public static final String RESULT_KEY_SITES = "sites";
 
-    String RESULT_KEY_ITEM = "item";
-    String RESULT_KEY_ITEMS = "items";
-    String RESULT_KEY_MENU_ITEMS = "menuItems";
+    public static final String RESULT_KEY_ROLES = "roles";
 
-    String RESULT_KEY_CLUSTER_MEMBER = "clusterMember";
-    String RESULT_KEY_CLUSTER_MEMBERS = "clusterMembers";
+    public static final String RESULT_KEY_ITEM = "item";
+    public static final String RESULT_KEY_ITEMS = "items";
+    public static final String RESULT_KEY_MENU_ITEMS = "menuItems";
 
-    String RESULT_KEY_ENVIRONMENT = "environment";
+    public static final String RESULT_KEY_CLUSTER_MEMBER = "clusterMember";
+    public static final String RESULT_KEY_CLUSTER_MEMBERS = "clusterMembers";
 
-    String RESULT_KEY_BLUEPRINTS = "blueprints";
+    public static final String RESULT_KEY_ENVIRONMENT = "environment";
 
-    String RESULT_KEY_RESULT = "result";
+    public static final String RESULT_KEY_BLUEPRINTS = "blueprints";
+
+    public static final String RESULT_KEY_RESULT = "result";
 
     /* Audit Controller */
-    String RESULT_KEY_AUDIT_LOG = "auditLog";
+    public static final String RESULT_KEY_AUDIT_LOG = "auditLog";
 
-    String RESULT_KEY_STAUS = "status";
-    String RESULT_KEY_VERSION = "version";
-    String RESULT_KEY_MEMORY = "memory";
-    String RESULT_KEY_EVENTS = "events";
+    public static final String RESULT_KEY_STAUS = "status";
+    public static final String RESULT_KEY_VERSION = "version";
+    public static final String RESULT_KEY_MEMORY = "memory";
+    public static final String RESULT_KEY_EVENTS = "events";
 
     /* Repository management controller */
-    String RESULT_KEY_REMOTES = "remotes";
-    String RESULT_KEY_REPOSITORY_STATUS = "repositoryStatus";
-    String RESULT_KEY_DIFF = "diff";
+    public static final String RESULT_KEY_REMOTES = "remotes";
+    public static final String RESULT_KEY_REPOSITORY_STATUS = "repositoryStatus";
+    public static final String RESULT_KEY_DIFF = "diff";
 
     /* Dependency controller */
-    String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";
-    String RESULT_KEY_HARD_DEPENDENCIES = "hardDependencies";
+    public static final String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";
+    public static final String RESULT_KEY_HARD_DEPENDENCIES = "hardDependencies";
 
     /* Marketplace controller */
-    String RESULT_KEY_PLUGINS = "plugins";
+    public static final String RESULT_KEY_PLUGINS = "plugins";
 
     /* Configuration controller */
-    String RESULT_KEY_HISTORY = "history";
+    public static final String RESULT_KEY_HISTORY = "history";
 
     /* Content controller */
-    String RESULT_KEY_CHILD_ITEMS = "childItems";
-    String RESULT_KEY_DEPENDENT_ITEMS = "dependentItems";
-    String RESULT_KEY_XML = "xml";
+    public static final String RESULT_KEY_CHILD_ITEMS = "childItems";
+    public static final String RESULT_KEY_DEPENDENT_ITEMS = "dependentItems";
+    public static final String RESULT_KEY_XML = "xml";
 
     /** Publish controller */
-    String RESULT_KEY_PACKAGES = "packages";
-    String RESULT_KEY_PACKAGE = "package";
+    public static final String RESULT_KEY_PACKAGES = "packages";
+    public static final String RESULT_KEY_PACKAGE = "package";
 
     /* Translation controller */
-    String RESULT_KEY_CONFIG = "config";
+    public static final String RESULT_KEY_CONFIG = "config";
 
+    private ResultConstants() { }
 }

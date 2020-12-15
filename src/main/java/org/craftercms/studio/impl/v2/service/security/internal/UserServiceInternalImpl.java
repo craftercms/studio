@@ -25,11 +25,14 @@ import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedExce
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.UserProperty;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -45,6 +48,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toMap;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
@@ -62,6 +67,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.security.AvailableActions.CREATE_USERS_CONST_LONG;
 import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_USERS_CONST_LONG;
 import static org.craftercms.studio.api.v2.security.AvailableActions.READ_GROUPS_CONST_LONG;
@@ -77,6 +83,20 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private UserDAO userDao;
     private GroupServiceInternal groupServiceInternal;
     private StudioConfiguration studioConfiguration;
+    private SiteService siteService;
+
+    // TODO: Remove when Spring Security is integrated
+    private SecurityService securityService;
+
+    public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
+                                   StudioConfiguration studioConfiguration, SiteService siteService,
+                                   SecurityService securityService) {
+        this.userDao = userDao;
+        this.groupServiceInternal = groupServiceInternal;
+        this.studioConfiguration = studioConfiguration;
+        this.siteService = siteService;
+        this.securityService = securityService;
+    }
 
     @Override
     @IsActionAllowed(allowedActionsMask = READ_USERS_CONST_LONG)
@@ -254,11 +274,15 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                             List<String> usernames) throws UserNotFoundException, ServiceLayerException {
         List<User> users = getUsersByIdOrUsername(userIds, usernames);
 
+        var ids = users.stream().map(User::getId).collect(Collectors.toList());
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
+        params.put(USER_IDS, ids);
 
         try {
             userDao.deleteUsers(params);
+
+            // Cleanup user properties...
+            userDao.deleteUserPropertiesByUserIds(ids);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -409,27 +433,72 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         return user;
     }
 
-    public UserDAO getUserDao() {
-        return userDao;
+    protected Map<String, String> getUserProperties(User user, long siteId) {
+        return userDao.getUserProperties(user.getId(), siteId).stream()
+                .collect(toMap(UserProperty::getKey, UserProperty::getValue));
     }
 
-    public void setUserDao(UserDAO userDao) {
-        this.userDao = userDao;
+    protected String getGlobalSiteName() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
     }
 
-    public GroupServiceInternal getGroupServiceInternal() {
-        return groupServiceInternal;
+    protected String getActualSiteId(String siteId) {
+        return StringUtils.isEmpty(siteId)? getGlobalSiteName() : siteId;
     }
 
-    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-        this.groupServiceInternal = groupServiceInternal;
+    @Override
+    public Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException {
+        var actualSiteId = getActualSiteId(siteId);
+        var dbSiteId = siteService.getSite(actualSiteId).getId();
+        // TODO: Refactor to get the user from Spring Security
+        var username = securityService.getCurrentUser();
+        try {
+            var user = getUserByIdOrUsername(0, username);
+            // TODO: Properly support multiple sites when needed
+            return singletonMap(siteId, getUserProperties(user, dbSiteId));
+        } catch (UserNotFoundException e) {
+            // This should never happen...
+            logger.error("Error getting current user", e);
+            return null;
+        }
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
+    @Override
+    public Map<String, String> updateUserProperties(String siteId, Map<String, String> propertiesToUpdate)
+            throws ServiceLayerException {
+        var actualSiteId = getActualSiteId(siteId);
+        var dbSiteId = siteService.getSite(actualSiteId).getId();
+        // TODO: Refactor to get the user from Spring Security
+        var username = securityService.getCurrentUser();
+        try {
+            var user = getUserByIdOrUsername(0, username);
+            userDao.updateUserProperties(user.getId(), dbSiteId, propertiesToUpdate);
+
+            return getUserProperties(user, dbSiteId);
+        } catch (UserNotFoundException e) {
+            // This should never happen...
+            logger.error("Error getting current user", e);
+            return null;
+        }
     }
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
+    @Override
+    public Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
+            throws ServiceLayerException {
+        var actualSiteId = getActualSiteId(siteId);
+        var dbSiteId = siteService.getSite(actualSiteId).getId();
+        // TODO: Refactor to get the user from Spring Security
+        var username = securityService.getCurrentUser();
+        try {
+            var user = getUserByIdOrUsername(0, username);
+            userDao.deleteUserProperties(user.getId(), dbSiteId, propertiesToDelete);
+
+            return getUserProperties(user, dbSiteId);
+        } catch (UserNotFoundException e) {
+            // This should never happen...
+            logger.error("Error getting current user", e);
+            return null;
+        }
     }
+
 }

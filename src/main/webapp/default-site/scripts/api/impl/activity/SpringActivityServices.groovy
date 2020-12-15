@@ -33,10 +33,10 @@ class SpringActivityServices {
         this.context = context
     }
 
-    def getActivities(site, user, num, sort, ascending, excludeLive, filterType) {
+    def getActivities(site, num, sort, ascending, excludeLive, filterType) {
 
         def springBackedService = this.context.applicationContext.get("auditService");
-        return springBackedService.getUserActivities(site, user, num, sort, ascending, excludeLive, filterType);
+        return springBackedService.getUserActivities(site, num, sort, ascending, excludeLive, filterType);
     }
 
 }

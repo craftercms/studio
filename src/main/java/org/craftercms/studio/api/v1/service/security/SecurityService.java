@@ -60,6 +60,8 @@ public interface SecurityService {
      */
     Authentication getAuthentication();
 
+    Set<String> getUserRoles(String site);
+
     Set<String> getUserRoles(String site, String user);
 
     Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
@@ -75,6 +77,8 @@ public interface SecurityService {
      */
     Map<String, Object> getUserProfileByGitName(String gitName)
             throws ServiceLayerException, UserNotFoundException;
+
+    Set<String> getUserPermissions(String site, String path, List<String> groups);
 
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 

@@ -40,6 +40,8 @@ public interface RequestMappingConstants {
     String GET_CHILDREN_BY_PATH = "/children_by_path";
     String GET_CHILDREN_BY_ID = "/children_by_id";
     String GET_DESCRIPTOR = "/descriptor";
+    String PASTE_ITEMS = "/paste";
+    String DUPLICATE_ITEM = "/duplicate";
 
     /** Users controller */
     String USERS = "/users";
@@ -56,6 +58,7 @@ public interface RequestMappingConstants {
     String SET_PASSWORD = "/set_password";
     String RESET_PASSWORD = "/reset_password";
     String VALIDATE_TOKEN = "/validate_token";
+    String PROPERTIES = "/properties";
 
     /** Repository Management controller **/
     String REPOSITORY = "/repository";

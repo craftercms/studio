@@ -128,6 +128,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="clusterDao" ref="clusterDao" />
+        <property name="userDao" ref="userDAO"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -284,10 +285,14 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
-    <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
-            parent="cstudioRegistrableService">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="workflowService" ref="cstudioWorkflowService" />
+    <bean id="clipboardServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
+        <constructor-arg ref="cstudioContentService"/>
+        <constructor-arg ref="cstudioWorkflowService"/>
+    </bean>
+
+    <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
+        <constructor-arg ref="clipboardServiceInternal"/>
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
@@ -329,27 +334,29 @@
     </bean>
 
     <bean id="userService" class="org.craftercms.studio.impl.v2.service.security.UserServiceImpl">
-        <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="groupServiceInternal" ref="groupServiceInternal" />
-        <property name="configurationService" ref="configurationService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory" />
-        <property name="emailService" ref="mailSender"/>
-        <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
-        <property name="instanceService" ref="instanceService" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
+        <constructor-arg ref="userServiceInternal" />
+        <constructor-arg ref="groupServiceInternal" />
+        <constructor-arg ref="configurationService" />
+        <constructor-arg ref="cstudioSiteServiceSimple" />
+        <constructor-arg ref="crafter.entitlementValidator"/>
+        <constructor-arg ref="cstudioGeneralLockService" />
+        <constructor-arg ref="cstudioSecurityService" />
+        <constructor-arg ref="studioConfiguration" />
+        <constructor-arg ref="auditServiceInternal" />
+        <constructor-arg ref="crafter.freeMarkerConfigFactory" />
+        <constructor-arg name="emailService" ref="mailSender"/>
+        <constructor-arg name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
+        <constructor-arg ref="instanceService" />
+        <constructor-arg ref="internalTextEncryptor"/>
     </bean>
 
     <bean id="userServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
-        <property name="groupServiceInternal" ref="groupServiceInternal" />
-        <property name="userDao" ref="userDAO" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg ref="groupServiceInternal"/>
+        <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="cstudioSecurityService"/>
     </bean>
 
     <bean id="organizationServiceInternal"
@@ -403,10 +410,11 @@
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentService" ref="cstudioContentService" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentService" ref="cstudioContentService" />
+        <constructor-arg name="deploymentService" ref="cstudioDeploymentService" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="auditServiceInternal"
@@ -837,6 +845,7 @@
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- /////// -->

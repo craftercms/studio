@@ -22,6 +22,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GIT_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROPERTIES;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
 public interface UserDAO {
 
@@ -142,4 +147,43 @@ public interface UserDAO {
      * @return User or null if not found
      */
     User getUserByGitName(@Param(GIT_NAME) String gitName);
+
+    /**
+     * Returns the current user properties
+     * @param userId the id of the user
+     * @param siteId the id of the site
+     * @return the properties
+     */
+    List<UserProperty> getUserProperties(@Param(USER_ID) long userId, @Param(SITE_ID) long siteId);
+
+    /**
+     * Deletes the given user properties
+     * @param userId the id of the user
+     * @param siteId the id of the site
+     * @param keys the keys to delete
+     */
+    void deleteUserProperties(@Param(USER_ID) long userId, @Param(SITE_ID) long siteId,
+                              @Param(KEYS) List<String> keys);
+
+    /**
+     * Updates the given user properties
+     * @param userId the id of the user
+     * @param siteId the id of the site
+     * @param properties the properties to update or add
+     */
+    void updateUserProperties(@Param(USER_ID) long userId, @Param(SITE_ID) long siteId,
+                              @Param(PROPERTIES) Map<String, String> properties);
+
+    /**
+     * Deletes all user properties for a given site
+     * @param siteId the id of the site
+     */
+    void deleteUserPropertiesBySiteId(@Param(SITE_ID) long siteId);
+
+    /**
+     * Deletes all user properties for a given user
+     * @param userIds the id of the user
+     */
+    void deleteUserPropertiesByUserIds(@Param(USER_IDS) List<Long> userIds);
+
 }

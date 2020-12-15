@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.15', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.18', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -341,6 +341,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       DATETIME      NULL,
+  `state`                           VARCHAR(50)   NOT NULL DEFAULT 'CREATING',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),
@@ -417,6 +418,22 @@ INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_na
                            externally_managed, timezone, locale, email, enabled, deleted)
 VALUES (2, CURRENT_TIMESTAMP, 'git_repo_user', '',
            'Git Repo', 'User', 0, 'EST5EDT', 'en/US', 'evalgit@example.com', 1, 0) ;
+
+CREATE TABLE IF NOT EXISTS `user_properties`
+(
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT(20) NOT NULL,
+  `site_id` BIGINT(20) NOT NULL,
+  `property_key` VARCHAR(255) NOT NULL,
+  `property_value` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY `user_property_ix_user_id` (`user_id`) REFERENCES `user` (`id`),
+  FOREIGN KEY `user_property_ix_site_id` (`site_id`) REFERENCES `site` (`id`),
+  UNIQUE INDEX `user_property_ix_property_key` (`user_id`, `site_id`, `property_key`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `organization`
 (
@@ -623,10 +640,12 @@ CREATE TABLE IF NOT EXISTS cluster_remote_repository
 
 CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
 (
-    `cluster_node_id`                 BIGINT(20)    NOT NULL,
-    `site_id`                         BIGINT(20)    NOT NULL,
-    `node_last_commit_id`                  VARCHAR(50)   NULL,
-    `node_last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
+    `cluster_node_id`                       BIGINT(20)      NOT NULL,
+    `site_id`                               BIGINT(20)      NOT NULL,
+    `node_last_commit_id`                   VARCHAR(50)     NULL,
+    `node_last_verified_gitlog_commit_id`   VARCHAR(50)     NULL,
+    `site_state`                                 VARCHAR(50)     NOT NULL DEFAULT 'CREATING',
+    `site_published_repo_created`                INT             NOT NULL DEFAULT 0,
     PRIMARY KEY (`cluster_node_id`, `site_id`),
     FOREIGN KEY cluster_site_ix_cluster_id(`cluster_node_id`) REFERENCES `cluster` (`id`)
         ON DELETE CASCADE,
@@ -638,8 +657,8 @@ CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
     ROW_FORMAT = DYNAMIC ;
 
 
-INSERT IGNORE INTO site (site_id, name, description, system)
-VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
+INSERT IGNORE INTO site (site_id, name, description, system, state)
+VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'CREATED') ;
 
 INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 1) ;
 

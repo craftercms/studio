@@ -188,7 +188,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     @IsActionAllowed(allowedActionsMask = WRITE_CONFIGURATION_CONST_LONG)
     public void updateSite(String siteId, String name, String description)
             throws SiteNotFoundException, SiteAlreadyExistsException {
-        if (isNotEmpty(name) && siteFeedMapper.existsByName(name) > 0) {
+        if (isNotEmpty(name) && siteFeedMapper.isNameUsed(siteId, name)) {
             throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
         }
         int updated = siteFeedMapper.updateSite(siteId, name, description);

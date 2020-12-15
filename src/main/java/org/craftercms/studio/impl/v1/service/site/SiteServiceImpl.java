@@ -107,6 +107,7 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -139,6 +140,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDI
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -202,6 +204,7 @@ public class SiteServiceImpl implements SiteService {
     protected ItemServiceInternal itemServiceInternal;
     protected StudioClusterUtils studioClusterUtils;
     protected ClusterDAO clusterDao;
+    protected UserDAO userDao;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -489,6 +492,8 @@ public class SiteServiceImpl implements SiteService {
                 itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
+
+                setSiteState(siteId, STATE_CREATED);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -773,6 +778,8 @@ public class SiteServiceImpl implements SiteService {
                 syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
+
+                setSiteState(siteId, STATE_CREATED);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -923,6 +930,7 @@ public class SiteServiceImpl implements SiteService {
                     syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
 
                     objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
+                    setSiteState(siteId, STATE_CREATED);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -996,6 +1004,7 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("Deleting database records");
             SiteFeed siteFeed = getSite(siteId);
             siteFeedMapper.deleteSite(siteId);
+            userDao.deleteUserPropertiesBySiteId(siteFeed.getId());
             dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
@@ -1213,6 +1222,7 @@ public class SiteServiceImpl implements SiteService {
             String contentClass;
             Map<String, Object> properties;
             ItemMetadata metadata;
+            String lastEditCommitId;
             userObj = userServiceInternal.getUserByGitName(repoOperation.getAuthor());
             String label = FilenameUtils.getName(repoOperation.getPath());
             String contentTypeId = contentService.getContentTypeClass(site, repoOperation.getPath());
@@ -1223,6 +1233,13 @@ public class SiteServiceImpl implements SiteService {
                     org.craftercms.studio.api.v1.dal.ItemState state =
                             objectStateService.getObjectState(site, repoOperation.getPath(), false);
 
+                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                    } else {
+                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
+                    }
+                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
                     if (state == null) {
                         logger.debug("Insert item state for site: " + site + " path: " + repoOperation.getPath());
                         objectStateService.insertNewEntry(site, repoOperation.getPath());
@@ -1235,16 +1252,12 @@ public class SiteServiceImpl implements SiteService {
                                 !StringUtils.equals(state.getPath(), repoOperation.getPath())) {
                             objectStateService.updateObjectPath(site, state.getPath(), repoOperation.getPath());
                         }
-                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        }
                     }
 
                     logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-                    } else {
-                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
-                    }
-                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
                     if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
                         properties = new HashMap<String, Object>();
                         properties.put(ItemMetadata.PROP_SITE, site);
@@ -1269,8 +1282,17 @@ public class SiteServiceImpl implements SiteService {
 
                 case UPDATE:
                     logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
-                    objectStateService.getObjectState(site, repoOperation.getPath());
-                    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                    } else {
+                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
+                    }
+                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
+                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
+
+                    if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    }
 
                     logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
                     if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
@@ -1284,7 +1306,7 @@ public class SiteServiceImpl implements SiteService {
                         properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
                         properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
                         properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        objectMetadataManager.setObjectMetadata(site, repoOperation.getPath(), properties);
                     }
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
@@ -1300,7 +1322,6 @@ public class SiteServiceImpl implements SiteService {
                     break;
 
                 case DELETE:
-                    itemServiceInternal.deleteItem(site, repoOperation.getPath());
                     logger.debug("Delete item state for site: " + site + " path: " + repoOperation.getPath());
                     objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
                     logger.debug("Delete item metadata for site: " + site + " path: " + repoOperation.getPath());
@@ -1323,12 +1344,31 @@ public class SiteServiceImpl implements SiteService {
                             objectStateService.getObjectState(site, repoOperation.getPath(), false);
                     logger.debug("Set item state for site: " + site + " path: " + repoOperation.getMoveToPath());
                     if (stateRename == null) {
-                        objectStateService.getObjectState(site, repoOperation.getMoveToPath());
-                        objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+                        } else {
+                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(),
+                                    repoOperation.getMoveToPath());
+                        }
+                        metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
+                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
+                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        }
                     } else {
                         objectStateService.updateObjectPath(site, repoOperation.getPath(),
                                 repoOperation.getMoveToPath());
-                        objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+                        } else {
+                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(),
+                                    repoOperation.getMoveToPath());
+                        }
+                        metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
+                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
+                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
+                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        }
                     }
 
                     logger.debug("Set item metadata for site: " + site + " path: " +
@@ -1629,6 +1669,13 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
+    public int getSitesPerUserTotal()
+            throws UserNotFoundException, ServiceLayerException {
+	    return getSitesPerUserTotal(securityService.getCurrentUser());
+    }
+
+    @Override
+    @ValidateParams
     public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username)
             throws UserNotFoundException, ServiceLayerException {
         if (securityService.userExists(username)) {
@@ -1638,6 +1685,14 @@ public class SiteServiceImpl implements SiteService {
         } else {
             throw new UserNotFoundException();
         }
+    }
+
+    @Override
+    @ValidateParams
+    public List<SiteFeed> getSitesPerUser(@ValidateIntegerParam(name = "start") int start,
+                                          @ValidateIntegerParam(name = "number") int number)
+            throws UserNotFoundException, ServiceLayerException {
+	    return getSitesPerUser(securityService.getCurrentUser(), start, number);
     }
 
     @Override
@@ -1856,6 +1911,49 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public String getLastVerifiedGitlogCommitId(String siteId) {
         return siteFeedMapper.getLastVerifiedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+    }
+
+    @Override
+    public List<String> getAllCreatedSites() {
+        return siteFeedMapper.getAllCreatedSites(STATE_CREATED);
+    }
+
+    @Override
+    public void setSiteState(String siteId, String state) {
+        siteFeedMapper.setSiteState(siteId, state);
+        try {
+            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
+            if (Objects.nonNull(clusterMember)) {
+                SiteFeed siteFeed = getSite(siteId);
+                clusterDao.setSiteState(clusterMember.getId(), siteFeed.getId(), state);
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found " + siteId);
+        }
+    }
+
+    @Override
+    public String getSiteState(String siteId) {
+        return siteFeedMapper.getSiteState(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+    }
+
+    @Override
+    public boolean isPublishedRepoCreated(String siteId) {
+        return siteFeedMapper.getPublishedRepoCreated(siteId, studioClusterUtils.getClusterNodeLocalAddress()) > 0;
+    }
+
+    @Override
+    public void setPublishedRepoCreated(String siteId) {
+        siteFeedMapper.setPublishedRepoCreated(siteId);
+        try {
+            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
+            if (Objects.nonNull(clusterMember)) {
+                SiteFeed siteFeed = getSite(siteId);
+                clusterDao.setPublishedRepoCreated(clusterMember.getId(), siteFeed.getId());
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found " + siteId);
+        }
     }
 
     public String getGlobalConfigRoot() {
@@ -2112,4 +2210,9 @@ public class SiteServiceImpl implements SiteService {
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
     }
+
+    public void setUserDao(UserDAO userDao) {
+        this.userDao = userDao;
+    }
+
 }

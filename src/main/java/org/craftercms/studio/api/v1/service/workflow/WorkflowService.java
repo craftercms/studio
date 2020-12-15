@@ -81,7 +81,7 @@ public interface WorkflowService {
 	 * @param user  user
      * @return call result
      */
-    ResultTO goDelete(String site, String request, String user);
+    ResultTO goDelete(String site, String request);
 
     Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, ZonedDateTime now);
 
@@ -105,7 +105,7 @@ public interface WorkflowService {
      */
     ResultTO goLive(final String site, final String request) throws ServiceLayerException;
 
-    ResultTO reject(final String site, final String user, final String request) throws ServiceLayerException;
+    ResultTO reject(final String site, final String request) throws ServiceLayerException;
 
     void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceLayerException;
 

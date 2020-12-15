@@ -25,23 +25,22 @@ import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedExce
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
-import org.craftercms.studio.model.rest.ResetPasswordRequest;
-import org.craftercms.studio.model.rest.SetPasswordRequest;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.rest.ChangePasswordRequest;
 import org.craftercms.studio.model.rest.EnableUsers;
 import org.craftercms.studio.model.rest.PaginatedResultList;
+import org.craftercms.studio.model.rest.ResetPasswordRequest;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.SetPasswordRequest;
+import org.craftercms.studio.model.users.UpdateUserPropertiesRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,8 +55,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
@@ -79,6 +80,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.L
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ME;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_SITE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PROPERTIES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESET_PASSWORD;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ROLES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SET_PASSWORD;
@@ -87,6 +89,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.U
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.VALIDATE_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CURRENT_USER;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_LOGOUT_URL;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MESSAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ROLES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SITES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USER;
@@ -105,9 +108,12 @@ public class UsersController {
     private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
     private UserService userService;
-    private GroupService groupService;
-    private SiteService siteService;
     private StudioConfiguration studioConfiguration;
+
+    public UsersController(UserService userService, StudioConfiguration studioConfiguration) {
+        this.userService = userService;
+        this.studioConfiguration = studioConfiguration;
+    }
 
     /**
      * Get all users API
@@ -433,11 +439,15 @@ public class UsersController {
 
     @GetMapping(FORGOT_PASSWORD)
     public ResponseBody forgotPassword(@RequestParam(value = REQUEST_PARAM_USERNAME, required = true) String username)
-            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
-        userService.forgotPassword(username);
-
+            throws ServiceLayerException {
+        try {
+            userService.forgotPassword(username);
+        } catch (UserExternallyManagedException | UserNotFoundException e) {
+            logger.error("Error processing user's forgot password request", e);
+        }
         ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
+        ResultOne<String> result = new ResultOne<String>();
+        result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
@@ -514,35 +524,39 @@ public class UsersController {
         return responseBody;
     }
 
-    public UserService getUserService() {
-        return userService;
+    @GetMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getUserProperties(@RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId) throws ServiceLayerException {
+        var result = new ResultOne<Map<String, Map<String, String>>>();
+        result.setResponse(OK);
+        result.setEntity("properties", userService.getUserProperties(siteId)); //TODO: Extract key
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
     }
 
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    @PostMapping(value = ME + PROPERTIES, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody updateUserProperties(@Valid @RequestBody UpdateUserPropertiesRequest request) throws ServiceLayerException {
+        var result = new ResultOne<Map<String, String>>();
+        result.setResponse(OK);
+        result.setEntity("properties", userService.updateUserProperties(request.getSiteId(), request.getProperties())); //TODO: Extract key
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
     }
 
-    public GroupService getGroupService() {
-        return groupService;
+    @DeleteMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody deleteUserProperties(
+            @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId,
+            @RequestParam List<String> properties) throws ServiceLayerException {
+        var result = new ResultOne<Map<String, String>>();
+        result.setResponse(OK);
+        result.setEntity("properties", userService.deleteUserProperties(siteId, properties)); //TODO: Extract key
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
     }
 
-    public void setGroupService(GroupService groupService) {
-        this.groupService = groupService;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
 }

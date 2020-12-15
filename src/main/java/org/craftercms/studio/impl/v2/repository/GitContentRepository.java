@@ -39,7 +39,9 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
@@ -159,6 +161,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private ContentStoreService contentStoreService;
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
+    private SiteService siteService;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -1016,9 +1019,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         checkout.setStartPoint(commitId).addPath(path).call();
 
                         if (deploymentItem.isMove()) {
-                            String oldPath = helper.getGitPath(deploymentItem.getOldPath());
-                            git.rm().addFilepattern(oldPath).setCached(false).call();
-                            cleanUpMoveFolders(git, oldPath);
+                            if (!StringUtils.equals(deploymentItem.getPath(), deploymentItem.getOldPath())) {
+                                String oldPath = helper.getGitPath(deploymentItem.getOldPath());
+                                git.rm().addFilepattern(oldPath).setCached(false).call();
+                                cleanUpMoveFolders(git, oldPath);
+                            }
                         }
 
                         if (deploymentItem.isDelete()) {
@@ -1115,7 +1120,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
                     git.close();
                     if (repoCreated) {
-                        siteFeedMapper.setPublishedRepoCreated(site);
+                        siteService.setPublishedRepoCreated(site);
                     }
                 }
             }
@@ -1486,6 +1491,36 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return -1L;
     }
 
+    @Override
+    public String getLastEditCommitId(String siteId, String path) {
+        String toReturn = EMPTY;
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
+            Repository repository =
+                    helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+            if (repository != null) {
+                synchronized (repository) {
+                    ObjectId head = repository.resolve(HEAD);
+                    String gitPath = helper.getGitPath(path);
+                    try (Git git = new Git(repository)) {
+                        Iterable<RevCommit> commits = git.log().add(head).addPath(gitPath).call();
+                        Iterator<RevCommit> iterator = commits.iterator();
+                        if (iterator.hasNext()) {
+                            RevCommit revCommit = iterator.next();
+                            toReturn = revCommit.getName();
+                        }
+                    } catch (IOException | GitAPIException e) {
+                        logger.error("error while getting history for content item " + path);
+                    }
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error getting last commit ID for site " + siteId + " path " + path, e);
+        }
+        return toReturn;
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -1560,5 +1595,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

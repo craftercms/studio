@@ -14,52 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import groovy.json.JsonException
-import org.apache.commons.lang3.StringUtils
-import scripts.api.ClipboardServices
-import groovy.json.JsonSlurper
-
 def result = [:]
-try {
-    def site = request.getParameter("site_id")
-    def requestBody = request.reader.text
+result.message = "This API has been deprecated"
+response.setStatus(503)
 
-    def slurper = new JsonSlurper()
-    def items = slurper.parseText(requestBody)
-
-    def path = items.item[0].uri
-
-    /** Validate Parameters */
-    def invalidParams = false
-    def paramsList = []
-
-    // site_id
-    try {
-        if (StringUtils.isEmpty(site)) {
-            site = request.getParameter("site")
-            if (StringUtils.isEmpty(site)) {
-                invalidParams = true
-                paramsList.add("site_id")
-            }
-        }
-    } catch (Exception exc) {
-        invalidParams = true
-        paramsList.add("site_id")
-    }
-
-    if (invalidParams) {
-        response.setStatus(400)
-        result.message = "Invalid parameter(s): " + paramsList
-    } else {
-
-        def context = ClipboardServices.createContext(applicationContext, request)
-
-        ClipboardServices.cut(site, path, context)
-
-        result.success = true
-    }
-} catch (JsonException e) {
-    response.setStatus(400)
-    result.message = "Bad Request"
-}
 return result
