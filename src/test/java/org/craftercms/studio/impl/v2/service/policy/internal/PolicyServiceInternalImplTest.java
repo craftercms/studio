@@ -17,7 +17,6 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.text.RandomStringGenerator;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
@@ -30,7 +29,6 @@ import org.craftercms.studio.impl.v2.service.policy.validators.SystemPolicyValid
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -38,14 +36,15 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.HEAD;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
+import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
+import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -194,7 +193,7 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(UNRESTRICTED_FOLDER + "/" + RandomStringUtils.randomAlphabetic(255) + ".pdf");
-        action.setFileSize(Long.MAX_VALUE);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
         var results= policyService.validate(SITE_ID, List.of(action));
 
@@ -214,7 +213,7 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(SIZE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setFileSize(Long.MAX_VALUE);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
         var results = policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);
@@ -225,7 +224,7 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(UNRESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setFileSize(Long.MAX_VALUE);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
         var results= policyService.validate(SITE_ID, List.of(action));
 
@@ -237,12 +236,12 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(SIZE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setFileSize(Long.MAX_VALUE);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
         var results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, false);
 
-        action.setFileSize(1000);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, 1000L));
 
         results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);
@@ -253,7 +252,7 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setFileSize(Long.MAX_VALUE);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
         var results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, false);
@@ -269,7 +268,7 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(SIMPLE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
-        action.setFileSize(Long.MAX_VALUE);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
         var results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, false);
@@ -285,7 +284,7 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME.toUpperCase());
-        action.setFileSize(Long.MAX_VALUE);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
 
         var results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true, CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
@@ -301,12 +300,12 @@ public class PolicyServiceInternalImplTest {
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(CONTENT_TYPE_RESTRICTED_FOLDER + "/component.xml");
-        action.setContentType(FOOTER_CONTENT_TYPE);
+        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, FOOTER_CONTENT_TYPE));
 
         var results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, false);
 
-        action.setContentType(HEADER_CONTENT_TYPE);
+        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
 
         results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);

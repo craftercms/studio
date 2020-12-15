@@ -17,6 +17,9 @@ package org.craftercms.studio.model.policy;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * Represents a content action that needs to be validated
@@ -25,6 +28,9 @@ import javax.validation.constraints.NotNull;
  * @since 3.2.0
  */
 public class Action {
+
+    public static final String METADATA_FILE_SIZE = "fileSize";
+    public static final String METADATA_CONTENT_TYPE = "contentType";
 
     /**
      * The type of action
@@ -38,16 +44,6 @@ public class Action {
     protected String source;
 
     /**
-     * The content-type of the action
-     */
-    protected String contentType;
-
-    /**
-     * The file size of the action
-     */
-    protected long fileSize;
-
-    /**
      * The target of the action
      */
     @NotEmpty
@@ -57,6 +53,8 @@ public class Action {
      * Indicates if the action is recursive
      */
     protected boolean recursive = false;
+
+    protected Map<String, Object> contentMetadata = emptyMap();
 
     public Type getType() {
         return type;
@@ -74,22 +72,6 @@ public class Action {
         this.source = source;
     }
 
-    public String getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
-    public long getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(long fileSize) {
-        this.fileSize = fileSize;
-    }
-
     public String getTarget() {
         return target;
     }
@@ -104,6 +86,19 @@ public class Action {
 
     public void setRecursive(boolean recursive) {
         this.recursive = recursive;
+    }
+
+    public Map<String, Object> getContentMetadata() {
+        return contentMetadata;
+    }
+
+    public void setContentMetadata(Map<String, Object> contentMetadata) {
+        this.contentMetadata = contentMetadata;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getMetadata(String key) {
+        return (T) contentMetadata.get(key);
     }
 
     @Override

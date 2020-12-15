@@ -27,11 +27,13 @@ import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
 
 /**
  * Interceptor that validates content actions before executing the actual changes.
@@ -96,13 +98,15 @@ public class SitePolicyAspect {
         action.setType(actionParams.type());
         action.setRecursive(actionParams.recursive());
         action.setTarget(getFullPath(targetPath, targetFilename));
+        var metadata = new HashMap<String, Object>();
+        action.setContentMetadata(metadata);
 
         if (sourcePath != null) {
             action.setSource(getFullPath(sourcePath, sourceFilename));
         }
 
         if (contentType != null) {
-            action.setContentType(contentType);
+            metadata.put(METADATA_CONTENT_TYPE, contentType);
         }
 
         var results = policyService.validate(siteId, List.of(action));

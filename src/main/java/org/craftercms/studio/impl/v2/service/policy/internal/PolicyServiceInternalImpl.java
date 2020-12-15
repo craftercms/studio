@@ -34,9 +34,11 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.impl.v1.util.ConfigUtils.readXmlConfiguration;
+import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
 
 /**
  * Default implementation of {@link PolicyServiceInternal}
@@ -164,7 +166,8 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
             if (child.isFolder) {
                 evaluateRecursiveAction(config, siteId, childAction, results, false);
             } else {
-                childAction.setFileSize(contentRepositoryV2.getContentSize(siteId, childPath.toString()));
+                childAction.setContentMetadata(
+                        Map.of(METADATA_FILE_SIZE, contentRepositoryV2.getContentSize(siteId, childPath.toString())));
                 evaluateAction(config, childAction, results, false);
             }
         }
