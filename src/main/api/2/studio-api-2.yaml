@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.7'
+  version: '3.2.0.8'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4039,6 +4039,146 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /security/tokens:
+    get:
+      tags:
+        - security
+      summary: Get all existing tokes for the current user
+      operationId: getAccessTokens
+      description: Required permission "manage_access_token"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  tokens:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AccessToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - security
+      summary: Creates a new access token for the current user
+      operationId: createAccessToken
+      description: Required permission "manage_access_token"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: The label for the access token
+                expiresAt:
+                  type: string
+                  format: date-time
+                  description: The date of expiration for the access token
+              required:
+                - label
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  token:
+                    $ref: '#/components/schemas/AccessToken'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /security/tokens/{id}:
+    post:
+      tags:
+        - security
+      summary: Updates an access token for the current user
+      operationId: updateAccessToken
+      description: Required permission "manage_access_token"
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+            format: int64
+          description: The id of the access token to update
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                  description: Indicates if the access token is enabled
+              required:
+                - enabled
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  token:
+                    $ref: '#/components/schemas/AccessToken'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - security
+      summary: Deletes an access token for the current user
+      operationId: deleteAccessToken
+      description: Required permission "manage_access_token"
+      parameters:
+       - name: id
+         in: path
+         schema:
+           type: integer
+           format: int64
+         description: The id of the access token to delete
+         required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dashboard/content:
     get:
       tags:
@@ -6425,6 +6565,31 @@ components:
         - siteId
         - target
         - item
+
+    AccessToken:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Value of the access token, only visible when the token is created
+        expiresAt:
+          type: string
+          format: date-time
+          description: Date of expiration of the access token
+        id:
+          type: integer
+          format: int64
+          description: Id of the access token
+        label:
+          type: string
+          description: The label of the access token
+        enabled:
+          type: boolean
+          description: Indicates if the access token is enabled
+        createdOn:
+          type: string
+          format: date-time
+          description: Date of creation of the access token
 
   responses:
     NotFound:
