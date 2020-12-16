@@ -900,6 +900,11 @@ pipelines:
               dest: configuration/samples/sample-webdav.xml
           commitDetails: Update sample file for webdav.xml
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.12
+      nextVersion: 3.1.12.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.12-to-3.1.12.1.sql
 
   # Pipeline to upgrade site repositories
   site:
