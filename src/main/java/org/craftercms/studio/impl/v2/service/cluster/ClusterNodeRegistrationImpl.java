@@ -131,7 +131,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                 Thread.sleep(10000);
                 logger.debug("Done waiting 10 seconds to propagate update");
             } catch (InterruptedException e) {
-                logger.debug("Interrupted while waiting for 5 seconds to propagate cluster update on shutdown", e);
+                logger.debug("Interrupted while waiting for 10 seconds to propagate cluster update on shutdown", e);
             }
         }
     }
