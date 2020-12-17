@@ -91,7 +91,7 @@
         SELECT IFNULL(NULLIF(TRIM(cs.node_last_commit_id), ''), s.last_commit_id)
         FROM site s LEFT OUTER JOIN
              (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
-              WHERE c.local_address = #{localAddress}
+              WHERE c.local_address = #{localAddress} AND c.available = 1
              ) AS cs ON s.id = cs.site_id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
@@ -100,7 +100,7 @@
         SELECT IFNULL(NULLIF(TRIM(cs.node_last_verified_gitlog_commit_id), ''), s.last_verified_gitlog_commit_id)
         FROM site s LEFT OUTER JOIN
             (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
-                WHERE c.local_address = #{localAddress}
+                WHERE c.local_address = #{localAddress} AND c.available = 1
             ) AS cs ON s.id = cs.site_id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
@@ -207,7 +207,7 @@
         SELECT IFNULL(NULLIF(TRIM(cs.site_state), ''), s.state)
         FROM site s LEFT OUTER JOIN
              (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
-              WHERE c.local_address = #{localAddress}
+              WHERE c.local_address = #{localAddress} AND c.available = 1
              ) AS cs ON s.id = cs.site_id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
@@ -216,7 +216,7 @@
         SELECT IFNULL(cs.site_published_repo_created, s.published_repo_created)
         FROM site s LEFT OUTER JOIN
              (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
-              WHERE c.local_address = #{localAddress}
+              WHERE c.local_address = #{localAddress} AND c.available = 1
              ) AS cs ON s.id = cs.site_id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>

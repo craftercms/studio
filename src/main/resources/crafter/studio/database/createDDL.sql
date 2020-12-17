@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.18', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.19', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -615,6 +615,7 @@ CREATE TABLE IF NOT EXISTS cluster
   `git_token`           VARCHAR(255)  NULL,
   `git_private_key`     TEXT          NULL,
   `heartbeat`           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `available`           INT           NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE `uq_cl_git_url` (`git_url`),
   UNIQUE `uq_cl_git_remote_name` (`git_remote_name`)
