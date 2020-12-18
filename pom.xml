@@ -648,6 +648,67 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>cloneUi</id>
+            <activation>
+                <property>
+                    <name>cloneUi</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <studio.ui.path>target/ui/</studio.ui.path>
+                <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <inherited>false</inherited> <!-- only execute these in the parent -->
+                        <version>1.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>git get ui</id>
+                                <phase>prepare-package</phase>
+                                <configuration>
+                                    <executable>git</executable>
+                                    <arguments>
+                                        <argument>clone</argument>
+                                        <argument>--depth</argument>
+                                        <argument>1</argument>
+                                        <argument>-b</argument>
+                                        <argument>${studio.ui.version}</argument>
+                                        <argument>https://github.com/craftercms/studio-ui.git</argument>
+                                        <argument>${studio.ui.path}</argument>
+                                    </arguments>
+                                </configuration>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>build ui</id>
+                                <phase>prepare-package</phase>
+                                <configuration>
+                                    <executable>mvn</executable>
+                                    <arguments>
+                                        <argument>package</argument>
+                                    </arguments>
+                                    <workingDirectory>${studio.ui.path}/</workingDirectory>
+                                </configuration>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <repositories>
         <repository>
             <id>sonatype-snapshots</id>
