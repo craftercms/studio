@@ -133,6 +133,7 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.xml.sax.SAXException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -396,6 +397,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
+    @PreAuthorize("@securityService.isAdmin()")
     public void createSiteFromBlueprint(
             @ValidateStringParam(name = "blueprintId") String blueprintId,
             @ValidateStringParam(name = "siteId", maxLength = 50, whitelistedPatterns = "[a-z0-9\\-]*") String siteId,

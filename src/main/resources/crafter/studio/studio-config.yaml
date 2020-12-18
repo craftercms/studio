@@ -22,6 +22,7 @@ studio.repo.globalRepoPath: global
 # Sites repositories base path (automatically goes under repo-base-path)
 studio.repo.sitesRepoBasePath: sites
 # Sandbox git repository name under every site
+# Sandbox git repository name under every site
 studio.repo.siteSandboxPath: sandbox
 # Sandbox git repository branch for every site
 studio.repo.siteSandboxBranch: master
@@ -348,6 +349,23 @@ studio.security.encryption.delay: 1
 studio.security.encryption.maxLength: 4096
 # If the secure headers should be written for every request
 studio.security.headers.enabled: true
+
+# Issuer for the access tokens
+studio.security.token.issuer: Crafter Studio
+# Time in minutes for the expiration of the access tokens
+studio.security.token.timeout: 5
+# Password for signing the access tokens
+studio.security.token.password.sign: token-sign-password
+# Password for encrypting the access tokens
+studio.security.token.password.encrypt: encrypt-sign-password
+
+# Name of the cookie to store the refresh token
+studio.security.token.cookie.name: refresh_token
+# Time in seconds for the expiration of the refresh token cookie
+studio.security.token.cookie.maxAge: 300
+
+# Cron expression for the scheduled job that cleans expired refresh tokens
+studio.security.token.cleanup.cron: 0 * * * * ?
 
 ###############################################################
 ##               Page Navigation Order Service               ##

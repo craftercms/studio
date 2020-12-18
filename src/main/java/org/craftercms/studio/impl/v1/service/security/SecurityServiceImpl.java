@@ -16,6 +16,52 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.job.CronJobContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ContentTypeService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.Node;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -32,62 +78,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.http.RequestContext;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.job.CronJobContext;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ContentTypeService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.Group;
-import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
-import org.craftercms.studio.api.v2.service.security.GroupService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
-import org.craftercms.studio.impl.v2.service.security.Authentication;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.Node;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
@@ -96,12 +86,9 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNA
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGOUT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
@@ -130,49 +117,23 @@ public class SecurityServiceImpl implements SecurityService {
     protected StudioConfiguration studioConfiguration;
     protected JavaMailSender emailService;
     protected JavaMailSender emailServiceNoAuth;
-    protected UserDetailsManager userDetailsManager;
     protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
     protected GroupService groupService;
     protected UserServiceInternal userServiceInternal;
-    protected AuthenticationChain authenticationChain;
     protected ConfigurationService configurationService;
     protected AuditServiceInternal auditServiceInternal;
     protected SiteService siteService;
 
     @Override
-    @ValidateParams
-    public String authenticate(@ValidateStringParam(name = "username") String username,
-                               @ValidateStringParam(name = "password", notBlank = true) String password)
-            throws Exception {
-        RequestContext requestContext = RequestContext.getCurrent();
-        HttpServletRequest request = requestContext.getRequest();
-        HttpServletResponse response = requestContext.getResponse();
-        authenticationChain.doAuthenticate(request, response, username, password);
-        return getCurrentToken();
-    }
-
-    @Override
-    @ValidateParams
-    public boolean validateTicket(@ValidateStringParam(name = "ticket") String ticket) {
-        if (ticket == null) {
-            ticket = getCurrentToken();
-        }
-        boolean valid = false;
-        if (StringUtils.isNotEmpty(ticket)) valid = true;
-        return valid;
-    }
-
-    @Override
     public String getCurrentUser() {
         String username = null;
-        RequestContext context = RequestContext.getCurrent();
+        var context = SecurityContextHolder.getContext();
 
         if(context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            Authentication auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+            var auth = context.getAuthentication();
 
             if (auth != null) {
-                username = auth.getUsername();
+                username = auth.getName();
             }
         } else {
             CronJobContext cronJobContext = CronJobContext.getCurrent();
@@ -188,29 +149,6 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         return username;
-    }
-
-    @Override
-    public String getCurrentToken() {
-        String ticket = null;
-        RequestContext context = RequestContext.getCurrent();
-
-        if (context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            Authentication auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
-
-            if (auth != null) {
-                ticket = auth.getToken();
-            }
-        } else {
-            ticket = getJobOrEventTicket();
-        }
-
-        if (ticket == null) {
-            ticket = "NOTICKET";
-        }
-
-        return ticket;
     }
 
     @Override
@@ -695,30 +633,6 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean logout() throws SiteNotFoundException {
-        String username = getCurrentUser();
-        RequestContext context = RequestContext.getCurrent();
-        if (context != null) {
-            HttpServletRequest httpServletRequest = context.getRequest();
-            String ipAddress = httpServletRequest.getRemoteAddr();
-
-            SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(OPERATION_LOGOUT);
-            auditLog.setActorId(username);
-            auditLog.setSiteId(siteFeed.getId());
-            auditLog.setPrimaryTargetId(username);
-            auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
-            auditLog.setPrimaryTargetValue(username);
-            auditServiceInternal.insertAuditLog(auditLog);
-
-            logger.info("User " + username + " logged out from IP: " + ipAddress);
-        }
-        return true;
-    }
-
-
-    @Override
     public int getAllUsersTotal() throws ServiceLayerException {
         return userServiceInternal.getAllUsersTotal();
     }
@@ -885,54 +799,12 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean validateSession(HttpServletRequest request) throws ServiceLayerException {
-        HttpSession httpSession = request.getSession();
-        String authToken = getCurrentToken();
-        String userName = getCurrentUser();
-
-        if (userName != null) {
-
-            UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
-
-            if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
-                return true;
-            }
-
-        }
-
-        httpSession.removeAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
-        httpSession.invalidate();
-        return false;
-    }
-
-    @Override
     public Authentication getAuthentication() {
-        Authentication auth = null;
-        RequestContext context = RequestContext.getCurrent();
-
+        var context = SecurityContextHolder.getContext();
         if (context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+            return context.getAuthentication();
         }
-
-        return auth;
-    }
-
-
-    protected String getJobOrEventTicket() {
-        String ticket = null;
-        CronJobContext cronJobContext = CronJobContext.getCurrent();
-
-        if (cronJobContext != null) {
-            ticket = cronJobContext.getAuthenticationToken();
-        } else {
-            RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
-            if (repositoryEventContext != null) {
-                ticket = repositoryEventContext.getAuthenticationToken();
-            }
-        }
-
-        return ticket;
+        return null;
     }
 
     public String getRoleMappingsFileName() {
@@ -1021,14 +893,6 @@ public class SecurityServiceImpl implements SecurityService {
         this.emailServiceNoAuth = emailServiceNoAuth;
     }
 
-    public UserDetailsManager getUserDetailsManager() {
-        return userDetailsManager;
-    }
-
-    public void setUserDetailsManager(UserDetailsManager userDetailsManager) {
-        this.userDetailsManager = userDetailsManager;
-    }
-
     public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() {
         return freeMarkerConfig;
     }
@@ -1051,14 +915,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public AuthenticationChain getAuthenticationChain() {
-        return authenticationChain;
-    }
-
-    public void setAuthenticationChain(AuthenticationChain authenticationChain) {
-        this.authenticationChain = authenticationChain;
     }
 
     public ConfigurationService getConfigurationService() {

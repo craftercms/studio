@@ -14,29 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.SecurityServices
-import scripts.api.UserServices
-
 def result = [:]
-
-def context = SecurityServices.createContext(applicationContext, request)
-
-try {
-    def success = SecurityServices.validateSession(context, request)
-    if (success) {
-        result.message = "OK"
-        result.active = true
-        result.user = UserServices.getCurrentUser(context)
-        response.setStatus(200)
-    } else {
-        result.message = null
-        result.active = false
-        result.user = null
-        response.setStatus(200)
-    }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
-}
+result.message = "This API has been deprecated"
+response.setStatus(503)
 
 return result

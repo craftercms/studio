@@ -30,7 +30,6 @@ public final class ResultConstants {
     public static final String RESULT_KEY_USER = "user";
     public static final String RESULT_KEY_USERS = "users";
     public static final String RESULT_KEY_CURRENT_USER = "authenticatedUser";
-    public static final String RESULT_KEY_LOGOUT_URL = "logoutUrl";
 
     public static final String RESULT_KEY_SITES = "sites";
 
@@ -84,6 +83,9 @@ public final class ResultConstants {
 
     /* Translation controller */
     public static final String RESULT_KEY_CONFIG = "config";
+
+    public static final String RESULT_KEY_TOKENS = "tokens";
+    public static final String RESULT_KEY_TOKEN = "tokens";
 
     private ResultConstants() { }
 }

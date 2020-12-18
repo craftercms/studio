@@ -16,9 +16,11 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v1.dal.GroupPerSiteResult;
 import org.craftercms.studio.api.v1.dal.GroupResult;
 import org.craftercms.studio.api.v1.dal.UserProfileResult;
+import org.craftercms.studio.model.security.PersistentAccessToken;
 
 import java.util.List;
 import java.util.Map;
@@ -90,4 +92,27 @@ public interface SecurityDAO {
     void setUserPassword(Map params);
 
     int isSystemUser(Map params);
+
+    // Access Tokens
+
+    void upsertRefreshToken(@Param("userId") long userId, @Param("token") String token);
+
+    boolean validateRefreshToken(@Param("userId") long userId, @Param("token") String token);
+
+    void deleteRefreshToken(@Param("userId") long userId);
+
+    PersistentAccessToken getAccessTokenById(@Param("tokenId") long tokenId);
+
+    PersistentAccessToken getAccessTokenByUserIdAndTokenId(@Param("userId") long userId, @Param("tokenId") long tokenId);
+
+    void createAccessToken(@Param("userId") long userId, @Param("token") PersistentAccessToken token);
+
+    List<PersistentAccessToken> getAccessTokens(@Param("userId") long userId);
+
+    void updateAccessToken(@Param("userId") long userId, @Param("tokenId") long tokenId, @Param("enabled") boolean enabled);
+
+    void deleteAccessToken(@Param("userId") long userId, @Param("tokenId") long tokenId);
+
+    void deleteExpiredTokens(@Param("maxAge") int maxAge);
+
 }
