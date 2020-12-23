@@ -639,7 +639,7 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
-                            <arguments>run build</arguments>
+                            <arguments>build-if-changed</arguments>
                         </configuration>
                     </execution>
                     <execution>
@@ -660,10 +660,9 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                            <arguments>build</arguments>
+                            <arguments>build-if-changed</arguments>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>install legacy hybrid deps</id>
                         <goals>
@@ -682,10 +681,9 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
-                            <arguments>build</arguments>
+                            <arguments>build-if-changed</arguments>
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
             <plugin>
