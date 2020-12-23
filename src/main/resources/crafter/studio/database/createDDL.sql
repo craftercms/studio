@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.12.1', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.12.2', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS `audit` (
   `actor_id`                  VARCHAR(255)  NOT NULL,
   `actor_details`             VARCHAR(255)  NULL,
   `cluster_node_id`           VARCHAR(255)  NULL,
+  `commit_id`                 VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
   KEY `audit_actor_idx` (`actor_id`),
   KEY `audit_site_idx` (`site_id`),
@@ -250,6 +251,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       DATETIME      NULL,
   `state`                           VARCHAR(50)   NOT NULL DEFAULT 'CREATING',
+  `last_synced_gitlog_commit_id`   VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),
@@ -414,6 +416,7 @@ CREATE TABLE IF NOT EXISTS gitlog
   `site_id`     VARCHAR(50)   NOT NULL,
   `commit_id`   VARCHAR(50)   NOT NULL,
   `processed`   INT           NOT NULL DEFAULT 0,
+  `audited`     INT           NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE `uq_siteid_commitid` (`site_id`, `commit_id`),
   INDEX `gitlog_site_idx` (`site_id` ASC)
@@ -484,6 +487,7 @@ CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
     `site_id`                               BIGINT(20)      NOT NULL,
     `node_last_commit_id`                   VARCHAR(50)     NULL,
     `node_last_verified_gitlog_commit_id`   VARCHAR(50)     NULL,
+    `node_last_synced_gitlog_commit_id`    VARCHAR(50)   NULL,
     `site_state`                                 VARCHAR(50)     NOT NULL DEFAULT 'CREATING',
     `site_published_repo_created`                INT             NOT NULL DEFAULT 0,
     PRIMARY KEY (`cluster_node_id`, `site_id`),

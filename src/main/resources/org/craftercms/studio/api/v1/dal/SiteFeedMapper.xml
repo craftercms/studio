@@ -38,6 +38,8 @@
         <result property="publishingLockOwner" column="publishing_lock_owner" />
         <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat" />
         <result property="state" column="state" />
+        <result property="lastSyncedGitlogCommitId" column="last_synced_gitlog_commit_id" jdbcType="VARCHAR"
+                javaType="String"/>
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -52,6 +54,7 @@
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
         <parameter property="publishingStatusMessage" jdbcType="VARCHAR" />
         <parameter property="lastVerifiedGitlogCommitId" jdbcType="VARCHAR" />
+        <parameter property="lastSyncedGitlogCommitId" jdbcType="VARCHAR" />
         <parameter property="sandboxBranch" jdbcType="VARCHAR"/>
         <parameter property="searchEngine" jdbcType="VARCHAR"/>
         <parameter property="publishedRepoCreated" jdbcType="INTEGER" />
@@ -102,6 +105,15 @@
             (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
                 WHERE c.local_address = #{localAddress} AND c.available = 1
             ) AS cs ON s.id = cs.site_id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+    </select>
+
+    <select id="getLastSyncedGitlogCommitId" resultType="java.lang.String">
+        SELECT IFNULL(NULLIF(TRIM(cs.node_last_synced_gitlog_commit_id), ''), s.last_synced_gitlog_commit_id)
+        FROM site s LEFT OUTER JOIN
+             (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
+              WHERE c.local_address = #{localAddress} AND c.available = 1
+             ) AS cs ON s.id = cs.site_id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
 
@@ -157,6 +169,10 @@
 
     <update id="updateLastVerifiedGitlogCommitId" parameterType="java.util.Map">
         UPDATE site SET last_verified_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId} AND deleted = 0
+    </update>
+
+    <update id="updateLastSyncedGitlogCommitId" parameterType="java.util.Map">
+        UPDATE site SET last_synced_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <select id="getDeletedSites" resultMap="SiteFeedMap">

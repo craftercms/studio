@@ -147,6 +147,13 @@ public interface SiteService {
    	boolean deleteSite(String siteId);
 
 	/**
+	 * Update last audited gitlog commit id
+	 * @param site site identifier
+	 * @param commitId commit ID
+	 */
+	void updateLastSyncedGitlogCommitId(String site, String commitId);
+
+	/**
 	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
 	 * and manipulates the underlying repository directly.
 	 *
@@ -388,4 +395,11 @@ public interface SiteService {
 	boolean isPublishedRepoCreated(String siteId);
 
     void setPublishedRepoCreated(String siteId);
+
+	/**
+	 * get last audited git log commit id for site
+	 * @param siteId site identifier
+	 * @return last audited git log commit id for local studio node
+	 */
+	String getLastSyncedGitlogCommitId(String siteId);
 }

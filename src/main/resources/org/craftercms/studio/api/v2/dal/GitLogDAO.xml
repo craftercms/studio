@@ -24,6 +24,7 @@
         <result property="siteId" column="site_id"/>
         <result property="commitId" column="commit_id"/>
         <result property="processed" column="processed"/>
+        <result property="audited" column="audited"/>
     </resultMap>
 
     <select id="getGitLog" resultMap="GitLogMap" parameterType="java.util.Map">
@@ -31,8 +32,8 @@
     </select>
 
     <insert id="insertGitLog" parameterType="java.util.Map">
-        INSERT INTO gitlog (site_id, commit_id, processed)
-        VALUES (#{siteId}, #{commitId}, #{processed})
+        INSERT INTO gitlog (site_id, commit_id, processed, audited)
+        VALUES (#{siteId}, #{commitId}, #{processed}, #{audited})
     </insert>
 
     <insert id="insertGitLogList" parameterType="java.util.Map">
@@ -49,4 +50,23 @@
     <delete id="deleteGitLogForSite" parameterType="java.util.Map">
         DELETE FROM gitlog WHERE site_id = #{siteId}
     </delete>
+
+    <update id="markGitLogAudited" >
+        UPDATE gitlog SET audited = #{audited} WHERE site_id = #{siteId} AND commit_id = #{commitId}
+    </update>
+
+    <insert id="insertIgnoreGitLogList" >
+        INSERT IGNORE INTO gitlog (site_id, commit_id) VALUES
+        <foreach collection="commitIds" item="element" index="index" separator="," >
+            (#{siteId}, #{element})
+        </foreach>
+    </insert>
+
+    <select id="getUnauditedCommits" resultMap="GitLogMap" parameterType="java.util.Map">
+        SELECT * FROM gitlog WHERE site_id = #{siteId} AND audited = 0 ORDER BY id ASC LIMIT 0, #{limit}
+    </select>
+
+    <select id="getUnprocessedCommitsSinceMarker" resultMap="GitLogMap" parameterType="java.util.Map">
+        SELECT * FROM gitlog WHERE site_id = #{siteId} AND processed = 0 AND id > #{marker} ORDER BY id ASC
+    </select>
 </mapper>
