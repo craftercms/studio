@@ -1684,8 +1684,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                             }
                             if (batch.size() > 0) {
                                 gitLogDao.insertIgnoreGitLogList(siteId, batch);
+                                siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
+                                logger.debug("Inserted " + batch.size() + " git log commits for site " + siteId);
+                            } else {
+                                siteService.updateLastSyncedGitlogCommitId(siteId, objCommitIdTo.getName());
                             }
-                            siteService.updateLastSyncedGitlogCommitId(siteId, objCommitIdTo.getName());
                         }
                     } catch (GitAPIException e) {
                         logger.error("Error getting commit ids for site " + siteId + " from commit ID: " +

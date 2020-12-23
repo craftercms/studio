@@ -786,6 +786,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.info("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
+                String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
                 insertCreateSiteAuditLog(siteId, siteId, new HashMap<String, String>());
@@ -793,8 +794,8 @@ public class SiteServiceImpl implements SiteService {
                 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
-                updateLastCommitId(siteId, firstCommitId);
-                updateLastVerifiedGitlogCommitId(siteId, firstCommitId);
+                updateLastCommitId(siteId, lastCommitId);
+                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
                 updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
                 logger.info("Loading configuration for site " + siteId);
