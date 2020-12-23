@@ -554,9 +554,6 @@ public class SiteServiceImpl implements SiteService {
             auditLogParameters.add(auditLogParameter);
         });
 
-        for (String path : createdFiles.keySet()) {
-
-        }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
