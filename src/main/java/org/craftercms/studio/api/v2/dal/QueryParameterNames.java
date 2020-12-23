@@ -110,6 +110,7 @@ public abstract class QueryParameterNames {
     public static final String NODE_LAST_COMMIT_ID = "nodeLastCommitId";
     // cluster id
     public static final String NODE_LAST_VERIFIED_GITLOG_COMMIT_ID = "nodeLastVerifiedGitlogCommitId";
+    public static final String NODE_LAST_SYNCED_GITLOG_COMMIT_ID = "nodeLastSyncedGitlogCommitId";
 
     /* Publish request */
     // Environment

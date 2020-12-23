@@ -172,12 +172,15 @@
     </select>
 
     <insert id="insertClusterSiteSyncRepo">
-        INSERT INTO cluster_site_sync_repo (cluster_node_id, site_id, node_last_commit_id, node_last_verified_gitlog_commit_id)
-        VALUES (#{clusterNodeId}, #{siteId}, #{nodeLastCommitId}, #{nodeLastVerifiedGitlogCommitId})
+        INSERT INTO cluster_site_sync_repo (cluster_node_id, site_id, node_last_commit_id,
+        node_last_verified_gitlog_commit_id, node_last_synced_gitlog_commit_id)
+        VALUES (#{clusterNodeId}, #{siteId}, #{nodeLastCommitId}, #{nodeLastVerifiedGitlogCommitId},
+        #{nodeLastSyncedGitlogCommitId})
         ON DUPLICATE KEY
         UPDATE
             node_last_commit_id = #{nodeLastCommitId},
-            node_last_verified_gitlog_commit_id = #{nodeLastVerifiedGitlogCommitId}
+            node_last_verified_gitlog_commit_id = #{nodeLastVerifiedGitlogCommitId},
+            node_last_synced_gitlog_commit_id = #{nodeLastSyncedGitlogCommitId}
     </insert>
 
     <update id="updateNodeLastVerifiedGitlogCommitId" >
