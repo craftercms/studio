@@ -112,8 +112,8 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
             for (GitLog gl :
                     unauditedGitlogs) {
                 String prevCommitId = gl.getCommitId() + "~";
-                List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, gl.getCommitId(),
-                        prevCommitId);
+                List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, prevCommitId,
+                        gl.getCommitId());
                 for (RepoOperation repoOperation : operations) {
 
                     Map<String, String> activityInfo = new HashMap<String, String>();
