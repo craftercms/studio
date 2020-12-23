@@ -132,6 +132,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                     repoOperation.getPath());
                             auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_CREATE);
+                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
                             auditLog.setSiteId(siteFeed.getId());
                             auditLog.setActorId(repoOperation.getAuthor());
                             auditLog.setActorDetails(repoOperation.getAuthor());
@@ -155,6 +156,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                     repoOperation.getPath());
                             auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_UPDATE);
+                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
                             auditLog.setSiteId(siteFeed.getId());
                             auditLog.setActorId(repoOperation.getAuthor());
                             auditLog.setActorDetails(repoOperation.getAuthor());
@@ -177,6 +179,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                     repoOperation.getPath());
                             auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_DELETE);
+                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
                             auditLog.setSiteId(siteFeed.getId());
                             auditLog.setOrigin(ORIGIN_GIT);
                             auditLog.setActorId(repoOperation.getAuthor());
@@ -200,6 +203,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                     repoOperation.getMoveToPath());
                             auditLog = auditServiceInternal.createAuditLogEntry();
                             auditLog.setOperation(OPERATION_MOVE);
+                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
                             auditLog.setSiteId(siteFeed.getId());
                             auditLog.setActorId(repoOperation.getAuthor());
                             auditLog.setActorDetails(repoOperation.getAuthor());
