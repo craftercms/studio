@@ -26,7 +26,7 @@ public class ClusterSiteRecord {
     private String nodeLastVerifiedGitlogCommitId;
     private String state;
     private int publishedRepoCreated;
-    private String nodeLastAuditedGitlogCommitId;
+    private String nodeLastSyncedGitlogCommitId;
 
     public long getClusterNodeId() {
         return clusterNodeId;
@@ -92,11 +92,11 @@ public class ClusterSiteRecord {
         this.publishedRepoCreated = publishedRepoCreated;
     }
 
-    public String getNodeLastAuditedGitlogCommitId() {
-        return nodeLastAuditedGitlogCommitId;
+    public String getNodeLastSyncedGitlogCommitId() {
+        return nodeLastSyncedGitlogCommitId;
     }
 
-    public void setNodeLastAuditedGitlogCommitId(String nodeLastAuditedGitlogCommitId) {
-        this.nodeLastAuditedGitlogCommitId = nodeLastAuditedGitlogCommitId;
+    public void setNodeLastSyncedGitlogCommitId(String nodeLastSyncedGitlogCommitId) {
+        this.nodeLastSyncedGitlogCommitId = nodeLastSyncedGitlogCommitId;
     }
 }
