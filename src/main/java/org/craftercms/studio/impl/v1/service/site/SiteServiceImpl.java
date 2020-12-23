@@ -456,7 +456,7 @@ public class SiteServiceImpl implements SiteService {
                 ClusterMember cm = clusterDao.getMemberByLocalAddress(localeAddress);
                 if (Objects.nonNull(cm)) {
                     SiteFeed s = getSite(siteId);
-                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null);
+                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null, null);
                 }
 
                 logger.info("Upgrading site.");
