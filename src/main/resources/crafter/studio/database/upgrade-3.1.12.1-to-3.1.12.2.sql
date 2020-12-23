@@ -16,7 +16,7 @@
 
 call addColumnIfNotExists('crafter', 'audit', 'commit_id', 'VARCHAR(50) NULL') ;
 
-call addColumnIfNotExists('crafter', 'site', 'last_audited_gitlog_commit_id', 'VARCHAR(50) NULL') ;
+call addColumnIfNotExists('crafter', 'site', 'last_synced_gitlog_commit_id', 'VARCHAR(50) NULL') ;
 
 call addColumnIfNotExists('crafter', 'gitlog', 'audited', 'INT NOT NULL DEFAULT 0') ;
 
