@@ -1055,6 +1055,7 @@ public class SiteServiceImpl implements SiteService {
 	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 	        contentRepository.deleteGitLogForSite(siteId);
 	        contentRepository.removeRemoteRepositoriesForSite(siteId);
+	        auditServiceInternal.deleteAuditLogForSite(siteFeed.getId());
 	        insertDeleteSiteAuditLog(siteId, siteFeed.getName());
 	    } catch(Exception e) {
 		    success = false;

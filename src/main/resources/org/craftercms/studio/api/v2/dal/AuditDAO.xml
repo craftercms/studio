@@ -109,7 +109,7 @@
     <select id="getAuditLogEntry" parameterType="java.util.Map" resultMap="AuditLogMap">
         SELECT a.*, ap.*, s.site_id as site_name
         FROM (audit a INNER JOIN site s on a.site_id = s.id) LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id
-        WHERE a.id = #{id}
+        WHERE a.id = #{id} AND s.deleted = 0
     </select>
 
     <select id="getAuditLog" parameterType="java.util.Map" resultMap="AuditLogMap">
@@ -122,7 +122,7 @@
         <if test="includeParameters">
             LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id
         </if>
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND a.site_id = #{siteId}
         </if>
@@ -176,7 +176,7 @@
     <select id="getAuditLogTotal" parameterType="java.util.Map" resultType="int">
         SELECT count(1)
         FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND a.site_id = #{siteId}
         </if>
@@ -314,7 +314,7 @@
     <select id="getAuditDashboardTotal" parameterType="java.util.Map" resultType="int">
         SELECT count(1)
         FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND s.name = #{siteId}
         </if>
@@ -348,7 +348,7 @@
         <bind name="sortBy" value="'a.' + sort"/>
         SELECT a.*, s.site_id as site_name
         FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND s.name = #{siteId}
         </if>
@@ -392,4 +392,9 @@
         </choose>
         LIMIT #{offset}, #{limit}
     </select>
+
+    <delete id="deleteAuditLogForSite" parameterType="java.util.Map" flushCache="true">
+        DELETE FROM audit
+        WHERE site_id = #{siteId}
+    </delete>
 </mapper>
