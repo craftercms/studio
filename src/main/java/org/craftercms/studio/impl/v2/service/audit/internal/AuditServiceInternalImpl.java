@@ -340,4 +340,9 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
             return auditDao.selectUserFeedEntries(params);
         }
     }
+
+    @Override
+    public void deleteAuditLogForSite(long siteId) {
+        auditDao.deleteAuditLogForSite(siteId);
+    }
 }
