@@ -22,6 +22,8 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.io.IOException;
@@ -39,12 +41,15 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
     private static int threadCounter = 0;
+    private ContentRepository contentRepository;
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
                                     int offset,
                                     StudioConfiguration studioConfiguration,
-                                    SiteService siteService) {
+                                    SiteService siteService,
+                                    ContentRepository contentRepository) {
         super(executeEveryNCycles, offset, studioConfiguration, siteService);
+        this.contentRepository = contentRepository;
         threadCounter++;
     }
 
@@ -72,9 +77,18 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
             if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+
                 logger.debug("Syncing database with repository for site " + site + " from last processed commit "
                         + lastProcessedCommit);
-                siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
+                GitLog gl = contentRepository.getGitLog(site, lastProcessedCommit);
+                List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
+                if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
+                    String firstUnprocessedCommit = unprocessedCommitIds.get(0).getCommitId();
+                    siteService.syncDatabaseWithRepo(site, firstUnprocessedCommit);
+                    unprocessedCommitIds.forEach(x -> {
+                        contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
+                    });
+                }
             }
         }
     }

@@ -54,6 +54,7 @@
         <result property="siteIdString" column="site_id_string" />
         <result property="nodeLastCommitId" column="node_last_commit_id" />
         <result property="nodeLastVerifiedGitlogCommitId" column="node_last_verified_gitlog_commit_id" />
+        <result property="nodeLastAuditedGitlogCommitId" column="node_last_audited_gitlog_commit_id" />
         <result property="state" column="site_state" />
         <result property="publishedRepoCreated" column="site_published_repo_created" />
     </resultMap>
@@ -186,6 +187,11 @@
 
     <update id="updateNodeLastCommitId" >
         UPDATE cluster_site_sync_repo SET node_last_commit_id = #{commitId}
+        WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
+    </update>
+
+    <update id="updateNodeLastAuditedGitlogCommitId" >
+        UPDATE cluster_site_sync_repo SET node_last_audited_gitlog_commit_id = #{commitId}
         WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
     </update>
 

@@ -234,4 +234,7 @@ public interface ClusterDAO {
     ClusterSiteRecord getClusterSiteRecord(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
 
     void setPublishedRepoCreated(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
+
+    void updateNodeLastAuditedGitlogCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
+                                             @Param(COMMIT_ID) String commitId);
 }

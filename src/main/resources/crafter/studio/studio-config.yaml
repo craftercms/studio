@@ -841,3 +841,9 @@ studio.clockJob.task.syncRepository.executeEveryNCycles: 5
 studio.clockJob.task.publisher.executeEveryNCycles: 10
 # Publisher max retry count in case if content not found
 studio.clockJob.task.publisher.maxRetryCount: 5
+# Process audit log from repository execute every N cycles
+studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 30
+# Insert N new commits from git log with each execution of the audit log processing task
+studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
+# Process N unaudited commits with each execution of the audit log processing task
+studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100

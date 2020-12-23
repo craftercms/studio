@@ -60,6 +60,8 @@ public interface SiteFeedMapper {
 
     void updateLastVerifiedGitlogCommitId(Map params);
 
+    void updateLastSyncedGitlogCommitId(Map params);
+
     List<SiteFeed> getDeletedSites();
 
     /**
@@ -106,6 +108,15 @@ public interface SiteFeedMapper {
      * @return commit id
      */
     String getLastVerifiedGitlogCommitId(@Param(SITE_ID) String siteId,
+                                         @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    /**
+     * Get last verified  git log commit id for local studio node
+     * @param siteId site identifier
+     * @param localAddress local address
+     * @return commit id
+     */
+    String getLastSyncedGitlogCommitId(@Param(SITE_ID) String siteId,
                                          @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
 
     void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);

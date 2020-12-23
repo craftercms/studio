@@ -21,6 +21,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -62,8 +64,16 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_
 
 public class AuditServiceInternalImpl implements AuditServiceInternal {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuditServiceInternalImpl.class);
+
     private AuditDAO auditDao;
     private StudioConfiguration studioConfiguration;
+
+    public AuditServiceInternalImpl(AuditDAO auditDao,
+                                    StudioConfiguration studioConfiguration) {
+        this.auditDao = auditDao;
+        this.studioConfiguration = studioConfiguration;
+    }
 
     @Override
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
@@ -150,8 +160,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     @Override
     public int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
-                                           boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                           String target, String origin, String clusterNodeId) {
+                                boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                String target, String origin, String clusterNodeId) {
         Map<String, Object> params = new HashMap<String, Object>();
         if (StringUtils.isNotEmpty(siteId)) {
             params.put(SITE_ID, siteId);
@@ -189,7 +199,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public int getAuditDashboardTotal(String siteId,String user, List<String> operations,ZonedDateTime dateFrom,
+    public int getAuditDashboardTotal(String siteId, String user, List<String> operations, ZonedDateTime dateFrom,
                                       ZonedDateTime dateTo, String target) {
         Map<String, Object> params = new HashMap<String, Object>();
         if (StringUtils.isNotEmpty(siteId)) {
@@ -308,16 +318,16 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     public List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset,
-                                            int limit, String contentType, boolean hideLiveItems) {
-        HashMap<String,Object> params = new HashMap<String,Object>();
+                                                int limit, String contentType, boolean hideLiveItems) {
+        HashMap<String, Object> params = new HashMap<String, Object>();
         params.put("userId", user);
         params.put("siteId", siteId);
         params.put("offset", offset);
         params.put("limit", limit);
         params.put("operations", Arrays.asList(OPERATION_CREATE, OPERATION_DELETE, OPERATION_UPDATE, OPERATION_MOVE));
         params.put("targetType", TARGET_TYPE_CONTENT_ITEM);
-        if(StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")){
-            params.put("contentType",contentType.toLowerCase());
+        if (StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")) {
+            params.put("contentType", contentType.toLowerCase());
         }
         if (hideLiveItems) {
             List<String> statesValues = new ArrayList<String>();
@@ -329,21 +339,5 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         } else {
             return auditDao.selectUserFeedEntries(params);
         }
-    }
-
-    public AuditDAO getAuditDao() {
-        return auditDao;
-    }
-
-    public void setAuditDao(AuditDAO auditDao) {
-        this.auditDao = auditDao;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
     }
 }
