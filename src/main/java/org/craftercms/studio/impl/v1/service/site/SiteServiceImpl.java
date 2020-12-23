@@ -789,6 +789,7 @@ public class SiteServiceImpl implements SiteService {
                 String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
                 insertCreateSiteAuditLog(siteId, siteId, new HashMap<String, String>());
+                contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
                 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 

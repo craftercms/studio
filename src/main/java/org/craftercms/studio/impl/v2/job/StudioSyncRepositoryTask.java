@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
@@ -81,13 +82,15 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 logger.debug("Syncing database with repository for site " + site + " from last processed commit "
                         + lastProcessedCommit);
                 GitLog gl = contentRepository.getGitLog(site, lastProcessedCommit);
-                List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
-                if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
-                    String firstUnprocessedCommit = unprocessedCommitIds.get(0).getCommitId();
-                    siteService.syncDatabaseWithRepo(site, firstUnprocessedCommit);
-                    unprocessedCommitIds.forEach(x -> {
-                        contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
-                    });
+                if (Objects.nonNull(gl)) {
+                    List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
+                    if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
+                        String firstUnprocessedCommit = unprocessedCommitIds.get(0).getCommitId();
+                        siteService.syncDatabaseWithRepo(site, firstUnprocessedCommit);
+                        unprocessedCommitIds.forEach(x -> {
+                            contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
+                        });
+                    }
                 }
             }
         }
