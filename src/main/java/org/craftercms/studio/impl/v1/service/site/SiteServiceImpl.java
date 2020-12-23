@@ -786,32 +786,15 @@ public class SiteServiceImpl implements SiteService {
                 logger.info("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
-                String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-                Map<String, String> createdFiles =
-                        contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+                String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
-                insertCreateSiteAuditLog(siteId, siteId, createdFiles);
-
-                createdFiles.keySet().forEach(path -> {
-                    objectStateService.insertNewEntry(siteId, path);
-                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
-                    Map <String, Object>properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, siteId);
-                    properties.put(ItemMetadata.PROP_PATH, path);
-                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
-                    properties.put(ItemMetadata.PROP_MODIFIED, now);
-                    properties.put(ItemMetadata.PROP_CREATOR, creator);
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
-                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
-                    extractDependenciesForItem(siteId, path);
-                });
-
-                objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
+                insertCreateSiteAuditLog(siteId, siteId, new HashMap<String, String>());
                 
-                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
-                updateLastCommitId(siteId, lastCommitId);
-                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
-                updateLastSyncedGitlogCommitId(siteId, lastCommitId);
+                objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
+
+                updateLastCommitId(siteId, firstCommitId);
+                updateLastVerifiedGitlogCommitId(siteId, firstCommitId);
+                updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
                 logger.info("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
