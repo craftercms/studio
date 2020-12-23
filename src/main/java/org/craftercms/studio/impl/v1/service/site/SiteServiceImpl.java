@@ -1226,7 +1226,7 @@ public class SiteServiceImpl implements SiteService {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(site);
-                clusterDao.updateNodeLastAuditedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+                clusterDao.updateNodeLastSyncedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
