@@ -789,8 +789,25 @@ public class SiteServiceImpl implements SiteService {
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
-                insertCreateSiteAuditLog(siteId, siteId, new HashMap<String, String>());
+                Map<String, String> createdFiles =
+                        contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+
+                insertCreateSiteAuditLog(siteId, siteId, createdFiles);
                 contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
+
+                createdFiles.keySet().forEach(path -> {
+                    objectStateService.insertNewEntry(siteId, path);
+                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
+                    Map <String, Object>properties = new HashMap<String, Object>();
+                    properties.put(ItemMetadata.PROP_SITE, siteId);
+                    properties.put(ItemMetadata.PROP_PATH, path);
+                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
+                    properties.put(ItemMetadata.PROP_MODIFIED, now);
+                    properties.put(ItemMetadata.PROP_CREATOR, creator);
+                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
+                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
+                    extractDependenciesForItem(siteId, path);
+                });
                 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
