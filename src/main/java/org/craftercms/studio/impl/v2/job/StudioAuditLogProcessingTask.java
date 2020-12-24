@@ -111,118 +111,120 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
             SiteFeed siteFeed = siteService.getSite(siteId);
             for (GitLog gl :
                     unauditedGitlogs) {
-                String prevCommitId = gl.getCommitId() + "~";
-                List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, prevCommitId,
-                        gl.getCommitId());
-                for (RepoOperation repoOperation : operations) {
+                if (contentRepository.commitIdExists(siteId, gl.getCommitId())) {
+                    String prevCommitId = gl.getCommitId() + "~";
+                    List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, prevCommitId,
+                            gl.getCommitId());
+                    for (RepoOperation repoOperation : operations) {
 
-                    Map<String, String> activityInfo = new HashMap<String, String>();
-                    String contentClass;
-                    Map<String, Object> properties;
-                    AuditLog auditLog;
-                    switch (repoOperation.getAction()) {
-                        case CREATE:
-                        case COPY:
-                            contentClass = contentService.getContentTypeClass(siteId,
-                                    repoOperation.getPath());
-                            if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                                activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                            }
-                            logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                    repoOperation.getPath());
-                            auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_CREATE);
-                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
-                                    repoOperation.getPath()));
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditServiceInternal.insertAuditLog(auditLog);
+                        Map<String, String> activityInfo = new HashMap<String, String>();
+                        String contentClass;
+                        Map<String, Object> properties;
+                        AuditLog auditLog;
+                        switch (repoOperation.getAction()) {
+                            case CREATE:
+                            case COPY:
+                                contentClass = contentService.getContentTypeClass(siteId,
+                                        repoOperation.getPath());
+                                if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                                    activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                                }
+                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                        repoOperation.getPath());
+                                auditLog = auditServiceInternal.createAuditLogEntry();
+                                auditLog.setOperation(OPERATION_CREATE);
+                                auditLog.setOperationTimestamp(repoOperation.getDateTime());
+                                auditLog.setSiteId(siteFeed.getId());
+                                auditLog.setActorId(repoOperation.getAuthor());
+                                auditLog.setActorDetails(repoOperation.getAuthor());
+                                auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getPath());
+                                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                                auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                                auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
+                                        repoOperation.getPath()));
+                                auditLog.setOrigin(ORIGIN_GIT);
+                                auditServiceInternal.insertAuditLog(auditLog);
 
-                            break;
+                                break;
 
-                        case UPDATE:
-                            contentClass = contentService.getContentTypeClass(siteId,
-                                    repoOperation.getPath());
-                            if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                                activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                            }
-                            logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                    repoOperation.getPath());
-                            auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_UPDATE);
-                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                            break;
+                            case UPDATE:
+                                contentClass = contentService.getContentTypeClass(siteId,
+                                        repoOperation.getPath());
+                                if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                                    activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                                }
+                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                        repoOperation.getPath());
+                                auditLog = auditServiceInternal.createAuditLogEntry();
+                                auditLog.setOperation(OPERATION_UPDATE);
+                                auditLog.setOperationTimestamp(repoOperation.getDateTime());
+                                auditLog.setSiteId(siteFeed.getId());
+                                auditLog.setActorId(repoOperation.getAuthor());
+                                auditLog.setActorDetails(repoOperation.getAuthor());
+                                auditLog.setOrigin(ORIGIN_GIT);
+                                auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getPath());
+                                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                                auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                                auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
+                                        repoOperation.getPath()));
+                                auditServiceInternal.insertAuditLog(auditLog);
+                                break;
 
-                        case DELETE:
-                            contentClass = contentService.getContentTypeClass(siteId,
-                                    repoOperation.getPath());
-                            if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                                activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                            }
-                            logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                    repoOperation.getPath());
-                            auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_DELETE);
-                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
+                            case DELETE:
+                                contentClass = contentService.getContentTypeClass(siteId,
+                                        repoOperation.getPath());
+                                if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                                    activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                                }
+                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                        repoOperation.getPath());
+                                auditLog = auditServiceInternal.createAuditLogEntry();
+                                auditLog.setOperation(OPERATION_DELETE);
+                                auditLog.setOperationTimestamp(repoOperation.getDateTime());
+                                auditLog.setSiteId(siteFeed.getId());
+                                auditLog.setOrigin(ORIGIN_GIT);
+                                auditLog.setActorId(repoOperation.getAuthor());
+                                auditLog.setActorDetails(repoOperation.getAuthor());
+                                auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getPath());
+                                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                                auditLog.setPrimaryTargetValue(repoOperation.getPath());
+                                auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
+                                        repoOperation.getPath()));
+                                auditServiceInternal.insertAuditLog(auditLog);
 
-                            break;
+                                break;
 
-                        case MOVE:
-                            contentClass = contentService.getContentTypeClass(siteId,
-                                    repoOperation.getMoveToPath());
-                            if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
-                                activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                            }
-                            logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                    repoOperation.getMoveToPath());
-                            auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_MOVE);
-                            auditLog.setOperationTimestamp(repoOperation.getDateTime());
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getMoveToPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getMoveToPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
-                                    repoOperation.getMoveToPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
+                            case MOVE:
+                                contentClass = contentService.getContentTypeClass(siteId,
+                                        repoOperation.getMoveToPath());
+                                if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
+                                    activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                                }
+                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                        repoOperation.getMoveToPath());
+                                auditLog = auditServiceInternal.createAuditLogEntry();
+                                auditLog.setOperation(OPERATION_MOVE);
+                                auditLog.setOperationTimestamp(repoOperation.getDateTime());
+                                auditLog.setSiteId(siteFeed.getId());
+                                auditLog.setActorId(repoOperation.getAuthor());
+                                auditLog.setActorDetails(repoOperation.getAuthor());
+                                auditLog.setOrigin(ORIGIN_GIT);
+                                auditLog.setPrimaryTargetId(siteId + ":" + repoOperation.getMoveToPath());
+                                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                                auditLog.setPrimaryTargetValue(repoOperation.getMoveToPath());
+                                auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(siteId,
+                                        repoOperation.getMoveToPath()));
+                                auditServiceInternal.insertAuditLog(auditLog);
 
-                            break;
+                                break;
 
-                        default:
-                            logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
-                                    repoOperation.getAction());
-                            break;
+                            default:
+                                logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
+                                        repoOperation.getAction());
+                                break;
+                        }
+                        contentRepository.markGitLogAudited(siteId, gl.getCommitId());
                     }
-                    contentRepository.markGitLogAudited(siteId, gl.getCommitId());
                 }
             }
         }
