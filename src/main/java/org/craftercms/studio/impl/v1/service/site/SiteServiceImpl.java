@@ -1217,6 +1217,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @RetryingOperation
+    @Override
     public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);

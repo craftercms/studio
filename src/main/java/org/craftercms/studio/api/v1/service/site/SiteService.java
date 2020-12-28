@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
@@ -146,7 +147,10 @@ public interface SiteService {
      */
    	boolean deleteSite(String siteId);
 
-	/**
+    @RetryingOperation
+    void updateLastVerifiedGitlogCommitId(String site, String commitId);
+
+    /**
 	 * Update last audited gitlog commit id
 	 * @param site site identifier
 	 * @param commitId commit ID

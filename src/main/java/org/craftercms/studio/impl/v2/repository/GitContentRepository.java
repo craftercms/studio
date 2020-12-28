@@ -1685,6 +1685,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                             if (batch.size() > 0) {
                                 gitLogDao.insertIgnoreGitLogList(siteId, batch);
                                 siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
+                                siteService.updateLastCommitId(siteId, batch.get(batch.size() - 1));
                                 logger.debug("Inserted " + batch.size() + " git log commits for site " + siteId);
                             } else {
                                 siteService.updateLastSyncedGitlogCommitId(siteId, objCommitIdTo.getName());

@@ -90,6 +90,15 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                         unprocessedCommitIds.forEach(x -> {
                             contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
                         });
+
+                        String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+                        siteService.updateLastCommitId(site, lastRepoCommitId);
+                        siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                    } else {
+                        String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+                        if (!StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
+                            siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                        }
                     }
                 }
             }
