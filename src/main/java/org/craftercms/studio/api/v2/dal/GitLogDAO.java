@@ -16,7 +16,17 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.AUDITED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MARKER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface GitLogDAO {
 
@@ -29,4 +39,13 @@ public interface GitLogDAO {
     void markGitLogProcessed(Map params);
 
     void deleteGitLogForSite(Map params);
+
+    void markGitLogAudited(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String commitId,
+                           @Param(AUDITED) int audited);
+
+    void insertIgnoreGitLogList(@Param(SITE_ID) String siteId, @Param(COMMIT_IDS) List<String> commitIds);
+
+    List<GitLog> getUnauditedCommits(@Param(SITE_ID) String siteId, @Param(LIMIT) int limit);
+
+    List<GitLog> getUnprocessedCommitsSinceMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker);
 }

@@ -644,7 +644,7 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
                 objectMetadataManager.insertNewObjectMetadata(site, path);
             }
             objectMetadataManager.updateCommitId(site, path, commitId);
-            contentRepository.insertGitLog(site, commitId, 1);
+            contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
         }
 
@@ -666,8 +666,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
         if (commitId != null) {
             itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
                     commitId);
-            contentRepository.insertGitLog(site, commitId, 1);
-            siteService.updateLastCommitId(site, commitId);
 
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -678,6 +676,9 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(folderPath);
             auditServiceInternal.insertAuditLog(auditLog);
+
+            contentRepository.insertGitLog(site, commitId, 1, 1);
+            siteService.updateLastCommitId(site, commitId);
             toRet = true;
         }
 
@@ -1025,7 +1026,7 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                    contentRepository.insertGitLog(site, entry.getValue(), 1);
+                    contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
@@ -2021,8 +2022,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
             itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
             objectMetadataManager.updateCommitId(site, path, commitId);
-            contentRepository.insertGitLog(site, commitId, 1);
-            siteService.updateLastCommitId(site, commitId);
 
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -2034,6 +2033,9 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
             auditLog.setPrimaryTargetValue(path);
             auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
             auditServiceInternal.insertAuditLog(auditLog);
+
+            contentRepository.insertGitLog(site, commitId, 1, 1);
+            siteService.updateLastCommitId(site, commitId);
 
             toReturn = true;
         }

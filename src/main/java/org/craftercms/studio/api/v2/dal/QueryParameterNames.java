@@ -16,167 +16,177 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-public interface QueryParameterNames {
+public final class  QueryParameterNames {
 
     // Id
-    String ID = "id";
+    public static final String ID = "id";
     // Offset
-    String OFFSET = "offset";
+    public static final String OFFSET = "offset";
     // Limit
-    String LIMIT = "limit";
+    public static final String LIMIT = "limit";
     // Sort
-    String SORT = "sort";
+    public static final String SORT = "sort";
     // Order
-    String ORDER = "order";
+    public static final String ORDER = "order";
     // Path
-    String PATH = "path";
+    public static final String PATH = "path";
     // Paths
-    String PATHS = "paths";
+    public static final String PATHS = "paths";
     // Modifier
-    String MODIFIER = "modifier";
+    public static final String MODIFIER = "modifier";
     // Old path
-    String OLD_PATH = "oldPath";
+    public static final String OLD_PATH = "oldPath";
     // New path
-    String NEW_PATH = "newPath";
+    public static final String NEW_PATH = "newPath";
     // commit id
-    String COMMIT_ID = "commitId";
+    public static final String COMMIT_ID = "commitId";
     // state
-    String STATE = "state";
+    public static final String STATE = "state";
 
     /* Organizations */
 
     // Organization ID
-    String ORG_ID = "orgId";
+    public static final String ORG_ID = "orgId";
 
     /* Sites */
-    String SITE_ID = "siteId";
+    public static final String SITE_ID = "siteId";
 
-    String SITE = "site";
+    public static final String SITE = "site";
 
-    String LOCK_OWNER_ID = "lockOwnerId";
+    public static final String LOCK_OWNER_ID = "lockOwnerId";
 
-    String TTL = "ttl";
+    public static final String TTL = "ttl";
 
-    String NAME = "name";
+    public static final String NAME = "name";
 
-    String DESC = "description";
+    public static final String DESC = "description";
 
 
     /* Groups */
 
     // Group ID
-    String GROUP_ID = "groupId";
+    public static final String GROUP_ID = "groupId";
     // Group IDs
-    String GROUP_IDS = "groupIds";
+    public static final String GROUP_IDS = "groupIds";
     // Group name
-    String GROUP_NAME = "groupName";
+    public static final String GROUP_NAME = "groupName";
     // Group names
-    String GROUP_NAMES = "groupNames";
+    public static final String GROUP_NAMES = "groupNames";
     // Group description
-    String GROUP_DESCRIPTION = "groupDescription";
+    public static final String GROUP_DESCRIPTION = "groupDescription";
 
     /* Users */
 
     // Usernames
-    String USERNAMES = "usernames";
+    public static final String USERNAMES = "usernames";
     // User IDs
-    String USER_IDS = "userIds";
+    public static final String USER_IDS = "userIds";
     // User ID
-    String USER_ID = "userId";
+    public static final String USER_ID = "userId";
     // Username
-    String USERNAME = "username";
+    public static final String USERNAME = "username";
     // Password
-    String PASSWORD = "password";
+    public static final String PASSWORD = "password";
     // First name
-    String FIRST_NAME = "firstName";
+    public static final String FIRST_NAME = "firstName";
     // Last name
-    String LAST_NAME = "lastName";
+    public static final String LAST_NAME = "lastName";
     // Externally managed
-    String EXTERNALLY_MANAGED = "externallyManaged";
+    public static final String EXTERNALLY_MANAGED = "externallyManaged";
     // Timezone
-    String TIMEZONE = "timezone";
+    public static final String TIMEZONE = "timezone";
     // Locale
-    String LOCALE = "locale";
+    public static final String LOCALE = "locale";
     // Email
-    String EMAIL = "email";
+    public static final String EMAIL = "email";
     // Active
-    String ENABLED = "enabled";
+    public static final String ENABLED = "enabled";
     // First name and Last name
-    String GIT_NAME = "gitName";
+    public static final String GIT_NAME = "gitName";
 
-    String KEYS = "keys";
-    String PROPERTIES = "properties";
+    public static final String KEYS = "keys";
+    public static final String PROPERTIES = "properties";
 
     /* Cluster */
     // Local address
-    String CLUSTER_LOCAL_ADDRESS = "localAddress";
+    public static final String CLUSTER_LOCAL_ADDRESS = "localAddress";
     // State
-    String CLUSTER_STATE = "state";
+    public static final String CLUSTER_STATE = "state";
     // Member ids list
-    String CLUSTER_MEMBER_IDS = "memberIds";
+    public static final String CLUSTER_MEMBER_IDS = "memberIds";
     // Inactivity limit
-    String CLUSTER_INACTIVITY_LIMIT = "inactivityLimit";
+    public static final String CLUSTER_INACTIVITY_LIMIT = "inactivityLimit";
     // Inactive state
-    String CLUSTER_INACTIVE_STATE = "inactiveState";
+    public static final String CLUSTER_INACTIVE_STATE = "inactiveState";
     // Stale heartbeat limit
-    String CLUSTER_HEARTBEAT_STALE_LIMIT = "heartbeatStaleLimit";
+    public static final String CLUSTER_HEARTBEAT_STALE_LIMIT = "heartbeatStaleLimit";
     // cluster id
-    String CLUSTER_ID = "clusterId";
+    public static final String CLUSTER_ID = "clusterId";
     // remote repository id
-    String REMOTE_REPOSITORY_ID = "remoteRepositoryId";
+    public static final String REMOTE_REPOSITORY_ID = "remoteRepositoryId";
     // node last commit id
-    String NODE_LAST_COMMIT_ID = "nodeLastCommitId";
+    public static final String NODE_LAST_COMMIT_ID = "nodeLastCommitId";
     // cluster id
-    String NODE_LAST_VERIFIED_GITLOG_COMMIT_ID = "nodeLastVerifiedGitlogCommitId";
+    public static final String NODE_LAST_VERIFIED_GITLOG_COMMIT_ID = "nodeLastVerifiedGitlogCommitId";
+    public static final String NODE_LAST_SYNCED_GITLOG_COMMIT_ID = "nodeLastSyncedGitlogCommitId";
 
     /* Publish request */
     // Environment
-    String ENVIRONMENT = "environment";
+    public static final String ENVIRONMENT = "environment";
     // Processing state
-    String PROCESSING_STATE = "processingState";
+    public static final String PROCESSING_STATE = "processingState";
     // Ready state
-    String READY_STATE = "readyState";
+    public static final String READY_STATE = "readyState";
 
     /* Audit */
-    String ACTIONS = "actions";
+    public static final String ACTIONS = "actions";
 
-    String OPERATIONS = "operations";
+    public static final String OPERATIONS = "operations";
 
-    String DATE_FROM = "dateFrom";
+    public static final String DATE_FROM = "dateFrom";
 
-    String DATE_TO = "dateTo";
+    public static final String DATE_TO = "dateTo";
 
-    String TARGET = "target";
+    public static final String TARGET = "target";
 
-    String ORIGIN = "origin";
+    public static final String ORIGIN = "origin";
 
-    String CLUSTER_NODE_ID = "clusterNodeId";
+    public static final String CLUSTER_NODE_ID = "clusterNodeId";
 
-    String INCLUDE_PARAMETERS = "includeParameters";
+    public static final String INCLUDE_PARAMETERS = "includeParameters";
 
     /* Item */
-    String LOCALE_CODE = "localeCode";
+    public static final String LOCALE_CODE = "localeCode";
 
-    String PARENT_PATH = "parentPath";
+    public static final String PARENT_PATH = "parentPath";
 
-    String PARENT_ID = "parentId";
+    public static final String PARENT_ID = "parentId";
 
-    String LEVEL_DESCRIPTOR_PATH = "ldPath";
+    public static final String LEVEL_DESCRIPTOR_PATH = "ldPath";
 
-    String LEVEL_DESCRIPTOR_NAME = "ldName";
+    public static final String LEVEL_DESCRIPTOR_NAME = "ldName";
 
-    String ENTRIES = "entries";
+    public static final String ENTRIES = "entries";
 
-    String ROOT_PATH = "rootPath";
+    public static final String ROOT_PATH = "rootPath";
 
-    String STATES_BIT_MAP = "statesBitMap";
+    public static final String STATES_BIT_MAP = "statesBitMap";
 
-    String ON_STATES_BIT_MAP = "onStatesBitMap";
+    public static final String ON_STATES_BIT_MAP = "onStatesBitMap";
 
-    String OFF_STATES_BIT_MAP = "offStatesBitMap";
+    public static final String OFF_STATES_BIT_MAP = "offStatesBitMap";
 
-    String ITEM_IDS = "itemIds";
+    public static final String ITEM_IDS = "itemIds";
 
-    String CONTENT_TYPE = "contentType";
+    public static final String CONTENT_TYPE = "contentType";
 
+    /** Gitlog */
+    public static final String AUDITED = "audited";
+    // list of commit ids
+    public static final String COMMIT_IDS = "commitIds";
+
+    public static final String MARKER = "marker";
+
+    private QueryParameterNames() {
+    }
 }
