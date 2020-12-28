@@ -415,15 +415,16 @@
 
     <bean id="repositoryManagementServiceInternal"
           class="org.craftercms.studio.impl.v2.service.repository.internal.RepositoryManagementServiceInternalImpl">
-        <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="notificationService" ref="cstudioNotificationService" />
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
-        <property name="clusterDao" ref="clusterDao"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="remoteRepositoryDao" ref="remoteRepositoryDao" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="notificationService" ref="cstudioNotificationService" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+        <constructor-arg name="clusterDao" ref="clusterDao"/>
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">

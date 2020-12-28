@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -121,6 +122,29 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private TextEncryptor encryptor;
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
+    private SiteService siteService;
+
+    public RepositoryManagementServiceInternalImpl(RemoteRepositoryDAO remoteRepositoryDao,
+                                                   StudioConfiguration studioConfiguration,
+                                                   NotificationService notificationService,
+                                                   SecurityService securityService,
+                                                   UserServiceInternal userServiceInternal,
+                                                   ContentRepository contentRepository,
+                                                   TextEncryptor encryptor,
+                                                   ClusterDAO clusterDao,
+                                                   GeneralLockService generalLockService,
+                                                   SiteService siteService) {
+        this.remoteRepositoryDao = remoteRepositoryDao;
+        this.studioConfiguration = studioConfiguration;
+        this.notificationService = notificationService;
+        this.securityService = securityService;
+        this.userServiceInternal = userServiceInternal;
+        this.contentRepository = contentRepository;
+        this.encryptor = encryptor;
+        this.clusterDao = clusterDao;
+        this.generalLockService = generalLockService;
+        this.siteService = siteService;
+    }
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -419,6 +443,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     });
                 }
                 notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles, Locale.ENGLISH);
+            }
+            if (pullResult.isSuccessful()) {
+                String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
+                siteService.updateLastCommitId(siteId, lastCommitId);
             }
             return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
@@ -763,71 +791,4 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
     }
 
-    public RemoteRepositoryDAO getRemoteRepositoryDao() {
-        return remoteRepositoryDao;
-    }
-
-    public void setRemoteRepositoryDao(RemoteRepositoryDAO remoteRepositoryDao) {
-        this.remoteRepositoryDao = remoteRepositoryDao;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public NotificationService getNotificationService() {
-        return notificationService;
-    }
-
-    public void setNotificationService(NotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public void setEncryptor(TextEncryptor encryptor) {
-        this.encryptor = encryptor;
-    }
-
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
-    }
-
-    public void setClusterDao(ClusterDAO clusterDao) {
-        this.clusterDao = clusterDao;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
 }
