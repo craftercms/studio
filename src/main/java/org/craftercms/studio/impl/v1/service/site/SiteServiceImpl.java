@@ -498,8 +498,6 @@ public class SiteServiceImpl implements SiteService {
 
                 logger.info("Reload site configuration");
                 reloadSiteConfiguration(siteId);
-
-                setSiteState(siteId, STATE_CREATED);
 	        } catch(Exception e) {
 	            success = false;
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -525,6 +523,7 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the Preview " +
                         "Deployer is reachable.");
 		    }
+            setSiteState(siteId, STATE_CREATED);
 	    } else {
 		    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
 	    }
@@ -817,8 +816,6 @@ public class SiteServiceImpl implements SiteService {
 
                 logger.info("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
-
-                setSiteState(siteId, STATE_CREATED);
             } catch(Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -844,6 +841,7 @@ public class SiteServiceImpl implements SiteService {
                     " to preview. Site was successfully created, but it won't be preview-able until the " +
                     "Preview Deployer is reachable.");
             }
+            setSiteState(siteId, STATE_CREATED);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
@@ -990,8 +988,6 @@ public class SiteServiceImpl implements SiteService {
 
                 logger.info("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
-
-                    setSiteState(siteId, STATE_CREATED);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -1018,6 +1014,7 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the " +
                         "Preview Deployer is reachable.");
             }
+            setSiteState(siteId, STATE_CREATED);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
