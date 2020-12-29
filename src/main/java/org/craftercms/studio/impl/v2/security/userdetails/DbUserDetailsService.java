@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v2.security.userdetails;
 
 import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.model.AuthenticatedUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

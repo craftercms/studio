@@ -49,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.util.Collections.emptySet;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_MEMBERS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -213,7 +212,8 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
                 var authenticatedUser = new AuthenticatedUser(user);
                 authenticatedUser.setAuthenticationType(AuthenticationType.AUTH_HEADERS);
 
-                return new PreAuthenticatedAuthenticationToken(authenticatedUser, "N/A", emptySet());
+                // Use a custom token instead of Spring's preauth to avoid conflict with tokens
+                return new HeadersAuthenticationToken(authenticatedUser);
             }
         }
 
