@@ -62,12 +62,6 @@
         <property name="authenticationManager" ref="webAuthenticationManager"/>
     </bean>
 
-    <!-- If we replace the session in the future we can remove CSRF completely -->
-    <bean id="csrfTokenRepository" class="org.springframework.security.web.csrf.CookieCsrfTokenRepository">
-        <!-- The UI needs to have access to the cookie -->
-        <property name="cookieHttpOnly" value="false"/>
-    </bean>
-
     <sec:http
             pattern="/**"
             use-expressions="true"
