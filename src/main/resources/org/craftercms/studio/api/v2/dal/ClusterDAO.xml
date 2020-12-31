@@ -163,6 +163,9 @@
     <insert id="addClusterRemoteRepository">
         INSERT INTO cluster_remote_repository (cluster_id, remote_repository_id)
         VALUES (#{clusterId}, #{remoteRepositoryId})
+        ON DUPLICATE KEY
+        UPDATE
+            record_last_updated = CURRENT_TIMESTAMP
     </insert>
 
     <select id="getMemberByLocalAddress" resultMap="ClusterMap" parameterType="java.util.Map">
