@@ -24,6 +24,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.io.IOException;
@@ -31,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
@@ -41,12 +44,15 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
     private static int threadCounter = 0;
+    private ContentRepository contentRepository;
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
                                     int offset,
                                     StudioConfiguration studioConfiguration,
-                                    SiteService siteService) {
+                                    SiteService siteService,
+                                    ContentRepository contentRepository) {
         super(executeEveryNCycles, offset, studioConfiguration, siteService);
+        this.contentRepository = contentRepository;
         threadCounter++;
     }
 
@@ -74,9 +80,29 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
             if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+
                 logger.debug("Syncing database with repository for site " + site + " from last processed commit "
                         + lastProcessedCommit);
-                siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
+                GitLog gl = contentRepository.getGitLog(site, lastProcessedCommit);
+                if (Objects.nonNull(gl)) {
+                    List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
+                    if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
+                        String firstUnprocessedCommit = unprocessedCommitIds.get(0).getCommitId();
+                        siteService.syncDatabaseWithRepo(site, firstUnprocessedCommit);
+                        unprocessedCommitIds.forEach(x -> {
+                            contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
+                        });
+
+                        String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+                        siteService.updateLastCommitId(site, lastRepoCommitId);
+                        siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                    } else {
+                        String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+                        if (!StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
+                            siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                        }
+                    }
+                }
             }
         }
     }

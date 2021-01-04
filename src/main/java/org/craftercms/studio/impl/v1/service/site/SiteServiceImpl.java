@@ -101,6 +101,7 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
@@ -145,10 +146,8 @@ import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -449,6 +448,7 @@ public class SiteServiceImpl implements SiteService {
             try {
                 logger.info("Copying site content from blueprint.");
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
+                ZonedDateTime now = ZonedDateTime.now();
 
                 logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
@@ -470,30 +470,51 @@ public class SiteServiceImpl implements SiteService {
                 ClusterMember cm = clusterDao.getMemberByLocalAddress(localeAddress);
                 if (Objects.nonNull(cm)) {
                     SiteFeed s = getSite(siteId);
-                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null);
+                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null, null);
                 }
 
                 logger.info("Upgrading site.");
                 upgradeManager.upgrade(siteId);
 
-                logger.debug("Adding audit log");
-                insertCreateSiteAuditLog(siteId, siteName);
-
                 // Add default groups
                 logger.info("Adding default groups");
                 addDefaultGroupsForNewSite(siteId);
 
-                logger.info("Reload site configuration");
-                reloadSiteConfiguration(siteId);
+                String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+                String creator = securityService.getCurrentUser();
 
-                logger.info("Syncing database with repository.");
-                syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
+                Map<String, String> createdFiles =
+                        contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
 
-                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
+                logger.info("Adding audit log");
+                insertCreateSiteAuditLog(siteId, siteName, createdFiles);
+
+                createdFiles.keySet().forEach(path -> {
+                    objectStateService.insertNewEntry(siteId, path);
+                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
+                    Map <String, Object>properties = new HashMap<String, Object>();
+                    properties.put(ItemMetadata.PROP_SITE, siteId);
+                    properties.put(ItemMetadata.PROP_PATH, path);
+                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
+                    properties.put(ItemMetadata.PROP_MODIFIED, now);
+                    properties.put(ItemMetadata.PROP_CREATOR, creator);
+                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
+                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
+                    extractDependenciesForItem(siteId, path);
+                });
 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
-                setSiteState(siteId, STATE_CREATED);
+                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
+                updateLastCommitId(siteId, lastCommitId);
+                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
+                updateLastSyncedGitlogCommitId(siteId, lastCommitId);
+
+                logger.info("Reload site configuration");
+                reloadSiteConfiguration(siteId);
+
+
+                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -519,13 +540,14 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the Preview " +
                         "Deployer is reachable.");
             }
+            setSiteState(siteId, STATE_CREATED);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
         }
         logger.info("Finished creating site " + siteId);
     }
 
-    private void insertCreateSiteAuditLog(String siteId, String siteName) throws SiteNotFoundException {
+    private void insertCreateSiteAuditLog(String siteId, String siteName, Map<String, String> createdFiles) throws SiteNotFoundException {
         SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -535,6 +557,20 @@ public class SiteServiceImpl implements SiteService {
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteName);
+        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
+        createdFiles.forEach((k, v) -> {
+            String targetPath = k;
+            if (StringUtils.length(v) > 1) {
+                targetPath = v;
+            }
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":" + targetPath);
+            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLogParameter.setTargetValue(targetPath);
+            auditLogParameters.add(auditLogParameter);
+        });
+
+        auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -746,6 +782,8 @@ public class SiteServiceImpl implements SiteService {
         }
 
         if (success) {
+            ZonedDateTime now = ZonedDateTime.now();
+            String creator = securityService.getCurrentUser();
             try {
                 logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
@@ -765,21 +803,42 @@ public class SiteServiceImpl implements SiteService {
 
                 upgradeManager.upgrade(siteId);
 
-                insertCreateSiteAuditLog(siteId, siteName);
 
                 // Add default groups
                 logger.info("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
-                logger.info("Loading configuration for site " + siteId);
-                reloadSiteConfiguration(siteId);
+                String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+                String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
-                logger.info("Sync database with repository for site " + siteId);
-                syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
+                Map<String, String> createdFiles =
+                        contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+
+                insertCreateSiteAuditLog(siteId, siteId, createdFiles);
+                contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
+
+                createdFiles.keySet().forEach(path -> {
+                    objectStateService.insertNewEntry(siteId, path);
+                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
+                    Map <String, Object>properties = new HashMap<String, Object>();
+                    properties.put(ItemMetadata.PROP_SITE, siteId);
+                    properties.put(ItemMetadata.PROP_PATH, path);
+                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
+                    properties.put(ItemMetadata.PROP_MODIFIED, now);
+                    properties.put(ItemMetadata.PROP_CREATOR, creator);
+                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
+                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
+                    extractDependenciesForItem(siteId, path);
+                });
 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
-                setSiteState(siteId, STATE_CREATED);
+                updateLastCommitId(siteId, lastCommitId);
+                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
+                updateLastSyncedGitlogCommitId(siteId, firstCommitId);
+
+                logger.info("Loading configuration for site " + siteId);
+                reloadSiteConfiguration(siteId);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -805,6 +864,7 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the " +
                         "Preview Deployer is reachable.");
             }
+            setSiteState(siteId, STATE_CREATED);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
@@ -897,6 +957,8 @@ public class SiteServiceImpl implements SiteService {
             }
 
             if (success) {
+                ZonedDateTime now = ZonedDateTime.now();
+                String creator = securityService.getCurrentUser();
                 try {
 
                     logger.info("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
@@ -915,22 +977,40 @@ public class SiteServiceImpl implements SiteService {
 
                 try {
 
-                    logger.debug("Adding audit logs.");
-                    insertCreateSiteAuditLog(siteId, siteName);
-                    insertAddRemoteAuditLog(siteId, remoteName);
-
                     // Add default groups
                     logger.info("Adding default groups for site " + siteId);
                     addDefaultGroupsForNewSite(siteId);
 
-                    logger.info("Loading configuration for site " + siteId);
-                    reloadSiteConfiguration(siteId);
+                    logger.debug("Adding audit logs.");
+                    String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+                    Map<String, String> createdFiles =
+                            contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+                    insertCreateSiteAuditLog(siteId, siteName, createdFiles);
+                    insertAddRemoteAuditLog(siteId, remoteName);
 
-                    logger.info("Sync database with repository for site " + siteId);
-                    syncDatabaseWithRepo(siteId, contentRepository.getRepoFirstCommitId(siteId), true);
+                createdFiles.keySet().forEach(path -> {
+                    objectStateService.insertNewEntry(siteId, path);
+                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
+                    Map <String, Object>properties = new HashMap<String, Object>();
+                    properties.put(ItemMetadata.PROP_SITE, siteId);
+                    properties.put(ItemMetadata.PROP_PATH, path);
+                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
+                    properties.put(ItemMetadata.PROP_MODIFIED, now);
+                    properties.put(ItemMetadata.PROP_CREATOR, creator);
+                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
+                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
+                    extractDependenciesForItem(siteId, path);
+                });
 
                     objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
-                    setSiteState(siteId, STATE_CREATED);
+
+                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
+                updateLastCommitId(siteId, lastCommitId);
+                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
+                updateLastSyncedGitlogCommitId(siteId, lastCommitId);
+
+                logger.info("Loading configuration for site " + siteId);
+                reloadSiteConfiguration(siteId);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -957,6 +1037,7 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the " +
                         "Preview Deployer is reachable.");
             }
+            setSiteState(siteId, STATE_CREATED);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
@@ -1013,6 +1094,7 @@ public class SiteServiceImpl implements SiteService {
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
             contentRepository.deleteGitLogForSite(siteId);
             contentRepository.removeRemoteRepositoriesForSite(siteId);
+            auditServiceInternal.deleteAuditLogForSite(siteFeed.getId());
             insertDeleteSiteAuditLog(siteId, siteFeed.getName());
         } catch (Exception e) {
             success = false;
@@ -1157,6 +1239,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @RetryingOperation
+    @Override
     public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
@@ -1173,6 +1256,25 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Site not found " + site);
         }
     }
+    @RetryingOperation
+    @Override
+    public void updateLastSyncedGitlogCommitId(String site, String commitId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("commitId", commitId);
+        siteFeedMapper.updateLastSyncedGitlogCommitId(params);
+
+        try {
+            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
+            if (Objects.nonNull(clusterMember)) {
+                SiteFeed siteFeed = getSite(site);
+                clusterDao.updateNodeLastSyncedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+            }
+        } catch (SiteNotFoundException e) {
+            logger.error("Site not found " + site);
+        }
+    }
+
 
     @Override
     @ValidateParams
@@ -1445,143 +1547,6 @@ public class SiteServiceImpl implements SiteService {
                     toReturn = false;
                     break;
             }
-        }
-
-        // Process all operations and track if one or more have failed
-        for (RepoOperation repoOperation : repoOperations) {
-            boolean gitLogProcessed = false;
-            logger.debug("Verifying repo opertation " + repoOperation.getAction().toString() + " " +
-                    repoOperation.getPath());
-            logger.debug("Get Git Log from database for commit id " + repoOperation.getCommitId());
-            GitLog gitLog = contentRepositoryV2.getGitLog(site, repoOperation.getCommitId());
-            if (gitLog != null) {
-                diverged = diverged || gitLog.getProcessed() < 1;
-            } else {
-                logger.debug("Git Log does not exist in database for commit id " + repoOperation.getCommitId());
-                logger.debug("Inserting Git Log for commit id " + repoOperation.getCommitId() + " and site " + site);
-                contentRepositoryV2.insertGitLog(site, repoOperation.getCommitId(), 0);
-                logger.debug("Repository diverged from database. " +
-                        "All repository operations onwards need to be processed");
-                diverged = true;
-                gitLogProcessed = false;
-                gitLog = contentRepositoryV2.getGitLog(site, repoOperation.getCommitId());
-            }
-
-            if (current == null) {
-                current = gitLog;
-            } else {
-                if (!current.getCommitId().equals(gitLog.getCommitId())) {
-                    contentRepositoryV2.markGitLogVerifiedProcessed(site, current.getCommitId());
-                    current = gitLog;
-                }
-            }
-
-            if (diverged) {
-                Map<String, String> activityInfo = new HashMap<String, String>();
-                String contentClass;
-                Map<String, Object> properties;
-                switch (repoOperation.getAction()) {
-                    case CREATE:
-                    case COPY:
-                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_CREATE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
-                        break;
-
-                    case UPDATE:
-                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_UPDATE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
-                        break;
-
-                    case DELETE:
-                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_DELETE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
-                        break;
-
-                    case MOVE:
-                        contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
-                        if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
-                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                        }
-                        if (generateAuditLog) {
-                            logger.debug("Insert audit log for site: " + site + " path: " +
-                                    repoOperation.getMoveToPath());
-                            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                            auditLog.setOperation(OPERATION_MOVE);
-                            auditLog.setSiteId(siteFeed.getId());
-                            auditLog.setActorId(repoOperation.getAuthor());
-                            auditLog.setActorDetails(repoOperation.getAuthor());
-                            auditLog.setOrigin(ORIGIN_GIT);
-                            auditLog.setPrimaryTargetId(site + ":" + repoOperation.getMoveToPath());
-                            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                            auditLog.setPrimaryTargetValue(repoOperation.getMoveToPath());
-                            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site,
-                                    repoOperation.getMoveToPath()));
-                            auditServiceInternal.insertAuditLog(auditLog);
-                        }
-                        break;
-
-                    default:
-                        logger.error("Error: Unknown repo operation for site " + site + " operation: " +
-                                repoOperation.getAction());
-                        toReturn = false;
-                        break;
-                }
-            }
-        }
-        if (current != null) {
-            contentRepositoryV2.markGitLogVerifiedProcessed(site, current.getCommitId());
-            updateLastVerifiedGitlogCommitId(site, current.getCommitId());
         }
 
         // At this point we have attempted to process all operations, some may have failed
@@ -1954,6 +1919,11 @@ public class SiteServiceImpl implements SiteService {
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + siteId);
         }
+    }
+
+    @Override
+    public String getLastSyncedGitlogCommitId(String siteId) {
+        return siteFeedMapper.getLastSyncedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
     }
 
     public String getGlobalConfigRoot() {

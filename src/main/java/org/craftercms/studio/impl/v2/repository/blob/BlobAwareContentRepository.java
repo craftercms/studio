@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -568,6 +569,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
+    public void insertGitLog(String siteId, String commitId, int processed, int audited) {
+        localRepositoryV2.insertGitLog(siteId, commitId, processed, audited);
+    }
+
+    @Override
     public List<String> getSubtreeItems(String site, String path) {
         return localRepositoryV2.getSubtreeItems(site, path).stream()
                 .map(this::getOriginalPath)
@@ -609,5 +615,30 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public String getLastEditCommitId(String siteId, String path) {
         return localRepositoryV2.getLastEditCommitId(siteId, path);
+    }
+
+    @Override
+    public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
+        return localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
+    }
+
+    @Override
+    public void markGitLogAudited(String siteId, String commitId) {
+        localRepositoryV2.markGitLogAudited(siteId, commitId);
+    }
+
+    @Override
+    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException {
+        localRepositoryV2.updateGitlog(siteId, lastProcessedCommitId, batchSize);
+    }
+
+    @Override
+    public List<GitLog> getUnauditedCommits(String siteId, int batchSize) {
+        return localRepositoryV2.getUnauditedCommits(siteId, batchSize);
+    }
+
+    @Override
+    public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
+        return getUnprocessedCommits(siteId, marker);
     }
 }
