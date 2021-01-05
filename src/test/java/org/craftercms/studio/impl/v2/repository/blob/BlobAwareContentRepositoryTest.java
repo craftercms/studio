@@ -59,6 +59,7 @@ public class BlobAwareContentRepositoryTest {
     public static final String NEW_FOLDER_PATH = FOLDER_PATH + "2";
     public static final String NEW_FILE_PATH = FOLDER_PATH + "/test.txt";
     public static final String NEW_POINTER_PATH = NEW_FILE_PATH + "." + BLOB_EXT;
+    public static final String NO_EXT_PATH = PARENT_PATH + "/test";
     public static final ByteArrayInputStream CONTENT = new ByteArrayInputStream("test".getBytes());
     public static final ByteArrayInputStream POINTER = new ByteArrayInputStream("pointer".getBytes());
     public static final long SIZE = 42;
@@ -96,6 +97,10 @@ public class BlobAwareContentRepositoryTest {
         when(resolver.getByPaths(SITE, ORIGINAL_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
+        when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
+
+        when(localV1.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
+        when(localV1.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
 
         when(localV1.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
         when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
@@ -344,6 +349,14 @@ public class BlobAwareContentRepositoryTest {
 
         assertNotNull(versions);
         assertEquals(versions.length, 2);
+    }
+
+    @Test
+    public void fileWithoutExtensionTest() throws ServiceLayerException {
+        proxy.writeContent(SITE, NO_EXT_PATH, CONTENT);
+
+        verify(store).writeContent(SITE, NO_EXT_PATH, CONTENT);
+        verify(localV1).writeContent(eq(SITE), eq(NO_EXT_PATH + "." + BLOB_EXT), any());
     }
 
 }
