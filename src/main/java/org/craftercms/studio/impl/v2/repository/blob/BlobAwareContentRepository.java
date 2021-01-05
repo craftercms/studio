@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.repository.blob;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -115,16 +114,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         this.interceptedPaths = interceptedPaths;
     }
 
-    protected boolean isFolder(String path) {
-        return isEmpty(FilenameUtils.getExtension(path));
-    }
-
     protected String getOriginalPath(String path) {
         return StringUtils.removeEnd(path, "." + fileExtension);
     }
 
-    protected String getPointerPath(String path) {
-        return isFolder(path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
+    protected String getPointerPath(String siteId, String path) {
+        return isFolder(siteId, path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
     }
 
     protected String normalize(String path) {
@@ -157,7 +152,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public boolean contentExists(String site, String path) {
         logger.debug("Checking if {0} exists in site {1}", path, site);
         try {
-            if (!isFolder(path)) {
+            if (!isFolder(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.contentExists(site, normalize(path));
@@ -174,7 +169,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public InputStream getContent(String site, String path) {
         logger.debug("Getting content of {0} in site {1}", path, site);
         try {
-            if (!isFolder(path)) {
+            if (!isFolder(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.getContent(site, normalize(path));
@@ -210,7 +205,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 store.writeContent(site, normalize(path), content);
                 Blob reference = store.getReference(normalize(path));
-                return localRepositoryV1.writeContent(site, getPointerPath(path),
+                return localRepositoryV1.writeContent(site, getPointerPath(site, path),
                         new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
             }
             return localRepositoryV1.writeContent(site, path, content);
@@ -243,7 +238,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 String result = store.deleteContent(site, normalize(path), approver);
                 if (result != null) {
-                    return localRepositoryV1.deleteContent(site, getPointerPath(path), approver);
+                    return localRepositoryV1.deleteContent(site, getPointerPath(site, path), approver);
                 }
             }
             return localRepositoryV1.deleteContent(site, path, approver);
@@ -261,8 +256,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
-                    return localRepositoryV1.moveContent(site, getPointerPath(fromPath),
-                            getPointerPath(toPath), newName);
+                    return localRepositoryV1.moveContent(site, getPointerPath(site, fromPath),
+                            getPointerPath(site, toPath), newName);
                 }
             }
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
@@ -280,7 +275,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 String result = store.copyContent(site, normalize(fromPath), normalize(toPath));
                 if (result != null) {
-                    return localRepositoryV1.copyContent(site, getPointerPath(fromPath), getPointerPath(toPath));
+                    return localRepositoryV1.copyContent(site, getPointerPath(site, fromPath),
+                            getPointerPath(site, toPath));
                 }
             }
             return localRepositoryV1.copyContent(site, fromPath, toPath);
@@ -305,7 +301,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
-                return localRepositoryV1.getContentVersionHistory(site, getPointerPath(path));
+                return localRepositoryV1.getContentVersionHistory(site, getPointerPath(site, path));
             }
             return localRepositoryV1.getContentVersionHistory(site, path);
         } catch (Exception e) {
@@ -374,12 +370,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected DeploymentItemTO mapDeploymentItem(DeploymentItemTO item) {
         DeploymentItemTO pointer = new DeploymentItemTO();
-        pointer.setPath(getPointerPath(item.getPath()));
+        pointer.setPath(getPointerPath(item.getSite(), item.getPath()));
         pointer.setSite(item.getSite());
         pointer.setCommitId(item.getCommitId());
         pointer.setMove(item.isMove());
         pointer.setDelete(item.isDelete());
-        pointer.setOldPath(getPointerPath(item.getOldPath()));
+        pointer.setOldPath(getPointerPath(item.getSite(), item.getOldPath()));
         pointer.setPackageId(item.getPackageId());
         return pointer;
     }
