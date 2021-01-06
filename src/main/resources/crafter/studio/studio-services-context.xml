@@ -1526,6 +1526,9 @@
         <constructor-arg value="#{studioConfiguration.getProperty('studio.security.sessionTimeout')}"/>
         <constructor-arg ref="securityMapper"/>
         <constructor-arg ref="instanceService"/>
+        <constructor-arg ref="auditServiceInternal"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
         <property name="cookieName" value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
         <property name="cookieMaxAge"
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>

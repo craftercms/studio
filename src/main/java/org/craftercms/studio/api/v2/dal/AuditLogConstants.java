@@ -58,5 +58,7 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_CONTENT_ITEM = "Content Item";
     public static final String TARGET_TYPE_REMOTE_REPOSITORY = "Remote Repository";
     public static final String TARGET_TYPE_CLUSTER_NODE = "Cluster Node";
+    public static final String TARGET_TYPE_ACCESS_TOKEN = "Access Token";
+    public static final String TARGET_TYPE_REFRESH_TOKEN = "Refresh Token";
     public static final String TARGET_TYPE_UNKNOWN = "unknown";
 }

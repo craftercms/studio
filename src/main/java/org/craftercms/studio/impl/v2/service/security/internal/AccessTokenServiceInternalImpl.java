@@ -17,12 +17,16 @@ package org.craftercms.studio.impl.v2.service.security.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.SecurityDAO;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.security.AccessToken;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
@@ -54,6 +58,14 @@ import java.util.UUID;
 import static java.lang.Long.parseLong;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_ACCESS_TOKEN;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REFRESH_TOKEN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.springframework.web.util.WebUtils.getCookie;
 
 /**
@@ -97,10 +109,14 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
     protected SecurityDAO securityDao;
     protected InstanceService instanceService;
+    protected AuditServiceInternal auditService;
+    protected StudioConfiguration studioConfiguration;
+    protected SiteService siteService;
 
     public AccessTokenServiceInternalImpl(String issuer, int accessTokenExpiration, String signPassword,
                                           String encryptPassword, int refreshTokenExpiration, SecurityDAO securityDao,
-                                          InstanceService instanceService) {
+                                          InstanceService instanceService, AuditServiceInternal auditService,
+                                          StudioConfiguration studioConfiguration, SiteService siteService) {
         this.issuer = issuer;
         this.accessTokenExpiration = accessTokenExpiration;
         this.signPassword = signPassword;
@@ -108,10 +124,13 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         this.refreshTokenExpiration = refreshTokenExpiration;
         this.securityDao = securityDao;
         this.instanceService = instanceService;
+        this.auditService = auditService;
+        this.studioConfiguration = studioConfiguration;
+        this.siteService = siteService;
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         jwtSignKey = new HmacKey(signPassword.getBytes(StandardCharsets.UTF_8));
         jwtEncryptKey = new PbkdfKey(encryptPassword);
         setCookieHttpOnly(true); // Always HTTPOnly to protect the refresh token
@@ -160,12 +179,19 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         accessToken.setToken(token);
         accessToken.setExpiresAt(expireAt);
 
+        // The userId is not really useful, but the db requires a value
+        createAuditLog(auth, getUserId(auth), TARGET_TYPE_REFRESH_TOKEN, OPERATION_CREATE);
+
         return accessToken;
     }
 
     @Override
     public void deleteRefreshToken(Authentication auth) {
-        securityDao.deleteRefreshToken(getUserId(auth));
+        var userId = getUserId(auth);
+        securityDao.deleteRefreshToken(userId);
+
+        // The userId is not really useful, but the db requires a value
+        createAuditLog(auth, userId, TARGET_TYPE_REFRESH_TOKEN, OPERATION_DELETE);
     }
 
     @Override
@@ -185,6 +211,8 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
         token.setToken(createToken(Instant.now(), expiresAt, auth.getName(), token.getId()));
 
+        createAuditLog(auth, token.getId(), TARGET_TYPE_ACCESS_TOKEN, OPERATION_CREATE);
+
         return token;
     }
 
@@ -202,6 +230,8 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
         securityDao.updateAccessToken(userId, tokenId, enabled);
 
+        createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_UPDATE);
+
         return securityDao.getAccessTokenByUserIdAndTokenId(userId, tokenId);
     }
 
@@ -210,6 +240,8 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         var auth = SecurityContextHolder.getContext().getAuthentication();
 
         securityDao.deleteAccessToken(getUserId(auth), tokenId);
+
+        createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_DELETE);
     }
 
     @Override
@@ -227,26 +259,36 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
             var claims = jwtConsumer.processToClaims(token);
 
+            var username = claims.getSubject();
             var jwtId = claims.getJwtId();
             if (isNotEmpty(jwtId)) {
                 var tokenId = parseLong(jwtId);
                 var storedToken = securityDao.getAccessTokenById(tokenId);
                 if (storedToken == null) {
                     // someone is trying to use a deleted token!
+                    logger.debug("Detected usage of deleted JWT with id {0} for user {1}", tokenId, username);
+                    createAuditLog(username, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_LOGIN_FAILED);
                     return null;
                 }
                 if (!storedToken.isEnabled()) {
                     // someone is trying to use a disabled token!
+                    logger.debug("Detected usage of disabled JWT with id {0} for user {1}", tokenId, username);
+                    createAuditLog(username, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_LOGIN_FAILED);
                     return null;
                 }
+
+                logger.debug("Successfully validated JWT with id {0} for user {1}", tokenId, username);
+                createAuditLog(username, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_LOGIN);
+            } else {
+                logger.debug("Successfully validated JWT with for user {0}", username);
             }
 
             // Return the user
-            return claims.getSubject();
+            return username;
         } catch (InvalidJwtException | MalformedClaimException e) {
-            //TODO: log & audit
-            logger.error("Error reading JWT", e);
-
+            // someone is trying to use an invalid token!
+            logger.debug("Detected usage of invalid JWT {0}", token);
+            createAuditLog("JWT", -1, TARGET_TYPE_ACCESS_TOKEN, token, OPERATION_LOGIN_FAILED);
         }
         return null;
     }
@@ -289,6 +331,30 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
             return jwe.getCompactSerialization();
         } catch (JoseException e) {
             throw new ServiceLayerException("Error generating JWT for user " + username, e);
+        }
+    }
+
+    protected void createAuditLog(Authentication auth, long tokenId, String type, String operation) {
+        createAuditLog(auth.getName(), tokenId, type, operation);
+    }
+
+    protected void createAuditLog(String actor, long tokenId, String type, String operation) {
+        createAuditLog(actor, tokenId, type, Long.toString(tokenId), operation);
+    }
+
+    protected void createAuditLog(String actor, long tokenId, String type, String value, String operation) {
+        try {
+            var site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            var entry = auditService.createAuditLogEntry();
+            entry.setOperation(operation);
+            entry.setActorId(actor);
+            entry.setSiteId(site.getId());
+            entry.setPrimaryTargetId(Long.toString(tokenId));
+            entry.setPrimaryTargetType(type);
+            entry.setPrimaryTargetValue(value);
+            auditService.insertAuditLog(entry);
+        } catch (SiteNotFoundException e) {
+            // should never happen
         }
     }
 
