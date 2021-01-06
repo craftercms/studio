@@ -822,9 +822,9 @@ studio.forwarded.headers.enabled: false
 ##             Studio Clock Tasks               ##
 ##################################################
 # Studio Clock job ticking frequency
-studio.clockJob.frequency: 1000
+studio.clockJob.frequency: 5000
 # Random offset to time shift cluster members in milliseconds
-studio.clockJob.task.cluster.randomOffset: 500
+studio.clockJob.task.cluster.randomOffset: 1000
 # Studio Clock Job thread pool core size
 studio.clockJob.taskExecutor.corePoolSize: 50
 # Studio Clock Job thread pool maximum size
@@ -832,19 +832,19 @@ studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
 studio.clockJob.taskExecutor.queueCapacity: 2000
 # Cluster Global Repo sync execute every N cycles
-studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 60
+studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 12
 # Cluster Site Sandbox sync execute every N cycles
-studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 10
+studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 2
 # Cluster Site Published sync execute every N cycles
-studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 20
+studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 12
 # Sync repository execute every N cycles
-studio.clockJob.task.syncRepository.executeEveryNCycles: 5
+studio.clockJob.task.syncRepository.executeEveryNCycles: 1
 # Publisher execute every N cycles
-studio.clockJob.task.publisher.executeEveryNCycles: 10
+studio.clockJob.task.publisher.executeEveryNCycles: 2
 # Publisher max retry count in case if content not found
 studio.clockJob.task.publisher.maxRetryCount: 5
 # Process audit log from repository execute every N cycles
-studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 30
+studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 6
 # Insert N new commits from git log with each execution of the audit log processing task
 studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
 # Process N unaudited commits with each execution of the audit log processing task
