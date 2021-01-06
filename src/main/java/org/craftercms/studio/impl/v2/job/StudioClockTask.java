@@ -25,13 +25,15 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class StudioClockTask implements SiteJob {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClockTask.class);
 
     private int executeEveryNCycles;
-    protected int counter;
+    protected Map<String,Integer> counters;
     protected int offset;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
@@ -41,21 +43,32 @@ public abstract class StudioClockTask implements SiteJob {
                            StudioConfiguration studioConfiguration,
                            SiteService siteService) {
         this.executeEveryNCycles = executeEveryNCycles;
-        this.counter = executeEveryNCycles;
+        this.counters = new HashMap<String,Integer>();
         this.offset = offset;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
     }
 
-    protected synchronized boolean checkCycleCounter() {
-        return !(--counter > 0);
+    protected synchronized boolean checkCycleCounter(String site) {
+        if (!counters.containsKey(site)) {
+            setCycleCounter(site, executeEveryNCycles);
+        }
+
+        int counter = counters.get(site);
+        setCycleCounter(site, --counter);
+
+        return (counter <= 0); // Trigger if <= 0
+    }
+
+    protected synchronized void setCycleCounter(String site, int counter) {
+        counters.put(site, counter);
     }
 
     protected abstract void executeInternal(String site);
 
     @Override
     public final void execute(String site) {
-        if (checkCycleCounter()) {
+        if (checkCycleCounter(site)) {
             try {
                 long sleepTime = (long) (Math.random() * offset);
                 logger.debug("Sleeping for offset " + sleepTime + " milliseconds");
@@ -64,7 +77,7 @@ public abstract class StudioClockTask implements SiteJob {
                 logger.debug("Woke up from random offset");
             }
             executeInternal(site);
-            counter = executeEveryNCycles;
+            setCycleCounter(site, executeEveryNCycles);
         }
     }
 
