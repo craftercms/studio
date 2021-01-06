@@ -68,7 +68,7 @@ public abstract class StudioClockTask implements SiteJob {
 
     @Override
     public final void execute(String site) {
-        logger.debug("Task Clock for: " + this.getClass().getName() + " counter: " + counters.get(site) + " execute every: " + executeEveryNCycles);
+        logger.debug("Task Clock for: " + this.getClass().getName() + " site: " + site + " counter: " + counters.get(site) + " execute every: " + executeEveryNCycles);
         if (checkCycleCounter(site)) {
             try {
                 long sleepTime = (long) (Math.random() * offset);
