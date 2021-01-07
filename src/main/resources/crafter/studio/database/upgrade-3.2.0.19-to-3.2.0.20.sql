@@ -22,4 +22,10 @@ call addColumnIfNotExists('crafter', 'gitlog', 'audited', 'INT NOT NULL DEFAULT 
 
 call addColumnIfNotExists('crafter', 'cluster_site_sync_repo', 'node_last_synced_gitlog_commit_id', 'VARCHAR(50) NULL DEFAULT 1') ;
 
+UPDATE site SET last_synced_gitlog_commit_id = last_commit_id ;
+
+UPDATE gitlog SET audited = 1 ;
+
+UPDATE cluster_site_sync_repo SET node_last_synced_gitlog_commit_id = node_last_commit_id ;
+
 UPDATE _meta SET version = '3.2.0.20' ;
