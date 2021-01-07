@@ -340,6 +340,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 .build();
 
         String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        logger.debug("Git Lock Key: " + gitLockKey);
         try (Git git = new Git(repo)) {
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
@@ -360,9 +361,13 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                         remoteNode.getGitRemoteName());
                                 logger.error(e.getMessage());
                             }
-                            logger.debug("Update all environments for site " + siteId + " from cluster member " +
-                                    remoteNode.getLocalAddress());
-                            for (String branch : environments) {
+                        }
+                    }
+
+                    for (String branch : environments) {
+                        for (ClusterMember remoteNode : clusterNodes) {
+                            ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
+                            if (Objects.nonNull(csr) && csr.getPublishedRepoCreated() > 0) {
                                 try {
                                     updatePublishedBranch(siteId, git, remoteNode, branch);
                                 } catch (GitAPIException e) {
@@ -396,38 +401,25 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             throws CryptoException, GitAPIException, IOException, ServiceLayerException {
         logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalAddress() +
                 " for site " + siteId);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-        if (generalLockService.tryLock(gitLockKey)) {
-            try {
+        Repository repo = git.getRepository();
+        Ref ref = repo.exactRef(Constants.R_HEADS + branch);
+        boolean createBranch = (ref == null);
 
-
-
-                Repository repo = git.getRepository();
-                Ref ref = repo.exactRef(Constants.R_HEADS + branch);
-                boolean createBranch = (ref == null);
-
-                logger.debug("Checkout " + branch);
-                CheckoutCommand checkoutCommand = git.checkout()
-                        .setName(branch)
-                        .setCreateBranch(createBranch);
-                if (createBranch) {
-                    checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
-                }
-                checkoutCommand.call();
-
-                PullCommand pullCommand = git.pull();
-                pullCommand.setRemote(remoteNode.getGitRemoteName());
-                pullCommand.setRemoteBranchName(branch);
-                pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-                pullCommand.call();
-
-            } finally {
-                generalLockService.unlock(gitLockKey);
-            }
-        } else {
-            logger.debug("Failed to get lock " + gitLockKey);
+        logger.debug("Checkout " + branch);
+        CheckoutCommand checkoutCommand = git.checkout()
+                .setName(branch)
+                .setCreateBranch(createBranch);
+        if (createBranch) {
+            checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
         }
+        checkoutCommand.call();
+
+        PullCommand pullCommand = git.pull();
+        pullCommand.setRemote(remoteNode.getGitRemoteName());
+        pullCommand.setRemoteBranchName(branch);
+        pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+        pullCommand.call();
 
         Files.delete(tempKey);
     }
