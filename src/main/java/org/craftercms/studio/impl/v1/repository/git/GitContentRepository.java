@@ -1912,7 +1912,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor, generalLockService);
-            Path p = Paths.get(helper.buildRepoPath(SANDBOX, siteId).toAbsolutePath().toString(), path);
+            Path p = Paths.get(helper.buildRepoPath(StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX, siteId)
+                    .toAbsolutePath().toString(), path);
             File file = p.toFile();
             return file.isDirectory();
         } catch (CryptoException e) {
