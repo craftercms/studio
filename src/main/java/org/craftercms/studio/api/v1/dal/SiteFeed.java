@@ -42,6 +42,7 @@ public class SiteFeed {
     protected String publishingLockOwner;
     protected ZonedDateTime publishingLockHeartbeat;
     protected String state;
+    protected String lastSyncedGitlogCommitId;
 
     public long getId() {
         return id;
@@ -194,5 +195,13 @@ public class SiteFeed {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public String getLastSyncedGitlogCommitId() {
+        return lastSyncedGitlogCommitId;
+    }
+
+    public void setLastSyncedGitlogCommitId(String lastSyncedGitlogCommitId) {
+        this.lastSyncedGitlogCommitId = lastSyncedGitlogCommitId;
     }
 }

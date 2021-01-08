@@ -588,7 +588,7 @@ public class ContentServiceImpl implements ContentService {
                 objectMetadataManager.insertNewObjectMetadata(site, path);
             }
             objectMetadataManager.updateCommitId(site, path, commitId);
-            contentRepository.insertGitLog(site, commitId, 1);
+            contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
         }
 
@@ -603,9 +603,6 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
-            contentRepository.insertGitLog(site, commitId, 1);
-            siteService.updateLastCommitId(site, commitId);
-
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
@@ -615,6 +612,9 @@ public class ContentServiceImpl implements ContentService {
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(path + FILE_SEPARATOR + name);
             auditServiceInternal.insertAuditLog(auditLog);
+
+            contentRepository.insertGitLog(site, commitId, 1, 1);
+            siteService.updateLastCommitId(site, commitId);
             toRet = true;
         }
 
@@ -960,7 +960,7 @@ public class ContentServiceImpl implements ContentService {
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                    contentRepository.insertGitLog(site, entry.getValue(), 1);
+                    contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
@@ -1932,8 +1932,6 @@ public class ContentServiceImpl implements ContentService {
             // Update the database with the commitId for the target item
             objectStateService.transition(site, path, REVERT);
             objectMetadataManager.updateCommitId(site, path, commitId);
-            contentRepository.insertGitLog(site, commitId, 1);
-            siteService.updateLastCommitId(site, commitId);
 
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -1945,6 +1943,9 @@ public class ContentServiceImpl implements ContentService {
             auditLog.setPrimaryTargetValue(path);
             auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
             auditServiceInternal.insertAuditLog(auditLog);
+
+            contentRepository.insertGitLog(site, commitId, 1, 1);
+            siteService.updateLastCommitId(site, commitId);
 
             toReturn = true;
         }

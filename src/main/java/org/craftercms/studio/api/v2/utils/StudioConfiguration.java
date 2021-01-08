@@ -336,8 +336,14 @@ public interface StudioConfiguration {
             "studio.clockJob.task.syncRepository.executeEveryNCycles";
     String CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES =
             "studio.clockJob.task.publisher.executeEveryNCycles";
+    String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_EXECUTE_EVERY_N_CYCLES =
+            "studio.clockJob.task.auditLogProcessing.executeEveryNCycles";
     String CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT =
             "studio.clockJob.task.publisher.maxRetryCount";
+    String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG =
+            "studio.clockJob.task.auditLogProcessing.batchSizeGitLog";
+    String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_AUDITED =
+            "studio.clockJob.task.auditLogProcessing.batchSizeAudited";
 
     void loadConfig();
 

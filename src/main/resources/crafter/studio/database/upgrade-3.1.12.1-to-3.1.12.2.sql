@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
@@ -14,29 +13,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package scripts.api.impl.activity
 
+call addColumnIfNotExists('crafter', 'audit', 'commit_id', 'VARCHAR(50) NULL') ;
 
-/**
- * @author Dejan Brkic
- */
-class SpringActivityServices {
+call addColumnIfNotExists('crafter', 'site', 'last_synced_gitlog_commit_id', 'VARCHAR(50) NULL') ;
 
-    def context = null
+call addColumnIfNotExists('crafter', 'gitlog', 'audited', 'INT NOT NULL DEFAULT 0') ;
 
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-    def SpringActivityServices(context) {
-        this.context = context
-    }
+call addColumnIfNotExists('crafter', 'cluster_site_sync_repo', 'node_last_synced_gitlog_commit_id', 'VARCHAR(50) NULL DEFAULT 1') ;
 
-    def getActivities(site, num, sort, ascending, excludeLive, filterType) {
+UPDATE site SET last_synced_gitlog_commit_id = last_commit_id ;
 
-        def springBackedService = this.context.applicationContext.get("auditService");
-        return springBackedService.getUserActivities(site, num, sort, ascending, excludeLive, filterType);
-    }
+UPDATE gitlog SET audited = 1 ;
 
-}
+UPDATE cluster_site_sync_repo SET node_last_synced_gitlog_commit_id = node_last_commit_id ;
+
+UPDATE _meta SET version = '3.1.12.2' ;

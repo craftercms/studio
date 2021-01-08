@@ -147,11 +147,19 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         logger.debug("Get all hard dependencies");
         pathsParams.addAll(paths);
         Set<String> mandatoryParents = getMandatoryParents(site, paths);
-        boolean exitCondition = false;
+        List<String> mpAsList = new ArrayList<>(mandatoryParents);
         Map<String, String> ancestors = new HashMap<String, String>();
-        for (String p : paths) {
-            ancestors.put(p, p);
+        if (CollectionUtils.isNotEmpty(mandatoryParents)) {
+            pathsParams.addAll(mandatoryParents);
+            Set<String> existingRenamedChildrenOfMandatoryParents =
+                    getExistingRenamedChildrenOfMandatoryParents(site, mpAsList);
+            for (String p3: existingRenamedChildrenOfMandatoryParents) {
+                    ancestors.put(p3, p3);
+            }
+            pathsParams.addAll(existingRenamedChildrenOfMandatoryParents);
         }
+        boolean exitCondition = false;
+
         for (String p : mandatoryParents) {
             String prefix = p.replace(FILE_SEPARATOR + INDEX_FILE, "");
             for (String p2 : paths) {
@@ -160,6 +168,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
                     break;
                 }
             }
+
         }
         do {
             List<Map<String, String>> deps = calculateHardDependenciesForListFromDB(site, pathsParams);
@@ -194,6 +203,21 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
             toRet.addAll(result);
         }
+        return toRet;
+    }
+
+    private Set<String> getExistingRenamedChildrenOfMandatoryParents(String site, List<String> paths) {
+        Set<String> toRet = new HashSet<String>();
+        //Set<String> possibleParents = calculatePossibleParents(paths);
+        //if (!possibleParents.isEmpty()) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put(ItemStateMapper.SITE_PARAM, site);
+            params.put(ItemStateMapper.PARENTS_PARAM, paths);
+            Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
+            params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
+            List<String> result = itemStateMapper.getExistingRenamedChildrenOfMandatoryParentsForPublishing(params);
+            toRet.addAll(result);
+        //}
         return toRet;
     }
 

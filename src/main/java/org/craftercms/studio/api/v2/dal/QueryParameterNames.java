@@ -110,6 +110,7 @@ public abstract class QueryParameterNames {
     public static final String NODE_LAST_COMMIT_ID = "nodeLastCommitId";
     // cluster id
     public static final String NODE_LAST_VERIFIED_GITLOG_COMMIT_ID = "nodeLastVerifiedGitlogCommitId";
+    public static final String NODE_LAST_SYNCED_GITLOG_COMMIT_ID = "nodeLastSyncedGitlogCommitId";
 
     /* Publish request */
     // Environment
@@ -135,6 +136,13 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_NODE_ID = "clusterNodeId";
 
     public static final String INCLUDE_PARAMETERS = "includeParameters";
+
+    /** Gitlog */
+    public static final String AUDITED = "audited";
+    // list of commit ids
+    public static final String COMMIT_IDS = "commitIds";
+
+    public static final String MARKER = "marker";
 
     private QueryParameterNames() { }
 }

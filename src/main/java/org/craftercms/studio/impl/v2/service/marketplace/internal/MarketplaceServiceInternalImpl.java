@@ -143,7 +143,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         httpHeaders.set(HEADER_STUDIO_BUILD, versionInfo.getPackageBuild());
         httpHeaders.set(HEADER_STUDIO_VERSION, versionInfo.getPackageVersion());
-        httpHeaders.set(HEADER_JAVA_VERSION, versionStr);
+        httpHeaders.set(HEADER_JAVA_VERSION, versionInfo.getJavaVersion());
 
         httpHeaders.set(HEADER_OS_NAME, versionInfo.getOsName());
         httpHeaders.set(HEADER_OS_VERSION, versionInfo.getOsVersion());

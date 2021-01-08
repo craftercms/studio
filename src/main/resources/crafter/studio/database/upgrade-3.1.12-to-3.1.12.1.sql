@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
@@ -14,29 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package scripts.api.impl.activity
 
+call addColumnIfNotExists('crafter', 'cluster', 'available', 'INT NOT NULL DEFAULT 1') ;
 
-/**
- * @author Dejan Brkic
- */
-class SpringActivityServices {
-
-    def context = null
-
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-    def SpringActivityServices(context) {
-        this.context = context
-    }
-
-    def getActivities(site, num, sort, ascending, excludeLive, filterType) {
-
-        def springBackedService = this.context.applicationContext.get("auditService");
-        return springBackedService.getUserActivities(site, num, sort, ascending, excludeLive, filterType);
-    }
-
-}
+UPDATE _meta SET version = '3.1.12.1' ;

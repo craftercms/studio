@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.repository.blob;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -29,6 +28,7 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -113,16 +113,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         this.interceptedPaths = interceptedPaths;
     }
 
-    protected boolean isFolder(String path) {
-        return isEmpty(FilenameUtils.getExtension(path));
-    }
-
     protected String getOriginalPath(String path) {
         return StringUtils.removeEnd(path, "." + fileExtension);
     }
 
-    protected String getPointerPath(String path) {
-        return isFolder(path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
+    protected String getPointerPath(String siteId, String path) {
+        return isFolder(siteId, path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
     }
 
     protected String normalize(String path) {
@@ -155,7 +151,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public boolean contentExists(String site, String path) {
         logger.debug("Checking if {0} exists in site {1}", path, site);
         try {
-            if (!isFolder(path)) {
+            if (!isFolder(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.contentExists(site, normalize(path));
@@ -172,7 +168,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public InputStream getContent(String site, String path) {
         logger.debug("Getting content of {0} in site {1}", path, site);
         try {
-            if (!isFolder(path)) {
+            if (!isFolder(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.getContent(site, normalize(path));
@@ -208,7 +204,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 store.writeContent(site, normalize(path), content);
                 Blob reference = store.getReference(normalize(path));
-                return localRepositoryV1.writeContent(site, getPointerPath(path),
+                return localRepositoryV1.writeContent(site, getPointerPath(site, path),
                         new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
             }
             return localRepositoryV1.writeContent(site, path, content);
@@ -241,7 +237,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 String result = store.deleteContent(site, normalize(path), approver);
                 if (result != null) {
-                    return localRepositoryV1.deleteContent(site, getPointerPath(path), approver);
+                    return localRepositoryV1.deleteContent(site, getPointerPath(site, path), approver);
                 }
             }
             return localRepositoryV1.deleteContent(site, path, approver);
@@ -259,8 +255,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
-                    return localRepositoryV1.moveContent(site, getPointerPath(fromPath),
-                            getPointerPath(toPath), newName);
+                    return localRepositoryV1.moveContent(site, getPointerPath(site, fromPath),
+                            getPointerPath(site, toPath), newName);
                 }
             }
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
@@ -278,7 +274,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 String result = store.copyContent(site, normalize(fromPath), normalize(toPath));
                 if (result != null) {
-                    return localRepositoryV1.copyContent(site, getPointerPath(fromPath), getPointerPath(toPath));
+                    return localRepositoryV1.copyContent(site, getPointerPath(site, fromPath),
+                            getPointerPath(site, toPath));
                 }
             }
             return localRepositoryV1.copyContent(site, fromPath, toPath);
@@ -303,7 +300,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
-                return localRepositoryV1.getContentVersionHistory(site, getPointerPath(path));
+                return localRepositoryV1.getContentVersionHistory(site, getPointerPath(site, path));
             }
             return localRepositoryV1.getContentVersionHistory(site, path);
         } catch (Exception e) {
@@ -372,12 +369,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected DeploymentItemTO mapDeploymentItem(DeploymentItemTO item) {
         DeploymentItemTO pointer = new DeploymentItemTO();
-        pointer.setPath(getPointerPath(item.getPath()));
+        pointer.setPath(getPointerPath(item.getSite(), item.getPath()));
         pointer.setSite(item.getSite());
         pointer.setCommitId(item.getCommitId());
         pointer.setMove(item.isMove());
         pointer.setDelete(item.isDelete());
-        pointer.setOldPath(getPointerPath(item.getOldPath()));
+        pointer.setOldPath(getPointerPath(item.getSite(), item.getOldPath()));
         pointer.setPackageId(item.getPackageId());
         return pointer;
     }
@@ -566,6 +563,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
+    public void insertGitLog(String siteId, String commitId, int processed, int audited) {
+        localRepositoryV2.insertGitLog(siteId, commitId, processed, audited);
+    }
+
+    @Override
     public List<String> getSubtreeItems(String site, String path) {
         return localRepositoryV2.getSubtreeItems(site, path).stream()
                 .map(this::getOriginalPath)
@@ -602,5 +604,30 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public String getLastEditCommitId(String siteId, String path) {
         return localRepositoryV2.getLastEditCommitId(siteId, path);
+    }
+
+    @Override
+    public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
+        return localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
+    }
+
+    @Override
+    public void markGitLogAudited(String siteId, String commitId) {
+        localRepositoryV2.markGitLogAudited(siteId, commitId);
+    }
+
+    @Override
+    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException {
+        localRepositoryV2.updateGitlog(siteId, lastProcessedCommitId, batchSize);
+    }
+
+    @Override
+    public List<GitLog> getUnauditedCommits(String siteId, int batchSize) {
+        return localRepositoryV2.getUnauditedCommits(siteId, batchSize);
+    }
+
+    @Override
+    public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
+        return getUnprocessedCommits(siteId, marker);
     }
 }
