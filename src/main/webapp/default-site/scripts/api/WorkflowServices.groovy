@@ -106,9 +106,9 @@ class WorkflowServices {
         workflowServicesImpl.getWorkflowAffectedPaths(site, path);
     }
 
-    static goDelete(context, site, requestBody, user) {
+    static goDelete(context, site, requestBody) {
         def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
-        return workflowServicesImpl.goDelete(site, requestBody, user);
+        return workflowServicesImpl.goDelete(site, requestBody);
     }
 
     static goLive(context, site, requestBody) {
@@ -120,8 +120,8 @@ class WorkflowServices {
         return workflowServicesImpl.submitToGoLive(site, user, requestBody);
     }
 
-    static reject(context, site, user, requestBody) {
+    static reject(context, site, requestBody) {
         def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
-        return workflowServicesImpl.reject(site, user, requestBody);
+        return workflowServicesImpl.reject(site, requestBody);
     }
 }

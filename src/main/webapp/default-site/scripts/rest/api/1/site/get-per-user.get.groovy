@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SiteServices
 
 def result = [:]
-def username = params.username
 def start = 0
 def number = 25
 
@@ -28,16 +27,6 @@ def number = 25
 def invalidParams = false;
 def paramsList = []
 
-// username
-try {
-    if (StringUtils.isEmpty(username)) {
-        invalidParams = true
-        paramsList.add("username")
-    }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("username")
-}
 
 // start
 try {
@@ -74,10 +63,10 @@ if (invalidParams) {
 
     def context = SiteServices.createContext(applicationContext, request)
     try {
-        def total = SiteServices.getSitesPerUserTotal(context, username);
-        def sites = SiteServices.getSitesPerUser(context, username, start, number);
+        def total = SiteServices.getSitesPerUserTotal(context);
+        def sites = SiteServices.getSitesPerUser(context, start, number);
         if (sites != null) {
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get-per-user.json?username=" + username + "&start=" + start + "&number=" + number
+            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get-per-user.json?start=" + start + "&number=" + number
             response.addHeader("Location", locationHeader)
             result.sites = sites
             result.total = total
@@ -86,9 +75,6 @@ if (invalidParams) {
             response.setStatus(500)
             result.message = "Internal server error"
         }
-    } catch (UserNotFoundException e) {
-        response.setStatus(404)
-        result.message = "User not found"
     } catch (Exception e) {
         response.setStatus(500)
         result.message = "Internal server error: \n" + e

@@ -121,4 +121,10 @@ public interface AuditServiceInternal {
 
     List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset,
                                                 int limit, String contentType, boolean hideLiveItems);
+
+    /**
+     * Delete audit log for site
+     * @param siteId site id
+     */
+    void deleteAuditLogForSite(long siteId);
 }

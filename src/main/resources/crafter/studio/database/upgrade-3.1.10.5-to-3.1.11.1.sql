@@ -37,4 +37,4 @@ BEGIN
     SELECT locked;
 END ;
 
-UPDATE _meta SET version = '3.1.10.1' ;
+UPDATE _meta SET version = '3.1.11.1' ;

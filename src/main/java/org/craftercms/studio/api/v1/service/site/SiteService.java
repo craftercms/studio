@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
@@ -146,6 +147,16 @@ public interface SiteService {
      */
    	boolean deleteSite(String siteId);
 
+    @RetryingOperation
+    void updateLastVerifiedGitlogCommitId(String site, String commitId);
+
+    /**
+	 * Update last audited gitlog commit id
+	 * @param site site identifier
+	 * @param commitId commit ID
+	 */
+	void updateLastSyncedGitlogCommitId(String site, String commitId);
+
 	/**
 	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
 	 * and manipulates the underlying repository directly.
@@ -221,6 +232,14 @@ public interface SiteService {
      */
     boolean existsByName(String name);
 
+	/**
+	 * Get total number of sites that user is allowed access to for current user
+	 *
+	 * @return number of sites
+	 * @throws UserNotFoundException
+	 */
+	int getSitesPerUserTotal() throws UserNotFoundException, ServiceLayerException;
+
     /**
      * Get total number of sites that user is allowed access to for given username
      *
@@ -229,6 +248,17 @@ public interface SiteService {
      * @throws UserNotFoundException
      */
     int getSitesPerUserTotal(String username) throws UserNotFoundException, ServiceLayerException;
+
+	/**
+	 * Get sites that user is allowed access to for current user
+	 *
+	 * @param start start position for pagination
+	 * @param number number of sites per page
+	 * @return number of sites
+	 * @throws UserNotFoundException
+	 */
+	List<SiteFeed> getSitesPerUser(int start, int number) throws UserNotFoundException,
+			ServiceLayerException;
 
     /**
      * Get sites that user is allowed access to for given username
@@ -369,4 +399,11 @@ public interface SiteService {
 	boolean isPublishedRepoCreated(String siteId);
 
     void setPublishedRepoCreated(String siteId);
+
+	/**
+	 * get last audited git log commit id for site
+	 * @param siteId site identifier
+	 * @return last audited git log commit id for local studio node
+	 */
+	String getLastSyncedGitlogCommitId(String siteId);
 }

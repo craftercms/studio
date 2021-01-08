@@ -96,8 +96,8 @@ public class WebDavServiceImpl implements WebDavService {
         WebDavProfile profile = getProfile(siteId, profileId);
         String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
         MimeType filterType;
-        Sardine sardine = createClient(profile);
         try {
+            Sardine sardine = createClient(profile);
             if(StringUtils.isEmpty(type) || type.equals(FILTER_ALL_ITEMS)) {
                 filterType = MimeType.valueOf(ALL_VALUE);
             } else {

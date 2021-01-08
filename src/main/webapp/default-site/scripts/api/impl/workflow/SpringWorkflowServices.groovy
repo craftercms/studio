@@ -48,9 +48,9 @@ class SpringWorkflowServices {
         springBackedService.getWorkflowAffectedPaths(site, path);
     }
 
-    def goDelete(site, requestBody, user) {
+    def goDelete(site, requestBody) {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
-        springBackedService.goDelete(site, requestBody, user);
+        springBackedService.goDelete(site, requestBody);
     }
 
     def goLive(site, requestBody) {
@@ -63,9 +63,9 @@ class SpringWorkflowServices {
         springBackedService.submitToGoLive (site, user, requestBody);
     }
 
-    def reject(site, user, requestBody) {
+    def reject(site, requestBody) {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
-        return springBackedService.reject(site, user, requestBody);
+        return springBackedService.reject(site, requestBody);
     }
 
     /**

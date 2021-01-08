@@ -16,8 +16,12 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface AuditDAO {
 
@@ -52,4 +56,10 @@ public interface AuditDAO {
      * @return records for audit dashboard
      */
     List<AuditLog> getAuditDashboard(Map params);
+
+    /**
+     * Delete audit log for site
+     * @param siteId site id
+     */
+    void deleteAuditLogForSite(@Param(SITE_ID) long siteId);
 }

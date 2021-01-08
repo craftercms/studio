@@ -28,6 +28,7 @@ public interface ItemStateMapper {
     String EDITED_STATES_PARAM = "editedStates";
     String NEW_STATES_PARAM = "newStates";
     String POSSIBLE_PARENTS_PARAM = "possibleParents";
+    String PARENTS_PARAM = "parents";
 
     List<ItemState> getObjectStateByStates(Map params);
 
@@ -66,4 +67,6 @@ public interface ItemStateMapper {
     void deployCommitId(Map params);
 
     List<String> getMandatoryParentsForPublishing(Map params);
+
+    List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(Map params);
 }
