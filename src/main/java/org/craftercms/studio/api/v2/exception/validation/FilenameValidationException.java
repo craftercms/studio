@@ -21,7 +21,7 @@ import static java.lang.String.format;
  * Base exception for all filename related validations
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public abstract class FilenameValidationException extends ValidationException {
 

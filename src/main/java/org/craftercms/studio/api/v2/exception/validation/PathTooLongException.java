@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v2.exception.validation;
  * Exception thrown when a path is too long
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class PathTooLongException extends PathValidationException {
 

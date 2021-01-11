@@ -27,7 +27,7 @@ import org.craftercms.studio.model.policy.Action;
  * Implementation of {@link PolicyValidator} for system restrictions
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class SystemPolicyValidator implements PolicyValidator {
 

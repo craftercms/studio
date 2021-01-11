@@ -29,7 +29,7 @@ import java.util.List;
  * Default implementation of {@link PolicyService}
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class PolicyServiceImpl implements PolicyService {
 

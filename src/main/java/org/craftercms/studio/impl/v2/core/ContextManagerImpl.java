@@ -33,7 +33,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
  * Default implementation of {@link ContextManager}
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class ContextManagerImpl implements ContextManager {
 

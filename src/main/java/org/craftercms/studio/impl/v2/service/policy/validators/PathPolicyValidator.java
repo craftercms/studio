@@ -26,7 +26,7 @@ import org.craftercms.studio.model.policy.Action;
  * Implementation of {@link PolicyValidator} for path aware actions
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class PathPolicyValidator implements PolicyValidator {
 

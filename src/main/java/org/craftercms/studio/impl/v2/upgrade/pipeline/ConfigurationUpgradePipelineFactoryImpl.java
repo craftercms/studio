@@ -28,7 +28,7 @@ import org.springframework.core.io.Resource;
  * is build based on the configuration file provided in the upgrade context.
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class ConfigurationUpgradePipelineFactoryImpl extends PrototypeUpgradePipelineFactoryImpl {
 

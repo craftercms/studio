@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * Annotation to mark the parameter containing the value of the site id
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

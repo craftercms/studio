@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * Annotation to mark operations that need to be validated against the site policy configuration
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

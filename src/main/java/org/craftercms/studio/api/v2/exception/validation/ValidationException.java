@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  * Base exception for all data validations
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class ValidationException extends ServiceLayerException {
 

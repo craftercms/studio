@@ -25,7 +25,7 @@ import java.util.List;
  * Holds all data for requesting a site policy validation
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class ValidatePolicyRequest {
 

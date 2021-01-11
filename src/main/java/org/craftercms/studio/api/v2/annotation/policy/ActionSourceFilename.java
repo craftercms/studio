@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * Annotation used by {@link SitePolicyAspect} to detect the source filename for an action
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

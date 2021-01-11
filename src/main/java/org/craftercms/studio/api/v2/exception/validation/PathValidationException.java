@@ -19,7 +19,7 @@ import static java.lang.String.format;
 
 /**
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public abstract class PathValidationException extends ValidationException {
 

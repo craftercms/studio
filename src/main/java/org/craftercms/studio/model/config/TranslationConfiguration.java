@@ -21,7 +21,7 @@ import java.util.List;
  * Holds the configuration for translations
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class TranslationConfiguration {
 

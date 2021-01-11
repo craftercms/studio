@@ -44,7 +44,7 @@ import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
  * Default implementation of {@link PolicyServiceInternal}
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 

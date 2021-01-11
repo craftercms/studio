@@ -23,7 +23,7 @@ import org.craftercms.studio.model.policy.Action;
  * Validates actions against the given configuration
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public interface PolicyValidator {
 

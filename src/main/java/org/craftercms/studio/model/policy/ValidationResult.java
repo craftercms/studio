@@ -19,7 +19,7 @@ package org.craftercms.studio.model.policy;
  * Holds the result of a site policy validation
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class ValidationResult {
 

@@ -21,7 +21,7 @@ import org.craftercms.core.service.Context;
  * Manages all {@link Context} objects for sites
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public interface ContextManager {
 

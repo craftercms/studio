@@ -25,7 +25,7 @@ import static java.util.Collections.emptyMap;
  * Represents a content action that needs to be validated
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class Action {
 

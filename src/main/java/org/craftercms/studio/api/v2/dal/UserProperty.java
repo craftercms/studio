@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v2.dal;
  * Holds the data for a single user property
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class UserProperty {
 

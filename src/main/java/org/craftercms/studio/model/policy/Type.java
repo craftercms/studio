@@ -19,7 +19,7 @@ package org.craftercms.studio.model.policy;
  * Supported types for content actions
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public enum Type {
     CREATE,

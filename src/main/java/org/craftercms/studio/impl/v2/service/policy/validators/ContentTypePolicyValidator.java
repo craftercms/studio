@@ -29,7 +29,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * Implementation of {@link PolicyValidator} for content-type aware actions
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class ContentTypePolicyValidator implements PolicyValidator {
 
