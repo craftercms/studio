@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -120,6 +121,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -151,6 +153,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
@@ -489,10 +492,12 @@ public class SiteServiceImpl implements SiteService {
                 logger.info("Adding audit log");
                 insertCreateSiteAuditLog(siteId, siteName, createdFiles);
 
+                User userObj = userServiceInternal.getUserByGitName(creator);
+
                 createdFiles.keySet().forEach(path -> {
                     objectStateService.insertNewEntry(siteId, path);
                     objectMetadataManager.insertNewObjectMetadata(siteId, path);
-                    Map <String, Object>properties = new HashMap<String, Object>();
+                    Map<String, Object> properties = new HashMap<String, Object>();
                     properties.put(ItemMetadata.PROP_SITE, siteId);
                     properties.put(ItemMetadata.PROP_PATH, path);
                     properties.put(ItemMetadata.PROP_MODIFIER, creator);
@@ -501,6 +506,20 @@ public class SiteServiceImpl implements SiteService {
                     properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
                     objectMetadataManager.setObjectMetadata(siteId, path, properties);
                     extractDependenciesForItem(siteId, path);
+
+                    // Item
+                    try {
+                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path, path,
+                                NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
+                                now, userObj.getId(), userObj.getUsername(), now, FilenameUtils.getName(path),
+                                contentService.getContentTypeClass(siteId, path), "file",
+                                StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
+                                null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
+                        itemServiceInternal.upsertEntry(siteId, item);
+                    } catch (SiteNotFoundException e) {
+                        logger.error("Unexpected error not finding site during creation of items", e);
+                    }
+
                 });
 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
@@ -512,7 +531,6 @@ public class SiteServiceImpl implements SiteService {
 
                 logger.info("Reload site configuration");
                 reloadSiteConfiguration(siteId);
-
 
                 itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
@@ -817,10 +835,12 @@ public class SiteServiceImpl implements SiteService {
                 insertCreateSiteAuditLog(siteId, siteId, createdFiles);
                 contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
 
+                User userObj = userServiceInternal.getUserByGitName(creator);
+
                 createdFiles.keySet().forEach(path -> {
                     objectStateService.insertNewEntry(siteId, path);
                     objectMetadataManager.insertNewObjectMetadata(siteId, path);
-                    Map <String, Object>properties = new HashMap<String, Object>();
+                    Map<String, Object> properties = new HashMap<String, Object>();
                     properties.put(ItemMetadata.PROP_SITE, siteId);
                     properties.put(ItemMetadata.PROP_PATH, path);
                     properties.put(ItemMetadata.PROP_MODIFIER, creator);
@@ -829,6 +849,19 @@ public class SiteServiceImpl implements SiteService {
                     properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
                     objectMetadataManager.setObjectMetadata(siteId, path, properties);
                     extractDependenciesForItem(siteId, path);
+
+                    // Item
+                    try {
+                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path, path,
+                                NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
+                                now, userObj.getId(), userObj.getUsername(), now, FilenameUtils.getName(path),
+                                contentService.getContentTypeClass(siteId, path), "file",
+                                StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
+                                null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
+                        itemServiceInternal.upsertEntry(siteId, item);
+                    } catch (SiteNotFoundException e) {
+                        logger.error("Unexpected error not finding site during creation of items", e);
+                    }
                 });
 
                 objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
@@ -988,29 +1021,44 @@ public class SiteServiceImpl implements SiteService {
                     insertCreateSiteAuditLog(siteId, siteName, createdFiles);
                     insertAddRemoteAuditLog(siteId, remoteName);
 
-                createdFiles.keySet().forEach(path -> {
-                    objectStateService.insertNewEntry(siteId, path);
-                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
-                    Map <String, Object>properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, siteId);
-                    properties.put(ItemMetadata.PROP_PATH, path);
-                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
-                    properties.put(ItemMetadata.PROP_MODIFIED, now);
-                    properties.put(ItemMetadata.PROP_CREATOR, creator);
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
-                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
-                    extractDependenciesForItem(siteId, path);
-                });
+                    User userObj = userServiceInternal.getUserByGitName(creator);
+
+                    createdFiles.keySet().forEach(path -> {
+                        objectStateService.insertNewEntry(siteId, path);
+                        objectMetadataManager.insertNewObjectMetadata(siteId, path);
+                        Map<String, Object> properties = new HashMap<String, Object>();
+                        properties.put(ItemMetadata.PROP_SITE, siteId);
+                        properties.put(ItemMetadata.PROP_PATH, path);
+                        properties.put(ItemMetadata.PROP_MODIFIER, creator);
+                        properties.put(ItemMetadata.PROP_MODIFIED, now);
+                        properties.put(ItemMetadata.PROP_CREATOR, creator);
+                        properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
+                        objectMetadataManager.setObjectMetadata(siteId, path, properties);
+                        extractDependenciesForItem(siteId, path);
+
+                        // Item
+                        try {
+                            Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path, path,
+                                    NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
+                                    now, userObj.getId(), userObj.getUsername(), now, FilenameUtils.getName(path),
+                                    contentService.getContentTypeClass(siteId, path), "file",
+                                    StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
+                                    null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
+                            itemServiceInternal.upsertEntry(siteId, item);
+                        } catch (SiteNotFoundException e) {
+                            logger.error("Unexpected error not finding site during creation of items", e);
+                        }
+                    });
 
                     objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
-                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
-                updateLastCommitId(siteId, lastCommitId);
-                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
-                updateLastSyncedGitlogCommitId(siteId, lastCommitId);
+                    contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
+                    updateLastCommitId(siteId, lastCommitId);
+                    updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
+                    updateLastSyncedGitlogCommitId(siteId, lastCommitId);
 
-                logger.info("Loading configuration for site " + siteId);
-                reloadSiteConfiguration(siteId);
+                    logger.info("Loading configuration for site " + siteId);
+                    reloadSiteConfiguration(siteId);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -1256,6 +1304,7 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Site not found " + site);
         }
     }
+
     @RetryingOperation
     @Override
     public void updateLastSyncedGitlogCommitId(String site, String commitId) {
@@ -1636,7 +1685,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public int getSitesPerUserTotal()
             throws UserNotFoundException, ServiceLayerException {
-	    return getSitesPerUserTotal(securityService.getCurrentUser());
+        return getSitesPerUserTotal(securityService.getCurrentUser());
     }
 
     @Override
@@ -1657,7 +1706,7 @@ public class SiteServiceImpl implements SiteService {
     public List<SiteFeed> getSitesPerUser(@ValidateIntegerParam(name = "start") int start,
                                           @ValidateIntegerParam(name = "number") int number)
             throws UserNotFoundException, ServiceLayerException {
-	    return getSitesPerUser(securityService.getCurrentUser(), start, number);
+        return getSitesPerUser(securityService.getCurrentUser(), start, number);
     }
 
     @Override
