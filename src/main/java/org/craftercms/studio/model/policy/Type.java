@@ -13,37 +13,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.exception.validation;
-
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+package org.craftercms.studio.model.policy;
 
 /**
- * Base exception for all data validations
+ * Supported types for content actions
  *
  * @author joseross
  * @since 3.2.0
  */
-public class ValidationException extends ServiceLayerException {
-
-    protected String modifiedValue;
-
-    public ValidationException() {
-    }
-
-    public ValidationException(String message) {
-        super(message);
-    }
-
-    public ValidationException(String message, Exception e) {
-        super(message, e);
-    }
-
-    public String getModifiedValue() {
-        return modifiedValue;
-    }
-
-    public void setModifiedValue(String modifiedValue) {
-        this.modifiedValue = modifiedValue;
-    }
-
+public enum Type {
+    CREATE,
+    RENAME,
+    MOVE,
+    COPY
 }

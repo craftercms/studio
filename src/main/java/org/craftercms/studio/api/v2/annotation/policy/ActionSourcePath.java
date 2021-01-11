@@ -13,37 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.exception.validation;
+package org.craftercms.studio.api.v2.annotation.policy;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Base exception for all data validations
+ * Annotation used by {@link SitePolicyAspect} to detect the source path for an action
  *
  * @author joseross
  * @since 3.2.0
  */
-public class ValidationException extends ServiceLayerException {
-
-    protected String modifiedValue;
-
-    public ValidationException() {
-    }
-
-    public ValidationException(String message) {
-        super(message);
-    }
-
-    public ValidationException(String message, Exception e) {
-        super(message, e);
-    }
-
-    public String getModifiedValue() {
-        return modifiedValue;
-    }
-
-    public void setModifiedValue(String modifiedValue) {
-        this.modifiedValue = modifiedValue;
-    }
-
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ActionSourcePath {
 }

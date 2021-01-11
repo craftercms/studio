@@ -1420,5 +1420,35 @@
         <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
     </bean>
 
+    <util:list id="sitePolicyValidators">
+        <bean class="org.craftercms.studio.impl.v2.service.policy.validators.FileSizePolicyValidator"/>
+        <bean class="org.craftercms.studio.impl.v2.service.policy.validators.MimeTypePolicyValidator"/>
+        <bean class="org.craftercms.studio.impl.v2.service.policy.validators.ContentTypePolicyValidator"/>
+        <bean class="org.craftercms.studio.impl.v2.service.policy.validators.PathPolicyValidator"/>
+    </util:list>
+
+    <bean id="systemPolicyValidator"
+          class="org.craftercms.studio.impl.v2.service.policy.validators.SystemPolicyValidator">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.content.filename.maxSize')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.content.fullPath.maxSize')}"/>
+    </bean>
+
+    <bean id="policyServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.policy.internal.PolicyServiceInternalImpl">
+        <constructor-arg ref="gitContentRepository"/>
+        <constructor-arg ref="gitContentRepositoryV2"/>
+        <constructor-arg ref="systemPolicyValidator"/>
+        <constructor-arg ref="sitePolicyValidators"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.content.policy.config.path')}"/>
+    </bean>
+
+    <bean id="policyService" class="org.craftercms.studio.impl.v2.service.policy.PolicyServiceImpl">
+        <constructor-arg ref="policyServiceInternal"/>
+    </bean>
+
+    <bean id="sitePolicyInterceptor" class="org.craftercms.studio.api.v2.annotation.policy.SitePolicyAspect">
+        <constructor-arg ref="policyService"/>
+    </bean>
+
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>

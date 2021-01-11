@@ -48,6 +48,7 @@ public final class ResultConstants {
     public static final String RESULT_KEY_BLUEPRINTS = "blueprints";
 
     public static final String RESULT_KEY_RESULT = "result";
+    public static final String RESULT_KEY_RESULTS = "results";
 
     /* Audit Controller */
     public static final String RESULT_KEY_AUDIT_LOG = "auditLog";

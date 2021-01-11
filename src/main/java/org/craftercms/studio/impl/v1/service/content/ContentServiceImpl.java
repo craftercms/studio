@@ -84,11 +84,15 @@ import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
+import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.policy.ActionContentType;
+import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
+import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
-import org.craftercms.studio.api.v2.exception.validation.FilenameTooLongException;
-import org.craftercms.studio.api.v2.exception.validation.PathTooLongException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -98,6 +102,7 @@ import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
+import org.craftercms.studio.model.policy.Type;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
@@ -105,12 +110,12 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
@@ -145,15 +150,13 @@ import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_OFF_
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_FILENAME_MAX_SIZE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_FULLPATH_MAX_SIZE;
 
 /**
  * Content Services that other services may use
  * @author russdanner
  * @author Sumer Jabri
  */
-public class ContentServiceImpl implements ContentService, InitializingBean {
+public class ContentServiceImpl implements ContentService {
     // TODO: SJ: Refactor in 2.7.x to leverage Crafter Core as this will automatically enable inheritance, caching and
     // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
@@ -183,9 +186,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
     protected UserService userService;
     protected ItemServiceInternal itemServiceInternal;
 
-    protected int filenameMaxSize;
-    protected int fullPathMaxSize;
-
     /**
      * file and folder name patterns for copied files and folders
      */
@@ -197,12 +197,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
 
     public final static String INTERNAL_NAME_MODIFIER_PATTERN = "\\s\\(Copy \\d+\\)";
     public final static String INTERNAL_NAME_MODIFIER_FORMAT = "%s (Copy %s)";
-
-    @Override
-    public void afterPropertiesSet() {
-        filenameMaxSize = studioConfiguration.getProperty(CONTENT_FILENAME_MAX_SIZE, Integer.class);
-        fullPathMaxSize = studioConfiguration.getProperty(CONTENT_FULLPATH_MAX_SIZE, Integer.class);
-    }
 
     @Override
     @ValidateParams
@@ -319,10 +313,12 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
 
     @Override
     @ValidateParams
-    public void writeContent(@ValidateStringParam(name = "site") String site,
-                             @ValidateSecurePathParam(name = "path") String path,
-                             @ValidateStringParam(name = "fileName") String fileName,
-                             @ValidateStringParam(name = "contentType") String contentType, InputStream input,
+    @ValidateAction(type = Type.CREATE)
+    public void writeContent(@ValidateStringParam(name = "site") @SiteId String site,
+                             @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
+                             @ValidateStringParam(name = "fileName") @ActionTargetFilename String fileName,
+                             @ValidateStringParam(name = "contentType") @ActionContentType String contentType,
+                             InputStream input,
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
                              @ValidateStringParam(name = "unlock") String unlock) throws ServiceLayerException {
@@ -334,9 +330,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
         }
-
-        //TODO: Replace with a call to the site policy validator when implemented
-        validateContent(path, fileName);
 
         Map<String, String> params = new HashMap<String, String>();
         params.put(DmConstants.KEY_SITE, site);
@@ -474,11 +467,12 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
 
     @Override
     @ValidateParams
-    public void writeContentAndRename(@ValidateStringParam(name = "site") final String site,
+    @ValidateAction(type = Type.CREATE)
+    public void writeContentAndRename(@ValidateStringParam(name = "site") @SiteId final String site,
                                       @ValidateSecurePathParam(name = "path") final String path,
-                                      @ValidateSecurePathParam(name = "targetPath") final String targetPath,
-                                      @ValidateStringParam(name = "fileName") final String fileName,
-                                      @ValidateStringParam(name = "contentType") final String contentType,
+                                      @ValidateSecurePathParam(name = "targetPath") @ActionTargetPath final String targetPath,
+                                      @ValidateStringParam(name = "fileName") @ActionTargetFilename final String fileName,
+                                      @ValidateStringParam(name = "contentType") @ActionContentType final String contentType,
                                       final InputStream input,
                                       @ValidateStringParam(name = "createFolders") final String createFolders,
                                       @ValidateStringParam(name = "edit") final  String edit,
@@ -491,9 +485,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
-
-        //TODO: Replace with a call to the site policy validator when implemented
-        validateContent(targetPath, fileName);
 
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
@@ -524,9 +515,10 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
      */
     @Override
     @ValidateParams
-    public Map<String, Object> writeContentAsset(@ValidateStringParam(name = "site") String site,
-                                                 @ValidateSecurePathParam(name = "path") String path,
-                                                 @ValidateStringParam(name = "assetName") String assetName,
+    @ValidateAction(type = Type.CREATE)
+    public Map<String, Object> writeContentAsset(@ValidateStringParam(name = "site") @SiteId String site,
+                                                 @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
+                                                 @ValidateStringParam(name = "assetName") @ActionTargetFilename String assetName,
                                                  InputStream in, String isImage, String allowedWidth,
                                                  String allowedHeight, String allowLessSize, String draft,
                                                  String unlock, String systemAsset) throws ServiceLayerException {
@@ -537,9 +529,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
         }
-
-        //TODO: Replace with a call to thes site policy validator when implemented
-        validateContent(path, assetName);
 
         boolean isSystemAsset = Boolean.valueOf(systemAsset);
 
@@ -653,12 +642,11 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
 
     @Override
     @ValidateParams
-    public boolean createFolder(@ValidateStringParam(name = "site") String site,
-                                @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name)
+    @ValidateAction(type = Type.CREATE)
+    public boolean createFolder(@ValidateStringParam(name = "site") @SiteId String site,
+                                @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
+                                @ValidateStringParam(name = "name") @ActionTargetFilename String name)
             throws ServiceLayerException, UserNotFoundException {
-        //TODO: Replace with a call to the site policy validator when implemented
-        validateContent(path, name);
 
         String folderPath = path + FILE_SEPARATOR + name;
         boolean toRet = false;
@@ -775,9 +763,10 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
 
     @Override
     @ValidateParams
-    public String copyContent(@ValidateStringParam(name = "site") String site,
-                              @ValidateSecurePathParam(name = "fromPath") String fromPath,
-                              @ValidateSecurePathParam(name = "toPath") String toPath)
+    @ValidateAction(type = Type.COPY)
+    public String copyContent(@ValidateStringParam(name = "site") @SiteId String site,
+                              @ValidateSecurePathParam(name = "fromPath") @ActionSourcePath String fromPath,
+                              @ValidateSecurePathParam(name = "toPath") @ActionTargetPath String toPath)
             throws ServiceLayerException, UserNotFoundException {
         return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
@@ -984,9 +973,10 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
 
     @Override
     @ValidateParams
-    public String moveContent(@ValidateStringParam(name = "site") String site,
-                              @ValidateSecurePathParam(name = "fromPath") String fromPath,
-                              @ValidateSecurePathParam(name = "toPath") String toPath) {
+    @ValidateAction(type = Type.MOVE)
+    public String moveContent(@ValidateStringParam(name = "site") @SiteId String site,
+                              @ValidateSecurePathParam(name = "fromPath") @ActionSourcePath String fromPath,
+                              @ValidateSecurePathParam(name = "toPath") @ActionTargetPath String toPath) {
         String retNewFileName = null;
         boolean opSuccess = false;
         String movePath = null;
@@ -2635,18 +2625,6 @@ public class ContentServiceImpl implements ContentService, InitializingBean {
         auditServiceInternal.insertAuditLog(auditLog);
         
         return toRet;
-    }
-
-    //TODO: Move this to a fixed always-on site policy when implemented
-    protected void validateContent(String path, String filename) throws ServiceLayerException {
-        if (filename.length() >= filenameMaxSize) {
-            throw new FilenameTooLongException(filename);
-        }
-
-        var fullPath = FilenameUtils.concat(path, filename);
-        if (fullPath.length() >= fullPathMaxSize) {
-            throw new PathTooLongException(fullPath);
-        }
     }
 
     public ContentRepository getContentRepository() {
