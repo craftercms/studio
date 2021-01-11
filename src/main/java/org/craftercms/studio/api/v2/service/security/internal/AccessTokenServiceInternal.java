@@ -16,13 +16,13 @@
 package org.craftercms.studio.api.v2.service.security.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.security.AccessToken;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.List;
 
@@ -66,6 +66,12 @@ public interface AccessTokenServiceInternal {
      * @param auth the current authentication
      */
     void deleteRefreshToken(Authentication auth);
+
+    /**
+     * Deletes the refresh token for the given user
+     * @param user the user
+     */
+    void deleteRefreshToken(User user);
 
     /**
      * Deletes all expired refresh tokens

@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.impl.v2.security.userdetails;
 
+import com.google.common.cache.Cache;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.springframework.security.core.Authentication;
@@ -22,32 +24,22 @@ import org.springframework.security.core.userdetails.AuthenticationUserDetailsSe
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.Map;
-
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
-
 /**
  * Implementation of {@link DbAuthenticationUserDetailsService} that uses Studio's {@link UserDAO}
  *
  * @author joseross
  * @since 3.2
  */
-public class DbAuthenticationUserDetailsService<T extends Authentication>
+public class DbAuthenticationUserDetailsService<T extends Authentication> extends AbstractCachedUserDetailsService
         implements AuthenticationUserDetailsService<T> {
 
-    protected UserDAO userDao;
-
-    public DbAuthenticationUserDetailsService(UserDAO userDao) {
-        this.userDao = userDao;
+    public DbAuthenticationUserDetailsService(UserDAO userDao, Cache<String, User> cache) {
+        super(userDao, cache);
     }
 
     @Override
-    public UserDetails loadUserDetails(T token) throws UsernameNotFoundException {
-        var user = userDao.getUserByIdOrUsername(Map.of(USERNAME, token.getName(), USER_ID, -1));
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found for " + token.getName());
-        }
+    public UserDetails loadUserDetails(T auth) throws UsernameNotFoundException {
+        var user = getUser(auth.getName());
 
         // This is only needed to avoid cast exceptions from all other services
         return new AuthenticatedUser(user);

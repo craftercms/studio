@@ -15,15 +15,12 @@
  */
 package org.craftercms.studio.impl.v2.security.userdetails;
 
+import com.google.common.cache.Cache;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
-import java.util.Map;
-
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 
 /**
  * Implementation of {@link UserDetailsService} that uses Studio's {@link UserDAO}
@@ -31,17 +28,15 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
  * @author joseross
  * @since 3.2
  */
-public class DbUserDetailsService implements UserDetailsService {
+public class DbUserDetailsService extends AbstractCachedUserDetailsService implements UserDetailsService {
 
-    protected UserDAO userDao;
-
-    public DbUserDetailsService(UserDAO userDao) {
-        this.userDao = userDao;
+    public DbUserDetailsService(UserDAO userDao, Cache<String, User> cache) {
+        super(userDao, cache);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userDao.getUserByIdOrUsername(Map.of(USER_ID, -1,USERNAME, username));
+        return getUser(username);
     }
 
 }

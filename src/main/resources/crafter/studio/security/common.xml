@@ -43,13 +43,20 @@
 
     <bean id="passwordEncoder" class="org.craftercms.studio.impl.v2.security.crypto.PasswordEncoder"/>
 
+    <bean id="userDetailsCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
+        <property name="maxSize" value="#{studioConfiguration.getProperty('studio.security.db.cache.maxSize')}"/>
+        <property name="timeToLive" value= "#{studioConfiguration.getProperty('studio.security.db.cache.timeToLive')}"/>
+    </bean>
+
     <bean id="studioUserDetailsService" class="org.craftercms.studio.impl.v2.security.userdetails.DbUserDetailsService">
         <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="userDetailsCache"/>
     </bean>
 
     <bean id="daoAuthenticationUserDetailsService"
           class="org.craftercms.studio.impl.v2.security.userdetails.DbAuthenticationUserDetailsService">
         <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="userDetailsCache"/>
     </bean>
 
     <!-- Authentication -->

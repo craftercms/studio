@@ -195,6 +195,12 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     }
 
     @Override
+    public void deleteRefreshToken(User user) {
+        logger.debug("Triggering re-authentication for user {0}", user.getUsername());
+        securityDao.deleteRefreshToken(user.getId());
+    }
+
+    @Override
     public void deleteExpiredRefreshTokens() {
         securityDao.deleteExpiredTokens(refreshTokenExpiration);
     }

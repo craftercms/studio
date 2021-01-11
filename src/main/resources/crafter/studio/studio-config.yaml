@@ -350,6 +350,11 @@ studio.security.encryption.maxLength: 4096
 # If the secure headers should be written for every request
 studio.security.headers.enabled: true
 
+# The maximum number of users to keep in the cache
+studio.security.db.cache.maxSize: 20
+# The maximum time to keep users in the cache
+studio.security.db.cache.timeToLive: 300
+
 # Issuer for the access tokens
 studio.security.token.issuer: Crafter Studio
 # Time in minutes for the expiration of the access tokens

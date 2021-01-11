@@ -351,11 +351,12 @@
 
     <bean id="userServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
-        <property name="groupServiceInternal" ref="groupServiceInternal"/>
-        <property name="userDao" ref="userDAO"/>
-        <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg ref="groupServiceInternal"/>
+        <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="cstudioSecurityService"/>
+        <constructor-arg ref="accessTokenServiceInternal"/>
     </bean>
 
     <bean id="organizationServiceInternal"
