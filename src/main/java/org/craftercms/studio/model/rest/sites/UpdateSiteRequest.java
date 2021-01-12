@@ -23,7 +23,7 @@ import javax.validation.constraints.Size;
  * Holds the data required to update a site
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateSiteRequest {

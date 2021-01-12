@@ -13,40 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.api.v2.annotation.policy;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Holds the data for a single user property
+ * Annotation used by {@link SitePolicyAspect} to detect the content-type for an action
  *
  * @author joseross
  * @since 4.0.0
  */
-public class UserProperty {
-
-    /**
-     * The key of the property
-     */
-    protected String key;
-
-    /**
-     * The value of the property
-     */
-    protected String value;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ActionContentType {
 }

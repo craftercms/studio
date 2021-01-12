@@ -63,8 +63,9 @@
     </bean>
 
     <bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
-        <property name="sitesService" ref="sitesService" />
-        <property name="marketplaceService" ref="marketplaceService"/>
+        <constructor-arg ref="sitesService" />
+        <constructor-arg ref="marketplaceService"/>
+        <constructor-arg ref="policyService"/>
     </bean>
 
     <bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">

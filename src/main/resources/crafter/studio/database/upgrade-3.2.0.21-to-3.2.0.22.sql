@@ -13,40 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.dal;
 
-/**
- * Holds the data for a single user property
- *
- * @author joseross
- * @since 4.0.0
- */
-public class UserProperty {
+ALTER TABLE item MODIFY preview_url VARCHAR(2048) NULL ;
 
-    /**
-     * The key of the property
-     */
-    protected String key;
-
-    /**
-     * The value of the property
-     */
-    protected String value;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-}
+UPDATE _meta SET version = '3.2.0.22' ;

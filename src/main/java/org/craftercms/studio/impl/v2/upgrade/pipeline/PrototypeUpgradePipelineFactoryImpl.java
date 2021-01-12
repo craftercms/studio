@@ -32,7 +32,7 @@ import org.springframework.core.io.Resource;
  * instances of pipelines using Spring beans.
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class PrototypeUpgradePipelineFactoryImpl extends DefaultUpgradePipelineFactoryImpl<String> {
 

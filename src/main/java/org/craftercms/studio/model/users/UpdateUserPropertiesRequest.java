@@ -24,7 +24,7 @@ import java.util.Map;
  * Includes all data required to update or add user properties
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateUserPropertiesRequest {

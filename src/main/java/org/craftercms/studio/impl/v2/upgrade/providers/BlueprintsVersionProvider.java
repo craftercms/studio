@@ -24,7 +24,7 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_
  * Implementation of {@link org.craftercms.commons.upgrade.VersionProvider} for the built-in blueprints.
  *
  * @author jose ross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class BlueprintsVersionProvider extends AbstractVersionProvider<String> {
 

@@ -98,6 +98,8 @@ studio.content.filename.maxSize: 255
 # The max length for the full path of files (this needs to be in sync the the db schema)
 studio.content.fullPath.maxSize: 1024
 
+studio.content.policy.config.path: /config/studio/site-policy-config.xml
+
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################

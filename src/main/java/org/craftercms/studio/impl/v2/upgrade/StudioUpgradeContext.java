@@ -50,7 +50,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  * The {@code target} object is the name of the site being upgraded.
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class StudioUpgradeContext extends UpgradeContext<String> {
 

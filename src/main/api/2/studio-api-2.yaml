@@ -6491,9 +6491,6 @@ components:
               source:
                 type: string
                 description: The source value, only needed for recursive COPY, MOVE and RENAME actions
-              contentType:
-                type: string
-                description: The id of the crafter content type, only needed for CREATE actions
               target:
                 type: string
                 description: The target value
@@ -6501,6 +6498,16 @@ components:
                 type: boolean
                 description: Indicates if all child items should be verified too
                 default: false
+              contentMetadata:
+                type: object
+                properties:
+                  fileSize:
+                    type: integer
+                    format: int64
+                    description: The size of the file in bytes, only needed for CREATE actions
+                  contentType:
+                    type: string
+                    description: The id of the crafter content type, only needed for CREATE actions
             required:
               - type
               - target

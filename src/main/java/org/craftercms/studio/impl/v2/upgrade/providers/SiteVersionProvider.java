@@ -29,7 +29,7 @@ import java.nio.file.Files;
  * Extension of {@link XmlFileVersionProvider} that also creates the version file if missing.
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class SiteVersionProvider extends XmlFileVersionProvider {
 

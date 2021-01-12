@@ -13,40 +13,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.impl.v2.service.policy;
+
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.studio.api.v2.exception.validation.ValidationException;
+import org.craftercms.studio.model.policy.Action;
 
 /**
- * Holds the data for a single user property
+ * Validates actions against the given configuration
  *
  * @author joseross
  * @since 4.0.0
  */
-public class UserProperty {
+public interface PolicyValidator {
 
     /**
-     * The key of the property
+     * Performs the validation of an action
+     *
+     * @param config the policy configuration
+     * @param action the action to validate
+     * @throws ValidationException if the validation fails
      */
-    protected String key;
-
-    /**
-     * The value of the property
-     */
-    protected String value;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
+    void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException;
 
 }

@@ -13,7 +13,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.model.rest.sites;
 
-ALTER TABLE item MODIFY preview_url VARCHAR(2048) NULL ;
+import org.craftercms.studio.model.policy.Action;
 
-UPDATE _meta SET version = '3.2.0.21' ;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
+
+/**
+ * Holds all data for requesting a site policy validation
+ *
+ * @author joseross
+ * @since 4.0.0
+ */
+public class ValidatePolicyRequest {
+
+    /**
+     * List of actions to validate
+     */
+    @NotEmpty
+    protected List<@Valid Action> actions;
+
+    public List<Action> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
+    }
+
+}
