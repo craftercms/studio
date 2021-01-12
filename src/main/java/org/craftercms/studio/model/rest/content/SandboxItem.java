@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.api.v2.dal.Item;
 
@@ -134,10 +135,12 @@ public class SandboxItem {
         this.disabled = disabled;
     }
 
+    @JsonIgnore
     public int getDisabledAsInt() {
         return disabled ? 1 : 0;
     }
 
+    @JsonIgnore
     public void setDisabledAsInt(int disabled) {
         this.disabled = disabled > 0;
     }
