@@ -139,6 +139,8 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.2.0.21-to-3.2.0.22.sql
+      - currentVersion: 3.2.0.22
+        nextVersion: 4.0.0
 
   # Pipeline to upgrade site repositories
   site:
@@ -159,6 +161,8 @@ pipelines:
             path: /config/studio/site-policy-config.xml
             file: crafter/studio/upgrade/3.2.x/3.2.0.1/site/site-policy-config.xml
             commitDetails: Add site policy config
+      - currentVersion: 3.2.0.1
+        nextVersion: 4.0.0
 
   # Pipeline to upgrade blueprints
   blueprint:
