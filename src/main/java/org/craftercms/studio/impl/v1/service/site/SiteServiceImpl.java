@@ -136,6 +136,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_ASSETS;
+import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
+import static org.craftercms.studio.api.v1.constant.DmConstants.XML_PATTERN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -143,6 +146,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDI
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
@@ -509,15 +513,31 @@ public class SiteServiceImpl implements SiteService {
 
                     // Item
                     try {
-                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path, path,
-                                NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
-                                now, userObj.getId(), userObj.getUsername(), now, FilenameUtils.getName(path),
+                        String label = FilenameUtils.getName(path);
+                        if (StringUtils.endsWith(path, XML_PATTERN)) {
+                            Document contentDoc = contentService.getContentAsDocument(siteId, path);
+                            if(contentDoc != null) {
+                                Element rootElement = contentDoc.getRootElement();
+                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                if (StringUtils.isNotEmpty(internalName)) {
+                                    label = internalName;
+                                }
+                            }
+                        }
+                        String previewUrl = null;
+                        if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
+                        }
+                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
+                                previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
+                                userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
                                 contentService.getContentTypeClass(siteId, path), "file",
                                 StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
                                 null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
                         itemServiceInternal.upsertEntry(siteId, item);
-                    } catch (SiteNotFoundException e) {
-                        logger.error("Unexpected error not finding site during creation of items", e);
+                    } catch (SiteNotFoundException | DocumentException e) {
+                        logger.error("Unexpected error during creation of items", e);
                     }
 
                 });
@@ -852,15 +872,31 @@ public class SiteServiceImpl implements SiteService {
 
                     // Item
                     try {
-                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path, path,
-                                NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
-                                now, userObj.getId(), userObj.getUsername(), now, FilenameUtils.getName(path),
+                        String label = FilenameUtils.getName(path);
+                        if (StringUtils.endsWith(path, XML_PATTERN)) {
+                            Document contentDoc = contentService.getContentAsDocument(siteId, path);
+                            if(contentDoc != null) {
+                                Element rootElement = contentDoc.getRootElement();
+                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                if (StringUtils.isNotEmpty(internalName)) {
+                                    label = internalName;
+                                }
+                            }
+                        }
+                        String previewUrl = null;
+                        if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
+                        }
+                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
+                                previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
+                                userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
                                 contentService.getContentTypeClass(siteId, path), "file",
                                 StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
                                 null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
                         itemServiceInternal.upsertEntry(siteId, item);
-                    } catch (SiteNotFoundException e) {
-                        logger.error("Unexpected error not finding site during creation of items", e);
+                    } catch (SiteNotFoundException | DocumentException e) {
+                        logger.error("Unexpected error during creation of items", e);
                     }
                 });
 
@@ -1038,15 +1074,31 @@ public class SiteServiceImpl implements SiteService {
 
                         // Item
                         try {
-                            Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path, path,
-                                    NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(), userObj.getUsername(),
-                                    now, userObj.getId(), userObj.getUsername(), now, FilenameUtils.getName(path),
+                            String label = FilenameUtils.getName(path);
+                            if (StringUtils.endsWith(path, XML_PATTERN)) {
+                                Document contentDoc = contentService.getContentAsDocument(siteId, path);
+                                if(contentDoc != null) {
+                                    Element rootElement = contentDoc.getRootElement();
+                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                    if (StringUtils.isNotEmpty(internalName)) {
+                                        label = internalName;
+                                    }
+                                }
+                            }
+                            String previewUrl = null;
+                            if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+                                    StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+                                previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
+                            }
+                            Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
+                                    previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
+                                    userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
                                     contentService.getContentTypeClass(siteId, path), "file",
                                     StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
                                     null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
                             itemServiceInternal.upsertEntry(siteId, item);
-                        } catch (SiteNotFoundException e) {
-                            logger.error("Unexpected error not finding site during creation of items", e);
+                        } catch (SiteNotFoundException | DocumentException e) {
+                            logger.error("Unexpected error during creation of items", e);
                         }
                     });
 
@@ -1422,7 +1474,7 @@ public class SiteServiceImpl implements SiteService {
                             repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
                     contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                    if (repoOperation.getPath().endsWith(XML_PATTERN)) {
                         activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                     }
 
@@ -1462,7 +1514,7 @@ public class SiteServiceImpl implements SiteService {
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
                     contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                    if (repoOperation.getPath().endsWith(XML_PATTERN)) {
                         activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                     }
 
@@ -1485,7 +1537,7 @@ public class SiteServiceImpl implements SiteService {
                                 repoOperation.getPath(), e);
                     }
                     contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                    if (repoOperation.getPath().endsWith(XML_PATTERN)) {
                         activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                     }
                     break;
@@ -1585,7 +1637,7 @@ public class SiteServiceImpl implements SiteService {
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
                     contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
-                    if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
+                    if (repoOperation.getMoveToPath().endsWith(XML_PATTERN)) {
                         activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                     }
                     break;
@@ -1635,7 +1687,7 @@ public class SiteServiceImpl implements SiteService {
         boolean toReturn = true;
 
         try {
-            if (path.endsWith(DmConstants.XML_PATTERN)) {
+            if (path.endsWith(XML_PATTERN)) {
                 SAXReader saxReader = new SAXReader();
                 try {
                     saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);

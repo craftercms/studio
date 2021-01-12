@@ -134,6 +134,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
                 dest: configuration/samples/sample-site-policy-config.xml
             commitDetails: Add sample file for site-policy-config.xml
+      - currentVersion: 3.2.0.21
+        nextVersion: 3.2.0.22
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.21-to-3.2.0.22.sql
 
   # Pipeline to upgrade site repositories
   site:

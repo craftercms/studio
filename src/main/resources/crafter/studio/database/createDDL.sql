@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.20', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.2.0.22', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -527,7 +527,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `record_last_updated`     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `site_id`                 BIGINT          NOT NULL,
   `path`                    VARCHAR(2048)   NOT NULL,
-  `preview_url`             VARCHAR(2048)   NOT NULL,
+  `preview_url`             VARCHAR(2048)   NULL,
   `state`                   BIGINT          NOT NULL,
   `owned_by`                BIGINT          NULL,
   `created_by`              BIGINT          NULL,
