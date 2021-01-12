@@ -336,7 +336,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public ConfigurationHistory getConfigurationHistory(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                        String module, String path, String environment) {
+                                                        String module, String path, String environment)
+            throws SiteNotFoundException, ContentNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException("Site " + siteId + " not found");
+        }
         String configPath = StringUtils.EMPTY;
         if (!StringUtils.isEmpty(environment)) {
             String configBasePath =
@@ -353,6 +357,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                     .replaceAll(PATTERN_MODULE, module);
             configPath = Paths.get(configBasePath, path).toString();
+        }
+        if (!contentService.contentExists(siteId, configPath)) {
+            throw new ContentNotFoundException(siteId, path, 
+                    "Content not found at path " + configPath + " site " + siteId);
         }
         ConfigurationHistory configurationHistory = new ConfigurationHistory();
         configurationHistory.setItem(contentService.getContentItem(siteId, configPath));

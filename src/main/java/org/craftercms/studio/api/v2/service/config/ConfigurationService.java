@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v2.service.config;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
@@ -112,7 +113,8 @@ public interface ConfigurationService {
      * @param environment environment to use. if empty using default
      * @return configuration history
      */
-    ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment);
+    ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment)
+            throws SiteNotFoundException, ContentNotFoundException;
 
     /**
      * Write configuration file within global repo
