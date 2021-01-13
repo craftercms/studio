@@ -85,10 +85,10 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                     processAuditLog(site);
                 }
             } catch (Exception e) {
-                logger.error("Failed to sync database from repository for site " + site, e);
+                logger.error("Failed to process audit log from repository for site " + site, e);
             }
         } catch (Exception e) {
-            logger.error("Failed to sync database from repository for site " + site, e);
+            logger.error("Failed to process audit log from repository for site " + site, e);
         }
     }
 
@@ -109,8 +109,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
         List<GitLog> unauditedGitlogs = contentRepository.getUnauditedCommits(siteId, batchSize);
         if (unauditedGitlogs != null) {
             SiteFeed siteFeed = siteService.getSite(siteId);
-            for (GitLog gl :
-                    unauditedGitlogs) {
+            for (GitLog gl : unauditedGitlogs) {
                 if (contentRepository.commitIdExists(siteId, gl.getCommitId())) {
                     String prevCommitId = gl.getCommitId() + "~";
                     List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, prevCommitId,
@@ -223,9 +222,9 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                         repoOperation.getAction());
                                 break;
                         }
-                        contentRepository.markGitLogAudited(siteId, gl.getCommitId());
                     }
                 }
+                contentRepository.markGitLogAudited(siteId, gl.getCommitId());
             }
         }
     }
