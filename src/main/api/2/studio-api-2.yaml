@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.0'
+  version: '4.0.0.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4201,7 +4201,7 @@ paths:
               - label - label or internalName - user friendly name of item
               - path - path of an item item
               - modifier - user that last modified item
-              - modifiedDate - data and time of last modification of an item
+              - dateModified - data and time of last modification of an item
               - contentType - content type of an item
           schema:
             type: string
@@ -4231,13 +4231,13 @@ paths:
           description: filter items by username that modified content
           schema:
             type: string
-        - name: filters.modifiedDateFrom
+        - name: filters.dateModifiedFrom
           in: query
           description: filter items by modified date setting lower boundary for date range
           schema:
             type: string
             format: datetime
-        - name: filters.modifiedDateTo
+        - name: filters.dateModifiedTo
           in: query
           description: filter items by modified date setting upper boundary for date range
           schema:
@@ -4313,7 +4313,7 @@ paths:
               - label - label or internalName - user friendly name of item
               - path - path of an item item
               - publisher - user that published item
-              - publishedDate - data and time when item was published
+              - datePublished - data and time when item was published
               - environment - environment where item was published
               - content type - content type of an item
           schema:
@@ -4344,13 +4344,13 @@ paths:
           description: filter items by username that published content
           schema:
             type: string
-        - name: filters.publishedDateFrom
+        - name: filters.datePublishedFrom
           in: query
           description: filter items by published date setting lower boundary for date range
           schema:
             type: string
             format: datetime
-        - name: filters.publishedDateTo
+        - name: filters.datePublishedTo
           in: query
           description: filter items by published date setting upper boundary for date range
           schema:
@@ -6072,14 +6072,14 @@ components:
         creator:
           type: string
           description: username of user that created item
-        createdDate:
+        dateCreated:
           type: string
           format: datetime
           description: timestamp when item was created
         modifier:
           type: string
           description: username of last user that modified item
-        lastModifiedDate:
+        dateModified:
           type: string
           format: datetime
           description: timestamp when was item last modified
@@ -6090,7 +6090,7 @@ components:
           type: integer
           format: int64
           description: size of content item in the repository
-        availableAction:
+        availableActions:
           type: integer
           format: int64
           description: >-
@@ -6236,7 +6236,7 @@ components:
         translationSourceId:
           type: string
           description: ID of content item that is original for translation that current item represents
-        availableAction:
+        availableActions:
           type: integer
           format: int64
           description: >-
@@ -6281,14 +6281,14 @@ components:
             creator:
               type: string
               description: username of user that created item
-            createdDate:
+            dateCreated:
               type: string
               format: datetime
               description: timestamp when item was created
             modifier:
               type: string
               description: username of last user that modified sandbox version of item
-            lastModifiedDate:
+            dateModified:
               type: string
               format: datetime
               description: timestamp when was item last modified in sandbox
@@ -6303,11 +6303,11 @@ components:
           type: object
           description: metadata of content item version stored in staging repository
           properties:
-            lastScheduledDate:
+            dateScheduled:
               type: string
               format: datetime
               description: timestamp when is item scheduled for publishing to staging repository
-            lastPublishedDate:
+            datePublished:
               type: string
               format: datetime
               description: timestamp when was item last time published to staging repository
@@ -6321,11 +6321,11 @@ components:
           type: object
           description: metadata of content item version stored in live repository
           properties:
-            lastScheduledDate:
+            dateScheduled:
               type: string
               format: datetime
               description: timestamp when is item scheduled for publishing to live repository
-            lastPublishedDate:
+            datePublished:
               type: string
               format: datetime
               description: timestamp when was item last time published to live repositroy
@@ -6452,7 +6452,7 @@ components:
         publisher:
           type: string
           description: user that published item
-        publishedDate:
+        datePublished:
           type: string
           format: datetime
           description: date and time when item was published
