@@ -154,7 +154,7 @@ pipelines:
       - currentVersion: 4.0.1
         nextVersion: 4.0.0.2
         operations:
-            - type: xsltFileUpgrader
+          - type: xsltFileUpgrader
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.2/system/global-permission-mappings-config.xslt
             commitDetails: Add new permission 'manage_access_token'
