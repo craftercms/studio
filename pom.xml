@@ -519,13 +519,6 @@
                             <revisionOnScmFailure>unknown</revisionOnScmFailure>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>${buildnumber.maven.version}</version>
-                <executions>
                     <execution>
                         <phase>process-resources</phase>
                         <id>UI-Version</id>

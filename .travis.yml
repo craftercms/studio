@@ -20,7 +20,9 @@ notifications:
     use_notice: true
     skip_join: true
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
-script: echo Hello!
+script:
+- if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then bash -c  "mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml";  fi
+- if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then bash -c "mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true" ;fi
 env:
   global:
   - secure: ccvaP/HRa4Taolqr0RX0xcJLXtRCRtyqLLs3EGfC7pAFQ0q0hfiYKyRFTPPsZ9wzrE7ozb31AaCJFDZo9S1/clzAGCJccAENyIj36RTuF3EQYZkFKSoeHOTeCMuC3k+ZiDzKWGdGwo54lSlNZNx1yQVGCK5dE+y4f9e2d7wR3Kk=
