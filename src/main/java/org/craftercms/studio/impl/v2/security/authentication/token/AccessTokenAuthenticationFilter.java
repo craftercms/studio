@@ -29,7 +29,7 @@ import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
  * Implementation of {@link AbstractPreAuthenticatedProcessingFilter} to support token authentication
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class AccessTokenAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 

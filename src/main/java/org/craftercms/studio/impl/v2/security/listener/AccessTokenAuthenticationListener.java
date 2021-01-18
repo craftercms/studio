@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
  * Listener for Spring's {@link AuthenticationSuccessEvent} that generates an access token for the user
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class AccessTokenAuthenticationListener {
 

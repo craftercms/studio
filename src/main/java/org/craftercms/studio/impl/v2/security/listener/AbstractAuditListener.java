@@ -32,7 +32,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  * Base class for all audit authentication listeners
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public abstract class AbstractAuditListener {
 

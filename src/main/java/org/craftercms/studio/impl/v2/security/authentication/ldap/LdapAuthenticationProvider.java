@@ -81,7 +81,7 @@ import static org.springframework.ldap.query.LdapQueryBuilder.query;
  * Implementation of {@link AuthenticationProvider} to support Studio's LDAP authentication
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class LdapAuthenticationProvider implements AuthenticationProvider {
 

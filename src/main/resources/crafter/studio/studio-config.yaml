@@ -355,8 +355,12 @@ studio.security.db.cache.maxSize: 20
 # The maximum time to keep users in the cache
 studio.security.db.cache.timeToLive: 300
 
-# Issuer for the access tokens
+# Issuer for the generated access tokens
 studio.security.token.issuer: Crafter Studio
+# List of accepted issuers for validation of access tokens (separated by commas)
+studio.security.token.validIssuers: Crafter Studio
+# The audience for generation and validation of access tokens (if empty the instance id will be used)
+studio.security.token.audience: ''
 # Time in minutes for the expiration of the access tokens
 studio.security.token.timeout: 5
 # Password for signing the access tokens

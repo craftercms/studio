@@ -21,7 +21,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
  * Extension of {@link AbstractAuthenticationToken} used for Studio's header authentication.
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class HeadersAuthenticationToken extends AbstractAuthenticationToken {
 

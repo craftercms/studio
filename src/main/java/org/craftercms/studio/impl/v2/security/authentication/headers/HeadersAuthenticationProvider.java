@@ -67,7 +67,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  * Implementation of {@link AuthenticationProvider} to support Studio's header authentications
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class HeadersAuthenticationProvider implements AuthenticationProvider {
 

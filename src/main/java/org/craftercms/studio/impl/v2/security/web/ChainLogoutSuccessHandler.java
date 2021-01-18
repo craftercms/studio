@@ -36,7 +36,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  * Extension of {@link SimpleUrlLogoutSuccessHandler} that handles redirection to external SSO logout when needed
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class ChainLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 

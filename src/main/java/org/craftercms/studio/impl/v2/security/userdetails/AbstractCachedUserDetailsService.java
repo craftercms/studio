@@ -30,7 +30,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
  * Base class for all services that access user information
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class AbstractCachedUserDetailsService {
 

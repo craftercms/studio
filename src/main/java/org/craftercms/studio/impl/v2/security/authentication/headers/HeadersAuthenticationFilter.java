@@ -36,7 +36,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  * Extension of {@link RequestHeaderAuthenticationFilter} that supports Studio's authentication chain configuration
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class HeadersAuthenticationFilter extends RequestHeaderAuthenticationFilter {
 

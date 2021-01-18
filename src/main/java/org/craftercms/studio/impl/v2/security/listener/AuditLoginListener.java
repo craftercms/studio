@@ -30,7 +30,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN
  * Listener for Spring's login that records events using Studio's audit service
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 
 public class AuditLoginListener extends AbstractAuditListener {

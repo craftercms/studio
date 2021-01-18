@@ -57,7 +57,7 @@ import java.util.UUID;
 
 import static java.lang.Long.parseLong;
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
@@ -72,7 +72,7 @@ import static org.springframework.web.util.WebUtils.getCookie;
  * Default implementation of {@link AccessTokenServiceInternal}
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class AccessTokenServiceInternalImpl extends CookieGenerator
         implements AccessTokenServiceInternal, InitializingBean {
@@ -80,12 +80,22 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     private static final Logger logger = LoggerFactory.getLogger(AccessTokenServiceInternalImpl.class);
 
     /**
-     * The issuer for the access tokens
+     * The issuer for generation access tokens
      */
     protected String issuer;
 
     /**
-     * The time in minutes for the expiration of the access tokens
+     * List of accepted issuers for validation of access tokens
+     */
+    protected String[] validIssuers;
+
+    /**
+     * The audience for generation and validation of access tokens
+     */
+    protected String audience;
+
+    /**
+     * The time in minutes for the expiration of the generated access tokens
      */
     protected int accessTokenExpiration;
 
@@ -113,11 +123,13 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
 
-    public AccessTokenServiceInternalImpl(String issuer, int accessTokenExpiration, String signPassword,
-                                          String encryptPassword, int refreshTokenExpiration, SecurityDAO securityDao,
-                                          InstanceService instanceService, AuditServiceInternal auditService,
-                                          StudioConfiguration studioConfiguration, SiteService siteService) {
+    public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
+                                          String signPassword, String encryptPassword, int refreshTokenExpiration,
+                                          SecurityDAO securityDao, InstanceService instanceService,
+                                          AuditServiceInternal auditService, StudioConfiguration studioConfiguration,
+                                          SiteService siteService) {
         this.issuer = issuer;
+        this.validIssuers = validIssuers;
         this.accessTokenExpiration = accessTokenExpiration;
         this.signPassword = signPassword;
         this.encryptPassword = encryptPassword;
@@ -127,6 +139,10 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         this.auditService = auditService;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
+    }
+
+    public void setAudience(String audience) {
+        this.audience = audience;
     }
 
     @Override
@@ -250,14 +266,18 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_DELETE);
     }
 
+    protected String getActualAudience() {
+        return isNotEmpty(audience)? audience : instanceService.getInstanceId();
+    }
+
     @Override
     public String getUsername(String token) {
         try {
             var jwtConsumer = new JwtConsumerBuilder()
                     .setEnableRequireEncryption()
                     .setRequireSubject()
-                    .setExpectedIssuer(issuer)
-                    .setExpectedAudience(instanceService.getInstanceId())
+                    .setExpectedIssuers(true, validIssuers)
+                    .setExpectedAudience(getActualAudience())
                     .setRelaxVerificationKeyValidation() // TODO: Check if this is ok
                     .setVerificationKey(jwtSignKey)
                     .setDecryptionKey(jwtEncryptKey)
@@ -310,7 +330,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         claims.setIssuer(issuer);
         claims.setIssuedAt(NumericDate.fromMilliseconds(issuedAt.toEpochMilli()));
         claims.setSubject(username);
-        claims.setAudience(instanceService.getInstanceId());
+        claims.setAudience(getActualAudience());
         if (expiresAt != null) {
             claims.setExpirationTime(NumericDate.fromMilliseconds(expiresAt.toEpochMilli()));
         }

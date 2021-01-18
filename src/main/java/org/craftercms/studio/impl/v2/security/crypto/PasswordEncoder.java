@@ -21,7 +21,7 @@ import org.craftercms.commons.crypto.CryptoUtils;
  * Implementation of {@link org.springframework.security.crypto.password.PasswordEncoder} using Studio's hashing
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class PasswordEncoder implements org.springframework.security.crypto.password.PasswordEncoder {
 

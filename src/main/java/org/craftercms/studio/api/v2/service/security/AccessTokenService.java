@@ -30,7 +30,7 @@ import java.util.List;
  * Defines all operations related to access and refresh tokens
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public interface AccessTokenService {
 

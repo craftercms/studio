@@ -26,7 +26,7 @@ import org.springframework.security.core.userdetails.UserDetails;
  * Extension of {@link DaoAuthenticationProvider} that returns an instance of {@link AuthenticatedUser}
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class DbAuthenticationProvider extends DaoAuthenticationProvider {
 

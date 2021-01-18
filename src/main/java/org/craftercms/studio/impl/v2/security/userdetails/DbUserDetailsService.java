@@ -26,7 +26,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  * Implementation of {@link UserDetailsService} that uses Studio's {@link UserDAO}
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class DbUserDetailsService extends AbstractCachedUserDetailsService implements UserDetailsService {
 

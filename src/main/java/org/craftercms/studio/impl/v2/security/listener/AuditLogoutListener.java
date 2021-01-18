@@ -27,7 +27,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGOU
  * Listener for Spring's logout that records events using Studio's audit service
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class AuditLogoutListener extends AbstractAuditListener {
 

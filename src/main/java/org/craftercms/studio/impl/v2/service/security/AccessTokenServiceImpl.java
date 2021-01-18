@@ -33,7 +33,7 @@ import java.util.List;
  * Default implementation of {@link AccessTokenService}
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class AccessTokenServiceImpl implements AccessTokenService {
 

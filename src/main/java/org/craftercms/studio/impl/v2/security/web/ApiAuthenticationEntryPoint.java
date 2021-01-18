@@ -35,7 +35,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * Implementation of {@link AuthenticationEntryPoint} that returns a JSON object matching Studio's API specs
  *
  * @author joseross
- * @since 3.2
+ * @since 4.0
  */
 public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

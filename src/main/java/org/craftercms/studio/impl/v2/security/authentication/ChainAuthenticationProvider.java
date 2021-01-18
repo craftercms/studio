@@ -63,7 +63,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  *  initialized based on the main configuration.
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0
  */
 public class ChainAuthenticationProvider implements AuthenticationProvider, ApplicationContextAware, InitializingBean {
 

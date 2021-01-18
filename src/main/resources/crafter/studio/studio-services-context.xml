@@ -1521,6 +1521,8 @@
     <bean id="accessTokenServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.AccessTokenServiceInternalImpl">
         <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.issuer')}"/>
+        <constructor-arg
+                value="#{studioConfiguration.getArray('studio.security.token.validIssuers', T(java.lang.String))}"/>
         <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.timeout')}"/>
         <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.password.sign')}"/>
         <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.password.encrypt')}"/>
@@ -1533,6 +1535,7 @@
         <property name="cookieName" value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
         <property name="cookieMaxAge"
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>
+        <property name="audience" value="#{studioConfiguration.getProperty('studio.security.token.audience')}"/>
     </bean>
 
     <bean id="accessTokenService" class="org.craftercms.studio.impl.v2.service.security.AccessTokenServiceImpl">
