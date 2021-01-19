@@ -39,7 +39,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    public static final Map<String, String> API_1_RESPONSE = Map.of(",message", "Unauthorized");
+    public static final Map<String, String> API_1_RESPONSE = Map.of("message", "Unauthorized");
 
     public static final Map<String, Object> API_2_RESPONSE = Map.of("response", ApiResponse.UNAUTHENTICATED);
 
