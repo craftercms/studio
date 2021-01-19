@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -137,6 +137,16 @@ public final class  QueryParameterNames {
     public static final String PROCESSING_STATE = "processingState";
     // Ready state
     public static final String READY_STATE = "readyState";
+
+    public static final String STATES = "states";
+
+    public static final String PACKAGE_ID = "packageId";
+
+    public static final String PACKAGE_IDS = "packageIds";
+
+    public static final String CANCELLED_STATE = "cancelledState";
+
+    public static final String NOW = "now";
 
     /* Audit */
     public static final String ACTIONS = "actions";

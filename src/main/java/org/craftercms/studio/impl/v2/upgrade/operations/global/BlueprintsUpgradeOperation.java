@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -27,15 +27,12 @@ import java.util.jar.Manifest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
@@ -66,21 +63,15 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    protected SecurityService securityService;
-    protected UserServiceInternal userServiceInternal;
-    protected TextEncryptor encryptor;
     protected GeneralLockService generalLockService;
+    protected GitRepositoryHelper gitRepositoryHelper;
 
     public BlueprintsUpgradeOperation(StudioConfiguration studioConfiguration,
-                                      SecurityService securityService,
-                                      UserServiceInternal userServiceInternal,
-                                      TextEncryptor encryptor,
-                                      GeneralLockService generalLockService) {
+                                      GeneralLockService generalLockService,
+                                      GitRepositoryHelper gitRepositoryHelper) {
         super(studioConfiguration);
-        this.securityService = securityService;
-        this.userServiceInternal = userServiceInternal;
-        this.encryptor = encryptor;
         this.generalLockService = generalLockService;
+        this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
     public GeneralLockService getGeneralLockService() {
@@ -97,9 +88,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
-            Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
+            Path globalConfigPath = gitRepositoryHelper.buildRepoPath(GitRepositories.GLOBAL);
             Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                 studioConfiguration.getProperty(BLUE_PRINTS_PATH));
 
@@ -144,7 +133,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
                         studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
             }
 
-            Repository globalRepo = helper.getRepository(site, GitRepositories.GLOBAL);
+            Repository globalRepo = gitRepositoryHelper.getRepository(site, GitRepositories.GLOBAL);
             try (Git git = new Git(globalRepo)) {
 
                 Status status = git.status().call();

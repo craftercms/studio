@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -359,7 +359,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             configPath = Paths.get(configBasePath, path).toString();
         }
         if (!contentService.contentExists(siteId, configPath)) {
-            throw new ContentNotFoundException(siteId, path, 
+            throw new ContentNotFoundException(path, siteId,
                     "Content not found at path " + configPath + " site " + siteId);
         }
         ConfigurationHistory configurationHistory = new ConfigurationHistory();

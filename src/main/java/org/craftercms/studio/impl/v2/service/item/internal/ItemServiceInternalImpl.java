@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -99,7 +99,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             for (Path ancestor : parts) {
                 if (StringUtils.isNotEmpty(ancestor.toString())) {
                     i = instantiateItem(item.getSiteName(), i.getPath() + FILE_SEPARATOR + ancestor.toString())
-                            .withPreviewUrl(i.getPath()).withSystemType("folder").build();
+                            .withSystemType("folder").withLabel(ancestor.toString()).build();
                     if (i.getId() < 1) {
                         ancestors.add(i);
                     }
@@ -377,8 +377,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         boolean isPage = false;
         if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
                 StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
-            replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
-        } else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site))) {
+            return null;
+        } else if (ContentUtils.matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
             replacePattern = DmConstants.ROOT_PATTERN_ASSETS;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
             replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;

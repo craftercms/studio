@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General default License version 3 as published by
@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.io.InputStream;
 import java.time.ZonedDateTime;
@@ -340,6 +341,12 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     @Override
     default List<GitLog> getUnprocessedCommits(String siteId, long marker) {
         // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
+                                                                 String environment, String path) {
         throw new UnsupportedOperationException();
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -58,9 +58,6 @@
     <bean id="repoPipeline" scope="prototype"
           class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
         <property name="continueOnFailure" value="true"/>
-        <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="siteSandboxBranch"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_SANDBOX_BRANCH)}"/>
@@ -68,9 +65,9 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_BRANCH_NAME)}"/>
         <property name="commitMessage"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_COMMIT_MESSAGE)}"/>
-        <property name="encryptor" ref="internalTextEncryptor" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="clusterSandboxRepoSyncTask" ref="studio.clockClusterSiteSandboxRepoSync" />
+        <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
     <bean id="pipelineFactory" abstract="true">
@@ -143,9 +140,7 @@
         <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
         <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
         <constructor-arg name="contentService" ref="cstudioContentService" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor" />
+        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
     <bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
@@ -155,10 +150,8 @@
 
     <bean id="blueprintsUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.global.BlueprintsUpgradeOperation">
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor" />
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
     <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"

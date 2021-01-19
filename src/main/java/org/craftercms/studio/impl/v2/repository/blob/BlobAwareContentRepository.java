@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -636,5 +637,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
         return getUnprocessedCommits(siteId, marker);
+    }
+
+    @Override
+    public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
+                                                                 String environment, String path) {
+        return localRepositoryV2.getItemEnvironmentProperties(siteId, repo, environment, path);
     }
 }

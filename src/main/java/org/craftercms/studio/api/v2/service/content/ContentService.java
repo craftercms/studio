@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,10 +17,12 @@
 package org.craftercms.studio.api.v2.service.content;
 
 import org.craftercms.core.service.Item;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.util.List;
@@ -102,7 +104,7 @@ public interface ContentService {
      * @return list of children
      */
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy, String order,
-                                        int offset, int limit);
+                                        int offset, int limit) throws ContentNotFoundException;
 
     /**
      * Get list of children for given item id
@@ -122,4 +124,21 @@ public interface ContentService {
 
     Item getItem(String siteId, String path, boolean flatten);
 
+    /**
+     * Get detailed item for given path
+     *
+     * @param siteId site identifier
+     * @param path item path
+     * @return detailed item
+     */
+    DetailedItem getItemByPath(String siteId, String path) throws ContentNotFoundException;
+
+    /**
+     * Get detailed item for given id
+     *
+     * @param siteId site identifier
+     * @param id item id
+     * @return detailed item
+     */
+    DetailedItem getItemById(String siteId, long id) throws ContentNotFoundException;
 }

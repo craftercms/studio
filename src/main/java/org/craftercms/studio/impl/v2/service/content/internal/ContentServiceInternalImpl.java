@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,12 +17,16 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -32,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -44,6 +49,21 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private ServicesConfig servicesConfig;
     private SiteFeedMapper siteFeedMapper;
     private SecurityService securityService;
+    private StudioConfiguration studioConfiguration;
+
+    public ContentServiceInternalImpl(ContentRepository contentRepository,
+                                      ItemDAO itemDao,
+                                      ServicesConfig servicesConfig,
+                                      SiteFeedMapper siteFeedMapper,
+                                      SecurityService securityService,
+                                      StudioConfiguration studioConfiguration) {
+        this.contentRepository = contentRepository;
+        this.itemDao = itemDao;
+        this.servicesConfig = servicesConfig;
+        this.siteFeedMapper = siteFeedMapper;
+        this.securityService = securityService;
+        this.studioConfiguration = studioConfiguration;
+    }
 
     @Override
     public List<String> getSubtreeItems(String siteId, String path) {
@@ -61,7 +81,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy,
-                                               String order, int offset, int limit) {
+                                               String order, int offset, int limit)
+            throws ContentNotFoundException {
+        if (!contentRepository.contentExists(siteId, path)) {
+            throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
+        }
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String ldPath = parentFolderPath + FILE_SEPARATOR + ldName;
@@ -144,43 +168,39 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return contentRepository.getContentSize(siteId, path);
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
+    @Override
+    public DetailedItem getItemByPath(String siteId, String path)
+            throws ContentNotFoundException {
+        if (!contentRepository.contentExists(siteId, path)) {
+            throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
+        }
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        Item item = itemDao.getItemByPath(siteFeed.getId(), path);
+        DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
+        populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
+        return detailedItem;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
+    private void populateDetailedItemPropertiesFromRepository(String siteId, DetailedItem detailedItem) {
+
+        detailedItem.setStaging(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
+                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING), detailedItem.getPath()));
+        detailedItem.setLive(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
+                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE), detailedItem.getPath()));
     }
 
-    public ItemDAO getItemDao() {
-        return itemDao;
-    }
-
-    public void setItemDao(ItemDAO itemDao) {
-        this.itemDao = itemDao;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
-    }
-
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
+    @Override
+    public DetailedItem getItemById(String siteId, long id)
+            throws ContentNotFoundException {
+        Item item = itemDao.getItemById(id);
+        if (!contentRepository.contentExists(siteId, item.getPath())) {
+            throw new ContentNotFoundException(item.getPath(), siteId,
+                    "Content not found at path " + item.getPath() + " site " + siteId);
+        }
+        DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
+        populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
+        return detailedItem;
     }
 }

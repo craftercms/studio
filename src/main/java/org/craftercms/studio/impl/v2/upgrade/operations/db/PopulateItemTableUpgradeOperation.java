@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,24 +17,18 @@
 package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -42,30 +36,16 @@ import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.eclipse.jgit.errors.CorruptObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 
-import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -81,7 +61,6 @@ import java.util.Map;
 import static java.time.ZoneOffset.UTC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
@@ -106,24 +85,18 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
     private String spName;
     private ItemServiceInternal itemServiceInternal;
     private ContentService contentService;
-    private SecurityService securityService;
-    private UserServiceInternal userServiceInternal;
-    private TextEncryptor encryptor;
-    private GeneralLockService generalLockService;
+    private GitRepositoryHelper gitRepositoryHelper;
 
-    public PopulateItemTableUpgradeOperation(StudioConfiguration studioConfiguration, String scriptFolder,
+    public PopulateItemTableUpgradeOperation(StudioConfiguration studioConfiguration,
+                                             String scriptFolder,
                                              DbIntegrityValidator integrityValidator,
-                                             ItemServiceInternal itemServiceInternal, ContentService contentService,
-                                             SecurityService securityService, UserServiceInternal userServiceInternal,
-                                             TextEncryptor encryptor,
-                                             GeneralLockService generalLockService) {
+                                             ItemServiceInternal itemServiceInternal,
+                                             ContentService contentService,
+                                             GitRepositoryHelper gitRepositoryHelper) {
         super(studioConfiguration, scriptFolder, integrityValidator);
         this.itemServiceInternal = itemServiceInternal;
         this.contentService = contentService;
-        this.securityService = securityService;
-        this.userServiceInternal = userServiceInternal;
-        this.encryptor = encryptor;
-        this.generalLockService = generalLockService;
+        this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
     @Override
@@ -244,10 +217,8 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         }
     }
 
-    private Repository getRepository(String site) throws CryptoException {
-        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
-        return helper.getRepository(site, GitRepositories.SANDBOX);
+    private Repository getRepository(String site) {
+        return gitRepositoryHelper.getRepository(site, GitRepositories.SANDBOX);
     }
 
     private void processFolder(String site, String path, String commitId,
@@ -270,7 +241,8 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         Item item = itemServiceInternal.instantiateItem(site, path).withCommitId(commitId).withPreviewUrl(path)
                 .withLastModifiedOn(file.lastModified() > 0 ?
                         ZonedDateTime.from(Instant.ofEpochMilli(file.lastModified()).atZone(UTC)) : null)
-                .withLabel(name).withSystemType("file").withMimeType(StudioUtils.getMimeType(name))
+                .withLabel(name).withSystemType(contentService.getContentTypeClass(site, path))
+                .withMimeType(StudioUtils.getMimeType(name))
                 .withSize(file.length()).build();
         if (StringUtils.endsWith(name, ".xml")) {
             populateDescriptorProperties(site, path, item);

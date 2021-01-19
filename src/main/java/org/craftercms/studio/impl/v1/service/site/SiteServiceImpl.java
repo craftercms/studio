@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -146,6 +146,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDI
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
@@ -514,6 +515,7 @@ public class SiteServiceImpl implements SiteService {
                     // Item
                     try {
                         String label = FilenameUtils.getName(path);
+                        String contentTypeId = StringUtils.EMPTY;
                         if (StringUtils.endsWith(path, XML_PATTERN)) {
                             Document contentDoc = contentService.getContentAsDocument(siteId, path);
                             if(contentDoc != null) {
@@ -522,6 +524,7 @@ public class SiteServiceImpl implements SiteService {
                                 if (StringUtils.isNotEmpty(internalName)) {
                                     label = internalName;
                                 }
+                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
                             }
                         }
                         String previewUrl = null;
@@ -532,7 +535,7 @@ public class SiteServiceImpl implements SiteService {
                         Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
                                 previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
                                 userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
-                                contentService.getContentTypeClass(siteId, path), "file",
+                                contentTypeId, contentService.getContentTypeClass(siteId, path),
                                 StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
                                 null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
                         itemServiceInternal.upsertEntry(siteId, item);
@@ -873,6 +876,7 @@ public class SiteServiceImpl implements SiteService {
                     // Item
                     try {
                         String label = FilenameUtils.getName(path);
+                        String contentTypeId = StringUtils.EMPTY;
                         if (StringUtils.endsWith(path, XML_PATTERN)) {
                             Document contentDoc = contentService.getContentAsDocument(siteId, path);
                             if(contentDoc != null) {
@@ -881,6 +885,7 @@ public class SiteServiceImpl implements SiteService {
                                 if (StringUtils.isNotEmpty(internalName)) {
                                     label = internalName;
                                 }
+                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
                             }
                         }
                         String previewUrl = null;
@@ -891,7 +896,7 @@ public class SiteServiceImpl implements SiteService {
                         Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
                                 previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
                                 userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
-                                contentService.getContentTypeClass(siteId, path), "file",
+                                contentTypeId, contentService.getContentTypeClass(siteId, path),
                                 StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
                                 null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
                         itemServiceInternal.upsertEntry(siteId, item);
@@ -1075,6 +1080,7 @@ public class SiteServiceImpl implements SiteService {
                         // Item
                         try {
                             String label = FilenameUtils.getName(path);
+                            String contentTypeId = StringUtils.EMPTY;
                             if (StringUtils.endsWith(path, XML_PATTERN)) {
                                 Document contentDoc = contentService.getContentAsDocument(siteId, path);
                                 if(contentDoc != null) {
@@ -1083,6 +1089,7 @@ public class SiteServiceImpl implements SiteService {
                                     if (StringUtils.isNotEmpty(internalName)) {
                                         label = internalName;
                                     }
+                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
                                 }
                             }
                             String previewUrl = null;
@@ -1093,7 +1100,7 @@ public class SiteServiceImpl implements SiteService {
                             Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
                                     previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
                                     userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
-                                    contentService.getContentTypeClass(siteId, path), "file",
+                                    contentTypeId, contentService.getContentTypeClass(siteId, path),
                                     StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
                                     null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
                             itemServiceInternal.upsertEntry(siteId, item);
