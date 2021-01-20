@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -460,11 +460,11 @@
 
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="itemDao" ref="itemDao" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="itemDao" ref="itemDao" />
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
+        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"
@@ -687,10 +687,8 @@
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="clusterDao" ref="clusterDao" />
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor" />
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
@@ -837,28 +835,38 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="gitLogDao" ref="gitLogDao" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
         <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="helper" ref="studio.gitRepositoryHelper" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="gitLogDao" ref="gitLogDao" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
-        <property name="contextManager" ref="contextManager"/>
-        <property name="contentStoreService" ref="crafter.contentStoreService"/>
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="gitLogDao" ref="gitLogDao" />
+        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
+        <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+        <constructor-arg name="contextManager" ref="contextManager"/>
+        <constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
+        <constructor-arg name="clusterDao" ref="clusterDao" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="helper" ref="studio.gitRepositoryHelper" />
+        <constructor-arg name="publishRequestDao" ref="publishRequestDao" />
+    </bean>
+
+    <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
+        <constructor-arg name="encryptor" ref="internalTextEncryptor" />
     </bean>
 
     <!-- /////// -->

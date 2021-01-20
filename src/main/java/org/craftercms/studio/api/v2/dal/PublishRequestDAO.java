@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,9 +18,22 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
-public interface PublishRequestDAO extends BaseDAO {
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CANCELLED_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NOW;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES;
+
+public interface PublishRequestDAO {
 
     /**
      * Get total number of publishing package for given search filters
@@ -32,10 +45,10 @@ public interface PublishRequestDAO extends BaseDAO {
      *
      * @return number of publishing packages
      */
-    int getPublishingPackagesTotal(@Param(PARAM_NAME_SITE_ID) String siteId,
-                                   @Param(PARAM_NAME_ENVIRONMENT) String environment,
-                                   @Param(PARAM_NAME_PATH) String path,
-                                   @Param(PARAM_NAME_STATES) List<String> states);
+    int getPublishingPackagesTotal(@Param(SITE_ID) String siteId,
+                                   @Param(ENVIRONMENT) String environment,
+                                   @Param(PATH) String path,
+                                   @Param(STATES) List<String> states);
 
     /**
      * Get publishing packages for given search filters
@@ -47,12 +60,12 @@ public interface PublishRequestDAO extends BaseDAO {
      * @param limit limit for pagination
      * @return list of publishing packages
      */
-    List<PublishingPackage> getPublishingPackages(@Param(PARAM_NAME_SITE_ID) String siteId,
-                                                  @Param(PARAM_NAME_ENVIRONMENT) String environment,
-                                                  @Param(PARAM_NAME_PATH) String path,
-                                                  @Param(PARAM_NAME_STATES) List<String> states,
-                                                  @Param(PARAM_NAME_OFFSET) int offset,
-                                                  @Param(PARAM_NAME_LIMIT) int limit);
+    List<PublishingPackage> getPublishingPackages(@Param(SITE_ID) String siteId,
+                                                  @Param(ENVIRONMENT) String environment,
+                                                  @Param(PATH) String path,
+                                                  @Param(STATES) List<String> states,
+                                                  @Param(OFFSET) int offset,
+                                                  @Param(LIMIT) int limit);
 
     /**
      * Get publishing package details
@@ -61,8 +74,8 @@ public interface PublishRequestDAO extends BaseDAO {
      * @param packageId package id
      * @return list of publishing requests belonging to the package
      */
-    List<PublishRequest> getPublishingPackageDetails(@Param(PARAM_NAME_SITE_ID) String siteId,
-                                                     @Param(PARAM_NAME_PACKAGE_ID) String packageId);
+    List<PublishRequest> getPublishingPackageDetails(@Param(SITE_ID) String siteId,
+                                                     @Param(PACKAGE_ID) String packageId);
 
     /**
      * Cancel publishing packages
@@ -71,7 +84,22 @@ public interface PublishRequestDAO extends BaseDAO {
      * @param packageIds list of package identifiers
      * @param cancelledState cancelled state
      */
-    void cancelPackages(@Param(PARAM_NAME_SITE_ID) String siteId,
-                        @Param(PARAM_NAME_PACKAGE_IDS) List<String> packageIds,
-                        @Param(PARAM_NAME_CANCELLED_STATE) String cancelledState);
+    void cancelPackages(@Param(SITE_ID) String siteId,
+                        @Param(PACKAGE_IDS) List<String> packageIds,
+                        @Param(CANCELLED_STATE) String cancelledState);
+
+    /**
+     * Get scheduled date for environment item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param environment environment
+     * @param state publishing queue ready state
+     * @param now now
+     * @return Scheduled date
+     */
+    ZonedDateTime getScheduledDateForEnvironment(@Param(SITE_ID) String siteId,
+                                                 @Param(PATH) String path,
+                                                 @Param(ENVIRONMENT) String environment,
+                                                 @Param(STATE) String state,
+                                                 @Param(NOW) ZonedDateTime now);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.upgrade.UpgradeOperation;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
@@ -32,11 +30,8 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -69,14 +64,10 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
      * Message for the merge commit after upgrading.
      */
     protected String commitMessage;
-
-    protected StudioConfiguration studioConfiguration;
-    protected SecurityService securityService;
-    protected UserServiceInternal userServiceInternal;
     protected SiteService siteService;
-    protected TextEncryptor encryptor;
     protected GeneralLockService generalLockService;
     protected StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask;
+    protected GitRepositoryHelper gitRepositoryHelper;
 
     public SiteRepositoryUpgradePipelineImpl(String name, List<UpgradeOperation<String>> upgradeOperations) {
         super(name, upgradeOperations);
@@ -121,10 +112,8 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         generalLockService.lock(gitLockKey);
         try {
             clusterSandboxRepoSyncTask.execute(site);
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
 
-            Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
+            Repository repository = gitRepositoryHelper.getRepository(site, GitRepositories.SANDBOX);
             String sandboxBranch = siteSandboxBranch;
             if (repository != null) {
                 Git git = new Git(repository);
@@ -155,8 +144,6 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
                     git.close();
                 }
             }
-        } catch (CryptoException e) {
-            throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -174,24 +161,8 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         this.commitMessage = commitMessage;
     }
 
-    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public void setEncryptor(TextEncryptor encryptor) {
-        this.encryptor = encryptor;
     }
 
     public GeneralLockService getGeneralLockService() {
@@ -208,5 +179,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setClusterSandboxRepoSyncTask(StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask) {
         this.clusterSandboxRepoSyncTask = clusterSandboxRepoSyncTask;
+    }
+
+    public GitRepositoryHelper getGitRepositoryHelper() {
+        return gitRepositoryHelper;
+    }
+
+    public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
+        this.gitRepositoryHelper = gitRepositoryHelper;
     }
 }

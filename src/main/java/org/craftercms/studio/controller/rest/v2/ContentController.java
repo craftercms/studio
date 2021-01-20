@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,6 +33,7 @@ import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,6 +66,8 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.G
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
@@ -159,7 +162,8 @@ public class ContentController {
                                           @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
                                                   defaultValue = "0") int offset,
                                           @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
-                                                  defaultValue = "10") int limit) {
+                                                  defaultValue = "10") int limit)
+            throws ContentNotFoundException {
         GetChildrenResult result =
                 contentService.getChildrenByPath(siteId, path, localeCode, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
@@ -234,4 +238,27 @@ public class ContentController {
         return response;
     }
 
+    @GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getItemByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+                                      @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path) throws ContentNotFoundException {
+        DetailedItem detailedItem = contentService.getItemByPath(siteId, path);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
+        result.setEntity(RESULT_KEY_ITEM, detailedItem);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = ITEM_BY_ID, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getItemById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+                                      @RequestParam(value = REQUEST_PARAM_ID, required = true) long id) throws ContentNotFoundException {
+        DetailedItem detailedItem = contentService.getItemById(siteId, id);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
+        result.setEntity(RESULT_KEY_ITEM, detailedItem);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
 }

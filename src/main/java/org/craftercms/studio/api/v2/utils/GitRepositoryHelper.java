@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -134,8 +134,6 @@ public class GitRepositoryHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(GitRepositoryHelper.class);
 
-    private static GitRepositoryHelper instance;
-
     private StudioConfiguration studioConfiguration;
     private TextEncryptor encryptor;
     private SecurityService securityService;
@@ -146,23 +144,16 @@ public class GitRepositoryHelper {
     private Map<String, Repository> published = new HashMap<>();
     private Repository globalRepo = null;
 
-    private GitRepositoryHelper() { }
-
-    public static GitRepositoryHelper getHelper(StudioConfiguration studioConfiguration,
-                                                SecurityService securityService,
-                                                UserServiceInternal userServiceInternal,
-                                                TextEncryptor textEncryptor,
-                                                GeneralLockService generalLockService)
-            throws CryptoException {
-        if (instance == null) {
-            instance = new GitRepositoryHelper();
-            instance.studioConfiguration = studioConfiguration;
-            instance.encryptor = textEncryptor;
-            instance.securityService = securityService;
-            instance.userServiceInternal = userServiceInternal;
-            instance.generalLockService = generalLockService;
-        }
-        return instance;
+    public GitRepositoryHelper(StudioConfiguration studioConfiguration,
+                               TextEncryptor encryptor,
+                               SecurityService securityService,
+                               UserServiceInternal userServiceInternal,
+                               GeneralLockService generalLockService) {
+        this.studioConfiguration = studioConfiguration;
+        this.encryptor = encryptor;
+        this.securityService = securityService;
+        this.userServiceInternal = userServiceInternal;
+        this.generalLockService = generalLockService;
     }
 
     public Repository getRepository(String siteId, GitRepositories gitRepository) {

@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 
 import java.time.ZonedDateTime;
 
-public class SandboxItem {
+public class DetailedItem {
 
     private long id;
     private String label;
@@ -32,18 +32,16 @@ public class SandboxItem {
     private String previewUrl;
     private String systemType;
     private String mimeType;
-    private long state;
+    private Long state;
     private String lockOwner;
     private boolean disabled;
     private String localeCode;
     private Long translationSourceId;
-    private String creator;
-    private ZonedDateTime dateCreated;
-    private String modifier;
-    private ZonedDateTime dateModified;
-    private String commitId;
-    private long sizeInBytes;
     private long availableActions;
+    private Sandbox sandbox;
+    private Environment staging;
+    private Environment live;
+
 
     public long getId() {
         return id;
@@ -161,54 +159,6 @@ public class SandboxItem {
         this.translationSourceId = translationSourceId;
     }
 
-    public String getCreator() {
-        return creator;
-    }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
-    public ZonedDateTime getDateCreated() {
-        return dateCreated;
-    }
-
-    public void setDateCreated(ZonedDateTime dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-
-    public String getModifier() {
-        return modifier;
-    }
-
-    public void setModifier(String modifier) {
-        this.modifier = modifier;
-    }
-
-    public ZonedDateTime getDateModified() {
-        return dateModified;
-    }
-
-    public void setDateModified(ZonedDateTime dateModified) {
-        this.dateModified = dateModified;
-    }
-
-    public String getCommitId() {
-        return commitId;
-    }
-
-    public void setCommitId(String commitId) {
-        this.commitId = commitId;
-    }
-
-    public long getSizeInBytes() {
-        return sizeInBytes;
-    }
-
-    public void setSizeInBytes(long sizeInBytes) {
-        this.sizeInBytes = sizeInBytes;
-    }
-
     public long getAvailableActions() {
         return availableActions;
     }
@@ -217,8 +167,39 @@ public class SandboxItem {
         this.availableActions = availableActions;
     }
 
-    public static SandboxItem getInstance(Item item) {
-        SandboxItem instance = new SandboxItem();
+    public void setState(Long state) {
+        this.state = state;
+    }
+
+    public Sandbox getSandbox() {
+        return sandbox;
+    }
+
+    public void setSandbox(Sandbox sandbox) {
+        this.sandbox = sandbox;
+    }
+
+    public Environment getStaging() {
+        return staging;
+    }
+
+    public void setStaging(Environment staging) {
+        this.staging = staging;
+    }
+
+    public Environment getLive() {
+        return live;
+    }
+
+    public void setLive(Environment live) {
+        this.live = live;
+    }
+
+    public static DetailedItem getInstance(Item item) {
+        DetailedItem instance = new DetailedItem();
+        instance.sandbox = new Sandbox();
+        instance.staging = new Environment();
+        instance.live = new Environment();
 
         instance.id = item.getId();
         instance.label = item.getLabel();
@@ -233,14 +214,110 @@ public class SandboxItem {
         instance.disabled = item.isDisabled();
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
-        instance.creator = item.getCreator();
-        instance.dateCreated = item.getCreatedOn();
-        instance.modifier = item.getModifier();
-        instance.dateModified = item.getLastModifiedOn();
-        instance.commitId = item.getCommitId();
-        instance.sizeInBytes = item.getSize();
+        instance.sandbox.creator = item.getCreator();
+        instance.sandbox.dateCreated = item.getCreatedOn();
+        instance.sandbox.modifier = item.getModifier();
+        instance.sandbox.dateModified = item.getLastModifiedOn();
+        instance.sandbox.commitId = item.getCommitId();
+        instance.sandbox.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
 
         return instance;
+    }
+
+    public static class Environment {
+        private ZonedDateTime dateScheduled;
+        private ZonedDateTime datePublished;
+        private String publisher;
+        private String commitId;
+
+        public ZonedDateTime getDateScheduled() {
+            return dateScheduled;
+        }
+
+        public void setDateScheduled(ZonedDateTime dateScheduled) {
+            this.dateScheduled = dateScheduled;
+        }
+
+        public ZonedDateTime getDatePublished() {
+            return datePublished;
+        }
+
+        public void setDatePublished(ZonedDateTime datePublished) {
+            this.datePublished = datePublished;
+        }
+
+        public String getPublisher() {
+            return publisher;
+        }
+
+        public void setPublisher(String publisher) {
+            this.publisher = publisher;
+        }
+
+        public String getCommitId() {
+            return commitId;
+        }
+
+        public void setCommitId(String commitId) {
+            this.commitId = commitId;
+        }
+    }
+
+    public static class Sandbox {
+        private String creator;
+        private ZonedDateTime dateCreated;
+        private String modifier;
+        private ZonedDateTime dateModified;
+        private String commitId;
+        private long sizeInBytes;
+
+        public String getCreator() {
+            return creator;
+        }
+
+        public void setCreator(String creator) {
+            this.creator = creator;
+        }
+
+        public ZonedDateTime getDateCreated() {
+            return dateCreated;
+        }
+
+        public void setDateCreated(ZonedDateTime dateCreated) {
+            this.dateCreated = dateCreated;
+        }
+
+        public String getModifier() {
+            return modifier;
+        }
+
+        public void setModifier(String modifier) {
+            this.modifier = modifier;
+        }
+
+        public ZonedDateTime getDateModified() {
+            return dateModified;
+        }
+
+        public void setDateModified(ZonedDateTime dateModified) {
+            this.dateModified = dateModified;
+        }
+
+        public String getCommitId() {
+            return commitId;
+        }
+
+        public void setCommitId(String commitId) {
+            this.commitId = commitId;
+        }
+
+        public long getSizeInBytes() {
+            return sizeInBytes;
+        }
+
+        public void setSizeInBytes(long sizeInBytes) {
+            this.sizeInBytes = sizeInBytes;
+        }
     }
 }

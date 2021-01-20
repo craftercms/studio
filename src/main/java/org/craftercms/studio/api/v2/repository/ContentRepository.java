@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -291,4 +292,15 @@ public interface ContentRepository {
      * @return list of gitlog records
      */
     List<GitLog> getUnprocessedCommits(String siteId, long marker);
+
+    /**
+     * Get environment properties for item
+     * @param siteId site identifier
+     * @param repo repository type
+     * @param environment branch
+     * @param path path of the item
+     * @return environment properties
+     */
+    DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo, String environment,
+                                                          String path);
 }
