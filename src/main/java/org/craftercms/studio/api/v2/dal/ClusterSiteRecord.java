@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,6 +26,7 @@ public class ClusterSiteRecord {
     private String nodeLastVerifiedGitlogCommitId;
     private String state;
     private int publishedRepoCreated;
+    private String nodeLastSyncedGitlogCommitId;
 
     public long getClusterNodeId() {
         return clusterNodeId;
@@ -89,5 +90,13 @@ public class ClusterSiteRecord {
 
     public void setPublishedRepoCreated(int publishedRepoCreated) {
         this.publishedRepoCreated = publishedRepoCreated;
+    }
+
+    public String getNodeLastSyncedGitlogCommitId() {
+        return nodeLastSyncedGitlogCommitId;
+    }
+
+    public void setNodeLastSyncedGitlogCommitId(String nodeLastSyncedGitlogCommitId) {
+        this.nodeLastSyncedGitlogCommitId = nodeLastSyncedGitlogCommitId;
     }
 }

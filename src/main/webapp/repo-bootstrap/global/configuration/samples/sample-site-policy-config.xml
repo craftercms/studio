@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<site-policy>
+
+    <!--
+        This file can contain any number of statements to control the content added to the site:
+
+        <statement>
+            <target-path-pattern/> (Regular expression that will be compared against the path of the content)
+
+            <permitted>
+                (All elements in this section are optional and can be used in any combination)
+
+                <minimum-file-size/> (Minimum size of the file in bytes)
+                <maximum-file-size/> (Maximum size of the file in bytes)
+
+                <mime-types/> (Comma separated list of MIME types, also support wildcards)
+
+                <content-types/> (Comma separated list of content-types)
+
+                <path>
+                    <source-regex/> (Regular expression to validate the full path of the file)
+                    <target-regex caseTransform="lowercase"/> (Expression to transform the full path of the file)
+                </path>
+
+            </permitted>
+        </statement>
+    -->
+
+    <!-- Example: only allow images of less than 1 MB -->
+    <statement>
+        <target-path-pattern>/static-assets/images/.*</target-path-pattern>
+        <permitted>
+            <maximum-file-size>1000000</maximum-file-size>
+            <mime-types>image/*</mime-types>
+        </permitted>
+    </statement>
+
+</site-policy>

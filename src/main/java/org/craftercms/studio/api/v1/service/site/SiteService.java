@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
@@ -172,6 +173,16 @@ public interface SiteService {
 	 * @return true if successfully deleted, otherwise false
      */
    	boolean deleteSite(String siteId);
+
+    @RetryingOperation
+    void updateLastVerifiedGitlogCommitId(String site, String commitId);
+
+    /**
+	 * Update last audited gitlog commit id
+	 * @param site site identifier
+	 * @param commitId commit ID
+	 */
+	void updateLastSyncedGitlogCommitId(String site, String commitId);
 
 	/**
 	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
@@ -440,4 +451,11 @@ public interface SiteService {
 	boolean isPublishedRepoCreated(String siteId);
 
     void setPublishedRepoCreated(String siteId);
+
+	/**
+	 * get last audited git log commit id for site
+	 * @param siteId site identifier
+	 * @return last audited git log commit id for local studio node
+	 */
+	String getLastSyncedGitlogCommitId(String siteId);
 }

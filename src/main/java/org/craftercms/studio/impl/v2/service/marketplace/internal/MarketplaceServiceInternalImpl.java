@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -147,7 +147,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         httpHeaders.set(HEADER_STUDIO_BUILD, versionInfo.getPackageBuild());
         httpHeaders.set(HEADER_STUDIO_VERSION, versionInfo.getPackageVersion());
-        httpHeaders.set(HEADER_JAVA_VERSION, versionStr);
+        httpHeaders.set(HEADER_JAVA_VERSION, versionInfo.getJavaVersion());
 
         httpHeaders.set(HEADER_OS_NAME, versionInfo.getOsName());
         httpHeaders.set(HEADER_OS_VERSION, versionInfo.getOsVersion());

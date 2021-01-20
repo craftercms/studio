@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.api.v2.dal.Item;
 
@@ -37,9 +38,9 @@ public class SandboxItem {
     private String localeCode;
     private Long translationSourceId;
     private String creator;
-    private ZonedDateTime createdDate;
+    private ZonedDateTime dateCreated;
     private String modifier;
-    private ZonedDateTime lastModifiedDate;
+    private ZonedDateTime dateModified;
     private String commitId;
     private long sizeInBytes;
     private long availableActions;
@@ -134,10 +135,12 @@ public class SandboxItem {
         this.disabled = disabled;
     }
 
+    @JsonIgnore
     public int getDisabledAsInt() {
         return disabled ? 1 : 0;
     }
 
+    @JsonIgnore
     public void setDisabledAsInt(int disabled) {
         this.disabled = disabled > 0;
     }
@@ -166,12 +169,12 @@ public class SandboxItem {
         this.creator = creator;
     }
 
-    public ZonedDateTime getCreatedDate() {
-        return createdDate;
+    public ZonedDateTime getDateCreated() {
+        return dateCreated;
     }
 
-    public void setCreatedDate(ZonedDateTime createdDate) {
-        this.createdDate = createdDate;
+    public void setDateCreated(ZonedDateTime dateCreated) {
+        this.dateCreated = dateCreated;
     }
 
     public String getModifier() {
@@ -182,12 +185,12 @@ public class SandboxItem {
         this.modifier = modifier;
     }
 
-    public ZonedDateTime getLastModifiedDate() {
-        return lastModifiedDate;
+    public ZonedDateTime getDateModified() {
+        return dateModified;
     }
 
-    public void setLastModifiedDate(ZonedDateTime lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
+    public void setDateModified(ZonedDateTime dateModified) {
+        this.dateModified = dateModified;
     }
 
     public String getCommitId() {
@@ -231,9 +234,9 @@ public class SandboxItem {
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
         instance.creator = item.getCreator();
-        instance.createdDate = item.getCreatedOn();
+        instance.dateCreated = item.getCreatedOn();
         instance.modifier = item.getModifier();
-        instance.lastModifiedDate = item.getLastModifiedOn();
+        instance.dateModified = item.getLastModifiedOn();
         instance.commitId = item.getCommitId();
         instance.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();

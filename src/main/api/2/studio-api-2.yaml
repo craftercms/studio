@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.2.0.7'
+  version: '4.0.0.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4039,6 +4039,146 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /security/tokens:
+    get:
+      tags:
+        - security
+      summary: Get all existing tokes for the current user
+      operationId: getAccessTokens
+      description: Required permission "manage_access_token"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  tokens:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AccessToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - security
+      summary: Creates a new access token for the current user
+      operationId: createAccessToken
+      description: Required permission "manage_access_token"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: The label for the access token
+                expiresAt:
+                  type: string
+                  format: date-time
+                  description: The date of expiration for the access token
+              required:
+                - label
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  token:
+                    $ref: '#/components/schemas/AccessToken'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /security/tokens/{id}:
+    post:
+      tags:
+        - security
+      summary: Updates an access token for the current user
+      operationId: updateAccessToken
+      description: Required permission "manage_access_token"
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+            format: int64
+          description: The id of the access token to update
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                  description: Indicates if the access token is enabled
+              required:
+                - enabled
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  token:
+                    $ref: '#/components/schemas/AccessToken'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - security
+      summary: Deletes an access token for the current user
+      operationId: deleteAccessToken
+      description: Required permission "manage_access_token"
+      parameters:
+       - name: id
+         in: path
+         schema:
+           type: integer
+           format: int64
+         description: The id of the access token to delete
+         required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dashboard/content:
     get:
       tags:
@@ -4061,7 +4201,7 @@ paths:
               - label - label or internalName - user friendly name of item
               - path - path of an item item
               - modifier - user that last modified item
-              - modifiedDate - data and time of last modification of an item
+              - dateModified - data and time of last modification of an item
               - contentType - content type of an item
           schema:
             type: string
@@ -4091,13 +4231,13 @@ paths:
           description: filter items by username that modified content
           schema:
             type: string
-        - name: filters.modifiedDateFrom
+        - name: filters.dateModifiedFrom
           in: query
           description: filter items by modified date setting lower boundary for date range
           schema:
             type: string
             format: datetime
-        - name: filters.modifiedDateTo
+        - name: filters.dateModifiedTo
           in: query
           description: filter items by modified date setting upper boundary for date range
           schema:
@@ -4173,7 +4313,7 @@ paths:
               - label - label or internalName - user friendly name of item
               - path - path of an item item
               - publisher - user that published item
-              - publishedDate - data and time when item was published
+              - datePublished - data and time when item was published
               - environment - environment where item was published
               - content type - content type of an item
           schema:
@@ -4204,13 +4344,13 @@ paths:
           description: filter items by username that published content
           schema:
             type: string
-        - name: filters.publishedDateFrom
+        - name: filters.datePublishedFrom
           in: query
           description: filter items by published date setting lower boundary for date range
           schema:
             type: string
             format: datetime
-        - name: filters.publishedDateTo
+        - name: filters.datePublishedTo
           in: query
           description: filter items by published date setting upper boundary for date range
           schema:
@@ -5932,14 +6072,14 @@ components:
         creator:
           type: string
           description: username of user that created item
-        createdDate:
+        dateCreated:
           type: string
           format: datetime
           description: timestamp when item was created
         modifier:
           type: string
           description: username of last user that modified item
-        lastModifiedDate:
+        dateModified:
           type: string
           format: datetime
           description: timestamp when was item last modified
@@ -5950,7 +6090,7 @@ components:
           type: integer
           format: int64
           description: size of content item in the repository
-        availableAction:
+        availableActions:
           type: integer
           format: int64
           description: >-
@@ -6096,7 +6236,7 @@ components:
         translationSourceId:
           type: string
           description: ID of content item that is original for translation that current item represents
-        availableAction:
+        availableActions:
           type: integer
           format: int64
           description: >-
@@ -6141,14 +6281,14 @@ components:
             creator:
               type: string
               description: username of user that created item
-            createdDate:
+            dateCreated:
               type: string
               format: datetime
               description: timestamp when item was created
             modifier:
               type: string
               description: username of last user that modified sandbox version of item
-            lastModifiedDate:
+            dateModified:
               type: string
               format: datetime
               description: timestamp when was item last modified in sandbox
@@ -6163,11 +6303,11 @@ components:
           type: object
           description: metadata of content item version stored in staging repository
           properties:
-            lastScheduledDate:
+            dateScheduled:
               type: string
               format: datetime
               description: timestamp when is item scheduled for publishing to staging repository
-            lastPublishedDate:
+            datePublished:
               type: string
               format: datetime
               description: timestamp when was item last time published to staging repository
@@ -6181,11 +6321,11 @@ components:
           type: object
           description: metadata of content item version stored in live repository
           properties:
-            lastScheduledDate:
+            dateScheduled:
               type: string
               format: datetime
               description: timestamp when is item scheduled for publishing to live repository
-            lastPublishedDate:
+            datePublished:
               type: string
               format: datetime
               description: timestamp when was item last time published to live repositroy
@@ -6312,7 +6452,7 @@ components:
         publisher:
           type: string
           description: user that published item
-        publishedDate:
+        datePublished:
           type: string
           format: datetime
           description: date and time when item was published
@@ -6351,9 +6491,6 @@ components:
               source:
                 type: string
                 description: The source value, only needed for recursive COPY, MOVE and RENAME actions
-              contentType:
-                type: string
-                description: The id of the crafter content type, only needed for CREATE actions
               target:
                 type: string
                 description: The target value
@@ -6361,6 +6498,16 @@ components:
                 type: boolean
                 description: Indicates if all child items should be verified too
                 default: false
+              contentMetadata:
+                type: object
+                properties:
+                  fileSize:
+                    type: integer
+                    format: int64
+                    description: The size of the file in bytes, only needed for CREATE actions
+                  contentType:
+                    type: string
+                    description: The id of the crafter content type, only needed for CREATE actions
             required:
               - type
               - target
@@ -6425,6 +6572,31 @@ components:
         - siteId
         - target
         - item
+
+    AccessToken:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Value of the access token, only visible when the token is created
+        expiresAt:
+          type: string
+          format: date-time
+          description: Date of expiration of the access token
+        id:
+          type: integer
+          format: int64
+          description: Id of the access token
+        label:
+          type: string
+          description: The label of the access token
+        enabled:
+          type: boolean
+          description: Indicates if the access token is enabled
+        createdOn:
+          type: string
+          format: date-time
+          description: Date of creation of the access token
 
   responses:
     NotFound:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,9 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.config.TranslationConfiguration;
@@ -89,7 +91,8 @@ public class ConfigurationController {
     public ResponseBody getConfigurationHistory(@RequestParam(name = "siteId", required = true) String siteId,
                                                 @RequestParam(name = "module", required = true) String module,
                                                 @RequestParam(name = "path", required = true) String path,
-                                                @RequestParam(name = "environment", required = false) String environment) {
+                                                @RequestParam(name = "environment", required = false) String environment)
+            throws SiteNotFoundException, ContentNotFoundException {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
         ResponseBody responseBody = new ResponseBody();

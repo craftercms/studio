@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,7 +24,7 @@ import java.util.Map;
  * Includes all data required to update or add user properties
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateUserPropertiesRequest {

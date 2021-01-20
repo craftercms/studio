@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -42,6 +42,7 @@ public class SiteFeed {
     protected String publishingLockOwner;
     protected ZonedDateTime publishingLockHeartbeat;
     protected String state;
+    protected String lastSyncedGitlogCommitId;
 
     public long getId() {
         return id;
@@ -194,5 +195,13 @@ public class SiteFeed {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public String getLastSyncedGitlogCommitId() {
+        return lastSyncedGitlogCommitId;
+    }
+
+    public void setLastSyncedGitlogCommitId(String lastSyncedGitlogCommitId) {
+        this.lastSyncedGitlogCommitId = lastSyncedGitlogCommitId;
     }
 }

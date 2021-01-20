@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,6 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.craftercms</groupId>
     <artifactId>crafter-studio</artifactId>
-    <version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
 
     <name>Crafter Studio</name>
     <description>Crafter Content Authoring Application</description>
@@ -38,7 +37,8 @@
     <parent>
         <groupId>org.craftercms</groupId>
         <artifactId>craftercms</artifactId>
-        <version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
+        <version>4.0.0-SNAPSHOT</version><!-- craftercms version flag -->
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <properties>
@@ -46,10 +46,7 @@
         <exec.maven.version>1.5.0</exec.maven.version>
         <frontend.maven.version>1.7.6</frontend.maven.version>
 
-        <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
-        <studio.ui.node.version>v15.0.1</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.22.10</studio.ui.yarn.version>
+        <studio.ui.path>../studio-ui/</studio.ui.path>
     </properties>
 
     <dependencies>
@@ -506,186 +503,6 @@
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <inherited>false</inherited> <!-- only execute these in the parent -->
-                <version>${exec.maven.version}</version>
-                <executions>
-                    <execution>
-                        <id>git get ui</id>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <executable>update-ui.sh</executable>
-                            <arguments>
-                                <argument>${studio.ui.version}</argument>
-                                <argument>${studio.ui.path}</argument>
-                            </arguments>
-                        </configuration>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>${frontend.maven.version}</version>
-                <configuration>
-                    <nodeVersion>${studio.ui.node.version}</nodeVersion>
-                    <yarnVersion>${studio.ui.yarn.version}</yarnVersion>
-                    <installDirectory>target</installDirectory>
-                    <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
-                </configuration>
-                <executions>
-
-                    <execution>
-                        <id>UI build prep</id>
-                        <goals>
-                            <goal>install-node-and-yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                    </execution>
-
-                    <execution>
-                        <id>UI styles: dependencies</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>UI styles: build sass</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
-                            <arguments>run build</arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>UI next: dependencies</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>UI next: build</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                            <arguments>build-if-changed</arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>UI legacy: dependencies</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>UI legacy: build</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
-                            <arguments>build</arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>UI guest: dependencies</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>UI guest: build</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/guest</workingDirectory>
-                            <arguments>build</arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>Ace editor: dependencies</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/ace</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>Ace editor: build</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/ace</workingDirectory>
-                            <arguments>build</arguments>
-                        </configuration>
-                    </execution>
-
-                    <!--
-                    Disabled until we implement the history dialog or otherwise use monaco
-                    editor (possibly in Crafter 3.2.1+)
-                    <execution>
-                        <id>Monaco editor: dependencies</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/monaco</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>Monaco editor: build</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <workingDirectory>${studio.ui.path}/ui/monaco</workingDirectory>
-                            <arguments>build</arguments>
-                        </configuration>
-                    </execution>
-                    -->
-
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
                 <version>${buildnumber.maven.version}</version>
                 <executions>
@@ -713,7 +530,6 @@
                             <doCheck>false</doCheck>
                             <doUpdate>false</doUpdate>
                             <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                            <scmDirectory>${studio.ui.path}</scmDirectory>
                             <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
                         </configuration>
                     </execution>
@@ -760,7 +576,6 @@
                         </overlay>
                     </overlays>
                     <webResources>
-
                         <!-- static-assets -->
                         <resource>
                             <directory>${studio.ui.path}static-assets</directory>
@@ -827,12 +642,66 @@
 
     <profiles>
         <profile>
-            <id>cloneUI</id>
+            <id>cloneUi</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>cloneUi</name>
+                    <value>true</value>
+                </property>
             </activation>
+            <properties>
+                <studio.ui.path>target/ui/</studio.ui.path>
+                <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <inherited>false</inherited> <!-- only execute these in the parent -->
+                        <version>1.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>git get ui</id>
+                                <phase>prepare-package</phase>
+                                <configuration>
+                                    <executable>git</executable>
+                                    <arguments>
+                                        <argument>clone</argument>
+                                        <argument>--depth</argument>
+                                        <argument>1</argument>
+                                        <argument>-b</argument>
+                                        <argument>${studio.ui.version}</argument>
+                                        <argument>https://github.com/craftercms/studio-ui.git</argument>
+                                        <argument>${studio.ui.path}</argument>
+                                    </arguments>
+                                </configuration>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>build ui</id>
+                                <phase>prepare-package</phase>
+                                <configuration>
+                                    <executable>mvn</executable>
+                                    <arguments>
+                                        <argument>package</argument>
+                                        <argument>-q</argument>
+                                    </arguments>
+                                    <workingDirectory>${studio.ui.path}/</workingDirectory>
+                                </configuration>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
+
     <repositories>
         <repository>
             <id>sonatype-snapshots</id>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General default License version 3 as published by
@@ -17,12 +17,14 @@ package org.craftercms.studio.api.v2.repository.blob;
 
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.io.InputStream;
 import java.time.ZonedDateTime;
@@ -109,7 +111,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-                                           Map<String, String> params) {
+                                            Map<String, String> params) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
@@ -170,26 +172,26 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-                                         String remoteBranch, boolean singleBranch, String authenticationType,
-                                         String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan) {
+                                          String remoteBranch, boolean singleBranch, String authenticationType,
+                                          String remoteUsername, String remotePassword, String remoteToken,
+                                          String remotePrivateKey, Map<String, String> params, boolean createAsOrphan) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
 
     @Override
     default boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl,
-                                          String authenticationType, String remoteUsername,
-                                          String remotePassword, String remoteToken, String remotePrivateKey,
-                                          boolean createAsOrphan) {
+                                           String authenticationType, String remoteUsername,
+                                           String remotePassword, String remoteToken, String remotePrivateKey,
+                                           boolean createAsOrphan) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
 
     @Override
     default boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                             String remoteUsername, String remotePassword, String remoteToken,
-                             String remotePrivateKey) {
+                              String remoteUsername, String remotePassword, String remoteToken,
+                              String remotePrivateKey) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
@@ -287,8 +289,14 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
+    default void insertGitLog(String siteId, String commitId, int processed, int audited) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     default List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
-                                                      String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                             String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
                                                              int limit) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
@@ -303,6 +311,42 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     @Override
     default String getLastEditCommitId(String siteId, String path) {
         // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default void markGitLogAudited(String siteId, String commitId) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default List<GitLog> getUnauditedCommits(String siteId, int batchSize) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default List<GitLog> getUnprocessedCommits(String siteId, long marker) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
+                                                                 String environment, String path) {
         throw new UnsupportedOperationException();
     }
 }

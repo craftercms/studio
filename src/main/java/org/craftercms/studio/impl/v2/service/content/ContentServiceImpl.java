@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,7 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -41,6 +42,7 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.permissions.CompositePermission;
 
@@ -166,7 +168,7 @@ public class ContentServiceImpl implements ContentService {
     public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
                                                String sortStrategy, String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, sortStrategy, order, offset, limit);
     }
 
@@ -182,6 +184,21 @@ public class ContentServiceImpl implements ContentService {
     public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                         @ValidateSecurePathParam String path, boolean flatten) {
         return contentServiceInternal.getItem(siteId, path, flatten);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public DetailedItem getItemByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+            throws ContentNotFoundException {
+        return contentServiceInternal.getItemByPath(siteId, path);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id)
+            throws ContentNotFoundException {
+        return contentServiceInternal.getItemById(siteId, id);
     }
 
     public ContentServiceInternal getContentServiceInternal() {

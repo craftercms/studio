@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.repository;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -28,6 +29,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -97,6 +99,16 @@ public interface ContentRepository {
      * @param processed processed
      */
     void insertGitLog(String siteId, String commitId, int processed);
+
+    /**
+     * Insert Git Log
+     *
+     * @param siteId    site
+     * @param commitId  commit ID
+     * @param processed processed
+     * @param audited audited
+     */
+    void insertGitLog(String siteId, String commitId, int processed, int audited);
 
     /**
      * Get publishing history
@@ -238,4 +250,57 @@ public interface ContentRepository {
 
 
     String getLastEditCommitId(String siteId, String path);
+
+    /**
+     * Get a list of paths that changed since the commit ID provided to commit ID provided
+     *
+     * @param site         site to use
+     * @param commitIdFrom commit ID to start at
+     * @param commitIdTo   commit ID to end at
+     * @return list of paths of files that changed between two commits
+     */
+    Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo);
+
+    /**
+     * Mark Git log as audited
+     *
+     * @param siteId   site identifier
+     * @param commitId commit id
+     */
+    void markGitLogAudited(String siteId, String commitId);
+
+    /**
+     * Update gitlog table with commit ids from repository
+     * @param siteId site identifier
+     * @param lastProcessedCommitId last processed commit id
+     * @param batchSize size of a batch to update
+     */
+    void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException;
+
+    /**
+     * Get unaudited commits from database
+     * @param siteId site identifier
+     * @param batchSize size of a batch to retrieve
+     * @return list of gitlog records
+     */
+    List<GitLog> getUnauditedCommits(String siteId, int batchSize);
+
+    /**
+     * Get unprocessed commits from database
+     * @param siteId site identifier
+     * @param marker id of last verified commit Id
+     * @return list of gitlog records
+     */
+    List<GitLog> getUnprocessedCommits(String siteId, long marker);
+
+    /**
+     * Get environment properties for item
+     * @param siteId site identifier
+     * @param repo repository type
+     * @param environment branch
+     * @param path path of the item
+     * @return environment properties
+     */
+    DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo, String environment,
+                                                          String path);
 }

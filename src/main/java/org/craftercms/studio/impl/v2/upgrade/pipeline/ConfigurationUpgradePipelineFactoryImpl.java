@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,7 +28,7 @@ import org.springframework.core.io.Resource;
  * is build based on the configuration file provided in the upgrade context.
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class ConfigurationUpgradePipelineFactoryImpl extends PrototypeUpgradePipelineFactoryImpl {
 

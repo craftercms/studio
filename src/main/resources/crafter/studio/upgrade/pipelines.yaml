@@ -116,6 +116,31 @@ pipelines:
                 dest: configuration/samples/sample-webdav.xml
             commitDetails: Update sample file for webdav.xml
           - type: dbVersionUpgrader
+      - currentVersion: 3.2.0.18
+        nextVersion: 3.2.0.19
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.18-to-3.2.0.19.sql
+      - currentVersion: 3.2.0.19
+        nextVersion: 3.2.0.20
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.19-to-3.2.0.20.sql
+      - currentVersion: 3.2.0.20
+        nextVersion: 3.2.0.21
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
+                dest: configuration/samples/sample-site-policy-config.xml
+            commitDetails: Add sample file for site-policy-config.xml
+      - currentVersion: 3.2.0.21
+        nextVersion: 3.2.0.22
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-3.2.0.21-to-3.2.0.22.sql
+      - currentVersion: 3.2.0.22
+        nextVersion: 4.0.0
 
   # Pipeline to upgrade site repositories
   site:
@@ -129,6 +154,15 @@ pipelines:
             path: /config/studio/translation-config.xml
             file: crafter/studio/upgrade/3.2.x/3.2.0/site/translation-config.xml
             commitDetails: Add translation config
+      - currentVersion: 3.2.0
+        nextVersion: 3.2.0.1
+        operations:
+          - type: addFileUpgrader
+            path: /config/studio/site-policy-config.xml
+            file: crafter/studio/upgrade/3.2.x/3.2.0.1/site/site-policy-config.xml
+            commitDetails: Add site policy config
+      - currentVersion: 3.2.0.1
+        nextVersion: 4.0.0
 
   # Pipeline to upgrade blueprints
   blueprint:
@@ -215,6 +249,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v11.xslt
               commitDetails: Add translation config
+        - currentVersion: 11
+          nextVersion: 12
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v12.xslt
+              commitDetails: Add site policy config
 
   site-config-tools:
     module: studio

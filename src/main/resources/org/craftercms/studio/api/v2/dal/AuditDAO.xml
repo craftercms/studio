@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -109,7 +109,7 @@
     <select id="getAuditLogEntry" parameterType="java.util.Map" resultMap="AuditLogMap">
         SELECT a.*, ap.*, s.site_id as site_name
         FROM (audit a INNER JOIN site s on a.site_id = s.id) LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id
-        WHERE a.id = #{id}
+        WHERE a.id = #{id} AND s.deleted = 0
     </select>
 
     <select id="getAuditLog" parameterType="java.util.Map" resultMap="AuditLogMap">
@@ -122,7 +122,7 @@
         <if test="includeParameters">
             LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id
         </if>
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND a.site_id = #{siteId}
         </if>
@@ -176,7 +176,7 @@
     <select id="getAuditLogTotal" parameterType="java.util.Map" resultType="int">
         SELECT count(1)
         FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND a.site_id = #{siteId}
         </if>
@@ -219,9 +219,9 @@
             keyProperty="id">
         INSERT INTO audit (organization_id, site_id, operation, operation_timestamp, origin, primary_target_id,
         primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details, cluster_node_id)
-        VALUES (#{organizationId}, #{siteId}, #{operation}, CURRENT_TIMESTAMP, #{origin}, #{primaryTargetId},
-        #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId}, #{actorDetails},
-        #{clusterNodeId});
+        VALUES (#{organizationId}, #{siteId}, #{operation}, IFNULL(#{operationTimestamp}, CURRENT_TIMESTAMP), #{origin},
+        #{primaryTargetId}, #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId},
+        #{actorDetails}, #{clusterNodeId});
     </insert>
 
     <insert id="insertAuditLogParams" parameterType="java.util.Map">
@@ -314,7 +314,7 @@
     <select id="getAuditDashboardTotal" parameterType="java.util.Map" resultType="int">
         SELECT count(1)
         FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND s.name = #{siteId}
         </if>
@@ -348,7 +348,7 @@
         <bind name="sortBy" value="'a.' + sort"/>
         SELECT a.*, s.site_id as site_name
         FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE 1 = 1
+        WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
             AND s.name = #{siteId}
         </if>
@@ -392,4 +392,9 @@
         </choose>
         LIMIT #{offset}, #{limit}
     </select>
+
+    <delete id="deleteAuditLogForSite" parameterType="java.util.Map" flushCache="true">
+        DELETE FROM audit
+        WHERE site_id = #{siteId}
+    </delete>
 </mapper>

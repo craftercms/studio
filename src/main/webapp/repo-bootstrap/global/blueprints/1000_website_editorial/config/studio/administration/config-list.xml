@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -37,7 +37,7 @@
     - samplePath: the path to a sample file to help the user update the file
 -->
 <config>
-    <version>11</version>
+    <version>12</version>
     <files>
         <file>
             <module>studio</module>
@@ -227,6 +227,13 @@
             <title>confTabTranslationConf</title>
             <description>confTabTranslationConfDesc</description>
             <samplePath>sample-translation-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>site-policy-config.xml</path>
+            <title>confTabSitePolicyConf</title>
+            <description>confTabSitePolicyConfDesc</description>
+            <samplePath>sample-site-policy-config.xml</samplePath>
         </file>
     </files>
 </config>

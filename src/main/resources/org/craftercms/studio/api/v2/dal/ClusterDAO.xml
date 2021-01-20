@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,7 @@
         <result property="gitPassword" column="git_password" />
         <result property="gitToken" column="git_token" />
         <result property="gitPrivateKey" column="git_private_key" />
+        <result property="available" column="available" />
     </resultMap>
 
     <resultMap id="RemoteRepositoryMap" type="org.craftercms.studio.api.v2.dal.RemoteRepository">
@@ -53,20 +54,21 @@
         <result property="siteIdString" column="site_id_string" />
         <result property="nodeLastCommitId" column="node_last_commit_id" />
         <result property="nodeLastVerifiedGitlogCommitId" column="node_last_verified_gitlog_commit_id" />
+        <result property="nodeLastSyncedGitlogCommitId" column="node_last_synced_gitlog_commit_id" />
         <result property="state" column="site_state" />
         <result property="publishedRepoCreated" column="site_published_repo_created" />
     </resultMap>
 
     <select id="getAllMembers" resultMap="ClusterMap">
-        SELECT * FROM cluster
+        SELECT * FROM cluster WHERE available = 1
     </select>
 
     <select id="getOtherMembers" resultMap="ClusterMap" parameterType="Map">
-        SELECT * FROM cluster WHERE local_address &lt;&gt; #{localAddress} AND state = #{state}
+        SELECT * FROM cluster WHERE local_address &lt;&gt; #{localAddress} AND state = #{state} AND available = 1
     </select>
 
     <select id="countActiveMembers" resultType="int" parameterType="Map">
-        SELECT count(*) FROM cluster WHERE state = #{state}
+        SELECT count(*) FROM cluster WHERE state = #{state} AND available = 1
     </select>
 
     <select id="getMemberById" resultMap="ClusterMap" parameterType="long">
@@ -74,14 +76,14 @@
     </select>
 
     <select id="memberExists" resultType="int" parameterType="String">
-        SELECT COUNT(*) FROM cluster WHERE git_url = #{memberUrl}
+        SELECT COUNT(*) FROM cluster WHERE git_url = #{memberUrl} AND available = 1
     </select>
     
     <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
         INSERT INTO cluster (local_address, state, git_url, git_remote_name, git_auth_type, git_username,
-        git_password, git_token, git_private_key)
+        git_password, git_token, git_private_key, available)
         VALUES (#{localAddress}, #{state}, #{gitUrl}, #{gitRemoteName}, #{gitAuthType}, #{gitUsername},
-        #{gitPassword}, #{gitToken}, #{gitPrivateKey})
+        #{gitPassword}, #{gitToken}, #{gitPrivateKey}, 1)
     </insert>
     
     <update id="updateMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
@@ -93,24 +95,36 @@
         git_username = #{gitUsername},
         git_password = #{gitPassword},
         git_token = #{gitToken},
-        git_private_key = #{gitPrivateKey}
+        git_private_key = #{gitPrivateKey},
+        available = #{available}
         WHERE id = #{id}
     </update>
 
-    <delete id="removeMembers" parameterType="java.util.Map">
+    <delete id="deleteRecords" parameterType="java.util.Map">
         DELETE FROM cluster WHERE state = #{inactiveState} AND id IN
         <foreach collection="memberIds" index="index" separator="," item="memberId" open="(" close=")">
             #{memberId}
         </foreach>
     </delete>
 
+    <update id="removeMembers" parameterType="java.util.Map">
+        UPDATE cluster SET available = 0 WHERE state = #{inactiveState} AND id IN
+        <foreach collection="memberIds" index="index" separator="," item="memberId" open="(" close=")">
+            #{memberId}
+        </foreach>
+    </update>
+
     <select id="countRegistrations" resultType="int" parameterType="java.util.Map" >
-        SELECT COUNT(*) FROM cluster WHERE local_address = #{localAddress}
+        SELECT COUNT(*) FROM cluster WHERE local_address = #{localAddress} AND available = 1
     </select>
 
-    <delete id="removeMemberByLocalAddress" parameterType="java.util.Map">
+    <delete id="deleteRecordByLocalAddress" parameterType="java.util.Map">
         DELETE FROM cluster WHERE local_address = #{localAddress}
     </delete>
+
+    <update id="removeMemberByLocalAddress" parameterType="java.util.Map">
+        UPDATE cluster SET available = 0 WHERE local_address = #{localAddress}
+    </update>
 
     <update id="updateHeartbeat" parameterType="java.util.Map">
         UPDATE cluster SET
@@ -122,29 +136,36 @@
     <select id="getMembersWithStaleHeartbeat" resultMap="ClusterMap" parameterType="java.util.Map">
         SELECT * FROM cluster
         WHERE heartbeat &lt; (CURRENT_TIMESTAMP - INTERVAL #{heartbeatStaleLimit} MINUTE)
+        AND available = 1
     </select>
 
     <select id="getInactiveMembersWithStaleHeartbeat" resultMap="ClusterMap" parameterType="java.util.Map">
         SELECT * FROM cluster
         WHERE heartbeat &lt; (CURRENT_TIMESTAMP - INTERVAL #{inactivityLimit} MINUTE)
         AND state = #{inactiveState}
+        AND available = 1
     </select>
 
     <select id="getMemberByRemoteName" resultMap="ClusterMap" parameterType="java.util.Map">
         SELECT * FROM cluster
         WHERE git_remote_name = #{remoteName}
+        AND available = 1
     </select>
 
     <select id="getMissingClusterNodeRemoteRepositories" resultMap="RemoteRepositoryMap" >
         SELECT rr.* FROM
-        (SELECT * FROM cluster c INNER JOIN cluster_remote_repository crr ON c.id = crr.cluster_id WHERE
-        c.local_address = #{localAddress}) as c2 RIGHT JOIN remote_repository rr ON rr.id = c2.remote_repository_id
+            (SELECT * FROM cluster c INNER JOIN cluster_remote_repository crr ON c.id = crr.cluster_id
+            WHERE c.local_address = #{localAddress} AND c.available = 1) as c2
+                RIGHT JOIN remote_repository rr ON rr.id = c2.remote_repository_id
         WHERE rr.site_id = #{siteId} AND c2.id IS NULL
     </select>
 
     <insert id="addClusterRemoteRepository">
         INSERT INTO cluster_remote_repository (cluster_id, remote_repository_id)
         VALUES (#{clusterId}, #{remoteRepositoryId})
+        ON DUPLICATE KEY
+        UPDATE
+            record_last_updated = CURRENT_TIMESTAMP
     </insert>
 
     <select id="getMemberByLocalAddress" resultMap="ClusterMap" parameterType="java.util.Map">
@@ -154,12 +175,15 @@
     </select>
 
     <insert id="insertClusterSiteSyncRepo">
-        INSERT INTO cluster_site_sync_repo (cluster_node_id, site_id, node_last_commit_id, node_last_verified_gitlog_commit_id)
-        VALUES (#{clusterNodeId}, #{siteId}, #{nodeLastCommitId}, #{nodeLastVerifiedGitlogCommitId})
+        INSERT INTO cluster_site_sync_repo (cluster_node_id, site_id, node_last_commit_id,
+        node_last_verified_gitlog_commit_id, node_last_synced_gitlog_commit_id)
+        VALUES (#{clusterNodeId}, #{siteId}, #{nodeLastCommitId}, #{nodeLastVerifiedGitlogCommitId},
+        #{nodeLastSyncedGitlogCommitId})
         ON DUPLICATE KEY
         UPDATE
             node_last_commit_id = #{nodeLastCommitId},
-            node_last_verified_gitlog_commit_id = #{nodeLastVerifiedGitlogCommitId}
+            node_last_verified_gitlog_commit_id = #{nodeLastVerifiedGitlogCommitId},
+            node_last_synced_gitlog_commit_id = #{nodeLastSyncedGitlogCommitId}
     </insert>
 
     <update id="updateNodeLastVerifiedGitlogCommitId" >
@@ -172,11 +196,17 @@
         WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
     </update>
 
+    <update id="updateNodeLastSyncedGitlogCommitId" >
+        UPDATE cluster_site_sync_repo SET node_last_synced_gitlog_commit_id = #{commitId}
+        WHERE site_id = #{siteId} AND cluster_node_id = #{clusterNodeId}
+    </update>
+
     <select id="getNodeLastCommitId" resultType="java.lang.String">
         SELECT cssr.node_last_commit_id
         FROM cluster c INNER JOIN cluster_site_sync_repo cssr ON c.id = cssr.cluster_node_id
                        INNER JOIN site s on s.id = cssr.site_id
         WHERE c.id = #{clusterNodeId}
+        AND c.available = 1
         AND cssr.site_id = #{siteId} AND s.deleted = 0 limit 1
     </select>
 
@@ -185,6 +215,7 @@
         FROM cluster c INNER JOIN cluster_site_sync_repo cssr ON c.id = cssr.cluster_node_id
                        INNER JOIN site s on s.id = cssr.site_id
         WHERE c.id = #{clusterNodeId}
+        AND c.available = 1
         AND cssr.site_id = #{siteId} AND s.deleted = 0 limit 1
     </select>
 
@@ -193,6 +224,7 @@
         FROM site s INNER JOIN cluster_site_sync_repo cssr INNER JOIN cluster c
         ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
         WHERE s.id = #{siteId}
+        AND c.available = 1
         AND c.id = #{clusterNodeId}
     </select>
 
@@ -211,12 +243,13 @@
         FROM site s INNER JOIN cluster_site_sync_repo cssr INNER JOIN cluster c
             ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
         WHERE s.site_id = #{siteId}
+        AND c.available = 1
     </select>
 
     <select id="getClusterSiteRecord" resultMap="ClusterSiteRecordMap">
         SELECT cssr.*, s.site_id AS site_id_string, c.local_address as cluster_node_local_address
         FROM site s INNER JOIN cluster_site_sync_repo cssr INNER JOIN cluster c
             ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
-        WHERE s.id = #{siteId} AND cluster_node_id = #{clusterNodeId}
+        WHERE s.id = #{siteId} AND cluster_node_id = #{clusterNodeId} AND c.available = 1
     </select>
 </mapper>

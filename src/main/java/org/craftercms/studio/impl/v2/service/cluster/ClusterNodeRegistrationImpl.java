@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
@@ -65,9 +66,6 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
             try {
                 logger.debug("Collect and populate data for cluster node registration");
                 clusterMember.setLocalAddress(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
-                if (isRegistered(clusterMember.getLocalAddress())) {
-                    removeClusterNode(clusterMember.getLocalAddress());
-                }
                 Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
                                       studioConfiguration.getProperty(SITES_REPOS_PATH));
                 String authenticationType = registrationData.getString(CLUSTER_MEMBER_AUTHENTICATION_TYPE);
@@ -109,6 +107,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                     String hashedPrivateKey = encryptor.encrypt(privateKey);
                     clusterMember.setGitPrivateKey(hashedPrivateKey);
                 }
+                clusterMember.setAvailable(1);
 
                 logger.debug("Register cluster member");
                 registerClusterNode(clusterMember);
@@ -126,6 +125,13 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
             removeClusterNode(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
+            try {
+                logger.debug("Waiting 10 seconds to propagate update");
+                Thread.sleep(10000);
+                logger.debug("Done waiting 10 seconds to propagate update");
+            } catch (InterruptedException e) {
+                logger.debug("Interrupted while waiting for 5 seconds to propagate cluster update on shutdown", e);
+            }
         }
     }
 
@@ -143,14 +149,21 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     @Override
     public boolean registerClusterNode(ClusterMember clusterMember) {
-        int result = clusterDao.addMember(clusterMember);
+        ClusterMember existingRecord = clusterDao.getMemberByLocalAddress(clusterMember.getLocalAddress());
+        int result = 0;
+        if (Objects.isNull(existingRecord)) {
+            result = clusterDao.addMember(clusterMember);
+        } else {
+            clusterMember.setId(existingRecord.getId());
+            result = clusterDao.updateMember(clusterMember);
+        }
         return result > 0;
     }
 
     @RetryingOperation
     @Override
     public boolean removeClusterNode(String localAddress) {
-        logger.error("Remove cluster node " + localAddress);
+        logger.info("Remove cluster node " + localAddress);
         Map<String, String> params = new HashMap<String, String>();
         params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
         int result = clusterDao.removeMemberByLocalAddress(params);

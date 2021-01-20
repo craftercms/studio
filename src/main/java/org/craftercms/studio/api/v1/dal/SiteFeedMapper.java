@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -70,6 +70,8 @@ public interface SiteFeedMapper {
     void updatePublishingStatusMessage(Map params);
 
     void updateLastVerifiedGitlogCommitId(Map params);
+
+    void updateLastSyncedGitlogCommitId(Map params);
 
     List<SiteFeed> getDeletedSites();
 
@@ -150,6 +152,15 @@ public interface SiteFeedMapper {
      * @return commit id
      */
     String getLastVerifiedGitlogCommitId(@Param(SITE_ID) String siteId,
+                                         @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    /**
+     * Get last verified  git log commit id for local studio node
+     * @param siteId site identifier
+     * @param localAddress local address
+     * @return commit id
+     */
+    String getLastSyncedGitlogCommitId(@Param(SITE_ID) String siteId,
                                          @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
 
     void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);

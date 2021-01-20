@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,7 @@ public class ClusterMember {
     private String gitPassword;
     private String gitToken;
     private String gitPrivateKey;
+    private int available;
 
     public long getId() {
         return id;
@@ -134,5 +135,15 @@ public class ClusterMember {
     @JsonIgnore
     public void setGitPrivateKey(String gitPrivateKey) {
         this.gitPrivateKey = gitPrivateKey;
+    }
+
+    @JsonIgnore
+    public int getAvailable() {
+        return available;
+    }
+
+    @JsonIgnore
+    public void setAvailable(int available) {
+        this.available = available;
     }
 }

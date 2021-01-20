@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,9 +21,11 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  * Base exception for all data validations
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
-public abstract class ValidationException extends ServiceLayerException {
+public class ValidationException extends ServiceLayerException {
+
+    protected String modifiedValue;
 
     public ValidationException() {
     }
@@ -34,6 +36,14 @@ public abstract class ValidationException extends ServiceLayerException {
 
     public ValidationException(String message, Exception e) {
         super(message, e);
+    }
+
+    public String getModifiedValue() {
+        return modifiedValue;
+    }
+
+    public void setModifiedValue(String modifiedValue) {
+        this.modifiedValue = modifiedValue;
     }
 
 }

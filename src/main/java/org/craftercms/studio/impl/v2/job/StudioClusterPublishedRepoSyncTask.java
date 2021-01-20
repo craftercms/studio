@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -30,12 +29,10 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
@@ -70,7 +67,6 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
@@ -87,10 +83,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     private StudioClusterUtils studioClusterUtils;
     private ClusterDAO clusterDao;
     private ServicesConfig servicesConfig;
-    private SecurityService securityService;
-    private UserServiceInternal userServiceInternal;
-    private TextEncryptor encryptor;
     private GeneralLockService generalLockService;
+    private GitRepositoryHelper gitRepositoryHelper;
 
     public StudioClusterPublishedRepoSyncTask(int executeEveryNCycles,
                                               int offset,
@@ -100,19 +94,15 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                               SiteService siteService,
                                               ClusterDAO clusterDao,
                                               ServicesConfig servicesConfig,
-                                              SecurityService securityService,
-                                              UserServiceInternal userServiceInternal,
-                                              TextEncryptor encryptor,
-                                              GeneralLockService generalLockService) {
+                                              GeneralLockService generalLockService,
+                                              GitRepositoryHelper gitRepositoryHelper) {
 
         super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
         this.studioClusterUtils = studioClusterUtils;
         this.clusterDao = clusterDao;
         this.servicesConfig = servicesConfig;
-        this.securityService = securityService;
-        this.userServiceInternal = userServiceInternal;
-        this.encryptor = encryptor;
         this.generalLockService = generalLockService;
+        this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
     @Override
@@ -221,20 +211,12 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         boolean result = true;
 
         if (result) {
-            try {
-                logger.debug("Create " + PUBLISHED.name() + " repository from remote for site " + siteId);
-                GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                        userServiceInternal, encryptor, generalLockService);
-                result = helper.createPublishedRepository(siteId, sandboxBranch);
-                if (result) {
-                    clusterDao.setPublishedRepoCreated(localNodeId, sId);
-                }
-            } catch (CryptoException e) {
-                logger.error("Error while creating site on cluster node for site : " + siteId +
-                        ". Rolling back.", e);
-                result = false;
-            }
+            logger.debug("Create " + PUBLISHED.name() + " repository from remote for site " + siteId);
 
+            result = gitRepositoryHelper.createPublishedRepository(siteId, sandboxBranch);
+            if (result) {
+                clusterDao.setPublishedRepoCreated(localNodeId, sId);
+            }
             if (!result) {
                 remotesMap.remove(siteId);
                 contentRepository.deleteSite(siteId);
@@ -340,6 +322,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 .build();
 
         String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        logger.debug("Git Lock Key: " + gitLockKey);
         try (Git git = new Git(repo)) {
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
@@ -360,9 +343,13 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                         remoteNode.getGitRemoteName());
                                 logger.error(e.getMessage());
                             }
-                            logger.debug("Update all environments for site " + siteId + " from cluster member " +
-                                    remoteNode.getLocalAddress());
-                            for (String branch : environments) {
+                        }
+                    }
+
+                    for (String branch : environments) {
+                        for (ClusterMember remoteNode : clusterNodes) {
+                            ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
+                            if (Objects.nonNull(csr) && csr.getPublishedRepoCreated() > 0) {
                                 try {
                                     updatePublishedBranch(siteId, git, remoteNode, branch);
                                 } catch (GitAPIException e) {
@@ -396,38 +383,25 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             throws CryptoException, GitAPIException, IOException, ServiceLayerException {
         logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalAddress() +
                 " for site " + siteId);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-        if (generalLockService.tryLock(gitLockKey)) {
-            try {
+        Repository repo = git.getRepository();
+        Ref ref = repo.exactRef(Constants.R_HEADS + branch);
+        boolean createBranch = (ref == null);
 
-
-
-                Repository repo = git.getRepository();
-                Ref ref = repo.exactRef(Constants.R_HEADS + branch);
-                boolean createBranch = (ref == null);
-
-                logger.debug("Checkout " + branch);
-                CheckoutCommand checkoutCommand = git.checkout()
-                        .setName(branch)
-                        .setCreateBranch(createBranch);
-                if (createBranch) {
-                    checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
-                }
-                checkoutCommand.call();
-
-                PullCommand pullCommand = git.pull();
-                pullCommand.setRemote(remoteNode.getGitRemoteName());
-                pullCommand.setRemoteBranchName(branch);
-                pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-                pullCommand.call();
-
-            } finally {
-                generalLockService.unlock(gitLockKey);
-            }
-        } else {
-            logger.debug("Failed to get lock " + gitLockKey);
+        logger.debug("Checkout " + branch);
+        CheckoutCommand checkoutCommand = git.checkout()
+                .setName(branch)
+                .setCreateBranch(createBranch);
+        if (createBranch) {
+            checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
         }
+        checkoutCommand.call();
+
+        PullCommand pullCommand = git.pull();
+        pullCommand.setRemote(remoteNode.getGitRemoteName());
+        pullCommand.setRemoteBranchName(branch);
+        pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+        pullCommand.call();
 
         Files.delete(tempKey);
     }

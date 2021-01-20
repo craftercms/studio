@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,7 +24,7 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_
  * Implementation of {@link org.craftercms.commons.upgrade.VersionProvider} for the built-in blueprints.
  *
  * @author jose ross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class BlueprintsVersionProvider extends AbstractVersionProvider<String> {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 
@@ -39,6 +40,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
     protected AuditServiceInternal auditServiceInternal;
     protected SiteService siteService;
     protected ContentService contentService;
+    protected ContentRepository contentRepository;
 
     /**
      * default constructor
@@ -82,7 +84,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
             auditLog.setPrimaryTargetValue(uri);
             auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
             auditServiceInternal.insertAuditLog(auditLog);
-
+            contentRepository.markGitLogAudited(site, result.getCommitId());
         }
     }
 
@@ -108,5 +110,13 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 }

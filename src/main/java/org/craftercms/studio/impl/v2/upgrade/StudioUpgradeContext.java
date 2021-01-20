@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -50,7 +50,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  * The {@code target} object is the name of the site being upgraded.
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class StudioUpgradeContext extends UpgradeContext<String> {
 

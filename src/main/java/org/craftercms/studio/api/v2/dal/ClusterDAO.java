@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,6 +26,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_NODE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_COMMIT_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_SYNCED_GITLOG_COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_VERIFIED_GITLOG_COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.REMOTE_REPOSITORY_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
@@ -184,7 +185,8 @@ public interface ClusterDAO {
      */
     void insertClusterSiteSyncRepo(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
                                    @Param(NODE_LAST_COMMIT_ID) String nodeLastCommitId,
-                                   @Param(NODE_LAST_VERIFIED_GITLOG_COMMIT_ID) String nodeLastVerifiedGitlogCommitId);
+                                   @Param(NODE_LAST_VERIFIED_GITLOG_COMMIT_ID) String nodeLastVerifiedGitlogCommitId,
+                                   @Param(NODE_LAST_SYNCED_GITLOG_COMMIT_ID) String nodeLastSyncedGitlogCommitId);
 
     /**
      * Update local last verified git log commit id
@@ -236,4 +238,7 @@ public interface ClusterDAO {
     ClusterSiteRecord getClusterSiteRecord(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
 
     void setPublishedRepoCreated(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId);
+
+    void updateNodeLastSyncedGitlogCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
+                                             @Param(COMMIT_ID) String commitId);
 }
