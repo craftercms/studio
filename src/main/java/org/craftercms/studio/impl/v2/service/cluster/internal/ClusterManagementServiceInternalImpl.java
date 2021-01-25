@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,8 +30,8 @@ import java.util.Map;
 import static org.craftercms.studio.api.v2.dal.ClusterMember.State.INACTIVE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVE_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_MEMBER_IDS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_CLUSTER_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CLUSTER_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_CLUSTER;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CLUSTER;
 
 public class ClusterManagementServiceInternalImpl implements ClusterManagementServiceInternal {
 
@@ -39,13 +39,13 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
     private StudioConfiguration studioConfiguration;
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CLUSTER_CONST_LONG)
+    @IsActionAllowed(allowedActionsMask = READ_CLUSTER)
     public List<ClusterMember> getAllMembers() {
         return clusterDao.getAllMembers();
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = DELETE_CLUSTER_CONST_LONG)
+    @IsActionAllowed(allowedActionsMask = DELETE_CLUSTER)
     public boolean removeMembers(List<Long> memberIds) {
         if (CollectionUtils.isNotEmpty(memberIds)) {
             Map<String, Object> params = new HashMap<String, Object>();

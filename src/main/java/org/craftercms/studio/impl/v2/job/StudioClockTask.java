@@ -32,22 +32,11 @@ public abstract class StudioClockTask implements SiteJob {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClockTask.class);
 
-    private int executeEveryNCycles;
-    protected Map<String,Integer> counters;
+    protected int executeEveryNCycles;
+    protected Map<String, Integer> counters = new HashMap<String, Integer>();
     protected int offset;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
-
-    public StudioClockTask(int executeEveryNCycles,
-                           int offset,
-                           StudioConfiguration studioConfiguration,
-                           SiteService siteService) {
-        this.executeEveryNCycles = executeEveryNCycles;
-        this.counters = new HashMap<String,Integer>();
-        this.offset = offset;
-        this.studioConfiguration = studioConfiguration;
-        this.siteService = siteService;
-    }
 
     protected synchronized boolean checkCycleCounter(String site) {
         if (!counters.containsKey(site)) {
@@ -90,5 +79,37 @@ public abstract class StudioClockTask implements SiteJob {
         }
 
         return false;
+    }
+
+    public int getExecuteEveryNCycles() {
+        return executeEveryNCycles;
+    }
+
+    public void setExecuteEveryNCycles(int executeEveryNCycles) {
+        this.executeEveryNCycles = executeEveryNCycles;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

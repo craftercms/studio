@@ -222,7 +222,9 @@
     </bean>
 
     <bean id="isActionAllowed" class="org.craftercms.studio.api.v2.annotation.IsActionAllowedAnnotationHandler" >
-        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
+        <property name="securityServiceV1" ref="cstudioSecurityService"/>
+        <property name="securityServiceV2" ref="studio.securityService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
 </beans>

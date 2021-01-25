@@ -17,6 +17,8 @@
 package org.craftercms.studio.api.v2.dal.security;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.Group;
 
 import java.util.ArrayList;
@@ -28,6 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SitePermissionMappings {
+
+    private static final Logger logger = LoggerFactory.getLogger(SitePermissionMappings.class);
 
     private String siteId;
     private Map<String, RolePermissionMappings> rolePermissions = new HashMap<String, RolePermissionMappings>();
@@ -48,6 +52,7 @@ public class SitePermissionMappings {
 
         long availableActions = 0L;
         for (String role : rolesList) {
+            logger.error("Role = " + role);
             RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
             Map<String, Long> rulePermissions = rolePermissionMappings.getRulePermissions();
             for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {

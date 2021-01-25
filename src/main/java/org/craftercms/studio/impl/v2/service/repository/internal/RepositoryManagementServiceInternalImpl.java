@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -101,14 +102,16 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v2.security.AvailableActions.ADD_REMOTE_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CANCEL_FAILED_PULL_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.LIST_REMOTES_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.PULL_FROM_REMOTE_REPOSITORY_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.PUSH_TO_REMOTE_REPOSITORY_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.REMOVE_REMOTE_REPOSITORY_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.RESOLVE_CONFLICTS_CONST_LONG;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATH;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
+import static org.craftercms.studio.api.v2.security.AvailableActions.ADD_REMOTE;
+import static org.craftercms.studio.api.v2.security.AvailableActions.CANCEL_FAILED_PULL;
+import static org.craftercms.studio.api.v2.security.AvailableActions.LIST_REMOTES;
+import static org.craftercms.studio.api.v2.security.AvailableActions.PULL_FROM_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.security.AvailableActions.PUSH_TO_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
+import static org.craftercms.studio.api.v2.security.AvailableActions.REMOVE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.security.AvailableActions.RESOLVE_CONFLICTS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
@@ -134,33 +137,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private SiteService siteService;
     private GitRepositoryHelper gitRepositoryHelper;
 
-    public RepositoryManagementServiceInternalImpl(RemoteRepositoryDAO remoteRepositoryDao,
-                                                   StudioConfiguration studioConfiguration,
-                                                   NotificationService notificationService,
-                                                   SecurityService securityService,
-                                                   UserServiceInternal userServiceInternal,
-                                                   ContentRepository contentRepository,
-                                                   TextEncryptor encryptor,
-                                                   ClusterDAO clusterDao,
-                                                   GeneralLockService generalLockService,
-                                                   SiteService siteService,
-                                                   GitRepositoryHelper gitRepositoryHelper) {
-        this.remoteRepositoryDao = remoteRepositoryDao;
-        this.studioConfiguration = studioConfiguration;
-        this.notificationService = notificationService;
-        this.securityService = securityService;
-        this.userServiceInternal = userServiceInternal;
-        this.contentRepository = contentRepository;
-        this.encryptor = encryptor;
-        this.clusterDao = clusterDao;
-        this.generalLockService = generalLockService;
-        this.siteService = siteService;
-        this.gitRepositoryHelper = gitRepositoryHelper;
-    }
-
     @Override
-    @IsActionAllowed(allowedActionsMask = ADD_REMOTE_CONST_LONG)
-    public boolean addRemote(String siteId, RemoteRepository remoteRepository)
+    @IsActionAllowed(allowedActionsMask = ADD_REMOTE)
+    public boolean addRemote(@IsActionAllowedParameter(SITE) String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
         boolean isValid = false;
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -272,8 +251,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = LIST_REMOTES_CONST_LONG)
-    public List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch) {
+    @IsActionAllowed(allowedActionsMask = LIST_REMOTES)
+    public List<RemoteRepositoryInfo> listRemotes(@IsActionAllowedParameter(SITE) String siteId, String sandboxBranch) {
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
         Map<String, String> unreachableRemotes = new HashMap<String, String>();
         try (Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX)) {
@@ -405,8 +384,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = PULL_FROM_REMOTE_REPOSITORY_CONST_LONG)
-    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
+    @IsActionAllowed(allowedActionsMask = PULL_FROM_REMOTE_REPOSITORY)
+    public boolean pullFromRemote(@IsActionAllowedParameter(SITE) String siteId, String remoteName, String remoteBranch,
+                                  String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -471,8 +451,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = PUSH_TO_REMOTE_REPOSITORY_CONST_LONG)
-    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
+    @IsActionAllowed(allowedActionsMask = PUSH_TO_REMOTE_REPOSITORY)
+    public boolean pushToRemote(@IsActionAllowedParameter(SITE) String siteId, String remoteName, String remoteBranch,
+                                boolean force)
             throws CryptoException, ServiceLayerException, InvalidRemoteUrlException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
@@ -543,8 +524,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @RetryingOperation
     @Override
-    @IsActionAllowed(allowedActionsMask = REMOVE_REMOTE_REPOSITORY_CONST_LONG)
-    public boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException {
+    @IsActionAllowed(allowedActionsMask = REMOVE_REMOTE_REPOSITORY)
+    public boolean removeRemote(@IsActionAllowedParameter(SITE) String siteId, String remoteName) throws CryptoException,
+            RemoteNotRemovableException {
         if (!isRemovableRemote(siteId, remoteName)) {
             throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
         }
@@ -608,8 +590,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public RepositoryStatus getRepositoryStatus(String siteId) throws ServiceLayerException {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public RepositoryStatus getRepositoryStatus(@IsActionAllowedParameter(SITE) String siteId)
+            throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         RepositoryStatus repositoryStatus = new RepositoryStatus();
         logger.debug("Execute git status and return conflicting paths and uncommitted changes");
@@ -626,8 +609,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS_CONST_LONG)
-    public boolean resolveConflict(String siteId, String path, String resolution)
+    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS)
+    public boolean resolveConflict(@IsActionAllowedParameter(SITE) String siteId,
+                                   @IsActionAllowedParameter(PATH) String path, String resolution)
             throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -681,8 +665,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS_CONST_LONG)
-    public DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
+    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS)
+    public DiffConflictedFile getDiffForConflictedFile(@IsActionAllowedParameter(SITE) String siteId,
+                                                       @IsActionAllowedParameter(PATH) String path)
             throws ServiceLayerException {
         DiffConflictedFile diffResult = new DiffConflictedFile();
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
@@ -727,8 +712,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS_CONST_LONG)
-    public boolean commitResolution(String siteId, String commitMessage) throws ServiceLayerException {
+    @IsActionAllowed(allowedActionsMask = RESOLVE_CONFLICTS)
+    public boolean commitResolution(@IsActionAllowedParameter(SITE) String siteId, String commitMessage)
+            throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         logger.debug("Commit resolution for merge conflict for site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -769,8 +755,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = CANCEL_FAILED_PULL_CONST_LONG)
-    public boolean cancelFailedPull(String siteId) throws ServiceLayerException {
+    @IsActionAllowed(allowedActionsMask = CANCEL_FAILED_PULL)
+    public boolean cancelFailedPull(@IsActionAllowedParameter(SITE) String siteId) throws ServiceLayerException {
         logger.debug("To cancel failed pull, reset hard needs to be executed");
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -791,4 +777,91 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
     }
 
+    public RemoteRepositoryDAO getRemoteRepositoryDao() {
+        return remoteRepositoryDao;
+    }
+
+    public void setRemoteRepositoryDao(RemoteRepositoryDAO remoteRepositoryDao) {
+        this.remoteRepositoryDao = remoteRepositoryDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public TextEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public GitRepositoryHelper getGitRepositoryHelper() {
+        return gitRepositoryHelper;
+    }
+
+    public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
+        this.gitRepositoryHelper = gitRepositoryHelper;
+    }
 }

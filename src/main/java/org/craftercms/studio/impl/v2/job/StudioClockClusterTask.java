@@ -39,17 +39,7 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
 
     protected ContentRepository contentRepository;
 
-
     protected abstract Path buildRepoPath(String site);
-
-    public StudioClockClusterTask(int executeEveryNCycles,
-                                  int offset,
-                                  StudioConfiguration studioConfiguration,
-                                  SiteService siteService,
-                                  ContentRepository contentRepository) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService);
-        this.contentRepository = contentRepository;
-    }
 
     protected void removeRemote(Git git, String remoteName) throws GitAPIException {
         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
@@ -73,5 +63,13 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
             delBranch.setForce(true);
             delBranch.call();
         }
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 }

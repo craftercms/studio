@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -68,11 +68,6 @@ public class WebDavServiceImpl implements WebDavService {
      * Charset used to encode paths in URLs.
      */
     protected Charset charset = Charset.defaultCharset();
-
-    public WebDavServiceImpl(final String urlPattern, final SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
-        this.urlPattern = urlPattern;
-        this.profileLoader = profileLoader;
-    }
 
     protected WebDavProfile getProfile(String site, String profileId) throws WebDavException  {
         try {
@@ -208,4 +203,19 @@ public class WebDavServiceImpl implements WebDavService {
         }
     }
 
+    public String getUrlPattern() {
+        return urlPattern;
+    }
+
+    public void setUrlPattern(String urlPattern) {
+        this.urlPattern = urlPattern;
+    }
+
+    public SiteAwareConfigProfileLoader<WebDavProfile> getProfileLoader() {
+        return profileLoader;
+    }
+
+    public void setProfileLoader(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
+        this.profileLoader = profileLoader;
+    }
 }

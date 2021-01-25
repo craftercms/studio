@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -41,9 +42,12 @@ import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATH;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATHS;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
@@ -56,8 +60,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private ItemStateMapper itemStateMapper;
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getSoftDependencies(String site, String path) throws ServiceLayerException {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getSoftDependencies(@IsActionAllowedParameter(SITE) String site,
+                                            @IsActionAllowedParameter(PATH) String path) throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
@@ -68,8 +73,10 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getSoftDependencies(String site, List<String> paths) throws ServiceLayerException {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getSoftDependencies(@IsActionAllowedParameter(SITE) String site,
+                                            @IsActionAllowedParameter(PATHS) List<String> paths)
+            throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
@@ -125,8 +132,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getHardDependencies(String site, String path) throws ServiceLayerException {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getHardDependencies(@IsActionAllowedParameter(SITE) String site,
+                                            @IsActionAllowedParameter(PATH) String path) throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
@@ -137,8 +145,10 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getHardDependencies(String site, List<String> paths) throws ServiceLayerException {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getHardDependencies(@IsActionAllowedParameter(SITE) String site,
+                                            @IsActionAllowedParameter(PATHS) List<String> paths)
+            throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
@@ -253,16 +263,18 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getDependentItems(String siteId, String path) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getDependentItems(@IsActionAllowedParameter(SITE) String siteId,
+                                          @IsActionAllowedParameter(PATH) String path) {
         List<String> paths = new ArrayList<String>(1);
         paths.add(path);
         return getDependentItems(siteId, paths);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getDependentItems(String siteId, List<String> paths) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getDependentItems(@IsActionAllowedParameter(SITE) String siteId,
+                                          @IsActionAllowedParameter(PATHS) List<String> paths) {
         if (CollectionUtils.isEmpty(paths)) {
             return new ArrayList<String>();
         }
@@ -270,16 +282,18 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getItemSpecificDependencies(String siteId, String path) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getItemSpecificDependencies(@IsActionAllowedParameter(SITE) String siteId,
+                                                    @IsActionAllowedParameter(PATH) String path) {
         List<String> paths = new ArrayList<>(1);
         paths.add(path);
         return getItemSpecificDependencies(siteId, paths);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getItemSpecificDependencies(String siteId, List<String> paths) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getItemSpecificDependencies(@IsActionAllowedParameter(SITE) String siteId,
+                                                    @IsActionAllowedParameter(PATHS) List<String> paths) {
         if (CollectionUtils.isNotEmpty(paths)) {
             return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
         } else {

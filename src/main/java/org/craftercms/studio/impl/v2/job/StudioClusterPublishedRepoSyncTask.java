@@ -86,25 +86,6 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     private GeneralLockService generalLockService;
     private GitRepositoryHelper gitRepositoryHelper;
 
-    public StudioClusterPublishedRepoSyncTask(int executeEveryNCycles,
-                                              int offset,
-                                              StudioClusterUtils studioClusterUtils,
-                                              StudioConfiguration studioConfiguration,
-                                              ContentRepository contentRepository,
-                                              SiteService siteService,
-                                              ClusterDAO clusterDao,
-                                              ServicesConfig servicesConfig,
-                                              GeneralLockService generalLockService,
-                                              GitRepositoryHelper gitRepositoryHelper) {
-
-        super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
-        this.studioClusterUtils = studioClusterUtils;
-        this.clusterDao = clusterDao;
-        this.servicesConfig = servicesConfig;
-        this.generalLockService = generalLockService;
-        this.gitRepositoryHelper = gitRepositoryHelper;
-    }
-
     @Override
     protected void executeInternal(String siteId) {
         // Log start time
@@ -404,5 +385,45 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         pullCommand.call();
 
         Files.delete(tempKey);
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public GitRepositoryHelper getGitRepositoryHelper() {
+        return gitRepositoryHelper;
+    }
+
+    public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
+        this.gitRepositoryHelper = gitRepositoryHelper;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -72,19 +72,6 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
     private GeneralLockService generalLockService;
-
-    public StudioClusterGlobalRepoSyncTask(int executeEveryNCycles,
-                                           StudioClusterUtils studioClusterUtils,
-                                           StudioConfiguration studioConfiguration,
-                                           ContentRepository contentRepository,
-                                           GeneralLockService generalLockService) {
-        this.executeEveryNCycles = executeEveryNCycles;
-        this.counter = executeEveryNCycles;
-        this.studioClusterUtils = studioClusterUtils;
-        this.studioConfiguration = studioConfiguration;
-        this.contentRepository = contentRepository;
-        this.generalLockService = generalLockService;
-    }
 
     private synchronized boolean checkCycleCounter() {
         return !(--counter > 0);
@@ -343,5 +330,45 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
         } else {
             logger.debug("Failed to get lock " + GLOBAL_REPOSITORY_GIT_LOCK);
         }
+    }
+
+    public int getExecuteEveryNCycles() {
+        return executeEveryNCycles;
+    }
+
+    public void setExecuteEveryNCycles(int executeEveryNCycles) {
+        this.executeEveryNCycles = executeEveryNCycles;
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }

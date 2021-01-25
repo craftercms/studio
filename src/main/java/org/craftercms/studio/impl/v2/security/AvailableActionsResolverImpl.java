@@ -52,6 +52,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 
@@ -89,12 +90,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
         SitePermissionMappings sitePermissionMappings = new SitePermissionMappings();
         sitePermissionMappings.setSiteId(site);
         try {
-            Document roleMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
-                    studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME),
-                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            Document permissionsMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
-                    studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME),
-                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+
 
             String globalRolesConfigPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) +
                     FILE_SEPARATOR + studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
@@ -108,9 +104,18 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
                     contentService.getContentAsDocument(StringUtils.EMPTY, globalPermissionsConfigPath);
 
             loadRoles(globalRoleMappingsDocument, sitePermissionMappings);
-            loadRoles(roleMappingsDocument, sitePermissionMappings);
             loadPermissions(globalPermissionMappingsDocument, sitePermissionMappings);
-            loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
+
+            if (!StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+                Document roleMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME),
+                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+                Document permissionsMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME),
+                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+                loadRoles(roleMappingsDocument, sitePermissionMappings);
+                loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
+            }
         } catch (DocumentException | IOException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_MENU_FILE_NAME;
 
@@ -69,7 +69,7 @@ public class UiServiceInternalImpl implements UiServiceInternal {
 
     @Override
     @SuppressWarnings("unchecked")
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
+    @IsActionAllowed(allowedActionsMask = READ)
     public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException {
         if (CollectionUtils.isNotEmpty(permissions)) {
             HierarchicalConfiguration menuConfig = getGlobalMenuConfig();

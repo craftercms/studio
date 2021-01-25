@@ -46,13 +46,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     private static int threadCounter = 0;
     private ContentRepository contentRepository;
 
-    public StudioSyncRepositoryTask(int executeEveryNCycles,
-                                    int offset,
-                                    StudioConfiguration studioConfiguration,
-                                    SiteService siteService,
-                                    ContentRepository contentRepository) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService);
-        this.contentRepository = contentRepository;
+    public void init() {
         threadCounter++;
     }
 
@@ -125,4 +119,11 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         return toRet;
     }
 
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 }

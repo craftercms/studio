@@ -59,23 +59,6 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
     private int batchSizeAudited = 100;
     private ContentService contentService;
 
-    public StudioAuditLogProcessingTask(int executeEveryNCycles,
-                                        int offset,
-                                        StudioConfiguration studioConfiguration,
-                                        SiteService siteService,
-                                        AuditServiceInternal auditServiceInternal,
-                                        ContentRepository contentRepository,
-                                        int batchSizeGitLog,
-                                        int batchSizeAudited,
-                                        ContentService contentService) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService);
-        this.auditServiceInternal = auditServiceInternal;
-        this.contentRepository = contentRepository;
-        this.batchSizeGitLog = batchSizeGitLog;
-        this.batchSizeAudited = batchSizeAudited;
-        this.contentService = contentService;
-    }
-
     @Override
     protected void executeInternal(String site) {
         try {
@@ -245,5 +228,45 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
             logger.info("Invalid site UUID. Local copy will not be deleted");
         }
         return toRet;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public int getBatchSizeGitLog() {
+        return batchSizeGitLog;
+    }
+
+    public void setBatchSizeGitLog(int batchSizeGitLog) {
+        this.batchSizeGitLog = batchSizeGitLog;
+    }
+
+    public int getBatchSizeAudited() {
+        return batchSizeAudited;
+    }
+
+    public void setBatchSizeAudited(int batchSizeAudited) {
+        this.batchSizeAudited = batchSizeAudited;
+    }
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
     }
 }

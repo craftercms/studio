@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,14 +34,18 @@ public class EncryptionServiceImpl implements EncryptionService {
 
     protected EncryptionServiceInternal encryptionServiceInternal;
 
-    public EncryptionServiceImpl(final EncryptionServiceInternal encryptionServiceInternal) {
-        this.encryptionServiceInternal = encryptionServiceInternal;
-    }
-
     @Override
     @HasPermission(type = DefaultPermission.class, action = ACTION_ENCRYPTION_TOOL)
     public String encrypt(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(name = "siteId") String siteId,
                           @ValidateStringParam(name = "text") String text) throws ServiceLayerException {
         return encryptionServiceInternal.encrypt(text);
+    }
+
+    public EncryptionServiceInternal getEncryptionServiceInternal() {
+        return encryptionServiceInternal;
+    }
+
+    public void setEncryptionServiceInternal(EncryptionServiceInternal encryptionServiceInternal) {
+        this.encryptionServiceInternal = encryptionServiceInternal;
     }
 }

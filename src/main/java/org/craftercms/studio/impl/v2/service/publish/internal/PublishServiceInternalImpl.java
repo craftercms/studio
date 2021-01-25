@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
@@ -31,10 +32,12 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATH;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CANCEL_PUBLISH_CONST_LONG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.EVERYTHING_ALLOWED;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_PUBLISHING_QUEUE_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.ALL_PERMISSIONS;
+import static org.craftercms.studio.api.v2.security.AvailableActions.CANCEL_PUBLISH;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_PUBLISHING_QUEUE;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal {
 
@@ -42,21 +45,25 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     private ContentRepository contentRepository;
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE_CONST_LONG)
-    public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
+    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE)
+    public int getPublishingPackagesTotal(@IsActionAllowedParameter(SITE) String siteId, String environment,
+                                          @IsActionAllowedParameter(PATH) String path, List<String> states) {
         return publishRequestDao.getPublishingPackagesTotal(siteId, environment, path, states);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE_CONST_LONG)
-    public List<PublishingPackage> getPublishingPackages(String siteId, String environment, String path,
+    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE)
+    public List<PublishingPackage> getPublishingPackages(@IsActionAllowedParameter(SITE) String siteId,
+                                                         String environment,
+                                                         @IsActionAllowedParameter(PATH) String path,
                                                          List<String> states, int offset, int limit) {
         return publishRequestDao.getPublishingPackages(siteId, environment, path, states, offset, limit);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE_CONST_LONG)
-    public PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) {
+    @IsActionAllowed(allowedActionsMask = READ_PUBLISHING_QUEUE)
+    public PublishingPackageDetails getPublishingPackageDetails(@IsActionAllowedParameter(SITE) String siteId,
+                                                                String packageId) {
         List<PublishRequest> publishingRequests = publishRequestDao.getPublishingPackageDetails(siteId, packageId);
         PublishingPackageDetails publishingPackageDetails = new PublishingPackageDetails();
         List<PublishingPackageDetails.PublishingPackageItem> packageItems =
@@ -83,21 +90,24 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     @RetryingOperation
     @Override
-    @IsActionAllowed(allowedActionsMask = CANCEL_PUBLISH_CONST_LONG)
-    public void cancelPublishingPackages(String siteId, List<String> packageIds) {
+    @IsActionAllowed(allowedActionsMask = CANCEL_PUBLISH)
+    public void cancelPublishingPackages(@IsActionAllowedParameter(SITE) String siteId, List<String> packageIds) {
         publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = EVERYTHING_ALLOWED)
-    public int getPublishingHistoryTotal(String siteId, String environment, String path, String publisher,
+    @IsActionAllowed(allowedActionsMask = ALL_PERMISSIONS)
+    public int getPublishingHistoryTotal(@IsActionAllowedParameter(SITE) String siteId, String environment,
+                                         @IsActionAllowedParameter(PATH) String path, String publisher,
                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state) {
         return 0;
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = EVERYTHING_ALLOWED)
-    public List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
+    @IsActionAllowed(allowedActionsMask = ALL_PERMISSIONS)
+    public List<PublishingHistoryItem> getPublishingHistory(@IsActionAllowedParameter(SITE) String siteId,
+                                                            String environment,
+                                                            @IsActionAllowedParameter(PATH) String path,
                                                             String publisher, ZonedDateTime dateFrom,
                                                             ZonedDateTime dateTo, String contentType, long state,
                                                             String sortBy, String order, int offset, int limit) {

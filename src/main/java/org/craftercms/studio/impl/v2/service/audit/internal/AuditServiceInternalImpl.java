@@ -58,12 +58,11 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OPERATIONS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORIGIN;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TARGET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_AUDIT_LOG_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ_AUDIT_LOG;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 
 public class AuditServiceInternalImpl implements AuditServiceInternal {
@@ -73,14 +72,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     private AuditDAO auditDao;
     private StudioConfiguration studioConfiguration;
 
-    public AuditServiceInternalImpl(AuditDAO auditDao,
-                                    StudioConfiguration studioConfiguration) {
-        this.auditDao = auditDao;
-        this.studioConfiguration = studioConfiguration;
-    }
-
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
+    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
             throws SiteNotFoundException {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -111,11 +104,11 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
-    public List<AuditLog> getAuditLog(@IsActionAllowedParameter(SITE) String siteId, String siteName, int offset,
-                                      int limit, String user, List<String> operations, boolean includeParameters,
-                                      ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String origin,
-                                      String clusterNodeId, String sort, String order) {
+    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
+    public List<AuditLog> getAuditLog(@IsActionAllowedParameter(IsActionAllowedParameter.SITE) String siteId,
+                                      String siteName, int offset, int limit, String user, List<String> operations,
+                                      boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                      String target, String origin, String clusterNodeId, String sort, String order) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
@@ -165,10 +158,11 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
-    public int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
-                                boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                String target, String origin, String clusterNodeId) {
+    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
+    public int getAuditLogTotal(@IsActionAllowedParameter(IsActionAllowedParameter.SITE) String siteId,
+                                String siteName, String user, List<String> operations, boolean includeParameters,
+                                ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String origin,
+                                String clusterNodeId) {
         Map<String, Object> params = new HashMap<String, Object>();
         if (StringUtils.isNotEmpty(siteId)) {
             params.put(SITE_ID, siteId);
@@ -206,9 +200,10 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
-    public int getAuditDashboardTotal(String siteId,String user, List<String> operations,ZonedDateTime dateFrom,
-                                      ZonedDateTime dateTo, String target) {
+    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
+    public int getAuditDashboardTotal(@IsActionAllowedParameter(IsActionAllowedParameter.SITE) String siteId,
+                                      String user, List<String> operations,ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                      String target) {
         Map<String, Object> params = new HashMap<String, Object>();
         if (StringUtils.isNotEmpty(siteId)) {
             params.put(SITE_ID, siteId);
@@ -232,8 +227,9 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
-    public List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
+    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
+    public List<AuditLog> getAuditDashboard(@IsActionAllowedParameter(IsActionAllowedParameter.SITE) String siteId,
+                                            int offset, int limit, String user, List<String> operations,
                                             ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort,
                                             String order) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -293,7 +289,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
+    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
     public AuditLog getAuditLogEntry(long auditLogId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(QueryParameterNames.ID, auditLogId);
@@ -301,7 +297,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
+    // TODO: after login insert LOGIN audit
+    //@IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
     public boolean insertAuditLog(AuditLog auditLog) {
         int result = auditDao.insertAuditLog(auditLog);
         if (CollectionUtils.isNotEmpty(auditLog.getParameters())) {
@@ -328,9 +325,10 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         return auditLog;
     }
 
-    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG_CONST_LONG)
-    public List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset,
-                                                int limit, String contentType, boolean hideLiveItems) {
+    @IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
+    public List<AuditLog> selectUserFeedEntries(String user,
+                                                @IsActionAllowedParameter(IsActionAllowedParameter.SITE) String siteId,
+                                                int offset, int limit, String contentType, boolean hideLiveItems) {
         HashMap<String, Object> params = new HashMap<String, Object>();
         params.put("userId", user);
         params.put("siteId", siteId);
@@ -356,5 +354,21 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     @Override
     public void deleteAuditLogForSite(long siteId) {
         auditDao.deleteAuditLogForSite(siteId);
+    }
+
+    public AuditDAO getAuditDao() {
+        return auditDao;
+    }
+
+    public void setAuditDao(AuditDAO auditDao) {
+        this.auditDao = auditDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

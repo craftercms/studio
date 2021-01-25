@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -89,25 +89,6 @@ public class StudioClockExecutor implements Job {
     private List<Job> globalTasks;
     private List<SiteJob> siteTasks;
     private static int threadCounter = 0;
-
-    public StudioClockExecutor(StudioConfiguration studioConfiguration,
-                               TaskExecutor taskExecutor,
-                               SiteService siteService,
-                               ContentRepository contentRepository,
-                               Deployer deployer,
-                               GeneralLockService generalLockService,
-                               List<Job> globalTasks,
-                               List<SiteJob> siteTasks) {
-
-        this.studioConfiguration = studioConfiguration;
-        this.taskExecutor = taskExecutor;
-        this.siteService = siteService;
-        this.contentRepository = contentRepository;
-        this.deployer = deployer;
-        this.generalLockService = generalLockService;
-        this.globalTasks = globalTasks;
-        this.siteTasks = siteTasks;
-    }
 
     @Override
     public void execute() {
@@ -219,5 +200,69 @@ public class StudioClockExecutor implements Job {
         String url = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL);
         url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
         return url;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public TaskExecutor getTaskExecutor() {
+        return taskExecutor;
+    }
+
+    public void setTaskExecutor(TaskExecutor taskExecutor) {
+        this.taskExecutor = taskExecutor;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public Deployer getDeployer() {
+        return deployer;
+    }
+
+    public void setDeployer(Deployer deployer) {
+        this.deployer = deployer;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public List<Job> getGlobalTasks() {
+        return globalTasks;
+    }
+
+    public void setGlobalTasks(List<Job> globalTasks) {
+        this.globalTasks = globalTasks;
+    }
+
+    public List<SiteJob> getSiteTasks() {
+        return siteTasks;
+    }
+
+    public void setSiteTasks(List<SiteJob> siteTasks) {
+        this.siteTasks = siteTasks;
     }
 }

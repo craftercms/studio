@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -43,8 +44,11 @@ import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATH;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATHS;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
 
@@ -56,31 +60,17 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private StudioConfiguration studioConfiguration;
 
-    public ContentServiceInternalImpl(ContentRepository contentRepository,
-                                      ItemDAO itemDao,
-                                      ServicesConfig servicesConfig,
-                                      SiteFeedMapper siteFeedMapper,
-                                      SecurityService securityService,
-                                      org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2,
-                                      StudioConfiguration studioConfiguration) {
-        this.contentRepository = contentRepository;
-        this.itemDao = itemDao;
-        this.servicesConfig = servicesConfig;
-        this.siteFeedMapper = siteFeedMapper;
-        this.securityService = securityService;
-        this.securityServiceV2 = securityServiceV2;
-        this.studioConfiguration = studioConfiguration;
-    }
-
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getSubtreeItems(String siteId, String path) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getSubtreeItems(@IsActionAllowedParameter(SITE) String siteId,
+                                        @IsActionAllowedParameter(PATH) String path) {
         return contentRepository.getSubtreeItems(siteId, path);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public List<String> getSubtreeItems(String siteId, List<String> paths) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public List<String> getSubtreeItems(@IsActionAllowedParameter(SITE) String siteId,
+                                        @IsActionAllowedParameter(PATHS) List<String> paths) {
         List<String> subtreeItems = new ArrayList<String>();
         for (String path : paths) {
             subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
@@ -89,9 +79,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy,
-                                               String order, int offset, int limit)
+    @IsActionAllowed(allowedActionsMask = READ)
+    public GetChildrenResult getChildrenByPath(@IsActionAllowedParameter(SITE) String siteId,
+                                               @IsActionAllowedParameter(PATH) String path, String locale,
+                                               String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -142,8 +133,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public int getChildrenByPathTotal(String siteId, String path, String locale) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public int getChildrenByPathTotal(@IsActionAllowedParameter(SITE) String siteId,
+                                      @IsActionAllowedParameter(PATH) String path, String locale) {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
@@ -153,9 +145,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
-                                             String order, int offset, int limit)
+    @IsActionAllowed(allowedActionsMask = READ)
+    public GetChildrenResult getChildrenById(@IsActionAllowedParameter(SITE) String siteId, String parentId,
+                                             String locale, String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
         List<Item> resultSet = itemDao.getChildrenById(siteId, parentId,
                 servicesConfig.getLevelDescriptorName(siteId), locale, sortStrategy, order, offset, limit);
@@ -166,26 +158,31 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public int getChildrenByIdTotal(@IsActionAllowedParameter(SITE) String siteId, String parentId, String ldName,
+                                    String locale) {
         return itemDao.getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId),
                 locale);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public org.craftercms.core.service.Item getItem(String siteId, String path, boolean flatten) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public org.craftercms.core.service.Item getItem(@IsActionAllowedParameter(SITE) String siteId,
+                                                    @IsActionAllowedParameter(PATH) String path, boolean flatten) {
         return contentRepository.getItem(siteId, path, flatten);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public long getContentSize(String siteId, String path) {
+    @IsActionAllowed(allowedActionsMask = READ)
+    public long getContentSize(@IsActionAllowedParameter(SITE) String siteId,
+                               @IsActionAllowedParameter(PATH) String path) {
         return contentRepository.getContentSize(siteId, path);
     }
 
     @Override
-    public DetailedItem getItemByPath(String siteId, String path)
+    @IsActionAllowed(allowedActionsMask = READ)
+    public DetailedItem getItemByPath(@IsActionAllowedParameter(SITE) String siteId,
+                                      @IsActionAllowedParameter(PATH) String path)
             throws ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -218,5 +215,61 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
         return detailedItem;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public ItemDAO getItemDao() {
+        return itemDao;
+    }
+
+    public void setItemDao(ItemDAO itemDao) {
+        this.itemDao = itemDao;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public org.craftercms.studio.api.v2.service.security.SecurityService getSecurityServiceV2() {
+        return securityServiceV2;
+    }
+
+    public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {
+        this.securityServiceV2 = securityServiceV2;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

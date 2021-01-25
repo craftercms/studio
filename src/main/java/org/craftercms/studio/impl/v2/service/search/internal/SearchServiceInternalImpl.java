@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.FacetRangeTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
 import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
+import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
@@ -68,7 +69,9 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATHS;
+import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
 
 /**
  * Default implementation of {@link SearchServiceInternal}
@@ -176,6 +179,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * Configurations for types
      */
     protected Map<String, HierarchicalConfiguration<ImmutableNode>> types;
+
+
 
     @Required
     public void setPathFieldName(final String pathFieldName) {
@@ -424,8 +429,10 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * {@inheritDoc}
      */
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
-    public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
+    @IsActionAllowed(allowedActionsMask = READ)
+    public SearchResult search(@IsActionAllowedParameter(SITE) final String siteId,
+                               @IsActionAllowedParameter(PATHS) final List<String> allowedPaths,
+                               final SearchParams params)
         throws ServiceLayerException {
 
         Map<String, FacetTO> siteFacets = servicesConfig.getFacets(siteId);

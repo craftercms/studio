@@ -95,26 +95,6 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
 
-    public StudioClusterSandboxRepoSyncTask(int executeEveryNCycles,
-                                            int offset,
-                                            StudioClusterUtils studioClusterUtils,
-                                            StudioConfiguration studioConfiguration,
-                                            ContentRepository contentRepository,
-                                            Deployer deployer,
-                                            SiteService siteService,
-                                            DeploymentService deploymentService,
-                                            EventService eventService,
-                                            ClusterDAO clusterDao,
-                                            GeneralLockService generalLockService) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
-        this.studioClusterUtils = studioClusterUtils;
-        this.deployer = deployer;
-        this.deploymentService = deploymentService;
-        this.eventService = eventService;
-        this.clusterDao = clusterDao;
-        this.generalLockService = generalLockService;
-    }
-
     @Override
     protected void executeInternal(String siteId) {
         // Log start time
@@ -552,4 +532,51 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         Files.delete(tempKey);
     }
 
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
+    public Deployer getDeployer() {
+        return deployer;
+    }
+
+    public void setDeployer(Deployer deployer) {
+        this.deployer = deployer;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
+
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 }

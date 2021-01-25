@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,7 +28,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_CONST_LONG;
+import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
+
 
 public class ContentTypeServiceInternalImpl implements ContentTypeServiceInternal {
 
@@ -36,7 +37,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     private SecurityService securityService;
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_CONST_LONG)
+    @IsActionAllowed(allowedActionsMask = READ)
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
         List<QuickCreateItem> toRet = new ArrayList<QuickCreateItem>();
         List<ContentTypeConfigTO> allContentTypes = contentTypeService.getAllContentTypes(siteId, true);
