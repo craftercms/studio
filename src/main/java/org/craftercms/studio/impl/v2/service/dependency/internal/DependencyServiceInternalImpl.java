@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -258,7 +259,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         if (CollectionUtils.isEmpty(paths)) {
             return new ArrayList<String>();
         }
-        return dependencyDao.getDependentItems(siteId, paths);
+        List<String> result = dependencyDao.getDependentItems(siteId, paths);
+        return result.stream().distinct().collect(Collectors.toList());
     }
 
     @Override
