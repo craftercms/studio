@@ -937,11 +937,11 @@
                 <ref bean="cstudioCleanWorkContentProcessor"></ref>
                 <ref bean="cstudioFormDmContentProcessor"></ref>
                 <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioDmWorkflowProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
                 <ref bean="cstudioContentLifeCycleProcessor"></ref>
                 <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioExtractDependencyProcessor"></ref>
             </list>
         </property>
     </bean>
@@ -961,10 +961,10 @@
                 <ref bean="cstudioExtractParamsProcessor"></ref>
                 <ref bean="cstudioFormNavOrderProcessor"></ref>
                 <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
                 <ref bean="cstudioContentLifeCycleProcessor"></ref>
                 <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioExtractDependencyProcessor"></ref>
             </list>
         </property>
     </bean>
