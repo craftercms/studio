@@ -32,7 +32,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIP
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MOVE_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
