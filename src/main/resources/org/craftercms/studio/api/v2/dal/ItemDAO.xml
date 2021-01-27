@@ -290,4 +290,11 @@
         SET path = #{newPath}
         WHERE s.site_id = #{siteId} AND i.path = #{oldPath}
     </update>
+
+    <update id="moveItems">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET path = REPLACE(path, #{oldPath}, #{newPath}),
+            i.state = i.state | #{onStatesBitMap} &amp; ~#{offStatesBitMap}
+        WHERE s.site_id = #{siteId} AND (i.path = #{oldPath} OR i.path LIKE '${oldPath}/%')
+    </update>
 </mapper>

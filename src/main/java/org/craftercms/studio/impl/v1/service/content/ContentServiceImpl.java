@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -1058,13 +1058,6 @@ public class ContentServiceImpl implements ContentService {
             // change the path of this object in the object state database
             objectStateService.updateObjectPath(site, fromPath, movePath);
 
-            // Item update
-            Item item = itemServiceInternal.instantiateItem(site, fromPath)
-                    .withPath(movePath)
-                    .build();
-            item.setState(ItemState.savedAndClosed(item.getState()));
-            itemServiceInternal.upsertEntry(site, item);
-
             objectStateService.transition(site, renamedItem, SAVE);
             renamedItem = getContentItem(site, movePath, 0);
         }
@@ -1098,6 +1091,9 @@ public class ContentServiceImpl implements ContentService {
             }
             objectMetadataManager.updateObjectPath(site, fromPath, movePath);
         }
+
+        // Item update
+        itemServiceInternal.moveItems(site, fromPath, movePath);
 
         // write activity stream
         SiteFeed siteFeed = siteService.getSite(site);
