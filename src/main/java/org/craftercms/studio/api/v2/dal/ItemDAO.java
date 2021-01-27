@@ -33,6 +33,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIP
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PATH;
@@ -290,7 +291,7 @@ public interface ItemDAO {
      * @param oldPath old path
      * @param newPath new path
      */
-    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, String newPath);
+    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath);
 
     /**
      * Get item for given path from database
@@ -302,4 +303,15 @@ public interface ItemDAO {
      */
 
     Item getItemByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path);
+
+    /**
+     * Move item
+     * @param siteId site identifier
+     * @param oldPath old path
+     * @param newPath new path
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
+     */
+    void moveItems(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
+                   @Param(ON_STATES_BIT_MAP) long onStatesBitMap, @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 }
