@@ -88,6 +88,9 @@
                                   (select i2.path from item i2 where i2.site_id = #{siteId}
                                         and i2.path RLIKE('${path}/[^/]+/index\.xml'))
                               and path not like '%/${ldName}'
+        <foreach collection="ignoreNames" item="ignore" index="index" >
+            and path not like '%/${ignore}'
+        </foreach>
         limit #{offset},#{limit})
     </select>
 
@@ -98,6 +101,9 @@
                                         (select i2.path from item i2 where i2.site_id = #{siteId}
                                                                        and i2.path RLIKE('${path}/[^/]+/index\.xml'))
                                     and path not like '%/${ldName}'
+        <foreach collection="ignoreNames" item="ignore" index="index" >
+            and path not like '%/${ignore}'
+        </foreach>
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
@@ -106,11 +112,17 @@
         select * from item where site_id = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
         union
         select * from item where site_id = #{siteId} and parent_id = #{parentId} and path not like '%/${ldName}'
+        <foreach collection="ignoreNames" item="ignore" index="index" >
+            and path not like '%/${ignore}'
+        </foreach>
     </select>
 
     <select id="getChildrenByIdTotal" resultType="Integer">
         select count(1) from item where site_id = #{siteId} and parent_id = #{parentId}
                                              and path not like '%/${ldName}'
+        <foreach collection="ignoreNames" item="ignore" index="index" >
+            and path not like '%/${ignore}'
+        </foreach>
     </select>
 
     <select id="updateParentIdForSite" >

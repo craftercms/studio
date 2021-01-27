@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ import java.util.Objects;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
 
@@ -89,15 +91,16 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String ldPath = parentFolderPath + FILE_SEPARATOR + ldName;
+        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), path, ldPath, ldName, parentFolderPath,
-                locale, sortStrategy, order, offset, limit);
+                locale, ignoreNames, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setLimit(limit);
-        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale));
+        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale, ignoreNames));
         return toRet;
     }
 
@@ -136,16 +139,17 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath,
-                servicesConfig.getLevelDescriptorName(siteId), locale);
+                servicesConfig.getLevelDescriptorName(siteId), locale, ignoreNames);
     }
 
     @Override
     public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
-                                             String order,
-                                             int offset, int limit) {
+                                             String order, int offset, int limit) {
+        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         List<Item> resultSet = itemDao.getChildrenById(siteId, parentId,
-                servicesConfig.getLevelDescriptorName(siteId), locale, sortStrategy, order, offset, limit);
+                servicesConfig.getLevelDescriptorName(siteId), locale, ignoreNames, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setTotal(getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId), locale));
@@ -154,8 +158,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale) {
+        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId),
-                locale);
+                locale, ignoreNames);
     }
 
     @Override
