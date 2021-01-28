@@ -48,6 +48,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
@@ -441,6 +443,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void moveItem(String siteId, String oldPath, String newPath) {
         itemDao.moveItem(siteId, oldPath, newPath);
+    }
+
+    @Override
+    public void moveItems(String siteId, String oldPath, String newPath) {
+        itemDao.moveItems(siteId, oldPath, newPath, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
     }
 
     public UserServiceInternal getUserServiceInternal() {

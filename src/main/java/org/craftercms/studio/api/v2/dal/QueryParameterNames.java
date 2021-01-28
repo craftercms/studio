@@ -190,6 +190,10 @@ public final class  QueryParameterNames {
 
     public static final String CONTENT_TYPE = "contentType";
 
+    public static final String MOVE_MASK = "moveMask";
+
+    public static final String IGNORE_NAMES = "ignoreNames";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids
