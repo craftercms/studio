@@ -40,8 +40,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.FacetRangeTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
@@ -69,8 +67,6 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATHS;
-import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
 import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
 
 /**
@@ -429,11 +425,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * {@inheritDoc}
      */
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public SearchResult search(@IsActionAllowedParameter(SITE) final String siteId,
-                               @IsActionAllowedParameter(PATHS) final List<String> allowedPaths,
-                               final SearchParams params)
-        throws ServiceLayerException {
+    public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
+            throws ServiceLayerException {
 
         Map<String, FacetTO> siteFacets = servicesConfig.getFacets(siteId);
         BoolQueryBuilder query = QueryBuilders.boolQuery();

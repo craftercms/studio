@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 
@@ -28,16 +27,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
-
-
 public class ContentTypeServiceInternalImpl implements ContentTypeServiceInternal {
 
     private ContentTypeService contentTypeService;
     private SecurityService securityService;
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
         List<QuickCreateItem> toRet = new ArrayList<QuickCreateItem>();
         List<ContentTypeConfigTO> allContentTypes = contentTypeService.getAllContentTypes(siteId, true);

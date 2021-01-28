@@ -126,7 +126,7 @@
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and path = #{path}
+        select * from item where site_id = #{siteId} and path = #{path} limit 0, 1
     </select>
 
     <update id="updateItem" parameterType="org.craftercms.studio.api.v2.dal.Item">

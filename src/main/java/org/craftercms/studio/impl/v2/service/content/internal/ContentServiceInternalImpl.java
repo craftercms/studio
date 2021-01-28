@@ -25,10 +25,9 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.api.v2.security.PossibleActions;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -44,11 +43,7 @@ import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATH;
-import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATHS;
-import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
 
@@ -61,16 +56,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private StudioConfiguration studioConfiguration;
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public List<String> getSubtreeItems(@IsActionAllowedParameter(SITE) String siteId,
-                                        @IsActionAllowedParameter(PATH) String path) {
+    public List<String> getSubtreeItems(String siteId, String path) {
         return contentRepository.getSubtreeItems(siteId, path);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public List<String> getSubtreeItems(@IsActionAllowedParameter(SITE) String siteId,
-                                        @IsActionAllowedParameter(PATHS) List<String> paths) {
+    public List<String> getSubtreeItems(String siteId, List<String> paths) {
         List<String> subtreeItems = new ArrayList<String>();
         for (String path : paths) {
             subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
@@ -79,10 +70,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public GetChildrenResult getChildrenByPath(@IsActionAllowedParameter(SITE) String siteId,
-                                               @IsActionAllowedParameter(PATH) String path, String locale,
-                                               String sortStrategy, String order, int offset, int limit)
+    public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy,
+                                               String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -108,12 +97,14 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String user = securityService.getCurrentUser();
         if (resultSet != null && resultSet.size() > 0) {
             Item parent = resultSet.get(0);
-            parent.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, parent.getPath()));
+            parent.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, parent.getPath()) &
+                    PossibleActions.getPosibleActionsForObject(parent.getSystemType()));
             toRet.setParent(SandboxItem.getInstance(parent));
             if (resultSet.size() > 1) {
                 int idx = 1;
                 Item item = resultSet.get(idx);
-                item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()));
+                item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
+                        PossibleActions.getPosibleActionsForObject(item.getSystemType()));
                 if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
                         servicesConfig.getLevelDescriptorName(siteId))) {
                     toRet.setLevelDescriptor(SandboxItem.getInstance(item));
@@ -122,7 +113,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 List<SandboxItem> children = new ArrayList<SandboxItem>();
                 while (idx < resultSet.size()) {
                     Item child = resultSet.get(idx);
-                    child.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, child.getPath()));
+                    child.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, child.getPath()) &
+                            PossibleActions.getPosibleActionsForObject(child.getSystemType()));
                     children.add(SandboxItem.getInstance(child));
                     idx++;
                 }
@@ -133,9 +125,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public int getChildrenByPathTotal(@IsActionAllowedParameter(SITE) String siteId,
-                                      @IsActionAllowedParameter(PATH) String path, String locale) {
+    public int getChildrenByPathTotal(String siteId, String path, String locale) {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
@@ -145,9 +135,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public GetChildrenResult getChildrenById(@IsActionAllowedParameter(SITE) String siteId, String parentId,
-                                             String locale, String sortStrategy, String order, int offset, int limit)
+    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
+                                             String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
         List<Item> resultSet = itemDao.getChildrenById(siteId, parentId,
                 servicesConfig.getLevelDescriptorName(siteId), locale, sortStrategy, order, offset, limit);
@@ -158,31 +147,23 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public int getChildrenByIdTotal(@IsActionAllowedParameter(SITE) String siteId, String parentId, String ldName,
-                                    String locale) {
+    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale) {
         return itemDao.getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId),
                 locale);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public org.craftercms.core.service.Item getItem(@IsActionAllowedParameter(SITE) String siteId,
-                                                    @IsActionAllowedParameter(PATH) String path, boolean flatten) {
+    public org.craftercms.core.service.Item getItem(String siteId, String path, boolean flatten) {
         return contentRepository.getItem(siteId, path, flatten);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public long getContentSize(@IsActionAllowedParameter(SITE) String siteId,
-                               @IsActionAllowedParameter(PATH) String path) {
+    public long getContentSize(String siteId, String path) {
         return contentRepository.getContentSize(siteId, path);
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ)
-    public DetailedItem getItemByPath(@IsActionAllowedParameter(SITE) String siteId,
-                                      @IsActionAllowedParameter(PATH) String path)
+    public DetailedItem getItemByPath(String siteId, String path)
             throws ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);

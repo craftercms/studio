@@ -27,8 +27,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -51,7 +49,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
-import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
@@ -69,11 +66,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CREATE_USERS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.DELETE_USERS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_GROUPS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_USERS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.UPDATE_USERS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
@@ -91,10 +83,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private SecurityService securityService;
 
     @Override
-    // TODO: First request everything is null
-    // @IsActionAllowed(allowedActionsMask = READ_USERS)
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
-                                                                           UserNotFoundException {
+    public User getUserByIdOrUsername(long userId, String username)
+            throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
@@ -114,10 +104,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
-    public List<User> getUsersByIdOrUsername(List<Long> userIds,
-                                             List<String> usernames) throws ServiceLayerException,
-                                                                              UserNotFoundException {
+    public List<User> getUsersByIdOrUsername(List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException {
         List<User> users = new LinkedList<>();
         for(long userId : userIds) {
             users.add(getUserByIdOrUsername(userId, StringUtils.EMPTY));
@@ -133,9 +121,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
-    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit,
-                                         String sort) throws ServiceLayerException {
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+            throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAMES, groupNames);
         params.put(OFFSET, offset);
@@ -150,7 +137,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
     public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(OFFSET, offset);
@@ -165,8 +151,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
-    public int getAllUsersForSiteTotal(long orgId, @IsActionAllowedParameter(SITE) String siteId) throws ServiceLayerException {
+    public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
 
         Map<String, Object> params = new HashMap<>();
@@ -180,7 +165,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
     public int getAllUsersTotal() throws ServiceLayerException {
         try {
             return userDao.getAllUsersTotal();
@@ -190,7 +174,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = CREATE_USERS)
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         if (userExists(-1, user.getUsername())) {
             throw new UserAlreadyExistsException("User '" + user.getUsername() + "' already exists");
@@ -222,7 +205,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
     public boolean userExists(long userId, String username) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
@@ -238,7 +220,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
-    @IsActionAllowed(allowedActionsMask = UPDATE_USERS)
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
         long userId = user.getId();
         String username = user.getUsername() != null ? user.getUsername() : StringUtils.EMPTY;
@@ -262,9 +243,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
-    @IsActionAllowed(allowedActionsMask = DELETE_USERS)
-    public void deleteUsers(List<Long> userIds,
-                            List<String> usernames) throws UserNotFoundException, ServiceLayerException {
+    public void deleteUsers(List<Long> userIds, List<String> usernames)
+            throws UserNotFoundException, ServiceLayerException {
         List<User> users = getUsersByIdOrUsername(userIds, usernames);
 
         var ids = users.stream().map(User::getId).collect(Collectors.toList());
@@ -283,9 +263,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
-    @IsActionAllowed(allowedActionsMask = UPDATE_USERS)
-    public List<User> enableUsers(List<Long> userIds, List<String> usernames,
-                                  boolean enabled) throws ServiceLayerException, UserNotFoundException {
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
+            throws ServiceLayerException, UserNotFoundException {
         List<User> users = getUsersByIdOrUsername(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
@@ -302,9 +281,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    // TODO: Stack overflow
-    // @IsActionAllowed(allowedActionsMask = READ_USERS + READ_GROUPS)
-    public List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException {
+    public List<Group> getUserGroups(long userId, String username)
+            throws UserNotFoundException, ServiceLayerException {
         if (!userExists(userId, username)) {
             throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
         }
@@ -321,9 +299,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS + READ_GROUPS)
-    public boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException,
-                                                                                 ServiceLayerException {
+    public boolean isUserMemberOfGroup(String username, String groupName)
+            throws UserNotFoundException, ServiceLayerException {
         if (!userExists(-1, username)) {
             throw new UserNotFoundException("No user found for username '" + username + "'");
         }
@@ -342,7 +319,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
-    @IsActionAllowed(allowedActionsMask = UPDATE_USERS)
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -375,7 +351,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
-    @IsActionAllowed(allowedActionsMask = UPDATE_USERS)
     public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
         if (!userExists(-1, username)) {
@@ -417,7 +392,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
     public User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException {
         User user =  userDao.getUserByGitName(gitName);
         if (Objects.isNull(user)) {
@@ -441,8 +415,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = READ_USERS)
-    public Map<String, Map<String, String>> getUserProperties(@IsActionAllowedParameter(SITE) String siteId)
+    public Map<String, Map<String, String>> getUserProperties(String siteId)
             throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);
         var dbSiteId = siteService.getSite(actualSiteId).getId();
@@ -460,9 +433,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = UPDATE_USERS)
-    public Map<String, String> updateUserProperties(@IsActionAllowedParameter(SITE) String siteId,
-                                                    Map<String, String> propertiesToUpdate)
+    public Map<String, String> updateUserProperties(String siteId, Map<String, String> propertiesToUpdate)
             throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);
         var dbSiteId = siteService.getSite(actualSiteId).getId();
@@ -481,8 +452,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = UPDATE_USERS)
-    public Map<String, String> deleteUserProperties(@IsActionAllowedParameter(SITE) String siteId,
+    public Map<String, String> deleteUserProperties(String siteId,
                                                     List<String> propertiesToDelete)
             throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);

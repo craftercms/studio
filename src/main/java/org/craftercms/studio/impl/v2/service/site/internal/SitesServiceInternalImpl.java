@@ -30,8 +30,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowed;
-import org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -47,9 +45,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CREATE_SITE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.WRITE_CONFIGURATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
 
@@ -63,7 +58,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     private SiteFeedMapper siteFeedMapper;
 
     @Override
-    @IsActionAllowed(allowedActionsMask = CREATE_SITE)
     public List<PluginDescriptor> getAvailableBlueprints() {
         RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
         List<PluginDescriptor> toRet = new ArrayList<PluginDescriptor>();
@@ -79,7 +73,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = CREATE_SITE)
     public PluginDescriptor getBlueprintDescriptor(final String id) {
         RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
         for (RepositoryItem folder : blueprintsFolders) {
@@ -94,7 +87,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = CREATE_SITE)
     public String getBlueprintLocation(String blueprintId) {
         RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
         for (RepositoryItem folder : blueprintsFolders) {
@@ -111,7 +103,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = CREATE_SITE)
     public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
         String descriptorPath = studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME);
         if (contentRepository.contentExists(id, descriptorPath)) {
@@ -125,7 +116,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = CREATE_SITE)
     public void validateBlueprintParameters(final PluginDescriptor descriptor, final Map<String, String> params)
         throws MissingPluginParameterException {
         Plugin plugin = descriptor.getPlugin();
@@ -179,8 +169,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     }
 
     @Override
-    @IsActionAllowed(allowedActionsMask = WRITE_CONFIGURATION)
-    public void updateSite(@IsActionAllowedParameter(SITE) String siteId, String name, String description)
+    public void updateSite(String siteId, String name, String description)
             throws SiteNotFoundException, SiteAlreadyExistsException {
         if (isNotEmpty(name) && siteFeedMapper.isNameUsed(siteId, name)) {
             throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
