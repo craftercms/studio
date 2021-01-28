@@ -308,6 +308,7 @@
         <property name="translationConfig"
                   value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="configurationCache" ref="configurationCache"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -1323,12 +1324,18 @@
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
           init-method="init"  depends-on="cstudioLogProvider">
-        <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
+        <constructor-arg ref="configurationCache"/>
+        <constructor-arg value="crafter/studio/studio-config.yaml"/>
     </bean>
 
     <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
         <constructor-arg name="clusterDao" ref="clusterDao" />
         <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+    </bean>
+
+    <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
+        <!-- This properties can't be externalized because the bean is created before the yaml is loaded -->
+        <property name="maxSize" value="100"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
