@@ -67,8 +67,6 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ;
-
 /**
  * Default implementation of {@link SearchServiceInternal}
  * @author joseross

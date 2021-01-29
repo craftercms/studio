@@ -20,8 +20,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;

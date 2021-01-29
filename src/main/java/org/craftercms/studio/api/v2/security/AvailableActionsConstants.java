@@ -71,12 +71,9 @@ import static org.craftercms.studio.permissions.StudioPermissions.ACTION_WRITE;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_WRITE_CONFIGURATION;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_WRITE_GLOBAL_CONFIGURATION;
 
-public final class AvailableActions {
+public final class AvailableActionsConstants {
 
-    private static final Logger logger = LoggerFactory.getLogger(AvailableActions.class);
-
-    private AvailableActions() {
-    }
+    private static final Logger logger = LoggerFactory.getLogger(AvailableActionsConstants.class);
 
     // Constants number required by annotations
     // Editorial
@@ -323,6 +320,9 @@ public final class AvailableActions {
 
     public static final long ALL_PERMISSIONS = -1L;
 
+    private AvailableActionsConstants() {
+    }
+
     public static long mapPermissionToAvailableActions(String permission) {
         long result = 0L;
         switch (permission.toLowerCase()) {
@@ -481,7 +481,7 @@ public final class AvailableActions {
     }
 
     public static long mapPermissionsToAvailableActions(List<String> permissions) {
-        return permissions.stream().mapToLong(AvailableActions::mapPermissionToAvailableActions).sum();
+        return permissions.stream().mapToLong(AvailableActionsConstants::mapPermissionToAvailableActions).sum();
     }
 
 }

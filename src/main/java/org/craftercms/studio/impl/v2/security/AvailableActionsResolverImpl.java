@@ -23,13 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.security.RolePermissionMappings;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
-import org.craftercms.studio.api.v2.security.AvailableActions;
+import org.craftercms.studio.api.v2.security.AvailableActionsConstants;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -57,8 +55,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 
 public class AvailableActionsResolverImpl implements AvailableActionsResolver {
-
-    private static final Logger logger = LoggerFactory.getLogger(AvailableActionsResolverImpl.class);
 
     private StudioConfiguration studioConfiguration;
     private ConfigurationService configurationService;
@@ -174,7 +170,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
                     permissionNodes.forEach(pn -> {
                         permissions.add(pn.getText().toLowerCase());
                     });
-                    long availableActions = AvailableActions.mapPermissionsToAvailableActions(permissions);
+                    long availableActions = AvailableActionsConstants.mapPermissionsToAvailableActions(permissions);
                     rolePermissionMappings.addRulePermissionsMapping(regex, availableActions);
                 });
                 sitePermissionMappings.addRolePermissionMapping(roleName, rolePermissionMappings);

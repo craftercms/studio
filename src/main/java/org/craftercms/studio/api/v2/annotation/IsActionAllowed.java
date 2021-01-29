@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.annotation;
 
-import org.craftercms.studio.api.v2.security.AvailableActions;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

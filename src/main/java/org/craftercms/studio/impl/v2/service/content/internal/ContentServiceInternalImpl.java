@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
-import org.craftercms.studio.api.v2.security.PossibleActions;
+import org.craftercms.studio.api.v2.security.PossibleActionsConstants;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -101,13 +101,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         if (resultSet != null && resultSet.size() > 0) {
             Item parent = resultSet.get(0);
             parent.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, parent.getPath()) &
-                    PossibleActions.getPosibleActionsForObject(parent.getSystemType()));
+                    PossibleActionsConstants.getPosibleActionsForObject(parent.getSystemType()));
             toRet.setParent(SandboxItem.getInstance(parent));
             if (resultSet.size() > 1) {
                 int idx = 1;
                 Item item = resultSet.get(idx);
                 item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
-                        PossibleActions.getPosibleActionsForObject(item.getSystemType()));
+                        PossibleActionsConstants.getPosibleActionsForObject(item.getSystemType()));
                 if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
                         servicesConfig.getLevelDescriptorName(siteId))) {
                     toRet.setLevelDescriptor(SandboxItem.getInstance(item));
@@ -117,7 +117,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 while (idx < resultSet.size()) {
                     Item child = resultSet.get(idx);
                     child.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, child.getPath()) &
-                            PossibleActions.getPosibleActionsForObject(child.getSystemType()));
+                            PossibleActionsConstants.getPosibleActionsForObject(child.getSystemType()));
                     children.add(SandboxItem.getInstance(child));
                     idx++;
                 }

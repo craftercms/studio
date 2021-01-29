@@ -34,40 +34,40 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_USER;
-import static org.craftercms.studio.api.v2.security.AvailableActions.ADD_REMOTE_REPOSITORY;
-import static org.craftercms.studio.api.v2.security.AvailableActions.APPROVE_PUBLISH;
-import static org.craftercms.studio.api.v2.security.AvailableActions.BULK_PUBLISH;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CANCEL_PUBLISH;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_COPY;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_CREATE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_CUT;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_DELETE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_DUPLICATE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_MOVE_RENAME;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_PASTE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_READ;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_TRANSLATE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_UPDATE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.CONTENT_VERSION_HISTORY;
-import static org.craftercms.studio.api.v2.security.AvailableActions.PUBLISH_BY_COMMIT_ID;
-import static org.craftercms.studio.api.v2.security.AvailableActions.PULL_FROM_REMOTE_REPOSITORY;
-import static org.craftercms.studio.api.v2.security.AvailableActions.PUSH_TO_REMOTE_REPOSITORY;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_PUBLISHING_QUEUE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_PUBLISHING_STATUS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.READ_SITE_LOG;
-import static org.craftercms.studio.api.v2.security.AvailableActions.REJECT_PUBLISH;
-import static org.craftercms.studio.api.v2.security.AvailableActions.REMOVE_REMOTE_REPOSITORY;
-import static org.craftercms.studio.api.v2.security.AvailableActions.REQUEST_PUBLISH;
-import static org.craftercms.studio.api.v2.security.AvailableActions.RESOLVE_CONFLICTS;
-import static org.craftercms.studio.api.v2.security.AvailableActions.SET_WORKFLOW_STATE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.START_PUBLISHING;
-import static org.craftercms.studio.api.v2.security.AvailableActions.STOP_PUBLISHING;
-import static org.craftercms.studio.api.v2.security.AvailableActions.SYSTEM_CREATE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.SYSTEM_DELETE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.SYSTEM_READ;
-import static org.craftercms.studio.api.v2.security.AvailableActions.SYSTEM_UPDATE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.ADD_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.APPROVE_PUBLISH;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.BULK_PUBLISH;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CANCEL_PUBLISH;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_COPY;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_CREATE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_CUT;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_DELETE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_DUPLICATE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_MOVE_RENAME;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_PASTE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_READ;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_TRANSLATE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_UPDATE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.CONTENT_VERSION_HISTORY;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.PUBLISH_BY_COMMIT_ID;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.PULL_FROM_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.PUSH_TO_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.READ_PUBLISHING_QUEUE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.READ_PUBLISHING_STATUS;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.READ_SITE_LOG;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.REJECT_PUBLISH;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.REMOVE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.REQUEST_PUBLISH;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.RESOLVE_CONFLICTS;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.SET_WORKFLOW_STATE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.START_PUBLISHING;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.STOP_PUBLISHING;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.SYSTEM_CREATE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.SYSTEM_DELETE;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.SYSTEM_READ;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.SYSTEM_UPDATE;
 
-public final class PossibleActions {
+public final class PossibleActionsConstants {
 
     public static final long PAGE =
             CONTENT_READ + CONTENT_CREATE + CONTENT_UPDATE + CONTENT_DELETE + CONTENT_CUT + CONTENT_COPY +
@@ -196,5 +196,5 @@ public final class PossibleActions {
         return toRet;
     }
 
-    private PossibleActions() { }
+    private PossibleActionsConstants() { }
 }

@@ -18,14 +18,10 @@ package org.craftercms.studio.impl.v2.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 
 public class SecurityServiceImpl implements SecurityService {
-
-    private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
     private AvailableActionsResolver availableActionsResolver;
 

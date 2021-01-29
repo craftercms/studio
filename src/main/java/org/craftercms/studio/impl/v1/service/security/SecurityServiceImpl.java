@@ -62,7 +62,6 @@ import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.security.AvailableActions;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;

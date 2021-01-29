@@ -23,8 +23,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.craftercms.commons.aop.AopUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.security.ActionNotAllowedException;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -40,13 +38,11 @@ import java.util.Objects;
 import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATH;
 import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.PATHS;
 import static org.craftercms.studio.api.v2.annotation.IsActionAllowedParameter.SITE;
-import static org.craftercms.studio.api.v2.security.AvailableActions.ALL_PERMISSIONS;
+import static org.craftercms.studio.api.v2.security.AvailableActionsConstants.ALL_PERMISSIONS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 @Aspect
 public class IsActionAllowedAnnotationHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(IsActionAllowedAnnotationHandler.class);
 
     private org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1;
     private SecurityService securityServiceV2;
