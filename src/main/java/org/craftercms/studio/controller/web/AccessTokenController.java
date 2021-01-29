@@ -16,6 +16,7 @@
 package org.craftercms.studio.controller.web;
 
 import org.craftercms.studio.api.v2.service.security.AccessTokenService;
+import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.security.AccessToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -54,6 +58,19 @@ public class AccessTokenController {
         }
 
         return accessTokenService.createTokens(authentication, response);
+    }
+
+    @GetMapping(value = "/authType", produces = APPLICATION_JSON_VALUE)
+    public Object authType(Authentication authentication, HttpServletResponse response)
+            throws IOException {
+        // If the session has expired, return an empty response
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.flushBuffer();
+            return null;
+        }
+
+        return Map.of("authType", ((AuthenticatedUser) authentication.getPrincipal()).getAuthenticationType());
     }
 
 }
