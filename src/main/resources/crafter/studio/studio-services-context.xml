@@ -1458,5 +1458,37 @@
         <constructor-arg ref="policyService"/>
     </bean>
 
+    <!-- ////////////////////////////////////// -->
+    <!--              Scripting                 -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="scriptingService" class="org.craftercms.studio.impl.v2.service.scripting.ScriptingServiceImpl">
+        <constructor-arg ref="scriptingServiceInternal"/>
+    </bean>
+
+    <bean id="scriptingServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.scripting.internal.ScriptingServiceInternalImpl">
+        <constructor-arg ref="scriptEngineManager"/>
+        <constructor-arg ref="sandboxInterceptor"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.path.format')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.restrictBeans')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.allowedBeans')}"/>
+    </bean>
+
+    <bean id="scriptEngineManager" class="org.craftercms.studio.impl.v2.scripting.ScriptEngineManagerImpl">
+        <constructor-arg ref="contextManager"/>
+        <constructor-arg ref="crafter.contentStoreService"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.classes.path')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.rest.path')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
+    </bean>
+
+    <bean id="sandboxInterceptor" class="org.craftercms.commons.spring.groovy.SandboxInterceptorFactory">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist')}"/>
+    </bean>
+
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>

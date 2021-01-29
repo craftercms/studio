@@ -16,10 +16,19 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import javax.activation.MimetypesFileTypeMap;
-
+import groovy.util.ResourceException;
+import groovy.util.ScriptException;
+import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +36,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.HandlerMapping;
+
+import javax.activation.MimetypesFileTypeMap;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
 
 /**
  * Controller that provides the UI with plugin related files
@@ -35,15 +53,20 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/2/plugin")
-public class PluginController {
+public class PluginController extends ManagementTokenAware {
 
     /**
      * The configuration service
      */
-    protected ConfigurationService configurationService;
+    protected final ConfigurationService configurationService;
 
-    public PluginController(final ConfigurationService configurationService) {
+    protected final ScriptingService scriptingService;
+
+    public PluginController(StudioConfiguration studioConfiguration, SecurityService securityService,
+                            ConfigurationService configurationService, ScriptingService scriptingService) {
+        super(studioConfiguration, securityService);
         this.configurationService = configurationService;
+        this.scriptingService = scriptingService;
     }
 
     /**
@@ -51,15 +74,66 @@ public class PluginController {
      */
     @GetMapping("/file")
     public ResponseEntity<Resource> getPluginFile(@RequestParam String siteId, @RequestParam String type,
-                                                  @RequestParam String name, @RequestParam String filename)
+                                                  @RequestParam String name, @RequestParam String filename,
+                                                  @RequestParam(required = false) String pluginId)
         throws ContentNotFoundException {
 
-        Resource resource = configurationService.getPluginFile(siteId, type, name, filename);
+        Resource resource = configurationService.getPluginFile(siteId, pluginId, type, name, filename);
 
         MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
         String contentType = mimeMap.getContentType(filename);
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, contentType).body(resource);
+    }
+
+    /**
+     * Reloads the groovy classes for the given site
+     */
+    @GetMapping("/script/reload")
+    public ResponseBody reload(@RequestParam String siteId, @RequestParam String token)
+            throws InvalidParametersException, InvalidManagementTokenException {
+        validateToken(token);
+
+        scriptingService.reload(siteId);
+
+        var result = new Result();
+        result.setResponse(ApiResponse.OK);
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
+    }
+
+    /**
+     *  Executes a rest script for the given site
+     */
+    @RequestMapping("/script/**")
+    public ResponseBody runScript(@RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
+            throws ResourceException, ScriptException {
+
+        // No better way to do this for now, later can be replaced by "/script/{*scriptUrl}"
+        var scriptUrl = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        scriptUrl = removeStart(removeExtension(scriptUrl), "/api/2/plugin/script");
+
+        // Add the binding with the right values
+        // Execute the script
+        var object = scriptingService.executeRestScript(siteId, scriptUrl, request, response);
+
+        // Check if the script already committed the response
+        if (response.isCommitted()) {
+            // Stop the execution
+            return null;
+        }
+
+        // Wrap the response in a proper result
+        var result = new ResultOne<>();
+        result.setEntity(RESULT_KEY_RESULT, object);
+        result.setResponse(ApiResponse.OK);
+
+        var body = new ResponseBody();
+        body.setResult(result);
+
+        return body;
     }
 
 }
