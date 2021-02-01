@@ -3509,7 +3509,7 @@ paths:
             type: string
         - name: preferContent
           in: query
-          description: in case if container path is given, if true it will return content item if available
+          description: when set to true, return an item instead of a folder if the path can match either
           required: false
           schema:
             type: boolean
@@ -3558,7 +3558,7 @@ paths:
             type: string
         - name: preferContent
           in: query
-          description: in case if container path is given, if true it will return content item if available
+          description: when set to true, return an item instead of a folder if the path can match either
           required: false
           schema:
             type: boolean            
