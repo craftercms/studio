@@ -78,8 +78,6 @@
     </insert>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and path = #{parentPath}
-        union
         select * from item where site_id = #{siteId} and path = #{ldPath}
         union
         (select * from item where site_id = #{siteId}
@@ -107,8 +105,6 @@
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and id = #{parentId}
-        union
         select * from item where site_id = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
         union
         select * from item where site_id = #{siteId} and parent_id = #{parentId} and path not like '%/${ldName}'
