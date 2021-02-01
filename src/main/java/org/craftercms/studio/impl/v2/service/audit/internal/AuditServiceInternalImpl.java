@@ -193,7 +193,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public int getAuditDashboardTotal(String siteId, String user, List<String> operations,ZonedDateTime dateFrom,
+    public int getAuditDashboardTotal(String siteId, String user, List<String> operations, ZonedDateTime dateFrom,
                                       ZonedDateTime dateTo, String target) {
         Map<String, Object> params = new HashMap<String, Object>();
         if (StringUtils.isNotEmpty(siteId)) {
