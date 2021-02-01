@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.service.configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
@@ -67,6 +67,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
@@ -91,6 +92,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PLUGIN_BASE_PATTERN;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
@@ -101,6 +103,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     public static final String PLACEHOLDER_TYPE = "type";
     public static final String PLACEHOLDER_NAME = "name";
+    public static final String PLACEHOLDER_ID = "id";
 
     /* Translation Config */
     public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
@@ -164,7 +167,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String getSiteConfigPath(String siteId) {
         String siteConfigPath = StringUtils.EMPTY;
-        if (!StringUtils.isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
+        if (!isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
             siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH)
                     .replaceAll(PATTERN_ENVIRONMENT, studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             if (!contentService.contentExists(siteId,siteConfigPath + FILE_SEPARATOR + getSiteRoleMappingsConfigFileName())) {
@@ -224,7 +227,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
-        if (!StringUtils.isEmpty(environment)) {
+        if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
                             .replaceAll(PATTERN_MODULE, module)
@@ -247,11 +250,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public Resource getPluginFile(String siteId, String type, String name, String filename)
+    public Resource getPluginFile(String siteId, String pluginId, String type, String name, String filename)
         throws ContentNotFoundException {
 
-        String basePath = servicesConfig.getPluginFolderPattern(siteId);
-        if (StringUtils.isEmpty(basePath)) {
+        String basePath;
+        if (isEmpty(pluginId)) {
+            basePath = servicesConfig.getPluginFolderPattern(siteId);
+        } else {
+            basePath = studioConfiguration.getProperty(PLUGIN_BASE_PATTERN);
+        }
+
+        if (isEmpty(basePath)) {
             throw new IllegalStateException(
                 String.format("Site '%s' does not have an plugin folder pattern configured", siteId));
         } else if (!StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
@@ -263,7 +272,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Map<String, String> values = new HashMap<>();
         values.put(PLACEHOLDER_TYPE, type);
         values.put(PLACEHOLDER_NAME, name);
-        basePath = StrSubstitutor.replace(basePath, values);
+        values.put(PLACEHOLDER_ID, isEmpty(pluginId)? pluginId : pluginId.replace('.', '/'));
+        basePath = StringSubstitutor.replace(basePath, values);
 
         String filePath = UrlUtils.concat(basePath, filename);
 
@@ -288,7 +298,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
                                                InputStream content) throws ServiceLayerException {
-        if (!StringUtils.isEmpty(environment)) {
+        if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
                             .replaceAll(PATTERN_MODULE, module)
@@ -342,7 +352,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             throw new SiteNotFoundException("Site " + siteId + " not found");
         }
         String configPath = StringUtils.EMPTY;
-        if (!StringUtils.isEmpty(environment)) {
+        if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
                             .replaceAll(PATTERN_MODULE, module)

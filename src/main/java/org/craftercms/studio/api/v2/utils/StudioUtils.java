@@ -18,6 +18,10 @@ package org.craftercms.studio.api.v2.utils;
 
 import com.amazonaws.services.s3.internal.Mimetypes;
 import org.apache.commons.io.FilenameUtils;
+import org.craftercms.commons.http.RequestContext;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 
 public abstract class StudioUtils {
 
@@ -25,4 +29,24 @@ public abstract class StudioUtils {
         Mimetypes mimetypes = Mimetypes.getInstance();
         return mimetypes.getMimetype(FilenameUtils.getName(filename));
     }
+
+    /**
+     * Obtains the siteId from the current request, always fails if called out of a request context
+     * @return the siteId
+     */
+    public static String getSiteId() {
+        var context = RequestContext.getCurrent();
+        if (context == null) {
+            throw new IllegalStateException("There is no request to get the siteId");
+        }
+
+        var request = context.getRequest();
+        var siteId = request.getParameter(REQUEST_PARAM_SITEID);
+        if (isEmpty(siteId)) {
+            throw new IllegalStateException("There is no parameter to get the siteId");
+        }
+
+        return siteId;
+    }
+
 }

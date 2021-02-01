@@ -141,6 +141,16 @@ pipelines:
             filename: upgrade-3.2.0.21-to-3.2.0.22.sql
       - currentVersion: 3.2.0.22
         nextVersion: 4.0.0
+      - currentVersion: 4.0.0
+        nextVersion: 4.0.0.1
+        operations:
+          - type: findAndReplaceUpgrader
+            includedPaths:
+              - configuration/studio-config-override.yaml
+            pattern: "studio.security.publicUrls: >\\r*\\n*\\s+"
+            replacement: |-
+              studio.security.publicUrls: >
+                /api/2/plugin/script/reload.*,
 
   # Pipeline to upgrade site repositories
   site:
