@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,8 +17,6 @@
 package org.craftercms.studio.api.v2.dal.security;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.Group;
 
 import java.util.ArrayList;
@@ -30,8 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SitePermissionMappings {
-
-    private static final Logger logger = LoggerFactory.getLogger(SitePermissionMappings.class);
 
     private String siteId;
     private Map<String, RolePermissionMappings> rolePermissions = new HashMap<String, RolePermissionMappings>();
