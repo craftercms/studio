@@ -85,7 +85,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), path, ldPath, ldName, parentFolderPath,
+        List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), ldPath, ldName, parentFolderPath,
                 locale, ignoreNames, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
@@ -99,30 +99,24 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         GetChildrenResult toRet = new GetChildrenResult();
         String user = securityService.getCurrentUser();
         if (resultSet != null && resultSet.size() > 0) {
-            Item parent = resultSet.get(0);
-            parent.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, parent.getPath()) &
-                    PossibleActionsConstants.getPosibleActionsForObject(parent.getSystemType()));
-            toRet.setParent(SandboxItem.getInstance(parent));
-            if (resultSet.size() > 1) {
-                int idx = 1;
-                Item item = resultSet.get(idx);
-                item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
-                        PossibleActionsConstants.getPosibleActionsForObject(item.getSystemType()));
-                if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
-                        servicesConfig.getLevelDescriptorName(siteId))) {
-                    toRet.setLevelDescriptor(SandboxItem.getInstance(item));
-                    idx++;
-                }
-                List<SandboxItem> children = new ArrayList<SandboxItem>();
-                while (idx < resultSet.size()) {
-                    Item child = resultSet.get(idx);
-                    child.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, child.getPath()) &
-                            PossibleActionsConstants.getPosibleActionsForObject(child.getSystemType()));
-                    children.add(SandboxItem.getInstance(child));
-                    idx++;
-                }
-                toRet.setChildren(children);
+            int idx = 0;
+            Item item = resultSet.get(idx);
+            item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
+                    PossibleActionsConstants.getPosibleActionsForObject(item.getSystemType()));
+            if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
+                    servicesConfig.getLevelDescriptorName(siteId))) {
+                toRet.setLevelDescriptor(SandboxItem.getInstance(item));
+                idx++;
             }
+            List<SandboxItem> children = new ArrayList<SandboxItem>();
+            while (idx < resultSet.size()) {
+                Item child = resultSet.get(idx);
+                child.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, child.getPath()) &
+                        PossibleActionsConstants.getPosibleActionsForObject(child.getSystemType()));
+                children.add(SandboxItem.getInstance(child));
+                idx++;
+            }
+            toRet.setChildren(children);
         }
         return toRet;
     }

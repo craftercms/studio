@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,7 +25,6 @@ public class GetChildrenResult extends Result {
     protected int total;
     protected int offset;
     protected int limit;
-    private SandboxItem parent;
     private SandboxItem levelDescriptor;
     private List<SandboxItem> children;
 
@@ -51,14 +50,6 @@ public class GetChildrenResult extends Result {
 
     public void setLimit(int limit) {
         this.limit = limit;
-    }
-
-    public SandboxItem getParent() {
-        return parent;
-    }
-
-    public void setParent(SandboxItem parent) {
-        this.parent = parent;
     }
 
     public SandboxItem getLevelDescriptor() {
