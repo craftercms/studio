@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -69,15 +69,6 @@ import static org.craftercms.studio.api.v2.service.marketplace.Constants.PLUGIN_
 public class MarketplaceServiceInternalImpl implements MarketplaceServiceInternal, InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(MarketplaceServiceInternalImpl.class);
-
-    public MarketplaceServiceInternalImpl(final InstanceService instanceService, final SiteService siteService,
-                                          final SitesServiceInternal sitesServiceInternal,
-                                          final StudioConfiguration studioConfiguration) {
-        this.instanceService = instanceService;
-        this.siteService = siteService;
-        this.sitesServiceInternal = sitesServiceInternal;
-        this.studioConfiguration = studioConfiguration;
-    }
 
     protected InstanceService instanceService;
 
@@ -239,5 +230,45 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             RemoteRepository.AuthenticationType.NONE, null, null, null,
             null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
             true);
+    }
+
+    public InstanceService getInstanceService() {
+        return instanceService;
+    }
+
+    public void setInstanceService(InstanceService instanceService) {
+        this.instanceService = instanceService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public SitesServiceInternal getSitesServiceInternal() {
+        return sitesServiceInternal;
+    }
+
+    public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
+        this.sitesServiceInternal = sitesServiceInternal;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public boolean isShowPending() {
+        return showPending;
     }
 }

@@ -15,10 +15,12 @@
  */
 package org.craftercms.studio.impl.v2.service.configuration;
 
+import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
+import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
@@ -42,7 +44,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ContentItemVersion;
-import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -51,12 +54,15 @@ import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -67,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -86,11 +93,14 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PLUGIN_BASE_PATTERN;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
@@ -120,8 +130,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private EventService eventService;
     private EncryptionAwareConfigurationReader configurationReader;
     private ItemServiceInternal itemServiceInternal;
+    private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
 
     private String translationConfig;
+    private Cache<String, Object> configurationCache;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -247,6 +259,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                                    String path, String environment, InputStream content)
             throws ServiceLayerException {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
+        if (StringUtils.endsWithAny(path, FILE_SEPARATOR +
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME), FILE_SEPARATOR +
+                studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME))) {
+            securityServiceV2.invalidateAvailableActions(siteId);
+        }
     }
 
     @Override
@@ -294,6 +311,46 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         PreviewEventContext context = new PreviewEventContext();
         context.setSite(siteId);
         eventService.publish(EVENT_PREVIEW_SYNC, context);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected InputStream validate(InputStream content, String filename) throws ServiceLayerException {
+        // Check the filename to see if it needs to be validated
+        String extension = getExtension(filename);
+        if (isEmpty(extension)) {
+            // without extension there is no way to know
+            return content;
+        }
+        try {
+            // Copy the contents of the stream
+            byte[] bytes;
+            bytes = IOUtils.toByteArray(content);
+
+            // Perform the validation
+            switch (extension.toLowerCase()) {
+                case "xml":
+                    try {
+                        DocumentHelper.parseText(new String(bytes));
+                    } catch (Exception e) {
+                        throw new InvalidConfigurationException("Invalid XML file", e);
+                    }
+                    break;
+                case "yaml":
+                case "yml":
+                    try {
+                        Yaml yaml = new Yaml(new DisableClassLoadingConstructor());
+                        Map<String, Object> map = (Map<String, Object>) yaml.load(new ByteArrayInputStream(bytes));
+                    } catch (Exception e) {
+                        throw new InvalidConfigurationException("Invalid YAML file", e);
+                    }
+            }
+
+            // Return a new stream
+            return new ByteArrayInputStream(bytes);
+
+        } catch (IOException e) {
+            throw new ServiceLayerException("Error validating configuration", e);
+        }
     }
 
     private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
@@ -392,9 +449,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
     public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
             throws ServiceLayerException {
-        contentService.writeContent(StringUtils.EMPTY, path, content);
+        contentService.writeContent(StringUtils.EMPTY, path, validate(content, path));
+        if (StringUtils.endsWithAny(path, FILE_SEPARATOR +
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME) +
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME))) {
+            securityServiceV2.invalidateAvailableActions();
+        }
         String currentUser = securityService.getCurrentUser();
         generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
+        configurationCache.invalidate(path);
     }
 
     @Override
@@ -468,4 +531,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
+
+    public void setConfigurationCache(Cache<String, Object> configurationCache) {
+        this.configurationCache = configurationCache;
+    }
+
 }

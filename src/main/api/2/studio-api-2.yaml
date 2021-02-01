@@ -3503,6 +3503,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: preferContent
+          in: query
+          description: when set to true, return an item instead of a folder if the path can match either
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -3546,6 +3552,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: preferContent
+          in: query
+          description: when set to true, return an item instead of a folder if the path can match either
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK

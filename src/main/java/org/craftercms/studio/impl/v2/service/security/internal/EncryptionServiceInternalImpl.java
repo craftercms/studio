@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,12 +34,6 @@ public class EncryptionServiceInternalImpl implements EncryptionServiceInternal 
 
     protected TextEncryptor textEncryptor;
 
-    public EncryptionServiceInternalImpl(final long delay, final int maxLength, final TextEncryptor textEncryptor) {
-        this.delay = delay;
-        this.maxLength = maxLength;
-        this.textEncryptor = textEncryptor;
-    }
-
     @Override
     public String encrypt(final String text) throws ServiceLayerException {
         if (StringUtils.isEmpty(text) || text.length() > maxLength) {
@@ -53,4 +47,27 @@ public class EncryptionServiceInternalImpl implements EncryptionServiceInternal 
         }
     }
 
+    public long getDelay() {
+        return delay;
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
+    }
+
+    public int getMaxLength() {
+        return maxLength;
+    }
+
+    public void setMaxLength(int maxLength) {
+        this.maxLength = maxLength;
+    }
+
+    public TextEncryptor getTextEncryptor() {
+        return textEncryptor;
+    }
+
+    public void setTextEncryptor(TextEncryptor textEncryptor) {
+        this.textEncryptor = textEncryptor;
+    }
 }

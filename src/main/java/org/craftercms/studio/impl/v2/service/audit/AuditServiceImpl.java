@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -49,18 +49,6 @@ public class AuditServiceImpl implements AuditService {
     private ContentService contentService;
     private DeploymentService deploymentService;
     private SecurityService securityService;
-
-    public AuditServiceImpl(AuditServiceInternal auditServiceInternal,
-                            SiteService siteService,
-                            ContentService contentService,
-                            DeploymentService deploymentService,
-                            SecurityService securityService) {
-        this.auditServiceInternal = auditServiceInternal;
-        this.siteService = siteService;
-        this.contentService = contentService;
-        this.deploymentService = deploymentService;
-        this.securityService = securityService;
-    }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "audit_log")
@@ -180,5 +168,45 @@ public class AuditServiceImpl implements AuditService {
             logger.error("Error fetching content item for [" + id + "]", e.getMessage());
             return null;
         }
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 }

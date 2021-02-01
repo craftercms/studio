@@ -68,16 +68,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private ServicesConfig servicesConfig;
     private ContentServiceInternal contentServiceInternal;
 
-    public ItemServiceInternalImpl(SiteFeedMapper siteFeedMapper, ItemDAO itemDao,
-                                   UserServiceInternal userServiceInternal, ServicesConfig servicesConfig,
-                                   ContentServiceInternal contentServiceInternal) {
-        this.siteFeedMapper = siteFeedMapper;
-        this.itemDao = itemDao;
-        this.userServiceInternal = userServiceInternal;
-        this.servicesConfig = servicesConfig;
-        this.contentServiceInternal = contentServiceInternal;
-    }
-
     @Override
     public void upsertEntry(String siteId, Item item) {
         List<Item> items = new ArrayList<Item>();
@@ -317,8 +307,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
-                                          String label, String contentTypeId, String locale, String commitId, long size,
-                                          Optional<Boolean> unlock)
+                                          String label, String contentTypeId, String locale, String commitId,
+                                          long size, Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, path)
@@ -458,5 +448,45 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void moveItems(String siteId, String oldPath, String newPath) {
         itemDao.moveItems(siteId, oldPath, newPath, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public ItemDAO getItemDao() {
+        return itemDao;
+    }
+
+    public void setItemDao(ItemDAO itemDao) {
+        this.itemDao = itemDao;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public ContentServiceInternal getContentServiceInternal() {
+        return contentServiceInternal;
+    }
+
+    public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
+        this.contentServiceInternal = contentServiceInternal;
     }
 }

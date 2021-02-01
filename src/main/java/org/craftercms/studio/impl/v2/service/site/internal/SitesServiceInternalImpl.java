@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -56,14 +56,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     private ContentRepository contentRepository;
     private StudioConfiguration studioConfiguration;
     private SiteFeedMapper siteFeedMapper;
-
-    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
-                                    StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper) {
-        this.descriptorReader = descriptorReader;
-        this.contentRepository = contentRepository;
-        this.studioConfiguration = studioConfiguration;
-        this.siteFeedMapper = siteFeedMapper;
-    }
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -188,4 +180,35 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         }
     }
 
+    public PluginDescriptorReader getDescriptorReader() {
+        return descriptorReader;
+    }
+
+    public void setDescriptorReader(PluginDescriptorReader descriptorReader) {
+        this.descriptorReader = descriptorReader;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
+    }
 }

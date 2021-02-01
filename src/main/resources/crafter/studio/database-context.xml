@@ -73,7 +73,7 @@
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean -->
 
-    <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingOperationAspect" >
+    <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingOperationAnnotationHandler" >
         <property name="maxRetries"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
         <property name="maxSleep"

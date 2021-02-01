@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
@@ -56,6 +57,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ORDER;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATHS;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PREFER_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT_STRATEGY;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
@@ -163,7 +165,7 @@ public class ContentController {
                                                   defaultValue = "0") int offset,
                                           @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
                                                   defaultValue = "10") int limit)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         GetChildrenResult result =
                 contentService.getChildrenByPath(siteId, path, localeCode, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
@@ -182,7 +184,8 @@ public class ContentController {
                                           @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
                                                   defaultValue = "0") int offset,
                                           @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
-                                                  defaultValue = "10") int limit) {
+                                                  defaultValue = "10") int limit)
+            throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
                 contentService.getChildrenById(siteId, id, localeCode, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
@@ -240,8 +243,11 @@ public class ContentController {
 
     @GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getItemByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                      @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path) throws ContentNotFoundException {
-        DetailedItem detailedItem = contentService.getItemByPath(siteId, path);
+                                      @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path,
+                                      @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
+                                              defaultValue = "false") boolean preferContent)
+            throws ContentNotFoundException {
+        DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
         result.setEntity(RESULT_KEY_ITEM, detailedItem);
@@ -252,8 +258,11 @@ public class ContentController {
 
     @GetMapping(value = ITEM_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getItemById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                      @RequestParam(value = REQUEST_PARAM_ID, required = true) long id) throws ContentNotFoundException {
-        DetailedItem detailedItem = contentService.getItemById(siteId, id);
+                                    @RequestParam(value = REQUEST_PARAM_ID, required = true) long id,
+                                    @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
+                                            defaultValue = "false") boolean preferContent)
+            throws ContentNotFoundException {
+        DetailedItem detailedItem = contentService.getItemById(siteId, id, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
         result.setEntity(RESULT_KEY_ITEM, detailedItem);

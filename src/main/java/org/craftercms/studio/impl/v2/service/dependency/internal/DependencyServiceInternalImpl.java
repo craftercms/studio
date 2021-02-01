@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -66,7 +66,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public List<String> getSoftDependencies(String site, List<String> paths) throws ServiceLayerException {
+    public List<String> getSoftDependencies(String site, List<String> paths)
+            throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
@@ -133,7 +134,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public List<String> getHardDependencies(String site, List<String> paths) throws ServiceLayerException {
+    public List<String> getHardDependencies(String site, List<String> paths)
+            throws ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }

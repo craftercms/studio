@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -167,14 +168,15 @@ public class ContentServiceImpl implements ContentService {
     public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
                                                String sortStrategy, String order, int offset, int limit)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, sortStrategy, order, offset, limit);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public GetChildrenResult getChildrenById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String id,
-                                             String locale, String sortStrategy, String order, int offset, int limit) {
+                                             String locale, String sortStrategy, String order, int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getChildrenById(siteId, id, locale, sortStrategy, order, offset, limit);
     }
 
@@ -187,16 +189,17 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public DetailedItem getItemByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
             throws ContentNotFoundException {
-        return contentServiceInternal.getItemByPath(siteId, path);
+        return contentServiceInternal.getItemByPath(siteId, path, preferContent);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id)
+    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id,
+                                    boolean preferContent)
             throws ContentNotFoundException {
-        return contentServiceInternal.getItemById(siteId, id);
+        return contentServiceInternal.getItemById(siteId, id, preferContent);
     }
 
     public ContentServiceInternal getContentServiceInternal() {

@@ -20,6 +20,7 @@ import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -104,7 +105,8 @@ public interface ContentService {
      * @return list of children
      */
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy, String order,
-                                        int offset, int limit) throws ContentNotFoundException;
+                                        int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException;
 
     /**
      * Get list of children for given item id
@@ -119,7 +121,7 @@ public interface ContentService {
      * @return list of children
      */
     GetChildrenResult getChildrenById(String siteId, String id, String locale, String sortStrategy, String order,
-                                        int offset, int limit);
+                                        int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
 
     Item getItem(String siteId, String path, boolean flatten);
@@ -129,16 +131,18 @@ public interface ContentService {
      *
      * @param siteId site identifier
      * @param path item path
+     * @param preferContent if true return content item if available
      * @return detailed item
      */
-    DetailedItem getItemByPath(String siteId, String path) throws ContentNotFoundException;
+    DetailedItem getItemByPath(String siteId, String path, boolean preferContent) throws ContentNotFoundException;
 
     /**
      * Get detailed item for given id
      *
      * @param siteId site identifier
      * @param id item id
+     * @param preferContent if true return content item if available
      * @return detailed item
      */
-    DetailedItem getItemById(String siteId, long id) throws ContentNotFoundException;
+    DetailedItem getItemById(String siteId, long id, boolean preferContent) throws ContentNotFoundException;
 }

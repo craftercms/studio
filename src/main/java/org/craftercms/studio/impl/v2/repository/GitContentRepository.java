@@ -171,36 +171,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private SiteService siteService;
     private PublishRequestDAO publishRequestDao;
 
-    public GitContentRepository(GitRepositoryHelper helper,
-                                StudioConfiguration studioConfiguration,
-                                GitLogDAO gitLogDao,
-                                SiteFeedMapper siteFeedMapper,
-                                UserServiceInternal userServiceInternal,
-                                SecurityService securityService,
-                                RemoteRepositoryDAO remoteRepositoryDAO,
-                                TextEncryptor encryptor,
-                                ContextManager contextManager,
-                                ContentStoreService contentStoreService,
-                                ClusterDAO clusterDao,
-                                GeneralLockService generalLockService,
-                                SiteService siteService,
-                                PublishRequestDAO publishRequestDao) {
-        this.helper = helper;
-        this.studioConfiguration = studioConfiguration;
-        this.gitLogDao = gitLogDao;
-        this.siteFeedMapper = siteFeedMapper;
-        this.userServiceInternal = userServiceInternal;
-        this.securityService = securityService;
-        this.remoteRepositoryDAO = remoteRepositoryDAO;
-        this.encryptor = encryptor;
-        this.contextManager = contextManager;
-        this.contentStoreService = contentStoreService;
-        this.clusterDao = clusterDao;
-        this.generalLockService = generalLockService;
-        this.siteService = siteService;
-        this.publishRequestDao = publishRequestDao;
-    }
-
     @Override
     public List<String> getSubtreeItems(String site, String path) {
         final List<String> retItems = new ArrayList<String>();
@@ -1698,7 +1668,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 RevCommit commit = revWalk.parseCommit(lastCommitId);
 
                 RevTree tree = commit.getTree();
-                System.out.println("Having tree: " + tree);
                 return tree;
             }
         } else {
@@ -1728,5 +1697,117 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
                     PublishRequest.State.READY_FOR_LIVE, ZonedDateTime.now(ZoneOffset.UTC)));
         }
+    }
+
+    public GitRepositoryHelper getHelper() {
+        return helper;
+    }
+
+    public void setHelper(GitRepositoryHelper helper) {
+        this.helper = helper;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public GitLogDAO getGitLogDao() {
+        return gitLogDao;
+    }
+
+    public void setGitLogDao(GitLogDAO gitLogDao) {
+        this.gitLogDao = gitLogDao;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public RemoteRepositoryDAO getRemoteRepositoryDAO() {
+        return remoteRepositoryDAO;
+    }
+
+    public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
+        this.remoteRepositoryDAO = remoteRepositoryDAO;
+    }
+
+    public TextEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
+    public ContextManager getContextManager() {
+        return contextManager;
+    }
+
+    public void setContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
+    }
+
+    public ContentStoreService getContentStoreService() {
+        return contentStoreService;
+    }
+
+    public void setContentStoreService(ContentStoreService contentStoreService) {
+        this.contentStoreService = contentStoreService;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public PublishRequestDAO getPublishRequestDao() {
+        return publishRequestDao;
+    }
+
+    public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
+        this.publishRequestDao = publishRequestDao;
     }
 }
