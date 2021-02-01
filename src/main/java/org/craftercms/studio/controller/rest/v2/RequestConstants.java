@@ -26,6 +26,8 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_ID = "id";
 
+    public static final String REQUEST_PARAM_IDS = "ids";
+
     public static final String REQUEST_PARAM_SITE_ID = "site_id";
 
     public static final String REQUEST_PARAM_SITEID = "siteId";
@@ -89,6 +91,8 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_SORT_STRATEGY = "sortStrategy";
 
     public static final String REQUEST_PARAM_LOCALE_CODE = "localeCode";
+
+    public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
 
     private RequestConstants() { }
 }

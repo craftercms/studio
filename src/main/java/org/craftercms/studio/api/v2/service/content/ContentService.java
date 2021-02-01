@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.util.List;
 
@@ -129,16 +130,36 @@ public interface ContentService {
      *
      * @param siteId site identifier
      * @param path item path
+     * @param preferContent if true return content item if available
      * @return detailed item
      */
-    DetailedItem getItemByPath(String siteId, String path) throws ContentNotFoundException;
+    DetailedItem getItemByPath(String siteId, String path, boolean preferContent) throws ContentNotFoundException;
 
     /**
      * Get detailed item for given id
      *
      * @param siteId site identifier
      * @param id item id
+     * @param preferContent if true return content item if available
      * @return detailed item
      */
-    DetailedItem getItemById(String siteId, long id) throws ContentNotFoundException;
+    DetailedItem getItemById(String siteId, long id, boolean preferContent) throws ContentNotFoundException;
+
+    /**
+     * Get sandbox items for given list of paths
+     * @param siteId site identifier
+     * @param paths list of paths to get sandbox items
+     * @param preferContent if true return content items if available
+     * @return list of sandbox items
+     */
+    List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent);
+
+    /**
+     * Get sandbox items for given list of ids
+     * @param siteId site identifier
+     * @param ids list of ids to get sandbox items
+     * @param preferContent if true return content items if available
+     * @return list of sandbox items
+     */
+    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent);
 }

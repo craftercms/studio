@@ -53,20 +53,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
 
-    public ContentServiceInternalImpl(ContentRepository contentRepository,
-                                      ItemDAO itemDao,
-                                      ServicesConfig servicesConfig,
-                                      SiteFeedMapper siteFeedMapper,
-                                      SecurityService securityService,
-                                      StudioConfiguration studioConfiguration) {
-        this.contentRepository = contentRepository;
-        this.itemDao = itemDao;
-        this.servicesConfig = servicesConfig;
-        this.siteFeedMapper = siteFeedMapper;
-        this.securityService = securityService;
-        this.studioConfiguration = studioConfiguration;
-    }
-
     @Override
     public List<String> getSubtreeItems(String siteId, String path) {
         return contentRepository.getSubtreeItems(siteId, path);
@@ -170,7 +156,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public DetailedItem getItemByPath(String siteId, String path)
+    public DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
             throws ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -178,7 +164,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        Item item = itemDao.getItemByPath(siteFeed.getId(), path);
+        Item item = null;
+        if (preferContent) {
+            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path);
+        } else {
+            item = itemDao.getItemByPath(siteFeed.getId(), path);
+        }
         DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
         return detailedItem;
@@ -193,9 +184,14 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public DetailedItem getItemById(String siteId, long id)
+    public DetailedItem getItemById(String siteId, long id, boolean preferContent)
             throws ContentNotFoundException {
-        Item item = itemDao.getItemById(id);
+        Item item = null;
+        if (preferContent) {
+            item = itemDao.getItemByIdPreferContent(id);
+        } else {
+            item = itemDao.getItemById(id);
+        }
         if (!contentRepository.contentExists(siteId, item.getPath())) {
             throw new ContentNotFoundException(item.getPath(), siteId,
                     "Content not found at path " + item.getPath() + " site " + siteId);
@@ -203,5 +199,87 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
         return detailedItem;
+    }
+
+    @Override
+    public List<SandboxItem> getSanboxItemsByPath(String siteId, List<String> paths, boolean preferContent) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        List<SandboxItem> toRet = null;
+        List<Item> items = null;
+        if (preferContent) {
+            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path);
+        } else {
+            item = itemDao.getItemByPath(siteFeed.getId(), path);
+        }
+        DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
+        populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
+        return detailedItem;
+    }
+
+    @Override
+    public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent) {
+        Item item = null;
+        if (preferContent) {
+            item = itemDao.getItemByIdPreferContent(id);
+        } else {
+            item = itemDao.getItemById(id);
+        }
+        if (!contentRepository.contentExists(siteId, item.getPath())) {
+            throw new ContentNotFoundException(item.getPath(), siteId,
+                    "Content not found at path " + item.getPath() + " site " + siteId);
+        }
+        DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
+        populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
+        return detailedItem;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public ItemDAO getItemDao() {
+        return itemDao;
+    }
+
+    public void setItemDao(ItemDAO itemDao) {
+        this.itemDao = itemDao;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

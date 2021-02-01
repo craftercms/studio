@@ -460,11 +460,11 @@
 
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="itemDao" ref="itemDao" />
-        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
-        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="itemDao" ref="itemDao" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"

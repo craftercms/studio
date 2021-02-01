@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZoneOffset;
@@ -187,16 +188,31 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public DetailedItem getItemByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
             throws ContentNotFoundException {
-        return contentServiceInternal.getItemByPath(siteId, path);
+        return contentServiceInternal.getItemByPath(siteId, path, preferContent);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id)
+    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id,
+                                    boolean preferContent)
             throws ContentNotFoundException {
-        return contentServiceInternal.getItemById(siteId, id);
+        return contentServiceInternal.getItemById(siteId, id, preferContent);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                   List<String> paths, boolean preferContent) {
+        return contentServiceInternal.getSanboxItemsByPath(siteId, paths, preferContent);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public List<SandboxItem> getSandboxItemsById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                 List<Long> ids, boolean preferContent) {
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, preferContent);
     }
 
     public ContentServiceInternal getContentServiceInternal() {
