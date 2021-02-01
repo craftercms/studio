@@ -146,12 +146,28 @@ public interface ItemDAO {
     Item getItemById(@Param(ID) long id);
 
     /**
+     * Get item by id with prefer content option
+     *
+     * @param id item id
+     * @return item identified by given id
+     */
+    Item getItemByIdPreferContent(@Param(ID) long id);
+
+    /**
      * Get item for given site and path
      * @param siteId site identifier
      * @param path path of the item
      * @return item for given site and path
      */
     Item getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+
+    /**
+     * Get item with prefer content option for given site and path
+     * @param siteId site identifier
+     * @param path path of the item
+     * @return item for given site and path
+     */
+    Item getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path);
 
     /**
      * Update item
@@ -298,11 +314,20 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path of the item
-     *
      * @return item
      */
 
     Item getItemByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path);
+    /**
+     * Get item with prefer content option for given path from database
+     *
+     * @param siteId site identifier
+     * @param path path of the item
+     * @return item
+     */
+
+    Item getItemByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATH) String path);
+
 
     /**
      * Move item

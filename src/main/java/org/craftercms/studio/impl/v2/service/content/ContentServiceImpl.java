@@ -187,16 +187,17 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public DetailedItem getItemByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+                                      @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
             throws ContentNotFoundException {
-        return contentServiceInternal.getItemByPath(siteId, path);
+        return contentServiceInternal.getItemByPath(siteId, path, preferContent);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id)
+    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id,
+                                    boolean preferContent)
             throws ContentNotFoundException {
-        return contentServiceInternal.getItemById(siteId, id);
+        return contentServiceInternal.getItemById(siteId, id, preferContent);
     }
 
     public ContentServiceInternal getContentServiceInternal() {
