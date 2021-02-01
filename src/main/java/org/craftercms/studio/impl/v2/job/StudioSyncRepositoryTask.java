@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.job;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -88,17 +87,14 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                     List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
                     if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
                         String firstUnprocessedCommit = unprocessedCommitIds.get(0).getCommitId();
-                        siteService.syncDatabaseWithRepo(site, firstUnprocessedCommit);
+                        siteService.syncDatabaseWithRepo(site, firstUnprocessedCommit + "~");
                         unprocessedCommitIds.forEach(x -> {
                             contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
                         });
-
-                        String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-                        siteService.updateLastCommitId(site, lastRepoCommitId);
-                        siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
                     } else {
                         String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-                        if (!StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
+                        GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
+                        if (Objects.nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
                             siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
                         }
                     }
