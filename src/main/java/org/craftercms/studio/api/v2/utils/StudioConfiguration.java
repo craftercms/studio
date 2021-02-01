@@ -349,6 +349,8 @@ public interface StudioConfiguration {
     String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_AUDITED =
             "studio.clockJob.task.auditLogProcessing.batchSizeAudited";
 
+    String PLUGIN_BASE_PATTERN = "studio.configuration.plugin.base.pattern";
+
     void loadConfig();
 
     String getProperty(String key);

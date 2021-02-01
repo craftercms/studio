@@ -1668,7 +1668,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 RevCommit commit = revWalk.parseCommit(lastCommitId);
 
                 RevTree tree = commit.getTree();
-                System.out.println("Having tree: " + tree);
                 return tree;
             }
         } else {

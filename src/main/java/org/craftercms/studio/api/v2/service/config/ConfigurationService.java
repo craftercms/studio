@@ -18,7 +18,7 @@ package org.craftercms.studio.api.v2.service.config;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
@@ -95,13 +95,14 @@ public interface ConfigurationService {
     /**
      * Get a a file from a plugin
      * @param siteId the id of site
+     * @param pluginId the id of the plugin
      * @param type the type of plugin
      * @param name the name of the plugin
      * @param filename the path and name of the file
      * @return the file as a resource
      * @throws ContentNotFoundException if there is any issue reading the file from the repository
      */
-    Resource getPluginFile(String siteId, String type, String name, String filename)
+    Resource getPluginFile(String siteId, String pluginId, String type, String name, String filename)
         throws ContentNotFoundException;
 
     /**

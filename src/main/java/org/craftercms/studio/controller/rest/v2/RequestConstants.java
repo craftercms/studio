@@ -90,5 +90,7 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_LOCALE_CODE = "localeCode";
 
+    public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
+
     private RequestConstants() { }
 }

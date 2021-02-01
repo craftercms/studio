@@ -115,18 +115,18 @@ public interface ContentServiceInternal {
      *
      * @param siteId site identifier
      * @param path item for path
-     *
+     * @param preferContent if true return content item if available
      * @return detailed item
      */
-    DetailedItem getItemByPath(String siteId, String path) throws ContentNotFoundException;
+    DetailedItem getItemByPath(String siteId, String path, boolean preferContent) throws ContentNotFoundException;
 
     /**
      * Get detailed for given id
      *
      * @param siteId site identifier
      * @param id item id
-     *
+     * @param preferContent if true return content item if available
      * @return detailed item
      */
-    DetailedItem getItemById(String siteId, long id) throws ContentNotFoundException;
+    DetailedItem getItemById(String siteId, long id, boolean preferContent) throws ContentNotFoundException;
 }

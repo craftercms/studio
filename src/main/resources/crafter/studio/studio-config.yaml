@@ -192,6 +192,10 @@ studio.configuration.management.previewProtectedUrls: >-
   /api/1/site/context/graphql/rebuild,
   /api/1/site/cache/clear,
   /api/1/site/cache/statistics
+
+# The pattern used to load plugins installed from the marketplaces
+studio.configuration.plugin.base.pattern: /config/studio/plugins/${id}/${type}/${name}
+
 ########################################################
 ##                   Import Service                   ##
 ########################################################
@@ -239,7 +243,8 @@ studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-se
 studio.security.publicUrls: >
   /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
   /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
-  /static-assets/.+,/api/2/users/validate_token,/api/1/services/api/1/security/login.json,/api/2/users/forgot_password.*
+  /static-assets/.+,/api/2/users/validate_token,/api/1/services/api/1/security/login.json,/api/2/users/forgot_password.*,
+  /api/2/plugin/script/reload.*
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -860,3 +865,24 @@ studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 6
 studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
 # Process N unaudited commits with each execution of the audit log processing task
 studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
+
+##################################################
+##           Studio Groovy Scripts              ##
+##################################################
+
+# Indicates if the sandbox should be enabled
+studio.scripting.sandbox.enable: true
+# The location of the default blacklist to use
+studio.scripting.sandbox.blacklist: classpath:crafter/studio/groovy/blacklist
+# The extension for the script files
+studio.scripting.script.extension: groovy
+# The format for the name of the script files
+studio.scripting.script.path.format: '%s.%s.%s'
+# The base path for the classpath of the scripts
+studio.scripting.classes.path: /config/studio/plugins/classes
+# The base path for the rest scripts
+studio.scripting.rest.path: /config/studio/plugins/rest
+# Indicates if access to beans should be restricted
+studio.scripting.restrictBeans: true
+# List of patterns for bean names that should be accessible for the scripts (regexes separated by commas)
+studio.scripting.allowedBeans: ''

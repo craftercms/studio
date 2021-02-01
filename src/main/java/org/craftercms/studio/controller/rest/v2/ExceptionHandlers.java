@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
+import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -350,6 +351,15 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleException(HttpServletRequest request, PathNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(InvalidConfigurationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleInvalidConfigurationException(HttpServletRequest request,
+                                                            InvalidConfigurationException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
 

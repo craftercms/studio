@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.monitoring.MemoryInfo;
 import org.craftercms.commons.monitoring.StatusInfo;
@@ -35,14 +34,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.MEMORY_URL;
 import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.ROOT_URL;
 import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.STATUS_URL;
 import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase.VERSION_URL;
 import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_EVENTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MEMORY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_STAUS;
@@ -55,19 +52,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/api/2")
-public class MonitoringController {
+public class MonitoringController extends ManagementTokenAware {
 
-    private StudioConfiguration studioConfiguration;
-    private SecurityService securityService;
-
-    protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
-        if (StringUtils.isEmpty(securityService.getCurrentUser())) {
-            if (Objects.isNull(token)) {
-                throw new InvalidParametersException("Missing parameter: 'token'");
-            } else if(!StringUtils.equals(token, getConfiguredToken())) {
-                throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
-            }
-        }
+    public MonitoringController(StudioConfiguration studioConfiguration, SecurityService securityService) {
+        super(studioConfiguration, securityService);
     }
 
     @GetMapping(value = ROOT_URL + MEMORY_URL)
@@ -111,23 +99,4 @@ public class MonitoringController {
         return result;
     }
 
-    protected String getConfiguredToken() {
-        return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
 }

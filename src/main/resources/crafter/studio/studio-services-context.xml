@@ -312,6 +312,7 @@
         <property name="translationConfig"
                   value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="configurationCache" ref="configurationCache"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -1330,13 +1331,19 @@
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
           init-method="init"  depends-on="cstudioLogProvider">
-        <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
+        <constructor-arg ref="configurationCache"/>
+        <constructor-arg value="crafter/studio/studio-config.yaml"/>
     </bean>
 
     <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
         <property name="clusterDao" ref="clusterDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
+        <!-- This properties can't be externalized because the bean is created before the yaml is loaded -->
+        <property name="maxSize" value="100"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1464,6 +1471,38 @@
 
     <bean id="sitePolicyInterceptor" class="org.craftercms.studio.api.v2.annotation.policy.SitePolicyAspect">
         <constructor-arg ref="policyService"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--              Scripting                 -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="scriptingService" class="org.craftercms.studio.impl.v2.service.scripting.ScriptingServiceImpl">
+        <constructor-arg ref="scriptingServiceInternal"/>
+    </bean>
+
+    <bean id="scriptingServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.scripting.internal.ScriptingServiceInternalImpl">
+        <constructor-arg ref="scriptEngineManager"/>
+        <constructor-arg ref="sandboxInterceptor"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.path.format')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.restrictBeans')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.allowedBeans')}"/>
+    </bean>
+
+    <bean id="scriptEngineManager" class="org.craftercms.studio.impl.v2.scripting.ScriptEngineManagerImpl">
+        <constructor-arg ref="contextManager"/>
+        <constructor-arg ref="crafter.contentStoreService"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.classes.path')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.rest.path')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
+    </bean>
+
+    <bean id="sandboxInterceptor" class="org.craftercms.commons.spring.groovy.SandboxInterceptorFactory">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist')}"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

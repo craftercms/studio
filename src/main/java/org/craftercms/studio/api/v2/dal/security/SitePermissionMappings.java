@@ -52,7 +52,6 @@ public class SitePermissionMappings {
 
         long availableActions = 0L;
         for (String role : rolesList) {
-            logger.error("Role = " + role);
             RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
             Map<String, Long> rulePermissions = rolePermissionMappings.getRulePermissions();
             for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {

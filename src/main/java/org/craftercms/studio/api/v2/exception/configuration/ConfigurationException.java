@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.exception;
+package org.craftercms.studio.api.v2.exception.configuration;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
