@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,10 +22,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,13 +43,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     private static int threadCounter = 0;
     private ContentRepository contentRepository;
 
-    public StudioSyncRepositoryTask(int executeEveryNCycles,
-                                    int offset,
-                                    StudioConfiguration studioConfiguration,
-                                    SiteService siteService,
-                                    ContentRepository contentRepository) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService);
-        this.contentRepository = contentRepository;
+    public void init() {
         threadCounter++;
     }
 
@@ -121,4 +113,11 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         return toRet;
     }
 
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 }

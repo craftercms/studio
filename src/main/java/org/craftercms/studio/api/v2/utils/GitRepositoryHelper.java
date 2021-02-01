@@ -144,18 +144,6 @@ public class GitRepositoryHelper {
     private Map<String, Repository> published = new HashMap<>();
     private Repository globalRepo = null;
 
-    public GitRepositoryHelper(StudioConfiguration studioConfiguration,
-                               TextEncryptor encryptor,
-                               SecurityService securityService,
-                               UserServiceInternal userServiceInternal,
-                               GeneralLockService generalLockService) {
-        this.studioConfiguration = studioConfiguration;
-        this.encryptor = encryptor;
-        this.securityService = securityService;
-        this.userServiceInternal = userServiceInternal;
-        this.generalLockService = generalLockService;
-    }
-
     public Repository getRepository(String siteId, GitRepositories gitRepository) {
         return getRepository(siteId, gitRepository, null);
     }
@@ -1204,5 +1192,45 @@ public class GitRepositoryHelper {
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
 
         return currentUserIdent;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public TextEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }

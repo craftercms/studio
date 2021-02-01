@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -45,12 +45,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     private static final Logger logger = LoggerFactory.getLogger(MarketplaceServiceImpl.class);
 
-    public MarketplaceServiceImpl(final MarketplaceServiceInternal marketplaceServiceInternal) {
-        this.marketplaceServiceInternal = marketplaceServiceInternal;
-    }
-
     protected MarketplaceServiceInternal marketplaceServiceInternal;
-
 
     @Override
     @ValidateParams
@@ -70,4 +65,11 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         marketplaceServiceInternal.createSite(request);
     }
 
+    public MarketplaceServiceInternal getMarketplaceServiceInternal() {
+        return marketplaceServiceInternal;
+    }
+
+    public void setMarketplaceServiceInternal(MarketplaceServiceInternal marketplaceServiceInternal) {
+        this.marketplaceServiceInternal = marketplaceServiceInternal;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -75,12 +75,6 @@ public class StudioClusterUtils {
     private TextEncryptor encryptor;
     private ClusterDAO clusterDao;
     private StudioConfiguration studioConfiguration;
-
-    public StudioClusterUtils(ClusterDAO clusterDao, StudioConfiguration studioConfiguration, TextEncryptor encryptor) {
-        this.clusterDao = clusterDao;
-        this.studioConfiguration = studioConfiguration;
-        this.encryptor = encryptor;
-    }
 
     public HierarchicalConfiguration<ImmutableNode> getClusterConfiguration() {
         return studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
@@ -250,5 +244,29 @@ public class StudioClusterUtils {
 
     public int getLockTTL() {
         return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
+    }
+
+    public TextEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

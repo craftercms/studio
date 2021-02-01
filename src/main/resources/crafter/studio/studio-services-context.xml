@@ -234,6 +234,10 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
+    <bean id="studio.securityService" class="org.craftercms.studio.impl.v2.service.security.SecurityServiceImpl">
+        <property name="availableActionsResolver" ref="studio.availableActionsResolver" />
+    </bean>
+
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
@@ -251,7 +255,7 @@
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
           parent="cstudioRegistrableService">
-         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="cstudioSecurityService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService"/>
@@ -283,12 +287,12 @@
 
     <bean id="clipboardServiceInternal"
           class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
-        <constructor-arg ref="cstudioContentService"/>
-        <constructor-arg ref="cstudioWorkflowService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="workflowService" ref="cstudioWorkflowService"/>
     </bean>
 
     <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
-        <constructor-arg ref="clipboardServiceInternal"/>
+        <property name="clipboardServiceInternal" ref="clipboardServiceInternal"/>
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
@@ -331,29 +335,29 @@
     </bean>
 
     <bean id="userService" class="org.craftercms.studio.impl.v2.service.security.UserServiceImpl">
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="groupServiceInternal" ref="groupServiceInternal" />
-        <constructor-arg name="configurationService" ref="configurationService" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="entitlementValidator" ref="crafter.entitlementValidator"/>
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
-        <constructor-arg name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory" />
-        <constructor-arg name="emailService" ref="mailSender"/>
-        <constructor-arg name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
-        <constructor-arg name="instanceService" ref="instanceService" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="groupServiceInternal" ref="groupServiceInternal" />
+        <property name="configurationService" ref="configurationService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory" />
+        <property name="emailService" ref="mailSender"/>
+        <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
+        <property name="instanceService" ref="instanceService" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
     </bean>
 
     <bean id="userServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
-        <constructor-arg ref="groupServiceInternal"/>
-        <constructor-arg ref="userDAO"/>
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="cstudioSecurityService"/>
+        <property name="groupServiceInternal" ref="groupServiceInternal"/>
+        <property name="userDao" ref="userDAO"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
     </bean>
 
     <bean id="organizationServiceInternal"
@@ -400,24 +404,24 @@
 
     <bean id="sitesServiceInternal"
           class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
-        <constructor-arg ref="pluginDescriptorReader"/>
-        <constructor-arg ref="contentRepository" />
-        <constructor-arg ref="studioConfiguration" />
-        <constructor-arg ref="siteFeedMapper" />
+        <property name="descriptorReader" ref="pluginDescriptorReader"/>
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
-        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="contentService" ref="cstudioContentService" />
-        <constructor-arg name="deploymentService" ref="cstudioDeploymentService" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentService" ref="cstudioContentService" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="auditServiceInternal"
           class="org.craftercms.studio.impl.v2.service.audit.internal.AuditServiceInternalImpl">
-        <constructor-arg name="auditDao" ref="auditDao" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <property name="auditDao" ref="auditDao" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cmisService" class="org.craftercms.studio.impl.v2.service.cmis.CmisServiceImpl">
@@ -435,16 +439,17 @@
 
     <bean id="repositoryManagementServiceInternal"
           class="org.craftercms.studio.impl.v2.service.repository.internal.RepositoryManagementServiceInternalImpl">
-        <constructor-arg name="remoteRepositoryDao" ref="remoteRepositoryDao" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="notificationService" ref="cstudioNotificationService" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
-        <constructor-arg name="clusterDao" ref="clusterDao"/>
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -461,11 +466,12 @@
 
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="itemDao" ref="itemDao" />
-        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
-        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="itemDao" ref="itemDao" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityServiceV2" ref="studio.securityService" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"
@@ -513,11 +519,11 @@
 
     <bean id="itemServiceInternal"
           class="org.craftercms.studio.impl.v2.service.item.internal.ItemServiceInternalImpl">
-        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
-        <constructor-arg name="itemDao" ref="itemDao" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
-        <constructor-arg name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="itemDao" ref="itemDao" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -614,14 +620,14 @@
     </bean>
 
     <bean id="studio.clockExecutor" class="org.craftercms.studio.impl.v2.job.StudioClockExecutor">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="taskExecutor" ref="studio.clockTaskExecutor" />
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="deployer" ref="allDeployers" />
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="globalTasks" ref="studio.clockTasksGlobal" />
-        <constructor-arg name="siteTasks" ref="studio.clockTasksSite" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="taskExecutor" ref="studio.clockTaskExecutor" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="deployer" ref="allDeployers" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="globalTasks" ref="studio.clockTasksGlobal" />
+        <property name="siteTasks" ref="studio.clockTasksSite" />
     </bean>
 
     <bean id="studio.clockTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"
@@ -642,12 +648,12 @@
 
     <bean id="studio.clockClusterGlobalRepoSync"
           class="org.craftercms.studio.impl.v2.job.StudioClusterGlobalRepoSyncTask">
-        <constructor-arg name="executeEveryNCycles"
+        <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_GLOBAL_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
-        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="studioClusterUtils" ref="studio.clusterUtils" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <util:list id="studio.clockTasksSite" list-class="java.util.ArrayList"
@@ -661,77 +667,78 @@
 
     <bean id="studio.clockClusterSiteSandboxRepoSync"
           class="org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask">
-        <constructor-arg name="executeEveryNCycles"
+        <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_SITE_SANDBOX_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
-        <constructor-arg name="offset"
+        <property name="offset"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
-        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="deployer" ref="allDeployers" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="deploymentService" ref="cstudioDeploymentService" />
-        <constructor-arg name="eventService" ref="studioEventService" />
-        <constructor-arg name="clusterDao" ref="clusterDao" />
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="studioClusterUtils" ref="studio.clusterUtils" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="deployer" ref="allDeployers" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="eventService" ref="studioEventService" />
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="studio.clockClusterSitePublishedRepoSync"
           class="org.craftercms.studio.impl.v2.job.StudioClusterPublishedRepoSyncTask">
-        <constructor-arg name="executeEveryNCycles"
+        <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_SITE_PUBLISHED_REPO_SYNC_EXECUTE_EVERY_N_CYCLES)}" />
-        <constructor-arg name="offset"
+        <property name="offset"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
-        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="clusterDao" ref="clusterDao" />
-        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
+        <property name="studioClusterUtils" ref="studio.clusterUtils" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
-        <constructor-arg name="executeEveryNCycles"
+        <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
-        <constructor-arg name="offset"
+        <property name="offset"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentRepository" ref="gitContentRepositoryV2" />
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
-        <constructor-arg name="executeEveryNCycles"
+        <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES)}" />
-        <constructor-arg name="offset"
+        <property name="offset"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
-        <constructor-arg name="maxRetryCounter"
+        <property name="maxRetryCounter"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT)}" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="publishingManager" ref="cstudioPublishingManager" />
-        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig" />
-        <constructor-arg name="notificationService" ref="cstudioNotificationService" />
-        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
-        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="publishingManager" ref="cstudioPublishingManager" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="studioClusterUtils" ref="studio.clusterUtils" />
     </bean>
 
     <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask">
-        <constructor-arg name="executeEveryNCycles"
+        <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_EXECUTE_EVERY_N_CYCLES)}" />
-        <constructor-arg name="offset"
+        <property name="offset"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
-        <constructor-arg name="contentRepository" ref="gitContentRepositoryV2" />
-        <constructor-arg name="batchSizeGitLog"
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="batchSizeGitLog"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
-        <constructor-arg name="batchSizeAudited"
+        <property name="batchSizeAudited"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_AUDITED)}" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <util:list id="crafter.jobTriggers">
@@ -788,7 +795,7 @@
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioWorkflowProcessor" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor">
         <property name="objectStateService" ref="cstudioObjectStateService"/>
-         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="cstudioSecurityService" />
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
@@ -846,28 +853,28 @@
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="gitLogDao" ref="gitLogDao" />
-        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
-        <constructor-arg name="contextManager" ref="contextManager"/>
-        <constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
-        <constructor-arg name="clusterDao" ref="clusterDao" />
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="helper" ref="studio.gitRepositoryHelper" />
-        <constructor-arg name="publishRequestDao" ref="publishRequestDao" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="gitLogDao" ref="gitLogDao" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="contextManager" ref="contextManager"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="helper" ref="studio.gitRepositoryHelper" />
+        <property name="publishRequestDao" ref="publishRequestDao" />
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="encryptor" ref="internalTextEncryptor" />
     </bean>
 
     <!-- /////// -->
@@ -1285,8 +1292,8 @@
 
     <!--  v2 Service -->
     <bean id="webDavService" class="org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.webdav.url.pattern')}"/>
-        <constructor-arg ref="studioWebDavProfileLoader"/>
+        <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.webdav.url.pattern')}"/>
+        <property name="profileLoader" ref="studioWebDavProfileLoader"/>
     </bean>
 
     <!-- Utilities -->
@@ -1329,8 +1336,9 @@
     </bean>
 
     <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
-        <constructor-arg name="clusterDao" ref="clusterDao" />
-        <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
@@ -1389,17 +1397,17 @@
     <!-- ////////////////////////////////////// -->
     <bean id="marketplaceServiceInternal"
           class="org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl">
-        <constructor-arg ref="instanceService"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="sitesServiceInternal"/>
-        <constructor-arg ref="studioConfiguration"/>
+        <property name="instanceService" ref="instanceService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="sitesServiceInternal" ref="sitesServiceInternal"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
         <property name="showPending" value="#{studioConfiguration.getProperty('studio.marketplace.search.pending')}"/>
     </bean>
 
     <bean id="marketplaceService"
           class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
-        <constructor-arg ref="marketplaceServiceInternal"/>
+        <property name="marketplaceServiceInternal" ref="marketplaceServiceInternal"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1418,13 +1426,13 @@
 
     <bean id="encryptionServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.EncryptionServiceInternalImpl">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.delay')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.maxLength')}"/>
-        <constructor-arg ref="crafter.textEncryptor"/>
+        <property name="delay" value="#{studioConfiguration.getProperty('studio.security.encryption.delay')}"/>
+        <property name="maxLength" value="#{studioConfiguration.getProperty('studio.security.encryption.maxLength')}"/>
+        <property name="textEncryptor" ref="crafter.textEncryptor"/>
     </bean>
 
     <bean id="encryptionService" class="org.craftercms.studio.impl.v2.service.security.EncryptionServiceImpl">
-        <constructor-arg ref="encryptionServiceInternal"/>
+        <property name="encryptionServiceInternal" ref="encryptionServiceInternal"/>
     </bean>
 
     <bean id="cloudfrontForwardedHeaderFilter" class="org.craftercms.commons.web.CloudfrontForwardedHeaderFilter">
