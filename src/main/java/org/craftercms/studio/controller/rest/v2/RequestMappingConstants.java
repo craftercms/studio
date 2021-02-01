@@ -44,6 +44,8 @@ public final class RequestMappingConstants {
     public static final String DUPLICATE_ITEM = "/duplicate";
     public static final String ITEM_BY_PATH = "/item_by_path";
     public static final String ITEM_BY_ID = "/item_by_id";
+    public static final String SANDBOX_ITEMS_BY_PATH = "/sandbox_items_by_path";
+    public static final String SANDBOX_ITEMS_BY_ID = "/sandbox_items_by_id";
 
     /** Users controller */
     public static final String USERS = "/users";

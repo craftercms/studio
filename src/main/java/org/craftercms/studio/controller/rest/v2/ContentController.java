@@ -71,6 +71,8 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.I
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
@@ -253,6 +255,32 @@ public class ContentController {
     @GetMapping(value = ITEM_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getItemById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
                                       @RequestParam(value = REQUEST_PARAM_ID, required = true) long id) throws ContentNotFoundException {
+        DetailedItem detailedItem = contentService.getItemById(siteId, id);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
+        result.setEntity(RESULT_KEY_ITEM, detailedItem);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getSandboxItemsByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+                                              @RequestParam(value = REQUEST_PARAM_PATHS, required = true) List<String> paths,
+                                              @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false) boolean preferContent
+                                              ) throws ContentNotFoundException {
+        DetailedItem detailedItem = contentService.getItemByPath(siteId, path);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
+        result.setEntity(RESULT_KEY_ITEM, detailedItem);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getSandboxItemsById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+                                    @RequestParam(value = REQUEST_PARAM_ID, required = true) long id) throws ContentNotFoundException {
         DetailedItem detailedItem = contentService.getItemById(siteId, id);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
