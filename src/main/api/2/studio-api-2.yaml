@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.1'
+  version: '4.0.0.2'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3507,6 +3507,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: preferContent
+          in: query
+          description: in case if container path is given, if true it will return content item if available
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -3550,6 +3556,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: preferContent
+          in: query
+          description: in case if container path is given, if true it will return content item if available
+          required: false
+          schema:
+            type: boolean            
       responses:
         '200':
           description: OK

@@ -130,15 +130,45 @@
     </select>
     
     <select id="getItemById" resultMap="ItemMap">
-        select * from item where id = #{id}
+            select * from item where id = #{id}
+            limit 0, 1
+    </select>
+
+    <select id="getItemByIdPreferContent" resultMap="ItemMap">
+            select i1.* from item i1, item i2 where i2.id = #{id}
+            and i1.site_id = i2.site_id
+            and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+            union
+            select * from item where id = #{id}
+            limit 0, 1
     </select>
 
     <select id="getItemByPath" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and path = #{path} limit 0, 1
+            select * from item where site_id = #{siteId} and path = #{path}
+            limit 0, 1
+    </select>
+
+    <select id="getItemByPathPreferContent" resultMap="ItemMap">
+            select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
+            and i1.site_id = i2.site_id
+            and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+            union
+            select * from item where site_id = #{siteId} and path = #{path}
+            limit 0, 1
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and path = #{path}
+            select * from item where site_id = #{siteId} and path = #{path}
+            limit 0, 1
+    </select>
+
+    <select id="getItemBySiteIdAndPathPreferContent" resultMap="ItemMap">
+            select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
+            and i1.site_id = i2.site_id
+            and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+            union
+            select * from item where site_id = #{siteId} and path = #{path}
+            limit 0, 1
     </select>
 
     <update id="updateItem" parameterType="org.craftercms.studio.api.v2.dal.Item">
