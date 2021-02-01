@@ -40,7 +40,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ON_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ROOT_PATH;
@@ -70,7 +69,6 @@ public interface ItemDAO {
      * Get children for given path from database
      *
      * @param siteId site identifier
-     * @param parentPath parent path
      * @param ldPath level descriptor path
      * @param ldName level descriptor name
      * @param path path to get children for
@@ -84,8 +82,7 @@ public interface ItemDAO {
      * @return list of items (parent, level descriptor, children)
      */
 
-    List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId, @Param(PARENT_PATH) String parentPath,
-                                 @Param(LEVEL_DESCRIPTOR_PATH) String ldPath,
+    List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId, @Param(LEVEL_DESCRIPTOR_PATH) String ldPath,
                                  @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(PATH) String path,
                                  @Param(LOCALE_CODE) String localeCode, @Param(IGNORE_NAMES) List<String> ignoreNames,
                                  @Param(SORT) String sortStrategy,
