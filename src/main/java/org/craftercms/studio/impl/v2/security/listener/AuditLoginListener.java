@@ -25,6 +25,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PRE_AUTH;
 
 /**
  * Listener for Spring's login that records events using Studio's audit service
@@ -43,7 +44,7 @@ public class AuditLoginListener extends AbstractAuditListener {
     @EventListener
     public void recordAuthenticationSuccess(AuthenticationSuccessEvent event) {
         if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
-            //TODO: Should we also record this events?
+            recordAuthenticationEvent(OPERATION_PRE_AUTH, event, null);
         } else {
             recordAuthenticationEvent(OPERATION_LOGIN, event, "User {0} logged in from IP: {1}");
         }

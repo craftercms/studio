@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
@@ -62,8 +63,10 @@ public abstract class AbstractAuditListener {
             auditLog.setPrimaryTargetValue(username);
             auditServiceInternal.insertAuditLog(auditLog);
 
-            logger.info(message, event.getAuthentication().getName(),
-                    RequestContext.getCurrent().getRequest().getRemoteAddr());
+            if (isNotEmpty(message)) {
+                logger.info(message, event.getAuthentication().getName(),
+                        RequestContext.getCurrent().getRequest().getRemoteAddr());
+            }
         } catch (SiteNotFoundException e) {
             // This never happens
         }

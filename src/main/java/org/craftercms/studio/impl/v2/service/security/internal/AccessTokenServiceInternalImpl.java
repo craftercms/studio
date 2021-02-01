@@ -278,7 +278,6 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
                     .setRequireSubject()
                     .setExpectedIssuers(true, validIssuers)
                     .setExpectedAudience(getActualAudience())
-                    .setRelaxVerificationKeyValidation() // TODO: Check if this is ok
                     .setVerificationKey(jwtSignKey)
                     .setDecryptionKey(jwtEncryptKey)
                     .build();
@@ -343,13 +342,11 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
             var jws = new JsonWebSignature();
             jws.setPayload(claims.toJson());
             jws.setKey(jwtSignKey);
-            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA512); // TODO: Choose an algorithm
-            jws.setDoKeyValidation(false); // TODO: Check if this is ok
+            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA512);
 
             // Encrypt the JWS
             var jwe = new JsonWebEncryption();
             jwe.setPayload(jws.getCompactSerialization());
-            // TODO: Choose algorithms
             jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.PBES2_HS512_A256KW);
             jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_256_CBC_HMAC_SHA_512);
             jwe.setKey(jwtEncryptKey);

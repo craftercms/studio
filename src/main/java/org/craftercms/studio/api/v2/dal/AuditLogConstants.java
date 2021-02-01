@@ -28,6 +28,7 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_LOGIN = "LOGIN";
     public static final String OPERATION_LOGIN_FAILED = "LOGIN_FAILED";
     public static final String OPERATION_LOGOUT = "LOGOUT";
+    public static final String OPERATION_PRE_AUTH = "PRE_AUTH";
     public static final String OPERATION_ADD_REMOTE = "ADD_REMOTE";
     public static final String OPERATION_REMOVE_REMOTE = "REMOVE_REMOTE";
     public static final String OPERATION_PUSH_TO_REMOTE = "PUSH_TO_REMOTE";
