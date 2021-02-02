@@ -130,6 +130,7 @@
 
     <bean id="securityController" class="org.craftercms.studio.controller.rest.v2.SecurityController">
         <constructor-arg ref="encryptionService"/>
+        <constructor-arg ref="accessTokenService"/>
     </bean>
 
     <bean id="proxyController" class="org.craftercms.studio.controller.rest.v2.ProxyController">
@@ -139,6 +140,11 @@
 
     <bean id="dashboardController" class="org.craftercms.studio.controller.rest.v2.DashboardController">
         <property name="dashboardService" ref="dashboardService" />
+    </bean>
+
+    <!-- Access Token -->
+    <bean id="accessTokenController" class="org.craftercms.studio.controller.web.AccessTokenController">
+        <constructor-arg ref="accessTokenService"/>
     </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
@@ -207,8 +213,6 @@
             <list>
                 <bean class="org.craftercms.commons.jackson.ObjectIdSerializer"/>
                 <bean class="org.craftercms.core.util.json.jackson.Dom4jDocumentJsonSerializer"/>
-                <bean class="com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer" />
-                <bean class="com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer"/>
             </list>
         </property>
         <property name="deserializers">

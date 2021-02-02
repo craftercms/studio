@@ -17,13 +17,11 @@
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.impl.v2.service.security.Authentication;
+import org.springframework.security.core.Authentication;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -33,25 +31,12 @@ import java.util.Map;
  */
 public interface SecurityService {
 
-    String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
-
-	/**
-	 * authenticate a user. returns ticket
-	 * @param username username
-	 * @param password password
-     *
-     * @return session token
-	 */
-	String authenticate(String username, String password) throws Exception;
-
 	/**
 	 * Returns the username of the current user OR NULL if no user is authenticated
      *
      * @return  current user
 	 */
 	String getCurrentUser();
-
-    String getCurrentToken();
 
     /**
      * Returns the {@link Authentication} for the current user or null if not user is authenticated.
@@ -82,13 +67,9 @@ public interface SecurityService {
 
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
-    boolean validateTicket(String token);
-
     void reloadConfiguration(String site);
 
     void reloadGlobalConfiguration();
-
-    boolean logout() throws SiteNotFoundException;
 
     /**
      * Check if user exists
@@ -166,15 +147,6 @@ public interface SecurityService {
      */
     boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
         UserExternallyManagedException, ServiceLayerException;
-
-    /**
-     * Validate user's active session
-     *
-     * @param request http request
-     * @return true if user session is valid
-     * @throws ServiceLayerException general service error
-     */
-    boolean validateSession(HttpServletRequest request) throws ServiceLayerException;
 
     /**
      * Check if given user is site admin

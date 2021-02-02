@@ -22,6 +22,7 @@ studio.repo.globalRepoPath: global
 # Sites repositories base path (automatically goes under repo-base-path)
 studio.repo.sitesRepoBasePath: sites
 # Sandbox git repository name under every site
+# Sandbox git repository name under every site
 studio.repo.siteSandboxPath: sandbox
 # Sandbox git repository branch for every site
 studio.repo.siteSandboxBranch: master
@@ -348,6 +349,32 @@ studio.security.encryption.delay: 1
 studio.security.encryption.maxLength: 4096
 # If the secure headers should be written for every request
 studio.security.headers.enabled: true
+
+# The maximum number of users to keep in the cache
+studio.security.db.cache.maxSize: 20
+# The maximum time to keep users in the cache
+studio.security.db.cache.timeToLive: 300
+
+# Issuer for the generated access tokens
+studio.security.token.issuer: Crafter Studio
+# List of accepted issuers for validation of access tokens (separated by commas)
+studio.security.token.validIssuers: Crafter Studio
+# The audience for generation and validation of access tokens (if empty the instance id will be used)
+studio.security.token.audience: ''
+# Time in minutes for the expiration of the access tokens
+studio.security.token.timeout: 5
+# Password for signing the access tokens (needs to be equal or greater than 512 bits in length)
+studio.security.token.password.sign: E1oEGMMEaxvUQJTFePPyniOLNxVLHuoPHGaedqMe1tQqXa28u3MvRTBgTZfRqIzM
+# Password for encrypting the access tokens
+studio.security.token.password.encrypt: fEo7tQCXX1RYHE2ODOtjtBzmL0zzonSI
+
+# Name of the cookie to store the refresh token
+studio.security.token.cookie.name: refresh_token
+# Time in seconds for the expiration of the refresh token cookie
+studio.security.token.cookie.maxAge: 300
+
+# Cron expression for the scheduled job that cleans expired refresh tokens
+studio.security.token.cleanup.cron: 0 * * * * ?
 
 ###############################################################
 ##               Page Navigation Order Service               ##

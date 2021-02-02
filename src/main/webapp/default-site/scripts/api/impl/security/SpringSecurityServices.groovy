@@ -49,21 +49,6 @@ class SpringSecurityServices {
         return springBackedService.getUserRoles(site)
     }
 
-    def authenticate(username, password) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.authenticate(username, password)
-    }
-
-    def validateTicket(token) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.validateTicket(token)
-    }
-
-    def logout() {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.logout()
-    }
-
     def createUser(username, password, firstName, lastName, email) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.createUser(username, password, firstName, lastName, email)
@@ -168,14 +153,5 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.removeUserFromGroup(siteId, groupName, username)
     }
-    
-    def validateToken(token) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.validateToken(token)
-    }
 
-    def validateSession(request) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.validateSession(request)
-    }
 }

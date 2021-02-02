@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Listeners -->
+
+    <bean id="loginAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditLoginListener">
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="auditServiceInternal"/>
+    </bean>
+
+    <bean id="logoutAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditLogoutListener">
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="auditServiceInternal"/>
+    </bean>
+
+    <bean id="accessTokenAuthenticationListener"
+          class="org.craftercms.studio.impl.v2.security.listener.AccessTokenAuthenticationListener">
+        <constructor-arg ref="accessTokenService"/>
+    </bean>
+
+    <!-- Users -->
+
+    <bean id="passwordEncoder" class="org.craftercms.studio.impl.v2.security.crypto.PasswordEncoder"/>
+
+    <bean id="userDetailsCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
+        <property name="maxSize" value="#{studioConfiguration.getProperty('studio.security.db.cache.maxSize')}"/>
+        <property name="timeToLive" value= "#{studioConfiguration.getProperty('studio.security.db.cache.timeToLive')}"/>
+    </bean>
+
+    <bean id="studioUserDetailsService" class="org.craftercms.studio.impl.v2.security.userdetails.DbUserDetailsService">
+        <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="userDetailsCache"/>
+    </bean>
+
+    <bean id="daoAuthenticationUserDetailsService"
+          class="org.craftercms.studio.impl.v2.security.userdetails.DbAuthenticationUserDetailsService">
+        <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="userDetailsCache"/>
+    </bean>
+
+    <!-- Authentication -->
+
+    <bean id="dbAuthenticationProvider"
+          class="org.craftercms.studio.impl.v2.security.authentication.db.DbAuthenticationProvider">
+        <property name="userDetailsService" ref="studioUserDetailsService"/>
+        <property name="passwordEncoder" ref="passwordEncoder"/>
+    </bean>
+
+    <bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">
+        <constructor-arg value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SECURITY_PUBLIC_URLS)}"/>
+    </bean>
+
+    <!-- Permissions -->
+
+    <bean id="crafter.studioSubjectResolver" class="org.craftercms.studio.permissions.SubjectResolverImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+    </bean>
+
+    <bean id="crafter.studioPermissionResolver" class="org.craftercms.studio.permissions.PermissionResolverImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <bean id="crafter.studioCompositePermissionResolver"
+          class="org.craftercms.studio.permissions.CompositePermissionResolverImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <bean id="crafter.studioPermissionEvaluator"
+          class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
+        <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
+        <property name="permissionResolver" ref="crafter.studioPermissionResolver"/>
+    </bean>
+
+    <bean id="crafter.studioCompositePermissionEvaluator"
+          class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
+        <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
+        <property name="permissionResolver" ref="crafter.studioCompositePermissionResolver"/>
+    </bean>
+
+    <bean id="crafter.HasPermissionAnnotationHandler"
+          class="org.craftercms.commons.security.permissions.annotations.HasPermissionAnnotationHandler">
+        <property name="permissionEvaluators">
+            <map>
+                <entry key="org.craftercms.commons.security.permissions.DefaultPermission"
+                       value-ref="crafter.studioPermissionEvaluator"/>
+                <entry key="org.craftercms.studio.permissions.CompositePermission"
+                       value-ref="crafter.studioCompositePermissionEvaluator"/>
+            </map>
+        </property>
+    </bean>
+
+    <!-- CORS -->
+
+    <bean id="crafter.corsConfigSource" class="org.craftercms.commons.spring.cors.FixedCorsConfigurationSource">
+        <constructor-arg name="disableCORS" value="#{studioConfiguration.getProperty('studio.cors.disable')}"/>
+        <constructor-arg name="allowOrigins" value="#{studioConfiguration.getProperty('studio.cors.origins')}"/>
+        <constructor-arg name="allowMethods" value="#{studioConfiguration.getProperty('studio.cors.headers')}"/>
+        <constructor-arg name="allowHeaders" value="#{studioConfiguration.getProperty('studio.cors.methods')}"/>
+        <constructor-arg name="allowCredentials" value="#{studioConfiguration.getProperty('studio.cors.credentials')}"/>
+        <constructor-arg name="maxAge" value="#{studioConfiguration.getProperty('studio.cors.maxage')}"/>
+    </bean>
+
+    <!-- Secure Headers -->
+
+    <bean id="crafter.secureHeaderWriterFilter"
+          class="org.craftercms.engine.util.spring.security.ConditionalHeaderWriterFilter">
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.headers.enabled')}"/>
+        <constructor-arg>
+            <list>
+                <bean class="org.springframework.security.web.header.writers.CacheControlHeadersWriter"/>
+                <bean class="org.springframework.security.web.header.writers.HstsHeaderWriter"/>
+                <bean class="org.springframework.security.web.header.writers.XXssProtectionHeaderWriter"/>
+                <bean class="org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter">
+                    <constructor-arg value="SAMEORIGIN"/>
+                </bean>
+                <bean class="org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!-- CSRF -->
+
+    <!-- If we replace the session in the future we can remove CSRF completely -->
+    <bean id="csrfTokenRepository" class="org.springframework.security.web.csrf.CookieCsrfTokenRepository">
+        <!-- The UI needs to have access to the cookie -->
+        <property name="cookieHttpOnly" value="false"/>
+    </bean>
+
+</beans>

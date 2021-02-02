@@ -14,25 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.SecurityServices
-
 def result = [:]
-
-try {
-    def context = SecurityServices.createContext(applicationContext, request)
-
-    result.success = SecurityServices.logout(context)
-
-    if (result.success) {
-        response.setStatus(200)
-        result.message = "OK"
-    } else {
-        response.setStatus(500)
-        result.message = "Internal server error"
-    }
-} catch(e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
-}
+result.message = "This API has been replaced by a new login mechanism via JWT, please review the documentation."
+response.setStatus(503)
 
 return result

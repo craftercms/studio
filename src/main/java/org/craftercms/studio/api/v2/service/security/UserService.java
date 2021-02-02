@@ -63,8 +63,6 @@ public interface UserService {
 
     List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException;
 
-    String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException;
-
     /**
      * Forgot password feature for given username
      *

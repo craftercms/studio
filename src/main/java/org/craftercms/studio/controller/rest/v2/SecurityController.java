@@ -16,18 +16,34 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.service.security.AccessTokenService;
 import org.craftercms.studio.api.v2.service.security.EncryptionService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.security.EncryptRequest;
+import org.craftercms.studio.model.security.PersistentAccessToken;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.time.Instant;
+
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_TOKEN;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_TOKENS;
 
 /**
  * Rest controller that provides access to security operations
@@ -41,8 +57,11 @@ public class SecurityController {
 
     protected EncryptionService encryptionService;
 
-    public SecurityController(final EncryptionService encryptionService) {
+    protected AccessTokenService accessTokenService;
+
+    public SecurityController(EncryptionService encryptionService, AccessTokenService accessTokenService) {
         this.encryptionService = encryptionService;
+        this.accessTokenService = accessTokenService;
     }
 
     @PostMapping("/encrypt")
@@ -57,6 +76,93 @@ public class SecurityController {
         response.setResult(result);
 
         return response;
+    }
+
+    @GetMapping("/tokens")
+    public ResponseBody getAccessTokens() {
+        var result = new ResultList<PersistentAccessToken>();
+        result.setEntities(RESULT_KEY_TOKENS, accessTokenService.getAccessTokens());
+        result.setResponse(ApiResponse.OK);
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
+    }
+
+    @PostMapping("/tokens")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseBody createAccessToken(@Valid @RequestBody CreateAccessTokenRequest request) throws ServiceLayerException {
+        var result = new ResultOne<PersistentAccessToken>();
+        result.setEntity(RESULT_KEY_TOKEN, accessTokenService.createAccessToken(request.getLabel(), request.getExpiresAt()));
+        result.setResponse(ApiResponse.OK);
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
+    }
+
+    @PostMapping("/tokens/{tokenId}")
+    public ResponseBody updateAccessToken(@PathVariable long tokenId, @Valid @RequestBody UpdateAccessTokenRequest request) {
+        var result = new ResultOne<PersistentAccessToken>();
+        result.setEntity(RESULT_KEY_TOKEN, accessTokenService.updateAccessToken(tokenId, request.isEnabled()));
+        result.setResponse(ApiResponse.OK);
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
+    }
+
+    @DeleteMapping("/tokens/{tokenId}")
+    public ResponseBody deleteAccessToken(@PathVariable long tokenId) {
+        accessTokenService.deleteAccessToken(tokenId);
+
+        var result = new Result();
+        result.setResponse(ApiResponse.OK);
+
+        var response = new ResponseBody();
+        response.setResult(result);
+        return response;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CreateAccessTokenRequest {
+
+        @NotEmpty
+        protected String label;
+
+        protected Instant expiresAt;
+
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
+
+        public Instant getExpiresAt() {
+            return expiresAt;
+        }
+
+        public void setExpiresAt(Instant expiresAt) {
+            this.expiresAt = expiresAt;
+        }
+
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class UpdateAccessTokenRequest {
+
+        protected boolean enabled;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
     }
 
 }

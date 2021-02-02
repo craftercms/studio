@@ -39,6 +39,8 @@ public class ApiResponse {
             new ApiResponse(1000, "Internal system failure", "Contact support", StringUtils.EMPTY);
     public static final ApiResponse INVALID_PARAMS = new ApiResponse(1001, "Invalid parameter(s)",
             "Check API and make sure you're sending the correct parameters", StringUtils.EMPTY);
+    public static final ApiResponse DEPRECATED = new ApiResponse(1002, "Deprecated",
+            "This API has been deprecated", StringUtils.EMPTY);
 
     // 2000 - 3000
     public static final ApiResponse UNAUTHENTICATED =

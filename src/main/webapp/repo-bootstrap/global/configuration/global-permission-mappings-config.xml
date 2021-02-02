@@ -83,6 +83,7 @@
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
                 <permission>edit_site</permission>
+                <permission>manage_access_token</permission>
             </allowed-permissions>
         </rule>
     </role>

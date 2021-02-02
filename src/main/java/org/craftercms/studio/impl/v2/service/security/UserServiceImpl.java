@@ -60,6 +60,7 @@ import org.craftercms.studio.model.Site;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
 import javax.mail.MessagingException;
@@ -351,26 +352,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityService.getAuthentication();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
-            String username = authentication.getUsername();
-            User user;
-            try {
-                user = userServiceInternal.getUserByIdOrUsername(0, username);
-            } catch (UserNotFoundException e) {
-                throw new ServiceLayerException("Current authenticated user '" + username +
-                    "' wasn't found in repository", e);
-            }
-
-            if (user != null) {
-                AuthenticatedUser authUser = new AuthenticatedUser(user);
-                authUser.setAuthenticationType(authentication.getAuthenticationType());
-
-                return authUser;
-            } else {
-                throw new ServiceLayerException("Current authenticated user '" + username +
-                                                "' wasn't found in repository");
-            }
+            return (AuthenticatedUser) authentication.getPrincipal();
         } else {
             throw new AuthenticationException("User should be authenticated");
         }
@@ -378,10 +362,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityService.getAuthentication();
+        var authentication = securityService.getAuthentication();
         if (authentication != null) {
             try {
-                return getUserSites(-1, authentication.getUsername());
+                return getUserSites(-1, authentication.getName());
             } catch (UserNotFoundException e) {
                 // Shouldn't happen
                 throw new IllegalStateException(e);
@@ -393,24 +377,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityService.getAuthentication();
+        var authentication = securityService.getAuthentication();
         if (authentication != null) {
             try {
-                return getUserSiteRoles(-1, authentication.getUsername(), site);
+                return getUserSiteRoles(-1, authentication.getName(), site);
             } catch (UserNotFoundException e) {
                 // Shouldn't happen
                 throw new IllegalStateException(e);
             }
-        } else {
-            throw new AuthenticationException("User should be authenticated");
-        }
-    }
-
-    @Override
-    public String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityService.getAuthentication();
-        if (authentication != null) {
-            return authentication.getSsoLogoutUrl();
         } else {
             throw new AuthenticationException("User should be authenticated");
         }

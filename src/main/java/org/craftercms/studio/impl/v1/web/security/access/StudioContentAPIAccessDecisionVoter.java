@@ -21,8 +21,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.User;
@@ -34,6 +32,7 @@ import org.springframework.security.web.FilterInvocation;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
@@ -49,7 +48,7 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
     }
 
     @Override
-    public int vote(Authentication authentication, Object o, Collection collection) {
+    public int voteInternal(Authentication authentication, Object o, Collection collection) {
         int toRet = ACCESS_ABSTAIN;
         String requestUri = "";
         if (o instanceof FilterInvocation) {
@@ -69,12 +68,9 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                     try {
                         InputStream is = request.getInputStream();
                         is.mark(0);
-                        String jsonString = IOUtils.toString(is);
+                        String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
                         if (StringUtils.isNoneEmpty(jsonString)) {
                             JSONObject jsonObject = JSONObject.fromObject(jsonString);
-                            if (jsonObject.has("username")) {
-                                userParam = jsonObject.getString("username");
-                            }
                             if (jsonObject.has("site")) {
                                 siteParam = jsonObject.getString("site");
                             }
@@ -90,17 +86,7 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                         logger.debug("Failed to extract username from POST request");
                     }
                 }
-                User currentUser = null;
-                try {
-                    String username = authentication.getPrincipal().toString();
-                    currentUser = userServiceInternal.getUserByIdOrUsername(-1, username);
-                } catch (ClassCastException | UserNotFoundException | ServiceLayerException e) {
-                    // anonymous user
-                    if (!authentication.getPrincipal().toString().equals("anonymousUser")) {
-                        logger.info("Error getting current user", e);
-                        return ACCESS_DENIED;
-                    }
-                }
+                User currentUser = (User) authentication.getPrincipal();
                 switch (requestUri) {
                     case WRITE_CONTENT:
                         if (siteService.exists(siteParam)) {

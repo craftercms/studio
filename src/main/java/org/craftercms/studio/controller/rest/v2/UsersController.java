@@ -88,7 +88,6 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.S
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.USERS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.VALIDATE_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CURRENT_USER;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_LOGOUT_URL;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MESSAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ROLES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SITES;
@@ -96,6 +95,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USERS;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
+import static org.craftercms.studio.model.rest.ApiResponse.DEPRECATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.craftercms.studio.model.rest.ApiResponse.UNAUTHORIZED;
 import static org.springframework.http.MediaType.ALL_VALUE;
@@ -422,14 +422,13 @@ public class UsersController {
      * or if logout is disabled
      *
      * @return Response containing SSO logout URL for the current authenticated user
+     * @deprecated since 3.2, all logout redirects are now handled by Spring Security
      */
     @GetMapping(ME + LOGOUT_SSO_URL)
-    public ResponseBody getCurrentUserSsoLogoutUrl() throws ServiceLayerException, AuthenticationException {
-        String logoutUrl = userService.getCurrentUserSsoLogoutUrl();
-
-        ResultOne<String> result = new ResultOne<>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_LOGOUT_URL, logoutUrl);
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ResponseBody getCurrentUserSsoLogoutUrl() {
+        Result result = new Result();
+        result.setResponse(DEPRECATED);
 
         ResponseBody responseBody = new ResponseBody();
         responseBody.setResult(result);

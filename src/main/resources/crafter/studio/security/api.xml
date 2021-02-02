@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <bean id="accessTokenAuthenticationFilter"
+          class="org.craftercms.studio.impl.v2.security.authentication.token.AccessTokenAuthenticationFilter">
+        <constructor-arg ref="accessTokenService"/>
+        <property name="authenticationManager" ref="apiAuthenticationManager"/>
+    </bean>
+
+    <bean id="preAuthenticatedProvider"
+          class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+        <property name="preAuthenticatedUserDetailsService" ref="daoAuthenticationUserDetailsService"/>
+    </bean>
+
+    <sec:authentication-manager id="apiAuthenticationManager">
+        <sec:authentication-provider ref="preAuthenticatedProvider"/>
+        <sec:authentication-provider ref="dbAuthenticationProvider"/>
+    </sec:authentication-manager>
+
+    <bean id="apiAuthEntryPoint" class="org.craftercms.studio.impl.v2.security.web.ApiAuthenticationEntryPoint"/>
+
+    <!-- API 1, requires custom voters -->
+
+    <bean id="legacyAccessDecisionVoter" abstract="true"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioAbstractAccessDecisionVoter">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+    </bean>
+
+    <bean id="legacyAccessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+        <constructor-arg name="decisionVoters">
+            <list>
+                <!-- Default Spring Voters for <security:intercept-url> expressions -->
+                <bean class="org.springframework.security.web.access.expression.WebExpressionVoter"/>
+                <bean class="org.springframework.security.access.vote.AuthenticatedVoter"/>
+                <bean class="org.springframework.security.access.vote.RoleVoter"/>
+                <!-- Custom Studio Voters -->
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioSiteAPIAccessDecisionVoter"
+                      parent="legacyAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioPublishingAPIAccessDecisionVoter"
+                      parent="legacyAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioUserAPIAccessDecisionVoter"
+                      parent="legacyAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioGroupAPIAccessDecisionVoter"
+                      parent="legacyAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioCmisDSAPIAccessDecisionVoter"
+                      parent="legacyAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioWorkflowAPIAccessDecisionVoter"
+                      parent="legacyAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioContentAPIAccessDecisionVoter"
+                      parent="legacyAccessDecisionVoter" />
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <sec:http
+            pattern="/api/1/**"
+            use-expressions="true"
+            create-session="stateless"
+            entry-point-ref="apiAuthEntryPoint"
+            authentication-manager-ref="apiAuthenticationManager"
+            access-decision-manager-ref="legacyAccessDecisionManager">
+
+        <sec:csrf disabled="true"/> <!-- Because we only authenticate via headers -->
+        <sec:headers disabled="true"/> <!-- Because we have a custom filter -->
+        <sec:cors configuration-source-ref="crafter.corsConfigSource"/>
+
+        <sec:http-basic/>
+
+        <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
+        <sec:custom-filter ref="accessTokenAuthenticationFilter" position="PRE_AUTH_FILTER"/>
+
+        <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
+        <sec:intercept-url pattern="/**" access="isAuthenticated()" />
+    </sec:http>
+
+    <!-- API 2 -->
+
+    <sec:http
+            pattern="/api/2/**"
+            use-expressions="true"
+            create-session="stateless"
+            entry-point-ref="apiAuthEntryPoint"
+            authentication-manager-ref="apiAuthenticationManager">
+        <sec:csrf disabled="true"/>
+        <sec:headers disabled="true"/>
+        <sec:cors configuration-source-ref="crafter.corsConfigSource"/>
+        <sec:http-basic/>
+        <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
+        <sec:custom-filter ref="accessTokenAuthenticationFilter" position="PRE_AUTH_FILTER"/>
+
+        <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
+        <sec:intercept-url pattern="/**" access="isAuthenticated()" />
+    </sec:http>
+
+</beans>
