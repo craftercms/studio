@@ -26,6 +26,8 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_ID = "id";
 
+    public static final String REQUEST_PARAM_IDS = "ids";
+
     public static final String REQUEST_PARAM_SITE_ID = "site_id";
 
     public static final String REQUEST_PARAM_SITEID = "siteId";

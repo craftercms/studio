@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZoneOffset;
@@ -200,6 +201,22 @@ public class ContentServiceImpl implements ContentService {
                                     boolean preferContent)
             throws ContentNotFoundException {
         return contentServiceInternal.getItemById(siteId, id, preferContent);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                   List<String> paths, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException {
+        return contentServiceInternal.getSanboxItemsByPath(siteId, paths, preferContent);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    public List<SandboxItem> getSandboxItemsById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                 List<Long> ids, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException {
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, preferContent);
     }
 
     public ContentServiceInternal getContentServiceInternal() {

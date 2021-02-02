@@ -36,6 +36,7 @@ import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_IDS;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LOCALE_CODE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
@@ -73,6 +75,8 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.I
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
@@ -266,6 +270,36 @@ public class ContentController {
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
         result.setEntity(RESULT_KEY_ITEM, detailedItem);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getSandboxItemsByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+                                              @RequestParam(value = REQUEST_PARAM_PATHS, required = true) List<String> paths,
+                                              @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
+                                                      defaultValue = "false") boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException {
+        List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<SandboxItem> result = new ResultList<SandboxItem>();
+        result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getSandboxItemsById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+                                            @RequestParam(value = REQUEST_PARAM_IDS, required = true) List<Long> ids,
+                                            @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
+                                                    defaultValue = "false") boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException {
+        List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(siteId, ids, preferContent);
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<SandboxItem> result = new ResultList<SandboxItem>();
+        result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;

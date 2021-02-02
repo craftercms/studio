@@ -3581,6 +3581,110 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/sandbox_items_by_id:
+    get:
+      tags:
+        - content
+      summary: Get list of items for given list of item ids
+      description: 'Required permission "get_children" ("site member")'
+      operationId: getSandboxItemsById
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: ids
+          in: query
+          description: item ids to get
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: preferContent
+          in: query
+          description: when set to true, return an item instead of a folder if the path can match either
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/sandbox_items_by_path:
+    get:
+      tags:
+        - content
+      summary: Get list of items for given item paths
+      description: 'Required permission "get_children" ("site member")'
+      operationId: getSandboxItemsByPath
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: paths
+          in: query
+          description: item paths to get
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: preferContent
+          in: query
+          description: when set to true, return an item instead of a folder if the path can match either
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/descriptor:
     get:
       tags:
