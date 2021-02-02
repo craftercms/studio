@@ -123,6 +123,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -180,6 +181,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -246,6 +248,8 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -339,6 +343,7 @@
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -353,6 +358,7 @@
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>

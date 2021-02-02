@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v2.service.marketplace.registry;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -44,6 +45,7 @@ public class FileRecord {
         this.path = path;
     }
 
+    @JsonIgnore
     public String getSha512() {
         return sha512;
     }

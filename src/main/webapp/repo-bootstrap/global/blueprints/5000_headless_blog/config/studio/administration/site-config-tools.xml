@@ -40,7 +40,7 @@
     </config>
 -->
 <config>
-    <version>11</version>
+    <version>12</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -223,12 +223,6 @@
                     </icon>
                 </datasource>
                 <datasource>
-                    <name>video-desktop-upload</name>
-                    <icon>
-                        <class>fa-video-camera</class>
-                    </icon>
-                </datasource>
-                <datasource>
                     <name>CMIS-repo</name>
                     <icon>
                         <class>fa-plug</class>
@@ -354,6 +348,12 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>video-desktop-upload</name>
+                    <icon>
+                        <class>fa-video-camera</class>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>video-browse-repo</name>
                     <icon>
                         <class>fa-file-video-o</class>
@@ -459,6 +459,13 @@
             <label>GraphiQL</label>
             <icon>
                 <class>fa-line-chart</class>
+            </icon>
+        </tool>
+        <tool>
+            <name>plugin-management</name>
+            <label>Plugin Management</label>
+            <icon>
+                <class>fa-puzzle-piece</class>
             </icon>
         </tool>
     </tools>

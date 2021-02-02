@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -36,34 +36,24 @@
         </xsl:if>
     </xsl:template>
 
-    <!-- Add the new permissions to the admin & developer roles -->
-    <xsl:template match="permissions/role[@name=('admin','developer')]/rule[@regex='.*']/allowed-permissions">
+    <!-- Add the new tool -->
+    <xsl:template match="config/tools">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates/>
-            <xsl:if test="not(permission = 'list_plugins')">
-                <xsl:element name="permission">
-                    <xsl:text>list_plugins</xsl:text>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
-            <xsl:if test="not(permission = 'install_plugins')">
-                <xsl:element name="permission">
-                    <xsl:text>install_plugins</xsl:text>
-                </xsl:element>
-                <xsl:text>&#10;</xsl:text>
-            </xsl:if>
-        </xsl:copy>
-    </xsl:template>
-
-    <!-- Add the new permission to all other roles -->
-    <xsl:template match="permissions/role[@name!='admin' and @name!='developer']/rule[@regex='.*']/allowed-permissions">
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:apply-templates/>
-            <xsl:if test="not(permission = 'list_plugins')">
-                <xsl:element name="permission">
-                    <xsl:text>list_plugins</xsl:text>
+            <xsl:if test="not(tool/name = 'plugin-management')">
+                <xsl:element name="tool">
+                    <xsl:element name="name">
+                        <xsl:text>plugin-management</xsl:text>
+                    </xsl:element>
+                    <xsl:element name="label">
+                        <xsl:text>Plugin Management</xsl:text>
+                    </xsl:element>
+                    <xsl:element name="icon">
+                        <xsl:element name="class">
+                            <xsl:text>fa-puzzle-piece</xsl:text>
+                        </xsl:element>
+                    </xsl:element>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>

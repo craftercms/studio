@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.3'
+  version: '4.0.0.4'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -5675,9 +5675,6 @@ components:
         path:
           type: string
           description: The path where the file was copied during installation
-        sha512:
-          type: string
-          description: The SHA-512 checksum of the file during installation
 
     SearchParams:
       type: object

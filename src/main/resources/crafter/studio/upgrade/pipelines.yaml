@@ -300,8 +300,13 @@ configurations:
     path: administration/site-config-tools.xml
     pipeline:
       requires: '>=11'
-      # Add new versions as needed, starting on 11
-      # versions:
+      versions:
+        - currentVersion: 11
+          nextVersion: 12
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v12.xslt
+              commitDetails: Add plugin management
 
 
   contextual-nav:

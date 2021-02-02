@@ -40,7 +40,7 @@
     </config>
 -->
 <config>
-    <version>11</version>
+    <version>12</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -459,6 +459,13 @@
             <label>GraphiQL</label>
             <icon>
                 <class>fa-line-chart</class>
+            </icon>
+        </tool>
+        <tool>
+            <name>plugin-management</name>
+            <label>Plugin Management</label>
+            <icon>
+                <class>fa-puzzle-piece</class>
             </icon>
         </tool>
     </tools>
