@@ -472,6 +472,7 @@
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="securityServiceV2" ref="studio.securityService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="contnetTypeServiceInternal"
