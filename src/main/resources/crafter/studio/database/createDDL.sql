@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.2', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -661,6 +661,30 @@ CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
 
+CREATE TABLE IF NOT EXISTS `refresh_token`
+(
+    `user_id` BIGINT(20) PRIMARY KEY, -- Add FK
+    `token` VARCHAR(50) NOT NULL,
+    `last_updated_on` TIMESTAMP,
+    `created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `access_token`
+(
+    `id`      BIGINT(20) PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT(20), -- Add FK,
+    `label`   VARCHAR(2550) NOT NULL,
+    `enabled` BOOLEAN DEFAULT true,
+    `last_updated_on` TIMESTAMP,
+    `created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `expires_at` TIMESTAMP NULL DEFAULT NULL
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO site (site_id, name, description, system, state)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'CREATED') ;

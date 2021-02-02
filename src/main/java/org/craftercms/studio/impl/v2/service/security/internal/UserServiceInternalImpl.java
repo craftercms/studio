@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserProperty;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
+import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -78,9 +79,19 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private GroupServiceInternal groupServiceInternal;
     private StudioConfiguration studioConfiguration;
     private SiteService siteService;
-
-    // TODO: Remove when Spring Security is integrated
+    private AccessTokenServiceInternal accessTokenService;
     private SecurityService securityService;
+
+    public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
+                                   StudioConfiguration studioConfiguration, SiteService siteService,
+                                   SecurityService securityService, AccessTokenServiceInternal accessTokenService) {
+        this.userDao = userDao;
+        this.groupServiceInternal = groupServiceInternal;
+        this.studioConfiguration = studioConfiguration;
+        this.siteService = siteService;
+        this.securityService = securityService;
+        this.accessTokenService= accessTokenService;
+    }
 
     @Override
     public User getUserByIdOrUsername(long userId, String username)
@@ -236,6 +247,9 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
         try {
             userDao.updateUser(params);
+
+            // Force a re-authentication if the user is currently logged-in
+            accessTokenService.deleteRefreshToken(oldUser);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -419,7 +433,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);
         var dbSiteId = siteService.getSite(actualSiteId).getId();
-        // TODO: Refactor to get the user from Spring Security
         var username = securityService.getCurrentUser();
         try {
             var user = getUserByIdOrUsername(0, username);
@@ -437,7 +450,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);
         var dbSiteId = siteService.getSite(actualSiteId).getId();
-        // TODO: Refactor to get the user from Spring Security
         var username = securityService.getCurrentUser();
         try {
             var user = getUserByIdOrUsername(0, username);
@@ -457,7 +469,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);
         var dbSiteId = siteService.getSite(actualSiteId).getId();
-        // TODO: Refactor to get the user from Spring Security
         var username = securityService.getCurrentUser();
         try {
             var user = getUserByIdOrUsername(0, username);
@@ -471,43 +482,4 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    public UserDAO getUserDao() {
-        return userDao;
-    }
-
-    public void setUserDao(UserDAO userDao) {
-        this.userDao = userDao;
-    }
-
-    public GroupServiceInternal getGroupServiceInternal() {
-        return groupServiceInternal;
-    }
-
-    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-        this.groupServiceInternal = groupServiceInternal;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
 }

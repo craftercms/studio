@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v1.repository.job;
 
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -59,8 +58,7 @@ public class RebuildRepositoryMetadata {
         if (taskLock.tryLock()) {
             try {
                 logger.debug("Starting Rebuild Repository Metadata Task.");
-                String ticket = securityService.getCurrentToken();
-                CronJobContext securityContext = new CronJobContext(ticket, securityService.getCurrentUser());
+                CronJobContext securityContext = new CronJobContext(securityService.getCurrentUser());
                 RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
                 taskExecutor.execute(task);
             } finally {

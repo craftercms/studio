@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <bean id="logoutSuccessHandler" class="org.craftercms.studio.impl.v2.security.web.ChainLogoutSuccessHandler">
+        <constructor-arg ref="studioConfiguration"/>
+    </bean>
+
+    <sec:authentication-manager id="webAuthenticationManager">
+        <sec:authentication-provider ref="chainAuthenticationProvider"/>
+    </sec:authentication-manager>
+
+    <bean id="chainAuthenticationProvider"
+          class="org.craftercms.studio.impl.v2.security.authentication.ChainAuthenticationProvider">
+        <constructor-arg ref="studioConfiguration"/>
+    </bean>
+
+    <bean id="ldapAuthenticationProvider"
+          class="org.craftercms.studio.impl.v2.security.authentication.ldap.LdapAuthenticationProvider">
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="auditServiceInternal"/>
+        <constructor-arg ref="userServiceInternal"/>
+        <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="groupDAO"/>
+    </bean>
+
+    <bean id="headersAuthenticationProvider"
+          class="org.craftercms.studio.impl.v2.security.authentication.headers.HeadersAuthenticationProvider">
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg ref="auditServiceInternal"/>
+        <constructor-arg ref="userServiceInternal"/>
+        <constructor-arg ref="userDAO"/>
+        <constructor-arg ref="groupDAO"/>
+    </bean>
+
+    <bean id="headersAuthenticationFilter"
+          class="org.craftercms.studio.impl.v2.security.authentication.headers.HeadersAuthenticationFilter">
+        <constructor-arg ref="studioConfiguration"/>
+        <property name="authenticationManager" ref="webAuthenticationManager"/>
+    </bean>
+
+    <sec:http
+            pattern="/**"
+            use-expressions="true"
+            authentication-manager-ref="webAuthenticationManager">
+
+        <sec:csrf token-repository-ref="csrfTokenRepository"/>
+        <sec:headers disabled="true"/> <!-- Because we have a custom filter -->
+        <sec:cors configuration-source-ref="crafter.corsConfigSource"/>
+
+        <sec:form-login login-page="/login" authentication-failure-url="/login?error=true"/>
+        <sec:logout success-handler-ref="logoutSuccessHandler"/>
+
+        <sec:custom-filter ref="headersAuthenticationFilter" position="PRE_AUTH_FILTER"/>
+        <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
+
+        <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
+        <sec:intercept-url pattern="/login" access="permitAll()"/>
+        <sec:intercept-url pattern="/refresh*" access="permitAll()"/>
+        <sec:intercept-url pattern="/**" access="isAuthenticated()"/>
+    </sec:http>
+
+</beans>

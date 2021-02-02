@@ -30,6 +30,8 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,6 +51,18 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
     protected UserServiceInternal userServiceInternal;
+
+    @Override
+    public int vote(Authentication authentication, Object object, Collection collection) {
+        // Don't allow any unauthenticated request
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return ACCESS_DENIED;
+        }
+
+        return voteInternal(authentication, object, collection);
+    }
+
+    protected abstract int voteInternal(Authentication authentication, Object object, Collection collection);
 
     protected boolean isSiteMember(User currentUser, String userParam) {
         try {
