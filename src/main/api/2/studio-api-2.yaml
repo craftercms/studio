@@ -3605,7 +3605,7 @@ paths:
               type: string
         - name: preferContent
           in: query
-          description: return content item in case if it exsits when quering for container
+          description: when set to true, return an item instead of a folder if the path can match either
           schema:
             type: boolean
       responses:
@@ -3657,7 +3657,7 @@ paths:
               type: string
         - name: preferContent
           in: query
-          description: return content item in case if it exsits when quering for container
+          description: when set to true, return an item instead of a folder if the path can match either
           schema:
             type: boolean
       responses:

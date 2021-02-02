@@ -225,38 +225,30 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<SandboxItem> toRet = new ArrayList<SandboxItem>();
         List<Item> items = null;
         if (preferContent) {
             items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths);
         } else {
             items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths);
         }
-        if (CollectionUtils.isNotEmpty(items)) {
-            String user = securityService.getCurrentUser();
-            for (Item item : items) {
-                if (!contentRepository.contentExists(siteId, item.getPath())) {
-                    logger.warn("Content not found at path " + item.getPath() + " site " + siteId);
-                } else {
-                    item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
-                            PossibleActionsConstants.getPossibleActionsForObject(item.getSystemType()));
-                    toRet.add(SandboxItem.getInstance(item));
-                }
-            }
-        }
-        return toRet;
+        return calculatePossibleActions(siteId, items);
     }
 
     @Override
     public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        List<SandboxItem> toRet = new ArrayList<SandboxItem>();
         List<Item> items = null;
         if (preferContent) {
             items = itemDao.getSandboxItemsByIdPreferContent(ids);
         } else {
             items = itemDao.getSandboxItemsById(ids);
         }
+        return calculatePossibleActions(siteId, items);
+    }
+
+    private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
+            throws ServiceLayerException, UserNotFoundException {
+        List<SandboxItem> toRet = new ArrayList<SandboxItem>();
         if (CollectionUtils.isNotEmpty(items)) {
             String user = securityService.getCurrentUser();
             for (Item item : items) {
