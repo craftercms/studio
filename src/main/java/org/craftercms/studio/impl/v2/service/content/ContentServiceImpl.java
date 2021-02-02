@@ -206,14 +206,16 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                   List<String> paths, boolean preferContent) {
+                                                   List<String> paths, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getSanboxItemsByPath(siteId, paths, preferContent);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public List<SandboxItem> getSandboxItemsById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                 List<Long> ids, boolean preferContent) {
+                                                 List<Long> ids, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getSandboxItemsById(siteId, ids, preferContent);
     }
 

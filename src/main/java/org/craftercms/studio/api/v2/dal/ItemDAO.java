@@ -101,7 +101,7 @@ public interface ItemDAO {
      *
      * @return total number of children
      */
-    int getChildrenByIdTotal(@Param(SITE_ID) String siteId, @Param(PARENT_ID) String parentId,
+    int getChildrenByIdTotal(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
                              @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
                              @Param(IGNORE_NAMES) List<String> ignoreNames);
     /**
@@ -116,7 +116,7 @@ public interface ItemDAO {
      *      * @param limit number of children to return
      * @return list of items (parent, level descriptor, children)
      */
-    List<Item> getChildrenById(@Param(SITE_ID) String siteId, @Param(PARENT_ID) String parentId,
+    List<Item> getChildrenById(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
                                @Param(IGNORE_NAMES) List<String> ignoreNames, @Param(SORT) String sortStrategy,
                                @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
@@ -336,4 +336,34 @@ public interface ItemDAO {
      */
     void moveItems(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
                    @Param(ON_STATES_BIT_MAP) long onStatesBitMap, @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+
+    /**
+     * Get sandbox items for given paths with prefer content option
+     * @param siteId site identifier
+     * @param paths paths to get items for
+     * @return list of items
+     */
+    List<Item> getSandboxItemsByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths);
+
+    /**
+     * Get sandbox items for given paths
+     * @param siteId site identifier
+     * @param paths paths to get items for
+     * @return list of items
+     */
+    List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths);
+
+    /**
+     * Get sandbox items for given ids with prefer content option
+     * @param itemIds item ids
+     * @return list of items
+     */
+    List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds);
+
+    /**
+     * Get sandbox items for given ids
+     * @param itemIds item ids
+     * @return list of items
+     */
+    List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds);
 }

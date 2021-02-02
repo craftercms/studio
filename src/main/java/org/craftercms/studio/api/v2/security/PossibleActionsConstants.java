@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.security;
 
+import org.apache.commons.lang3.StringUtils;
+
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
@@ -134,7 +136,8 @@ public final class PossibleActionsConstants {
                     BULK_PUBLISH + SET_WORKFLOW_STATE;
     public static final long UNKNOWN = 0L;
 
-    public static long getPosibleActionsForObject(String type) {
+    public static long getPossibleActionsForObject(String type) {
+        if (StringUtils.isEmpty(type)) return 0L;
         long toRet;
         switch (type) {
             case CONTENT_TYPE_PAGE:

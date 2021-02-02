@@ -60,7 +60,8 @@ public interface ContentServiceInternal {
      * @return list of children
      */
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy, String order,
-                                        int offset, int limit) throws ServiceLayerException, UserNotFoundException, ContentNotFoundException;
+                                        int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException;
 
     /**
      * Get total number of children for given path
@@ -138,7 +139,8 @@ public interface ContentServiceInternal {
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
-    List<SandboxItem> getSanboxItemsByPath(String siteId, List<String> paths, boolean preferContent);
+    List<SandboxItem> getSanboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get sandbox items for given list of paths
@@ -147,5 +149,6 @@ public interface ContentServiceInternal {
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
-    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent);
+    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException;
 }

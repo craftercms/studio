@@ -131,11 +131,11 @@
     </select>
 
     <select id="getItemByIdPreferContent" resultMap="ItemMap">
-            select i1.* from item i1, item i2 where i2.id = #{id}
+            (select i1.* from item i1, item i2 where i2.id = #{id}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select * from item where id = #{id}
+            select i3.* from item i3 where i3.id = #{id})
             limit 0, 1
     </select>
 
@@ -145,12 +145,60 @@
     </select>
 
     <select id="getItemByPathPreferContent" resultMap="ItemMap">
-            select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
+            (select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select * from item where site_id = #{siteId} and path = #{path}
+            select * from item i3 where i3.site_id = #{siteId} and i3.path = #{path})
             limit 0, 1
+    </select>
+
+    <select id="getSandboxItemsById" resultMap="ItemMap">
+        select * from item where id in
+        <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
+        select i1.* from item i1, item i2 where i2.id in
+        <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        and i1.site_id = i2.site_id
+        and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+        union
+        select i3.* from item i3 where i3.id in
+        <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        and concat(i3.path, '/index.xml') not in
+        (select i4.path from item i4 where i4.site_id = i3.site_id
+        and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
+    </select>
+
+    <select id="getSandboxItemsByPath" resultMap="ItemMap">
+        select * from item where site_id = #{siteId} and path in
+        <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
+            #{path}
+        </foreach>
+    </select>
+
+    <select id="getSandboxItemsByPathPreferContent" resultMap="ItemMap">
+        select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path in
+        <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
+            #{path}
+        </foreach>
+        and i1.site_id = i2.site_id
+        and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+        union
+        select i3.* from item i3 where i3.site_id = #{siteId} and i3.path in
+        <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
+            #{path}
+        </foreach>
+        and concat(i3.path, '/index.xml') not in
+        (select i4.path from item i4 where i4.site_id = i3.site_id
+        and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="ItemMap">
@@ -159,11 +207,11 @@
     </select>
 
     <select id="getItemBySiteIdAndPathPreferContent" resultMap="ItemMap">
-            select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
+            (select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select * from item where site_id = #{siteId} and path = #{path}
+            select * from item i3 where i3.site_id = #{siteId} and i3.path = #{path})
             limit 0, 1
     </select>
 

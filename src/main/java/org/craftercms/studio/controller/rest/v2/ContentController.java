@@ -280,7 +280,7 @@ public class ContentController {
                                               @RequestParam(value = REQUEST_PARAM_PATHS, required = true) List<String> paths,
                                               @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                                       defaultValue = "false") boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultList<SandboxItem> result = new ResultList<SandboxItem>();
@@ -295,7 +295,7 @@ public class ContentController {
                                             @RequestParam(value = REQUEST_PARAM_IDS, required = true) List<Long> ids,
                                             @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                                     defaultValue = "false") boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(siteId, ids, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultList<SandboxItem> result = new ResultList<SandboxItem>();

@@ -154,7 +154,8 @@ public interface ContentService {
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
-    List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent);
+    List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get sandbox items for given list of ids
@@ -163,5 +164,6 @@ public interface ContentService {
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
-    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent);
+    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
+            throws ServiceLayerException, UserNotFoundException;
 }
