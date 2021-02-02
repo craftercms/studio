@@ -15,7 +15,7 @@
  */
 
 def result = [:]
-result.message = "This API has been deprecated"
+result.message = "This API has been replaced by a new login mechanism via JWT, please review the documentation."
 response.setStatus(503)
 
 return result
