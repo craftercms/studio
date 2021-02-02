@@ -52,6 +52,7 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
@@ -132,7 +133,7 @@ public class SecurityServiceImpl implements SecurityService {
         if(context != null) {
             var auth = context.getAuthentication();
 
-            if (auth != null) {
+            if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
                 username = auth.getName();
             }
         } else {
