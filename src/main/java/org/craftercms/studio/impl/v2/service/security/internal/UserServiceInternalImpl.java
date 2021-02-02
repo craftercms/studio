@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -82,19 +82,9 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     // TODO: Remove when Spring Security is integrated
     private SecurityService securityService;
 
-    public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
-                                   StudioConfiguration studioConfiguration, SiteService siteService,
-                                   SecurityService securityService) {
-        this.userDao = userDao;
-        this.groupServiceInternal = groupServiceInternal;
-        this.studioConfiguration = studioConfiguration;
-        this.siteService = siteService;
-        this.securityService = securityService;
-    }
-
     @Override
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
-                                                                           UserNotFoundException {
+    public User getUserByIdOrUsername(long userId, String username)
+            throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
@@ -114,9 +104,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public List<User> getUsersByIdOrUsername(List<Long> userIds,
-                                             List<String> usernames) throws ServiceLayerException,
-                                                                              UserNotFoundException {
+    public List<User> getUsersByIdOrUsername(List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException {
         List<User> users = new LinkedList<>();
         for(long userId : userIds) {
             users.add(getUserByIdOrUsername(userId, StringUtils.EMPTY));
@@ -132,8 +121,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit,
-                                         String sort) throws ServiceLayerException {
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+            throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAMES, groupNames);
         params.put(OFFSET, offset);
@@ -254,8 +243,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
-    public void deleteUsers(List<Long> userIds,
-                            List<String> usernames) throws UserNotFoundException, ServiceLayerException {
+    public void deleteUsers(List<Long> userIds, List<String> usernames)
+            throws UserNotFoundException, ServiceLayerException {
         List<User> users = getUsersByIdOrUsername(userIds, usernames);
 
         var ids = users.stream().map(User::getId).collect(Collectors.toList());
@@ -274,8 +263,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @RetryingOperation
     @Override
-    public List<User> enableUsers(List<Long> userIds, List<String> usernames,
-                                  boolean enabled) throws ServiceLayerException, UserNotFoundException {
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
+            throws ServiceLayerException, UserNotFoundException {
         List<User> users = getUsersByIdOrUsername(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
@@ -292,7 +281,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException {
+    public List<Group> getUserGroups(long userId, String username)
+            throws UserNotFoundException, ServiceLayerException {
         if (!userExists(userId, username)) {
             throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
         }
@@ -309,8 +299,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException,
-                                                                                 ServiceLayerException {
+    public boolean isUserMemberOfGroup(String username, String groupName)
+            throws UserNotFoundException, ServiceLayerException {
         if (!userExists(-1, username)) {
             throw new UserNotFoundException("No user found for username '" + username + "'");
         }
@@ -425,7 +415,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException {
+    public Map<String, Map<String, String>> getUserProperties(String siteId)
+            throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);
         var dbSiteId = siteService.getSite(actualSiteId).getId();
         // TODO: Refactor to get the user from Spring Security
@@ -461,7 +452,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
+    public Map<String, String> deleteUserProperties(String siteId,
+                                                    List<String> propertiesToDelete)
             throws ServiceLayerException {
         var actualSiteId = getActualSiteId(siteId);
         var dbSiteId = siteService.getSite(actualSiteId).getId();
@@ -479,4 +471,43 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    public UserDAO getUserDao() {
+        return userDao;
+    }
+
+    public void setUserDao(UserDAO userDao) {
+        this.userDao = userDao;
+    }
+
+    public GroupServiceInternal getGroupServiceInternal() {
+        return groupServiceInternal;
+    }
+
+    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
+        this.groupServiceInternal = groupServiceInternal;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 }

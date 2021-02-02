@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -75,29 +75,6 @@ public class StudioPublisherTask extends StudioClockTask {
     private AuditServiceInternal auditServiceInternal;
     private int maxRetryCounter;
     private StudioClusterUtils studioClusterUtils;
-
-    public StudioPublisherTask(int executeEveryNCycles,
-                               int offset,
-                               StudioConfiguration studioConfiguration,
-                               SiteService siteService,
-                               ContentRepository contentRepository,
-                               PublishingManager publishingManager,
-                               ServicesConfig servicesConfig,
-                               NotificationService notificationService,
-                               AuditServiceInternal auditServiceInternal,
-                               int maxRetryCounter,
-                               StudioClusterUtils studioClusterUtils) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService);
-        this.studioConfiguration = studioConfiguration;
-        this.siteService = siteService;
-        this.contentRepository = contentRepository;
-        this.publishingManager = publishingManager;
-        this.servicesConfig = servicesConfig;
-        this.notificationService = notificationService;
-        this.auditServiceInternal = auditServiceInternal;
-        this.maxRetryCounter = maxRetryCounter;
-        this.studioClusterUtils = studioClusterUtils;
-    }
 
     @Override
     protected void executeInternal(String siteId) {
@@ -401,5 +378,77 @@ public class StudioPublisherTask extends StudioClockTask {
             environments.add(servicesConfig.getStagingEnvironment(site));
         }
         return environments;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public PublishingManager getPublishingManager() {
+        return publishingManager;
+    }
+
+    public void setPublishingManager(PublishingManager publishingManager) {
+        this.publishingManager = publishingManager;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    public AuditServiceInternal getAuditServiceInternal() {
+        return auditServiceInternal;
+    }
+
+    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public int getMaxRetryCounter() {
+        return maxRetryCounter;
+    }
+
+    public void setMaxRetryCounter(int maxRetryCounter) {
+        this.maxRetryCounter = maxRetryCounter;
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
     }
 }

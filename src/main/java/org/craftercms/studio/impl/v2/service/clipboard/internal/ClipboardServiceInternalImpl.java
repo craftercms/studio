@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -47,11 +47,6 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
 
     protected ContentService contentService;
     protected WorkflowService workflowService;
-
-    public ClipboardServiceInternalImpl(ContentService contentService, WorkflowService workflowService) {
-        this.contentService = contentService;
-        this.workflowService = workflowService;
-    }
 
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
@@ -106,4 +101,19 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
         return contentService.copyContent(siteId, path, item.uri);
     }
 
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public WorkflowService getWorkflowService() {
+        return workflowService;
+    }
+
+    public void setWorkflowService(WorkflowService workflowService) {
+        this.workflowService = workflowService;
+    }
 }

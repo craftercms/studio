@@ -125,30 +125,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private SiteService siteService;
     private GitRepositoryHelper gitRepositoryHelper;
 
-    public RepositoryManagementServiceInternalImpl(RemoteRepositoryDAO remoteRepositoryDao,
-                                                   StudioConfiguration studioConfiguration,
-                                                   NotificationService notificationService,
-                                                   SecurityService securityService,
-                                                   UserServiceInternal userServiceInternal,
-                                                   ContentRepository contentRepository,
-                                                   TextEncryptor encryptor,
-                                                   ClusterDAO clusterDao,
-                                                   GeneralLockService generalLockService,
-                                                   SiteService siteService,
-                                                   GitRepositoryHelper gitRepositoryHelper) {
-        this.remoteRepositoryDao = remoteRepositoryDao;
-        this.studioConfiguration = studioConfiguration;
-        this.notificationService = notificationService;
-        this.securityService = securityService;
-        this.userServiceInternal = userServiceInternal;
-        this.contentRepository = contentRepository;
-        this.encryptor = encryptor;
-        this.clusterDao = clusterDao;
-        this.generalLockService = generalLockService;
-        this.siteService = siteService;
-        this.gitRepositoryHelper = gitRepositoryHelper;
-    }
-
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
             throws ServiceLayerException, InvalidRemoteUrlException {
@@ -594,7 +570,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    public RepositoryStatus getRepositoryStatus(String siteId) throws ServiceLayerException {
+    public RepositoryStatus getRepositoryStatus(String siteId)
+            throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         RepositoryStatus repositoryStatus = new RepositoryStatus();
         logger.debug("Execute git status and return conflicting paths and uncommitted changes");
@@ -710,7 +687,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    public boolean commitResolution(String siteId, String commitMessage) throws ServiceLayerException {
+    public boolean commitResolution(String siteId, String commitMessage)
+            throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         logger.debug("Commit resolution for merge conflict for site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -772,4 +750,91 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
     }
 
+    public RemoteRepositoryDAO getRemoteRepositoryDao() {
+        return remoteRepositoryDao;
+    }
+
+    public void setRemoteRepositoryDao(RemoteRepositoryDAO remoteRepositoryDao) {
+        this.remoteRepositoryDao = remoteRepositoryDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public TextEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(TextEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public GitRepositoryHelper getGitRepositoryHelper() {
+        return gitRepositoryHelper;
+    }
+
+    public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
+        this.gitRepositoryHelper = gitRepositoryHelper;
+    }
 }

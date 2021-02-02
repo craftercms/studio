@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.utils;
 
+import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -36,11 +37,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-import static java.time.ZoneOffset.UTC;
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 
 public class StudioConfigurationImpl implements StudioConfiguration {
 
@@ -48,8 +48,15 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     protected HierarchicalConfiguration<ImmutableNode> config;
     protected HierarchicalConfiguration<ImmutableNode> systemConfig;
-    protected HierarchicalConfiguration<ImmutableNode> globalRepoConfig;
-    protected ZonedDateTime lastModifiedGlobalRepoConfig = null;
+
+    protected Cache<String, Object> configurationCache;
+
+    protected String configLocation;
+
+    public StudioConfigurationImpl(Cache<String, Object> configurationCache, String configLocation) {
+        this.configurationCache = configurationCache;
+        this.configLocation = configLocation;
+    }
 
     public void init() {
         loadConfig();
@@ -104,44 +111,49 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         config = loadGlobalRepoConfig();
     }
 
+    @SuppressWarnings("unchecked")
     private HierarchicalConfiguration<ImmutableNode> loadGlobalRepoConfig() {
-        if (config.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
-            Path globalRepoOverrideConfigLocation = Paths.get(config.getString(REPO_BASE_PATH),
-                    config.getString(GLOBAL_REPO_PATH), config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
-            FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
-            if (fsr.exists()) {
-                ZonedDateTime lastModified = null;
-                try {
-                    lastModified = Instant.ofEpochMilli(fsr.lastModified()).atZone(UTC);
-                    if ((lastModifiedGlobalRepoConfig == null) || lastModified.isAfter(lastModifiedGlobalRepoConfig)) {
-                        YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
-                        try (InputStream in = fsr.getInputStream()) {
-                            globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
-                            globalRepoOverrideConfig.read(in);
+        String cacheKey = prependIfMissing(config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG), "/");
+        Path globalRepoOverrideConfigLocation = Paths.get(config.getString(REPO_BASE_PATH),
+                config.getString(GLOBAL_REPO_PATH), config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
+        try {
+            var globalRepoConfig = (HierarchicalConfiguration<ImmutableNode>) configurationCache.get(cacheKey, () -> {
+                if (config.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
+                    FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
+                    if (fsr.exists()) {
+                        try {
+                            YamlConfiguration globalRepoOverrideConfig = new YamlConfiguration();
+                            try (InputStream in = fsr.getInputStream()) {
+                                globalRepoOverrideConfig.setExpressionEngine(getExpressionEngine());
+                                globalRepoOverrideConfig.read(in);
 
-                            if (!globalRepoOverrideConfig.isEmpty()) {
-                                logger.debug("Loaded additional configuration from location: {0} \n {1}",
-                                        fsr.getPath(), globalRepoOverrideConfig);
+                                if (!globalRepoOverrideConfig.isEmpty()) {
+                                    logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                                            fsr.getPath(), globalRepoOverrideConfig);
+                                }
+                                return globalRepoOverrideConfig;
                             }
-                            globalRepoConfig = globalRepoOverrideConfig;
-
+                        } catch (IOException | ConfigurationException e) {
+                            logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
                         }
-
-                        if (!globalRepoConfig.isEmpty()) {
-                            CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
-                            combinedConfig.setExpressionEngine(getExpressionEngine());
-                            combinedConfig.addConfiguration(globalRepoConfig);
-                            combinedConfig.addConfiguration(systemConfig);
-
-                            config = combinedConfig;
-                        }
-                        lastModifiedGlobalRepoConfig = lastModified;
                     }
-                } catch (IOException | ConfigurationException e) {
-                    logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
                 }
+                // return an empty configuration (Guava Cache doesn't allow null values)
+                return new YamlConfiguration();
+            });
+
+            if (!globalRepoConfig.isEmpty()) {
+                CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
+                combinedConfig.setExpressionEngine(getExpressionEngine());
+                combinedConfig.addConfiguration(globalRepoConfig);
+                combinedConfig.addConfiguration(systemConfig);
+
+                config = combinedConfig;
             }
+        } catch (ExecutionException e) {
+            logger.error("Error loading configuration from global repo", e);
         }
+
         return config;
     }
 
@@ -200,8 +212,4 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         }
     }
 
-    public String getConfigLocation() { return configLocation; }
-    public void setConfigLocation(String configLocation) { this.configLocation = configLocation; }
-
-    protected String configLocation;
 }

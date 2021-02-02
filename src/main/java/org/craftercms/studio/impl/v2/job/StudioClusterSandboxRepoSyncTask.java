@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,11 +30,9 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
@@ -94,26 +92,6 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     private EventService eventService;
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
-
-    public StudioClusterSandboxRepoSyncTask(int executeEveryNCycles,
-                                            int offset,
-                                            StudioClusterUtils studioClusterUtils,
-                                            StudioConfiguration studioConfiguration,
-                                            ContentRepository contentRepository,
-                                            Deployer deployer,
-                                            SiteService siteService,
-                                            DeploymentService deploymentService,
-                                            EventService eventService,
-                                            ClusterDAO clusterDao,
-                                            GeneralLockService generalLockService) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
-        this.studioClusterUtils = studioClusterUtils;
-        this.deployer = deployer;
-        this.deploymentService = deploymentService;
-        this.eventService = eventService;
-        this.clusterDao = clusterDao;
-        this.generalLockService = generalLockService;
-    }
 
     @Override
     protected void executeInternal(String siteId) {
@@ -552,4 +530,51 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         Files.delete(tempKey);
     }
 
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
+    public Deployer getDeployer() {
+        return deployer;
+    }
+
+    public void setDeployer(Deployer deployer) {
+        this.deployer = deployer;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
+
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
+    }
+
+    public void setClusterDao(ClusterDAO clusterDao) {
+        this.clusterDao = clusterDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 }

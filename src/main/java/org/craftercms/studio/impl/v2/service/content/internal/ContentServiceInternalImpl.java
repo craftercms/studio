@@ -20,11 +20,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.api.v2.security.PossibleActionsConstants;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -51,6 +54,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private ServicesConfig servicesConfig;
     private SiteFeedMapper siteFeedMapper;
     private SecurityService securityService;
+    private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private StudioConfiguration studioConfiguration;
 
     @Override
@@ -70,7 +74,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy,
                                                String order, int offset, int limit)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
         }
@@ -90,13 +94,15 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return toRet;
     }
 
-    private GetChildrenResult processResultSet(String siteId, List<Item> resultSet) {
+    private GetChildrenResult processResultSet(String siteId, List<Item> resultSet)
+            throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult toRet = new GetChildrenResult();
         String user = securityService.getCurrentUser();
         if (resultSet != null && resultSet.size() > 0) {
             int idx = 0;
             Item item = resultSet.get(idx);
-            item.setAvailableActions(securityService.getAvailableActions(siteId, item.getPath(), user));
+            item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
+                    PossibleActionsConstants.getPosibleActionsForObject(item.getSystemType()));
             if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
                     servicesConfig.getLevelDescriptorName(siteId))) {
                 toRet.setLevelDescriptor(SandboxItem.getInstance(item));
@@ -105,12 +111,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             List<SandboxItem> children = new ArrayList<SandboxItem>();
             while (idx < resultSet.size()) {
                 Item child = resultSet.get(idx);
-                child.setAvailableActions(securityService.getAvailableActions(siteId, child.getPath(), user));
+                child.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, child.getPath()) &
+                        PossibleActionsConstants.getPosibleActionsForObject(child.getSystemType()));
                 children.add(SandboxItem.getInstance(child));
                 idx++;
             }
             toRet.setChildren(children);
-
         }
         return toRet;
     }
@@ -128,7 +134,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
-                                             String order, int offset, int limit) {
+                                             String order, int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException {
         List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         List<Item> resultSet = itemDao.getChildrenById(siteId, parentId,
                 servicesConfig.getLevelDescriptorName(siteId), locale, ignoreNames, sortStrategy, order, offset, limit);
@@ -273,6 +280,62 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public ItemDAO getItemDao() {
+        return itemDao;
+    }
+
+    public void setItemDao(ItemDAO itemDao) {
+        this.itemDao = itemDao;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public org.craftercms.studio.api.v2.service.security.SecurityService getSecurityServiceV2() {
+        return securityServiceV2;
+    }
+
+    public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {
+        this.securityServiceV2 = securityServiceV2;
     }
 
     public StudioConfiguration getStudioConfiguration() {

@@ -14,23 +14,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.exception;
+package org.craftercms.studio.api.v2.annotation;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Exception thrown when there's an error while reading a configuration.
- *
- * @author avasquez
- */
-public class ConfigurationException extends ServiceLayerException {
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface IsActionAllowed {
 
-    public ConfigurationException(String message) {
-        super(message);
-    }
+    long allowedActionsMask();
 
-    public ConfigurationException(String message, Exception e) {
-        super(message, e);
-    }
-
+    //long allowedTargets();
 }

@@ -20,8 +20,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -39,17 +37,7 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
 
     protected ContentRepository contentRepository;
 
-
     protected abstract Path buildRepoPath(String site);
-
-    public StudioClockClusterTask(int executeEveryNCycles,
-                                  int offset,
-                                  StudioConfiguration studioConfiguration,
-                                  SiteService siteService,
-                                  ContentRepository contentRepository) {
-        super(executeEveryNCycles, offset, studioConfiguration, siteService);
-        this.contentRepository = contentRepository;
-    }
 
     protected void removeRemote(Git git, String remoteName) throws GitAPIException {
         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
@@ -73,5 +61,13 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
             delBranch.setForce(true);
             delBranch.call();
         }
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -68,12 +68,6 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     private AuditDAO auditDao;
     private StudioConfiguration studioConfiguration;
-
-    public AuditServiceInternalImpl(AuditDAO auditDao,
-                                    StudioConfiguration studioConfiguration) {
-        this.auditDao = auditDao;
-        this.studioConfiguration = studioConfiguration;
-    }
 
     @Override
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
@@ -160,8 +154,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     @Override
     public int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
-                                boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                String target, String origin, String clusterNodeId) {
+                                boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo, String target,
+                                String origin, String clusterNodeId) {
         Map<String, Object> params = new HashMap<String, Object>();
         if (StringUtils.isNotEmpty(siteId)) {
             params.put(SITE_ID, siteId);
@@ -291,6 +285,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
+    // TODO: after login insert LOGIN audit
+    //@IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
     public boolean insertAuditLog(AuditLog auditLog) {
         int result = auditDao.insertAuditLog(auditLog);
         if (CollectionUtils.isNotEmpty(auditLog.getParameters())) {
@@ -317,8 +313,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         return auditLog;
     }
 
-    public List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset,
-                                                int limit, String contentType, boolean hideLiveItems) {
+    public List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset, int limit, String contentType,
+                                                boolean hideLiveItems) {
         HashMap<String, Object> params = new HashMap<String, Object>();
         params.put("userId", user);
         params.put("siteId", siteId);
@@ -344,5 +340,21 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     @Override
     public void deleteAuditLogForSite(long siteId) {
         auditDao.deleteAuditLogForSite(siteId);
+    }
+
+    public AuditDAO getAuditDao() {
+        return auditDao;
+    }
+
+    public void setAuditDao(AuditDAO auditDao) {
+        this.auditDao = auditDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }
