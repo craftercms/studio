@@ -16,11 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.marketplace;
 
-import java.util.List;
-import java.util.Map;
-
 import org.craftercms.commons.plugin.model.Version;
-import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -30,7 +26,9 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
-import org.craftercms.studio.model.rest.marketplace.InstallPluginRequest;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides access to all available Marketplace operations

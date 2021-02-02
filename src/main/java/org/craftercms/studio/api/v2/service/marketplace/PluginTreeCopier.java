@@ -29,7 +29,9 @@
  import java.nio.file.attribute.BasicFileAttributes;
  import java.util.List;
 
- import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
+ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
+ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
  /**
   * Extension of {@link TreeCopier} that collects information about the files to be used for the plugin registry
