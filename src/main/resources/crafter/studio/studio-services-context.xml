@@ -524,6 +524,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
