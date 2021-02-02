@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -67,6 +68,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
     private ContentServiceInternal contentServiceInternal;
+    private ContentService contentService;
 
     @Override
     public void upsertEntry(String siteId, Item item) {
@@ -408,6 +410,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(ZonedDateTime.now())
                 .withLabel(descriptor.queryDescriptorValue(INTERNAL_NAME))
+                .withSystemType(contentService.getContentTypeClass(siteId, path))
                 .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
                 .withMimeType(StudioUtils.getMimeType(path))
                 .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
@@ -488,5 +491,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
+    }
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
     }
 }
