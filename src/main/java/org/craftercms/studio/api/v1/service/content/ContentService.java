@@ -314,7 +314,7 @@ public interface ContentService {
      *
      * @throws ServiceLayerException general service error
      */
-    boolean renameFolder(String site, String path, String name) throws ServiceLayerException;
+    boolean renameFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Push content to remote repository
