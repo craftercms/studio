@@ -349,6 +349,8 @@ studio.security.encryption.delay: 1
 studio.security.encryption.maxLength: 4096
 # If the secure headers should be written for every request
 studio.security.headers.enabled: true
+# Indicates if HTTP Basic auth should be enabled for the API
+studio.security.http.basic.enabled: false
 
 # The maximum number of users to keep in the cache
 studio.security.db.cache.maxSize: 20

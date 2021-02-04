@@ -23,6 +23,13 @@
 		http://www.springframework.org/schema/security
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
+    <bean id="basicAuthenticationFilter"
+          class="org.craftercms.studio.impl.v2.security.authentication.basic.ConditionalBasicAuthenticationFilter">
+        <constructor-arg ref="apiAuthenticationManager"/>
+        <constructor-arg ref="apiAuthEntryPoint"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.http.basic.enabled')}"/>
+    </bean>
+
     <bean id="accessTokenAuthenticationFilter"
           class="org.craftercms.studio.impl.v2.security.authentication.token.AccessTokenAuthenticationFilter">
         <constructor-arg ref="accessTokenService"/>
@@ -89,8 +96,7 @@
         <sec:headers disabled="true"/> <!-- Because we have a custom filter -->
         <sec:cors configuration-source-ref="crafter.corsConfigSource"/>
 
-        <sec:http-basic/>
-
+        <sec:custom-filter ref="basicAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
         <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
         <sec:custom-filter ref="accessTokenAuthenticationFilter" position="PRE_AUTH_FILTER"/>
 
@@ -109,7 +115,8 @@
         <sec:csrf disabled="true"/>
         <sec:headers disabled="true"/>
         <sec:cors configuration-source-ref="crafter.corsConfigSource"/>
-        <sec:http-basic/>
+
+        <sec:custom-filter ref="basicAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
         <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
         <sec:custom-filter ref="accessTokenAuthenticationFilter" position="PRE_AUTH_FILTER"/>
 
