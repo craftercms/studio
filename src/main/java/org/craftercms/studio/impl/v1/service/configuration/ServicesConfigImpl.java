@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,9 @@
  */
 package org.craftercms.studio.impl.v1.service.configuration;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -51,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -118,8 +122,25 @@ public class ServicesConfigImpl implements ServicesConfig {
     protected StudioConfiguration studioConfiguration;
     protected ConfigurationService configurationService;
 
+    protected LoadingCache<String, SiteConfigTO> cache;
+
+    public void init() {
+        CacheLoader<String, SiteConfigTO> cacheLoader = new CacheLoader<String, SiteConfigTO>() {
+            @Override
+            public SiteConfigTO load(String site) throws Exception {
+                return loadConfiguration(site);
+            }
+        };
+        cache = CacheBuilder.newBuilder().build(cacheLoader);
+    }
+
     protected SiteConfigTO getSiteConfig(final String site) {
-        return loadConfiguration(site);
+        try {
+            return cache.get(site);
+        } catch (ExecutionException e) {
+            LOGGER.error("Failed to get site configuration for site " + site, e);
+            return null;
+        }
     }
 
     @Override
@@ -554,7 +575,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     @Override
     @ValidateParams
     public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
-        SiteConfigTO config = loadConfiguration(site);
+        cache.invalidate(site);
     }
 
     @Override

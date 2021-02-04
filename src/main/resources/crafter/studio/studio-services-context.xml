@@ -193,7 +193,8 @@
         <property name="configurationService" ref="configurationService" />
     </bean>
 
-    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
+    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl"
+          init-method="init" >
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
         <property name="contentRepository" ref="contentRepository"/>
