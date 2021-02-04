@@ -881,6 +881,8 @@
                     <environmentVariables>
                         <CRAFTER_DATA_DIR>target/test-resources/data</CRAFTER_DATA_DIR>
                         <MARIADB_ROOT_PASSWD>root</MARIADB_ROOT_PASSWD>
+                        <STUDIO_CONFIG_CACHE_MAX_SIZE>100</STUDIO_CONFIG_CACHE_MAX_SIZE>
+                        <STUDIO_CONFIG_CACHE_EXPIRE_TIME>300</STUDIO_CONFIG_CACHE_EXPIRE_TIME>
                     </environmentVariables>
                 </configuration>
             </plugin>
