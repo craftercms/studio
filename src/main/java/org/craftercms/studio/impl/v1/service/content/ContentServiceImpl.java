@@ -91,8 +91,6 @@ import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -115,7 +113,6 @@ import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
@@ -654,6 +651,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
                     commitId);
+            itemServiceInternal.updateParentIds(site, path);
 
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -2544,7 +2542,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean renameFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name) throws ServiceLayerException {
+                                @ValidateStringParam(name = "name") String name) throws ServiceLayerException, UserNotFoundException {
         boolean toRet = false;
 
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
@@ -2564,6 +2562,11 @@ public class ContentServiceImpl implements ContentService {
         if (commitIds != null) {
             // Update the database with the commitId for the target item
             updateDatabaseOnMove(site, path, targetPath);
+            String commitId = commitIds.get(targetPath);
+            if (StringUtils.isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(site);
+            itemServiceInternal.persistItemAfterRenameFolder(site, targetPath, name,
+                    securityService.getCurrentUser(), commitId);
+
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
