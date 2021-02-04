@@ -15,9 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.configuration;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.cache.Cache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -121,22 +119,12 @@ public class ServicesConfigImpl implements ServicesConfig {
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
     protected ConfigurationService configurationService;
-
-    protected LoadingCache<String, SiteConfigTO> cache;
-
-    public void init() {
-        CacheLoader<String, SiteConfigTO> cacheLoader = new CacheLoader<String, SiteConfigTO>() {
-            @Override
-            public SiteConfigTO load(String site) throws Exception {
-                return loadConfiguration(site);
-            }
-        };
-        cache = CacheBuilder.newBuilder().build(cacheLoader);
-    }
+    protected Cache<String, Object> configurationCache;
 
     protected SiteConfigTO getSiteConfig(final String site) {
+        String key = site + ":" + getConfigFileName();
         try {
-            return cache.get(site);
+            return (SiteConfigTO) configurationCache.get(key, () -> loadConfiguration(site));
         } catch (ExecutionException e) {
             LOGGER.error("Failed to get site configuration for site " + site, e);
             return null;
@@ -575,7 +563,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     @Override
     @ValidateParams
     public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
-        cache.invalidate(site);
+        String key = site + ":" + getConfigFileName();
+        configurationCache.invalidate(key);
     }
 
     @Override
@@ -717,5 +706,13 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public Cache<String, Object> getConfigurationCache() {
+        return configurationCache;
+    }
+
+    public void setConfigurationCache(Cache<String, Object> configurationCache) {
+        this.configurationCache = configurationCache;
     }
 }

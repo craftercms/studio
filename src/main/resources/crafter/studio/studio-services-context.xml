@@ -193,14 +193,14 @@
         <property name="configurationService" ref="configurationService" />
     </bean>
 
-    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl"
-          init-method="init" >
+    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="configurationService" ref="configurationService" />
+        <property name="configurationCache" ref="configurationCache" />
     </bean>
 
     <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
