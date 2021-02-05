@@ -160,6 +160,13 @@ pipelines:
             commitDetails: Add new permission 'manage_access_token'
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.1-to-4.0.0.2.sql
+      - currentVersion: 4.0.0.2
+        nextVersion: 4.0.0.3
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-menu-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.3/system/global-menu-config.xslt
+            commitDetails: Add new global menu item
 
   # Pipeline to upgrade site repositories
   site:

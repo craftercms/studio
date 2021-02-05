@@ -90,5 +90,11 @@
             <icon>fa-lock</icon>
             <permission>encryption_tool</permission>
         </item>
+        <item>
+            <id>home.globalMenu.tokenManagement</id>
+            <label lang="en">Token Management</label>
+            <icon>fa-key</icon>
+            <permission>manage_access_token</permission>
+        </item>
     </items>
 </globalMenu>
