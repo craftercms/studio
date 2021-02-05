@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
