@@ -1281,8 +1281,8 @@
             <bean class="net.sf.ehcache.config.CacheConfiguration">
                 <!-- This properties can't be externalized because the bean is created before the yaml is loaded -->
                 <property name="name" value="studioConfiguration"/>
-                <property name="eternal" value="true"/>
-                <property name="maxEntriesLocalHeap" value="100"/>
+                <property name="maxEntriesLocalHeap" value="${STUDIO_CONFIG_CACHE_MAX_SIZE}"/>
+                <property name="timeToLiveSeconds" value="${STUDIO_CONFIG_CACHE_EXPIRE_TIME}"/>
             </bean>
         </property>
     </bean>
