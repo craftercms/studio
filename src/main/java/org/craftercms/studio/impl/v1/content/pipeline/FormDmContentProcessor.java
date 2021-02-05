@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -224,6 +225,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 // Item
                 // TODO: get local code with API 2
                 itemServiceInternal.persistItemAfterWrite(site, itemPath, user, result.getCommitId(), Optional.of(unlock));
+                itemServiceInternal.updateParentIds(site, ContentUtils.getParentUrl(parentItem.getUri()));
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
