@@ -235,6 +235,9 @@
 
     <bean id="studio.securityService" class="org.craftercms.studio.impl.v2.service.security.SecurityServiceImpl">
         <property name="availableActionsResolver" ref="studio.availableActionsResolver" />
+        <property name="configurationService" ref="configurationService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -348,6 +351,7 @@
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
         <property name="instanceService" ref="instanceService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="securityServiceV2" ref="studio.securityService" />
     </bean>
 
     <bean id="userServiceInternal"

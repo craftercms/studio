@@ -118,6 +118,7 @@ public class UserServiceImpl implements UserService {
     private JavaMailSender emailServiceNoAuth;
     private InstanceService instanceService;
     private TextEncryptor encryptor;
+    private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -594,6 +595,22 @@ public class UserServiceImpl implements UserService {
         return userServiceInternal.deleteUserProperties(siteId, propertiesToDelete);
     }
 
+    @Override
+    public List<String> getCurrentUserSitePermissions(String site) throws ServiceLayerException, UserNotFoundException {
+        String currentUser = securityService.getCurrentUser();
+        List<String> roles = getUserSiteRoles(-1, currentUser, site);
+        return securityServiceV2.getUserPermission(site, currentUser, roles);
+    }
+
+    @Override
+    public Map<String, Boolean> hasCurrentUserSitePermissions(String site, List<String> permissions)
+            throws ServiceLayerException, UserNotFoundException {
+        Map<String, Boolean> toRet = new HashMap<String, Boolean>();
+        List<String> userPermissions = getCurrentUserSitePermissions(site);
+        permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
+        return toRet;
+    }
+
     private boolean isAuthenticatedSMTP() {
         return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
     }
@@ -708,5 +725,13 @@ public class UserServiceImpl implements UserService {
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
+    }
+
+    public org.craftercms.studio.api.v2.service.security.SecurityService getSecurityServiceV2() {
+        return securityServiceV2;
+    }
+
+    public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {
+        this.securityServiceV2 = securityServiceV2;
     }
 }

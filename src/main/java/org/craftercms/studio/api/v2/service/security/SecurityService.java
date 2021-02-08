@@ -19,6 +19,8 @@ package org.craftercms.studio.api.v2.service.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
+import java.util.List;
+
 public interface SecurityService {
 
     /**
@@ -41,4 +43,12 @@ public interface SecurityService {
      *
      */
     void invalidateAvailableActions();
+
+    /**
+     * Get user permissions for given site
+     * @param username user
+     * @param groups groups that user belongs to
+     * @return list of user permissions
+     */
+    List<String> getUserPermission(String siteId, String username, List<String> roles);
 }

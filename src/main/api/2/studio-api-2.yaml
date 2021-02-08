@@ -1060,7 +1060,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/me/sites/{site}/hasPermissions:
+  /users/me/sites/{site}/has_permissions:
     get:
       tags:
         - users

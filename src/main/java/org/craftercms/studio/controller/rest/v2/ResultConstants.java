@@ -34,6 +34,7 @@ public final class ResultConstants {
     public static final String RESULT_KEY_SITES = "sites";
 
     public static final String RESULT_KEY_ROLES = "roles";
+    public static final String RESULT_KEY_PERMISSIONS = "permissions";
 
     public static final String RESULT_KEY_ITEM = "item";
     public static final String RESULT_KEY_ITEMS = "items";

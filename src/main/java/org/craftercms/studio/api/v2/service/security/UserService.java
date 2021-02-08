@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
+import org.craftercms.studio.model.users.HasPermissionsRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -163,4 +164,19 @@ public interface UserService {
     Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
             throws ServiceLayerException;
 
+    /**
+     * Get permissions of the current authenticated user for given site
+     * @param site site identifier
+     * @return
+     */
+    List<String> getCurrentUserSitePermissions(String site) throws ServiceLayerException, UserNotFoundException;
+
+    /** Check if the current authenticated user has given permissions for given site
+     *
+     * @param site site identifier
+     * @param permissions list of permissions to check
+     * @return map with values true or false for each given permission
+     */
+    Map<String, Boolean> hasCurrentUserSitePermissions(String site, List<String> permissions)
+            throws ServiceLayerException, UserNotFoundException;
 }
