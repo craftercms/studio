@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import com.google.common.cache.Cache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
@@ -39,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
@@ -55,6 +57,9 @@ public class SecurityServiceImpl implements SecurityService {
     private ConfigurationService configurationService;
     private StudioConfiguration studioConfiguration;
     private ContentService contentService;
+    private Cache<String, Object> configurationCache;
+
+    private static final String KEY_PREFIX = "GET_USER_PERMISSIONS:";
 
     @Override
     public long getAvailableActions(String username, String site, String path)
@@ -73,7 +78,13 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<String> getUserPermission(String siteId, String username, List<String> roles) {
+    public List<String> getUserPermission(String siteId, String username, List<String> roles)
+            throws ExecutionException {
+        String key = KEY_PREFIX + siteId + ":" + username;
+        return (List<String>) configurationCache.get(key, () -> loadUserPermission(siteId, username, roles));
+    }
+
+    private List<String> loadUserPermission(String siteId, String username, List<String> roles) {
         Set<String> permissions;
         String configPath;
         List<String> toRet = new ArrayList<String>();
@@ -167,5 +178,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+    }
+
+    public Cache<String, Object> getConfigurationCache() {
+        return configurationCache;
+    }
+
+    public void setConfigurationCache(Cache<String, Object> configurationCache) {
+        this.configurationCache = configurationCache;
     }
 }

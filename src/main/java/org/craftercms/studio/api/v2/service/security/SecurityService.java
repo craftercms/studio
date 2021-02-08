@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public interface SecurityService {
 
@@ -50,5 +51,5 @@ public interface SecurityService {
      * @param groups groups that user belongs to
      * @return list of user permissions
      */
-    List<String> getUserPermission(String siteId, String username, List<String> roles);
+    List<String> getUserPermission(String siteId, String username, List<String> roles) throws ExecutionException;
 }
