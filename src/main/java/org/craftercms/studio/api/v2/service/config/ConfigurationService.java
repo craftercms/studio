@@ -44,7 +44,7 @@ public interface ConfigurationService {
      * @return role mappings configuration
      * @throws ConfigurationException configuration error
      */
-    Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
+    Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException;
 
     /**
      * Get configuration as string for given parameters
@@ -54,8 +54,10 @@ public interface ConfigurationService {
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return String content of configuration file
+     * @throws ServiceLayerException if there is any error reading the configuration
      */
-    String getConfigurationAsString(String siteId, String module, String path, String environment);
+    String getConfigurationAsString(String siteId, String module, String path, String environment)
+            throws ServiceLayerException;
 
     /**
      * Get configuration as DOM document for given parameters
@@ -65,11 +67,10 @@ public interface ConfigurationService {
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return DOM document representing configuration file
-     * @throws DocumentException XML document error
-     * @throws IOException IO error
+     * @throws ServiceLayerException if there is any error loading the configuration
      */
     Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
-            throws DocumentException, IOException;
+            throws ServiceLayerException;
 
     /**
      * Get configuration from global repository as String
@@ -135,4 +136,8 @@ public interface ConfigurationService {
      */
     TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
 
+    /**
+     * This method holds logic for API 1, can be deleted when API 1 get configuration is removed
+     */
+    Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
 }

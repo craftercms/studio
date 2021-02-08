@@ -485,8 +485,8 @@ public class SecurityServiceImpl implements SecurityService {
         try {
             document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, filename,
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-        } catch (DocumentException | IOException e) {
-            logger.error("Permission mapping not found for " + site + ":" + filename);
+        } catch (ServiceLayerException e) {
+            logger.error("Permission mapping not found for " + site + ":" + filename, e);
         }
         if (document != null) {
             config = new PermissionsConfigTO();

@@ -282,13 +282,6 @@ public class SiteServiceImpl implements SiteService {
         return toReturn;
     }
 
-    @Override
-    @ValidateParams
-    public Map<String, Object> getConfiguration(@ValidateSecurePathParam(name = "path") String path) {
-        return null;
-    }
-
-
     /**
      * given a site ID return the configuration as a document
      * This method allows extensions to add additional properties to the configuration that
@@ -308,75 +301,11 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site,
                                                 @ValidateSecurePathParam(name = "path") String path,
-                                                boolean applyEnv) {
-        String configPath;
-        String configContent;
-        if (StringUtils.isEmpty(site)) {
-            configPath = getGlobalConfigRoot() + path;
-            configContent = contentService.getContentAsString(site, configPath);
-        } else {
-            if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
-                configPath = getSitesConfigPath() + path;
-                configContent = contentService.getContentAsString(site, configPath);
-            } else {
-                configContent = configurationService.getConfigurationAsString(site, MODULE_STUDIO, path,
-                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            }
-        }
-
-
-        Map<String, Object> toRet = null;
-        if (configContent != null) {
-            configContent = configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
-            configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
-            configContent = configContent.replaceAll("<!--(.*?)-->", "");
-            toRet = convertNodesFromXml(configContent);
-        }
-        return toRet;
+                                                boolean applyEnv) throws ServiceLayerException {
+        return configurationService.legacyGetConfiguration(site, path);
     }
 
-    private Map<String, Object> convertNodesFromXml(String xml) {
-        try {
-            Document document = DocumentHelper.parseText(xml);
-            return createMap(document.getRootElement());
 
-        } catch (DocumentException e) {
-            logger.error("Error reading xml string:\n" + xml);
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> createMap(Element element) {
-        Map<String, Object> map = new HashMap<String, Object>();
-        for (int i = 0, size = element.nodeCount(); i < size; i++) {
-            Node currentNode = element.node(i);
-            if (currentNode instanceof Element) {
-                Element currentElement = (Element) currentNode;
-                String key = currentElement.getName();
-                Object toAdd = null;
-                if (currentElement.isTextOnly()) {
-                    toAdd = currentElement.getStringValue();
-                } else {
-                    toAdd = createMap(currentElement);
-                }
-                if (map.containsKey(key)) {
-                    Object value = map.get(key);
-                    List listOfValues = new ArrayList<Object>();
-                    if (value instanceof List) {
-                        listOfValues = (List<Object>) value;
-                    } else {
-                        listOfValues.add(value);
-                    }
-                    listOfValues.add(toAdd);
-                    map.put(key, listOfValues);
-                } else {
-                    map.put(key, toAdd);
-                }
-            }
-        }
-        return map;
-    }
 
     @Override
     public Set<String> getAllAvailableSites() {
@@ -2027,14 +1956,6 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public String getLastSyncedGitlogCommitId(String siteId) {
         return siteFeedMapper.getLastSyncedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
-    }
-
-    public String getGlobalConfigRoot() {
-        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
-    }
-
-    public String getSitesConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }
 
     public String getEnvironment() {

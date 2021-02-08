@@ -112,7 +112,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
                 loadRoles(roleMappingsDocument, sitePermissionMappings);
                 loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
             }
-        } catch (DocumentException | IOException e) {
+        } catch (ServiceLayerException | DocumentException e) {
             e.printStackTrace();
         }
         return sitePermissionMappings;

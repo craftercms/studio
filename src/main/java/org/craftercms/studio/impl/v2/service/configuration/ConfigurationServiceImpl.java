@@ -72,11 +72,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
@@ -93,6 +98,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
@@ -137,39 +143,48 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException {
-        // TODO: Refactor this to use Apache's Commons Configuration
-        Map<String, List<String>> roleMappings = new HashMap<>();
-        String roleMappingsConfigPath = getSiteRoleMappingsConfigPath(siteId);
-        Document document;
-
+    public Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException {
+        // The write seems to always send env = null
+        var cacheKey = getCacheKey(siteId, MODULE_STUDIO, getSiteRoleMappingsConfigFileName(), null);
         try {
-            document = contentService.getContentAsDocument(siteId, roleMappingsConfigPath);
-            if (document != null) {
-                Element root = document.getRootElement();
-                if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                    List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                    for (Node node : groupNodes) {
-                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
-                        if (StringUtils.isNotEmpty(name)) {
-                            List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                            List<String> roles = new ArrayList<>();
+            return (Map<String, List<String>>) configurationCache.get(cacheKey, () -> {
+                logger.debug("CACHE MISS: {0}", cacheKey);
+                // TODO: Refactor this to use Apache's Commons Configuration
+                Map<String, List<String>> roleMappings = new HashMap<>();
+                String roleMappingsConfigPath = getSiteRoleMappingsConfigPath(siteId);
+                Document document;
 
-                            for (Node roleNode : roleNodes) {
-                                roles.add(roleNode.getText());
+                try {
+                    document = contentService.getContentAsDocument(siteId, roleMappingsConfigPath);
+                    if (document != null) {
+                        Element root = document.getRootElement();
+                        if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
+                            List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
+                            for (Node node : groupNodes) {
+                                String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
+                                if (StringUtils.isNotEmpty(name)) {
+                                    List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
+                                    List<String> roles = new ArrayList<>();
+
+                                    for (Node roleNode : roleNodes) {
+                                        roles.add(roleNode.getText());
+                                    }
+
+                                    roleMappings.put(name, roles);
+                                }
                             }
-
-                            roleMappings.put(name, roles);
                         }
                     }
+                } catch (DocumentException e) {
+                    throw new ConfigurationException("Error while reading role mappings file for site " + siteId +
+                            " @ " + roleMappingsConfigPath);
                 }
-            }
-        } catch (DocumentException e) {
-            throw new ConfigurationException("Error while reading role mappings file for site " + siteId + " @ " +
-                                             roleMappingsConfigPath);
-        }
 
-        return roleMappings;
+                return roleMappings;
+            });
+        } catch (ExecutionException e) {
+            throw new ServiceLayerException("Error loading configuration", e);
+        }
     }
 
 
@@ -199,30 +214,37 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                    String path, String environment) {
+                                    String path, String environment) throws ServiceLayerException {
         return getEnvironmentConfiguration(siteId, module, path, environment);
     }
 
     @Override
     public Document getConfigurationAsDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                               String path, String environment)
-            throws DocumentException, IOException {
-        String content = getEnvironmentConfiguration(siteId, module, path, environment);
-        Document retDocument = null;
-        if (StringUtils.isNotEmpty(content)) {
-            SAXReader saxReader = new SAXReader();
-            try {
-                saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-                saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            } catch (SAXException ex) {
-                logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
-            }
-            try (InputStream is = IOUtils.toInputStream(content)) {
-                retDocument = saxReader.read(is);
-            }
+                                               String path, String environment) throws ServiceLayerException {
+        var cacheKey = getCacheKey(siteId,module,path, environment);
+        try {
+            return (Document) configurationCache.get(cacheKey, () -> {
+                logger.debug("CACHE MISS: {0}", cacheKey);
+                String content = getEnvironmentConfiguration(siteId, module, path, environment);
+                Document retDocument = null;
+                if (StringUtils.isNotEmpty(content)) {
+                    SAXReader saxReader = new SAXReader();
+                    try {
+                        saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                        saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                        saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                    } catch (SAXException ex) {
+                        logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
+                    }
+                    try (InputStream is = IOUtils.toInputStream(content, UTF_8)) {
+                        retDocument = saxReader.read(is);
+                    }
+                }
+                return retDocument;
+            });
+        } catch (ExecutionException e) {
+            throw new ServiceLayerException("Error loading configuration", e);
         }
-        return retDocument;
     }
 
     @Override
@@ -264,6 +286,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME))) {
             securityServiceV2.invalidateAvailableActions(siteId);
         }
+        var cacheKey = getCacheKey(siteId,module,path,environment);
+        logger.debug("INVALIDATING CACHE: {0}", cacheKey);
+        configurationCache.invalidate(cacheKey);
+    }
+
+    protected String getCacheKey(String siteId, String module, String path, String environment) {
+        return format("%s:%s:%s:%s", siteId, module, path, environment);
     }
 
     @Override
@@ -279,10 +308,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         if (isEmpty(basePath)) {
             throw new IllegalStateException(
-                String.format("Site '%s' does not have an plugin folder pattern configured", siteId));
+                format("Site '%s' does not have an plugin folder pattern configured", siteId));
         } else if (!StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
             !StringUtils.contains(basePath, PLACEHOLDER_NAME)) {
-            throw new IllegalStateException(String.format(
+            throw new IllegalStateException(format(
                 "Plugin folder pattern for site '%s' does not contain all required placeholders", basePath));
         }
 
@@ -479,6 +508,108 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
         return translationConfiguration;
     }
+
+    // Moved from SiteServiceImpl to be able to properly cache the object
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException {
+        // anonymous object needed to access the non-final configContent variable in the lambda
+        var ref = new Object() {
+            String configContent;
+        };
+        String configPath = null;
+        String cacheKey;
+        String env = null;
+        var useContentService = true;
+        if (StringUtils.isEmpty(site)) {
+            configPath = getGlobalConfigRoot() + path;
+            cacheKey = configPath;
+        } else {
+            if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
+                configPath = getSitesConfigPath() + path;
+                // the write config is receiving env = null so this needs to match
+                cacheKey = getCacheKey(site, MODULE_STUDIO, path, null);
+            } else {
+                useContentService = false;
+                env = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+                cacheKey = getCacheKey(site,MODULE_STUDIO, path, env);
+            }
+        }
+
+        try {
+            // final variables needed to use the lambda as a cache loader
+            boolean finalUseContentService = useContentService;
+            String finalConfigPath = configPath;
+            String finalEnv = env;
+
+            return (Map<String, Object>) configurationCache.get(cacheKey, () -> {
+                logger.debug("CACHE MISS: {0}", cacheKey);
+
+                if (finalUseContentService) {
+                    ref.configContent = contentService.getContentAsString(site, finalConfigPath);
+                } else {
+                    ref.configContent = getConfigurationAsString(site, MODULE_STUDIO, path, finalEnv);
+                }
+                ref.configContent = ref.configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
+                ref.configContent = ref.configContent.replaceAll("\\n([\\s]+)?+", "");
+                ref.configContent = ref.configContent.replaceAll("<!--(.*?)-->", "");
+
+                return convertNodesFromXml(ref.configContent);
+            });
+        } catch (ExecutionException e) {
+            throw new ServiceLayerException("Error loading configuration", e);
+        }
+    }
+
+    private Map<String, Object> convertNodesFromXml(String xml) throws ServiceLayerException {
+        try {
+            Document document = DocumentHelper.parseText(xml);
+            return createMap(document.getRootElement());
+        } catch (DocumentException e) {
+            throw new ServiceLayerException("Error reading xml string:\n" + xml, e);
+        }
+    }
+
+    @SuppressWarnings("rawtypes,unchecked")
+    private Map<String, Object> createMap(Element element) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        for (int i = 0, size = element.nodeCount(); i < size; i++) {
+            Node currentNode = element.node(i);
+            if (currentNode instanceof Element) {
+                Element currentElement = (Element) currentNode;
+                String key = currentElement.getName();
+                Object toAdd = null;
+                if (currentElement.isTextOnly()) {
+                    toAdd = currentElement.getStringValue();
+                } else {
+                    toAdd = createMap(currentElement);
+                }
+                if (map.containsKey(key)) {
+                    Object value = map.get(key);
+                    List listOfValues = new ArrayList<Object>();
+                    if (value instanceof List) {
+                        listOfValues = (List<Object>) value;
+                    } else {
+                        listOfValues.add(value);
+                    }
+                    listOfValues.add(toAdd);
+                    map.put(key, listOfValues);
+                } else {
+                    map.put(key, toAdd);
+                }
+            }
+        }
+        return map;
+    }
+
+    private String getGlobalConfigRoot() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
+    }
+
+    private String getSitesConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+    // --- end of copied code ---
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;

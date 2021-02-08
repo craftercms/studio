@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -101,7 +102,7 @@ public class RegexDependencyResolver implements DependencyResolver {
             logger.debug("Load configuration as xml document from " + configLocation);
             document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configLocation,
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-        } catch (DocumentException | IOException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);
         }
         if (document == null) {
