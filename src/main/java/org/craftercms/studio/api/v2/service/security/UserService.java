@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.users.HasPermissionsRequest;
 
 import java.util.List;
 import java.util.Map;
