@@ -191,7 +191,7 @@ public class ContentServiceImpl implements ContentService {
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public DetailedItem getItemByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getItemByPath(siteId, path, preferContent);
     }
 
@@ -199,7 +199,7 @@ public class ContentServiceImpl implements ContentService {
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id,
                                     boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getItemById(siteId, id, preferContent);
     }
 

@@ -250,7 +250,7 @@ public class ContentController {
                                       @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path,
                                       @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                               defaultValue = "false") boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
@@ -265,7 +265,7 @@ public class ContentController {
                                     @RequestParam(value = REQUEST_PARAM_ID, required = true) long id,
                                     @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                             defaultValue = "false") boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         DetailedItem detailedItem = contentService.getItemById(siteId, id, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
