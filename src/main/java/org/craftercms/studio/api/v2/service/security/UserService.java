@@ -28,6 +28,7 @@ import org.craftercms.studio.model.Site;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public interface UserService {
 
@@ -168,7 +169,8 @@ public interface UserService {
      * @param site site identifier
      * @return
      */
-    List<String> getCurrentUserSitePermissions(String site) throws ServiceLayerException, UserNotFoundException;
+    List<String> getCurrentUserSitePermissions(String site)
+            throws ServiceLayerException, UserNotFoundException, ExecutionException;
 
     /** Check if the current authenticated user has given permissions for given site
      *
@@ -177,5 +179,5 @@ public interface UserService {
      * @return map with values true or false for each given permission
      */
     Map<String, Boolean> hasCurrentUserSitePermissions(String site, List<String> permissions)
-            throws ServiceLayerException, UserNotFoundException;
+            throws ServiceLayerException, UserNotFoundException, ExecutionException;
 }

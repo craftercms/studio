@@ -24,17 +24,14 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -56,7 +53,6 @@ public class SecurityServiceImpl implements SecurityService {
     private AvailableActionsResolver availableActionsResolver;
     private ConfigurationService configurationService;
     private StudioConfiguration studioConfiguration;
-    private ContentService contentService;
     private Cache<String, Object> configurationCache;
 
     private static final String KEY_PREFIX = "GET_USER_PERMISSIONS:";
@@ -109,12 +105,12 @@ public class SecurityServiceImpl implements SecurityService {
         Set<String> permissions = new HashSet<String>();
         try {
             if (StringUtils.isEmpty(siteId)) {
-                document = contentService.getContentAsDocument(StringUtils.EMPTY, configPath);
+                document = configurationService.getGlobalConfigurationAsDocument(configPath);
             } else {
                 document = configurationService.getConfigurationAsDocument(siteId, MODULE_STUDIO, configPath,
                         studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
-        } catch (DocumentException | IOException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Permission mapping not found for " + siteId + ":" + configPath);
         }
         if (Objects.nonNull(document)) {
@@ -170,14 +166,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
-    }
-
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
     }
 
     public Cache<String, Object> getConfigurationCache() {

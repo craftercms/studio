@@ -81,6 +81,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
@@ -596,7 +597,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<String> getCurrentUserSitePermissions(String site) throws ServiceLayerException, UserNotFoundException {
+    public List<String> getCurrentUserSitePermissions(String site)
+            throws ServiceLayerException, UserNotFoundException, ExecutionException {
         String currentUser = securityService.getCurrentUser();
         List<String> roles = getUserSiteRoles(-1, currentUser, site);
         return securityServiceV2.getUserPermission(site, currentUser, roles);
@@ -604,7 +606,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Map<String, Boolean> hasCurrentUserSitePermissions(String site, List<String> permissions)
-            throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, ExecutionException {
         Map<String, Boolean> toRet = new HashMap<String, Boolean>();
         List<String> userPermissions = getCurrentUserSitePermissions(site);
         permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));

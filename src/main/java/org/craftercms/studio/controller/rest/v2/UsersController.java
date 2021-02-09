@@ -60,6 +60,7 @@ import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
@@ -572,7 +573,7 @@ public class UsersController {
      */
     @GetMapping(value = ME + SITES + PATH_PARAM_SITE + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getCurrentUserSitePermissions(@PathVariable(REQUEST_PARAM_SITE) String site)
-            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
         List<String> permissions = userService.getCurrentUserSitePermissions(site);
 
         ResultList<String> result = new ResultList<String>();
@@ -594,7 +595,7 @@ public class UsersController {
             produces = APPLICATION_JSON_VALUE)
     public ResponseBody checkCurrentUserHasSitePermissions(@PathVariable(REQUEST_PARAM_SITE) String site,
                                                            @RequestBody HasPermissionsRequest permissionsRequest)
-            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
         Map<String, Boolean> hasPermissions =
                 userService.hasCurrentUserSitePermissions(site, permissionsRequest.getPermissions());
 
