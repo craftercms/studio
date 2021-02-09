@@ -175,7 +175,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
         }
@@ -193,17 +193,21 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return detailedItem;
     }
 
-    private void populateDetailedItemPropertiesFromRepository(String siteId, DetailedItem detailedItem) {
-
-        detailedItem.setStaging(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING), detailedItem.getPath()));
-        detailedItem.setLive(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE), detailedItem.getPath()));
+    private void populateDetailedItemPropertiesFromRepository(String siteId, DetailedItem detailedItem)
+            throws ServiceLayerException, UserNotFoundException {
+        if (Objects.nonNull(detailedItem)) {
+            String user = securityService.getCurrentUser();
+            detailedItem.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, detailedItem.getPath()));
+            detailedItem.setStaging(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
+                    studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING), detailedItem.getPath()));
+            detailedItem.setLive(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
+                    studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE), detailedItem.getPath()));
+        }
     }
 
     @Override
     public DetailedItem getItemById(String siteId, long id, boolean preferContent)
-            throws ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         Item item = null;
         if (preferContent) {
             item = itemDao.getItemByIdPreferContent(id);
