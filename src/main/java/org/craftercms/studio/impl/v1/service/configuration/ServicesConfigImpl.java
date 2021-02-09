@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
@@ -317,7 +318,7 @@ public class ServicesConfigImpl implements ServicesConfig {
          try {
              document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, getConfigFileName(),
                      studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-         } catch (DocumentException | IOException e) {
+         } catch (ServiceLayerException e) {
              LOGGER.error("Error while loading configuration for " + site + " at " + getConfigFileName(), e);
          }
          if (document != null) {

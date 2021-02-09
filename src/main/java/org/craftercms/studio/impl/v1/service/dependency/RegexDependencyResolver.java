@@ -17,7 +17,7 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -27,10 +27,8 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,16 +99,12 @@ public class RegexDependencyResolver implements DependencyResolver {
             logger.debug("Load configuration as xml document from " + configLocation);
             document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configLocation,
                     studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-        } catch (DocumentException | IOException e) {
-            logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);
-        }
-        if (document == null) {
-            try {
+            if (document == null) {
                 logger.debug("Loading default dependency resolver configuration");
-                document = contentService.getContentAsDocument(StringUtils.EMPTY, defaultConfigLocation);
-            } catch (DocumentException e) {
-                logger.error("Failed to load dependency resolver configuration from location: " + defaultConfigLocation, e);
+                document = configurationService.getGlobalConfigurationAsDocument(defaultConfigLocation);
             }
+        } catch (ServiceLayerException e) {
+            logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);
         }
         if (document != null) {
             Element root = document.getRootElement();

@@ -22,10 +22,8 @@ import org.craftercms.studio.api.v2.exception.configuration.ConfigurationExcepti
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +42,7 @@ public interface ConfigurationService {
      * @return role mappings configuration
      * @throws ConfigurationException configuration error
      */
-    Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
+    Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException;
 
     /**
      * Get configuration as string for given parameters
@@ -65,11 +63,18 @@ public interface ConfigurationService {
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return DOM document representing configuration file
-     * @throws DocumentException XML document error
-     * @throws IOException IO error
+     * @throws ServiceLayerException if there is any error loading the configuration
      */
     Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
-            throws DocumentException, IOException;
+            throws ServiceLayerException;
+
+    /**
+     * Get configuration from global repository as Document
+     * @param path path of the configuration file
+     * @return the Document
+     * @throws ServiceLayerException if there is any error reading the configuration
+     */
+    Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException;
 
     /**
      * Get configuration from global repository as String
@@ -77,7 +82,7 @@ public interface ConfigurationService {
      * @param path path of configuration file
      * @return String content of configuration file
      */
-    String getGlobalConfiguration(String path);
+    String getGlobalConfigurationAsString(String path);
 
     /**
      * Write configuration file for given parameters
@@ -134,5 +139,26 @@ public interface ConfigurationService {
      * @throws ServiceLayerException general service error
      */
     TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
+
+    /**
+     * This method holds logic for API 1, can be deleted when API 1 get configuration is removed
+     */
+    Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
+
+    /**
+     * Invalidates the cache for the given file
+     * @param siteId the id of the site
+     * @param path the path of the file
+     */
+    void invalidateConfiguration(String siteId, String path);
+
+    /**
+     * Invalidates the cache for the given file
+     * @param siteId the id of the site
+     * @param module the module of the file
+     * @param path the path of the file
+     * @param environment the environment of the file
+     */
+    void invalidateConfiguration(String siteId, String module, String path, String environment);
 
 }
