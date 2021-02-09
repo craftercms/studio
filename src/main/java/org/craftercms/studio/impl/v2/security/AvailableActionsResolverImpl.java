@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.security.RolePermissionMappings;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
@@ -33,11 +32,9 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,18 +55,15 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
     private StudioConfiguration studioConfiguration;
     private ConfigurationService configurationService;
-    private ContentService contentService;
     private UserServiceInternal userServiceInternal;
 
     private LoadingCache<String, SitePermissionMappings> cache;
 
     public AvailableActionsResolverImpl(StudioConfiguration studioConfiguration,
                                         ConfigurationService configurationService,
-                                        ContentService contentService,
                                         UserServiceInternal userServiceInternal) {
         this.studioConfiguration = studioConfiguration;
         this.configurationService = configurationService;
-        this.contentService = contentService;
         this.userServiceInternal = userServiceInternal;
 
         // init cache
@@ -90,14 +84,14 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
             String globalRolesConfigPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) +
                     FILE_SEPARATOR + studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
-            Document globalRoleMappingsDocument = contentService.getContentAsDocument(StringUtils.EMPTY,
-                    globalRolesConfigPath);
+            Document globalRoleMappingsDocument =
+                    configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
 
             String globalPermissionsConfigPath =
                     studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) + FILE_SEPARATOR +
                             studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
             Document globalPermissionMappingsDocument =
-                    contentService.getContentAsDocument(StringUtils.EMPTY, globalPermissionsConfigPath);
+                    configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
 
             loadRoles(globalRoleMappingsDocument, sitePermissionMappings);
             loadPermissions(globalPermissionMappingsDocument, sitePermissionMappings);
@@ -112,7 +106,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
                 loadRoles(roleMappingsDocument, sitePermissionMappings);
                 loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
             }
-        } catch (DocumentException | IOException e) {
+        } catch (ServiceLayerException e) {
             e.printStackTrace();
         }
         return sitePermissionMappings;

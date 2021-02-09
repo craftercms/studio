@@ -196,6 +196,8 @@ studio.configuration.management.previewProtectedUrls: >-
 
 # The pattern used to load plugins installed from the marketplaces
 studio.configuration.plugin.base.pattern: /config/studio/plugins/${id}/${type}/${name}
+# List of patterns to invalidate cache when changes are detected (separated by commas)
+studio.configuration.cache.patterns: /?config/.+
 
 ########################################################
 ##                   Import Service                   ##

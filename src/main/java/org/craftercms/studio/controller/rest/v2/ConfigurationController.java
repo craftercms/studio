@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONFIG;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
@@ -54,10 +55,11 @@ public class ConfigurationController {
     public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
                                          @RequestParam(name = "module", required = true) String module,
                                          @RequestParam(name = "path", required = true) String path,
-                                         @RequestParam(name = "environment", required = false) String environment) {
+                                         @RequestParam(name = "environment", required = false) String environment)
+            throws ServiceLayerException {
         String content = StringUtils.EMPTY;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-            content = configurationService.getGlobalConfiguration(path);
+            content = configurationService.getGlobalConfigurationAsString(path);
         } else {
             content = configurationService.getConfigurationAsString(siteId, module, path, environment);
         }
@@ -72,7 +74,7 @@ public class ConfigurationController {
     @PostMapping("/write_configuration")
     public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException {
-        InputStream is = IOUtils.toInputStream(wcRequest.getContent());
+        InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
         String siteId = wcRequest.getSiteId();
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             configurationService.writeGlobalConfiguration(wcRequest.getPath(), is);

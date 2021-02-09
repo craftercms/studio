@@ -88,22 +88,13 @@ public interface SiteService {
 	/**
 	 * get configuraiton content as XML string at the given path
 	 *
-	 * @param path
-	 * 			find from the environment overrides location?
-	 * @return configuration as XML string
-	 */
-	Map<String, Object> getConfiguration(String path);
-
-	/**
-	 * get configuraiton content as XML string at the given path
-	 *
 	 * @param site site identifier
 	 * @param path path of configuration file
 	 * @param applyEnv
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
 	 */
-	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
+	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) throws ServiceLayerException;
 
     Set<String> getAllAvailableSites();
 

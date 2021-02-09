@@ -129,6 +129,8 @@
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="clusterDao" ref="clusterDao" />
         <property name="userDao" ref="userDAO"/>
+        <property name="configurationPatterns"
+                  value="#{studioConfiguration.getArray('studio.configuration.cache.patterns', T(java.lang.String))}"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
