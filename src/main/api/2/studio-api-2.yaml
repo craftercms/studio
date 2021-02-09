@@ -3950,6 +3950,7 @@ paths:
       tags:
         - marketplace
       summary: Get the list of plugins installed in the given site
+      description: 'Required permission "list_plugins"'
       operationId: getInstalledPlugins
       parameters:
         - name: siteId
@@ -3986,6 +3987,7 @@ paths:
       tags:
         - marketplace
       summary: Install a plugin in the given site
+      description: 'Required permission "install_plugins"'
       operationId: installPlugin
       requestBody:
         required: true
