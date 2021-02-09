@@ -77,10 +77,10 @@ public class SecurityServiceImpl implements SecurityService {
     public List<String> getUserPermission(String siteId, String username, List<String> roles)
             throws ExecutionException {
         String key = KEY_PREFIX + siteId + ":" + username;
-        return (List<String>) configurationCache.get(key, () -> loadUserPermission(siteId, username, roles));
+        return (List<String>) configurationCache.get(key, () -> loadUserPermission(siteId, roles));
     }
 
-    private List<String> loadUserPermission(String siteId, String username, List<String> roles) {
+    private List<String> loadUserPermission(String siteId, List<String> roles) {
         Set<String> permissions;
         String configPath;
         List<String> toRet = new ArrayList<String>();
