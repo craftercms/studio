@@ -258,11 +258,11 @@ public final class AvailableActionsConstants {
     // encryption_tool
     public static final long ENCRYPTION_TOOL = CONTENT_UPDATE + SYSTEM_UPDATE;
     // get_children
-    public static final long GET_CHILDREN = -1L;
+    public static final long GET_CHILDREN = CONTENT_READ;
     // get_publishing_queue
     public static final long GET_PUBLISHING_QUEUE = READ_PUBLISHING_QUEUE;
     // list_cmis
-    public static final long LIST_CMIS = -1L;
+    public static final long LIST_CMIS = CONTENT_READ;
     // list_remotes
     public static final long LIST_REMOTES = ADD_REMOTE_REPOSITORY;
     // Publish
@@ -272,7 +272,7 @@ public final class AvailableActionsConstants {
     // push_to_remote
     public static final long PUSH_TO_REMOTE = PUSH_TO_REMOTE_REPOSITORY;
     // Read
-    public static final long READ = -1L;
+    public static final long READ = CONTENT_READ;
     // read_cluster
     public static final long READ_CLUSTER = SYSTEM_READ;
     // read_groups
@@ -288,11 +288,11 @@ public final class AvailableActionsConstants {
     // resolve_conflict
     public static final long RESOLVE_CONFLICT = RESOLVE_CONFLICTS;
     // S3 Read
-    public static final long S3_READ = -1L;
+    public static final long S3_READ = CONTENT_READ;
     // S3 Write
     public static final long S3_WRITE = CONTENT_CREATE + CONTENT_UPDATE;
     // search_cmis
-    public static final long SEARCH_CMIS = -1L;
+    public static final long SEARCH_CMIS = CONTENT_READ;
     // site_diff_conflicted_file
     public static final long SITE_DIFF_CONFLICTED_FILE = RESOLVE_CONFLICTS;
     // site_status
@@ -306,7 +306,7 @@ public final class AvailableActionsConstants {
     // upload_content_cmis
     public static final long UPLOAD_CONTENT_CMIS = CONTENT_CREATE + CONTENT_UPDATE;
     // webdav_read
-    public static final long WEBDAV_READ = -1L;
+    public static final long WEBDAV_READ = CONTENT_READ;
     // webdav_write
     public static final long WEBDAV_WRITE = CONTENT_CREATE + CONTENT_UPDATE;
     // Write
@@ -481,7 +481,9 @@ public final class AvailableActionsConstants {
     }
 
     public static long mapPermissionsToAvailableActions(List<String> permissions) {
-        return permissions.stream().mapToLong(AvailableActionsConstants::mapPermissionToAvailableActions).sum();
+        return permissions.stream()
+                .mapToLong(AvailableActionsConstants::mapPermissionToAvailableActions)
+                .reduce(0L, (a, b) -> a | b);
     }
 
 }
