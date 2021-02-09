@@ -59,7 +59,7 @@ public class ConfigurationController {
             throws ServiceLayerException {
         String content = StringUtils.EMPTY;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-            content = configurationService.getGlobalConfiguration(path);
+            content = configurationService.getGlobalConfigurationAsString(path);
         } else {
             content = configurationService.getConfigurationAsString(siteId, module, path, environment);
         }

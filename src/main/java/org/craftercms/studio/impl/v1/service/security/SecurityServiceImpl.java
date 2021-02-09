@@ -47,7 +47,6 @@ import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springframework.beans.factory.ObjectFactory;
@@ -63,7 +62,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -570,8 +568,8 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(StringUtils.EMPTY, globalPermissionsConfigPath);
-        } catch (DocumentException e) {
+            document = configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
+        } catch (ServiceLayerException e) {
             logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
         }
         if (document != null) {
@@ -597,8 +595,8 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(StringUtils.EMPTY, globalRolesConfigPath);
-        } catch (DocumentException e) {
+            document = configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
+        } catch (ServiceLayerException e) {
             logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
         }
         if (document != null) {

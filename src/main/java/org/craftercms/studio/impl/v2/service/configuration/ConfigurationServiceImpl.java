@@ -73,11 +73,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -144,47 +147,39 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException {
-        // The write seems to always send env = null
-        var cacheKey = getCacheKey(siteId, MODULE_STUDIO, getSiteRoleMappingsConfigFileName(), null);
+        // TODO: Refactor this to use Apache's Commons Configuration
+        Map<String, List<String>> roleMappings = new HashMap<>();
+        String roleMappingsConfigPath = getSiteRoleMappingsConfigFileName();
+        Document document;
+
         try {
-            return (Map<String, List<String>>) configurationCache.get(cacheKey, () -> {
-                logger.debug("CACHE MISS: {0}", cacheKey);
-                // TODO: Refactor this to use Apache's Commons Configuration
-                Map<String, List<String>> roleMappings = new HashMap<>();
-                String roleMappingsConfigPath = getSiteRoleMappingsConfigPath(siteId);
-                Document document;
+            // The write seems to always send env = null
+            document = getConfigurationAsDocument(siteId, MODULE_STUDIO, roleMappingsConfigPath, null);
+            if (document != null) {
+                Element root = document.getRootElement();
+                if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
+                    List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
+                    for (Node node : groupNodes) {
+                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
+                        if (isNotEmpty(name)) {
+                            List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
+                            List<String> roles = new ArrayList<>();
 
-                try {
-                    document = contentService.getContentAsDocument(siteId, roleMappingsConfigPath);
-                    if (document != null) {
-                        Element root = document.getRootElement();
-                        if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                            List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                            for (Node node : groupNodes) {
-                                String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
-                                if (StringUtils.isNotEmpty(name)) {
-                                    List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
-                                    List<String> roles = new ArrayList<>();
-
-                                    for (Node roleNode : roleNodes) {
-                                        roles.add(roleNode.getText());
-                                    }
-
-                                    roleMappings.put(name, roles);
-                                }
+                            for (Node roleNode : roleNodes) {
+                                roles.add(roleNode.getText());
                             }
+
+                            roleMappings.put(name, roles);
                         }
                     }
-                } catch (DocumentException e) {
-                    throw new ConfigurationException("Error while reading role mappings file for site " + siteId +
-                            " @ " + roleMappingsConfigPath);
                 }
-
-                return roleMappings;
-            });
-        } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error loading configuration", e);
+            }
+        } catch (ServiceLayerException e) {
+            throw new ConfigurationException("Error while reading role mappings file for site " + siteId +
+                    " @ " + roleMappingsConfigPath);
         }
+
+        return roleMappings;
     }
 
 
@@ -193,7 +188,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private String getSiteConfigPath(String siteId) {
-        String siteConfigPath = StringUtils.EMPTY;
+        String siteConfigPath = EMPTY;
         if (!isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
             siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH)
                     .replaceAll(PATTERN_ENVIRONMENT, studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
@@ -227,7 +222,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 logger.debug("CACHE MISS: {0}", cacheKey);
                 String content = getEnvironmentConfiguration(siteId, module, path, environment);
                 Document retDocument = null;
-                if (StringUtils.isNotEmpty(content)) {
+                if (isNotEmpty(content)) {
                     SAXReader saxReader = new SAXReader();
                     try {
                         saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
@@ -248,9 +243,21 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
+    public Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException {
+        try {
+            return (Document) configurationCache.get(path, () -> {
+                logger.debug("CACHE MISS: {0}", path);
+                return contentService.getContentAsDocument(EMPTY, path);
+            });
+        } catch (ExecutionException e) {
+            throw new ServiceLayerException("Error getting global config " + path, e);
+        }
+    }
+
+    @Override
     @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
-    public String getGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path) {
-        return contentService.getContentAsString(StringUtils.EMPTY, path);
+    public String getGlobalConfigurationAsString(@ProtectedResourceId(PATH_RESOURCE_ID) String path) {
+        return contentService.getContentAsString(EMPTY, path);
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {
@@ -292,7 +299,30 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     protected String getCacheKey(String siteId, String module, String path, String environment) {
-        return format("%s:%s:%s:%s", siteId, module, path, environment);
+        if (isNotEmpty(siteId)) {
+            String fullPath = null;
+            if (isNotEmpty(environment)) {
+                String configBasePath =
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
+                                .replaceAll(PATTERN_MODULE, module)
+                                .replaceAll(PATTERN_ENVIRONMENT, environment);
+                String configPath =
+                        Paths.get(configBasePath, path).toString();
+                if (contentService.contentExists(siteId, configPath)) {
+                    fullPath = configPath;
+                }
+            }
+
+            if (isEmpty(fullPath)) {
+                String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                        .replaceAll(PATTERN_MODULE, module);
+                fullPath = Paths.get(configBasePath, path).toString();
+            }
+
+            return format("%s:%s", siteId, fullPath);
+        } else {
+            return path;
+        }
     }
 
     @Override
@@ -408,7 +438,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Map<String, Object> properties = new HashMap<>();
         properties.put(PROP_MODIFIER, user);
         properties.put(PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        properties.put(PROP_LOCK_OWNER, StringUtils.EMPTY);
+        properties.put(PROP_LOCK_OWNER, EMPTY);
         if (!objectMetadataManager.metadataExist(siteId, path)) {
             objectMetadataManager.insertNewObjectMetadata(siteId, path);
         }
@@ -437,7 +467,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException("Site " + siteId + " not found");
         }
-        String configPath = StringUtils.EMPTY;
+        String configPath = EMPTY;
         if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
@@ -478,7 +508,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
     public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
             throws ServiceLayerException {
-        contentService.writeContent(StringUtils.EMPTY, path, validate(content, path));
+        contentService.writeContent(EMPTY, path, validate(content, path));
         if (StringUtils.endsWithAny(path, FILE_SEPARATOR +
                 studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME) +
                 studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME))) {
@@ -536,15 +566,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
         }
 
-        try {
-            // final variables needed to use the lambda as a cache loader
-            boolean finalUseContentService = useContentService;
-            String finalConfigPath = configPath;
-            String finalEnv = env;
+        // final variables needed to use the lambda as a cache loader
+        boolean finalUseContentService = useContentService;
+        String finalConfigPath = configPath;
+        String finalEnv = env;
 
-            return (Map<String, Object>) configurationCache.get(cacheKey, () -> {
-                logger.debug("CACHE MISS: {0}", cacheKey);
-
+        return convertNodesFromXml(() -> {
+            try {
                 if (finalUseContentService) {
                     ref.configContent = contentService.getContentAsString(site, finalConfigPath);
                 } else {
@@ -554,19 +582,24 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 ref.configContent = ref.configContent.replaceAll("\\n([\\s]+)?+", "");
                 ref.configContent = ref.configContent.replaceAll("<!--(.*?)-->", "");
 
-                return convertNodesFromXml(ref.configContent);
-            });
-        } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error loading configuration", e);
-        }
+                return ref.configContent;
+            } catch (ServiceLayerException e) {
+                logger.error("Error reading configuration", e);
+                return null;
+            }
+        }, cacheKey);
     }
 
-    private Map<String, Object> convertNodesFromXml(String xml) throws ServiceLayerException {
+    private Map<String, Object> convertNodesFromXml(Supplier<String> content, String cacheKey)
+            throws ServiceLayerException {
         try {
-            Document document = DocumentHelper.parseText(xml);
-            return createMap(document.getRootElement());
-        } catch (DocumentException e) {
-            throw new ServiceLayerException("Error reading xml string:\n" + xml, e);
+            var doc = (Document) configurationCache.get(cacheKey, () -> {
+                logger.debug("CACHE MISS: {0}", cacheKey);
+                return DocumentHelper.parseText(content.get());
+            });
+            return createMap(doc.getRootElement());
+        } catch (ExecutionException e) {
+            throw new ServiceLayerException("Error loading configuration", e);
         }
     }
 

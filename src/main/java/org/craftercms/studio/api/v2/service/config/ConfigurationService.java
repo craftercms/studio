@@ -22,10 +22,8 @@ import org.craftercms.studio.api.v2.exception.configuration.ConfigurationExcepti
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -73,12 +71,20 @@ public interface ConfigurationService {
             throws ServiceLayerException;
 
     /**
+     * Get configuration from global repository as Document
+     * @param path path of the configuration file
+     * @return the Document
+     * @throws ServiceLayerException if there is any error reading the configuration
+     */
+    Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException;
+
+    /**
      * Get configuration from global repository as String
      *
      * @param path path of configuration file
      * @return String content of configuration file
      */
-    String getGlobalConfiguration(String path);
+    String getGlobalConfigurationAsString(String path);
 
     /**
      * Write configuration file for given parameters
