@@ -53,7 +53,6 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -81,6 +80,7 @@ import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -145,7 +145,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private Cache<String, Object> configurationCache;
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException {
         // TODO: Refactor this to use Apache's Commons Configuration
         Map<String, List<String>> roleMappings = new HashMap<>();
@@ -209,7 +208,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                    String path, String environment) throws ServiceLayerException {
+                                    String path, String environment) {
         return getEnvironmentConfiguration(siteId, module, path, environment);
     }
 
@@ -293,9 +292,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME))) {
             securityServiceV2.invalidateAvailableActions(siteId);
         }
-        var cacheKey = getCacheKey(siteId,module,path,environment);
-        logger.debug("INVALIDATING CACHE: {0}", cacheKey);
-        configurationCache.invalidate(cacheKey);
+        invalidateConfiguration(siteId, module, path, environment);
     }
 
     protected String getCacheKey(String siteId, String module, String path, String environment) {
@@ -316,7 +313,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             if (isEmpty(fullPath)) {
                 String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                         .replaceAll(PATTERN_MODULE, module);
-                fullPath = Paths.get(configBasePath, path).toString();
+                if (startsWithIgnoreCase(path, configBasePath)) {
+                    fullPath = path;
+                } else {
+                    fullPath = Paths.get(configBasePath, path).toString();
+                }
             }
 
             return format("%s:%s", siteId, fullPath);
@@ -372,7 +373,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
-    @SuppressWarnings("unchecked")
     protected InputStream validate(InputStream content, String filename) throws ServiceLayerException {
         // Check the filename to see if it needs to be validated
         String extension = getExtension(filename);
@@ -398,7 +398,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 case "yml":
                     try {
                         Yaml yaml = new Yaml(new DisableClassLoadingConstructor());
-                        Map<String, Object> map = (Map<String, Object>) yaml.load(new ByteArrayInputStream(bytes));
+                        // The assign is needed to detect invalid files
+                        Map<String, Object> map = yaml.load(new ByteArrayInputStream(bytes));
                     } catch (Exception e) {
                         throw new InvalidConfigurationException("Invalid YAML file", e);
                     }
@@ -539,9 +540,20 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return translationConfiguration;
     }
 
+    @Override
+    public void invalidateConfiguration(String siteId, String path) {
+        invalidateConfiguration(siteId, EMPTY, path, EMPTY);
+    }
+
+    @Override
+    public void invalidateConfiguration(String siteId, String module, String path, String environment) {
+        var cacheKey = getCacheKey(siteId, module, path, environment);
+        logger.debug("INVALIDATING CACHE: {0}", cacheKey);
+        configurationCache.invalidate(cacheKey);
+    }
+
     // Moved from SiteServiceImpl to be able to properly cache the object
     @Override
-    @SuppressWarnings("unchecked")
     public Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException {
         // anonymous object needed to access the non-final configContent variable in the lambda
         var ref = new Object() {
@@ -572,21 +584,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         String finalEnv = env;
 
         return convertNodesFromXml(() -> {
-            try {
-                if (finalUseContentService) {
-                    ref.configContent = contentService.getContentAsString(site, finalConfigPath);
-                } else {
-                    ref.configContent = getConfigurationAsString(site, MODULE_STUDIO, path, finalEnv);
-                }
-                ref.configContent = ref.configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
-                ref.configContent = ref.configContent.replaceAll("\\n([\\s]+)?+", "");
-                ref.configContent = ref.configContent.replaceAll("<!--(.*?)-->", "");
-
-                return ref.configContent;
-            } catch (ServiceLayerException e) {
-                logger.error("Error reading configuration", e);
-                return null;
+            if (finalUseContentService) {
+                ref.configContent = contentService.getContentAsString(site, finalConfigPath);
+            } else {
+                ref.configContent = getConfigurationAsString(site, MODULE_STUDIO, path, finalEnv);
             }
+            ref.configContent = ref.configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
+            ref.configContent = ref.configContent.replaceAll("\\n([\\s]+)?+", "");
+            ref.configContent = ref.configContent.replaceAll("<!--(.*?)-->", "");
+
+            return ref.configContent;
         }, cacheKey);
     }
 

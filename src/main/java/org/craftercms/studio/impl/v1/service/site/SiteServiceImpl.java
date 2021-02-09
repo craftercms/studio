@@ -50,6 +50,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.rest.RestServiceException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
@@ -127,9 +128,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
@@ -138,10 +137,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_ASSETS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
 import static org.craftercms.studio.api.v1.constant.DmConstants.XML_PATTERN;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
@@ -164,9 +161,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 
@@ -217,6 +212,8 @@ public class SiteServiceImpl implements SiteService {
 
     protected EntitlementValidator entitlementValidator;
 
+    protected String[] configurationPatterns;
+
     @Override
     @ValidateParams
     public boolean writeConfiguration(@ValidateStringParam(name = "site") String site,
@@ -235,12 +232,6 @@ public class SiteServiceImpl implements SiteService {
         eventService.publish(EVENT_PREVIEW_SYNC, context);
 
         String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONTENT_TYPE);
-        } else {
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONFIGURATION);
-        }
         SiteFeed siteFeed = getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
@@ -267,9 +258,8 @@ public class SiteServiceImpl implements SiteService {
             objectMetadataManager.updateCommitId(site, path, commitId);
             contentRepositoryV2.insertGitLog(site, commitId, 1);
         }
-        boolean toRet = StringUtils.isEmpty(commitId);
 
-        return toRet;
+        return StringUtils.isEmpty(commitId);
     }
 
     @Override
@@ -278,8 +268,7 @@ public class SiteServiceImpl implements SiteService {
             throws ServiceLayerException {
         // Write global configuration
         String commitId = contentRepository.writeContent("", path, content);
-        boolean toReturn = StringUtils.isEmpty(commitId);
-        return toReturn;
+        return StringUtils.isEmpty(commitId);
     }
 
     /**
@@ -634,7 +623,7 @@ public class SiteServiceImpl implements SiteService {
             @ValidateStringParam(name = "createOption") String createOption,
             Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         if (exists(siteId) || existsByName(siteName)) {
             throw new SiteAlreadyExistsException();
         }
@@ -1186,7 +1175,6 @@ public class SiteServiceImpl implements SiteService {
         RepositoryItem[] blueprintsFolders =
                 contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
         List<SiteBlueprintTO> blueprints = new ArrayList<SiteBlueprintTO>();
-        int idx = 0;
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
                 SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
@@ -1198,13 +1186,13 @@ public class SiteServiceImpl implements SiteService {
             }
         }
 
-        return blueprints.toArray(new SiteBlueprintTO[blueprints.size()]);
+        return blueprints.toArray(new SiteBlueprintTO[0]);
     }
 
     @Override
     public void reloadSiteConfigurations() {
         reloadGlobalConfiguration();
-        Set<String> sites = getAllAvailableSites();
+        getAllAvailableSites();
     }
 
     @Override
@@ -1348,20 +1336,13 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
         }
 
-        SiteFeed siteFeed = getSite(site);
-        Item item = null;
         User userObj;
 
         for (RepoOperation repoOperation : repoOperationsDelta) {
-            Map<String, String> activityInfo = new HashMap<String, String>();
-            String contentClass;
             Map<String, Object> properties;
             ItemMetadata metadata;
             String lastEditCommitId;
             userObj = userServiceInternal.getUserByGitName(repoOperation.getAuthor());
-            String label = FilenameUtils.getName(repoOperation.getPath());
-            String contentTypeId = contentService.getContentTypeClass(site, repoOperation.getPath());
-            String disabled = "false";
             switch (repoOperation.getAction()) {
                 case CREATE:
                 case COPY:
@@ -1405,10 +1386,6 @@ public class SiteServiceImpl implements SiteService {
                     logger.debug("Extract dependencies for site: " + site + " path: " +
                             repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if (repoOperation.getPath().endsWith(XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
 
                     // Item
                     itemServiceInternal.persistItemAfterWrite(site, repoOperation.getPath(), userObj.getUsername(),
@@ -1445,10 +1422,6 @@ public class SiteServiceImpl implements SiteService {
                     }
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if (repoOperation.getPath().endsWith(XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
 
                     // Item
                     // TODO: Replace with API 2
@@ -1467,10 +1440,6 @@ public class SiteServiceImpl implements SiteService {
                     } catch (ServiceLayerException e) {
                         logger.error("Error deleting dependencies for site " + site + " file: " +
                                 repoOperation.getPath(), e);
-                    }
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if (repoOperation.getPath().endsWith(XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                     }
                     break;
 
@@ -1568,10 +1537,6 @@ public class SiteServiceImpl implements SiteService {
 
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
-                    if (repoOperation.getMoveToPath().endsWith(XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
                     break;
 
                 default:
@@ -1579,6 +1544,10 @@ public class SiteServiceImpl implements SiteService {
                             repoOperation.getAction());
                     toReturn = false;
                     break;
+            }
+
+            if (RegexUtils.matchesAny(repoOperation.getPath(), configurationPatterns)) {
+                configurationService.invalidateConfiguration(site, repoOperation.getPath());
             }
         }
 
@@ -2207,6 +2176,10 @@ public class SiteServiceImpl implements SiteService {
 
     public void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
+    }
+
+    public void setConfigurationPatterns(String[] configurationPatterns) {
+        this.configurationPatterns = configurationPatterns;
     }
 
 }

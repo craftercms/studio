@@ -52,10 +52,8 @@ public interface ConfigurationService {
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return String content of configuration file
-     * @throws ServiceLayerException if there is any error reading the configuration
      */
-    String getConfigurationAsString(String siteId, String module, String path, String environment)
-            throws ServiceLayerException;
+    String getConfigurationAsString(String siteId, String module, String path, String environment);
 
     /**
      * Get configuration as DOM document for given parameters
@@ -146,4 +144,21 @@ public interface ConfigurationService {
      * This method holds logic for API 1, can be deleted when API 1 get configuration is removed
      */
     Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
+
+    /**
+     * Invalidates the cache for the given file
+     * @param siteId the id of the site
+     * @param path the path of the file
+     */
+    void invalidateConfiguration(String siteId, String path);
+
+    /**
+     * Invalidates the cache for the given file
+     * @param siteId the id of the site
+     * @param module the module of the file
+     * @param path the path of the file
+     * @param environment the environment of the file
+     */
+    void invalidateConfiguration(String siteId, String module, String path, String environment);
+
 }
