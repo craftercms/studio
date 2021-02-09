@@ -498,7 +498,14 @@ public class SiteServiceImpl implements SiteService {
 
                 User userObj = userServiceInternal.getUserByGitName(creator);
 
-                createdFiles.keySet().forEach(path -> {
+                createdFiles.forEach((k, v) -> {
+                    if (StringUtils.equals("D", v)) {
+                        return;
+                    }
+                    String path = k;
+                    if (v.length() > 1) {
+                        path = v;
+                    }
                     objectStateService.insertNewEntry(siteId, path);
                     objectMetadataManager.insertNewObjectMetadata(siteId, path);
                     Map<String, Object> properties = new HashMap<String, Object>();
@@ -859,7 +866,14 @@ public class SiteServiceImpl implements SiteService {
 
                 User userObj = userServiceInternal.getUserByGitName(creator);
 
-                createdFiles.keySet().forEach(path -> {
+                createdFiles.forEach((k, v) -> {
+                    if (StringUtils.equals("D", v)) {
+                        return;
+                    }
+                    String path = k;
+                    if (v.length() > 1) {
+                        path = v;
+                    }
                     objectStateService.insertNewEntry(siteId, path);
                     objectMetadataManager.insertNewObjectMetadata(siteId, path);
                     Map<String, Object> properties = new HashMap<String, Object>();
@@ -912,6 +926,7 @@ public class SiteServiceImpl implements SiteService {
 
                 logger.info("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
+                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -1063,7 +1078,14 @@ public class SiteServiceImpl implements SiteService {
 
                     User userObj = userServiceInternal.getUserByGitName(creator);
 
-                    createdFiles.keySet().forEach(path -> {
+                    createdFiles.forEach((k, v) -> {
+                        if (StringUtils.equals("D", v)) {
+                            return;
+                        }
+                        String path = k;
+                        if (v.length() > 1) {
+                            path = v;
+                        }
                         objectStateService.insertNewEntry(siteId, path);
                         objectMetadataManager.insertNewObjectMetadata(siteId, path);
                         Map<String, Object> properties = new HashMap<String, Object>();
@@ -1117,6 +1139,7 @@ public class SiteServiceImpl implements SiteService {
 
                     logger.info("Loading configuration for site " + siteId);
                     reloadSiteConfiguration(siteId);
+                    itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
