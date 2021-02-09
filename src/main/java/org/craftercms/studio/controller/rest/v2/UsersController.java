@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -40,6 +40,7 @@ import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.SetPasswordRequest;
+import org.craftercms.studio.model.users.HasPermissionsRequest;
 import org.craftercms.studio.model.users.UpdateUserPropertiesRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -59,6 +60,7 @@ import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
@@ -76,10 +78,12 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.C
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DISABLE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ENABLE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.FORGOT_PASSWORD;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.HAS_PERMISSIONS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LOGOUT_SSO_URL;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ME;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_SITE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PERMISSIONS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PROPERTIES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESET_PASSWORD;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ROLES;
@@ -89,6 +93,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.U
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.VALIDATE_TOKEN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CURRENT_USER;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MESSAGE;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERMISSIONS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ROLES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SITES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USER;
@@ -524,7 +529,9 @@ public class UsersController {
     }
 
     @GetMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getUserProperties(@RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId) throws ServiceLayerException {
+    public ResponseBody getUserProperties(
+            @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId)
+            throws ServiceLayerException {
         var result = new ResultOne<Map<String, Map<String, String>>>();
         result.setResponse(OK);
         result.setEntity("properties", userService.getUserProperties(siteId)); //TODO: Extract key
@@ -535,7 +542,8 @@ public class UsersController {
     }
 
     @PostMapping(value = ME + PROPERTIES, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody updateUserProperties(@Valid @RequestBody UpdateUserPropertiesRequest request) throws ServiceLayerException {
+    public ResponseBody updateUserProperties(@Valid @RequestBody UpdateUserPropertiesRequest request)
+            throws ServiceLayerException {
         var result = new ResultOne<Map<String, String>>();
         result.setResponse(OK);
         result.setEntity("properties", userService.updateUserProperties(request.getSiteId(), request.getProperties())); //TODO: Extract key
@@ -558,4 +566,46 @@ public class UsersController {
         return response;
     }
 
+    /**
+     * Get the permissions in a site of the current authenticated user API
+     *
+     * @return Response containing current authenticated user permissions
+     */
+    @GetMapping(value = ME + SITES + PATH_PARAM_SITE + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getCurrentUserSitePermissions(@PathVariable(REQUEST_PARAM_SITE) String site)
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
+        List<String> permissions = userService.getCurrentUserSitePermissions(site);
+
+        ResultList<String> result = new ResultList<String>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
+    /**
+     * Check if user has permissions in a site of the current authenticated user API
+     *
+     * @return Response containing current authenticated user roles
+     */
+    @GetMapping(value = ME + SITES + PATH_PARAM_SITE + HAS_PERMISSIONS, consumes = APPLICATION_JSON_VALUE,
+            produces = APPLICATION_JSON_VALUE)
+    public ResponseBody checkCurrentUserHasSitePermissions(@PathVariable(REQUEST_PARAM_SITE) String site,
+                                                           @RequestBody HasPermissionsRequest permissionsRequest)
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
+        Map<String, Boolean> hasPermissions =
+                userService.hasCurrentUserSitePermissions(site, permissionsRequest.getPermissions());
+
+        ResultOne<Map> result = new ResultOne<Map>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PERMISSIONS, hasPermissions);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
 }

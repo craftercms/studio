@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.3'
+  version: '4.0.0.4'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1024,6 +1024,94 @@ paths:
                       type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/me/sites/{site}/permissions:
+    get:
+      tags:
+        - users
+      summary: Get the site permissions for the current authenticated user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: getCurrentUserSitePermissions
+      parameters:
+        - name: site
+          in: path
+          description: The site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  'permissions':
+                    type: array
+                    items:
+                      type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/me/sites/{site}/has_permissions:
+    get:
+      tags:
+        - users
+      summary: Check if the current authenticated user has given permissions
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: hasCurrentUserSitePermssions
+      parameters:
+        - name: site
+          in: path
+          description: The site ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: request body to check if current authenticated user has permissions
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                'permissions':
+                  type: array
+                  items:
+                    type: string
+              required:
+                - permissions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  'permissions':
+                    type: object
+                    example:
+                      create: true
+                      update: true
+                      delete: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
