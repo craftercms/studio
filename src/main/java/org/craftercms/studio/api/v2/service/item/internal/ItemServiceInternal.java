@@ -306,6 +306,20 @@ public interface ItemServiceInternal {
     String getBrowserUrl(String site, String path);
 
     /**
+     * Persist item metadata after create
+     * @param siteId site identifier
+     * @param path path of the content
+     * @param username user that executed write operation
+     * @param commitId commit id of the write operation
+     * @param unlock true if content needs to be unlocked after write (save & close), otherwise false
+     * @throws ServiceLayerException
+     * @throws UserNotFoundException
+     */
+    void persistItemAfterCreate(String siteId, String path, String username, String commitId,
+                                Optional<Boolean> unlock)
+            throws ServiceLayerException, UserNotFoundException;
+
+    /**
      * Persist item metadata after write
      * @param siteId site identifier
      * @param path path of the content
