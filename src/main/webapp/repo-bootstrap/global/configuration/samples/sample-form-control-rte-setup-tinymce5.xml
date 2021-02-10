@@ -60,5 +60,7 @@
                 <content>Test 2</content>
             </template>
         </templates>
+
+        <codeEditorWrap>false</codeEditorWrap>
     </setup>
 </config>

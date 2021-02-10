@@ -49,5 +49,7 @@
         <toolbarItems2></toolbarItems2>
         <toolbarItems3></toolbarItems3>
         <toolbarItems4></toolbarItems4>
+
+        <codeEditorWrap>false</codeEditorWrap>
     </setup>
 </config>
