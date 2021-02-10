@@ -1477,7 +1477,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                     // and add them to the list of RepoOperations to return to the caller
                                     // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                     // convert to java date before sending over
-                                    changeSet = getChangeSetFromDiff(diffEntries);
+                                    changeSet.putAll(getChangeSetFromDiff(diffEntries));
                                 }
                             }
                         }
@@ -1508,7 +1508,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                     // and add them to the list of RepoOperations to return to the caller
                                     // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                     // convert to java date before sending over
-                                    changeSet = getChangeSetFromDiff(diffEntries);
+                                    changeSet.putAll(getChangeSetFromDiff(diffEntries));
                                 }
                             }
 
