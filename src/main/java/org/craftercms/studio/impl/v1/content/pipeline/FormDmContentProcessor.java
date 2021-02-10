@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -223,7 +223,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                 // Item
                 // TODO: get local code with API 2
-                itemServiceInternal.persistItemAfterWrite(site, itemPath, user, result.getCommitId(), Optional.of(unlock));
+                itemServiceInternal.persistItemAfterCreate(site, itemPath, user, result.getCommitId(),
+                        Optional.of(unlock));
                 itemServiceInternal.updateParentIds(site, ContentUtils.getParentUrl(parentItem.getUri()));
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
@@ -398,20 +399,45 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
     }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public WorkflowService getWorkflowService() { return workflowService; }
-    public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public ServicesConfig getServicesConfig() { return servicesConfig; }
-    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+    public WorkflowService getWorkflowService() {
+        return workflowService;
+    }
 
-    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+    public void setWorkflowService(WorkflowService workflowService) {
+        this.workflowService = workflowService;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
+
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 
     public ItemServiceInternal getItemServiceInternal() {
         return itemServiceInternal;

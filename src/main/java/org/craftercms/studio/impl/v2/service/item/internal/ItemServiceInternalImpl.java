@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.item.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -398,6 +399,42 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public void persistItemAfterCreate(String siteId, String path, String username, String commitId,
+                                       Optional<Boolean> unlock)
+            throws ServiceLayerException, UserNotFoundException {
+        User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+        var descriptor = contentServiceInternal.getItem(siteId, path, false);
+        String disabledStr = descriptor.queryDescriptorValue(DISABLED);
+        boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
+        String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+        if (StringUtils.isEmpty(label)) {
+            logger.error("Label = " + label);
+        }
+        Item item = instantiateItem(siteId, path)
+                .withPreviewUrl(getBrowserUrl(siteId, path))
+                .withOwnedBy(userObj.getId())
+                .withCreatedBy(userObj.getId())
+                .withCreatedOn(ZonedDateTime.now())
+                .withLastModifiedBy(userObj.getId())
+                .withLastModifiedOn(ZonedDateTime.now())
+                .withLabel(label)
+                .withSystemType(contentService.getContentTypeClass(siteId, path))
+                .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
+                .withMimeType(StudioUtils.getMimeType(path))
+                .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
+                .withCommitId(commitId)
+                .withDisabled(disabled)
+                .withSize(contentServiceInternal.getContentSize(siteId, path))
+                .build();
+        if (unlock.isPresent() && !unlock.get()) {
+            item.setState(ItemState.savedAndNotClosed(item.getState()));
+        } else {
+            item.setState(ItemState.savedAndClosed(item.getState()));
+        }
+        upsertEntry(siteId, item);
+    }
+
+    @Override
     public void persistItemAfterWrite(String siteId, String path, String username, String commitId,
                                       Optional<Boolean> unlock)
             throws ServiceLayerException, UserNotFoundException {
@@ -405,11 +442,15 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         var descriptor = contentServiceInternal.getItem(siteId, path, false);
         String disabledStr = descriptor.queryDescriptorValue(DISABLED);
         boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
+        String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+        if (StringUtils.isEmpty(label)) {
+            label = FilenameUtils.getName(path);
+        }
         Item item = instantiateItem(siteId, path)
                 .withPreviewUrl(getBrowserUrl(siteId, path))
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(ZonedDateTime.now())
-                .withLabel(descriptor.queryDescriptorValue(INTERNAL_NAME))
+                .withLabel(label)
                 .withSystemType(contentService.getContentTypeClass(siteId, path))
                 .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
                 .withMimeType(StudioUtils.getMimeType(path))
