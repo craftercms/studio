@@ -80,6 +80,7 @@
         <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
         <sec:intercept-url pattern="/login" access="permitAll()"/>
         <sec:intercept-url pattern="/refresh*" access="permitAll()"/>
+        <sec:intercept-url pattern="/authType*" access="permitAll()"/>
         <sec:intercept-url pattern="/**" access="isAuthenticated()"/>
     </sec:http>
 
