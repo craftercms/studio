@@ -16,7 +16,7 @@
 
 package org.craftercms.studio.permissions;
 
-public final class StudioPermissions {
+public final class StudioPermissionsConstants {
 
     // TODO: find better way
     //  All values are lower case (configuration has mixed case)
@@ -72,6 +72,6 @@ public final class StudioPermissions {
     public static final String ACTION_LIST_PLUGINS = "list_plugins";
     public static final String ACTION_INSTALL_PLUGINS = "install_plugins";
 
-    private StudioPermissions() {
+    private StudioPermissionsConstants() {
     }
 }

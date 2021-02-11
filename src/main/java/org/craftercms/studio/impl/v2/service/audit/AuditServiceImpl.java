@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_AUDIT_LOG;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_AUDIT_LOG;
 
 public class AuditServiceImpl implements AuditService {
 

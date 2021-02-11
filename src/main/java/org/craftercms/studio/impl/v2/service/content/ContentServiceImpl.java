@@ -58,7 +58,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_DELETE_CONTENT;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_DELETE_CONTENT;
 
 public class ContentServiceImpl implements ContentService {
 
