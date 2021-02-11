@@ -34,9 +34,11 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PREVIEW_URL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PREVIEW_URL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ON_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_ID;
@@ -335,6 +337,7 @@ public interface ItemDAO {
      * @param offStatesBitMap state bitmap to flip off
      */
     void moveItems(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
+                   @Param(OLD_PREVIEW_URL) String oldPreviewUrl, @Param(NEW_PREVIEW_URL) String newPreviewUrl,
                    @Param(ON_STATES_BIT_MAP) long onStatesBitMap, @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
