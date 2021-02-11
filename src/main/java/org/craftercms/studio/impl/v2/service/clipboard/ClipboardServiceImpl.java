@@ -31,7 +31,7 @@ import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_WRITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_WRITE;
 
 /**
  * Default implementation of {@link ClipboardService}

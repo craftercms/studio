@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -50,6 +50,9 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_TARGET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_USER;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AUDIT;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_AUDIT_LOG;
 
 @RestController
@@ -58,7 +61,7 @@ public class AuditController {
     private AuditService auditService;
     private SiteService siteService;
 
-    @GetMapping("/api/2/audit")
+    @GetMapping(API_2 + AUDIT)
     public ResponseBody getAuditLog(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = false) String siteId,
             @RequestParam(value = REQUEST_PARAM_SITE_NAME, required = false) String siteName,
@@ -77,11 +80,11 @@ public class AuditController {
             @RequestParam(value = REQUEST_PARAM_SORT, required = false) String sort,
             @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order) throws SiteNotFoundException {
 
-        if (StringUtils.isNotEmpty(siteId) && !siteService.existsById(siteId)) {
+        if (StringUtils.isNotEmpty(siteId) && !siteService.exists(siteId)) {
             throw new SiteNotFoundException("Site " + siteId + " not found.");
         }
 
-        if (StringUtils.isNotEmpty(siteName) && !siteService.exists(siteName)) {
+        if (StringUtils.isNotEmpty(siteName) && !siteService.existsByName(siteName)) {
             throw new SiteNotFoundException("Site " + siteName + " not found.");
         }
 
@@ -102,7 +105,7 @@ public class AuditController {
         return responseBody;
     }
 
-    @GetMapping("/api/2/audit/{id}")
+    @GetMapping(API_2 + AUDIT + PATH_PARAM_ID)
     public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId) {
         AuditLog auditLogEntry = auditService.getAuditLogEntry(auditLogId);
 

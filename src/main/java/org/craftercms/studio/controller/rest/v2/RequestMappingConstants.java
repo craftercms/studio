@@ -80,6 +80,9 @@ public final class RequestMappingConstants {
     public static final String COMMIT_RESOLUTION = "/commit_resolution";
     public static final String CANCEL_FAILED_PULL = "/cancel_failed_pull";
 
+    /** Audit controller */
+    public static final String AUDIT = "/audit";
+
     private RequestMappingConstants() {
     }
 }

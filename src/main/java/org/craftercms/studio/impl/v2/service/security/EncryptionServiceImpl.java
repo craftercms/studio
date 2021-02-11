@@ -25,7 +25,7 @@ import org.craftercms.studio.api.v2.service.security.EncryptionService;
 import org.craftercms.studio.api.v2.service.security.internal.EncryptionServiceInternal;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_ENCRYPTION_TOOL;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_ENCRYPTION_TOOL;
 
 /**
  * @author joseross

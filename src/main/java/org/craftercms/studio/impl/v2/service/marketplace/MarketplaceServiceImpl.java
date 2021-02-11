@@ -36,8 +36,8 @@ import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServ
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_INSTALL_PLUGINS;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_LIST_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_INSTALL_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_LIST_PLUGINS;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace

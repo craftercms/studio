@@ -50,8 +50,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_CANCEL_PUBLISH;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_GET_PUBLISHING_QUEUE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_CANCEL_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_GET_PUBLISHING_QUEUE;
 
 public class PublishServiceImpl implements PublishService {
 
