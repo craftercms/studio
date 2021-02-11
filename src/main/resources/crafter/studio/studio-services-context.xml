@@ -774,7 +774,7 @@
         <property name="configPath" value="#{studioConfiguration.getProperty('studio.blob.config.path')}"/>
         <property name="configurationResolver" ref="crafter.configurationResolver"/>
         <property name="contentRepository" ref="gitContentRepository"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="cache" ref="blobStoreCache"/>
     </bean>
 
     <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
@@ -1283,6 +1283,16 @@
                 <property name="name" value="studioConfiguration"/>
                 <property name="maxEntriesLocalHeap" value="${STUDIO_CONFIG_CACHE_MAX_SIZE}"/>
                 <property name="timeToLiveSeconds" value="${STUDIO_CONFIG_CACHE_EXPIRE_TIME}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="blobStoreCache" class="org.craftercms.commons.cache.EhCacheFactoryBean">
+        <property name="configuration">
+            <bean class="net.sf.ehcache.config.CacheConfiguration">
+                <property name="name" value="studioBlobStore"/>
+                <property name="maxEntriesLocalHeap" value="100"/>
+                <property name="timeToLiveSeconds" value="60"/>
             </bean>
         </property>
     </bean>
