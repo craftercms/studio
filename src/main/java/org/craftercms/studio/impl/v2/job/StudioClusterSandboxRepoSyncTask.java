@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.deployment.Deployer;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CloneCommand;
@@ -79,6 +80,8 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+import static org.craftercms.studio.impl.v2.utils.GitUtils.getChangedFiles;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
@@ -92,6 +95,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     private EventService eventService;
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
+    private ConfigurationService configurationService;
+    private String[] configurationPatterns;
 
     @Override
     protected void executeInternal(String siteId) {
@@ -120,7 +125,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 if (!siteCheck) {
                     // Site doesn't exist locally, create it
                     success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSiteUuid(),
-                            siteFeed.getSearchEngine(), clusterNodes, clusterSiteRecords);
+                            siteFeed.getSearchEngine(), clusterSiteRecords);
                 }
 
                 if (success && clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
@@ -183,7 +188,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     }
 
     private boolean createSite(long localNodeId, long sId, String siteId, String siteUuid, String searchEngine,
-                               List<ClusterMember> clusterNodes, List<ClusterSiteRecord> clusterSiteRecords) {
+                               List<ClusterSiteRecord> clusterSiteRecords) {
         boolean result = true;
 
         logger.debug("Create Deployer targets site " + siteId);
@@ -238,7 +243,6 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
         // we will eventually to catch up to the latest
         boolean cloned = false;
-        int idx = 0;
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         if (generalLockService.tryLock(gitLockKey)) {
             try {
@@ -446,8 +450,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                         member.getGitRemoteName(), CONFIG_PARAMETER_URL);
                 if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
                     RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
-                    remoteSetUrlCommand.setName(member.getGitRemoteName());
-                    remoteSetUrlCommand.setUri(new URIish(remoteUrl));
+                    remoteSetUrlCommand.setRemoteName(member.getGitRemoteName());
+                    remoteSetUrlCommand.setRemoteUri(new URIish(remoteUrl));
                     remoteSetUrlCommand.call();
                 }
             } else {
@@ -488,7 +492,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             remotesMap.put(siteId, remoteLastSyncCommits);
         }
         try (Git git = new Git(repo)) {
-            logger.debug("Update content from each active cluster memeber");
+            logger.debug("Update content from each active cluster member");
             for (ClusterMember remoteNode : clusterNodes) {
                 ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
                 if (Objects.nonNull(csr) && StringUtils.equals(csr.getState(), STATE_CREATED)) {
@@ -512,13 +516,20 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         if (generalLockService.tryLock(gitLockKey)) {
+            var previousCommit = git.getRepository().resolve(HEAD);
             try {
 
                 PullCommand pullCommand = git.pull();
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand.setRemoteBranchName(sandboxBranchName);
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-                pullCommand.call();
+                var result = pullCommand.call();
+
+                if (result.isSuccessful() && result.getMergeResult() != null) {
+                    // get all changed files that match the config patterns and invalidate the cache
+                    getChangedFiles(git, previousCommit, result.getMergeResult().getNewHead(), configurationPatterns)
+                            .forEach(path -> configurationService.invalidateConfiguration(siteId, path));
+                }
 
             } finally {
                 generalLockService.unlock(gitLockKey);
@@ -577,4 +588,13 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
+    public void setConfigurationPatterns(String[] configurationPatterns) {
+        this.configurationPatterns = configurationPatterns;
+    }
+
 }

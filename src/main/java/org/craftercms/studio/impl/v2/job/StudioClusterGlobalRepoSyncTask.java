@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.CloneCommand;
@@ -60,6 +61,8 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+import static org.craftercms.studio.impl.v2.utils.GitUtils.getChangedFiles;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class StudioClusterGlobalRepoSyncTask implements Job {
 
@@ -72,6 +75,8 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
     private GeneralLockService generalLockService;
+    private ConfigurationService configurationService;
+    private String[] configurationPatterns;
 
     private synchronized boolean checkCycleCounter() {
         return !(--counter > 0);
@@ -136,11 +141,7 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
 
     private boolean checkIfRepoExists() {
         String firstCommitId = contentRepository.getRepoFirstCommitId(StringUtils.EMPTY);
-        if (!StringUtils.isEmpty(firstCommitId)) {
-            return true;
-        } else {
-            return false;
-        }
+        return StringUtils.isNotEmpty(firstCommitId);
     }
 
     private boolean cloneRepository(List<ClusterMember> clusterNodes)
@@ -267,8 +268,8 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
                         member.getGitRemoteName(), CONFIG_PARAMETER_URL);
                 if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
                     RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
-                    remoteSetUrlCommand.setName(member.getGitRemoteName());
-                    remoteSetUrlCommand.setUri(new URIish(remoteUrl));
+                    remoteSetUrlCommand.setRemoteName(member.getGitRemoteName());
+                    remoteSetUrlCommand.setRemoteUri(new URIish(remoteUrl));
                     remoteSetUrlCommand.call();
                 }
             } else {
@@ -304,7 +305,7 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
                 .build();
 
         try (Git git = new Git(repo)) {
-            logger.debug("Update content from each active cluster memeber");
+            logger.debug("Update content from each active cluster member");
             for (ClusterMember remoteNode : clusterNodes) {
                 updateBranch(git, remoteNode);
             }
@@ -316,12 +317,19 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     private void updateBranch(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
             IOException, ServiceLayerException {
         if (generalLockService.tryLock(GLOBAL_REPOSITORY_GIT_LOCK)) {
+            var previousCommit = git.getRepository().resolve(HEAD);
             try {
                 final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                 PullCommand pullCommand = git.pull();
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-                pullCommand.call();
+                var result = pullCommand.call();
+
+                if (result.isSuccessful() && result.getMergeResult() != null) {
+                    // get all changed files that match the config patterns and invalidate the cache
+                    getChangedFiles(git, previousCommit, result.getMergeResult().getNewHead(), configurationPatterns)
+                            .forEach(path -> configurationService.invalidateConfiguration(StringUtils.EMPTY, path));
+                }
 
                 Files.delete(tempKey);
             } finally {
@@ -371,4 +379,13 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
+    public void setConfigurationPatterns(String[] configurationPatterns) {
+        this.configurationPatterns = configurationPatterns;
+    }
+
 }
