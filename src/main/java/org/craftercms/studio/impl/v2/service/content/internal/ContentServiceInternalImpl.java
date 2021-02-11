@@ -197,7 +197,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             throws ServiceLayerException, UserNotFoundException {
         if (Objects.nonNull(detailedItem)) {
             String user = securityService.getCurrentUser();
-            detailedItem.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, detailedItem.getPath()));
+            detailedItem.setAvailableActions(
+                    securityServiceV2.getAvailableActions(user, siteId, detailedItem.getPath()) &
+                    PossibleActionsConstants.getPossibleActionsForObject(detailedItem.getSystemType()));
             detailedItem.setStaging(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
                     studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING), detailedItem.getPath()));
             detailedItem.setLive(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
@@ -224,7 +226,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public List<SandboxItem> getSanboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+    public List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);

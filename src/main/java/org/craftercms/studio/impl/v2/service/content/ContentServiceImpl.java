@@ -208,7 +208,7 @@ public class ContentServiceImpl implements ContentService {
     public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                    List<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getSanboxItemsByPath(siteId, paths, preferContent);
+        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, preferContent);
     }
 
     @Override
