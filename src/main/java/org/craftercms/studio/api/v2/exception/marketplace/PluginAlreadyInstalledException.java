@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,18 +13,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.marketplace;
 
-package org.craftercms.studio.api.v1.exception;
+/**
+ * Exception thrown when installing a plugin that already exists in a site
+ *
+ * @author joseross
+ * @since 4.0.0
+ */
+public class PluginAlreadyInstalledException extends PluginInstallationException {
 
-import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundException;
-
-public class BlueprintNotFoundException extends PluginNotFoundException {
-
-    public BlueprintNotFoundException(String message) {
+    public PluginAlreadyInstalledException(String message) {
         super(message);
     }
 
-    public BlueprintNotFoundException(String message, Exception e) {
+    public PluginAlreadyInstalledException(String message, Exception e) {
         super(message, e);
     }
 

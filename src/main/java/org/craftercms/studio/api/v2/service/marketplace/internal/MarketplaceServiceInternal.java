@@ -16,8 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.marketplace.internal;
 
-import java.util.Map;
-
+import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -25,7 +24,11 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
+import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides access to all available Marketplace operations
@@ -69,5 +72,23 @@ public interface MarketplaceServiceInternal {
     void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
         InvalidRemoteRepositoryException, RemoteRepositoryNotBareException, InvalidRemoteUrlException,
         ServiceLayerException, InvalidRemoteRepositoryCredentialsException;
+
+
+    /**
+     * Returns a list of the plugins currently installed in the given site
+     * @param siteId the id of the site
+     * @return the list of plugins
+     * @throws MarketplaceException if there is any error reading the plugin registry
+     */
+    List<PluginRecord> getInstalledPlugins(String siteId) throws MarketplaceException;
+
+    /**
+     * Install a plugin in a site
+     * @param siteId the id of the site
+     * @param pluginId the id of the plugin
+     * @param pluginVersion the version of the plugin
+     * @throws MarketplaceException
+     */
+    void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException;
 
 }

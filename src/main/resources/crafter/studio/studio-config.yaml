@@ -851,6 +851,31 @@ studio.serverless.delivery.deployer.target.template.params:
 studio.marketplace.url: https://mp.craftercms.org
 # Indicates if the search should include plugins pending of approval
 studio.marketplace.search.pending: false
+# The path in the repository for the plugin registry file
+studio.marketplace.plugin.registry.path: /config/plugins.yaml
+# The list of plugin types that can be installed
+studio.marketplace.plugin.installable:
+  - site
+# The name of the sub-folder to copy plugin files
+studio.marketplace.plugin.folder: plugins
+# The mapping of folders to copy files from the plugin folder to the site
+studio.marketplace.plugin.mapping:
+  - delivery/templates: templates
+  - delivery/static-assets: static-assets
+  - delivery/scripts/components: scripts/components
+  - delivery/scripts/filters: scripts/filters
+  - delivery/scripts/pages: scripts/pages
+  - delivery/scripts/rest: scripts/rest
+  - delivery/scripts/classes: scripts/classes
+  - delivery/scripts/controllers: scripts/controllers
+  - authoring/content-types/component: config/studio/content-types/component
+  - authoring/content-types/page: config/studio/content-types/page
+  - authoring/js: config/studio/plugins/js
+  - authoring/scripts/classes: config/studio/plugins/classes
+  - authoring/scripts/rest: config/studio/plugins/rest
+  - sources: sources
+# The patter to use for loading plugins installed from the marketplace
+studio.marketplace.plugin.basePath: '/config/studio/plugins/js/${id}/${type}/${name}'
 
 ##################################################
 ##                    Cache                     ##

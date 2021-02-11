@@ -22,13 +22,21 @@ import java.util.Map;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
+import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.marketplace.InstallPluginRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PLUGINS;
 
@@ -66,6 +74,31 @@ public class MarketplaceController {
         result.setTotal((int) page.get(Constants.RESULT_TOTAL));
         result.setOffset((int) offset);
         result.setLimit((int) limit);
+        response.setResult(result);
+
+        return response;
+    }
+
+    @GetMapping("/installed")
+    public ResponseBody getInstalledPlugins(@RequestParam String siteId) throws MarketplaceException {
+        ResultList<PluginRecord> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(RESULT_KEY_PLUGINS, marketplaceService.getInstalledPlugins(siteId));
+
+        ResponseBody response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
+    }
+
+    @PostMapping("/install")
+    public ResponseBody installPlugin(@Valid @RequestBody InstallPluginRequest request) throws MarketplaceException {
+        marketplaceService.installPlugin(request.getSiteId(), request.getPluginId(), request.getPluginVersion());
+
+        Result result = new Result();
+        result.setResponse(ApiResponse.OK);
+
+        ResponseBody response = new ResponseBody();
         response.setResult(result);
 
         return response;

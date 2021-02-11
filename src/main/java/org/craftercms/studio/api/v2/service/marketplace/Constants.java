@@ -36,7 +36,6 @@ public interface Constants {
     String RESULT_TOTAL = "total";
     String RESULT_ITEMS = "items";
 
-    String PLUGIN_URL = "url";
-    String PLUGIN_REF = "ref";
+    String SOURCE_GIT = "GIT";
 
 }

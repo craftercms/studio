@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>14</version>
+    <version>15</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -123,6 +123,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -134,6 +135,8 @@
                 <permission>Create Content</permission>
                 <permission>Create Folder</permission>
                 <permission>Publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
@@ -178,6 +181,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -244,6 +248,8 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -276,7 +282,6 @@
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
-                <permission>edit_site</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -311,6 +316,9 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>edit_site</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -335,6 +343,7 @@
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -349,6 +358,7 @@
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
             </allowed-permissions>
         </rule>
     </role>

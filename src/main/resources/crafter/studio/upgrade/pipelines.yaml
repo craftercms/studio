@@ -167,6 +167,13 @@ pipelines:
             path: /configuration/global-menu-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.3/system/global-menu-config.xslt
             commitDetails: Add new global menu item
+      - currentVersion: 4.0.0.3
+        nextVersion: 4.0.0.4
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.4/system/global-permission-mappings-config.xslt
+            commitDetails: Add new permissions for plugins
 
   # Pipeline to upgrade site repositories
   site:
@@ -253,6 +260,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/3.2.x/config/permission-mappings-config/permission-mappings-config-v14.xslt
               commitDetails: Add new permission 'edit_site'
+        - currentVersion: 14
+          nextVersion: 15
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v15.xslt
+              commitDetails: Add new permissions for plugins
 
   role-mappings-config:
     module: studio
@@ -287,8 +300,13 @@ configurations:
     path: administration/site-config-tools.xml
     pipeline:
       requires: '>=11'
-      # Add new versions as needed, starting on 11
-      # versions:
+      versions:
+        - currentVersion: 11
+          nextVersion: 12
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v12.xslt
+              commitDetails: Add plugin management
 
 
   contextual-nav:

@@ -16,8 +16,10 @@
 
 package org.craftercms.studio.impl.v2.service.marketplace;
 
+import java.util.List;
 import java.util.Map;
 
+import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -28,12 +30,14 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServiceInternal;
+import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+
+import static org.craftercms.studio.permissions.StudioPermissions.ACTION_INSTALL_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissions.ACTION_LIST_PLUGINS;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -43,9 +47,11 @@ import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
  */
 public class MarketplaceServiceImpl implements MarketplaceService {
 
-    private static final Logger logger = LoggerFactory.getLogger(MarketplaceServiceImpl.class);
-
     protected MarketplaceServiceInternal marketplaceServiceInternal;
+
+    public MarketplaceServiceImpl(MarketplaceServiceInternal marketplaceServiceInternal) {
+        this.marketplaceServiceInternal = marketplaceServiceInternal;
+    }
 
     @Override
     @ValidateParams
@@ -65,11 +71,17 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         marketplaceServiceInternal.createSite(request);
     }
 
-    public MarketplaceServiceInternal getMarketplaceServiceInternal() {
-        return marketplaceServiceInternal;
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = ACTION_LIST_PLUGINS)
+    public List<PluginRecord> getInstalledPlugins(String siteId)
+            throws MarketplaceException {
+        return marketplaceServiceInternal.getInstalledPlugins(siteId);
     }
 
-    public void setMarketplaceServiceInternal(MarketplaceServiceInternal marketplaceServiceInternal) {
-        this.marketplaceServiceInternal = marketplaceServiceInternal;
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = ACTION_INSTALL_PLUGINS)
+    public void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException {
+        marketplaceServiceInternal.installPlugin(siteId, pluginId, pluginVersion);
     }
+
 }
