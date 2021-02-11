@@ -141,7 +141,7 @@ public interface ContentServiceInternal {
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
-    List<SandboxItem> getSanboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
+    List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
