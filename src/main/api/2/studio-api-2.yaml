@@ -1922,7 +1922,7 @@ paths:
       parameters:
         - name: siteId
           in: query
-          description: Site ID (id from database) - optional for super admin user, otherwise required
+          description: Site ID (site identifier) - optional for super admin user, otherwise required
           required: false
           schema:
             type: string
@@ -5909,9 +5909,9 @@ components:
           format: int64
           description: Organization ID
         siteId:
-          type: integer
-          format: int64
-          description: Site ID
+          type: string
+          format: string
+          description: Site Identifier
         siteName:
           type: string
           format: string

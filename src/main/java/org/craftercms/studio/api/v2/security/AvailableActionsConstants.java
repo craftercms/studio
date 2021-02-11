@@ -474,7 +474,7 @@ public final class AvailableActionsConstants {
                 result = WRITE_GLOBAL_CONFIGURATION;
                 break;
             default:
-                logger.warn("Permission " + permission + " not declared with available actions");
+                logger.debug("Permission " + permission + " not declared with available actions");
                 break;
         }
         return result;

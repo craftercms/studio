@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissions.ACTION_AUDIT_LOG;
 
 public class AuditServiceImpl implements AuditService {
 
@@ -51,7 +52,7 @@ public class AuditServiceImpl implements AuditService {
     private SecurityService securityService;
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "audit_log")
+    @HasPermission(type = DefaultPermission.class, action = ACTION_AUDIT_LOG)
     public List<AuditLog> getAuditLogForSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, int offset, int limit,
                                              String user, List<String> actions) throws SiteNotFoundException {
         if (StringUtils.isNotEmpty(site) && !siteService.exists(site)) {
@@ -61,7 +62,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "audit_log")
+    @HasPermission(type = DefaultPermission.class, action = ACTION_AUDIT_LOG)
     public int getAuditLogForSiteTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, String user, List<String> actions)
             throws SiteNotFoundException {
         if (StringUtils.isNotEmpty(site) && !siteService.exists(site)) {
@@ -88,7 +89,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "audit_log")
+    @HasPermission(type = DefaultPermission.class, action = ACTION_AUDIT_LOG)
     public AuditLog getAuditLogEntry(long auditLogId) {
         return auditServiceInternal.getAuditLogEntry(auditLogId);
     }

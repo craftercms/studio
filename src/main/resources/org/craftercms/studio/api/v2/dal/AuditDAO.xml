@@ -124,10 +124,10 @@
         </if>
         WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
-            AND a.site_id = #{siteId}
+            AND s.site_id = #{siteId}
         </if>
         <if test="siteName != null and siteName !=  '' ">
-            AND s.site_id = #{siteName}
+            AND s.name= #{siteName}
         </if>
         <if test="username != null and username !=  '' ">
             AND a.actor_id = #{username}
@@ -178,7 +178,7 @@
         FROM audit a INNER JOIN site s on a.site_id = s.id
         WHERE s.deleted = 0
         <if test="siteId != null and siteId !=  '' ">
-            AND a.site_id = #{siteId}
+            AND s.site_id = #{siteId}
         </if>
         <if test="siteName != null and siteName !=  '' ">
             AND s.name = #{siteName}
