@@ -380,7 +380,8 @@
     <update id="moveItems">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET path = REPLACE(path, #{oldPath}, #{newPath}),
-            i.state = i.state | #{onStatesBitMap} &amp; ~#{offStatesBitMap}
+            i.state = i.state | #{onStatesBitMap} &amp; ~#{offStatesBitMap},
+            preview_url = REPLACE(preview_url, #{oldPreviewUrl}, #{newPreviewUrl})
         WHERE s.site_id = #{siteId} AND (i.path = #{oldPath} OR i.path LIKE '${oldPath}/%')
     </update>
 </mapper>
