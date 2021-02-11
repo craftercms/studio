@@ -255,8 +255,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
-                    return localRepositoryV1.moveContent(site, getPointerPath(site, fromPath),
-                            getPointerPath(site, toPath), newName);
+                    boolean isFolder = isFolder(site, fromPath);
+                    return localRepositoryV1.moveContent(site, isFolder? fromPath : getPointerPath(site, fromPath),
+                            isFolder? toPath : getPointerPath(site, toPath), newName);
                 }
             }
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
@@ -274,8 +275,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 String result = store.copyContent(site, normalize(fromPath), normalize(toPath));
                 if (result != null) {
-                    return localRepositoryV1.copyContent(site, getPointerPath(site, fromPath),
-                            getPointerPath(site, toPath));
+                    boolean isFolder = isFolder(site, fromPath);
+                    return localRepositoryV1.copyContent(site, isFolder? fromPath : getPointerPath(site, fromPath),
+                            isFolder? toPath : getPointerPath(site, toPath));
                 }
             }
             return localRepositoryV1.copyContent(site, fromPath, toPath);

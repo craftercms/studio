@@ -99,8 +99,11 @@ public class BlobAwareContentRepositoryTest {
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
 
+        when(localV1.contentExists(SITE, NEW_FILE_PATH)).thenReturn(false);
+        when(localV1.isFolder(SITE, NEW_FILE_PATH)).thenReturn(false);
+
         when(localV1.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
-        when(localV1.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
+        when(localV1.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(false);
 
         when(localV1.contentExists(SITE, ORIGINAL_PATH)).thenReturn(false);
         when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
@@ -113,6 +116,8 @@ public class BlobAwareContentRepositoryTest {
         when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
         when(store.isFolder(SITE, PARENT_PATH)).thenReturn(false);
         when(store.isFolder(SITE, ORIGINAL_PATH)).thenReturn(false);
+
+        when(store.copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn("something");
 
         proxy.setFileExtension(BLOB_EXT);
         proxy.setInterceptedPaths(new String[]{ "/static-assets/.*" });
