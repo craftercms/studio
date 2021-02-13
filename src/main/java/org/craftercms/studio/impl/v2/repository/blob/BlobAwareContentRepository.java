@@ -54,10 +54,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -119,6 +121,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected String getPointerPath(String siteId, String path) {
         return isFolder(siteId, path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
+    }
+
+    protected String getPathFromPointerPath(String siteId, String pointerPath) {
+        return isFolder(siteId, pointerPath)? pointerPath : StringUtils.removeEnd(pointerPath, "." + fileExtension);
     }
 
     protected String normalize(String path) {
@@ -256,8 +262,16 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                 Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
                     boolean isFolder = isFolder(site, fromPath);
-                    return localRepositoryV1.moveContent(site, isFolder? fromPath : getPointerPath(site, fromPath),
-                            isFolder? toPath : getPointerPath(site, toPath), newName);
+                    Map<String, String> diskResult =
+                            localRepositoryV1.moveContent(site, isFolder? fromPath : getPointerPath(site, fromPath),
+                                    isFolder? toPath : getPointerPath(site, toPath), newName);
+                    Set<String> keys = new HashSet<>(diskResult.keySet());
+                    String prefix = isFolder ? toPath : getPointerPath(site, toPath);
+                    keys.forEach(k -> {
+                        String val = diskResult.get(k);
+                        diskResult.put(getPathFromPointerPath(site, k), val);
+                    });
+                    return diskResult;
                 }
             }
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
