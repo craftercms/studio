@@ -268,7 +268,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                             localRepositoryV1.moveContent(site, isFolder? fromPath : getPointerPath(site, fromPath),
                                     isFolder? toPath : getPointerPath(site, toPath), newName);
                     Set<String> keys = new HashSet<>(diskResult.keySet());
-                    String prefix = isFolder ? toPath : getPointerPath(site, toPath);
                     keys.forEach(k -> {
                         String val = diskResult.get(k);
                         diskResult.put(getPathFromPointerPath(site, k), val);
