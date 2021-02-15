@@ -89,6 +89,9 @@
         <foreach collection="ignoreNames" item="ignore" index="index" >
             and path not like '%/${ignore}'
         </foreach>
+        <foreach collection="excludes" item="exclude" index="index" >
+            and path not RLIKE('${exclude}')
+        </foreach>
         limit #{offset},#{limit})
     </select>
 
@@ -102,6 +105,9 @@
         <foreach collection="ignoreNames" item="ignore" index="index" >
             and path not like '%/${ignore}'
         </foreach>
+        <foreach collection="excludes" item="exclude" index="index" >
+            and path not RLIKE('${exclude}')
+        </foreach>
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
@@ -111,6 +117,9 @@
         <foreach collection="ignoreNames" item="ignore" index="index" >
             and path not like '%/${ignore}'
         </foreach>
+        <foreach collection="excludes" item="exclude" index="index" >
+            and path not RLIKE('${exclude}')
+        </foreach>
     </select>
 
     <select id="getChildrenByIdTotal" resultType="Integer">
@@ -118,6 +127,9 @@
                                              and path not like '%/${ldName}'
         <foreach collection="ignoreNames" item="ignore" index="index" >
             and path not like '%/${ignore}'
+        </foreach>
+        <foreach collection="excludes" item="exclude" index="index" >
+            and path not RLIKE('${exclude}')
         </foreach>
     </select>
 

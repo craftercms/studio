@@ -99,14 +99,15 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path item path to children for
      * @param locale filter children by locale
+     * @param excludes exclude items by regular expression patterns
      * @param sortStrategy sort order
      * @param order ascending or descending
      * @param offset offset of the first child in the result
      * @param limit number of children to return
      * @return list of children
      */
-    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy, String order,
-                                        int offset, int limit)
+    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, List<String> excludes,
+                                        String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException;
 
     /**
@@ -115,14 +116,16 @@ public interface ContentService {
      * @param siteId site identifier
      * @param id item id to get children for
      * @param locale filter children by locale
+     * @param excludes exclude items by regular expression patterns
      * @param sortStrategy sort order
      * @param order ascending or descending
      * @param offset offset of the first child in the result
      * @param limit number of children to return
      * @return list of children
      */
-    GetChildrenResult getChildrenById(String siteId, String id, String locale, String sortStrategy, String order,
-                                        int offset, int limit) throws ServiceLayerException, UserNotFoundException;
+    GetChildrenResult getChildrenById(String siteId, String id, String locale, List<String> excludes,
+                                      String sortStrategy, String order, int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException;
 
 
     Item getItem(String siteId, String path, boolean flatten);
