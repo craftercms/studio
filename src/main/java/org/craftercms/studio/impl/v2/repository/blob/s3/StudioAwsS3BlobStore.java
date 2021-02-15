@@ -291,6 +291,10 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 logger.debug("Deleting content at {0}", getFullKey(envMapping, item.getPath()));
                 try {
                     getClient().deleteObject(envMapping.target, getKey(envMapping, item.getPath()));
+                    if (isNotEmpty(item.getOldPath())) {
+                        logger.debug("Deleting content at {0}", getFullKey(envMapping, item.getOldPath()));
+                        getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
+                    }
                 } catch (Exception e) {
                     throw new BlobStoreException("Error deleting content at " +
                             getFullKey(previewMapping, item.getPath()), e);
