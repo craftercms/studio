@@ -198,6 +198,8 @@ public final class  QueryParameterNames {
 
     public static final String NEW_PREVIEW_URL = "newPreviewUrl";
 
+    public static final String EXCLUDES = "excludes";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids

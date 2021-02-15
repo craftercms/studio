@@ -77,8 +77,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String sortStrategy,
-                                               String order, int offset, int limit)
+    public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, List<String> excludes,
+                                               String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -91,11 +91,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), ldPath, ldName, parentFolderPath,
-                locale, ignoreNames, sortStrategy, order, offset, limit);
+                locale, excludes, ignoreNames, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setLimit(limit);
-        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale, ignoreNames));
+        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale, excludes,
+                ignoreNames));
         return toRet;
     }
 
@@ -127,40 +128,43 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public int getChildrenByPathTotal(String siteId, String path, String locale) {
+    public int getChildrenByPathTotal(String siteId, String path, String locale, List<String> excludes) {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath,
-                servicesConfig.getLevelDescriptorName(siteId), locale, ignoreNames);
+                servicesConfig.getLevelDescriptorName(siteId), locale, excludes, ignoreNames);
     }
 
     @Override
-    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String sortStrategy,
-                                             String order, int offset, int limit)
+    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, List<String> excludes,
+                                             String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
         List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenById(siteFeed.getId(), parentId,
-                servicesConfig.getLevelDescriptorName(siteId), locale, ignoreNames, sortStrategy, order, offset, limit);
+                servicesConfig.getLevelDescriptorName(siteId), locale, excludes, ignoreNames, sortStrategy, order,
+                offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
-        toRet.setTotal(getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId), locale));
+        toRet.setTotal(getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId), locale,
+                excludes));
         return toRet;
     }
 
     @Override
-    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale) {
+    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale,
+                                    List<String> excludes) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByIdTotal(siteFeed.getId(), parentId, servicesConfig.getLevelDescriptorName(siteId),
-                locale, ignoreNames);
+                locale, ignoreNames, excludes);
     }
 
     @Override

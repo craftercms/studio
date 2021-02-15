@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_EXCLUDES;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_IDS;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
@@ -161,7 +162,10 @@ public class ContentController {
     @GetMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getChildrenByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
                                           @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path,
-                                          @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false) String localeCode,
+                                          @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false)
+                                                      String localeCode,
+                                          @RequestParam(value = REQUEST_PARAM_EXCLUDES, required = false)
+                                                      List<String> excludes,
                                           @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
                                                       String sortStrategy,
                                           @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order,
@@ -171,7 +175,7 @@ public class ContentController {
                                                   defaultValue = "10") int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         GetChildrenResult result =
-                contentService.getChildrenByPath(siteId, path, localeCode, sortStrategy, order, offset, limit);
+                contentService.getChildrenByPath(siteId, path, localeCode, excludes, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -180,18 +184,21 @@ public class ContentController {
 
     @GetMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getChildrenById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                          @RequestParam(value = REQUEST_PARAM_ID, required = true) String id,
-                                          @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false) String localeCode,
-                                          @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
-                                                  String sortStrategy,
-                                          @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order,
-                                          @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
-                                                  defaultValue = "0") int offset,
-                                          @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
-                                                  defaultValue = "10") int limit)
+                                        @RequestParam(value = REQUEST_PARAM_ID, required = true) String id,
+                                        @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false)
+                                                    String localeCode,
+                                        @RequestParam(value = REQUEST_PARAM_EXCLUDES, required = false)
+                                                    List<String> excludes,
+                                        @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
+                                                    String sortStrategy,
+                                        @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order,
+                                        @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
+                                                defaultValue = "0") int offset,
+                                        @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
+                                                defaultValue = "10") int limit)
             throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
-                contentService.getChildrenById(siteId, id, localeCode, sortStrategy, order, offset, limit);
+                contentService.getChildrenById(siteId, id, localeCode, excludes, sortStrategy, order, offset, limit);
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);
