@@ -54,6 +54,7 @@ import java.util.Map;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_EXCLUDES;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_IDS;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_KEYWORD;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LOCALE_CODE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
@@ -164,6 +165,8 @@ public class ContentController {
                                           @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path,
                                           @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false)
                                                       String localeCode,
+                                          @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false)
+                                                      String keyword,
                                           @RequestParam(value = REQUEST_PARAM_EXCLUDES, required = false)
                                                       List<String> excludes,
                                           @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
@@ -175,7 +178,8 @@ public class ContentController {
                                                   defaultValue = "10") int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         GetChildrenResult result =
-                contentService.getChildrenByPath(siteId, path, localeCode, excludes, sortStrategy, order, offset, limit);
+                contentService.getChildrenByPath(siteId, path, localeCode, keyword, excludes, sortStrategy, order,
+                        offset, limit);
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -187,6 +191,8 @@ public class ContentController {
                                         @RequestParam(value = REQUEST_PARAM_ID, required = true) String id,
                                         @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false)
                                                     String localeCode,
+                                        @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false)
+                                                    String keyword,
                                         @RequestParam(value = REQUEST_PARAM_EXCLUDES, required = false)
                                                     List<String> excludes,
                                         @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
@@ -198,7 +204,8 @@ public class ContentController {
                                                 defaultValue = "10") int limit)
             throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
-                contentService.getChildrenById(siteId, id, localeCode, excludes, sortStrategy, order, offset, limit);
+                contentService.getChildrenById(siteId, id, localeCode, keyword, excludes, sortStrategy, order, offset,
+                        limit);
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);

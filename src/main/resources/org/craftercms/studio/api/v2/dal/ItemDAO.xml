@@ -86,12 +86,22 @@
                                   (select i2.path from item i2 where i2.site_id = #{siteId}
                                         and i2.path RLIKE('${path}/[^/]+/index\.xml'))
                               and path not like '%/${ldName}'
-        <foreach collection="ignoreNames" item="ignore" index="index" >
-            and path not like '%/${ignore}'
-        </foreach>
-        <foreach collection="excludes" item="exclude" index="index" >
-            and path not RLIKE('${exclude}')
-        </foreach>
+        <if test="localeCode != null">
+            and locale_code = #{localeCode}
+        </if>
+        <if test="keyword != null">
+            and (path like '%${keyword}%' or label like '%${keyword}%')
+        </if>
+        <if test="ignoreNames != null">
+            <foreach collection="ignoreNames" item="ignore" index="index" >
+                and path not like '%/${ignore}'
+            </foreach>
+        </if>
+        <if test="excludes != null" >
+            <foreach collection="excludes" item="exclude" index="index" >
+                and path not RLIKE('${exclude}')
+            </foreach>
+        </if>
         limit #{offset},#{limit})
     </select>
 
@@ -102,35 +112,65 @@
                                         (select i2.path from item i2 where i2.site_id = #{siteId}
                                                                        and i2.path RLIKE('${path}/[^/]+/index\.xml'))
                                     and path not like '%/${ldName}'
-        <foreach collection="ignoreNames" item="ignore" index="index" >
-            and path not like '%/${ignore}'
-        </foreach>
-        <foreach collection="excludes" item="exclude" index="index" >
-            and path not RLIKE('${exclude}')
-        </foreach>
+        <if test="localeCode != null">
+            and locale_code = #{localeCode}
+        </if>
+        <if test="keyword != null">
+            and (path like '%${keyword}%' or label like '%${keyword}%')
+        </if>
+        <if test="ignoreNames != null">
+            <foreach collection="ignoreNames" item="ignore" index="index" >
+                and path not like '%/${ignore}'
+            </foreach>
+        </if>
+        <if test="excludes != null" >
+            <foreach collection="excludes" item="exclude" index="index" >
+                and path not RLIKE('${exclude}')
+            </foreach>
+        </if>
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
         select * from item where site_id = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
         union
         select * from item where site_id = #{siteId} and parent_id = #{parentId} and path not like '%/${ldName}'
-        <foreach collection="ignoreNames" item="ignore" index="index" >
-            and path not like '%/${ignore}'
-        </foreach>
-        <foreach collection="excludes" item="exclude" index="index" >
-            and path not RLIKE('${exclude}')
-        </foreach>
+        <if test="localeCode != null">
+            and locale_code = #{localeCode}
+        </if>
+        <if test="keyword != null">
+            and (path like '%${keyword}%' or label like '%${keyword}%')
+        </if>
+        <if test="ignoreNames != null">
+            <foreach collection="ignoreNames" item="ignore" index="index" >
+                and path not like '%/${ignore}'
+            </foreach>
+        </if>
+        <if test="excludes != null" >
+            <foreach collection="excludes" item="exclude" index="index" >
+                and path not RLIKE('${exclude}')
+            </foreach>
+        </if>
     </select>
 
     <select id="getChildrenByIdTotal" resultType="Integer">
         select count(1) from item where site_id = #{siteId} and parent_id = #{parentId}
                                              and path not like '%/${ldName}'
-        <foreach collection="ignoreNames" item="ignore" index="index" >
-            and path not like '%/${ignore}'
-        </foreach>
-        <foreach collection="excludes" item="exclude" index="index" >
-            and path not RLIKE('${exclude}')
-        </foreach>
+        <if test="localeCode != null">
+            and locale_code = #{localeCode}
+        </if>
+        <if test="keyword != null">
+            and (path like '%${keyword}%' or label like '%${keyword}%')
+        </if>
+        <if test="ignoreNames != null">
+            <foreach collection="ignoreNames" item="ignore" index="index" >
+                and path not like '%/${ignore}'
+            </foreach>
+        </if>
+        <if test="excludes != null" >
+            <foreach collection="excludes" item="exclude" index="index" >
+                and path not RLIKE('${exclude}')
+            </foreach>
+        </if>
     </select>
 
     <select id="updateParentIdForSite" >

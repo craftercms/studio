@@ -96,5 +96,7 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_EXCLUDES = "excludes";
 
+    public static final String REQUEST_PARAM_KEYWORD = "keyword";
+
     private RequestConstants() { }
 }

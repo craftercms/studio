@@ -200,6 +200,8 @@ public final class  QueryParameterNames {
 
     public static final String EXCLUDES = "excludes";
 
+    public static final String KEYWORD = "keyword";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids
