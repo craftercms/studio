@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -56,7 +56,15 @@ const GRAPHQL_QUERIES = '\
     products: component_product(offset: $offset, limit: $limit) {\
       total\
       items {\
-        localId\
+        guid: objectId\
+        path: localId\
+        contentTypeId: content__type\
+        dateCreated: createdDate_dt\
+        dateModified: lastModifiedDate_dt\
+        label: internal__name\
+        url: localId(\
+          transform: "storeUrlToRenderUrl",\
+        )\
         name_s\
         description_html_raw\
         price_d\
@@ -81,85 +89,191 @@ const GRAPHQL_QUERIES = '\
         }\
       }\
     }\
-  }'; 
+  }';
 
-// Create the Vue application
-var catalog = new Vue({
-  el: '#catalog',
-  data: {
-    selection: {
-      company: null,
-      category: null,
-      tag: null
-    },
-    numberOfProducts: 4,
-    currentPage: 1
-  },
-  computed: {
-    pagination: function() {
-      // function to update the pagination
-      var total = Math.ceil(this.products.total / this.numberOfProducts);
-      return {
-        total: total,
-        hasPrev: this.currentPage > 1,
-        hasNext: this.currentPage < total
-      }
+(function ({ content }) {
+  const pathRegExp = /^\/(.*?)\.xml$/;
+  function getICEAttributes(config, wrapperUtility = '[Error @ getICEAttributes]') {
+    let {
+      model,
+      parentModelId = null,
+      label,
+      isAuthoring = true,
+      fieldId = null
+    } = config;
+
+    if (!isAuthoring) {
+      return {};
     }
-  },
-  asyncComputed: {
-    filters: {
-      default: {},
-      get: function() {
-        // function to load the filters using the GraphQL query
-        return this.$http.post(GRAPHQL_URL, { query: GRAPHQL_QUERIES, operationName: 'getFilters' }).then(response => {
-          return {
-            companies: response.body.data.companies.items,
-            categories: response.body.data.categories.items[0].items.item,
-            tags: response.body.data.tags.items[0].items.item
-          };
-        });
-      }
-    },
-    products: {
-      default: {},
-      get: function() {
-        // function to load the products using the GraphQL query with the selected filters
-        var variables = {
-          offset: (this.currentPage - 1) * this.numberOfProducts,
-          limit: this.numberOfProducts
-        };
-        if(this.selection.company) {
-          variables.company = this.selection.company.objectId;
-        }
-        if(this.selection.category) {
-          variables.category = this.selection.category.key;
-        }
-        if(this.selection.tag) {
-          variables.tag = this.selection.tag.key;
-        }
-        return this.$http.post(GRAPHQL_URL, { 
-          query: GRAPHQL_QUERIES,
-          operationName: 'getProducts',
-          variables: variables
-        }).then(response => {
-          return response.body.data.products;
-        });
-      }
+
+    if (label === null || label === undefined) {
+      label = (model?.craftercms.label || '');
     }
-  },
-  mounted: function() {
-    // when the app is ready init all popups
-    $(function () {
-      $('[data-toggle="popover"]').popover()
-    })
-  },
-  updated: function() {
-    // when the app is updated, update all popups and Crafter Studio ICE controls
-    this.$nextTick(function() {
-      if(window.studioICERepaint) {
-        studioICERepaint();
-      }
-      jQuery('[data-toggle="popover"]').popover();
-    });
+
+    let error = false;
+    const isEmbedded = model?.craftercms.path == null;
+    const path = model?.craftercms.path ?? parentModelId;
+    const modelId = model?.craftercms.id;
+
+    if (isEmbedded && parentModelId == null) {
+      error = true;
+
+      (!modelId) &&
+      console?.error?.(
+        wrapperUtility +
+        'The "parentModelId" argument is required for embedded components. ' +
+        'Note the value of "parentModelId" should be the *path* of it\'s top parent component. ' +
+        'The error occurred with the model attached to this error.',
+          model
+      );
+    }
+
+    if (parentModelId != null && !pathRegExp.test(parentModelId)) {
+      error = true;
+      (!modelId) &&
+      console?.error?.(
+        wrapperUtility +
+        'The "parentModelId" argument should be the "path" of it\'s top parent component. ' +
+        `Provided value was "${parentModelId}" which doesn't comply with the expected format ` +
+        '(i.e. \'/a/**/b.xml\'). The error occurred with the model attached to this error. ' +
+        'Did you send the id (objectId) instead of the path?',
+          model
+      );
+    }
+
+    if (error) {
+      return {};
+    }
+
+    return {
+      'data-craftercms-model-path': path,
+      'data-craftercms-model-id': modelId,
+      'data-craftercms-field-id': fieldId
+    };
+
   }
-});
+  function getICE(model, fieldId = null) {
+    return (getICEAttributes({
+      model,
+      fieldId,
+      isAuthoring: true // TODO: pending
+    }))
+  }
+  function updatePagination() {
+    // function to update the pagination
+    var total = Math.ceil(this.products.total / this.numberOfProducts);
+    return {
+      total: total,
+      hasPrev: this.currentPage > 1,
+      hasNext: this.currentPage < total
+    }
+  }
+
+  // Create the Vue application
+  var catalog = new Vue({
+    el: '#catalog',
+    data: {
+      selection: {
+        company: null,
+        category: null,
+        tag: null
+      },
+      numberOfProducts: 4,
+      currentPage: 1
+    },
+    methods: {
+      getICE
+    },
+    computed: {
+      pagination: updatePagination
+    },
+    asyncComputed: {
+      filters: {
+        default: {},
+        get: function() {
+          // function to load the filters using the GraphQL query
+          return this.$http.post(GRAPHQL_URL, { query: GRAPHQL_QUERIES, operationName: 'getFilters' }).then(response => {
+            return {
+              companies: response.body.data.companies.items,
+              categories: response.body.data.categories.items[0].items.item,
+              tags: response.body.data.tags.items[0].items.item
+            };
+        });
+        }
+      },
+      products: {
+        default: {},
+        get: function() {
+          // function to load the products using the GraphQL query with the selected filters
+          var variables = {
+            offset: (this.currentPage - 1) * this.numberOfProducts,
+            limit: this.numberOfProducts
+          };
+          if(this.selection.company) {
+            variables.company = this.selection.company.objectId;
+          }
+          if(this.selection.category) {
+            variables.category = this.selection.category.key;
+          }
+          if(this.selection.tag) {
+            variables.tag = this.selection.tag.key;
+          }
+          return this.$http.post(GRAPHQL_URL, {
+            query: GRAPHQL_QUERIES,
+            operationName: 'getProducts',
+            variables: variables
+          }).then(response => {
+            const products = response.body.data.products.items.map(product => content.parseDescriptor(product));
+          return {
+            ...response.body.data.products,
+            items: products
+          }
+        });
+        }
+      }
+    },
+    mounted: function() {
+      // when the app is ready init all popups
+      $(function () {
+        $('[data-toggle="popover"]').popover()
+      })
+    },
+    beforeUpdate: function() {
+      document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
+        const record = craftercms.guest.ElementRegistry.fromElement(el);
+
+      // This is supposed to be before updating DOM, but query is returning both old and new elements
+      if (record) {
+        craftercms?.guest?.ElementRegistry.deregister(record.id);
+      }
+    });
+    },
+    watch: {
+      products: function() {
+        this.$nextTick(function() {
+          jQuery('[data-toggle="popover"]').popover();
+
+          document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
+            let
+              path = element.getAttribute('data-craftercms-model-path'),
+              modelId = element.getAttribute('data-craftercms-model-id'),
+              fieldId = element.getAttribute('data-craftercms-field-id'),
+              index = element.getAttribute('data-craftercms-index'),
+              label = element.getAttribute('data-craftercms-label');
+
+            if ((index !== null) && (index !== undefined) && !index.includes('.')) {
+              // TODO: Need to assess the impact of index being a string with dot notation
+              // Unsure if somewhere, the system relies on the index being an integer/number.
+              // Affected inventory:
+              // - Guest.moveComponent() - string type handled
+              index = parseInt(index, 10);
+            }
+
+            craftercms?.guest?.ElementRegistry.register({ element, modelId, fieldId, index, label, path });
+          });
+        });
+      }
+    }
+  });
+})(craftercms);
+
