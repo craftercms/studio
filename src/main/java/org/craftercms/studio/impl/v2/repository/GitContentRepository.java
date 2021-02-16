@@ -394,75 +394,74 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
                         ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
-                        ObjectId objFirstCommitId = repo.resolve(firstCommitId);
-                        boolean initialEqToCommit = StringUtils.equals(firstCommitId, commitIdTo);
-                        boolean initialEqFromCommit = StringUtils.equals(firstCommitId, commitIdFrom);
+                        if (Objects.nonNull(objCommitIdFrom) && Objects.nonNull(objCommitIdTo)) {
+                            ObjectId objFirstCommitId = repo.resolve(firstCommitId);
 
-                        try (Git git = new Git(repo)) {
+                            try (Git git = new Git(repo)) {
 
-                            if (fromEmptyRepo) {
-                                try (RevWalk walk = new RevWalk(repo)) {
-                                    RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                                    try (ObjectReader reader = repo.newObjectReader()) {
-                                        CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                                        firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                                        // Diff the two commit Ids
-                                        List<DiffEntry> diffEntries = git.diff()
-                                                .setOldTree(firstCommitTreeParser)
-                                                .setNewTree(null)
-                                                .call();
+                                if (fromEmptyRepo) {
+                                    try (RevWalk walk = new RevWalk(repo)) {
+                                        RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
+                                        try (ObjectReader reader = repo.newObjectReader()) {
+                                            CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+                                            firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+                                            // Diff the two commit Ids
+                                            List<DiffEntry> diffEntries = git.diff()
+                                                    .setOldTree(firstCommitTreeParser)
+                                                    .setNewTree(null)
+                                                    .call();
 
 
-                                        // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                        // and add them to the list of RepoOperations to return to the caller
-                                        // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                        // convert to java date before sending over
-                                        operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
+                                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                            // and add them to the list of RepoOperations to return to the caller
+                                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                            // convert to java date before sending over
+                                            operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
+                                        }
                                     }
                                 }
-                            }
 
-                            // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                            // let's do it
-                            if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                                // Compare HEAD with commitId we're given
-                                // Get list of commits between commitId and HEAD in chronological order
+                                // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
+                                // let's do it
+                                if (!objCommitIdFrom.equals(objCommitIdTo)) {
+                                    // Compare HEAD with commitId we're given
+                                    // Get list of commits between commitId and HEAD in chronological order
 
-                                        RevTree fromTree = helper.getTreeForCommit(repo, objCommitIdFrom.getName());
-                                        RevTree toTree = helper.getTreeForCommit(repo, objCommitIdTo.getName());
-                                        if (fromTree != null && toTree != null) {
-                                            try (ObjectReader reader = repo.newObjectReader()) {
-                                                CanonicalTreeParser fromCommitTreeParser = new CanonicalTreeParser();
-                                                CanonicalTreeParser toCommitTreeParser = new CanonicalTreeParser();
-                                                fromCommitTreeParser.reset(reader, fromTree.getId());
-                                                toCommitTreeParser.reset(reader, toTree.getId());
+                                    RevTree fromTree = helper.getTreeForCommit(repo, objCommitIdFrom.getName());
+                                    RevTree toTree = helper.getTreeForCommit(repo, objCommitIdTo.getName());
+                                    if (fromTree != null && toTree != null) {
+                                        try (ObjectReader reader = repo.newObjectReader()) {
+                                            CanonicalTreeParser fromCommitTreeParser = new CanonicalTreeParser();
+                                            CanonicalTreeParser toCommitTreeParser = new CanonicalTreeParser();
+                                            fromCommitTreeParser.reset(reader, fromTree.getId());
+                                            toCommitTreeParser.reset(reader, toTree.getId());
 
-                                                // Diff the two commit Ids
-                                                List<DiffEntry> diffEntries = git.diff()
-                                                        .setOldTree(fromCommitTreeParser)
-                                                        .setNewTree(toCommitTreeParser)
-                                                        .call();
+                                            // Diff the two commit Ids
+                                            List<DiffEntry> diffEntries = git.diff()
+                                                    .setOldTree(fromCommitTreeParser)
+                                                    .setNewTree(toCommitTreeParser)
+                                                    .call();
 
 
-                                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                                // and add them to the list of RepoOperations to return to the caller
-                                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                                // convert to java date before sending over
-                                                operations.addAll(
-                                                        processDiffEntry(git, diffEntries, objCommitIdTo));
-                                            }
+                                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                            // and add them to the list of RepoOperations to return to the caller
+                                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                            // convert to java date before sending over
+                                            operations.addAll(
+                                                    processDiffEntry(git, diffEntries, objCommitIdTo));
                                         }
+                                    }
 
 
-
+                                }
+                            } catch (GitAPIException e) {
+                                logger.error("Error getting operations for site " + site + " from commit ID: "
+                                        + commitIdFrom + " to commit ID: " + commitIdTo, e);
                             }
-                        } catch (GitAPIException e) {
-                            logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom
-                                    + " to commit ID: " + commitIdTo, e);
                         }
                     } catch (IOException e) {
-                        logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
-                                " to commit ID: " + commitIdTo, e);
+                        logger.error("Error getting operations for site " + site + " from commit ID: "
+                                + commitIdFrom + " to commit ID: " + commitIdTo, e);
                     }
                 }
             }

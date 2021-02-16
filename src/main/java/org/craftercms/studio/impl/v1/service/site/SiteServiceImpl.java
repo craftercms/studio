@@ -1285,10 +1285,7 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
         }
 
-        boolean diverged = false;
-        GitLog current = null;
         SiteFeed siteFeed = getSite(site);
-        boolean isPreviewSyncNeeded = !StringUtils.equals(repoLastCommitId, siteFeed.getLastCommitId());
 
         for (RepoOperation repoOperation : repoOperationsDelta) {
             Map<String, String> activityInfo = new HashMap<String, String>();
@@ -1509,14 +1506,13 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Update last commit id " + repoLastCommitId + " for site " + site);
         updateLastCommitId(site, repoLastCommitId);
         updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
+
         // Sync all preview deployers
-        if (isPreviewSyncNeeded || diverged) {
-            try {
-                logger.debug("Sync preview for site " + site);
-                deploymentService.syncAllContentToPreview(site, false);
-            } catch (ServiceLayerException e) {
-                logger.error("Error synchronizing preview with repository for site: " + site, e);
-            }
+        try {
+            logger.debug("Sync preview for site " + site);
+            deploymentService.syncAllContentToPreview(site, false);
+        } catch (ServiceLayerException e) {
+            logger.error("Error synchronizing preview with repository for site: " + site, e);
         }
 
         logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " +

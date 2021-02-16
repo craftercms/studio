@@ -23,6 +23,7 @@ import java.nio.file.Path;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -84,16 +85,19 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setPrettyFlow(true);
-            Yaml yaml = new Yaml(new Representer() {
-                @Override
-                protected NodeTuple representJavaBeanProperty(final Object javaBean, final Property property,
-                                                              final Object propertyValue, final Tag customTag) {
-                    if (propertyValue != null) {
-                        return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
-                    }
-                    return null;
-                }
-            }, options);
+            Yaml yaml = new Yaml(
+                    new DisableClassLoadingConstructor(),
+                    new Representer() {
+                        @Override
+                        protected NodeTuple representJavaBeanProperty(final Object javaBean, final Property property,
+                                                                      final Object propertyValue, final Tag customTag) {
+                            if (propertyValue != null) {
+                                return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+                            }
+                            return null;
+                        }
+                    },
+                    options);
             String content = yaml.dumpAsMap(descriptor);
 
             writeToRepo(site, descriptorPath, new ByteArrayInputStream(content.getBytes()));

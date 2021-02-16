@@ -17,7 +17,7 @@ package org.craftercms.studio.api.v2.service.config;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;

@@ -54,10 +54,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -119,6 +121,10 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected String getPointerPath(String siteId, String path) {
         return isFolder(siteId, path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
+    }
+
+    protected String getPathFromPointerPath(String siteId, String pointerPath) {
+        return isFolder(siteId, pointerPath)? pointerPath : StringUtils.removeEnd(pointerPath, "." + fileExtension);
     }
 
     protected String normalize(String path) {
@@ -255,8 +261,16 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 Map<String, String> result = store.moveContent(site, normalize(fromPath), normalize(toPath), newName);
                 if (result != null) {
-                    return localRepositoryV1.moveContent(site, getPointerPath(site, fromPath),
-                            getPointerPath(site, toPath), newName);
+                    boolean isFolder = isFolder(site, fromPath);
+                    Map<String, String> diskResult =
+                            localRepositoryV1.moveContent(site, isFolder? fromPath : getPointerPath(site, fromPath),
+                                    isFolder? toPath : getPointerPath(site, toPath), newName);
+                    Set<String> keys = new HashSet<>(diskResult.keySet());
+                    keys.forEach(k -> {
+                        String val = diskResult.get(k);
+                        diskResult.put(getPathFromPointerPath(site, k), val);
+                    });
+                    return diskResult;
                 }
             }
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
@@ -274,8 +288,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
             if (store != null) {
                 String result = store.copyContent(site, normalize(fromPath), normalize(toPath));
                 if (result != null) {
-                    return localRepositoryV1.copyContent(site, getPointerPath(site, fromPath),
-                            getPointerPath(site, toPath));
+                    boolean isFolder = isFolder(site, fromPath);
+                    return localRepositoryV1.copyContent(site, isFolder? fromPath : getPointerPath(site, fromPath),
+                            isFolder? toPath : getPointerPath(site, toPath));
                 }
             }
             return localRepositoryV1.copyContent(site, fromPath, toPath);
@@ -374,7 +389,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         pointer.setCommitId(item.getCommitId());
         pointer.setMove(item.isMove());
         pointer.setDelete(item.isDelete());
-        pointer.setOldPath(getPointerPath(item.getSite(), item.getOldPath()));
+        pointer.setOldPath(isEmpty(item.getOldPath())? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
         pointer.setPackageId(item.getPackageId());
         return pointer;
     }
