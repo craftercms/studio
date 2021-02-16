@@ -3397,8 +3397,7 @@ paths:
           description: >-
             sort strategy (sort order)
             Possible values:
-              - default (order by: navigation pages, floating pages, folders, level descriptor)
-              - alphabetical
+              - alphabetical (default)
               - foldersFirst (order by: folders alphabetical, files alphabetical)
           schema:
             type: string
@@ -3499,9 +3498,8 @@ paths:
           description: >-
             sort strategy (sort order)
             Possible values:
-              - default (order by: navigation pages, floating pages, folders, level descriptor)
-              - alphabetical
-              - folders first
+              - alphabetical (default)
+              - foldersFirst (order by: folders alphabetical, files alphabetical)
           schema:
             type: string
         - name: order
