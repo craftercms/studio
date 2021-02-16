@@ -292,6 +292,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="eventService" ref="studioEventService" />
+        <property name="configurationCache" ref="configurationCache"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -773,7 +774,7 @@
         <property name="configPath" value="#{studioConfiguration.getProperty('studio.blob.config.path')}"/>
         <property name="configurationResolver" ref="crafter.configurationResolver"/>
         <property name="contentRepository" ref="gitContentRepository"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="cache" ref="blobStoreCache"/>
     </bean>
 
     <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
@@ -937,11 +938,11 @@
                 <ref bean="cstudioCleanWorkContentProcessor"></ref>
                 <ref bean="cstudioFormDmContentProcessor"></ref>
                 <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioDmWorkflowProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
                 <ref bean="cstudioContentLifeCycleProcessor"></ref>
                 <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioExtractDependencyProcessor"></ref>
             </list>
         </property>
     </bean>
@@ -961,10 +962,10 @@
                 <ref bean="cstudioExtractParamsProcessor"></ref>
                 <ref bean="cstudioFormNavOrderProcessor"></ref>
                 <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
                 <ref bean="cstudioContentLifeCycleProcessor"></ref>
                 <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioExtractDependencyProcessor"></ref>
             </list>
         </property>
     </bean>
@@ -1266,12 +1267,34 @@
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
           init-method="init"  depends-on="cstudioLogProvider">
-        <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
+        <constructor-arg ref="configurationCache"/>
+        <constructor-arg value="crafter/studio/studio-config.yaml"/>
     </bean>
 
     <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
         <constructor-arg name="clusterDao" ref="clusterDao" />
         <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+    </bean>
+
+    <bean id="configurationCache" class="org.craftercms.commons.cache.EhCacheFactoryBean">
+        <property name="configuration">
+            <bean class="net.sf.ehcache.config.CacheConfiguration">
+                <!-- This properties can't be externalized because the bean is created before the yaml is loaded -->
+                <property name="name" value="studioConfiguration"/>
+                <property name="maxEntriesLocalHeap" value="${STUDIO_CONFIG_CACHE_MAX_SIZE}"/>
+                <property name="timeToLiveSeconds" value="${STUDIO_CONFIG_CACHE_EXPIRE_TIME}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="blobStoreCache" class="org.craftercms.commons.cache.EhCacheFactoryBean">
+        <property name="configuration">
+            <bean class="net.sf.ehcache.config.CacheConfiguration">
+                <property name="name" value="studioBlobStore"/>
+                <property name="maxEntriesLocalHeap" value="100"/>
+                <property name="timeToLiveSeconds" value="60"/>
+            </bean>
+        </property>
     </bean>
 
     <!-- ////////////////////////////////////// -->
