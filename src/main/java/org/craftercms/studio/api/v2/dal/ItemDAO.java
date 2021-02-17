@@ -48,7 +48,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ROOT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT_STRATEGY;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES_BIT_MAP;
 
@@ -94,7 +94,7 @@ public interface ItemDAO {
                                  @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(PATH) String path,
                                  @Param(LOCALE_CODE) String localeCode, @Param(KEYWORD) String keyword,
                                  @Param(EXCLUDES) List<String> excludes, @Param(IGNORE_NAMES) List<String> ignoreNames,
-                                 @Param(SORT) String sortStrategy, @Param(ORDER) String order,
+                                 @Param(SORT_STRATEGY) String sortStrategy, @Param(ORDER) String order,
                                  @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
 
@@ -134,7 +134,7 @@ public interface ItemDAO {
     List<Item> getChildrenById(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
                                @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes,
-                               @Param(IGNORE_NAMES) List<String> ignoreNames, @Param(SORT) String sortStrategy,
+                               @Param(IGNORE_NAMES) List<String> ignoreNames, @Param(SORT_STRATEGY) String sortStrategy,
                                @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
@@ -311,7 +311,7 @@ public interface ItemDAO {
     List<Item> getContentDashboard(@Param(SITE_ID) String siteId, @Param(PATH) String path,
                                    @Param(MODIFIER) String modifier, @Param(CONTENT_TYPE) String contentType,
                                    @Param(STATE) long state, @Param(DATE_FROM) ZonedDateTime dateFrom,
-                                   @Param(DATE_TO) ZonedDateTime dateTo, @Param(SORT) String sort,
+                                   @Param(DATE_TO) ZonedDateTime dateTo, @Param(SORT_STRATEGY) String sort,
                                    @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**

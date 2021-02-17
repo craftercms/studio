@@ -26,6 +26,7 @@ public final class  QueryParameterNames {
     public static final String LIMIT = "limit";
     // Sort
     public static final String SORT = "sort";
+    public static final String SORT_STRATEGY = "sortStrategy";
     // Order
     public static final String ORDER = "order";
     // Path

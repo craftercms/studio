@@ -102,6 +102,17 @@
                 and path not RLIKE('${exclude}')
             </foreach>
         </if>
+        <choose>
+            <when test="sortStrategy == 'alphabetic'">
+                order by label ${order}, path ${order}
+            </when>
+            <when test="sortStrategy == 'foldersFirst'">
+                order by if(field(system_type, 'folder')=0,1,0), field(system_type, 'folder'), label ${order}, path ${order}
+            </when>
+            <otherwise>
+                order by label ${order}, path ${order}
+            </otherwise>
+        </choose>
         limit #{offset},#{limit})
     </select>
 
@@ -150,6 +161,18 @@
                 and path not RLIKE('${exclude}')
             </foreach>
         </if>
+        <choose>
+            <when test="sortStrategy == 'alphabetic'">
+                order by label ${order}, path ${order}
+            </when>
+            <when test="sortStrategy == 'foldersFirst'">
+                order by if(field(system_type, 'folder')=0,1,0), field(system_type, 'folder'), label ${order}, path ${order}
+            </when>
+            <otherwise>
+                order by label ${order}, path ${order}
+            </otherwise>
+        </choose>
+        limit #{offset},#{limit}
     </select>
 
     <select id="getChildrenByIdTotal" resultType="Integer">

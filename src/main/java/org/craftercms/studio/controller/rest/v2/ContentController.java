@@ -171,7 +171,8 @@ public class ContentController {
                                                       List<String> excludes,
                                           @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
                                                       String sortStrategy,
-                                          @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order,
+                                          @RequestParam(value = REQUEST_PARAM_ORDER, required = false,
+                                                  defaultValue = "ASC") String order,
                                           @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
                                                   defaultValue = "0") int offset,
                                           @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
