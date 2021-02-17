@@ -17,7 +17,7 @@
 <#import "/templates/system/common/ice.ftl" as studio />
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-craftercms-preview="${modePreview?c}">
 <head>
   <meta charset="utf-8">
   <title>${model.title_t}</title>
@@ -113,21 +113,18 @@
     <div class="row" v-if="products && products.items">
       <div v-for="(product, i) in products.items" :key="product.craftercms.id">
         <div class="col-md-3">
-          <div
-                  class="panel panel-default"
-                  v-bind="getICE(product)"
-          >
+          <div class="panel panel-default" v-bind="getICE(product)">
             <div class="panel-body">
               <img
-                      v-bind:src="product.image_s"
-                      v-bind:data-content="product.description_html_raw"
-                      class="img-responsive img-thumbnail center-block"
-                      data-toggle="popover"
-                      data-trigger="hover"
-                      data-html="true"
-                      v-bind="getICE(product, 'image_s')"
+                v-bind:src="product.image_s"
+                v-bind:data-content="product.description_html_raw"
+                class="img-responsive img-thumbnail center-block"
+                data-toggle="popover"
+                data-trigger="hover"
+                data-html="true"
+                v-bind="getICE(product, 'image_s')"
               />
-              <h4>{{ product.name_s }}<small> by {{ product.company_o[0].name_s }}<small></h4>
+              <h4>{{ product.name_s }}<small> by {{ product.company_o[0].name_s }}</small></h4>
               <span class="badge pull-right">&#36;{{ product.price_d }}</span>
             </div>
           </div>
@@ -163,14 +160,11 @@
     </div>
   </div>
 
-
-
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="https://unpkg.com/vue@2.6.10/dist/vue.min.js"></script>
   <script src="https://unpkg.com/vue-resource@1.5.1/dist/vue-resource.min.js"></script>
   <script src="https://unpkg.com/vue-async-computed@3.6.1/dist/vue-async-computed.js"></script>
-
   <script src="/static-assets/js/craftercms-sdk/content/content.umd.js"></script>
   <script src="/static-assets/js/catalog.js"></script>
   <@studio.initPageBuilder/>

@@ -16,21 +16,30 @@
 
 (function ({ content, search, classes }, { operators }) {
   const pathRegExp = /^\/(.*?)\.xml$/;
+
+  function getCookie(name) {
+    var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : null;
+  }
+  function isAuthoring() {
+    const html = document.documentElement;
+    const attr = html.getAttribute('data-craftercms-preview');
+
+    return (
+      attr === '${modePreview?c}' || // Otherwise disable/enable if you want to see pencils in dev server.
+      attr === 'true'
+    );
+  }
   function getICEAttributes(config, wrapperUtility = '[Error @ getICEAttributes]') {
     let {
       model,
       parentModelId = null,
-      label,
       isAuthoring = true,
       fieldId = null
     } = config;
 
     if (!isAuthoring) {
       return {};
-    }
-
-    if (label === null || label === undefined) {
-      label = (model?.craftercms.label || '');
     }
 
     let error = false;
@@ -79,22 +88,21 @@
     return (getICEAttributes({
       model,
       fieldId,
-      isAuthoring: true // TODO: pending
+      isAuthoring: authoring
     }))
   }
 
+  const authoring = isAuthoring();
   const { crafterConf } = classes;
 
   crafterConf.configure({
     baseUrl: '',
-    site: 'headless-blog'
+    site: getCookie('crafterSite')
   });
-
 
   const { map } = operators;
   const { createQuery } = search;
   const searchContent = search.search;
-
   const { parseDescriptor, preParseSearchResults } = content;
 
   var browser = new Vue({
@@ -102,14 +110,16 @@
     data: {
       types: [
         {
+          id: 'authors',
           label: 'Authors',
-          labelField: 'name',
-          listUrl: '/api/1/author/list.json'
+          labelField: 'name_s',
+          contentType: '/component/author'
         },
         {
+          id: 'posts',
           label: 'Posts',
-          labelField: 'title',
-          listUrl: '/api/1/post/list.json'
+          labelField: 'title_s',
+          contentType: '/component/post'
         }
       ],
       selectedType: null,
@@ -124,20 +134,19 @@
 
         searchContent(
           createQuery('elasticsearch', {
-            query: {
+            'query': {
               'bool': {
                 'filter': [
                   {
                     'match': {
-                      'content': '/component/post'
+                      'content-type': type.contentType
                     }
                   }
                 ]
               }
             },
-            sort: {
-              by: 'createdDate_dt',
-              order: 'desc'
+            'sort': {
+              'createdDate_dt': { 'order': 'desc' }
             }
           })
         ).pipe(
@@ -148,23 +157,48 @@
             ))
           }))
         ).subscribe((results) => {
-          console.log('results', results);
-        });
-
-        this.$http.get(type.listUrl).then(function (response) {
-          self.items = response.body;
+          self.items = results;
         });
       },
       setItem: function (item) {
         this.selectedItem = item;
-        // TODO: equivalent in NEXT ICE?
-        this.$nextTick(function () {
-          if (window.studioICERepaint) {
-            studioICERepaint();
-          }
-        });
       },
       getICE
+    },
+    beforeUpdate: function() {
+      document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
+        const record = craftercms.guest.ElementRegistry.fromElement(el);
+
+        // This is supposed to be before updating DOM, but query is returning both old and new elements
+        if (record) {
+          craftercms?.guest?.ElementRegistry.deregister(record.id);
+        }
+      });
+    },
+    watch: {
+      selectedItem: function() {
+        this.$nextTick(function() {
+          if (this.selectedItem) {
+            document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
+              let //
+                path = element.getAttribute('data-craftercms-model-path'),
+                modelId = element.getAttribute('data-craftercms-model-id'),
+                fieldId = element.getAttribute('data-craftercms-field-id'),
+                index = element.getAttribute('data-craftercms-index'),
+                label = element.getAttribute('data-craftercms-label');
+
+              if ((index !== null) && (index !== undefined) && !index.includes('.')) {
+                // Unsure if somewhere, the system relies on the index being an integer/number.
+                // Affected inventory:
+                // - Guest.moveComponent() - string type handled
+                index = parseInt(index, 10);
+              }
+
+              craftercms?.guest?.ElementRegistry.register({ element, modelId, fieldId, index, label, path });
+            });
+          }
+        });
+      }
     }
   });
 })(craftercms, rxjs);

@@ -93,21 +93,25 @@ const GRAPHQL_QUERIES = '\
 
 (function ({ content }) {
   const pathRegExp = /^\/(.*?)\.xml$/;
+  function isAuthoring() {
+    const html = document.documentElement;
+    const attr = html.getAttribute('data-craftercms-preview');
+
+    return (
+      attr === '${modePreview?c}' || // Otherwise disable/enable if you want to see pencils in dev server.
+      attr === 'true'
+    );
+  }
   function getICEAttributes(config, wrapperUtility = '[Error @ getICEAttributes]') {
     let {
       model,
       parentModelId = null,
-      label,
       isAuthoring = true,
       fieldId = null
     } = config;
 
     if (!isAuthoring) {
       return {};
-    }
-
-    if (label === null || label === undefined) {
-      label = (model?.craftercms.label || '');
     }
 
     let error = false;
@@ -124,7 +128,7 @@ const GRAPHQL_QUERIES = '\
         'The "parentModelId" argument is required for embedded components. ' +
         'Note the value of "parentModelId" should be the *path* of it\'s top parent component. ' +
         'The error occurred with the model attached to this error.',
-          model
+        model
       );
     }
 
@@ -137,7 +141,7 @@ const GRAPHQL_QUERIES = '\
         `Provided value was "${parentModelId}" which doesn't comply with the expected format ` +
         '(i.e. \'/a/**/b.xml\'). The error occurred with the model attached to this error. ' +
         'Did you send the id (objectId) instead of the path?',
-          model
+        model
       );
     }
 
@@ -156,7 +160,7 @@ const GRAPHQL_QUERIES = '\
     return (getICEAttributes({
       model,
       fieldId,
-      isAuthoring: true // TODO: pending
+      isAuthoring: authoring
     }))
   }
   function updatePagination() {
@@ -168,6 +172,7 @@ const GRAPHQL_QUERIES = '\
       hasNext: this.currentPage < total
     }
   }
+  const authoring = isAuthoring();
 
   // Create the Vue application
   var catalog = new Vue({
@@ -198,7 +203,7 @@ const GRAPHQL_QUERIES = '\
               categories: response.body.data.categories.items[0].items.item,
               tags: response.body.data.tags.items[0].items.item
             };
-        });
+          });
         }
       },
       products: {
@@ -224,11 +229,11 @@ const GRAPHQL_QUERIES = '\
             variables: variables
           }).then(response => {
             const products = response.body.data.products.items.map(product => content.parseDescriptor(product));
-          return {
-            ...response.body.data.products,
-            items: products
-          }
-        });
+            return {
+              ...response.body.data.products,
+              items: products
+            }
+          });
         }
       }
     },
@@ -242,11 +247,11 @@ const GRAPHQL_QUERIES = '\
       document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
         const record = craftercms.guest.ElementRegistry.fromElement(el);
 
-      // This is supposed to be before updating DOM, but query is returning both old and new elements
-      if (record) {
-        craftercms?.guest?.ElementRegistry.deregister(record.id);
-      }
-    });
+        // This is supposed to be before updating DOM, but query is returning both old and new elements
+        if (record) {
+          craftercms?.guest?.ElementRegistry.deregister(record.id);
+        }
+      });
     },
     watch: {
       products: function() {
