@@ -591,11 +591,11 @@ public class UsersController {
      *
      * @return Response containing current authenticated user roles
      */
-    @GetMapping(value = ME + SITES + PATH_PARAM_SITE + HAS_PERMISSIONS, consumes = APPLICATION_JSON_VALUE,
+    @PostMapping(value = ME + SITES + PATH_PARAM_SITE + HAS_PERMISSIONS, consumes = APPLICATION_JSON_VALUE,
             produces = APPLICATION_JSON_VALUE)
     public ResponseBody checkCurrentUserHasSitePermissions(@PathVariable(REQUEST_PARAM_SITE) String site,
                                                            @RequestBody HasPermissionsRequest permissionsRequest)
-            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
+            throws ServiceLayerException, UserNotFoundException, ExecutionException {
         Map<String, Boolean> hasPermissions =
                 userService.hasCurrentUserSitePermissions(site, permissionsRequest.getPermissions());
 
