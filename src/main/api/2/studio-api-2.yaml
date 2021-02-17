@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.4'
+  version: '4.0.0.5'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1063,7 +1063,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /users/me/sites/{site}/has_permissions:
-    get:
+    post:
       tags:
         - users
       summary: Check if the current authenticated user has given permissions
