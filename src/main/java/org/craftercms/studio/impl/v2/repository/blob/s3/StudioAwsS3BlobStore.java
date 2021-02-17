@@ -141,7 +141,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         } else {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
-                    .withPrefix(getKey(previewMapping, path));
+                    .withPrefix(appendIfMissing(getKey(previewMapping, path), "/"));
             do {
                 try {
                     ListObjectsV2Result result = getClient().listObjectsV2(request);
@@ -178,7 +178,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             if (isFolder(fromPath)) {
                 ListObjectsV2Request request = new ListObjectsV2Request()
                         .withBucketName(previewMapping.target)
-                        .withPrefix(getKey(previewMapping, fromPath));
+                        .withPrefix(appendIfMissing(getKey(previewMapping, fromPath), "/"));
                 do {
                     try {
                         ListObjectsV2Result result = getClient().listObjectsV2(request);
@@ -239,7 +239,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         if (isFolder(fromPath)) {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
-                    .withPrefix(getKey(previewMapping, fromPath));
+                    .withPrefix(appendIfMissing(getKey(previewMapping, fromPath), "/"));
             do {
                 try {
                     ListObjectsV2Result result = getClient().listObjectsV2(request);
@@ -291,6 +291,10 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 logger.debug("Deleting content at {0}", getFullKey(envMapping, item.getPath()));
                 try {
                     getClient().deleteObject(envMapping.target, getKey(envMapping, item.getPath()));
+                    if (isNotEmpty(item.getOldPath())) {
+                        logger.debug("Deleting content at {0}", getFullKey(envMapping, item.getOldPath()));
+                        getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
+                    }
                 } catch (Exception e) {
                     throw new BlobStoreException("Error deleting content at " +
                             getFullKey(previewMapping, item.getPath()), e);
