@@ -52,6 +52,7 @@ public interface ContentServiceInternal {
      * @param siteId site identifier
      * @param path item path to children for
      * @param locale filter children by locale
+     * @param keyword filter children by keyword
      * @param excludes exclude items by regular expression patterns
      * @param sortStrategy sort order
      * @param order ascending or descending
@@ -60,8 +61,8 @@ public interface ContentServiceInternal {
      *
      * @return list of children
      */
-    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, List<String> excludes,
-                                        String sortStrategy, String order, int offset, int limit)
+    GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
+                                        List<String> excludes, String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException;
 
     /**
@@ -70,11 +71,12 @@ public interface ContentServiceInternal {
      * @param siteId site identifier
      * @param path item path to children for
      * @param locale filter children by locale
+     * @param keyword filter children by keyword
      * @param excludes exclude items by regular expression patterns
      *
      * @return total number of children
      */
-    int getChildrenByPathTotal(String siteId, String path, String locale, List<String> excludes);
+    int getChildrenByPathTotal(String siteId, String path, String locale, String keyword, List<String> excludes);
 
     /**
      * Get list of children for given item id
@@ -82,6 +84,7 @@ public interface ContentServiceInternal {
      * @param siteId site identifier
      * @param parentId item id to get children for
      * @param locale filter children by locale
+     * @param keyword filter children by keyword
      * @param excludes exclude items by regular expression patterns
      * @param sortStrategy sort order
      * @param order ascending or descending
@@ -90,8 +93,8 @@ public interface ContentServiceInternal {
      *
      * @return list of children
      */
-    GetChildrenResult getChildrenById(String siteId, String parentId, String locale, List<String> excludes,
-                                      String sortStrategy, String order, int offset, int limit)
+    GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String keyword,
+                                      List<String> excludes, String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
@@ -101,11 +104,13 @@ public interface ContentServiceInternal {
      * @param parentId item id to children for
      * @param ldName level descriptor name
      * @param locale filter children by locale
+     * @param keyword filter children by keyword
      * @param excludes exclude items by regular expression patterns
      *
      * @return total number of children
      */
-    int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale, List<String> excludes);
+    int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale, String keyword,
+                             List<String> excludes);
 
     Item getItem(String siteId, String path, boolean flatten);
 

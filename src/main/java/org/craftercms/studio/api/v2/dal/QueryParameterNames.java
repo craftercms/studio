@@ -26,6 +26,7 @@ public final class  QueryParameterNames {
     public static final String LIMIT = "limit";
     // Sort
     public static final String SORT = "sort";
+    public static final String SORT_STRATEGY = "sortStrategy";
     // Order
     public static final String ORDER = "order";
     // Path
@@ -199,6 +200,8 @@ public final class  QueryParameterNames {
     public static final String NEW_PREVIEW_URL = "newPreviewUrl";
 
     public static final String EXCLUDES = "excludes";
+
+    public static final String KEYWORD = "keyword";
 
     /** Gitlog */
     public static final String AUDITED = "audited";
