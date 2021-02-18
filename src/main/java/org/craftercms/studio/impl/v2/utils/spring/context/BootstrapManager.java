@@ -40,30 +40,30 @@ public class BootstrapManager {
     @Order
     @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
     public Object onContextRefresh() {
-        logger.debug("Beans created and ready to be used");
-        logger.debug("Starting upgrade ...");
+        logger.info("Beans created and ready to be used");
+        logger.info("Starting upgrade ...");
         return new StartUpgradeEvent(this);
     }
 
     @Order
     @EventListener(StartUpgradeEvent.class)
     public Object onStartUpgrade() {
-        logger.debug("Upgrade complete");
-        logger.debug("Starting cluster setup ...");
+        logger.info("Upgrade complete");
+        logger.info("Starting cluster setup ...");
         return new StartClusterSetupEvent(this);
     }
 
     @Order
     @EventListener(StartClusterSetupEvent.class)
     public Object onStartClusterSetup() {
-        logger.debug("Cluster setup complete");
+        logger.info("Cluster setup complete");
         return new BootstrapFinishedEvent(this);
     }
 
     @Order
     @EventListener(BootstrapFinishedEvent.class)
     public void onBootstrapFinished() {
-        logger.debug("Bootstrap process finished");
+        logger.info("Bootstrap process finished");
     }
 
 }
