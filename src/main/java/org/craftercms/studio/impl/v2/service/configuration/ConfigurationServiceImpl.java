@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
@@ -143,6 +144,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String translationConfig;
     private Cache<String, Object> configurationCache;
+    private List<CacheInvalidator<String, Object>> cacheInvalidators;
 
     @Override
     public Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException {
@@ -517,7 +519,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
         String currentUser = securityService.getCurrentUser();
         generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
-        configurationCache.invalidate(path);
+        invalidateCache(path);
     }
 
     @Override
@@ -548,8 +550,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     public void invalidateConfiguration(String siteId, String module, String path, String environment) {
         var cacheKey = getCacheKey(siteId, module, path, environment);
-        logger.debug("INVALIDATING CACHE: {0}", cacheKey);
-        configurationCache.invalidate(cacheKey);
+        invalidateCache(cacheKey);
+    }
+
+    protected void invalidateCache(String key) {
+        logger.debug("Invalidating cache: {0}", key);
+        cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));
     }
 
     // Moved from SiteServiceImpl to be able to properly cache the object
@@ -705,6 +711,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     public void setConfigurationCache(Cache<String, Object> configurationCache) {
         this.configurationCache = configurationCache;
+    }
+
+    public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {
+        this.cacheInvalidators = cacheInvalidators;
     }
 
 }

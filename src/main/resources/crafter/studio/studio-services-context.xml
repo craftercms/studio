@@ -301,6 +301,12 @@
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
 
+    <bean id="defaultCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.DefaultCacheInvalidator"/>
+
+    <util:list id="configurationCacheInvalidators">
+        <ref bean="defaultCacheInvalidator"/>
+    </util:list>
+
     <bean id="configurationService"
           class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
         <property name="contentService" ref="cstudioContentService" />
@@ -317,6 +323,7 @@
                   value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="configurationCache" ref="configurationCache"/>
+        <property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
