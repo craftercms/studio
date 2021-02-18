@@ -29,26 +29,26 @@
     <import resource="classpath:crafter/studio/studio-store-context.xml"/>
 
     <aop:aspectj-autoproxy proxy-target-class="true"/>
-      <!-- ////////////////////////////////////// -->
-      <!--         logging                        -->
-      <!-- ////////////////////////////////////// -->
-      <bean id="cstudioLogProvider" class="org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider"
-            init-method="init">
-      </bean>
 
+    <!-- ////////////////////////////////////// -->
+    <!--         logging                        -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioLogProvider" class="org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider" init-method="init"/>
 
-       <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
+    <bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>
 
-       <bean id="cstudioRegistrableService" class="org.craftercms.studio.api.v1.service.AbstractRegistrableService"
-             abstract="true" init-method="register">
-              <property name="servicesManager" ref="cstudioServicesManager" />
-       </bean>
+    <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
+
+    <bean id="cstudioRegistrableService" abstract="true" init-method="register"
+          class="org.craftercms.studio.api.v1.service.AbstractRegistrableService">
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--         Services                       -->
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
-          <property name="contentRepository" ref="contentRepository" />
+        <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
@@ -869,8 +869,7 @@
                   value="#{studioConfiguration.getArray('studio.blob.intercepted.paths', T(java.lang.String))}"/>
     </bean>
 
-    <bean id="gitContentRepository" depends-on="databaseInitializer"
-          class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
+    <bean id="gitContentRepository" class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
@@ -913,8 +912,8 @@
     <!-- Cluster -->
     <!-- /////// -->
     <bean id="clusterNodeRegistration"
-          class="org.craftercms.studio.impl.v2.service.cluster.ClusterNodeRegistrationImpl" init-method="init"
-          destroy-method="destroy" depends-on="databaseInitializer">
+          class="org.craftercms.studio.impl.v2.service.cluster.ClusterNodeRegistrationImpl"
+          destroy-method="destroy">
         <property name="clusterDao" ref="clusterDao" />
         <property name="metaDao" ref="metaDAO" />
         <property name="studioConfiguration" ref="studioConfiguration" />

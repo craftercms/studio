@@ -29,6 +29,8 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.MetaDAO;
 import org.craftercms.studio.api.v2.service.cluster.ClusterNodeRegistration;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartClusterSetupEvent;
+import org.springframework.context.event.EventListener;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,7 +60,8 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     private StudioConfiguration studioConfiguration;
     private TextEncryptor encryptor;
 
-    public void init() {
+    @EventListener(StartClusterSetupEvent.class)
+    public void registerClusterNode() {
         logger.debug("Autoregister cluster if cluster node is configured");
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         ClusterMember clusterMember = new ClusterMember();
