@@ -24,22 +24,13 @@
 	<internal-name>Item Explorer</internal-name>
 	<orderDefault_f>-1</orderDefault_f>
 	<body_html>&lt;p&gt;This sample site allows you to manage a blog using multiple authors, categories and tags for the posts.&lt;/p&gt;
-&lt;p&gt;All content is exposed by a flexible REST API:&lt;/p&gt;
-&lt;p&gt;get endpoint using an id:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;/api/1/author/{id}.json&lt;/li&gt;
-&lt;li&gt;/api/1/post/{id}.json&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;list endpoints support &amp;#39;start&amp;#39; and &amp;#39;rows&amp;#39; parameters for pagination:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;/api/1/author/list.json&lt;/li&gt;
-&lt;li&gt;/api/1/category/list.json&lt;/li&gt;
-&lt;li&gt;/api/1/tag/list.json&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;list posts endpoint also supports &amp;#39;author&amp;#39;, &amp;#39;categories&amp;#39;, &amp;#39;tags&amp;#39; parameters. A special &amp;#39;q&amp;#39; parameter supports text search in the body of the posts:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;/api/1/post/list.json&lt;/li&gt;
-&lt;/ul&gt;</body_html>
+		&lt;p&gt;All content is retrieved using &lt;a href="https://github.com/craftercms/craftercms-sdk-js/tree/master/packages/search" target="_blank" rel="noopener"&gt;Crafter CMS SDK&lt;/a&gt; for javascript (search package).&lt;/p&gt;
+		&lt;p&gt;To search for content (documentation in &lt;a href="https://github.com/craftercms/craftercms-sdk-js/tree/master/packages/search" target="_blank" rel="noopener"&gt;here&lt;/a&gt;) using Elasticsearch,&amp;nbsp; use the following content types in query:&lt;/p&gt;
+		&lt;ul&gt;
+		&lt;li&gt;'/component/author'&lt;/li&gt;
+		&lt;li&gt;'/component/post'&lt;/li&gt;
+		&lt;/ul&gt;
+		&lt;p&gt;Elasticsearch also supports 'size' and 'page' parameters for pagination.&lt;/p&gt;</body_html>
 	<objectGroupId>8d7f</objectGroupId>
 	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
 	<folder-name/>
