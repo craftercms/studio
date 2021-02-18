@@ -303,7 +303,43 @@
 
     <bean id="defaultCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.DefaultCacheInvalidator"/>
 
+    <bean id="availableActionsCacheInvalidator"
+          class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
+        <constructor-arg>
+            <list>
+                <!-- Configuration from global repo -->
+                <value>.+configuration/global-permission\-mappings\-config\.xml</value>
+                <value>.+configuration/global-role\-mappings\-config\.xml</value>
+
+                <!-- Configuration from site repo -->
+                <value>.+config/studio/permission\-mappings\-config\.xml</value>
+                <value>.+config/studio/role\-mappings\-config\.xml</value>
+            </list>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="org.craftercms.studio.impl.v2.utils.cache.PatternCacheInvalidator">
+                <constructor-arg value=".+available-actions"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="userPermissionsCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
+        <constructor-arg>
+            <list>
+                <value>.+config/studio/permission\-mappings\-config\.xml</value>
+                <value>.+config/studio/role\-mappings\-config\.xml</value>
+            </list>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="org.craftercms.studio.impl.v2.utils.cache.PatternCacheInvalidator">
+                <constructor-arg value=".+user-permissions.+"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
     <util:list id="configurationCacheInvalidators">
+        <ref bean="availableActionsCacheInvalidator"/>
+        <ref bean="userPermissionsCacheInvalidator"/>
         <ref bean="defaultCacheInvalidator"/>
     </util:list>
 
