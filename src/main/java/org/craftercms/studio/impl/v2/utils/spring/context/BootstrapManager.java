@@ -1,0 +1,69 @@
+/*
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.craftercms.studio.impl.v2.utils.spring.context;
+
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.BootstrapFinishedEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartClusterSetupEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
+
+/**
+ * Central point to control the event-based bootstrap process.
+ * <p>Note: All methods in this class should use the {@link Order} annotation with the default value to ensure the
+ * events are triggered in the right order</p>
+ *
+ * @author joseross
+ * @since 4.0
+ */
+public class BootstrapManager {
+
+    private static final Logger logger = LoggerFactory.getLogger(BootstrapManager.class);
+
+    // the condition is needed to avoid a repeated event from a child app context
+    @Order
+    @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
+    public Object onContextRefresh() {
+        logger.debug("Beans created and ready to be used");
+        logger.debug("Starting upgrade ...");
+        return new StartUpgradeEvent(this);
+    }
+
+    @Order
+    @EventListener(StartUpgradeEvent.class)
+    public Object onStartUpgrade() {
+        logger.debug("Upgrade complete");
+        logger.debug("Starting cluster setup ...");
+        return new StartClusterSetupEvent(this);
+    }
+
+    @Order
+    @EventListener(StartClusterSetupEvent.class)
+    public Object onStartClusterSetup() {
+        logger.debug("Cluster setup complete");
+        return new BootstrapFinishedEvent(this);
+    }
+
+    @Order
+    @EventListener(BootstrapFinishedEvent.class)
+    public void onBootstrapFinished() {
+        logger.debug("Bootstrap process finished");
+    }
+
+}
