@@ -16,13 +16,13 @@
 
 package org.craftercms.studio.impl.v2.security;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.security.RolePermissionMappings;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
@@ -53,27 +53,23 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 
 public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
+    private static final Logger logger = LoggerFactory.getLogger(AvailableActionsResolverImpl.class);
+
+    public static final String CACHE_KEY = ":available-actions";
+
     private StudioConfiguration studioConfiguration;
     private ConfigurationService configurationService;
     private UserServiceInternal userServiceInternal;
-
-    private LoadingCache<String, SitePermissionMappings> cache;
+    private Cache<String, SitePermissionMappings> cache;
 
     public AvailableActionsResolverImpl(StudioConfiguration studioConfiguration,
                                         ConfigurationService configurationService,
-                                        UserServiceInternal userServiceInternal) {
+                                        UserServiceInternal userServiceInternal,
+                                        Cache<String, SitePermissionMappings> cache) {
         this.studioConfiguration = studioConfiguration;
         this.configurationService = configurationService;
         this.userServiceInternal = userServiceInternal;
-
-        // init cache
-        CacheLoader<String, SitePermissionMappings> cacheLoader = new CacheLoader<String, SitePermissionMappings>() {
-            @Override
-            public SitePermissionMappings load(String site) throws Exception {
-                return fetchSitePermissionMappings(site);
-            }
-        };
-        cache = CacheBuilder.newBuilder().build(cacheLoader);
+        this.cache = cache;
     }
 
     private SitePermissionMappings fetchSitePermissionMappings(String site) {
@@ -186,7 +182,11 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     }
 
     private SitePermissionMappings findSitePermissionMappings(final String site) throws ExecutionException {
-        return cache.get(site);
+        var cacheKey = site + CACHE_KEY;
+        return cache.get(cacheKey, () -> {
+            logger.debug("Cache miss for {0}", cacheKey);
+            return fetchSitePermissionMappings(site);
+        });
     }
 
     private long calculateAvailableActions(String username, String path,
@@ -196,13 +196,4 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
         return sitePermissionMappings.getAvailableActions(username, groups, path);
     }
 
-    @Override
-    public void invalidateAvailableActions(String site) {
-        cache.invalidate(site);
-    }
-
-    @Override
-    public void invalidateAvailableActions() {
-        cache.invalidateAll();
-    }
 }

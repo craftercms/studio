@@ -16,12 +16,14 @@
 package org.craftercms.studio.impl.v2.utils.cache;
 
 import com.google.common.cache.Cache;
-import org.checkerframework.checker.units.qual.K;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.startsWith;
 
 /**
  * Implementation of {@link CacheInvalidator} that invalidates all keys matching a pattern
@@ -46,9 +48,17 @@ public class PatternCacheInvalidator<K extends String, V> implements CacheInvali
 
     @Override
     public void invalidate(Cache<K, V> cache, K key) {
+        var tokens = key.split(":");
+        var siteId = tokens.length > 1? tokens[0] : null;
+
+        if (isNotEmpty(siteId)) {
+            logger.debug("The original key contains a siteId, matches will be limited to the same siteId");
+        }
+
         logger.debug("Looking for keys matching {0}", pattern);
         var matchingKeys = cache.asMap().keySet().stream()
                 .filter(k -> k.matches(pattern))
+                .filter(k -> isEmpty(siteId) || startsWith(k, siteId))
                 .collect(toList());
         logger.debug("Invalidating cache for keys {0}", matchingKeys);
         cache.invalidateAll(matchingKeys);

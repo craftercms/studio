@@ -24,7 +24,4 @@ public interface AvailableActionsResolver {
     long getAvailableActions(String username, String site, String path)
             throws ServiceLayerException, UserNotFoundException;
 
-    void invalidateAvailableActions(String site);
-
-    void invalidateAvailableActions();
 }

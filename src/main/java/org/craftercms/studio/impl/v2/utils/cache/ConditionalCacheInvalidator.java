@@ -20,6 +20,10 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
+import java.util.List;
+
+import static org.craftercms.commons.lang.RegexUtils.matchesAny;
+
 /**
  * Implementation of {@link CacheInvalidator} that only performs the invalidation if the key matches a pattern
  *
@@ -33,21 +37,21 @@ public class ConditionalCacheInvalidator<K extends String, V> implements CacheIn
     private static final Logger logger = LoggerFactory.getLogger(ConditionalCacheInvalidator.class);
 
     /**
-     * The pattern to match the key
+     * The list of patterns to match the key
      */
-    protected String pattern;
+    protected List<String> patterns;
 
     protected CacheInvalidator<K, V> actualCacheInvalidator;
 
-    public ConditionalCacheInvalidator(String pattern, CacheInvalidator<K, V> actualCacheInvalidator) {
-        this.pattern = pattern;
+    public ConditionalCacheInvalidator(List<String> patterns, CacheInvalidator<K, V> actualCacheInvalidator) {
+        this.patterns = patterns;
         this.actualCacheInvalidator = actualCacheInvalidator;
     }
 
     @Override
     public void invalidate(Cache<K, V> cache, K key) {
-        logger.debug("Checking if key {0} matches pattern {1}", key, pattern);
-        if (key.matches(pattern)) {
+        logger.debug("Checking if key {0} matches patterns {1}", key, patterns);
+        if (matchesAny(key, patterns)) {
             logger.debug("Invalidating cache for {0}", key);
             actualCacheInvalidator.invalidate(cache, key);
         }
