@@ -554,7 +554,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     protected void invalidateCache(String key) {
-        logger.debug("INVALIDATING CACHE: {0}", key);
+        logger.debug("Invalidating cache: {0}", key);
         cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));
     }
 
