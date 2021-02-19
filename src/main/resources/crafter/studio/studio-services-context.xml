@@ -323,7 +323,8 @@
         </constructor-arg>
     </bean>
 
-    <bean id="userPermissionsCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
+    <bean id="userPermissionsCacheInvalidator"
+          class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
         <constructor-arg>
             <list>
                 <value>.+config/studio/permission\-mappings\-config\.xml</value>
@@ -337,9 +338,24 @@
         </constructor-arg>
     </bean>
 
+    <bean id="blobStoreCacheInvalidator"
+          class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
+        <constructor-arg>
+            <list>
+                <value>.+config/studio/blob\-stores\-config\.xml</value>
+            </list>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="org.craftercms.studio.impl.v2.utils.cache.PatternCacheInvalidator">
+                <constructor-arg value=".+blob-store.+"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
     <util:list id="configurationCacheInvalidators">
         <ref bean="availableActionsCacheInvalidator"/>
         <ref bean="userPermissionsCacheInvalidator"/>
+        <ref bean="blobStoreCacheInvalidator"/>
         <ref bean="defaultCacheInvalidator"/>
     </util:list>
 
@@ -886,7 +902,9 @@
         <property name="configPath" value="#{studioConfiguration.getProperty('studio.blob.config.path')}"/>
         <property name="configurationResolver" ref="crafter.configurationResolver"/>
         <property name="contentRepository" ref="gitContentRepository"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="cache" ref="configurationCache"/>
+        <property name="configurationService" ref="configurationService"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
     <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">

@@ -289,7 +289,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         invalidateConfiguration(siteId, module, path, environment);
     }
 
-    protected String getCacheKey(String siteId, String module, String path, String environment) {
+    public String getCacheKey(String siteId, String module, String path, String environment) {
         if (isNotEmpty(siteId)) {
             String fullPath = null;
             if (isNotEmpty(environment)) {
