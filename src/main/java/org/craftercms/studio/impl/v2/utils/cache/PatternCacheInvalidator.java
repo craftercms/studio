@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -57,8 +58,9 @@ public class PatternCacheInvalidator<K extends String, V> implements CacheInvali
 
         logger.debug("Looking for keys matching {0}", pattern);
         var matchingKeys = cache.asMap().keySet().stream()
-                .filter(k -> k.matches(pattern))
-                .filter(k -> isEmpty(siteId) || startsWith(k, siteId))
+                .filter(k -> k.matches(pattern)) // include keys that match the pattern
+                .filter(k -> isEmpty(siteId) || startsWith(k, siteId)) // include only keys for the same site
+                .filter(not(key::equals)) // exclude the original to avoid double invalidation
                 .collect(toList());
         logger.debug("Invalidating cache for keys {0}", matchingKeys);
         cache.invalidateAll(matchingKeys);
