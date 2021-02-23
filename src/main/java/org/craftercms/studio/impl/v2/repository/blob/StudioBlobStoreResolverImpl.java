@@ -17,6 +17,8 @@ package org.craftercms.studio.impl.v2.repository.blob;
 
 import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
+import static com.rometools.utils.Strings.isNotEmpty;
 import static java.lang.String.join;
 import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
 
@@ -71,6 +74,15 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
     }
 
     @Override
+    protected HierarchicalConfiguration getConfiguration(ConfigurationProvider provider) throws ConfigurationException {
+        var config = super.getConfiguration(provider);
+        if (config == null) {
+            config = new XMLConfiguration();
+        }
+        return config;
+    }
+
+    @Override
     public BlobStore getByPaths(String site, String... paths)
             throws ServiceLayerException {
         logger.debug("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
@@ -81,19 +93,22 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 logger.debug("Cache miss: {}", cacheKey1);
                 return getConfiguration(new ConfigurationProviderImpl(site));
             });
-            if (config != null) {
+            if (!config.isEmpty()) {
                 String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
-                BlobStore blobStore;
-                var cacheKey2 = join(":", site, CACHE_KEY_STORE, storeId);
-                blobStore = (BlobStore) cache.get(cacheKey2, () -> {
-                    logger.debug("Cache miss: {}", cacheKey2);
-                    return getById(config, storeId);
-                });
-                // We have to compare each one to know if the exception should be thrown
-                if (blobStore != null && !Stream.of(paths).allMatch(blobStore::isCompatible)) {
-                    throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));
+                if (isNotEmpty(storeId)) {
+                    var cacheKey2 = join(":", site, CACHE_KEY_STORE, storeId);
+                    BlobStore blobStore = (BlobStore) cache.get(cacheKey2, () -> {
+                        logger.debug("Cache miss: {}", cacheKey2);
+                        return getById(config, storeId);
+                    });
+                    // We have to compare each one to know if the exception should be thrown
+                    if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
+                        throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));
+                    }
+                    return blobStore;
+                } else {
+                    logger.debug("No blob store found in site {} for paths {}", site, paths);
                 }
-                return blobStore;
             }
             return null;
         } catch (ExecutionException e) {
