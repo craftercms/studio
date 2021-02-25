@@ -102,62 +102,8 @@ const GRAPHQL_QUERIES = '\
       attr === 'true'
     );
   }
-  function getICEAttributes(config, wrapperUtility = '[Error @ getICEAttributes]') {
-    let {
-      model,
-      parentModelId = null,
-      isAuthoring = true,
-      fieldId = null
-    } = config;
-
-    if (!isAuthoring) {
-      return {};
-    }
-
-    let error = false;
-    const isEmbedded = model?.craftercms.path == null;
-    const path = model?.craftercms.path ?? parentModelId;
-    const modelId = model?.craftercms.id;
-
-    if (isEmbedded && parentModelId == null) {
-      error = true;
-
-      (!modelId) &&
-      console?.error?.(
-        wrapperUtility +
-        'The "parentModelId" argument is required for embedded components. ' +
-        'Note the value of "parentModelId" should be the *path* of it\'s top parent component. ' +
-        'The error occurred with the model attached to this error.',
-        model
-      );
-    }
-
-    if (parentModelId != null && !pathRegExp.test(parentModelId)) {
-      error = true;
-      (!modelId) &&
-      console?.error?.(
-        wrapperUtility +
-        'The "parentModelId" argument should be the "path" of it\'s top parent component. ' +
-        `Provided value was "${parentModelId}" which doesn't comply with the expected format ` +
-        '(i.e. \'/a/**/b.xml\'). The error occurred with the model attached to this error. ' +
-        'Did you send the id (objectId) instead of the path?',
-        model
-      );
-    }
-
-    if (error) {
-      return {};
-    }
-
-    return {
-      'data-craftercms-model-path': path,
-      'data-craftercms-model-id': modelId,
-      'data-craftercms-field-id': fieldId
-    };
-
-  }
   function getICE(model, fieldId = null) {
-    return (getICEAttributes({
+    return (craftercms?.guest?.getICEAttributes({
       model,
       fieldId,
       isAuthoring: authoring
@@ -245,7 +191,7 @@ const GRAPHQL_QUERIES = '\
     },
     beforeUpdate: function() {
       document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
-        const record = craftercms.guest.ElementRegistry.fromElement(el);
+        const record = craftercms?.guest?.ElementRegistry.fromElement(el);
 
         // This is supposed to be before updating DOM, but query is returning both old and new elements
         if (record) {
