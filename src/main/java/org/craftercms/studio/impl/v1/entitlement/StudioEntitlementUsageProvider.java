@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,8 +24,8 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.usage.EntitlementUsageProvider;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
 import static org.craftercms.commons.entitlements.model.Module.STUDIO;
@@ -38,32 +38,11 @@ import static org.craftercms.commons.entitlements.model.Module.STUDIO;
 public class StudioEntitlementUsageProvider implements EntitlementUsageProvider {
 
     /**
-     * Current instance of {@link ObjectMetadataManager}.
-     */
-    protected ObjectMetadataManager objectMetadataManager;
-
-    /**
      * Current instance of {@link SiteService}.
      */
     protected SiteService siteService;
-
     protected UserServiceInternal userServiceInternal;
-
-    public void setObjectMetadataManager(final ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
-    }
-
-    public void setSiteService(final SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
+    protected ItemServiceInternal itemServiceInternal;
 
     /**
      * {@inheritDoc}
@@ -108,7 +87,30 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
     }
 
     protected int countItems() {
-        return objectMetadataManager.countAllItems();
+        return itemServiceInternal.countAllContentItems();
     }
 
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
 }

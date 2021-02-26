@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.service.dependency.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.dal.ItemStateMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -27,6 +26,7 @@ import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private SiteService siteService;
     private StudioConfiguration studioConfiguration;
     private DependencyDAO dependencyDao;
-    private ItemStateMapper itemStateMapper;
+    private ItemServiceInternal itemServiceInternal;
 
     @Override
     public List<String> getSoftDependencies(String site, String path) throws ServiceLayerException {
@@ -149,7 +149,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
         logger.debug("Get all hard dependencies");
         pathsParams.addAll(paths);
-        Set<String> mandatoryParents = getMandatoryParents(site, paths);
+        List<String> mandatoryParents = itemServiceInternal.getMandatoryParentsForPublishing(site, paths);
         List<String> mpAsList = new ArrayList<>(mandatoryParents);
         Map<String, String> ancestors = new HashMap<String, String>();
         if (CollectionUtils.isNotEmpty(mandatoryParents)) {
@@ -193,34 +193,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         return ancestors;
     }
 
-    private Set<String> getMandatoryParents(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<String>();
-        Set<String> possibleParents = calculatePossibleParents(paths);
-        if (!possibleParents.isEmpty()) {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put(ItemStateMapper.SITE_PARAM, site);
-            params.put(ItemStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
-            Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-            params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
-            params.put(ItemStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
-            List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
-            toRet.addAll(result);
-        }
-        return toRet;
-    }
-
     private Set<String> getExistingRenamedChildrenOfMandatoryParents(String site, List<String> paths) {
         Set<String> toRet = new HashSet<String>();
-        //Set<String> possibleParents = calculatePossibleParents(paths);
-        //if (!possibleParents.isEmpty()) {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put(ItemStateMapper.SITE_PARAM, site);
-            params.put(ItemStateMapper.PARENTS_PARAM, paths);
-            Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-            params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
-            List<String> result = itemStateMapper.getExistingRenamedChildrenOfMandatoryParentsForPublishing(params);
-            toRet.addAll(result);
-        //}
+        toRet.addAll(itemServiceInternal.getExistingRenamedChildrenOfMandatoryParentsForPublishing(site, paths));
         return toRet;
     }
 
@@ -305,11 +280,11 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         this.dependencyDao = dependencyDao;
     }
 
-    public ItemStateMapper getItemStateMapper() {
-        return itemStateMapper;
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
     }
 
-    public void setItemStateMapper(ItemStateMapper itemStateMapper) {
-        this.itemStateMapper = itemStateMapper;
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.2', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.3', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -268,20 +268,6 @@ CREATE TABLE IF NOT EXISTS `dependency` (
   PRIMARY KEY (`id`),
   KEY `dependency_site_idx` (`site`),
   KEY `dependency_sourcepath_idx` (`source_path`(1000))
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
-
-CREATE TABLE IF NOT EXISTS `item_state` (
-  `object_id`         VARCHAR(255)  NOT NULL,
-  `site`              VARCHAR(50)   NOT NULL,
-  `path`              VARCHAR(2000) NOT NULL,
-  `state`             VARCHAR(255)  NOT NULL,
-  `system_processing` BIT(1)        NOT NULL,
-  PRIMARY KEY (`object_id`),
-  KEY `item_state_object_idx` (`object_id`),
-  UNIQUE `uq_is_site_path` (`site`, `path`(900))
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
@@ -350,39 +336,6 @@ CREATE TABLE IF NOT EXISTS `site` (
   INDEX `site_id_idx` (`site_id` ASC)
 )
 
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
-
-CREATE TABLE IF NOT EXISTS `item_metadata` (
-  `id`                      INT           NOT NULL AUTO_INCREMENT,
-  `site`                    VARCHAR(50)   NOT NULL,
-  `path`                    VARCHAR(2000) NOT NULL,
-  `name`                    VARCHAR(255)  NULL,
-  `modified`                DATETIME      NULL,
-  `modifier`                VARCHAR(255)  NULL,
-  `owner`                   VARCHAR(255)  NULL,
-  `creator`                 VARCHAR(255)  NULL,
-  `firstname`               VARCHAR(255)  NULL,
-  `lastname`                VARCHAR(255)  NULL,
-  `lockowner`               VARCHAR(255)  NULL,
-  `email`                   VARCHAR(255)  NULL,
-  `renamed`                 INT           NULL,
-  `oldurl`                  TEXT          NULL,
-  `deleteurl`               TEXT          NULL,
-  `imagewidth`              INT           NULL,
-  `imageheight`             INT           NULL,
-  `approvedby`              VARCHAR(255)  NULL,
-  `submittedby`             VARCHAR(255)  NULL,
-  `submittedfordeletion`    INT           NULL,
-  `sendemail`               INT           NULL,
-  `submissioncomment`       TEXT          NULL,
-  `launchdate`              DATETIME      NULL,
-  `commit_id`               VARCHAR(50)   NULL,
-  `submittedtoenvironment`  VARCHAR(255)  NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE `uq__im_site_path` (`site`, `path`(900))
-)
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
@@ -544,6 +497,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `size`                    INT             NULL,
   `parent_id`               BIGINT          NULL,
   `commit_id`               VARCHAR(128)    NULL,
+  `previous_path`           VARCHAR(2048)   NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY item_ix_created_by(`created_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_last_modified_by(`last_modified_by`) REFERENCES `user` (`id`),
@@ -566,6 +520,27 @@ CREATE TABLE IF NOT EXISTS `item_translation` (
   PRIMARY KEY (`id`),
   FOREIGN KEY `item_translation_ix_source`(`source_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
   FOREIGN KEY `item_translation_ix_translation`(`translation_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS workflow
+(
+    `id`                    BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `item_id`               BIGINT(20)      NOT NULL,
+    `target_environment`    VARCHAR(20)     NOT NULL,
+    `state`                 VARCHAR(16)     NOT NULL,
+    `submitter_id`          BIGINT(20)      NULL,
+    `submitter_comment`     TEXT            NULL,
+    `reviewer_id`           BIGINT(20)      NULL,
+    `reviewer_comment`      TEXT            NULL,
+    `schedule`              TIMESTAMP       NULL,
+    `publishing_package_id` VARCHAR(50)     NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `workflow_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `workflow_ix_submitter`(`submitter_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `workflow_ix_reviewer`(`reviewer_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8

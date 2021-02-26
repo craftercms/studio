@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.config.TranslationConfiguration;
@@ -73,7 +74,7 @@ public class ConfigurationController {
 
     @PostMapping("/write_configuration")
     public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
         String siteId = wcRequest.getSiteId();
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {

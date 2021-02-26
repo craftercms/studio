@@ -19,6 +19,9 @@ package org.craftercms.studio.api.v2.service.item.internal;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
+import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
+import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -293,9 +296,9 @@ public interface ItemServiceInternal {
      * @param limit number of records to return
      * @return list of item metadata records
      */
-    List<Item> getContentDashboard(String siteId, String path, String modifier, String contentType,
-                        long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                        String sortBy, String order, int offset, int limit);
+    List<ContentDashboardItem> getContentDashboard(String siteId, String path, String modifier, String contentType,
+                                                   long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                   String sortBy, String order, int offset, int limit);
 
     /**
      * Get browser url for given repository item
@@ -373,4 +376,125 @@ public interface ItemServiceInternal {
      * @param newPath new path
      */
     void moveItems(String siteId, String oldPath, String newPath);
+
+    /**
+     * Check if item is new
+     * @param siteId site identifier
+     * @param path path of the item
+     * @return true if NEW flag is set otherwise false
+     */
+    boolean isNew(String siteId, String path);
+
+    /**
+     * Count all content items
+     * @return number of content items in the system
+     */
+    int countAllContentItems();
+
+    /**
+     * Clear previous path of the content
+     * @param siteId site identifier
+     * @param path path of the content;
+     */
+    void clearPreviousPath(String siteId, String path);
+
+    /**
+     * Convert Publishing History Item to Publishing Dashboard Item
+     * @param historyItem publishing history item
+     * @return publishing dashboard item
+     */
+    PublishingDashboardItem convertHistoryItemToDashboardItem(PublishingHistoryItem historyItem);
+
+    /**
+     * Convert Item to Content Dashboard Item
+     * @param siteId site identifier
+     * @param item item
+     * @return content dashboard item
+     */
+    ContentDashboardItem convertItemToContentDashboardItem(String siteId, Item item);
+
+    /**
+     * Get in progress items for given site
+     * @param siteId site identifier
+     * @return list of items
+     */
+    List<Item> getInProgressItems(String siteId);
+
+    /**
+     * Get submitted items for given site
+     * @param site site identifier
+     * @return list of items
+     */
+    List<Item> getSubmittedItems(String site);
+
+    /**
+     * Check if item is update or new
+     * @param site site identifier
+     * @param path item path
+     * @return true if item is new or modified
+     */
+    boolean isUpdatedOrNew(String site, String path);
+
+    /**
+     * Delete items for site and paths
+     * @param siteId site id
+     * @param folderPath folder path to delete
+     */
+    void deleteItemForFolder(long siteId, String folderPath);
+
+    /**
+     * Check if item is in system processing
+     * @param site site identifier
+     * @param path item path
+     * @return true if item is in system processing
+     */
+    boolean isSystemProcessing(String site, String path);
+
+    /**
+     * Check if path exists as previous path
+     * @param siteId site identifier
+     * @param path path to check
+     * @return true if item exists with previous path as given path
+     */
+    boolean previousPathExists(String siteId, String path);
+
+    /**
+     * Upadte commit id for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param commitId commit id
+     */
+    void updateCommitId(String siteId, String path, String commitId);
+
+    /**
+     * Get mandatory parents for publishing for given site and list of paths
+     * @param siteId site identifier
+     * @param paths list of paths
+     * @return list of mandatory parents paths
+     */
+    List<String> getMandatoryParentsForPublishing(String siteId, List<String> paths);
+
+    /**
+     * Get existing renamed children of mandatory parents for publishing
+     * @param siteId site identifier
+     * @param parents list of parents paths
+     * @return list of children paths
+     */
+    List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(String siteId, List<String> parents);
+
+    /**
+     * Get change set for subtree
+     * @param siteId site identifier
+     * @param path root path of the subtree
+     * @return list of items
+     */
+    List<String> getChangeSetForSubtree(String siteId, String path);
+
+    /**
+     * Get items edited on same commit id for given item
+     * @param siteId site identifier
+     * @param path path of content item
+     * @return list of items paths
+     */
+    List<String> getSameCommitItems(String siteId, String path);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
@@ -39,7 +40,8 @@ public interface DeploymentService {
 
     // document
     void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver,
-                String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
+                String submissionComment, final boolean scheduleDateNow)
+            throws DeploymentException, ServiceLayerException, UserNotFoundException;
 
     /**
      * Delete content
@@ -75,8 +77,7 @@ public interface DeploymentService {
      *
      * @return list of deployment items
      */
-
-    public List<DmDeploymentTaskTO> getDeploymentHistory(
+    List<DmDeploymentTaskTO> getDeploymentHistory(
             String site, int days, int number, String sort, boolean ascending,
             String filterType) throws SiteNotFoundException;
 
@@ -141,7 +142,8 @@ public interface DeploymentService {
      * @throws EnvironmentNotFoundException
      */
     void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
-                      String submissionComment) throws ServiceLayerException, DeploymentException;
+                      String submissionComment)
+            throws ServiceLayerException, DeploymentException, UserNotFoundException;
 
     /**
      * Reset staging environment to live for given site

@@ -17,10 +17,7 @@
 package org.craftercms.studio.impl.v2.service.dashboard;
 
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
@@ -30,14 +27,13 @@ import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class DashboardServiceImpl implements DashboardService {
 
-    private ObjectMetadataManager objectMetadataManager;
     private AuditServiceInternal auditServiceInternal;
     private PublishServiceInternal publishServiceInternal;
     private ItemServiceInternal itemServiceInternal;
@@ -70,26 +66,8 @@ public class DashboardServiceImpl implements DashboardService {
                                                           String path, String modifier, String contentType, long state,
                                                           ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy,
                                                           String order, int offset, int limit) {
-        return prepareContentDashboardResult(siteId, itemServiceInternal.getContentDashboard(siteId, path, modifier,
-                contentType, state, dateFrom, dateTo, sortBy, order, offset, limit));
-    }
-
-    private List<ContentDashboardItem> prepareContentDashboardResult(String siteId, List<Item> itemList) {
-        List<ContentDashboardItem> contentDashboardItemList = new ArrayList<ContentDashboardItem>();
-        if (itemList != null && itemList.size() > 0) {
-            for (Item item : itemList) {
-                ContentDashboardItem contentDashboardItem = new ContentDashboardItem();
-                contentDashboardItem.setSiteId(siteId);
-                contentDashboardItem.setPath(item.getPath());
-                contentDashboardItem.setLabel(item.getLabel());
-                contentDashboardItem.setModifier(item.getModifier());
-                contentDashboardItem.setModifiedDate(item.getLastModifiedOn());
-                contentDashboardItem.setContentType(item.getContentTypeId());
-                contentDashboardItem.setState(item.getState());
-                contentDashboardItemList.add(contentDashboardItem);
-            }
-        }
-        return contentDashboardItemList;
+        return itemServiceInternal.getContentDashboard(siteId, path, modifier, contentType, state, dateFrom, dateTo,
+                sortBy, order, offset, limit);
     }
 
     @Override
@@ -108,25 +86,12 @@ public class DashboardServiceImpl implements DashboardService {
                                                               String order, int offset, int limit) {
         List<PublishingHistoryItem> publishingHistoryItems = publishServiceInternal.getPublishingHistory(siteId,
                 environment, path, publisher, dateFrom, dateTo, contentType, state, sortBy, order, offset, limit);
-        return preparePublishingResult(publishingHistoryItems);
+        return publishingHistoryItems
+                .stream()
+                .map(itemServiceInternal::convertHistoryItemToDashboardItem)
+                .collect(Collectors.toList());
     }
 
-    private List<PublishingDashboardItem> preparePublishingResult(List<PublishingHistoryItem> publishingHistory) {
-        List<PublishingDashboardItem> publishingDashboardItems = new ArrayList<PublishingDashboardItem>();
-        for (PublishingHistoryItem historyItem : publishingHistory) {
-            PublishingDashboardItem dashboardItem = new PublishingDashboardItem();
-            ItemMetadata itemMetadata = objectMetadataManager.getProperties(historyItem.getSiteId(),
-                    historyItem.getPath());
-            dashboardItem.setSiteId(historyItem.getSiteId());
-            dashboardItem.setPath(historyItem.getPath());
-            dashboardItem.setLabel(itemMetadata.getName());
-            dashboardItem.setEnvironment(historyItem.getEnvironment());
-            dashboardItem.setDatePublished(historyItem.getPublishedDate());
-            dashboardItem.setPublisher(historyItem.getPublisher());
-            publishingDashboardItems.add(dashboardItem);
-        }
-        return publishingDashboardItems;
-    }
 
     public AuditServiceInternal getAuditServiceInternal() {
         return auditServiceInternal;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,6 @@ import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -30,8 +29,6 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ImportService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
@@ -73,7 +70,6 @@ public class ImportServiceImpl implements ImportService {
     protected SecurityService securityService;
     protected ContentRepository contentRepository;
     protected ContentService contentService;
-    protected ObjectStateService objectStateService;
     protected DmPublishService dmPublishService;
     protected StudioConfiguration studioConfiguration;
     protected ItemServiceInternal itemServiceInternal;
@@ -431,21 +427,11 @@ public class ImportServiceImpl implements ImportService {
                 // existing
                 if (!contentExists || overWrite) {
                     String fullPath = targetRoot + filePath;
-                    objectStateService.setSystemProcessing(site, currentPath, true);
                     itemServiceInternal.setSystemProcessing(site, currentPath, true);
                     // write the content
                     contentService.processContent(id, in, isXml, params, processChain);
                     ContentItemTO item = contentService.getContentItem(site, currentPath);
-                    // update state
-                    if (item != null) {
-                        objectStateService.transition(site, item, TransitionEvent.SAVE);
-                        objectStateService.setSystemProcessing(site, currentPath, false);
-                    } else {
-                        ItemState state = objectStateService.getObjectState(site, currentPath);
-                        if (state == null) {
-                            objectStateService.insertNewEntry(site, currentPath);
-                        }
-                    }
+
                     // Item
                     itemServiceInternal.updateStateBits(site, currentPath, SAVE_AND_CLOSE_ON_MASK,
                             SAVE_AND_CLOSE_OFF_MASK);
@@ -641,13 +627,6 @@ public class ImportServiceImpl implements ImportService {
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
     }
 
     public DmPublishService getDmPublishService() {

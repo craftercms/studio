@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,19 +17,20 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.core.task.TaskExecutor;
 
@@ -44,8 +45,6 @@ public class RebuildRepositoryMetadata {
     private static ReentrantLock taskLock = new ReentrantLock();
 
     protected PublishRequestMapper publishRequestMapper;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ObjectStateService objectStateService;
     protected DependencyService dependencyService;
     protected ContentService contentService;
     protected SecurityService securityService;
@@ -53,6 +52,7 @@ public class RebuildRepositoryMetadata {
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
     protected ContentRepository contentRepository;
+    protected ItemServiceInternal itemServiceInternal;
 
     public void execute(String site) {
         if (taskLock.tryLock()) {
@@ -82,7 +82,11 @@ public class RebuildRepositoryMetadata {
             logger.debug("Start rebuilding repository metadata for site " + site);
             CronJobContext.setCurrent(securityContext);
             logger.debug("Cleaning existing repository metadata for site " + site);
-            cleanOldMetadata(site);
+            try {
+                cleanOldMetadata(site);
+            } catch (SiteNotFoundException e) {
+                logger.error("Error while cleaning up old metadata");
+            }
             logger.debug("Initiate rebuild metadata process for site " + site);
             try {
                 rebuildMetadata(site);
@@ -95,7 +99,8 @@ public class RebuildRepositoryMetadata {
     }
 
     @RetryingOperation
-    public boolean cleanOldMetadata(String site) {
+    public boolean cleanOldMetadata(String site) throws SiteNotFoundException {
+        SiteFeed siteFeed = siteService.getSite(site);
         logger.debug("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -117,19 +122,11 @@ public class RebuildRepositoryMetadata {
         }
 
         try {
-            // Delete content metadata
-            logger.debug("Deleting content metadata for site " + site);
-            objectMetadataManager.deleteObjectMetadataForSite(site);
+            // Delete item table
+            logger.debug("Deleting item table for site " + site);
+            itemServiceInternal.deleteItemsForSite(siteFeed.getId());
         } catch (Exception error) {
-            logger.error("Failed to delete content metadata for site " + site);
-        }
-
-        try {
-            // Delete content workflow states data
-            logger.debug("Deleting workflow states data for site " + site);
-            objectStateService.deleteObjectStatesForSite(site);
-        } catch (Exception error) {
-            logger.error("Failed to delete workflow states data for site " + site);
+            logger.error("Failed to delete item data for site " + site);
         }
 
         try {
@@ -146,22 +143,6 @@ public class RebuildRepositoryMetadata {
     protected boolean rebuildMetadata(String site) throws ServiceLayerException, UserNotFoundException {
         siteService.syncDatabaseWithRepo(site, null);
         return true;
-    }
-
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
-    }
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
     }
 
     public DependencyService getDependencyService() {
@@ -226,5 +207,13 @@ public class RebuildRepositoryMetadata {
 
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

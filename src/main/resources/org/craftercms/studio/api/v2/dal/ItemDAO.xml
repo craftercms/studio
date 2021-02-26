@@ -385,9 +385,15 @@
         </foreach>
     </delete>
 
+    <delete id="deleteBySiteAndPathForFolder">
+        DELETE FROM item WHERE site_id = #{siteId} AND (path = #{folderPath} OR path LIKE '${folderPath}/%')
+    </delete>
+
+
     <select id="getContentDashboardTotal" resultType="int">
         select count (1) from item i inner join site s on i.site_id = s.id
         where s.site_id = #{siteId}
+        AND s.deleted = 0
         <if test="path != null">
             AND i.path RLIKE #{path}
         </if>
@@ -412,6 +418,7 @@
         select s.site_id as site_name, u.username as modifier, i.* from item i  inner join site s on i.site_id = s.id
         inner join user u on i.last_modified_by = u.id
         where s.site_id = #{siteId}
+        AND s.deleted = 0
         <if test="path != null">
             AND i.path RLIKE #{path}
         </if>
@@ -449,14 +456,128 @@
     <update id="moveItem">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET path = #{newPath}
-        WHERE s.site_id = #{siteId} AND i.path = #{oldPath}
+        WHERE s.site_id = #{siteId} AND s.deleted = 0 AND i.path = #{oldPath}
     </update>
 
     <update id="moveItems">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
-        SET path = REPLACE(path, #{oldPath}, #{newPath}),
+        SET i.path = REPLACE(i.path, #{oldPath}, #{newPath}),
             i.state = i.state | #{onStatesBitMap} &amp; ~#{offStatesBitMap},
-            preview_url = REPLACE(preview_url, #{oldPreviewUrl}, #{newPreviewUrl})
-        WHERE s.site_id = #{siteId} AND (i.path = #{oldPath} OR i.path LIKE '${oldPath}/%')
+            i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl}),
+            i.previous_path = IFNULL(i.previous_path, i.path)
+        WHERE s.site_id = #{siteId} AND s.deleted = 0 AND (i.path = #{oldPath} OR i.path LIKE '${oldPath}/%')
     </update>
+
+    <select id="getMandatoryParentsForPublishing" resultType="String">
+        SELECT i1.path as path
+        FROM item i1 inner join site s on i1.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND is1.path IN
+        <foreach item="path" index="index" collection="possibleParents"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND (i1.state &amp; #{newMask}) > 0
+        UNION
+        SELECT i2.path as path
+        FROM (item i2 INNER JOIN site s2 s2 ON i2.site_id = s2.id
+        WHERE s2.site_id = #{siteId}
+        AND TRIM(IFNULL(i2.previous_path)) &lt;&gt; ''
+        AND i2.path IN
+        <foreach item="path" index="index" collection="possibleParents"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND (i2.state &amp; #{modifiedMask}) > 0
+    </select>
+
+    <select id="getExistingRenamedChildrenOfMandatoryParentsForPublishing" parameterType="java.util.Map" resultType="String">
+        SELECT i1.path as path
+        FROM item i1 inner join site s1 on i1.site_id = s1.id
+        WHERE s1.site_id = #{siteId}
+        AND s1.deleted = 0
+        AND NULLIF(TRIM(i1.previous_path), '') IS NOT NULL
+        AND (i1.state &amp; #{modifiedMask}) > 0
+        AND (i1.state &amp; #{newMask}) = 0
+        AND i1.parent_id IN
+        (SELECT 12.id FROM item i2 inner join site s2 on i2.site_id = s2.id
+        WHERE s2.site_id = #{siteId} AND s2.deleted = 0
+        AND i2.path IN
+        <foreach item="path" index="index" collection="parents" open="(" separator="," close=")">
+            #{path}
+        </foreach>)
+    </select>
+
+    <select id="countAllContentItems" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.deleted = 0
+        AND i.system_type NOT IN
+        <foreach collection="nonContentItemTypes" separator="," index="index" item="type" open="(" close=")">
+            #{type}
+        </foreach>
+    </select>
+
+    <update id="clearPreviousPath">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.previous_path = NULL
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.path = #{path}
+    </update>
+
+    <select id="getInProgressItems" resultMap="ItemMap">
+        SELECT i.*
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND (i.state &amp; #{inProgressMask}) &gt; 0
+    </select>
+
+    <select id="getSubmittedItems" resultMap="ItemMap">
+        SELECT i.*
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+          AND s.deleted = 0
+          AND (i.state &amp; #{submittedMask}) &gt; 0
+    </select>
+
+    <select id="countPreviousPaths" resultType="int">
+        SELECT i.*
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.previous_path = #{previousPath}
+    </select>
+
+    <update id="updateCommitId">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.commit_id = #{commitId}
+        WHERE s.site_id = #{siteId}
+          AND s.deleted = 0
+          AND i.path = #{path}
+    </update>
+
+    <select id="getChangeSetForSubtree" resultType="java.lang.String">
+        SELECT i.path
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.system_type NOT IN
+        <foreach collection="nonContentItemTypes" separator="," index="index" item="type" open="(" close=")">
+            #{type}
+        </foreach>
+        AND (i.path = #{path} or i.path like #{likePath})
+        AND (i.state &amp; #{inProgressMask}) &gt; 0
+    </select>
+
+    <select id="getSameCommitItems" resultType="String">
+        SELECT i2.path
+        FROM site s INNER JOIN item i1 ON i1.site_id = s.id
+            INNER JOIN item i2 ON s.id = i2.site_id AND i1.commit_id = i2.commit_id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.path = #{path}
+    </select>
 </mapper>
