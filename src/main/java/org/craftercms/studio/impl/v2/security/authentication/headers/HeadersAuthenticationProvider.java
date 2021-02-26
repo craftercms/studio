@@ -116,11 +116,13 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
                 String email = request.getHeader(emailHeader);
                 String groups = request.getHeader(groupsHeader);
 
+                User user;
+
                 try {
                     SiteFeed siteFeed =
                             siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
                     if (userServiceInternal.userExists(-1, usernameHeaderValue)) {
-                        User user = userServiceInternal.getUserByIdOrUsername(-1, usernameHeaderValue);
+                        user = userServiceInternal.getUserByIdOrUsername(-1, usernameHeaderValue);
                         user.setFirstName(firstName);
                         user.setLastName(lastName);
                         user.setEmail(email);
@@ -149,7 +151,7 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
                     } else {
                         logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                         try {
-                            User user = new User();
+                            user = new User();
                             user.setUsername(usernameHeaderValue);
                             user.setPassword(UUID.randomUUID().toString());
                             user.setFirstName(firstName);
@@ -180,14 +182,8 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
                     throw new AuthenticationServiceException("Unknown service error" , e);
                 } catch (UserNotFoundException e) {
                     // should never happen
+                    throw new IllegalStateException("User nor found", e);
                 }
-
-                User user = new User();
-                user.setUsername(usernameHeaderValue);
-                user.setFirstName(firstName);
-                user.setLastName(lastName);
-                user.setEmail(email);
-                user.setGroups(new ArrayList<UserGroup>());
 
                 logger.debug("Update user groups in database.");
                 if (StringUtils.isNoneEmpty(groups)) {
@@ -244,7 +240,6 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
         params.put(GROUP_NAME, groupName);
         Group group = groupDao.getGroupByName(params);
         if (group != null) {
-            List<String> usernames = new ArrayList<String>();
             params = new HashMap<>();
             params.put(USER_ID, -1);
             params.put(USERNAME, username);
