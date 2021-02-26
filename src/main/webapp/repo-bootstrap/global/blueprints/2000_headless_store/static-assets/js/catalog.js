@@ -191,11 +191,11 @@ const GRAPHQL_QUERIES = '\
     },
     beforeUpdate: function() {
       document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
-        const record = craftercms?.guest?.ElementRegistry.fromElement(el);
+        const record = craftercms?.guest?.elementRegistry.fromElement(el);
 
         // This is supposed to be before updating DOM, but query is returning both old and new elements
         if (record) {
-          craftercms?.guest?.ElementRegistry.deregister(record.id);
+          craftercms?.guest?.elementRegistry.deregister(record.id);
         }
       });
     },
@@ -220,7 +220,7 @@ const GRAPHQL_QUERIES = '\
               index = parseInt(index, 10);
             }
 
-            craftercms?.guest?.ElementRegistry.register({ element, modelId, fieldId, index, label, path });
+            craftercms?.guest?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
           });
         });
       }

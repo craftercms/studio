@@ -109,42 +109,64 @@
       setItem: function (item) {
         this.selectedItem = item;
       },
-      getICE
-    },
-    beforeUpdate: function() {
-      document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
-        const record = craftercms.guest.ElementRegistry.fromElement(el);
+      updateItem: function(args) {
+        const itemIndex = this.items.hits.findIndex(item => {
+          return item.craftercms.id === args.modelId
+        });
 
-        // This is supposed to be before updating DOM, but query is returning both old and new elements
-        if (record) {
-          craftercms?.guest?.ElementRegistry.deregister(record.id);
-        }
-      });
+        this.items.hits[itemIndex][args.fieldId] = args.value;
+      },
+      deregisterItems: function() {
+        document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
+          const record = craftercms.guest.elementRegistry.fromElement(el);
+
+          // This is supposed to be before updating DOM, but query is returning both old and new elements
+          if (record) {
+            craftercms?.guest?.elementRegistry.deregister(record.id);
+          }
+        });
+      },
+      registerItems: function() {
+        document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
+          let //
+            path = element.getAttribute('data-craftercms-model-path'),
+            modelId = element.getAttribute('data-craftercms-model-id'),
+            fieldId = element.getAttribute('data-craftercms-field-id'),
+            index = element.getAttribute('data-craftercms-index'),
+            label = element.getAttribute('data-craftercms-label');
+
+          if ((index !== null) && (index !== undefined) && !index.includes('.')) {
+            // Unsure if somewhere, the system relies on the index being an integer/number.
+            // Affected inventory:
+            // - Guest.moveComponent() - string type handled
+            index = parseInt(index, 10);
+          }
+
+          craftercms?.guest?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
+        });
+      },
+      getICE
     },
     watch: {
       selectedItem: function() {
+        this.deregisterItems();
+
         this.$nextTick(function() {
           if (this.selectedItem) {
-            document.querySelectorAll('[data-craftercms-model-id]').forEach((element) => {
-              let //
-                path = element.getAttribute('data-craftercms-model-path'),
-                modelId = element.getAttribute('data-craftercms-model-id'),
-                fieldId = element.getAttribute('data-craftercms-field-id'),
-                index = element.getAttribute('data-craftercms-index'),
-                label = element.getAttribute('data-craftercms-label');
-
-              if ((index !== null) && (index !== undefined) && !index.includes('.')) {
-                // Unsure if somewhere, the system relies on the index being an integer/number.
-                // Affected inventory:
-                // - Guest.moveComponent() - string type handled
-                index = parseInt(index, 10);
-              }
-
-              craftercms?.guest?.ElementRegistry.register({ element, modelId, fieldId, index, label, path });
-            });
+            this.registerItems();
           }
         });
       }
+    },
+    mounted: function() {
+      const self = this;
+      $(function () {
+        const sub = craftercms.guest?.contentController?.operations$.subscribe((op) => {
+          if (op.type === 'UPDATE_FIELD_VALUE_OPERATION') {
+            self.updateItem(op.args);
+          }
+        });
+      })
     }
   });
 })(craftercms, rxjs);
