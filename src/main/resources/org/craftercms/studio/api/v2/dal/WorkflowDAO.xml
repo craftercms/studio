@@ -73,7 +73,7 @@
     </resultMap>
 
     <select id="getWorkflowEntryOpened" resultMap="WorkflowMap">
-        SELECT workflow.*, item.*  FROM workflow INNER JOIN item ON workflow.item_id = iitem.id INNER JOIN site ON item.site_id = site.id
+        SELECT workflow.*, item.*  FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
         WHERE site.site_id = #{siteId} AND site.deleted = 0
         AND item.path = #{path}
         AND workflow.state = #{stateOpened}

@@ -507,7 +507,6 @@
         <property name="contentServiceInternal" ref="contentServiceInternal"/>
         <property name="contentTypeServiceInternal" ref="contnetTypeServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
-        <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
         <property name="userService" ref="userService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />

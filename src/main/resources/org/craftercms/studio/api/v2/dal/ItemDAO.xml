@@ -473,7 +473,7 @@
         FROM item i1 inner join site s on i1.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
-        AND is1.path IN
+        AND i1.path IN
         <foreach item="path" index="index" collection="possibleParents"
                  open="(" separator="," close=")">
             #{path}
@@ -481,9 +481,9 @@
         AND (i1.state &amp; #{newMask}) > 0
         UNION
         SELECT i2.path as path
-        FROM (item i2 INNER JOIN site s2 s2 ON i2.site_id = s2.id
+        FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id
         WHERE s2.site_id = #{siteId}
-        AND TRIM(IFNULL(i2.previous_path)) &lt;&gt; ''
+        AND TRIM(IFNULL(i2.previous_path, '')) &lt;&gt; ''
         AND i2.path IN
         <foreach item="path" index="index" collection="possibleParents"
                  open="(" separator="," close=")">

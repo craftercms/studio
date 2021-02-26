@@ -28,20 +28,18 @@
         <result property="type" column="type"/>
     </resultMap>
 
-    <select id="getSoftDependenciesForList" parameterType="java.util.Map" resultType="java.util.Map">
+    <select id="getSoftDependenciesForList" resultType="java.util.Map">
         SELECT source_path, target_path
-        FROM (dependency cd INNER JOIN item_state co ON cd.target_path = co.path AND cd.site = co.site)
-        WHERE cd.site = #{site}
+        FROM (dependency cd INNER JOIN site s ON cd.site = s.site_id INNER JOIN item ci ON cd.target_path = ci.path AND s.id = ci.site_id)
+        WHERE s.site = #{site}
+        AND s.deleted = 0
         AND cd.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
             #{path}
         </foreach>
-        AND co.state IN
-        <foreach item="state" index="index" collection="editedStates"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
+        AND (ci.state &amp; #{modifiedMask}) > 0
+        AND (ci.state &amp; #{newMask}) = 0
         AND
         <foreach item="pattern" index="index" collection="regex"
                  open="(" separator=" OR " close=")">
@@ -52,32 +50,27 @@
     <select id="getHardDependenciesForList" parameterType="java.util.Map"
             resultType="java.util.Map">
         SELECT cd1.source_path, cd1.target_path
-        FROM (dependency cd1 INNER JOIN item_state co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
-        WHERE cd1.site = #{site}
+        FROM (dependency cd1 INNER JOIN site s1 ON cd1.site = s1.site_id INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id)
+        WHERE s1.site_id = #{site}
+        AND s1.deleted = 0
         AND cd1.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
             #{path}
         </foreach>
-        AND co1.state IN
-        <foreach item="state" index="index" collection="newStates"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
+        AND (ci1.state &amp; #{newMask}) > 0
         UNION
         SELECT cd2.source_path, cd2.target_path
-        FROM (dependency cd2 INNER JOIN item_state co2 ON cd2.target_path = co2.path AND cd2.site = co2.site)
-        WHERE cd2.site = #{site}
+        FROM (dependency cd2 INNER JOIN site s2 ON cd2.site = s2.site_id INNER JOIN item ci2 ON cd2.target_path = ci2.path AND s2.id = ci2.site_id)
+        WHERE s2.site_id = #{site}
+        AND s2.deleted = 0
         AND cd2.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
             #{path}
         </foreach>
-        AND co2.state IN
-        <foreach item="state" index="index" collection="editedStates"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
+        AND (ci2.state &amp; #{modifiedMask}) > 0
+        AND (ci2.state &amp; #{newMask}) = 0
         AND
         <foreach item="pattern" index="index" collection="regex"
                  open="(" separator=" OR " close=")">

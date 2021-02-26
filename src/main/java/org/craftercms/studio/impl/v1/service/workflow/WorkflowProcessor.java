@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class WorkflowProcessor {
@@ -77,7 +78,9 @@ public class WorkflowProcessor {
             try {
                 List<SubmitLifeCycleOperation> preSubmitOperations = workflowBatch.getPreSubmitOperations();
                 for (final SubmitLifeCycleOperation preSubmitOperation : preSubmitOperations) {
-                    preSubmitOperation.execute();
+                    if (Objects.nonNull(preSubmitOperation)) {
+                        preSubmitOperation.execute();
+                    }
                 }
                 logger.debug("[WORKFLOW] submitting " + workflowBatch.getPaths() + " to workflow");
                 if (!workflowBatch.getPaths().isEmpty()) {

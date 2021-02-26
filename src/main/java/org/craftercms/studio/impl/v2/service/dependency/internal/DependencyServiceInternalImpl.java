@@ -43,6 +43,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
@@ -107,9 +109,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private List<Map<String, String>> getSoftDependenciesForListFromDB(String site, Set<String> paths) {
-        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
         return dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
-                onlyEditStates);
+                MODIFIED_MASK, NEW_MASK);
     }
 
     protected List<String> getItemSpecificDependenciesPatterns() {
@@ -219,9 +220,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private List<Map<String, String>> calculateHardDependenciesForListFromDB(String site, Set<String> paths) {
-        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
         return dependencyDao.getHardDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
-                onlyEditStates, State.NEW_STATES);
+                MODIFIED_MASK, NEW_MASK);
     }
 
     @Override

@@ -26,6 +26,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_PACKAGE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE_OPENED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.WORKFLOW;
 
 public interface WorkflowDAO {
@@ -38,7 +39,7 @@ public interface WorkflowDAO {
      * @return
      */
     WorkflowItem getWorkflowEntryOpened(@Param(SITE_ID) String siteId, @Param(PATH) String path,
-                                    @Param(STATE) String stateOpened);
+                                    @Param(STATE_OPENED) String stateOpened);
 
     /**
      * Get workflow entry
