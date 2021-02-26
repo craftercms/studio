@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -309,15 +310,17 @@ public class PublishingManagerImpl implements PublishingManager {
                 int idx = helpPath.lastIndexOf(FILE_SEPARATOR);
                 String parentPath = helpPath.substring(0, idx) + FILE_SEPARATOR + getIndexFile();
                 Item it = itemServiceInternal.getItem(site, parentPath);
-                if (ItemState.isNew(it.getState()) || StringUtils.isNotEmpty(it.getPreviousPath())) {
-                    if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
-                        deploymentService.cancelWorkflow(site, parentPath);
-                        missingDependenciesPaths.add(parentPath);
-                        PublishRequest parentItem = createMissingItem(site, parentPath, item);
-                        DeploymentItemTO parentDeploymentItem = processItem(parentItem);
-                        mandatoryDependencies.add(parentDeploymentItem);
-                        mandatoryDependencies.addAll(
-                                processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
+                if (Objects.nonNull(it)) {
+                    if (ItemState.isNew(it.getState()) || StringUtils.isNotEmpty(it.getPreviousPath())) {
+                        if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
+                            deploymentService.cancelWorkflow(site, parentPath);
+                            missingDependenciesPaths.add(parentPath);
+                            PublishRequest parentItem = createMissingItem(site, parentPath, item);
+                            DeploymentItemTO parentDeploymentItem = processItem(parentItem);
+                            mandatoryDependencies.add(parentDeploymentItem);
+                            mandatoryDependencies.addAll(
+                                    processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
+                        }
                     }
                 }
             }

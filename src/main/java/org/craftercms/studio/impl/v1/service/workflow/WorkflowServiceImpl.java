@@ -652,8 +652,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                         + "], site " + site, e);
             }
         }
-        workflowServiceInternal.deleteWorkflowEntries(site, paths);
-        itemServiceInternal.updateStateBitsBulk(site, paths, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
+        if (CollectionUtils.isNotEmpty(paths)) {
+            workflowServiceInternal.deleteWorkflowEntries(site, paths);
+            itemServiceInternal.updateStateBitsBulk(site, paths, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
+        }
     }
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceLayerException {
