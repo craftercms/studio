@@ -275,17 +275,19 @@ public class DeploymentServiceImpl implements DeploymentService {
                         newItems.add(item);
                     }
 
+
+                    User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
+                    Workflow workflow = new Workflow();
+                    workflow.setItemId(it.getId());
+                    workflow.setState(STATE_APPROVED);
+                    workflow.setTargetEnvironment(environment);
                     if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
-                        User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
-                        Workflow workflow = new Workflow();
-                        workflow.setItemId(it.getId());
-                        workflow.setState(STATE_APPROVED);
-                        workflow.setTargetEnvironment(environment);
                         workflow.setSchedule(scheduledDate);
-                        workflow.setReviewerComment(submissionComment);
-                        workflow.setReviewerId(reviewer.getId());
-                        workflowServiceInternal.insertWorkflow(workflow);
                     }
+                    workflow.setReviewerComment(submissionComment);
+                    workflow.setReviewerId(reviewer.getId());
+                    workflow.setPublishingPackageId(packageId);
+                    workflowServiceInternal.insertWorkflow(workflow);
                 }
             }
         }

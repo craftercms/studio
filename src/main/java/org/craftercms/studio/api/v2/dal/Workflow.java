@@ -29,9 +29,9 @@ public class Workflow {
     private long itemId;
     private String targetEnvironment;
     private String state;
-    private long submitterId;
+    private Long submitterId;
     private String submitterComment;
-    private long reviewerId;
+    private Long reviewerId;
     private String reviewerComment;
     private int notifySubmitter;
     private ZonedDateTime schedule;
@@ -69,11 +69,11 @@ public class Workflow {
         this.state = state;
     }
 
-    public long getSubmitterId() {
+    public Long getSubmitterId() {
         return submitterId;
     }
 
-    public void setSubmitterId(long submitterId) {
+    public void setSubmitterId(Long submitterId) {
         this.submitterId = submitterId;
     }
 
@@ -85,11 +85,11 @@ public class Workflow {
         this.submitterComment = submitterComment;
     }
 
-    public long getReviewerId() {
+    public Long getReviewerId() {
         return reviewerId;
     }
 
-    public void setReviewerId(long reviewerId) {
+    public void setReviewerId(Long reviewerId) {
         this.reviewerId = reviewerId;
     }
 

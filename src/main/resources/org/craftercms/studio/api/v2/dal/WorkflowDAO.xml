@@ -98,6 +98,8 @@
     <delete id="deleteWorkflowEntryById">
         DELETE FROM workflow WHERE id = #{id}
     </delete>
+
+
     <delete id="deleteWorkflowEntry">
         DELETE FROM workflow WHERE id IN
         (SELECT id FROM  workflow w INNER JOIN item i ON w.item_id = i.id INNER JOIN site s ON i.site_id = s.id
@@ -117,9 +119,11 @@
     </delete>
 
     <insert id="insertWorkflowEntry" parameterType="org.craftercms.studio.api.v2.dal.Workflow">
-        INSERT INTO workflow (item_id, target_environment, state, submitter_id, submitter_comment, notify_submitter, schedule)
+        INSERT INTO workflow (item_id, target_environment, state, submitter_id, submitter_comment, notify_submitter,
+                              schedule, publishing_package_id)
         VALUES (#{workflow.itemId}, #{workflow.targetEnvironment}, #{workflow.state}, #{workflow.submitterId},
-                #{workflow.submitterComment}, #{workflow.notifySubmitter}, #{workflow.schedule})
+                #{workflow.submitterComment}, #{workflow.notifySubmitter}, #{workflow.schedule},
+                #{workflow.publishingPackageId})
     </insert>
 
     <delete id="deleteWorkflowEntriesForSite">

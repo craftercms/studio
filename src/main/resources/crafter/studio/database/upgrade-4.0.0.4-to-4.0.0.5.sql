@@ -36,4 +36,4 @@ CREATE TABLE IF NOT EXISTS workflow
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
 
-UPDATE _meta SET version = '4.0.0.3' ;
+UPDATE _meta SET version = '4.0.0.5' ;

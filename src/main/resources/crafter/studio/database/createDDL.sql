@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.3', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.6', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -537,6 +537,7 @@ CREATE TABLE IF NOT EXISTS workflow
     `reviewer_comment`      TEXT            NULL,
     `schedule`              TIMESTAMP       NULL,
     `publishing_package_id` VARCHAR(50)     NULL,
+    `notify_submitter`      INT             NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     FOREIGN KEY `workflow_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
     FOREIGN KEY `workflow_ix_submitter`(`submitter_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
