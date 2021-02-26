@@ -6985,7 +6985,16 @@ components:
             properties:
               response:
                 $ref: '#/components/schemas/ApiResponse'
-  securitySchemes: {}
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    basicAuth:
+      type: http
+      scheme: basic
   links: {}
   callbacks: {}
-security: []
+security:
+  - jwtAuth: []
+  - basicAuth: []
