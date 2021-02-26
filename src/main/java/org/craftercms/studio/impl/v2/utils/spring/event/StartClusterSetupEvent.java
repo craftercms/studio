@@ -13,15 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.impl.v2.utils.spring.event;
 
-package org.craftercms.studio.api.v2.security;
+import org.springframework.context.ApplicationEvent;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+/**
+ * Event used to trigger all cluster related beans during bootstrap
+ *
+ * @author joseross
+ * @since 4.0
+ */
+public class StartClusterSetupEvent extends ApplicationEvent {
 
-public interface AvailableActionsResolver {
-
-    long getAvailableActions(String username, String site, String path)
-            throws ServiceLayerException, UserNotFoundException;
+    public StartClusterSetupEvent(Object source) {
+        super(source);
+    }
 
 }

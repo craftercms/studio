@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
@@ -94,13 +95,10 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PLUGIN_BASE_PATTERN;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
@@ -133,6 +131,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String translationConfig;
     private Cache<String, Object> configurationCache;
+    private List<CacheInvalidator<String, Object>> cacheInvalidators;
 
     @Override
     public Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException {
@@ -256,15 +255,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                                    String path, String environment, InputStream content)
             throws ServiceLayerException, UserNotFoundException {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
-        if (StringUtils.endsWithAny(path, FILE_SEPARATOR +
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME), FILE_SEPARATOR +
-                studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME))) {
-            securityServiceV2.invalidateAvailableActions(siteId);
-        }
         invalidateConfiguration(siteId, module, path, environment);
     }
 
-    protected String getCacheKey(String siteId, String module, String path, String environment) {
+    public String getCacheKey(String siteId, String module, String path, String environment) {
         if (isNotEmpty(siteId)) {
             String fullPath = null;
             if (isNotEmpty(environment)) {
@@ -467,14 +461,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
             throws ServiceLayerException {
         contentService.writeContent(EMPTY, path, validate(content, path));
-        if (StringUtils.endsWithAny(path, FILE_SEPARATOR +
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME) +
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME))) {
-            securityServiceV2.invalidateAvailableActions();
-        }
         String currentUser = securityService.getCurrentUser();
         generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
-        configurationCache.invalidate(path);
+        invalidateCache(path);
     }
 
     @Override
@@ -505,8 +494,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     public void invalidateConfiguration(String siteId, String module, String path, String environment) {
         var cacheKey = getCacheKey(siteId, module, path, environment);
-        logger.debug("INVALIDATING CACHE: {0}", cacheKey);
-        configurationCache.invalidate(cacheKey);
+        invalidateCache(cacheKey);
+    }
+
+    protected void invalidateCache(String key) {
+        logger.debug("Invalidating cache: {0}", key);
+        cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));
     }
 
     // Moved from SiteServiceImpl to be able to properly cache the object
@@ -663,4 +656,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
+    public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {
+        this.cacheInvalidators = cacheInvalidators;
+    }
+
 }

@@ -15,24 +15,27 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob;
 
+import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
-import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.engine.service.context.SiteContext;
-import org.craftercms.engine.util.config.profiles.ConfigurationProviderImpl;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
-import org.tuckey.web.filters.urlrewrite.Run;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
+import static com.rometools.utils.Strings.isNotEmpty;
+import static java.lang.String.join;
 import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
 
 /**
@@ -44,69 +47,77 @@ import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
 @SuppressWarnings("rawtypes")
 public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implements StudioBlobStoreResolver {
 
-    public static String CACHE_KEY_CONFIG = "blob-store-config";
-
     public static String CACHE_KEY_STORE = "blob-store";
 
     protected ContentRepository contentRepository;
 
-    protected CacheTemplate cacheTemplate;
+    protected Cache<String, Object> cache;
+
+    protected ConfigurationService configurationService;
+
+    protected StudioConfiguration studioConfiguration;
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public void setCacheTemplate(CacheTemplate cacheTemplate) {
-        this.cacheTemplate = cacheTemplate;
+    public void setCache(Cache<String, Object> cache) {
+        this.cache = cache;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    @Override
+    protected HierarchicalConfiguration getConfiguration(ConfigurationProvider provider) throws ConfigurationException {
+        var config = super.getConfiguration(provider);
+        if (config == null) {
+            config = new XMLConfiguration();
+        }
+        return config;
     }
 
     @Override
     public BlobStore getByPaths(String site, String... paths)
-            throws ServiceLayerException, ConfigurationException {
-        SiteContext context = SiteContext.getCurrent();
+            throws ServiceLayerException {
         logger.debug("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
         HierarchicalConfiguration config;
-        if (context != null) {
-            logger.debug("Checking cache for config");
-            config = cacheTemplate.getObject(context.getContext(),
-                    () -> {
-                        logger.debug("Config not found in cache");
-                        try {
-                            return getConfiguration(new ConfigurationProviderImpl(site));
-                        } catch (ConfigurationException e) {
-                            throw new RuntimeException("Error getting blob store configuration for site " + site, e);
-                        }
-                    }, CACHE_KEY_CONFIG, site);
-        } else {
-            // this happens in background jobs
-            logger.debug("No cache available");
-            config = getConfiguration(new ConfigurationProviderImpl(site));
-        }
-        if (config != null) {
-            String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
-            BlobStore blobStore;
-            if (context != null) {
-                logger.debug("Checking cache for blob store {}", storeId);
-                blobStore = cacheTemplate.getObject(context.getContext(), () -> {
-                    logger.debug("Blob store {} not found in cache", storeId);
-                    try {
+        try {
+            var cacheKey1 = configurationService.getCacheKey(site, configModule, configPath, getEnvironment());
+            config = (HierarchicalConfiguration) cache.get(cacheKey1, () -> {
+                logger.debug("Cache miss: {}", cacheKey1);
+                return getConfiguration(new ConfigurationProviderImpl(site));
+            });
+            if (!config.isEmpty()) {
+                String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
+                if (isNotEmpty(storeId)) {
+                    var cacheKey2 = join(":", site, CACHE_KEY_STORE, storeId);
+                    BlobStore blobStore = (BlobStore) cache.get(cacheKey2, () -> {
+                        logger.debug("Cache miss: {}", cacheKey2);
                         return getById(config, storeId);
-                    } catch (ConfigurationException e) {
-                        throw new RuntimeException("Error looking for blob store " + storeId, e);
+                    });
+                    // We have to compare each one to know if the exception should be thrown
+                    if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
+                        throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));
                     }
-                }, CACHE_KEY_STORE, site, storeId);
-            } else {
-                logger.debug("No cache available");
-                blobStore = getById(config, storeId);
+                    return blobStore;
+                } else {
+                    logger.debug("No blob store found in site {} for paths {}", site, paths);
+                }
             }
-
-            // We have to compare each one to know if the exception should be thrown
-            if (blobStore != null && !Stream.of(paths).allMatch(blobStore::isCompatible)) {
-                throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));
-            }
-            return blobStore;
+            return null;
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Error looking for blob store", e);
         }
-        return null;
+    }
+
+    protected String getEnvironment() {
+        return studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE);
     }
 
     /**

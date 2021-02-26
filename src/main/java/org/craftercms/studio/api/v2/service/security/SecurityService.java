@@ -35,17 +35,6 @@ public interface SecurityService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * invalidate cache of available actions for site
-     * @param site site identifier
-     */
-    void invalidateAvailableActions(String site);
-
-    /**
-     *
-     */
-    void invalidateAvailableActions();
-
-    /**
      * Get user permissions for given site
      * @param username user
      * @param groups groups that user belongs to

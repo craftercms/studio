@@ -147,6 +147,16 @@ public interface ConfigurationService {
     Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
 
     /**
+     * Builds the key for a given file
+     * @param siteId the id of the site
+     * @param module the module of the file
+     * @param path the path of the file
+     * @param environment the environment of the file
+     * @return the key for the file
+     */
+    String getCacheKey(String siteId, String module, String path, String environment);
+
+    /**
      * Invalidates the cache for the given file
      * @param siteId the id of the site
      * @param path the path of the file
