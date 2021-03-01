@@ -70,7 +70,8 @@
       ],
       selectedType: null,
       items: [],
-      selectedItem: null
+      selectedItem: null,
+      selectedItemNumUpdates: 0,
     },
     methods: {
       setType: function (type) {
@@ -108,6 +109,7 @@
       },
       setItem: function (item) {
         this.selectedItem = item;
+        this.selectedItemNumUpdates = 0;
       },
       updateItem: function(args) {
         const itemIndex = this.items.hits.findIndex(item => {
@@ -164,6 +166,7 @@
         const sub = craftercms.guest?.contentController?.operations$.subscribe((op) => {
           if (op.type === 'UPDATE_FIELD_VALUE_OPERATION') {
             self.updateItem(op.args);
+            self.selectedItemNumUpdates++;
           }
         });
       })

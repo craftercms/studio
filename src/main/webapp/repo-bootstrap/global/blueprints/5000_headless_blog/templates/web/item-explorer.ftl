@@ -69,7 +69,7 @@
           <h2 class="panel-title">Details</h2>
         </div>
         <div class="panel-body" v-bind="getICE(selectedItem)">
-          <table class="table">
+          <table class="table" :key="selectedItem.craftercms.id + '' + selectedItemNumUpdates">
             <thead>
             <tr>
               <th>Field</th>
