@@ -351,6 +351,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             workflow.setSchedule(scheduledDate);
         }
         workflow.setState(STATE_OPENED);
+        workflow.setTargetEnvironment(environment);
         workflowServiceInternal.insertWorkflow(workflow);
 
         // Item
