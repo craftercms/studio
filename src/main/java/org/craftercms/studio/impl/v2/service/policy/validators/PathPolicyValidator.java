@@ -43,10 +43,10 @@ public class PathPolicyValidator implements PolicyValidator {
         if (config.containsKey(CONFIG_KEY_SOURCE_REGEX)) {
             var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
             if (!action.getTarget().matches(sourceRegex)) {
-                var ex = new ValidationException("Path " + action.getTarget() + " is invalid");
+                String modifiedValue = null;
                 var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
                 if (targetRegex != null) {
-                    var modifiedValue = action.getTarget().replaceAll(sourceRegex, targetRegex);
+                    modifiedValue = action.getTarget().replaceAll(sourceRegex, targetRegex);
 
                     var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
                     if (isNotEmpty(caseTransform)) {
@@ -61,6 +61,15 @@ public class PathPolicyValidator implements PolicyValidator {
                                 logger.warn("Unsupported case transformation: {0}", caseTransform);
                         }
                     }
+
+                    // special case when creating the folder used in the configuration
+                    if (action.getTarget().equals(modifiedValue)) {
+                        return;
+                    }
+                }
+
+                var ex = new ValidationException("Path " + action.getTarget() + " is invalid");
+                if (isNotEmpty(modifiedValue)) {
                     ex.setModifiedValue(modifiedValue);
                 }
                 throw ex;
