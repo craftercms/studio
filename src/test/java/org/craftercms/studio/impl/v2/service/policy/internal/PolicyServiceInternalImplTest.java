@@ -76,6 +76,7 @@ public class PolicyServiceInternalImplTest {
     public static final String TYPE_RESTRICTED_FOLDER = "/static-assets/images";
     public static final String SIMPLE_PATH_RESTRICTED_FOLDER = "/static-assets/no-numbers";
     public static final String CASE_PATH_RESTRICTED_FOLDER = "/static-assets/only-lowercase";
+    public static final String REMOVE_PATH_RESTRICTED_FOLDER = "/static-assets/remove-numbers";
     public static final String CONTENT_TYPE_RESTRICTED_FOLDER = "/site/components/headers";
 
     @Mock
@@ -290,6 +291,23 @@ public class PolicyServiceInternalImplTest {
         checkSingleResult(results, true, CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
 
         action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+
+        results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, true);
+    }
+
+    @Test
+    public void removeNumbersPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+        var action = new Action();
+        action.setType(Type.CREATE);
+        action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+        var expectedFilename = DOC1_FILENAME.replaceAll("\\d", "");
+
+        var results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, true, REMOVE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
+
+        action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
 
         results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);
