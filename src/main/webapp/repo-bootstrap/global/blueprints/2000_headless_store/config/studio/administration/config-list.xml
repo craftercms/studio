@@ -37,7 +37,7 @@
     - samplePath: the path to a sample file to help the user update the file
 -->
 <config>
-    <version>12</version>
+    <version>13</version>
     <files>
         <file>
             <module>studio</module>
@@ -234,6 +234,13 @@
             <title>confTabSitePolicyConf</title>
             <description>confTabSitePolicyConfDesc</description>
             <samplePath>sample-site-policy-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>ui.xml</path>
+            <title>confTabUiConf</title>
+            <description>confTabUiConfDesc</description>
+            <samplePath>sample-ui.xml</samplePath>
         </file>
     </files>
 </config>
