@@ -182,11 +182,6 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
                 dest: configuration/samples/sample-ui.xml
             commitDetails: Add sample file for ui.xml
-      - currentVersion: 4.0.0.4
-        nextVersion: 4.0.0.5
-        operations:
-          - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.4-to-4.0.0.5.sql
       - currentVersion: 4.0.0.5
         nextVersion: 4.0.0.6
         operations:
@@ -195,8 +190,13 @@ pipelines:
       - currentVersion: 4.0.0.6
         nextVersion: 4.0.0.7
         operations:
-          - type: migrateWorkflowUpgrader
+          - type: dbScriptUpgrader
             filename: upgrade-4.0.0.6-to-4.0.0.7.sql
+      - currentVersion: 4.0.0.7
+        nextVersion: 4.0.0.8
+        operations:
+          - type: migrateWorkflowUpgrader
+            filename: upgrade-4.0.0.7-to-4.0.0.8.sql
             spName: migrateWorkflow
             clearExistingData: true
 
