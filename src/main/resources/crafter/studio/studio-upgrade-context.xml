@@ -142,6 +142,13 @@
         <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
+    <bean id="migrateWorkflowUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.db.MigrateWorkflowUpgradeOperation" >
+        <constructor-arg name="scriptFolder"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
+        <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
+    </bean>
+
     <bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.global.GlobalRepoUpgradeOperation">
         <property name="clusterGlobalRepoSyncTask" ref="studio.clockClusterGlobalRepoSync" />
