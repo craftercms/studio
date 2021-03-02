@@ -18,4 +18,6 @@ DROP TABLE IF EXISTS item_state ;
 
 DROP TABLE IF EXISTS item_metadata ;
 
+DROP PROCEDURE IF EXISTS migrateWorkflow ;
+
 UPDATE _meta SET version = '4.0.0.9' ;
