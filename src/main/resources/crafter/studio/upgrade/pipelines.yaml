@@ -177,6 +177,14 @@ pipelines:
       - currentVersion: 4.0.0.4
         nextVersion: 4.0.0.5
         operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                dest: configuration/samples/sample-ui.xml
+            commitDetails: Add sample file for ui.xml
+      - currentVersion: 4.0.0.4
+        nextVersion: 4.0.0.5
+        operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.4-to-4.0.0.5.sql
       - currentVersion: 4.0.0.5
@@ -258,7 +266,6 @@ configurations:
       # Add new versions as needed, starting on 7
       # versions:
 
-
   permission-mappings-config:
     module: studio
     path: permission-mappings-config.xml
@@ -292,7 +299,6 @@ configurations:
       # Add new versions as needed, starting on 2
       # versions:
 
-
   config-list:
     module: studio
     path: administration/config-list.xml
@@ -311,6 +317,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/3.2.x/config/config-list/config-list-v12.xslt
               commitDetails: Add site policy config
+        - currentVersion: 12
+          nextVersion: 13
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v13.xslt
+              commitDetails: Add ui config
 
   site-config-tools:
     module: studio

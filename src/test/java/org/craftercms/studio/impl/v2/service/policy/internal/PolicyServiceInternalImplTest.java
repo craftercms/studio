@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -314,6 +315,16 @@ public class PolicyServiceInternalImplTest {
     }
 
     @Test
+    public void createFolderPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+        var action = new Action();
+        action.setType(Type.CREATE);
+        action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER);
+
+        var results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResultNotModified(results);
+    }
+
+    @Test
     public void contentTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
         var action = new Action();
         action.setType(Type.CREATE);
@@ -393,6 +404,14 @@ public class PolicyServiceInternalImplTest {
         if (modified != null) {
             assertEquals(results.get(0).getModifiedValue(), modified);
         }
+    }
+
+    protected void checkSingleResultNotModified(List<ValidationResult> results) {
+        assertNotNull(results);
+        assertEquals(results.size(), 1);
+        assertNotNull(results.get(0));
+        assertTrue(results.get(0).isAllowed());
+        assertNull(results.get(0).getModifiedValue());
     }
 
     protected void checkMultipleResults(List<ValidationResult> results, boolean allAllowed) {
