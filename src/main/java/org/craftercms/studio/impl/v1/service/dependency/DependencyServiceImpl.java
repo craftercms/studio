@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
-import org.craftercms.studio.api.v1.dal.ItemStateMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -31,7 +30,6 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
@@ -40,6 +38,7 @@ import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -67,6 +66,8 @@ import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_ID_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.TARGET_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceImpl implements DependencyService {
@@ -74,16 +75,15 @@ public class DependencyServiceImpl implements DependencyService {
     private static final Logger logger = LoggerFactory.getLogger(DependencyServiceImpl.class);
 
     protected DependencyMapper dependencyMapper;
-    protected ItemStateMapper itemStateMapper;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
     protected ContentService contentService;
     protected DependencyResolver dependencyResolver;
     protected PlatformTransactionManager transactionManager;
-    protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
+    protected ItemDAO itemDao;
 
     @Override
     public Set<String> upsertDependencies(String site, String path)
@@ -621,13 +621,9 @@ public class DependencyServiceImpl implements DependencyService {
         Set<String> toRet = new HashSet<String>();
         Set<String> possibleParents = calculatePossibleParents(paths);
         if (!possibleParents.isEmpty()) {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put(ItemStateMapper.SITE_PARAM, site);
-            params.put(ItemStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
-            Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-            params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
-            params.put(ItemStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
-            List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
+            List<String> pp = new ArrayList<>();
+            pp.addAll(possibleParents);
+            List<String> result = itemDao.getMandatoryParentsForPublishing(site, pp, NEW_MASK, MODIFIED_MASK);
             toRet.addAll(result);
         }
         return toRet;
@@ -702,14 +698,6 @@ public class DependencyServiceImpl implements DependencyService {
         this.transactionManager = transactionManager;
     }
 
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
-    }
-
     public ContentRepository getContentRepository() {
         return contentRepository;
     }
@@ -734,19 +722,19 @@ public class DependencyServiceImpl implements DependencyService {
         this.dependencyMapper = dependencyMapper;
     }
 
-    public ItemStateMapper getItemStateMapper() {
-        return itemStateMapper;
-    }
-
-    public void setItemStateMapper(ItemStateMapper itemStateMapper) {
-        this.itemStateMapper = itemStateMapper;
-    }
-
     public org.craftercms.studio.api.v2.service.dependency.DependencyService getDependencyService() {
         return dependencyService;
     }
 
     public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService) {
         this.dependencyService = dependencyService;
+    }
+
+    public ItemDAO getItemDao() {
+        return itemDao;
+    }
+
+    public void setItemDao(ItemDAO itemDao) {
+        this.itemDao = itemDao;
     }
 }

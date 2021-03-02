@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -54,6 +54,7 @@ public class Item {
         public static final String PARENT_ID = "parentId";
         public static final String COMMIT_ID = "commitId";
         public static final String AVAILABLE_ACTIONS = "availableActions";
+        public static final String PREVIOUS_PATH = "previousPath";
     }
 
     private static final Logger logger = LoggerFactory.getLogger(Item.class);
@@ -84,6 +85,7 @@ public class Item {
     private Long parentId = null;
     private String commitId;
     private long availableActions;
+    private String previousPath;
 
     public Item() { }
 
@@ -114,6 +116,7 @@ public class Item {
         parentId = builder.parentId;
         commitId = builder.commitId;
         availableActions = builder.availableActions;
+        previousPath = builder.previousPath;
     }
 
     public long getId() {
@@ -326,6 +329,14 @@ public class Item {
         this.availableActions = availableActions;
     }
 
+    public String getPreviousPath() {
+        return previousPath;
+    }
+
+    public void setPreviousPath(String previousPath) {
+        this.previousPath = previousPath;
+    }
+
     public void populateProperties(Map<String, Object> properties) {
         properties.forEach((propertyName, value) -> {
             PropertyDescriptor pd;
@@ -420,6 +431,8 @@ public class Item {
                             break;
                         case Properties.AVAILABLE_ACTIONS:
                             setAvailableActions((Long) value);
+                        case Properties.PREVIOUS_PATH:
+                            setPreviousPath((String) value);
                     }
                 });
     }
@@ -451,6 +464,7 @@ public class Item {
         private Long parentId = null;
         private String commitId;
         private Long availableActions;
+        private String previousPath;
 
         public Builder() { }
 
@@ -481,6 +495,7 @@ public class Item {
             clone.parentId = item.parentId;
             clone.commitId = item.commitId;
             clone.availableActions = item.availableActions;
+            clone.previousPath = item.previousPath;
             return clone;
         }
 
@@ -608,6 +623,11 @@ public class Item {
 
         public Builder withCommitId(String commitId) {
             this.commitId = commitId;
+            return this;
+        }
+
+        public Builder withPreviousPath(String previousPath) {
+            this.previousPath = previousPath;
             return this;
         }
 

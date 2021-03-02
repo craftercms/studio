@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +59,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
@@ -79,7 +77,6 @@ import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsExcepti
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -87,13 +84,9 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.content.ImportService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.objectstate.State;
-import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -112,6 +105,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -119,6 +113,7 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
+import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -155,8 +150,6 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
@@ -180,13 +173,11 @@ public class SiteServiceImpl implements SiteService {
     protected SiteServiceDAL _siteServiceDAL;
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
-    protected ContentRepository contentRepository;
-    protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
-    protected ObjectStateService objectStateService;
+    protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepository;
+    protected ContentRepository contentRepositoryV2;
     protected DependencyService dependencyService;
     protected SecurityService securityService;
     protected DeploymentService deploymentService;
-    protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected ContentTypeService contentTypeService;
     protected ImportService importService;
@@ -206,6 +197,7 @@ public class SiteServiceImpl implements SiteService {
     protected StudioClusterUtils studioClusterUtils;
     protected ClusterDAO clusterDao;
     protected UserDAO userDao;
+    protected WorkflowServiceInternal workflowServiceInternal;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -218,7 +210,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean writeConfiguration(@ValidateStringParam(name = "site") String site,
                                       @ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         // Write site configuration
         String operation = OPERATION_UPDATE;
         if (!contentRepository.contentExists(site, path)) {
@@ -241,21 +233,10 @@ public class SiteServiceImpl implements SiteService {
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         auditLog.setPrimaryTargetValue(path);
         auditServiceInternal.insertAuditLog(auditLog);
-        objectStateService.transition(site, path, TransitionEvent.SAVE);
-        if (!objectMetadataManager.metadataExist(site, path)) {
-            objectMetadataManager.insertNewObjectMetadata(site, path);
-        }
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ItemMetadata.PROP_NAME, FilenameUtils.getName(path));
-        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        properties.put(ItemMetadata.PROP_MODIFIER, user);
-        objectMetadataManager.setObjectMetadata(site, path, properties);
-
-        itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+        itemServiceInternal.persistItemAfterWrite(site, path, commitId, user, Optional.of(true));
 
         if (commitId != null) {
-            objectMetadataManager.updateCommitId(site, path, commitId);
             contentRepositoryV2.insertGitLog(site, commitId, 1);
         }
 
@@ -424,16 +405,6 @@ public class SiteServiceImpl implements SiteService {
                     if (v.length() > 1) {
                         path = v;
                     }
-                    objectStateService.insertNewEntry(siteId, path);
-                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
-                    Map<String, Object> properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, siteId);
-                    properties.put(ItemMetadata.PROP_PATH, path);
-                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
-                    properties.put(ItemMetadata.PROP_MODIFIED, now);
-                    properties.put(ItemMetadata.PROP_CREATOR, creator);
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
-                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
                     extractDependenciesForItem(siteId, path);
 
                     // Item
@@ -468,8 +439,6 @@ public class SiteServiceImpl implements SiteService {
                     }
 
                 });
-
-                objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
                 contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
                 updateLastCommitId(siteId, lastCommitId);
@@ -563,35 +532,6 @@ public class SiteServiceImpl implements SiteService {
         InputStream contentToWrite = IOUtils.toInputStream(contentAsString, UTF_8);
 
         contentRepository.writeContent(site, path, contentToWrite);
-    }
-
-    protected void createObjectStatesforNewSite(String site) {
-        createObjectStateNewSiteObjectFolder(site, FILE_SEPARATOR);
-    }
-
-    protected void createObjectStateNewSiteObjectFolder(String site, String path) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
-        for (RepositoryItem child : children) {
-            if (child.isFolder) {
-                createObjectStateNewSiteObjectFolder(site, child.path + FILE_SEPARATOR + child.name);
-            } else {
-                objectStateService.insertNewEntry(site, child.path + FILE_SEPARATOR + child.name);
-            }
-        }
-    }
-
-    protected void createObjectMetadataNewSiteObjectFolder(String site, String path, String lastCommitId) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
-        for (RepositoryItem child : children) {
-            if (child.isFolder) {
-                createObjectMetadataNewSiteObjectFolder(site, child.path + FILE_SEPARATOR + child.name,
-                        lastCommitId);
-            } else {
-                objectMetadataManager.insertNewObjectMetadata(site, child.path + FILE_SEPARATOR + child.name);
-                objectMetadataManager.updateCommitId(site, child.path + FILE_SEPARATOR + child.name,
-                        lastCommitId);
-            }
-        }
     }
 
     private void addDefaultGroupsForNewSite(String siteId) {
@@ -792,16 +732,6 @@ public class SiteServiceImpl implements SiteService {
                     if (v.length() > 1) {
                         path = v;
                     }
-                    objectStateService.insertNewEntry(siteId, path);
-                    objectMetadataManager.insertNewObjectMetadata(siteId, path);
-                    Map<String, Object> properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, siteId);
-                    properties.put(ItemMetadata.PROP_PATH, path);
-                    properties.put(ItemMetadata.PROP_MODIFIER, creator);
-                    properties.put(ItemMetadata.PROP_MODIFIED, now);
-                    properties.put(ItemMetadata.PROP_CREATOR, creator);
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
-                    objectMetadataManager.setObjectMetadata(siteId, path, properties);
                     extractDependenciesForItem(siteId, path);
 
                     // Item
@@ -835,8 +765,6 @@ public class SiteServiceImpl implements SiteService {
                         logger.error("Unexpected error during creation of items", e);
                     }
                 });
-
-                objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
                 updateLastCommitId(siteId, lastCommitId);
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
@@ -1004,16 +932,6 @@ public class SiteServiceImpl implements SiteService {
                         if (v.length() > 1) {
                             path = v;
                         }
-                        objectStateService.insertNewEntry(siteId, path);
-                        objectMetadataManager.insertNewObjectMetadata(siteId, path);
-                        Map<String, Object> properties = new HashMap<String, Object>();
-                        properties.put(ItemMetadata.PROP_SITE, siteId);
-                        properties.put(ItemMetadata.PROP_PATH, path);
-                        properties.put(ItemMetadata.PROP_MODIFIER, creator);
-                        properties.put(ItemMetadata.PROP_MODIFIED, now);
-                        properties.put(ItemMetadata.PROP_CREATOR, creator);
-                        properties.put(ItemMetadata.PROP_COMMIT_ID, lastCommitId);
-                        objectMetadataManager.setObjectMetadata(siteId, path, properties);
                         extractDependenciesForItem(siteId, path);
 
                         // Item
@@ -1047,8 +965,6 @@ public class SiteServiceImpl implements SiteService {
                             logger.error("Unexpected error during creation of items", e);
                         }
                     });
-
-                    objectStateService.setStateForSiteContent(siteId, State.NEW_UNPUBLISHED_UNLOCKED);
 
                     contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
                     updateLastCommitId(siteId, lastCommitId);
@@ -1131,13 +1047,12 @@ public class SiteServiceImpl implements SiteService {
             // delete database records
             logger.debug("Deleting database records");
             SiteFeed siteFeed = getSite(siteId);
+            workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
             siteFeedMapper.deleteSite(siteId);
             userDao.deleteUserPropertiesBySiteId(siteFeed.getId());
             dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
-            objectStateService.deleteObjectStatesForSite(siteId);
-            objectMetadataManager.deleteObjectMetadataForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
             contentRepository.deleteGitLogForSite(siteId);
             contentRepository.removeRemoteRepositoriesForSite(siteId);
@@ -1363,100 +1278,19 @@ public class SiteServiceImpl implements SiteService {
 
         for (RepoOperation repoOperation : repoOperationsDelta) {
             Map<String, Object> properties;
-            ItemMetadata metadata;
             String lastEditCommitId;
             userObj = userServiceInternal.getUserByGitName(repoOperation.getAuthor());
             switch (repoOperation.getAction()) {
                 case CREATE:
                 case COPY:
-                    org.craftercms.studio.api.v1.dal.ItemState state =
-                            objectStateService.getObjectState(site, repoOperation.getPath(), false);
-
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-                    } else {
-                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
-                    }
-                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
-                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
-                    if (state == null) {
-                        logger.debug("Insert item state for site: " + site + " path: " + repoOperation.getPath());
-                        objectStateService.insertNewEntry(site, repoOperation.getPath());
-                    } else {
-                        logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
-                        // If state already exists (renamed item with only case change) and path in the state
-                        // table is equal except for the case, then update item state table with new path value
-                        // (DB by default is case insensitive)
-                        if (StringUtils.equalsIgnoreCase(state.getPath(), repoOperation.getPath()) &&
-                                !StringUtils.equals(state.getPath(), repoOperation.getPath())) {
-                            objectStateService.updateObjectPath(site, state.getPath(), repoOperation.getPath());
-                        }
-                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
-                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-                        }
-                    }
-
-                    logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
-                    if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
-                        properties = new HashMap<String, Object>();
-                        properties.put(ItemMetadata.PROP_SITE, site);
-                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                        properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-                    }
-                    logger.debug("Extract dependencies for site: " + site + " path: " +
-                            repoOperation.getPath());
-                    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-
-                    // Item
-                    itemServiceInternal.persistItemAfterWrite(site, repoOperation.getPath(), userObj.getUsername(),
-                            repoOperation.getCommitId(), Optional.empty());
-                    break;
-
                 case UPDATE:
-                    logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-                    } else {
-                        objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
-                    }
-                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
-                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
-
-                    if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
-                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-                    }
-
-                    logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-                    }
-                    metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
-                    if (!StringUtils.equals(metadata.getCommitId(), repoOperation.getCommitId())) {
-                        properties = new HashMap<String, Object>();
-                        properties.put(ItemMetadata.PROP_SITE, site);
-                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                        properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                        objectMetadataManager.setObjectMetadata(site, repoOperation.getPath(), properties);
-                    }
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-
-                    // Item
-                    // TODO: Replace with API 2
                     itemServiceInternal.persistItemAfterWrite(site, repoOperation.getPath(), userObj.getUsername(),
                             repoOperation.getCommitId(), Optional.empty());
                     break;
 
                 case DELETE:
-                    logger.debug("Delete item state for site: " + site + " path: " + repoOperation.getPath());
-                    objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
-                    logger.debug("Delete item metadata for site: " + site + " path: " + repoOperation.getPath());
-                    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
                     logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                     try {
                         dependencyService.deleteItemDependencies(site, repoOperation.getPath());
@@ -1464,96 +1298,10 @@ public class SiteServiceImpl implements SiteService {
                         logger.error("Error deleting dependencies for site " + site + " file: " +
                                 repoOperation.getPath(), e);
                     }
+                    itemServiceInternal.deleteItem(site, repoOperation.getPath());
                     break;
 
                 case MOVE:
-                    org.craftercms.studio.api.v1.dal.ItemState stateRename =
-                            objectStateService.getObjectState(site, repoOperation.getPath(), false);
-                    logger.debug("Set item state for site: " + site + " path: " + repoOperation.getMoveToPath());
-                    if (stateRename == null) {
-                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
-                        } else {
-                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(),
-                                    repoOperation.getMoveToPath());
-                        }
-                        metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
-                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
-                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
-                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
-                        }
-                    } else {
-                        objectStateService.updateObjectPath(site, repoOperation.getPath(),
-                                repoOperation.getMoveToPath());
-                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
-                        } else {
-                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(),
-                                    repoOperation.getMoveToPath());
-                        }
-                        metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
-                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
-                        if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
-                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
-                        }
-                    }
-
-                    logger.debug("Set item metadata for site: " + site + " path: " +
-                            repoOperation.getMoveToPath());
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
-                        } else {
-                            if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-                                // set renamed and old path
-                                properties = new HashMap<String, Object>();
-                                properties.put(ItemMetadata.PROP_SITE, site);
-                                properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-                                properties.put(ItemMetadata.PROP_RENAMED, 1);
-                                properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
-                                properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                                properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                                properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(),
-                                        properties);
-                            }
-                        }
-                    } else {
-                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-                            // preform move: update path, set renamed, set old url
-                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(),
-                                    repoOperation.getMoveToPath());
-                            properties = new HashMap<String, Object>();
-                            properties.put(ItemMetadata.PROP_SITE, site);
-                            properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-                            properties.put(ItemMetadata.PROP_RENAMED, 1);
-                            properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
-                            properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                            properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                            objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-                        } else {
-                            // if not already renamed set renamed and old url
-                            if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-                                // set renamed and old path
-                                properties = new HashMap<String, Object>();
-                                properties.put(ItemMetadata.PROP_SITE, site);
-                                properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-                                properties.put(ItemMetadata.PROP_RENAMED, 1);
-                                properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
-                                properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                                properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
-                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(),
-                                        properties);
-                            }
-                            if (!StringUtils.equalsIgnoreCase(repoOperation.getPath(),
-                                    repoOperation.getMoveToPath())) {
-                                objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
-                            }
-                        }
-                    }
-
-                    // Item
-                    // TODO: API 2 goes here
                     itemServiceInternal.moveItem(site, repoOperation.getPath(), repoOperation.getMoveToPath());
                     itemServiceInternal.persistItemAfterWrite(site, repoOperation.getMoveToPath(),
                             userObj.getUsername(), repoOperation.getCommitId(), Optional.empty());
@@ -1992,20 +1740,12 @@ public class SiteServiceImpl implements SiteService {
         this.contentService = contentService;
     }
 
-    public ContentRepository getContenetRepository() {
+    public org.craftercms.studio.api.v1.repository.ContentRepository getContentRepository() {
         return contentRepository;
     }
 
-    public void setContentRepository(ContentRepository repo) {
+    public void setContentRepository(org.craftercms.studio.api.v1.repository.ContentRepository repo) {
         contentRepository = repo;
-    }
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
     }
 
     public DependencyService getDependencyService() {
@@ -2030,14 +1770,6 @@ public class SiteServiceImpl implements SiteService {
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
-    }
-
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
     }
 
     public DmPageNavigationOrderService getDmPageNavigationOrderService() {
@@ -2164,12 +1896,11 @@ public class SiteServiceImpl implements SiteService {
         this.configurationService = configurationService;
     }
 
-    public org.craftercms.studio.api.v2.repository.ContentRepository getContentRepositoryV2() {
+    public ContentRepository getContentRepositoryV2() {
         return contentRepositoryV2;
     }
 
-    public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository
-                                               contentRepositoryV2) {
+    public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
     }
 
@@ -2205,4 +1936,11 @@ public class SiteServiceImpl implements SiteService {
         this.configurationPatterns = configurationPatterns;
     }
 
+    public WorkflowServiceInternal getWorkflowServiceInternal() {
+        return workflowServiceInternal;
+    }
+
+    public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
+        this.workflowServiceInternal = workflowServiceInternal;
+    }
 }

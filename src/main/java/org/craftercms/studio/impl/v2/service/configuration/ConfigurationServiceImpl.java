@@ -31,14 +31,12 @@ import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -46,6 +44,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -66,12 +65,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
@@ -88,25 +86,18 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
-import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_LOCK_OWNER;
-import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIED;
-import static org.craftercms.studio.api.v1.dal.ItemMetadata.PROP_MODIFIER;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PLUGIN_BASE_PATTERN;
@@ -131,13 +122,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private AuditServiceInternal auditServiceInternal;
     private SiteService siteService;
     private SecurityService securityService;
-    private ObjectMetadataManager objectMetadataManager;
     private ServicesConfig servicesConfig;
-    private ObjectStateService objectStateService;
     private EventService eventService;
     private EncryptionAwareConfigurationReader configurationReader;
     private ItemServiceInternal itemServiceInternal;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
+    private ContentRepository contentRepository;
 
     private String translationConfig;
     private Cache<String, Object> configurationCache;
@@ -178,27 +168,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
 
         return roleMappings;
-    }
-
-
-    private String getSiteRoleMappingsConfigPath(String siteId) {
-        return UrlUtils.concat(getSiteConfigPath(siteId), getSiteRoleMappingsConfigFileName());
-    }
-
-    private String getSiteConfigPath(String siteId) {
-        String siteConfigPath = EMPTY;
-        if (!isEmpty(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE))) {
-            siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH)
-                    .replaceAll(PATTERN_ENVIRONMENT, studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            if (!contentService.contentExists(siteId,siteConfigPath + FILE_SEPARATOR + getSiteRoleMappingsConfigFileName())) {
-                siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH)
-                        .replaceFirst(PATTERN_SITE, siteId);
-            }
-        } else {
-            siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH)
-                    .replaceFirst(PATTERN_SITE, siteId);
-        }
-        return siteConfigPath;
     }
 
     private String getSiteRoleMappingsConfigFileName() {
@@ -284,7 +253,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @HasPermission(type = DefaultPermission.class, action = "write_configuration")
     public void writeConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
                                    String path, String environment, InputStream content)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
         invalidateConfiguration(siteId, module, path, environment);
     }
@@ -352,14 +321,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private void writeDefaultConfiguration(String siteId, String module, String path, InputStream content)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                 .replaceAll(PATTERN_MODULE, module);
         String configPath = Paths.get(configBasePath, path).toString();
         contentService.writeContent(siteId, configPath, content);
         String currentUser = securityService.getCurrentUser();
-        objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
-        updateMetadata(siteId, configPath, currentUser);
+        itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
+                contentRepository.getRepoLastCommitId(siteId), Optional.of(true));
         generateAuditLog(siteId, configPath, currentUser);
 
         PreviewEventContext context = new PreviewEventContext();
@@ -408,7 +377,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
-                                               InputStream content) throws ServiceLayerException {
+                                               InputStream content)
+            throws ServiceLayerException, UserNotFoundException {
         if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
@@ -418,8 +388,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 String configPath = Paths.get(configBasePath, path).toString();
                 contentService.writeContent(siteId, configPath, content);
                 String currentUser = securityService.getCurrentUser();
-                objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
-                updateMetadata(siteId, configPath, currentUser);
+                itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
+                        contentRepository.getRepoLastCommitId(siteId), Optional.of(true));
                 generateAuditLog(siteId, configPath, currentUser);
             } else {
                 writeDefaultConfiguration(siteId, module, path, content);
@@ -427,19 +397,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         } else {
             writeDefaultConfiguration(siteId, module, path, content);
         }
-    }
-
-    private void updateMetadata(String siteId, String path, String user) {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PROP_MODIFIER, user);
-        properties.put(PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        properties.put(PROP_LOCK_OWNER, EMPTY);
-        if (!objectMetadataManager.metadataExist(siteId, path)) {
-            objectMetadataManager.insertNewObjectMetadata(siteId, path);
-        }
-        objectMetadataManager.setObjectMetadata(siteId, path, properties);
-
-        itemServiceInternal.updateStateBits(siteId, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
     }
 
     private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
@@ -664,16 +621,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         this.securityService = securityService;
     }
 
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
     }
 
     public void setEventService(EventService eventService) {
@@ -700,6 +649,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         this.configurationCache = configurationCache;
     }
 
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
     public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {
         this.cacheInvalidators = cacheInvalidators;
     }

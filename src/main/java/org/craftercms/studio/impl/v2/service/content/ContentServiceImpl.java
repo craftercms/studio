@@ -29,7 +29,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
@@ -66,7 +65,6 @@ public class ContentServiceImpl implements ContentService {
     private ContentTypeServiceInternal contentTypeServiceInternal;
     private DependencyServiceInternal dependencyServiceInternal;
     private DeploymentService deploymentService;
-    private ObjectStateService objectStateService;
     private UserService userService;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
@@ -110,13 +108,11 @@ public class ContentServiceImpl implements ContentService {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.addAll(getChildItems(siteId, path));
         contentToDelete.add(path);
-        objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
 
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
                 ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
-        objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
@@ -131,12 +127,10 @@ public class ContentServiceImpl implements ContentService {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.addAll(getChildItems(siteId, paths));
         contentToDelete.addAll(paths);
-        objectStateService.setSystemProcessingBulk(siteId, contentToDelete, true);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
                 ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
-        objectStateService.setSystemProcessingBulk(siteId, contentToDelete, false);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
@@ -253,14 +247,6 @@ public class ContentServiceImpl implements ContentService {
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
-    }
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
     }
 
     public UserService getUserService() {

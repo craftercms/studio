@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,7 +25,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -35,22 +34,24 @@ import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -64,6 +65,8 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -82,20 +85,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_DEPLOYED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
-import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED;
-import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED;
-import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE;
-import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
@@ -112,8 +114,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DependencyService dependencyService;
     protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
-    protected ObjectStateService objectStateService;
-    protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected DmPublishService dmPublishService;
     protected SecurityService securityService;
@@ -125,6 +125,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected AuditServiceInternal auditServiceInternal;
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
     protected ItemServiceInternal itemServiceInternal;
+    protected WorkflowServiceInternal workflowServiceInternal;
+    protected UserServiceInternal userServiceInternal;
 
     @Override
     @ValidateParams
@@ -132,11 +134,10 @@ public class DeploymentServiceImpl implements DeploymentService {
                        @ValidateStringParam(name = "environment") String environment, List<String> paths,
                        ZonedDateTime scheduledDate, @ValidateStringParam(name = "approver") String approver,
                        @ValidateStringParam(name = "submissionComment") String submissionComment,
-                       final boolean scheduleDateNow) throws DeploymentException {
+                       final boolean scheduleDateNow)
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
 
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
-            objectStateService.transitionBulk(site, paths, SUBMIT_WITHOUT_WORKFLOW_SCHEDULED,
-                    NEW_SUBMITTED_NO_WF_SCHEDULED);
             itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
         List<String> newPaths = new ArrayList<String>();
@@ -146,14 +147,15 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            boolean isFolder = contentRepository.isFolder(site, p);
+            Item item = itemServiceInternal.getItem(site, p);
+            boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
             if (isFolder) {
                 logger.debug("Content item at path " + p + " for site " + site +
                         " is folder and will not be added to publishing queue.");
             } else {
-                if (objectStateService.isNew(site, p)) {
+                if (isNew(item.getState())) {
                     newPaths.add(p);
-                } else if (objectMetadataManager.isRenamed(site, p)) {
+                } else if (StringUtils.isNotEmpty(item.getPreviousPath())) {
                     movedPaths.add(p);
                 } else {
                     updatedPaths.add(p);
@@ -170,7 +172,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (PublishRequest item : items) {
             publishRequestMapper.insertItemForDeployment(item);
         }
-        objectStateService.setSystemProcessingBulk(site, paths, false);
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
 
         // We need to pick up this on Inserting , not on execution!
@@ -188,19 +189,19 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-    protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow) {
+    protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow)
+            throws ServiceLayerException, UserNotFoundException {
         for (PublishRequest listItem : itemList) {
-            ItemMetadata itemMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
-            if (itemMetadata != null) {
-                if (itemMetadata.getSendEmail() == 1) {
+            Workflow workflow = workflowServiceInternal.getWorkflowEntry(listItem.getSite(), listItem.getPath(),
+                    listItem.getPackageId());
+            if (workflow != null) {
+                if (workflow.getNotifySubmitter() == 1) {
                     // found the first item that needs to be sent
-                    notificationService.notifyContentApproval(listItem.getSite(),
-                        itemMetadata.getSubmittedBy(),
-                        getPathRelativeToSite(itemList),
-                        listItem.getUser(),
-                        // Null == now, anything else is scheduled
-                        scheduleDateNow?null:listItem.getScheduledDate(),
-                        Locale.ENGLISH);
+                    User submitter = userServiceInternal.getUserByIdOrUsername(workflow.getSubmitterId(), null);
+                    notificationService.notifyContentApproval(listItem.getSite(), submitter.getUsername(),
+                            getPathRelativeToSite(itemList), listItem.getUser(),
+                            // Null == now, anything else is scheduled
+                            scheduleDateNow ? null : listItem.getScheduledDate(), Locale.ENGLISH);
                     // no point in looking further, quit looping
                     break;
                 }
@@ -217,7 +218,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths,
-                                             ZonedDateTime scheduledDate, String approver, String submissionComment) {
+                                             ZonedDateTime scheduledDate, String approver, String submissionComment)
+            throws ServiceLayerException, UserNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>();
 
         String packageId = UUID.randomUUID().toString();
@@ -226,16 +228,16 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
                 PublishRequest item = new PublishRequest();
-                ItemMetadata metadata = objectMetadataManager.getProperties(site, path);
-                if (metadata != null) {
+                Item it = itemServiceInternal.getItem(site, path);
+                if (it != null) {
                     params = new HashMap<String, Object>();
                     params.put("site_id", site);
                     params.put("environment", environment);
                     params.put("state", PublishRequest.State.READY_FOR_LIVE);
                     params.put("path", path);
-                    params.put("commitId", metadata.getCommitId());
+                    params.put("commitId", it.getCommitId());
                     if (publishRequestMapper.checkItemQueued(params) > 0) {
-                        logger.info("Path " + path + " with commit ID " + metadata.getCommitId() +
+                        logger.info("Path " + path + " with commit ID " + it.getCommitId() +
                                 " already has queued publishing request for environment " + environment + " of site " +
                                 site + ". Adding another publishing request is skipped.");
                     } else {
@@ -246,11 +248,11 @@ public class DeploymentServiceImpl implements DeploymentService {
                         item.setScheduledDate(scheduledDate);
                         item.setState(PublishRequest.State.READY_FOR_LIVE);
                         item.setAction(action);
-                        if (metadata.getRenamed() > 0) {
-                            String oldPath = metadata.getOldUrl();
+                        if (StringUtils.isNotEmpty(it.getPreviousPath())) {
+                            String oldPath = it.getPreviousPath();
                             item.setOldPath(oldPath);
                         }
-                        String commitId = metadata.getCommitId();
+                        String commitId = it.getCommitId();
                         if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
@@ -273,13 +275,19 @@ public class DeploymentServiceImpl implements DeploymentService {
                         newItems.add(item);
                     }
 
+
+                    User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
+                    Workflow workflow = new Workflow();
+                    workflow.setItemId(it.getId());
+                    workflow.setState(STATE_APPROVED);
+                    workflow.setTargetEnvironment(environment);
                     if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
-                        Map<String, Object> properties = new HashMap<>();
-                        properties.put(ItemMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
-                        properties.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, environment);
-                        properties.put(ItemMetadata.PROP_LAUNCH_DATE, scheduledDate);
-                        objectMetadataManager.setObjectMetadata(site, path, properties);
+                        workflow.setSchedule(scheduledDate);
                     }
+                    workflow.setReviewerComment(submissionComment);
+                    workflow.setReviewerId(reviewer.getId());
+                    workflow.setPublishingPackageId(packageId);
+                    workflowServiceInternal.insertWorkflow(workflow);
                 }
             }
         }
@@ -293,7 +301,6 @@ public class DeploymentServiceImpl implements DeploymentService {
                        String submissionComment)
             throws DeploymentException, SiteNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
-            objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
             itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
         Set<String> environments = getAllPublishedEnvironments(site);
@@ -304,7 +311,6 @@ public class DeploymentServiceImpl implements DeploymentService {
                 publishRequestMapper.insertItemForDeployment(item);
             }
         }
-        objectStateService.setSystemProcessingBulk(site, paths, false);
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
         String statusMessage = studioConfiguration
                 .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
@@ -326,7 +332,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
                 if (!contentItem.isFolder()) {
                     PublishRequest item = new PublishRequest();
-                    ItemMetadata metadata = objectMetadataManager.getProperties(site, path);
+                    Item it = itemServiceInternal.getItem(site, path);
                     item.setId(++CTED_AUTOINCREMENT);
                     item.setSite(site);
                     item.setEnvironment(environment);
@@ -334,12 +340,12 @@ public class DeploymentServiceImpl implements DeploymentService {
                     item.setScheduledDate(scheduledDate);
                     item.setState(PublishRequest.State.READY_FOR_LIVE);
                     item.setAction(PublishRequest.Action.DELETE);
-                    if (metadata != null) {
-                        if (metadata.getRenamed() > 0) {
-                            String oldPath = metadata.getOldUrl();
+                    if (it != null) {
+                        if (StringUtils.isNotEmpty(it.getPreviousPath())) {
+                            String oldPath = it.getPreviousPath();
                             item.setOldPath(oldPath);
                         }
-                        String commitId = metadata.getCommitId();
+                        String commitId = it.getCommitId();
                         if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
@@ -389,25 +395,23 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private void deleteFolder(String site, String path, String user) throws SiteNotFoundException {
         String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+        SiteFeed siteFeed = siteService.getSite(site);
         if (contentService.contentExists(site, path)) {
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
                 if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                     contentService.deleteContent(site, path, true, user);
-                    objectStateService.deleteObjectStatesForFolder(site, folderPath);
-                    objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
+                    itemServiceInternal.deleteItemForFolder(siteFeed.getId(), folderPath);
                     String parentPath = ContentUtils.getParentUrl(path);
                     deleteFolder(site, parentPath, user);
                 } else {
                     contentService.deleteContent(site, path, true, user);
-                    objectStateService.deleteObjectStatesForFolder(site, folderPath);
-                    objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
+                    itemServiceInternal.deleteItemForFolder(siteFeed.getId(), folderPath);
                 }
             }
         } else {
-            objectStateService.deleteObjectStatesForFolder(site, folderPath);
-            objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
+            itemServiceInternal.deleteItemForFolder(siteFeed.getId(), folderPath);
         }
     }
 
@@ -905,7 +909,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     public void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
                              String submissionComment)
-            throws ServiceLayerException, DeploymentException {
+            throws ServiceLayerException, DeploymentException, UserNotFoundException {
 
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -965,22 +969,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
-    }
-
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
     }
 
     public ContentRepository getContentRepository() {
@@ -1066,5 +1054,21 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public WorkflowServiceInternal getWorkflowServiceInternal() {
+        return workflowServiceInternal;
+    }
+
+    public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
+        this.workflowServiceInternal = workflowServiceInternal;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }

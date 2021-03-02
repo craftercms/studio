@@ -53,8 +53,6 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
         <property name="dependencyService" ref="studioDependencyService"/>
-        <property name="objectStateService" ref="cstudioObjectStateService" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
@@ -69,6 +67,7 @@
         <property name="userService" ref="userService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -78,11 +77,10 @@
         <property name="dependencyResolver" ref="studioDependencyResolver" />
         <property name="transactionManager" ref="transactionManager" />
         <property name="contentRepository" ref="contentRepository" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="itemStateMapper" ref="itemStateMapper" />
         <property name="dependencyMapper" ref="dependencyMapper" />
         <property name="dependencyService" ref="dependencyService" />
+        <property name="itemDao" ref="itemDao" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -102,11 +100,9 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dependencyService" ref="studioDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
@@ -131,6 +127,7 @@
         <property name="userDao" ref="userDAO"/>
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
+        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -138,7 +135,6 @@
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
@@ -151,16 +147,16 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="dependencyService" ref="studioDependencyService"/>
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -169,8 +165,6 @@
          <property name="dependencyService" ref="studioDependencyService" />
          <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
          <property name="siteService" ref="cstudioSiteServiceSimple" />
-         <property name="objectStateService" ref="cstudioObjectStateService" />
-         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
          <property name="contentRepository" ref="contentRepository"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="securityService" ref="cstudioSecurityService"/>
@@ -182,6 +176,8 @@
          <property name="auditServiceInternal" ref="auditServiceInternal" />
          <property name="contentRepositoryV2" ref="contentRepository" />
          <property name="itemServiceInternal" ref="itemServiceInternal" />
+         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+         <property name="userServiceInternal" ref="userServiceInternal" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -207,14 +203,6 @@
 
     <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
         <property name="dependencyService" ref="studioDependencyService" />
-    </bean>
-
-    <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
-          parent="cstudioRegistrableService">
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="itemStateMapper" ref="itemStateMapper" />
     </bean>
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
@@ -264,9 +252,8 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dependencyService" ref="studioDependencyService" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"
@@ -366,15 +353,14 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="eventService" ref="studioEventService" />
         <property name="configurationReader" ref="crafter.configurationReader"/>
         <property name="translationConfig"
                   value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="configurationCache" ref="configurationCache"/>
+        <property name="contentRepository" ref="gitContentRepositoryV2" />
         <property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
     </bean>
 
@@ -521,7 +507,6 @@
         <property name="contentServiceInternal" ref="contentServiceInternal"/>
         <property name="contentTypeServiceInternal" ref="contnetTypeServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
-        <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
         <property name="userService" ref="userService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
@@ -554,14 +539,12 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDao" ref="dependencyDao" />
-        <property name="itemStateMapper" ref="itemStateMapper" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">
         <property name="publishServiceInternal" ref="publishServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="objectStateService" ref="cstudioObjectStateService" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
@@ -593,11 +576,13 @@
         <property name="contentService" ref="cstudioContentService" />
     </bean>
 
-    <!-- ////////////////////////////////////// -->
-    <!--      Managers                          -->
-    <!-- ////////////////////////////////////// -->
-    <bean id="cstudioObjectMetadataManager" class="org.craftercms.studio.impl.v1.service.content.ObjectMetadataManagerImpl">
-        <property name="itemMetadataMapper" ref="itemMetadataMapper"/>
+    <bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">
+
+    </bean>
+
+    <bean id="studio.workflowServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
+        <property name="workflowDao" ref="workflowDao" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -878,10 +863,6 @@
     <!--         workflow                       -->
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioWorkflowProcessor" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor">
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
@@ -1121,9 +1102,7 @@
     <bean id="cstudioAssetDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.AssetDmContentProcessor">
         <property name="workflowService" ref="cstudioWorkflowService" />
         <property name="contentService" ref="cstudioContentService" />
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
@@ -1152,7 +1131,6 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
@@ -1219,17 +1197,16 @@
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioPublishingManager" class="org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="deploymentHistoryProvider" ref="contentRepository" />
         <property name="dependencyService" ref="studioDependencyService" />
         <property name="publishRequestMapper" ref="publishRequestMapper" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
     </bean>
 
     <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
@@ -1387,14 +1364,13 @@
     <bean id="studioRebuildRepositoryMetadata" class="org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="dependencyService" ref="studioDependencyService"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="taskExecutor" ref="studioTaskExecutor" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="publishRequestMapper" ref="publishRequestMapper" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="studioSyncDatabaseWithRepository" class="org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository">
@@ -1472,9 +1448,9 @@
     <!--              Entitlements              -->
     <!-- ////////////////////////////////////// -->
     <bean id="crafter.entitlementsProvider" class="org.craftercms.studio.impl.v1.entitlement.StudioEntitlementUsageProvider">
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

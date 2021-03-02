@@ -61,7 +61,8 @@ public interface SiteService {
 	 *
 	 * @throws ServiceLayerException general service error
 	 */
-    boolean writeConfiguration(String site, String path, InputStream content) throws ServiceLayerException;
+    boolean writeConfiguration(String site, String path, InputStream content)
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * write configuration content at the given path

@@ -43,7 +43,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -64,13 +63,9 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.objectstate.State;
-import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
@@ -91,9 +86,13 @@ import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
@@ -128,9 +127,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
-import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REVERT;
-import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE;
-import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -146,6 +142,11 @@ import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
+import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
+import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
+import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
@@ -165,10 +166,8 @@ public class ContentServiceImpl implements ContentService {
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
-    protected ObjectStateService objectStateService;
     protected DependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
-    protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
@@ -182,6 +181,7 @@ public class ContentServiceImpl implements ContentService {
     protected AuditServiceInternal auditServiceInternal;
     protected UserService userService;
     protected ItemServiceInternal itemServiceInternal;
+    protected WorkflowServiceInternal workflowServiceInternal;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -350,37 +350,19 @@ public class ContentServiceImpl implements ContentService {
             boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
 
             if (contentExists) {
-                org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, path);
-                if (itemState == null) {
-                    // This file is either new or someone created it outside of our system, we must create a state
-                    // for it
-                    ContentItemTO item = getContentItem(site, path, 0);
-                    objectStateService.insertNewEntry(site, item);
-                    itemState = objectStateService.getObjectState(site, path);
-                }
 
-                if (itemState != null) {
-
-                    if (itemState.getSystemProcessing() != 0) {
+                    if (itemServiceInternal.isSystemProcessing(site, path)) {
                         // TODO: SJ: Review and refactor/redo
                         logger.error("Error Content {0} is being processed (Object State is system "
                                 + "processing);", fileName);
                         throw new ServiceLayerException("Content " + fileName + " is in system processing, we can't write "
                                 + "it");
                     }
-
-                    objectStateService.setSystemProcessing(site, path, true);
                     itemServiceInternal.setSystemProcessing(site, path, true);
-                }
-                else {
-                    logger.error("the object state is still null even after attempting to create it for site {0} "
-                            + "path {1} fileName {2} contentType {3}"
-                            + ".", site, path, fileName, contentType);
-                }
+
             } else {
                 // Content does not exist; check for moved content and deleted content
-                if (objectStateService.deletedPathExists(site, path) ||
-                        objectMetadataManager.movedPathExists(site, path)) {
+                if (itemServiceInternal.previousPathExists(site, path)) {
                     throw new ServiceLayerException("Content " + path + " for site " + site + ", cannot be created " +
                             "because this name/URL was in use by another content item that has been moved or" +
                             " deleted by not yet published.");
@@ -408,7 +390,6 @@ public class ContentServiceImpl implements ContentService {
             processContent(id, input, true, params, chainID);
 
             // Item has been processed and persisted, set system processing state to off
-            objectStateService.setSystemProcessing(site, path, false);
             itemServiceInternal.setSystemProcessing(site, path, false);
 
             // TODO: SJ: The path sent from the UI is inconsistent, hence the acrobatics below. Fix in 2.7.x
@@ -423,20 +404,6 @@ public class ContentServiceImpl implements ContentService {
             // TODO: SJ: again? Why would we insert the item into objectStateService again?
             // TODO: SJ: Refactor for 2.7.x
             ContentItemTO itemTo = getContentItem(site, relativePath, 0);
-            if (itemTo != null) {
-                if (isSaveAndClose) {
-                    objectStateService.transition(site, itemTo, SAVE);
-                } else {
-                    objectStateService.transition(site, itemTo, SAVE_FOR_PREVIEW);
-                }
-
-                objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
-            } else {
-                // TODO: SJ: the line below doesn't make any sense, itemTo == null => insert? Investigate and fix in
-                // TODO: SJ: 2.7.x
-                objectStateService.insertNewEntry(site, itemTo);
-            }
-
             if (isSaveAndClose) {
                 itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_CLOSE_ON_MASK,
                         SAVE_AND_CLOSE_OFF_MASK);
@@ -454,8 +421,6 @@ public class ContentServiceImpl implements ContentService {
             logger.error("error writing content", e);
 
             // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
-            objectStateService.setSystemProcessing(site, relativePath, false);
-            objectStateService.setSystemProcessing(site, path, false);
             itemServiceInternal.setSystemProcessing(site, relativePath, false);
             itemServiceInternal.setSystemProcessing(site, path, false);
             throw e;
@@ -554,20 +519,15 @@ public class ContentServiceImpl implements ContentService {
             item = getContentItem(site, path);
 
             if (item != null) {
-                org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, path);
-                if (itemState != null) {
-                    if (itemState.getSystemProcessing() != 0) {
-                        logger.error(String.format("Error Content %s is being processed " +
-                                "(Object State is SYSTEM_PROCESSING);", assetName));
-                        throw new RuntimeException(String.format("Content \"%s\" is being processed", assetName));
-                    }
-                    objectStateService.setSystemProcessing(site, path, true);
-                    itemServiceInternal.setSystemProcessing(site, path, true);
+                if (itemServiceInternal.isSystemProcessing(site, path)) {
+                    logger.error(String.format("Error Content %s is being processed " +
+                            "(Object State is SYSTEM_PROCESSING);", assetName));
+                    throw new RuntimeException(String.format("Content \"%s\" is being processed", assetName));
                 }
+                itemServiceInternal.setSystemProcessing(site, path, true);
             }
 
-            if (objectStateService.deletedPathExists(site, path) ||
-                    objectMetadataManager.movedPathExists(site, path)) {
+            if (itemServiceInternal.previousPathExists(site, path)) {
                 throw new ServiceLayerException("Content " + path + " for site " + site + ", cannot be created because"
                     + " this name/URL was in use by another content item that has been moved or deleted by "
                     + "not yet published.");
@@ -580,13 +540,6 @@ public class ContentServiceImpl implements ContentService {
             item = getContentItem(site, path);
             item.setSize(assetInfoTO.getSize());
             item.setSizeUnit(assetInfoTO.getSizeUnit());
-            if (item != null) {
-                if (result.getCommitId() != null) {
-                    objectStateService.transition(site, item, SAVE);
-                } else {
-                    objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
-                }
-            }
             itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
             PreviewEventContext context = new PreviewEventContext();
@@ -606,7 +559,6 @@ public class ContentServiceImpl implements ContentService {
             return toRet;
         } finally {
             if (item != null) {
-                objectStateService.setSystemProcessing(site, path, false);
                 itemServiceInternal.setSystemProcessing(site, path, false);
             }
         }
@@ -625,11 +577,7 @@ public class ContentServiceImpl implements ContentService {
         result = StringUtils.isNotEmpty(commitId);
 
         if (result) {
-            // Update database with commitId
-            if (!objectMetadataManager.metadataExist(site, path)) {
-                objectMetadataManager.insertNewObjectMetadata(site, path);
-            }
-            objectMetadataManager.updateCommitId(site, path, commitId);
+            itemServiceInternal.updateCommitId(site, path, commitId);
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
         }
@@ -693,8 +641,6 @@ public class ContentServiceImpl implements ContentService {
         commitId = _contentRepository.deleteContent(site, path, approver);
 
         itemServiceInternal.deleteItem(site, path);
-        objectStateService.deleteObjectStateForPath(site, path);
-        objectMetadataManager.deleteObjectMetadata(site, path);
         try {
             dependencyService.deleteItemDependencies(site, path);
         } catch (ServiceLayerException e) {
@@ -729,21 +675,19 @@ public class ContentServiceImpl implements ContentService {
         boolean exists = contentExists(site, path);
         if (exists) {
             ContentItemTO item = getContentItem(site, path, 0);
-            ItemMetadata properties = objectMetadataManager.getProperties(site, path);
-            String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties
-                .getSubmittedBy() : approver);
+
             Map<String, String> extraInfo = new HashMap<String, String>();
             if (item.isFolder()) {
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
             } else {
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
             }
-            logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
+            logger.debug("[DELETE] posting delete activity on " + path + " by " + approver + " in " + site);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
             auditLog.setSiteId(siteFeed.getId());
-            auditLog.setActorId(user);
+            auditLog.setActorId(approver);
             auditLog.setPrimaryTargetId(site + ":" + path);
             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
             auditLog.setPrimaryTargetValue(path);
@@ -753,7 +697,7 @@ public class ContentServiceImpl implements ContentService {
             if (path.endsWith(DmConstants.XML_PATTERN)) {
 
                 String contentType = item.getContentType();
-                dmContentLifeCycleService.process(site, user, path,
+                dmContentLifeCycleService.process(site, approver, path,
                         contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
             }
         }
@@ -881,14 +825,6 @@ public class ContentServiceImpl implements ContentService {
                             processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                         }
 
-
-                        org.craftercms.studio.api.v1.dal.ItemState itemState = objectStateService.getObjectState(site, copyPath);
-
-                        if (itemState == null) {
-                            ContentItemTO copyItem = getContentItem(site, copyPath, 0);
-                            objectStateService.insertNewEntry(site, copyItem);
-                            objectStateService.setSystemProcessing(site, copyPath, false);
-                        }
                         itemServiceInternal.setSystemProcessing(site, copyPath, false);
 
                         // copy was successful, return the new name
@@ -975,8 +911,6 @@ public class ContentServiceImpl implements ContentService {
     public String moveContent(@ValidateStringParam(name = "site") @SiteId String site,
                               @ValidateSecurePathParam(name = "fromPath") @ActionSourcePath String fromPath,
                               @ValidateSecurePathParam(name = "toPath") @ActionTargetPath String toPath) {
-        String retNewFileName = null;
-        boolean opSuccess = false;
         String movePath = null;
 
         try {
@@ -1013,7 +947,7 @@ public class ContentServiceImpl implements ContentService {
                 updateDatabaseOnMove(site, fromPath, movePath);
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
-                    objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
+                    itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                     contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
@@ -1043,51 +977,13 @@ public class ContentServiceImpl implements ContentService {
         Map<String, String> params = new HashMap<>();
         params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
         params.put(DmConstants.KEY_TARGET_PATH, movePath);
-        // These do not exist in 3.0, note some extensions may be using it
-        //params.put(DmConstants.KEY_SOURCE_FULL_PATH, expandRelativeSitePath(site, fromPath));
-        //params.put(DmConstants.KEY_TARGET_FULL_PATH, expandRelativeSitePath(site, movePath));
 
         ContentItemTO renamedItem = getContentItem(site, movePath, 0);
         String contentType = renamedItem.getContentType();
         if (!renamedItem.isFolder()) {
             dmContentLifeCycleService.process(site, user, movePath, contentType, DmContentLifeCycleService
                     .ContentLifeCycleOperation.RENAME, params);
-
-            // change the path of this object in the object state database
-            objectStateService.updateObjectPath(site, fromPath, movePath);
-
-            objectStateService.transition(site, renamedItem, SAVE);
             renamedItem = getContentItem(site, movePath, 0);
-        }
-        // update metadata
-        if (!objectMetadataManager.isRenamed(site, fromPath)) {
-            // if an item was previously moved, we do not track intermediate moves because it will
-            // ultimately orphan deployed content.  Old Path is always the OLDEST DEPLOYED PATH
-            ItemMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
-            if (metadata == null && !renamedItem.isFolder()) {
-                if (!objectMetadataManager.metadataExist(site, fromPath)) {
-                    objectMetadataManager.insertNewObjectMetadata(site, fromPath);
-                }
-                metadata = objectMetadataManager.getProperties(site, fromPath);
-            }
-
-            if (!renamedItem.isNew() && !renamedItem.isFolder()) {
-                // if the item is not new, we need to track the old URL for deployment
-                logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
-                Map<String, Object> objMetadataProps = new HashMap<String, Object>();
-                objMetadataProps.put(ItemMetadata.PROP_RENAMED, 1);
-                objMetadataProps.put(ItemMetadata.PROP_OLD_URL, fromPath);
-                objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
-            }
-        }
-
-        if (!renamedItem.isFolder()) {
-            if (objectMetadataManager.metadataExist(site, movePath)) {
-                if (!StringUtils.equalsIgnoreCase(fromPath, movePath)) {
-                    objectMetadataManager.deleteObjectMetadata(site, movePath);
-                }
-            }
-            objectMetadataManager.updateObjectPath(site, fromPath, movePath);
         }
 
         // Item update
@@ -1760,7 +1656,7 @@ public class ContentServiceImpl implements ContentService {
                 if (!item.isFolder() || item.isContainer()) {
                     populateWorkflowProperties(site, item);
                 } else {
-                    item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
+                    item.setNew(!itemServiceInternal.isNew(site, item.getUri()));
                     item.isNew = item.isNew();
                 }
             } else {
@@ -1845,29 +1741,29 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
-        org.craftercms.studio.api.v1.dal.ItemState state = objectStateService.getObjectState(site, item.getUri(), false);
-        if (state != null) {
+        Item it = itemServiceInternal.getItem(site, item.getUri());
+        if (it != null) {
             if (item.isFolder()) {
-                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                boolean liveFolder = isLive(it.getState());
                 item.setNew(!liveFolder);
                 item.setLive(liveFolder);
             } else {
-                item.setNew(State.isNew(State.valueOf(state.getState())));
-                item.setLive(State.isLive(State.valueOf(state.getState())));
+                item.setNew(isNew(it.getState()));
+                item.setLive(isLive(it.getState()));
             }
             item.isNew = item.isNew();
             item.isLive = item.isLive();
             item.setInProgress(!item.isLive());
             item.isInProgress = item.isInProgress();
-            item.setScheduled(State.isScheduled(State.valueOf(state.getState())));
+            item.setScheduled(isScheduled(it.getState()));
             item.isScheduled = item.isScheduled();
-            item.setSubmitted(State.isSubmitted(State.valueOf(state.getState())));
+            item.setSubmitted(isInWorkflow(it.getState()));
             item.isSubmitted = item.isSubmitted();
-            item.setInFlight(state.getSystemProcessing() == 1);
+            item.setInFlight(isSystemProcessing(it.getState()));
             item.isInFlight = item.isInFlight();
         } else {
             if (item.isFolder()) {
-                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                boolean liveFolder = isLive(it.getState());
                 item.setNew(!liveFolder);
                 item.setLive(liveFolder);
                 item.isNew = item.isNew();
@@ -1878,27 +1774,28 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    protected void populateMetadata(String site, ContentItemTO item) {
+    protected void populateMetadata(String site, ContentItemTO item) throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Refactor to return a ContentItemTO instead of changing the parameter
         // TODO: SJ: Change method name to be getContentItemMetadata or similar
         // TODO: SJ: 3.1+
 
         // TODO: SJ: Create a method String getValueIfNotNull(String) to use to return not null/empty string if null
         // TODO: SJ: Use that method to reduce redundant code here. 3.1+
-        ItemMetadata metadata = objectMetadataManager.getProperties(site, item.getUri());
+        Item metadata = itemServiceInternal.getItem(site, item.getUri());
+        WorkflowItem workflowItem = workflowServiceInternal.getWorkflowEntry(site, item.getUri());
         if (metadata != null) {
             // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
             // database if it's not null
-            if (StringUtils.isEmpty(metadata.getLockOwner())) {
+            if (StringUtils.isEmpty(metadata.getOwner())) {
                 item.setLockOwner("");
             } else {
-                item.setLockOwner(metadata.getLockOwner());
+                item.setLockOwner(metadata.getOwner());
             }
 
             // Set the scheduled date
-            if (metadata.getLaunchDate() != null) {
-                item.scheduledDate = metadata.getLaunchDate();
-                item.setScheduledDate(metadata.getLaunchDate());
+            if (workflowItem != null && workflowItem.getSchedule() != null) {
+                item.scheduledDate = workflowItem.getSchedule();
+                item.setScheduledDate(workflowItem.getSchedule());
             }
 
             // Set the modifier (user) if known
@@ -1907,35 +1804,26 @@ public class ContentServiceImpl implements ContentService {
                 item.setUserLastName("");
                 item.setUserFirstName("");
             } else {
+                User u = userService.getUserByIdOrUsername(-1, metadata.getModifier());
                 item.user = metadata.getModifier();
                 item.setUser(metadata.getModifier());
-                if (StringUtils.isEmpty(metadata.getFirstName())) {
-                    item.userFirstName = metadata.getModifier();
-                    item.setUserFirstName(metadata.getModifier());
-                } else {
-                    item.userFirstName = metadata.getFirstName();
-                    item.setUserFirstName(metadata.getFirstName());
-                }
-                if (StringUtils.isEmpty(metadata.getLastName())) {
-                    item.userLastName = "";
-                    item.setUserLastName("");
-                } else {
-                    item.userLastName = metadata.getLastName();
-                    item.setUserLastName(metadata.getLastName());
-                }
+                item.userFirstName = u.getFirstName();
+                item.setUserFirstName(u.getFirstName());
+                item.userLastName = u.getLastName();
+                item.setUserLastName(u.getLastName());
             }
 
-            if (metadata.getModified() != null) {
-                item.lastEditDate = metadata.getModified();
-                item.eventDate = metadata.getModified();
-                item.setLastEditDate(metadata.getModified());
-                item.setEventDate(metadata.getModified());
+            if (metadata.getLastModifiedOn() != null) {
+                item.lastEditDate = metadata.getLastModifiedOn();
+                item.eventDate = metadata.getLastModifiedOn();
+                item.setLastEditDate(metadata.getLastModifiedOn());
+                item.setEventDate(metadata.getLastModifiedOn());
             }
-            if (StringUtils.isNotEmpty(metadata.getSubmissionComment())) {
-                item.setSubmissionComment(metadata.getSubmissionComment());
+            if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getSubmitterComment())) {
+                item.setSubmissionComment(workflowItem.getSubmitterComment());
             }
-            if (StringUtils.isNotEmpty(metadata.getSubmittedToEnvironment())) {
-                item.setSubmittedToEnvironment(metadata.getSubmittedToEnvironment());
+            if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getTargetEnvironment())) {
+                item.setSubmittedToEnvironment(workflowItem.getTargetEnvironment());
             }
         } else {
             item.setLockOwner("");
@@ -2001,11 +1889,10 @@ public class ContentServiceImpl implements ContentService {
                         path + " version: " + version);
             }
             // Update the database with the commitId for the target item
-            objectStateService.transition(site, path, REVERT);
 
             itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
-            objectMetadataManager.updateCommitId(site, path, commitId);
+            itemServiceInternal.updateCommitId(site, path, commitId);
 
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -2268,7 +2155,7 @@ public class ContentServiceImpl implements ContentService {
                                                       @ValidateSecurePathParam(name = "relativePath")
                                                               String relativePath) throws ServiceLayerException {
         ContentItemTO contentItem = getContentItem(site, relativePath);
-        GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this, objectStateService);
+        GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this, itemServiceInternal);
         if (contentItem != null) {
             childDeleteItems(site, contentItem, deletedItems);
             //update summary for all uri's delete
@@ -2326,7 +2213,7 @@ public class ContentServiceImpl implements ContentService {
 
     protected void addRemovedDependenicesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates)
             throws ServiceLayerException {
-        if (relativePath.endsWith(DmConstants.XML_PATTERN) && !objectStateService.isNew(site, relativePath)) {
+        if (relativePath.endsWith(DmConstants.XML_PATTERN) && !itemServiceInternal.isNew(site, relativePath)) {
             DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath,
                     null, null, site, true);
             List<String> deleted = getRemovedDependenices(diffRequest, true);
@@ -2381,7 +2268,6 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Where is the object state update to indicate item is now locked?
         // TODO: SJ: Dejan to look into this
         _contentRepository.lockItem(site, path);
-        objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
         itemServiceInternal.setStateBits(site, path, USER_LOCKED.value);
     }
 
@@ -2390,9 +2276,7 @@ public class ContentServiceImpl implements ContentService {
     public void unLockContent(@ValidateStringParam(name = "site") String site,
                               @ValidateSecurePathParam(name = "path") String path) {
         ContentItemTO itemTO = getContentItem(site, path, 0);
-        objectStateService.transition(site, itemTO, TransitionEvent.CANCEL_EDIT); // this unlocks too
         _contentRepository.unLockItem(site, path);
-        objectMetadataManager.unLockContent(site, path);
 
         // Item
         itemServiceInternal.resetStateBits(site, path, USER_LOCKED.value);
@@ -2569,7 +2453,6 @@ public class ContentServiceImpl implements ContentService {
 
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
-                objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                 contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
@@ -2647,13 +2530,6 @@ public class ContentServiceImpl implements ContentService {
         this.generalLockService = generalLockService;
     }
 
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
-    }
-
     public DependencyService getDependencyService() {
         return dependencyService;
     }
@@ -2668,12 +2544,6 @@ public class ContentServiceImpl implements ContentService {
         this.contentProcessor = contentProcessor;
     }
 
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
-    }
 
     public SecurityService getSecurityService() {
         return securityService;
@@ -2772,5 +2642,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public WorkflowServiceInternal getWorkflowServiceInternal() {
+        return workflowServiceInternal;
+    }
+
+    public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
+        this.workflowServiceInternal = workflowServiceInternal;
     }
 }

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.WorkflowDAO">
+    <resultMap id="WorkflowMap" type="org.craftercms.studio.api.v2.dal.Workflow">
+        <id property="id" column="id" />
+        <result property="itemId" column="item_id" />
+        <result property="targetEnvironment" column="target_environment" />
+        <result property="state" column="state" />
+        <result property="submitterId" column="submitter_id" />
+        <result property="submitterComment" column="submitter_comment" />
+        <result property="reviewerId" column="reviewer_id" />
+        <result property="reviewerComment" column="reviewer_comment" />
+        <result property="notifySubmitter" column="notify_submitter" />
+        <result property="schedule" column="schedule" />
+        <result property="publishingPackageId" column="publishing_package_id" />
+    </resultMap>
+
+    <resultMap id="WorkflowIteMap" type="org.craftercms.studio.api.v2.dal.WorkflowItem">
+        <id property="id" column="id" />
+        <result property="targetEnvironment" column="target_environment" />
+        <result property="state" column="state" />
+        <result property="submitterId" column="submitter_id" />
+        <result property="submitterComment" column="submitter_comment" />
+        <result property="reviewerId" column="reviewer_id" />
+        <result property="reviewerComment" column="reviewer_comment" />
+        <result property="notifySubmitter" column="notify_submitter" />
+        <result property="schedule" column="schedule" />
+        <result property="publishingPackageId" column="publishing_package_id" />
+        <association property="item" javaType="org.craftercms.studio.api.v2.dal.Item" >
+            <id property="id" column="item_id" />
+            <result property="siteId" column="item.site_id" />
+            <result property="siteName" column="item.site_name" />
+            <result property="path" column="item.path" />
+            <result property="previewUrl" column="item.preview_url" />
+            <result property="state" column="item.state" />
+            <result property="ownedBy" column="item.owned_by" />
+            <result property="owner" column="item.owner" />
+            <result property="createdBy" column="item.created_by" />
+            <result property="creator" column="item.creator" />
+            <result property="createdOn" column="item.created_on" />
+            <result property="lastModifiedBy" column="item.last_modified_by" />
+            <result property="modifier" column="item.modifier" />
+            <result property="lastModifiedOn" column="item.last_modified_on" />
+            <result property="label" column="item.label" />
+            <result property="contentTypeId" column="item.content_type_id" />
+            <result property="systemType" column="item.system_type" />
+            <result property="mimeType" column="item.mime_type" />
+            <result property="disabledAsInt" column="item.disabled" />
+            <result property="localeCode" column="item.locale_code" />
+            <result property="translationSourceId" column="item.translation_source_id" />
+            <result property="size" column="item.size" />
+            <result property="parentId" column="item.parent_id" />
+            <result property="commitId" column="item.commit_id" />
+        </association>
+    </resultMap>
+
+    <select id="getWorkflowEntryOpened" resultMap="WorkflowMap">
+        SELECT workflow.*, item.*  FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
+        WHERE site.site_id = #{siteId} AND site.deleted = 0
+        AND item.path = #{path}
+        AND workflow.state = #{stateOpened}
+        limit 0, 1
+    </select>
+
+    <select id="getWorkflowEntry" resultMap="WorkflowMap">
+        SELECT w.* FROM workflow w INNER JOIN item i ON w.item_id = i.id INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+        AND i.path = #{path}
+        AND w.publishing_package_id = #{publishingPackageId}
+        limit 0, 1
+    </select>
+
+    <select id="getSubmittedItems" resultType="org.craftercms.studio.api.v2.dal.WorkflowItem">
+        SELECT workflow.*, item.*
+        FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
+        WHERE site.site_id = #{siteId} AND site.deleted = 0
+        AND workflow.state = #{state}
+    </select>
+
+    <delete id="deleteWorkflowEntryById">
+        DELETE FROM workflow WHERE id = #{id}
+    </delete>
+
+
+    <delete id="deleteWorkflowEntry">
+        DELETE FROM workflow WHERE id IN
+        (SELECT w.id FROM  workflow w INNER JOIN item i ON w.item_id = i.id INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId} AND path = #{path})
+    </delete>
+
+
+
+    <delete id="deleteWorkflowEntries" >
+        DELETE FROM workflow WHERE id IN
+        (SELECT w.id FROM  workflow w INNER JOIN item i ON w.item_id = i.id INNER JOIN site s ON i.site_id = s.id
+            WHERE s.site_id = #{siteId} AND path IN
+            <foreach collection="paths" item="path" index="index" separator="," open="(" close=")">
+                #{path}
+            </foreach>
+            )
+    </delete>
+
+    <insert id="insertWorkflowEntry" parameterType="org.craftercms.studio.api.v2.dal.Workflow">
+        INSERT INTO workflow (item_id, target_environment, state, submitter_id, submitter_comment, notify_submitter,
+                              schedule, publishing_package_id)
+        VALUES (#{workflow.itemId}, #{workflow.targetEnvironment}, #{workflow.state}, #{workflow.submitterId},
+                #{workflow.submitterComment}, #{workflow.notifySubmitter}, #{workflow.schedule},
+                #{workflow.publishingPackageId})
+    </insert>
+
+    <delete id="deleteWorkflowEntriesForSite">
+        DELETE FROM workflow WHERE id IN
+        (SELECT w.id FROM  workflow w INNER JOIN item i ON w.item_id = i.id WHERE i.site_id = #{siteId})
+    </delete>
+</mapper>

@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.config;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
@@ -95,7 +96,7 @@ public interface ConfigurationService {
      * @throws ServiceLayerException general service error
      */
     void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
-        throws ServiceLayerException;
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get a a file from a plugin
