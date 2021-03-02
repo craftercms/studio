@@ -199,6 +199,11 @@ pipelines:
             filename: upgrade-4.0.0.7-to-4.0.0.8.sql
             spName: migrateWorkflow
             clearExistingData: true
+      - currentVersion: 4.0.0.8
+        nextVersion: 4.0.0.9
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.8-to-4.0.0.9.sql
 
   # Pipeline to upgrade site repositories
   site:

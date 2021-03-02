@@ -45,7 +45,7 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
     public static final String STORED_PROCEDURE_NAME = "@spName";
     public static final String SP_PARAM_SITE = "@site";
     public static final String QUERY_CALL_STORED_PROCEDURE =
-            "call @spName(@site)";
+            "call @spName('@site')";
 
 
     private String crafterSchemaName;
@@ -94,10 +94,10 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
     private void processSite(final StudioUpgradeContext context, long siteId, String site) throws UpgradeException {
         // check if data exists
         logger.error("Processing site: " + site);
-        runSP(context, siteId);
+        runSP(context, site);
     }
 
-    private void runSP(final StudioUpgradeContext context, long siteId) throws UpgradeException {
+    private void runSP(final StudioUpgradeContext context, String siteId) throws UpgradeException {
         try (Connection connection = context.getConnection()) {
             integrityValidator.validate(connection);
         } catch (SQLException e) {
@@ -110,7 +110,8 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
         try (Connection connection = context.getConnection()) {
             CallableStatement callableStatement = connection.prepareCall(
                     QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, spName)
-                            .replace(SP_PARAM_SITE, String.valueOf(siteId)));
+                            .replace(SP_PARAM_SITE, siteId));
+            logger.debug("Calling " + spName + " for " + siteId);
             callableStatement.execute();
         } catch (SQLException e) {
             logger.error("Error populating data from DB", e);
