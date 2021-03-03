@@ -65,7 +65,7 @@ public class AccessTokenController {
             throws IOException {
         // If the session has expired, return an empty response
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_OK);
             response.flushBuffer();
             return null;
         }
