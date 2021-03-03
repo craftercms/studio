@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
-import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
@@ -24,7 +23,6 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 
 import java.util.List;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 
 public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {

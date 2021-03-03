@@ -33,7 +33,7 @@
         <result property="publishingPackageId" column="publishing_package_id" />
     </resultMap>
 
-    <resultMap id="WorkflowIteMap" type="org.craftercms.studio.api.v2.dal.WorkflowItem">
+    <resultMap id="WorkflowItemMap" type="org.craftercms.studio.api.v2.dal.WorkflowItem">
         <id property="id" column="id" />
         <result property="targetEnvironment" column="target_environment" />
         <result property="state" column="state" />
@@ -72,7 +72,7 @@
         </association>
     </resultMap>
 
-    <select id="getWorkflowEntryOpened" resultMap="WorkflowMap">
+    <select id="getWorkflowEntryOpened" resultMap="WorkflowItemMap">
         SELECT workflow.*, item.*  FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
         WHERE site.site_id = #{siteId} AND site.deleted = 0
         AND item.path = #{path}
