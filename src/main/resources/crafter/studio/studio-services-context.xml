@@ -293,6 +293,7 @@
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="eventService" ref="studioEventService" />
         <property name="configurationCache" ref="configurationCache"/>
+        <property name="configurationReader" ref="crafter.configurationReader"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -402,8 +403,9 @@
     </bean>
 
     <bean id="cmisService" class="org.craftercms.studio.impl.v2.service.cmis.CmisServiceImpl">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg ref="cstudioContentService"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="configurationService"/>
     </bean>
 
     <bean id="repositoryManagementService"
