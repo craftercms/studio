@@ -593,7 +593,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public boolean isSystemProcessing(String siteId, String path) {
         Item item = getItem(siteId, path);
-        return ItemState.isSystemProcessing(item.getState());
+        if (Objects.nonNull(item)) {
+            return ItemState.isSystemProcessing(item.getState());
+        } else {
+            return false;
+        }
     }
 
     @Override

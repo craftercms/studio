@@ -544,7 +544,7 @@
     </select>
 
     <select id="countPreviousPaths" resultType="int">
-        SELECT i.*
+        SELECT count(1)
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
