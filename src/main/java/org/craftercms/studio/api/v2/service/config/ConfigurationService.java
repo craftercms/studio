@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v2.service.config;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -67,6 +68,15 @@ public interface ConfigurationService {
      */
     Document getConfigurationAsDocument(String siteId, String module, String path, String environment)
             throws ServiceLayerException;
+
+    /**
+     * Reads a configuration file using Apache Commons Configuration
+     * @param siteId the id of the site
+     * @param path the path of the file
+     * @return the configuration object
+     * @throws ConfigurationException if there is any error reading or parsing the file
+     */
+    HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException;
 
     /**
      * Get configuration from global repository as Document
