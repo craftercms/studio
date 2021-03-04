@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.5'
+  version: '4.0.0.6'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3201,6 +3201,13 @@ paths:
           in: query
           description: The name of the file (e.g. input.js, style/main.css)
           required: true
+          schema:
+            type: string
+        - name: pluginId
+          in: query
+          description: |-
+            The id of the plugin (e.g. org.craftercms.plugin). This is only needed for plugins installed from the
+            marketplace
           schema:
             type: string
       responses:
