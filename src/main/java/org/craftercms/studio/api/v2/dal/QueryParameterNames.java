@@ -34,7 +34,7 @@ public final class  QueryParameterNames {
     // LIKE path
     public static final String LIKE_PATH = "likePath";
     // Folder Path
-    public static final String FOLDER_PATH = "folder_path";
+    public static final String FOLDER_PATH = "folderPath";
     // Paths
     public static final String PATHS = "paths";
     // Modifier
