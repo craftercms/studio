@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.service.configuration;
 
 import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -210,6 +211,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
+    public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException {
+        var cacheKey = getCacheKey(siteId, null, path, null) + ":commons";
+        try {
+            return (HierarchicalConfiguration<?>) configurationCache.get(cacheKey, () -> {
+                logger.debug("CACHE MISS: {0}", cacheKey);
+                if (contentService.contentExists(siteId, path)) {
+                    return configurationReader.readXmlConfiguration(contentService.getContent(siteId, path));
+                } else {
+                    return new XMLConfiguration();
+                }
+            });
+        } catch (ExecutionException e) {
+            throw new ConfigurationException("Error loading configuration", e);
+        }
+    }
+
+    @Override
     public Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException {
         try {
             return (Document) configurationCache.get(path, () -> {
@@ -274,12 +292,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
 
             if (isEmpty(fullPath)) {
-                String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
-                        .replaceAll(PATTERN_MODULE, module);
-                if (startsWithIgnoreCase(path, configBasePath)) {
-                    fullPath = path;
+                if (isNotEmpty(module)) {
+                   String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                            .replaceAll(PATTERN_MODULE, module);
+
+                   if (startsWithIgnoreCase(path, configBasePath)) {
+                       fullPath = path;
+                   } else {
+                       fullPath = Paths.get(configBasePath, path).toString();
+                   }
                 } else {
-                    fullPath = Paths.get(configBasePath, path).toString();
+                    fullPath = path;
                 }
             }
 

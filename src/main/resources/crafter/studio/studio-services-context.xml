@@ -339,10 +339,15 @@
         </constructor-arg>
     </bean>
 
+    <bean id="commonsCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.SuffixCacheInvalidator">
+        <constructor-arg value="commons"/>
+    </bean>
+
     <util:list id="configurationCacheInvalidators">
         <ref bean="availableActionsCacheInvalidator"/>
         <ref bean="userPermissionsCacheInvalidator"/>
         <ref bean="blobStoreCacheInvalidator"/>
+        <ref bean="commonsCacheInvalidator"/>
         <ref bean="defaultCacheInvalidator"/>
     </util:list>
 
@@ -476,8 +481,9 @@
     </bean>
 
     <bean id="cmisService" class="org.craftercms.studio.impl.v2.service.cmis.CmisServiceImpl">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg ref="cstudioContentService"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="configurationService"/>
     </bean>
 
     <bean id="repositoryManagementService"
