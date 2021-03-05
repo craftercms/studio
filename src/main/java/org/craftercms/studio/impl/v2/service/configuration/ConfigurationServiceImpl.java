@@ -16,10 +16,14 @@
 package org.craftercms.studio.impl.v2.service.configuration;
 
 import net.sf.ehcache.Cache;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.craftercms.commons.config.DisableClassLoadingConstructor;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -115,6 +119,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ObjectStateService objectStateService;
     private EventService eventService;
     private Cache configurationCache;
+    private EncryptionAwareConfigurationReader configurationReader;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -204,6 +209,19 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
         }
         return retDocument;
+    }
+
+    @Override
+    public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException {
+        if (contentService.contentExists(siteId, path)) {
+            try {
+                return configurationReader.readXmlConfiguration(contentService.getContent(siteId, path));
+            } catch (Exception e) {
+                throw new ConfigurationException("Error loading configuration", e);
+            }
+        } else {
+            return new XMLConfiguration();
+        }
     }
 
     @Override
@@ -475,6 +493,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     public void setConfigurationCache(Cache configurationCache) {
         this.configurationCache = configurationCache;
+    }
+
+    public void setConfigurationReader(EncryptionAwareConfigurationReader configurationReader) {
+        this.configurationReader = configurationReader;
     }
 
 }
