@@ -77,6 +77,7 @@ import java.util.function.Supplier;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -184,11 +185,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     public Document getConfigurationAsDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
                                                String path, String environment) throws ServiceLayerException {
-        var cacheKey = getCacheKey(siteId,module,path, environment);
+        var normalizedPath = normalize(path);
+        var cacheKey = getCacheKey(siteId,module,normalizedPath, environment);
         try {
             return (Document) configurationCache.get(cacheKey, () -> {
                 logger.debug("CACHE MISS: {0}", cacheKey);
-                String content = getEnvironmentConfiguration(siteId, module, path, environment);
+                String content = getEnvironmentConfiguration(siteId, module, normalizedPath, environment);
                 Document retDocument = null;
                 if (isNotEmpty(content)) {
                     SAXReader saxReader = new SAXReader();
@@ -228,6 +230,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
+    public HierarchicalConfiguration<?> getGlobalXmlConfiguration(String path) throws ConfigurationException {
+        var cacheKey = path + ":commons";
+        try {
+            return (HierarchicalConfiguration<?>) configurationCache.get(cacheKey, () -> {
+                logger.debug("CACHE MISS: {0}", cacheKey);
+                if (contentService.contentExists(EMPTY, path)) {
+                    return configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path));
+                } else {
+                    return new XMLConfiguration();
+                }
+            });
+        } catch (ExecutionException e) {
+            throw new ConfigurationException("Error loading configuration", e);
+        }
+    }
+
+    @Override
     public Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException {
         try {
             return (Document) configurationCache.get(path, () -> {
@@ -246,9 +265,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {
-        String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
-                .replaceAll(PATTERN_MODULE, module);
-        String configPath = Paths.get(configBasePath, path).toString();
+        String configPath;
+        if (isNotEmpty(module)) {
+            String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                    .replaceAll(PATTERN_MODULE, module);
+            configPath = Paths.get(configBasePath, path).toString();
+        } else {
+            configPath = path;
+        }
         return contentService.getContentAsString(siteId, configPath);
     }
 

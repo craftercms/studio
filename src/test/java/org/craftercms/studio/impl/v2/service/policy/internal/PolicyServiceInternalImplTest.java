@@ -15,11 +15,16 @@
  */
 package org.craftercms.studio.impl.v2.service.policy.internal;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.io.FileHandler;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider;
 import org.craftercms.studio.impl.v2.service.policy.validators.ContentTypePolicyValidator;
 import org.craftercms.studio.impl.v2.service.policy.validators.FileSizePolicyValidator;
@@ -86,6 +91,9 @@ public class PolicyServiceInternalImplTest {
     @Mock
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
 
+    @Mock
+    private ConfigurationService configurationService;
+
     private PolicyServiceInternalImpl policyService;
 
     @BeforeClass
@@ -95,7 +103,8 @@ public class PolicyServiceInternalImplTest {
     }
 
     @BeforeMethod
-    public void setUp() throws ContentNotFoundException {
+    public void setUp() throws IOException,
+            org.apache.commons.configuration2.ex.ConfigurationException, ConfigurationException {
         initMocks(this);
 
         var systemValidator = new SystemPolicyValidator(255, 1024);
@@ -105,8 +114,16 @@ public class PolicyServiceInternalImplTest {
                 new PathPolicyValidator(),
                 new ContentTypePolicyValidator());
 
-        policyService = new PolicyServiceInternalImpl(contentRepository, contentRepositoryV2, systemValidator,
-                policyValidators, CONFIG_PATH);
+        policyService = new PolicyServiceInternalImpl(contentRepository, contentRepositoryV2, configurationService,
+                systemValidator, policyValidators, CONFIG_PATH);
+
+        var config = new XMLConfiguration();
+        try (var is = CONFIG.getInputStream()) {
+            var fh = new FileHandler(config);
+            fh.load(is);
+        }
+
+        when(configurationService.getXmlConfiguration(SITE_ID, CONFIG_PATH)).thenAnswer(i -> config);
 
         setUpRepository();
     }
@@ -129,10 +146,7 @@ public class PolicyServiceInternalImplTest {
      *          pic.png (1 kb)
      *
      */
-    protected void setUpRepository() throws ContentNotFoundException {
-        when(contentRepository.contentExists(SITE_ID, CONFIG_PATH)).thenReturn(true);
-        when(contentRepository.getContent(SITE_ID, CONFIG_PATH)).thenAnswer(i -> CONFIG.getInputStream());
-
+    protected void setUpRepository() {
         when(contentRepository.getContentChildren(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
             var item = new RepositoryItem();
             item.path = concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME);

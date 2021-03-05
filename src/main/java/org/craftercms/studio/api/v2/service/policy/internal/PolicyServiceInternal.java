@@ -15,12 +15,10 @@
  */
 package org.craftercms.studio.api.v2.service.policy.internal;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -38,10 +36,8 @@ public interface PolicyServiceInternal {
      * @param actions the list of actions to validate
      * @return the validation results
      * @throws ConfigurationException if there any error parsing the configuration
-     * @throws IOException if the is any error reading the configuration
-     * @throws ContentNotFoundException if there is any error reading the site repository
      */
     List<ValidationResult> validate(String siteId, List<Action> actions)
-            throws IOException, ContentNotFoundException, ConfigurationException;
+            throws ConfigurationException;
 
 }
