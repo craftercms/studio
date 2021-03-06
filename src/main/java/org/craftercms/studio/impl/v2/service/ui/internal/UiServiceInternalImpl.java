@@ -22,14 +22,11 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.ConfigUtils;
 import org.craftercms.studio.model.ui.MenuItem;
-import org.springframework.beans.factory.annotation.Required;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -53,29 +50,26 @@ public class UiServiceInternalImpl implements UiServiceInternal {
     private static final String ANY_PERMISSION_WILDCARD = "*";
 
     private StudioConfiguration studioConfiguration;
-    private ContentService contentService;
+    private ConfigurationService configurationService;
 
-    @Required
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    @Required
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException {
         if (CollectionUtils.isNotEmpty(permissions)) {
-            HierarchicalConfiguration menuConfig = getGlobalMenuConfig();
+            var menuConfig = getGlobalMenuConfig();
             List<MenuItem> menuItems = new ArrayList<>();
 
             // TODO: Move this config to ConfigurationService
-            List<HierarchicalConfiguration> itemsConfig = menuConfig.configurationsAt(MENU_ITEMS_CONFIG_KEY);
+            var itemsConfig = menuConfig.configurationsAt(MENU_ITEMS_CONFIG_KEY);
             if (CollectionUtils.isNotEmpty(itemsConfig)) {
-                for (HierarchicalConfiguration itemConfig : itemsConfig) {
+                for (var itemConfig : itemsConfig) {
                     String requiredPermission = getRequiredStringProperty(itemConfig, PERMISSION_CONFIG_KEY);
                     if (requiredPermission.equals(ANY_PERMISSION_WILDCARD) ||
                         permissions.contains(requiredPermission)) {
@@ -97,14 +91,10 @@ public class UiServiceInternalImpl implements UiServiceInternal {
         }
     }
 
-    protected HierarchicalConfiguration getGlobalMenuConfig() throws ConfigurationException {
+    protected HierarchicalConfiguration<?> getGlobalMenuConfig() throws ConfigurationException {
         String configPath = getGlobalMenuConfigPath();
 
-        try (InputStream is = contentService.getContent(StringUtils.EMPTY, configPath)) {
-            return ConfigUtils.readXmlConfiguration(is);
-        } catch (Exception e) {
-            throw new ConfigurationException("Unable to read global menu config @ " + configPath, e);
-        }
+        return configurationService.getGlobalXmlConfiguration(configPath);
     }
 
     protected String getRequiredStringProperty(Configuration config, String key) throws ConfigurationException {

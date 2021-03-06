@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -28,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.api.v2.service.site.SitesService;

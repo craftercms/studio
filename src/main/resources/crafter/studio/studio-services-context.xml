@@ -243,6 +243,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="configurationService" ref="configurationService"/>
     </bean>
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
@@ -423,7 +424,7 @@
 
     <bean id="uiServiceInternal" class="org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternalImpl">
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="contentService" ref="cstudioContentService"/>
+        <property name="configurationService" ref="configurationService"/>
     </bean>
 
     <bean id="uiService" class="org.craftercms.studio.impl.v2.service.ui.UiServiceImpl">
@@ -1531,6 +1532,7 @@
           class="org.craftercms.studio.impl.v2.service.policy.internal.PolicyServiceInternalImpl">
         <constructor-arg ref="gitContentRepository"/>
         <constructor-arg ref="gitContentRepositoryV2"/>
+        <constructor-arg ref="configurationService"/>
         <constructor-arg ref="systemPolicyValidator"/>
         <constructor-arg ref="sitePolicyValidators"/>
         <constructor-arg value="#{studioConfiguration.getProperty('studio.content.policy.config.path')}"/>
