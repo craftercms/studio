@@ -234,7 +234,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         var cacheKey = path + ":commons";
         try {
             return (HierarchicalConfiguration<?>) configurationCache.get(cacheKey, () -> {
-                logger.debug("CACHE MISS: {0}", cacheKey);
+                logger.debug("Cache miss: {0}", cacheKey);
                 if (contentService.contentExists(EMPTY, path)) {
                     return configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path));
                 } else {
@@ -250,7 +250,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException {
         try {
             return (Document) configurationCache.get(path, () -> {
-                logger.debug("CACHE MISS: {0}", path);
+                logger.debug("Cache miss: {0}", path);
                 return contentService.getContentAsDocument(EMPTY, path);
             });
         } catch (ExecutionException e) {
