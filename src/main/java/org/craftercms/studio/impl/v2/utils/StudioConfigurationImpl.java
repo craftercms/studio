@@ -141,8 +141,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                         }
                     }
                 }
-                // return an empty configuration (Guava Cache doesn't allow null values)
-                return new YamlConfiguration();
+                return systemConfig;
             });
         } catch (ExecutionException e) {
             logger.error("Error loading configuration from global repo", e);
