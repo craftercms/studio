@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -157,11 +157,13 @@
         <constructor-arg ref="userServiceInternal"/>
         <constructor-arg ref="configurationCache"/>
     </bean>
-
-    <bean id="isActionAllowed" class="org.craftercms.studio.api.v2.annotation.IsActionAllowedAnnotationHandler" >
-        <property name="securityServiceV1" ref="cstudioSecurityService"/>
-        <property name="securityServiceV2" ref="studio.securityService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
+    
+    <bean id="studio.semanticsAvailableActionsResolver" 
+          class="org.craftercms.studio.impl.v2.security.SemanticsAvailableActionsResolverImpl" >
+        <property name="securityService" ref="studio.securityService" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
-
 </beans>

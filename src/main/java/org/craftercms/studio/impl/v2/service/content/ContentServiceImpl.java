@@ -57,7 +57,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_DELETE_CONTENT;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 
 public class ContentServiceImpl implements ContentService {
 
@@ -76,7 +76,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_DELETE_CONTENT)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
     public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, path);
@@ -88,7 +88,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = CompositePermission.class, action = ACTION_DELETE_CONTENT)
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
     public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
@@ -100,7 +100,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_DELETE_CONTENT)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
     public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                  String submissionComment)
@@ -119,7 +119,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = CompositePermission.class, action = ACTION_DELETE_CONTENT)
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
     public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                  String submissionComment)

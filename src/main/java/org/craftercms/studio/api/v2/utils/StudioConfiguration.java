@@ -351,6 +351,9 @@ public interface StudioConfiguration {
 
     String PLUGIN_BASE_PATTERN = "studio.configuration.plugin.base.pattern";
 
+    // Content Service
+    String CONTENT_ITEM_EDITABLE_TYPES = "studio.content.item.editableTypes";
+
     void loadConfig();
 
     String getProperty(String key);

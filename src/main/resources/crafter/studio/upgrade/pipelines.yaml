@@ -204,6 +204,13 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.8-to-4.0.0.9.sql
+      - currentVersion: 4.0.0.9
+        nextVersion: 4.0.0.10
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.10/system/global-permission-mappings-config.xslt
+            commitDetails: Relabel permissions for available actions refactor
 
   # Pipeline to upgrade site repositories
   site:
@@ -295,6 +302,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v15.xslt
               commitDetails: Add new permissions for plugins
+        - currentVersion: 15
+          nextVersion: 16
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v16.xslt
+              commitDetails: Relabel permissions for available actions refactor
 
   role-mappings-config:
     module: studio

@@ -49,7 +49,7 @@ public class SitePermissionMappings {
         long availableActions = 0L;
         for (String role : rolesList) {
             RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
-            Map<String, Long> rulePermissions = rolePermissionMappings.getRulePermissions();
+            Map<String, Long> rulePermissions = rolePermissionMappings.getRuleContentItemPermissions();
             for (Map.Entry<String, Long> entry : rulePermissions.entrySet()) {
                 Pattern pattern = Pattern.compile(entry.getKey());
                 Matcher matcher = pattern.matcher(path);

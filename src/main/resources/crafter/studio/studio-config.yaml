@@ -100,7 +100,16 @@ studio.content.filename.maxSize: 255
 studio.content.fullPath.maxSize: 1024
 
 studio.content.policy.config.path: /config/studio/site-policy-config.xml
-
+# Item mime types that are editable
+studio.content.item.editableTypes:
+  - text/plain
+  - text/html
+  - text/css
+  - text/x-freemarker
+  - application/javascript
+  - application/json
+  - application/xml
+  - application/xhtml+xml
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################

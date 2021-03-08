@@ -36,8 +36,8 @@ import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServ
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_INSTALL_PLUGINS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_LIST_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_INSTALL_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_LIST_PLUGINS;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -72,14 +72,14 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_LIST_PLUGINS)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_LIST_PLUGINS)
     public List<PluginRecord> getInstalledPlugins(String siteId)
             throws MarketplaceException {
         return marketplaceServiceInternal.getInstalledPlugins(siteId);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_INSTALL_PLUGINS)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
     public void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException {
         marketplaceServiceInternal.installPlugin(siteId, pluginId, pluginVersion);
     }

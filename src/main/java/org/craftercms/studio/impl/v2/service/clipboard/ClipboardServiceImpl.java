@@ -31,7 +31,7 @@ import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_WRITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
 /**
  * Default implementation of {@link ClipboardService}
@@ -45,7 +45,7 @@ public class ClipboardServiceImpl implements ClipboardService {
 
     @Override
     @ValidateParams
-    @HasPermission(type = DefaultPermission.class, action = ACTION_WRITE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
     public List<String> pasteItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                    Operation operation,
                                    @ProtectedResourceId(PATH_RESOURCE_ID)
@@ -56,7 +56,7 @@ public class ClipboardServiceImpl implements ClipboardService {
 
     @Override
     @ValidateParams
-    @HasPermission(type = DefaultPermission.class, action = ACTION_WRITE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
     public String duplicateItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                 @ProtectedResourceId(PATH_RESOURCE_ID)
                                 @ValidateSecurePathParam(name = "path") String path)

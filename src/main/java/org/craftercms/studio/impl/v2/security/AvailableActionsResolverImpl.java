@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.security.RolePermissionMappings;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
-import org.craftercms.studio.api.v2.security.AvailableActionsConstants;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -43,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapPermissionsToContentItemAvailableActions;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
@@ -160,8 +160,8 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
                     permissionNodes.forEach(pn -> {
                         permissions.add(pn.getText().toLowerCase());
                     });
-                    long availableActions = AvailableActionsConstants.mapPermissionsToAvailableActions(permissions);
-                    rolePermissionMappings.addRulePermissionsMapping(regex, availableActions);
+                    long availableActions = mapPermissionsToContentItemAvailableActions(permissions);
+                    rolePermissionMappings.addRuleContentItemPermissionsMapping(regex, availableActions);
                 });
                 sitePermissionMappings.addRolePermissionMapping(roleName, rolePermissionMappings);
             }
@@ -170,13 +170,13 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     }
 
     @Override
-    public long getAvailableActions(String username, String site, String path)
+    public long getContentItemAvailableActions(String username, String siteId, String path)
             throws ServiceLayerException, UserNotFoundException {
         SitePermissionMappings sitePermissionMappings = null;
         try {
-            sitePermissionMappings = findSitePermissionMappings(site);
+            sitePermissionMappings = findSitePermissionMappings(siteId);
         } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error fetching available actions from cache for site " + site, e);
+            throw new ServiceLayerException("Error fetching available actions from cache for site " + siteId, e);
         }
         return calculateAvailableActions(username, path, sitePermissionMappings);
     }

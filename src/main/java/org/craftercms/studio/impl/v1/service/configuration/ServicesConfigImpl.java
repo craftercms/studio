@@ -39,13 +39,11 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -68,8 +66,11 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_WORKFLOW;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
@@ -368,6 +369,16 @@ public class ServicesConfigImpl implements ServicesConfig {
              loadFacetConfiguration(configNode, siteConfig);
 
              siteConfig.setPluginFolderPattern(configNode.valueOf(SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN));
+
+             String requirePeerReviewValue =
+                     configNode.valueOf(SITE_CONFIG_XML_ELEMENT_WORKFLOW + "/" + SITE_CONFIG_XML_ELEMENT_PUBLISHER +
+                             "/" + SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW);
+             if (StringUtils.isEmpty(requirePeerReviewValue)) {
+                 siteConfig.setRequirePeerReview(false);
+             } else {
+                 siteConfig.setRequirePeerReview(Boolean.valueOf(requirePeerReviewValue));
+             }
+
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
          }
@@ -663,6 +674,15 @@ public class ServicesConfigImpl implements ServicesConfig {
             return config.getAdminEmailAddress();
         }
         return null;
+    }
+
+    @Override
+    public boolean isRequirePeerReview(String siteId) {
+        SiteConfigTO config = getSiteConfig(siteId);
+        if (config != null) {
+            return config.isRequirePeerReview();
+        }
+        return false;
     }
 
     public void setContentService(ContentService contentService) {

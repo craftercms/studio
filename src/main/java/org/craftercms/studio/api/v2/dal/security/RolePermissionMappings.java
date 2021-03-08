@@ -22,10 +22,10 @@ import java.util.Map;
 public class RolePermissionMappings {
 
     private String role;
-    private Map<String, Long> rulePermissions = new HashMap<String, Long>();
+    private Map<String, Long> ruleContentItemPermissions = new HashMap<String, Long>();
 
-    public void addRulePermissionsMapping(String rule, Long availableActions) {
-        rulePermissions.put(rule, availableActions);
+    public void addRuleContentItemPermissionsMapping(String rule, Long contentItemAvailableActions) {
+        ruleContentItemPermissions.put(rule, contentItemAvailableActions);
     }
 
     public String getRole() {
@@ -36,11 +36,11 @@ public class RolePermissionMappings {
         this.role = role;
     }
 
-    public Map<String, Long> getRulePermissions() {
-        return rulePermissions;
+    public Map<String, Long> getRuleContentItemPermissions() {
+        return ruleContentItemPermissions;
     }
 
-    public void setRulePermissions(Map<String, Long> rulePermissions) {
-        this.rulePermissions = rulePermissions;
+    public void setRuleContentItemPermissions(Map<String, Long> ruleContentItemPermissions) {
+        this.ruleContentItemPermissions = ruleContentItemPermissions;
     }
 }
