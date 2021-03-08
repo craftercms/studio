@@ -16,28 +16,25 @@
 package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.tika.io.FilenameUtils;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.craftercms.studio.impl.v1.util.ConfigUtils.readXmlConfiguration;
 import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
 
 /**
@@ -58,6 +55,8 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
 
+    protected ConfigurationService configurationService;
+
     protected PolicyValidator systemValidator;
 
     protected List<PolicyValidator> policyValidators;
@@ -66,11 +65,13 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
     public PolicyServiceInternalImpl(ContentRepository contentRepository,
                                      org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                     ConfigurationService configurationService,
                                      PolicyValidator systemValidator,
                                      List<PolicyValidator> policyValidators,
                                      String configPath) {
         this.contentRepository = contentRepository;
         this.contentRepositoryV2 = contentRepositoryV2;
+        this.configurationService = configurationService;
         this.systemValidator = systemValidator;
         this.policyValidators = policyValidators;
         this.configPath = configPath;
@@ -78,22 +79,20 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
     @Override
     public List<ValidationResult> validate(String siteId, List<Action> actions)
-            throws ContentNotFoundException, ConfigurationException, IOException {
+            throws ConfigurationException {
 
-        try (InputStream is = contentRepository.getContent(siteId, configPath)) {
-            actions.forEach(this::validateAction);
+        var config = configurationService.getXmlConfiguration(siteId, configPath);
+        actions.forEach(this::validateAction);
 
-            var config = contentRepository.contentExists(siteId, configPath) ? readXmlConfiguration(is) : null;
-            var results = new LinkedList<ValidationResult>();
-            actions.forEach(action -> {
-                if (action.isRecursive()) {
-                    evaluateRecursiveAction(config, siteId, action, results, true);
-                } else {
-                    evaluateAction(config, action, results, true);
-                }
-            });
-            return results;
-        }
+        var results = new LinkedList<ValidationResult>();
+        actions.forEach(action -> {
+            if (action.isRecursive()) {
+                evaluateRecursiveAction(config, siteId, action, results, true);
+            } else {
+                evaluateAction(config, action, results, true);
+            }
+        });
+        return results;
     }
 
     protected void validateAction(Action action) {

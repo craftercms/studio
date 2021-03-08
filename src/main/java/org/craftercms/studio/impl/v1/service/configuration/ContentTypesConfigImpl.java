@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -28,11 +29,10 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
@@ -62,6 +62,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     protected ContentService contentService;
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
 
     @Override
     @ValidateParams
@@ -74,7 +75,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     @ValidateParams
     public ContentTypeConfigTO loadConfiguration(@ValidateStringParam(name = "site") String site,
@@ -85,9 +85,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         Document document = null;
         try {
             if (contentService.contentExists(site, configFileFullPath)) {
-                document = contentService.getContentAsDocument(site, configFileFullPath);
+                document = configurationService.getConfigurationAsDocument(site, null, configFileFullPath, null);
             }
-        } catch (DocumentException e) {
+        } catch (ServiceLayerException e) {
             logger.debug("No content type configuration document found at " + configFileFullPath, e);
         }
         if (document != null) {
@@ -188,7 +188,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
      * @param path
      * @return get paths
      */
-    @SuppressWarnings("unchecked")
     private List<String> getPaths(Element root, String path) {
         List<String> paths = null;
         List<Node> nodes = root.selectNodes(path);
@@ -257,11 +256,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     @ValidateParams
     public ContentTypeConfigTO reloadConfiguration(@ValidateStringParam(name = "site") String site,
                                                    @ValidateStringParam(name = "contentType") String contentType) {
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
-                .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        ContentTypeConfigTO config = loadConfiguration(site, contentType);
-        return config;
+        return loadConfiguration(site, contentType);
     }
 
     public String getConfigPath() {
@@ -295,4 +290,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
 }
