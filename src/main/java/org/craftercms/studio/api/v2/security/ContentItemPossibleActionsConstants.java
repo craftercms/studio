@@ -36,19 +36,19 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_USER;
-import static org.craftercms.studio.api.v2.dal.ItemState.isDeleted;
-import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
-import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
-import static org.craftercms.studio.api.v2.dal.ItemState.isModified;
-import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
-import static org.craftercms.studio.api.v2.dal.ItemState.isPublishing;
-import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
-import static org.craftercms.studio.api.v2.dal.ItemState.isStaged;
-import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
-import static org.craftercms.studio.api.v2.dal.ItemState.isTranslationInProgress;
-import static org.craftercms.studio.api.v2.dal.ItemState.isTranslationPending;
-import static org.craftercms.studio.api.v2.dal.ItemState.isTranslationUpToDate;
-import static org.craftercms.studio.api.v2.dal.ItemState.isUserLocked;
+import static org.craftercms.studio.api.v2.dal.ItemState.DELETED;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISHING;
+import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
+import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_IN_PROGRESS;
+import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_PENDING;
+import static org.craftercms.studio.api.v2.dal.ItemState.TRANSLATION_UP_TO_DATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CHANGE_TYPE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CREATE;
@@ -197,19 +197,45 @@ public final class ContentItemPossibleActionsConstants {
 
     public static long getPossibleActionsForItemState(long itemState) {
         long result = 0L;
-        if (isNew(itemState)) result = result | ITEM_STATE_NEW;
-        if (isModified(itemState)) result = result | ITEM_STATE_MODIFIED;
-        if (isDeleted(itemState)) result = result | ITEM_STATE_DELETED;
-        if (isUserLocked(itemState)) result = result | ITEM_STATE_USER_LOCKED;
-        if (isSystemProcessing(itemState)) result = result | ITEM_STATE_SYSTEM_PROCESSING;
-        if (isInWorkflow(itemState)) result = result | ITEM_STATE_IN_WORKFLOW;
-        if (isPublishing(itemState)) result = result | ITEM_STATE_PUBLISHING;
-        if (isScheduled(itemState)) result = result | ITEM_STATE_SCHEDULED;
-        if (isStaged(itemState)) result = result | ITEM_STATE_STAGED;
-        if (isLive(itemState)) result = result | ITEM_STATE_LIVE;
-        if (isTranslationUpToDate(itemState)) result = result | ITEM_STATE_TRANSLATION_UP_TO_DATE;
-        if (isTranslationPending(itemState)) result = result | ITEM_STATE_TRANSLATION_PENDING;
-        if (isTranslationInProgress(itemState)) result = result | ITEM_STATE_TRANSLATION_IN_PROGRESS;
+        if ((itemState & NEW.value) > 0) {
+            result = result | ITEM_STATE_NEW;
+        }
+        if ((itemState & MODIFIED.value) > 0) {
+            result = result | ITEM_STATE_MODIFIED;
+        }
+        if ((itemState & DELETED.value) > 0) {
+            result = result | ITEM_STATE_DELETED;
+        }
+        if ((itemState & USER_LOCKED.value) > 0) {
+            result = result | ITEM_STATE_USER_LOCKED;
+        }
+        if ((itemState & SYSTEM_PROCESSING.value) > 0) {
+            result = result | ITEM_STATE_SYSTEM_PROCESSING;
+        }
+        if ((itemState & IN_WORKFLOW.value) > 0) {
+            result = result | ITEM_STATE_IN_WORKFLOW;
+        }
+        if ((itemState & PUBLISHING.value) > 0) {
+            result = result | ITEM_STATE_PUBLISHING;
+        }
+        if ((itemState & SCHEDULED.value) > 0) {
+            result = result | ITEM_STATE_SCHEDULED;
+        }
+        if ((itemState & STAGED.value) > 0) {
+            result = result | ITEM_STATE_STAGED;
+        }
+        if ((itemState & LIVE.value) > 0) {
+            result = result | ITEM_STATE_LIVE;
+        }
+        if ((itemState & TRANSLATION_UP_TO_DATE.value) > 0) {
+            result = result | ITEM_STATE_TRANSLATION_UP_TO_DATE;
+        }
+        if ((itemState & TRANSLATION_PENDING.value) > 0) {
+            result = result | ITEM_STATE_TRANSLATION_PENDING;
+        }
+        if ((itemState & TRANSLATION_IN_PROGRESS.value) > 0) {
+            result = result | ITEM_STATE_TRANSLATION_IN_PROGRESS;
+        }
         return result;
     }
 
