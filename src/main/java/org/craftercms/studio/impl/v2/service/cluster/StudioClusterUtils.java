@@ -178,6 +178,8 @@ public class StudioClusterUtils {
                 });
             });
         }
+
+        gitCommand.setCredentialsProvider(credentialsProvider);
     }
 
     private <T extends TransportCommand> void configureTokenAuthentication(
