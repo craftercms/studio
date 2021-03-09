@@ -72,9 +72,9 @@
     <plugin-folder-pattern>/config/studio/plugins/${type}/${name}</plugin-folder-pattern>
 
     <!--
-        Configure workflow so that creates a pool of peer reviewers amongst publishers where you must submit work for
-        review and as publisher you can review and publish any other user's work.
-        Set value to true to enable this feature
+        This workflow parameter disallows users with _Publish_ permission from publishing their own work.
+        Work performed by a user must be approved by a different reviewer before it can be published.
+        Set the value to true to enable this feature.
     <workflow>
         <publisher>
             <requirePeerReview>false</requirePeerReview>
