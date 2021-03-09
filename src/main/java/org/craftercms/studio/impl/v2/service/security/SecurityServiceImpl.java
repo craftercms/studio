@@ -60,7 +60,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public long getAvailableActions(String username, String site, String path)
             throws ServiceLayerException, UserNotFoundException {
-        return availableActionsResolver.getAvailableActions(username, site, path);
+        return availableActionsResolver.getContentItemAvailableActions(username, site, path);
     }
 
     @Override

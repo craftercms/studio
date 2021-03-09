@@ -163,4 +163,18 @@ public interface ContentServiceInternal {
      */
     List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Check if item is editable
+     * @param item item object
+     * @return true if item is editable
+     */
+    boolean isEditable(org.craftercms.studio.api.v2.dal.Item item);
+
+    /**
+     * Check if item is editable
+     * @param detailedItem item object
+     * @return true if item is editable
+     */
+    boolean isEditable(DetailedItem detailedItem);
 }

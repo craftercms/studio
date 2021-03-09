@@ -71,6 +71,17 @@
      -->
     <plugin-folder-pattern>/config/studio/plugins/${type}/${name}</plugin-folder-pattern>
 
+    <!--
+        This workflow parameter disallows users with _Publish_ permission from publishing their own work.
+        Work performed by a user must be approved by a different reviewer before it can be published.
+        Set the value to true to enable this feature.
+    <workflow>
+        <publisher>
+            <requirePeerReview>false</requirePeerReview>
+        </publisher>
+    </workflow>
+    -->
+
     <repository rootPrefix="/site">
 
         <level-descriptor>crafter-level-descriptor.level.xml</level-descriptor>

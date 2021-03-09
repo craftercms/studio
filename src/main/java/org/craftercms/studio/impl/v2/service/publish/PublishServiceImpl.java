@@ -45,8 +45,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_CANCEL_PUBLISH;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_GET_PUBLISHING_QUEUE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
 
 public class PublishServiceImpl implements PublishService {
 
@@ -57,7 +57,7 @@ public class PublishServiceImpl implements PublishService {
     private ItemServiceInternal itemServiceInternal;
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public int getPublishingPackagesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String environment,
                                           String path, List<String> states)
             throws SiteNotFoundException {
@@ -68,7 +68,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public List<PublishingPackage> getPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                          String environment, String path, List<String> states,
                                                          int offset, int limit) throws SiteNotFoundException {
@@ -79,7 +79,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public PublishingPackageDetails getPublishingPackageDetails(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                                 String packageId) throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
@@ -89,7 +89,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_CANCEL_PUBLISH)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
     public void cancelPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                          List<String> packageIds) throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {

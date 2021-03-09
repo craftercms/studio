@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -170,6 +170,9 @@ package org.craftercms.studio.api.v1.constant;
     String SITE_CONFIG_ELEMENT_STAGING_URL = "staging-url";
     String SITE_CONFIG_ELEMENT_LIVE_URL = "live-url";
     String SITE_CONFIG_ELEMENT_ADMIN_EMAIL_ADDRESS = "admin-email-address";
+    String SITE_CONFIG_XML_ELEMENT_WORKFLOW = "workflow";
+    String SITE_CONFIG_XML_ELEMENT_PUBLISHER = "publisher";
+    String SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW = "requirePeerReview";
 
     /**
      * Repository commit messages variables

@@ -132,23 +132,51 @@ public enum ItemState {
         return (currentState & NEW.value) > 0;
     }
 
-    public static boolean isInWorkflow(long currentState) {
-        return (currentState & IN_WORKFLOW.value) > 0;
+    public static boolean isModified(long currentState) {
+        return (currentState & MODIFIED.value) > 0;
     }
 
-    public static boolean isLive(long currentState) {
-        return (currentState & LIVE.value) > 0;
+    public static boolean isDeleted(long currentState) {
+        return (currentState & DELETED.value) > 0;
+    }
+
+    public static boolean isUserLocked(long currentState) {
+        return (currentState & USER_LOCKED.value) > 0;
+    }
+
+    public static boolean isSystemProcessing(long currentState) {
+        return (currentState & SYSTEM_PROCESSING.value) > 0;
+    }
+
+    public static boolean isInWorkflow(long currentState) {
+        return (currentState & IN_WORKFLOW.value) > 0;
     }
 
     public static boolean isScheduled(long currentState) {
         return (currentState & SCHEDULED.value) > 0;
     }
 
-    public static boolean isModified(long currentState) {
-        return (currentState & MODIFIED.value) > 0;
+    public static boolean isPublishing(long currentState) {
+        return (currentState & PUBLISHING.value) > 0;
     }
 
-    public static boolean isSystemProcessing(long currentState) {
-        return (currentState & SYSTEM_PROCESSING.value) > 0;
+    public static boolean isStaged(long currentState) {
+        return (currentState & STAGED.value) > 0;
+    }
+
+    public static boolean isLive(long currentState) {
+        return (currentState & LIVE.value) > 0;
+    }
+
+    public static boolean isTranslationUpToDate(long currentState) {
+        return (currentState & TRANSLATION_UP_TO_DATE.value) > 0;
+    }
+
+    public static boolean isTranslationPending(long currentState) {
+        return (currentState & TRANSLATION_PENDING.value) > 0;
+    }
+
+    public static boolean isTranslationInProgress(long currentState) {
+        return (currentState & TRANSLATION_IN_PROGRESS.value) > 0;
     }
 }

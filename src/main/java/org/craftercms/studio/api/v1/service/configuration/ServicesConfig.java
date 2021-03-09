@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -216,4 +216,11 @@ public interface ServicesConfig {
 	 * @return admin email address
 	 */
 	String getAdminEmailAddress(String siteId);
+
+	/**
+	 * Check if it is configured to require peer review
+	 * @param siteId site identifier
+	 * @return true if require peer review is configured for site
+	 */
+	boolean isRequirePeerReview(String siteId);
 }
