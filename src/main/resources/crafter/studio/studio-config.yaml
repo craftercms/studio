@@ -100,7 +100,7 @@ studio.content.filename.maxSize: 255
 studio.content.fullPath.maxSize: 1024
 
 studio.content.policy.config.path: /config/studio/site-policy-config.xml
-# Item mime types that are editable
+# Item MIME-types that are editable directly in Crafter Studio
 studio.content.item.editableTypes:
   - text/plain
   - text/html
