@@ -75,67 +75,69 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
     private long applySpecialUseCaseFilters(String username, String siteId, Item item, long availableActions)
             throws ServiceLayerException, UserNotFoundException {
-        if ((availableActions & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(item))) {
-            availableActions = availableActions & ~CONTENT_EDIT;
+        long result = availableActions;
+        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(item))) {
+            result = result & ~CONTENT_EDIT;
         }
 
-        if ((availableActions & CONTENT_UPLOAD) > 0 &&
+        if ((result & CONTENT_UPLOAD) > 0 &&
                 (StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER) ||
                         !StudioUtils.matchesPatterns(item.getPath(), servicesConfig.getAssetPatterns(siteId)))) {
-            availableActions = availableActions & ~CONTENT_UPLOAD;
+            result = result & ~CONTENT_UPLOAD;
         }
 
         if (servicesConfig.isRequirePeerReview(siteId)) {
             if (StringUtils.equals(username, item.getModifier())) {
-                availableActions = availableActions & ~PUBLISH_SCHEDULE;
-                availableActions = availableActions & ~PUBLISH;
+                result = result & ~PUBLISH_SCHEDULE;
+                result = result & ~PUBLISH;
             }
 
             if (isInWorkflow(item.getState())) {
                 WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, item.getPath());
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (user.getId() == workflow.getId()) {
-                    availableActions = availableActions & ~PUBLISH_APPROVE;
-                    availableActions = availableActions & ~PUBLISH_SCHEDULE;
+                    result = result & ~PUBLISH_APPROVE;
+                    result = result & ~PUBLISH_SCHEDULE;
                 }
             }
 
         }
 
-        return availableActions;
+        return result;
     }
 
     private long applySpecialUseCaseFilters(String username, String siteId, DetailedItem detailedItem,
                                             long availableActions)
             throws ServiceLayerException, UserNotFoundException {
-        if ((availableActions & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(detailedItem))) {
-            availableActions = availableActions & ~CONTENT_EDIT;
+        long result = availableActions;
+        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(detailedItem))) {
+            result = result & ~CONTENT_EDIT;
         }
 
-        if ((availableActions & CONTENT_UPLOAD) > 0 &&
+        if ((result & CONTENT_UPLOAD) > 0 &&
                 (StringUtils.equals(detailedItem.getSystemType(), CONTENT_TYPE_FOLDER) ||
                         !StudioUtils.matchesPatterns(detailedItem.getPath(), servicesConfig.getAssetPatterns(siteId)))) {
-            availableActions = availableActions & ~CONTENT_UPLOAD;
+            result = result & ~CONTENT_UPLOAD;
         }
 
         if (servicesConfig.isRequirePeerReview(siteId)) {
             if (StringUtils.equals(username, detailedItem.getSandbox().getModifier())) {
-                availableActions = availableActions & ~PUBLISH_SCHEDULE;
-                availableActions = availableActions & ~PUBLISH;
+                result = result & ~PUBLISH_SCHEDULE;
+                result = result & ~PUBLISH;
             }
 
             if (isInWorkflow(detailedItem.getState())) {
                 WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, detailedItem.getPath());
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (user.getId() == workflow.getId()) {
-                    availableActions = availableActions & ~PUBLISH_APPROVE;
-                    availableActions = availableActions & ~PUBLISH_SCHEDULE;
+                    result = result & ~PUBLISH_APPROVE;
+                    result = result & ~PUBLISH_SCHEDULE;
                 }
             }
 
         }
 
-        return availableActions;
+        return result;
     }
 
     public SecurityService getSecurityService() {
