@@ -31,7 +31,7 @@
     <select id="getSoftDependenciesForList" resultType="java.util.Map">
         SELECT source_path, target_path
         FROM (dependency cd INNER JOIN site s ON cd.site = s.site_id INNER JOIN item ci ON cd.target_path = ci.path AND s.id = ci.site_id)
-        WHERE s.site = #{site}
+        WHERE s.site_id = #{site}
         AND s.deleted = 0
         AND cd.source_path IN
         <foreach item="path" index="index" collection="paths"
