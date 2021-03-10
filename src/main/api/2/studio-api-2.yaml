@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.6'
+  version: '4.0.0.7'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3171,6 +3171,103 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+
+  /configuration/content-type/usage:
+    get:
+      tags:
+        - configuration
+      summary: Get all usage of a given content-type
+      operationId: getContentTypeUsage
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: contentType
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  dependencies:
+                    type: object
+                    properties:
+                      templates:
+                        type: array
+                        items:
+                          type: string
+                        description: All templates associated with the given content-type
+                      scripts:
+                        type: array
+                        items:
+                          type: string
+                        description: All scripts associated with the given content-type
+                      content:
+                        type: array
+                        items:
+                          type: string
+                        description: All content types instantiated from the given content-type
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /configuration/content-type/delete:
+    post:
+      tags:
+        - configuration
+      summary: Delete files related to a given content-type
+      operationId: deleteContentType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                contentType:
+                  type: string
+                  description: The content-type to delete
+                files:
+                  type: array
+                  items:
+                    type: string
+                  description: Any additional file related to the content-type that should be deleted
+              required:
+                - siteId
+                - contentType
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
 
   /plugin/file:
     get:
