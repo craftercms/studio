@@ -32,20 +32,19 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -55,9 +54,7 @@ import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.EDITED_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_PATH_PARAM;
-import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.OLD_PATH_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATHS_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATH_PARAM;
@@ -66,8 +63,8 @@ import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_ID_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.SORUCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.TARGET_PATH_COLUMN_NAME;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceImpl implements DependencyService {
@@ -623,7 +620,8 @@ public class DependencyServiceImpl implements DependencyService {
         if (!possibleParents.isEmpty()) {
             List<String> pp = new ArrayList<>();
             pp.addAll(possibleParents);
-            List<String> result = itemDao.getMandatoryParentsForPublishing(site, pp, NEW_MASK, MODIFIED_MASK);
+            List<String> result = itemDao.getMandatoryParentsForPublishing(site, pp, ItemState.NEW_MASK,
+                    ItemState.MODIFIED_MASK);
             toRet.addAll(result);
         }
         return toRet;
@@ -652,9 +650,8 @@ public class DependencyServiceImpl implements DependencyService {
         params.put(SITE_PARAM, site);
         params.put(PATHS_PARAM, paths);
         params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
-        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put(EDITED_STATES_PARAM, onlyEditStates);
-        params.put(NEW_STATES_PARAM, State.NEW_STATES);
+        params.put(MODIFIED_MASK, ItemState.MODIFIED_MASK);
+        params.put(NEW_MASK, ItemState.NEW_MASK);
         return dependencyMapper.calculatePublishingDependenciesForList(params);
     }
 
