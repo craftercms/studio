@@ -3172,12 +3172,12 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
-  /configuration/content-type/dependencies:
+  /configuration/content-type/usage:
     get:
       tags:
         - configuration
-      summary: Get all depedencies for a given content-type
-      operationId: getContentTypeDepedencies
+      summary: Get all usage of a given content-type
+      operationId: getContentTypeUsage
       parameters:
         - name: siteId
           in: query
@@ -3217,7 +3217,7 @@ paths:
                         type: array
                         items:
                           type: string
-                        description: All content items associated with the given content-type
+                        description: All content types instantiated from the given content-type
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
