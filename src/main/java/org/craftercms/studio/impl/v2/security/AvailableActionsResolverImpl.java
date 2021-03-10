@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.security;
 
 import com.google.common.cache.Cache;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -42,6 +43,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapPermissionsToContentItemAvailableActions;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
@@ -192,8 +194,16 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     private long calculateAvailableActions(String username, String path,
                                            SitePermissionMappings sitePermissionMappings)
             throws ServiceLayerException, UserNotFoundException {
+        long toReturn = 0L;
         List<Group> groups = userServiceInternal.getUserGroups(-1, username);
-        return sitePermissionMappings.getAvailableActions(username, groups, path);
+        if (CollectionUtils.isNotEmpty(groups)) {
+            if (groups.contains(SYSTEM_ADMIN_GROUP)) {
+                toReturn = -1L;
+            } else {
+                toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
+            }
+        }
+        return toReturn;
     }
 
 }

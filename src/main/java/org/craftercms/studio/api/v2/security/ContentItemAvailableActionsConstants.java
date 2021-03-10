@@ -181,7 +181,7 @@ public final class ContentItemAvailableActionsConstants {
             FOLDER_CREATE;
     // content_delete
     public static final long BITMAP_CONTENT_DELETE =
-            CONTENT_DELETE + CONTENT_DELETE_CONTROLLER + CONTENT_EDIT_TEMPLATE;
+            CONTENT_DELETE + CONTENT_DELETE_CONTROLLER + CONTENT_DELETE_TEMPLATE;
     // publish
     public static final long BITMAP_PUBLISH =
             PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE;

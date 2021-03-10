@@ -76,6 +76,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private long applySpecialUseCaseFilters(String username, String siteId, Item item, long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
+
         if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(item))) {
             result = result & ~CONTENT_EDIT;
         }
