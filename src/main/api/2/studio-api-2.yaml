@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.7'
+  version: '4.0.0.8'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3270,7 +3270,12 @@ paths:
 
 
   /plugin/file:
+    # Override the server to change the prefix
+    servers:
+      - url: http://localhost:8080/studio/1
     get:
+      # Override the security because this requires login instead of JWT or Http Basic
+      security: []
       tags:
         - plugin
       summary: Get a file for a given plugin

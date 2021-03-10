@@ -147,6 +147,11 @@
         <constructor-arg ref="accessTokenService"/>
     </bean>
 
+    <!-- Plugins -->
+    <bean class="org.craftercms.studio.controller.web.v1.PluginController">
+        <constructor-arg ref="configurationService"/>
+    </bean>
+
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
     </bean>

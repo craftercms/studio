@@ -27,6 +27,8 @@ import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -337,7 +339,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public Resource getPluginFile(String siteId, String pluginId, String type, String name, String filename)
+    @ValidateParams
+    public Resource getPluginFile(String siteId,
+                                  @ValidateSecurePathParam(name = "pluginId") String pluginId,
+                                  @ValidateSecurePathParam(name = "type") String type,
+                                  @ValidateSecurePathParam(name = "name") String name,
+                                  @ValidateSecurePathParam(name = "filename") String filename)
         throws ContentNotFoundException {
 
         String basePath;
