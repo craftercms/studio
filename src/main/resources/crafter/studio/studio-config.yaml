@@ -106,6 +106,7 @@ studio.content.item.editableTypes:
   - text/html
   - text/css
   - text/x-freemarker
+  - text/x-groovy
   - application/javascript
   - application/json
   - application/xml
