@@ -19,7 +19,11 @@ package org.craftercms.studio.api.v2.utils;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -27,8 +31,16 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 
 public abstract class StudioUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(StudioUtils.class);
+
     public static String getMimeType(String filename) {
         Mimetypes mimetypes = Mimetypes.getInstance();
+        InputStream is = StudioUtils.class.getClassLoader().getResourceAsStream("META-INF/mime.types");
+        try {
+            mimetypes.loadAndReplaceMimetypes(is);
+        } catch (IOException e) {
+            logger.error("Failed to load custom mime types");
+        }
         return mimetypes.getMimetype(FilenameUtils.getName(filename));
     }
 

@@ -37,6 +37,7 @@ import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsC
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_UPLOAD;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_APPROVE;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_REJECT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_SCHEDULE;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
@@ -99,6 +100,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 if (user.getId() == workflow.getId()) {
                     result = result & ~PUBLISH_APPROVE;
                     result = result & ~PUBLISH_SCHEDULE;
+                    result = result & ~PUBLISH_REJECT;
                 }
             }
 
@@ -133,6 +135,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 if (user.getId() == workflow.getId()) {
                     result = result & ~PUBLISH_APPROVE;
                     result = result & ~PUBLISH_SCHEDULE;
+                    result = result & ~PUBLISH_REJECT;
                 }
             }
 
