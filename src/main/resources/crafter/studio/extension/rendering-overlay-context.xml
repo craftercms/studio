@@ -105,7 +105,6 @@
     </bean>
 
     <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
-        <constructor-arg ref="configurationService"/>
         <constructor-arg ref="scriptingService"/>
         <constructor-arg ref="studioConfiguration"/>
         <constructor-arg ref="cstudioSecurityService"/>
