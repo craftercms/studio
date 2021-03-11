@@ -118,7 +118,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         }
 
         if ((result & CONTENT_UPLOAD) > 0 &&
-                (StringUtils.equals(detailedItem.getSystemType(), CONTENT_TYPE_FOLDER) ||
+                (!StringUtils.equals(detailedItem.getSystemType(), CONTENT_TYPE_FOLDER) ||
                         !StudioUtils.matchesPatterns(detailedItem.getPath(), servicesConfig.getAssetPatterns(siteId)))) {
             result = result & ~CONTENT_UPLOAD;
         }
