@@ -39,7 +39,7 @@ public abstract class StudioUtils {
         try {
             mimetypes.loadAndReplaceMimetypes(is);
         } catch (IOException e) {
-            logger.error("Failed to load custom mime types");
+            logger.error("Failed to load custom mime types", e);
         }
         return mimetypes.getMimetype(FilenameUtils.getName(filename));
     }
