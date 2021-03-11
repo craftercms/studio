@@ -157,7 +157,6 @@ public interface StudioConfiguration {
     /** Security Service */
     String SECURITY_SESSION_TIMEOUT = "studio.security.sessionTimeout";
     String SECURITY_PUBLIC_URLS = "studio.security.publicUrls";
-    String SECURITY_IGNORE_RENEW_TOKEN_URLS = "studio.security.ignoreRenewTokenUrls";
     String SECURITY_TYPE = "studio.security.type";
     String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
     String SECURITY_CIPHER_KEY = "studio.security.cipher.key";
