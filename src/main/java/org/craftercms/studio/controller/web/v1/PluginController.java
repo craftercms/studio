@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.web.v1;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.activation.MimetypesFileTypeMap;
 
 /**
  * Controller that provides the UI with plugin related files
@@ -57,8 +56,7 @@ public class PluginController {
 
         Resource resource = configurationService.getPluginFile(siteId, pluginId, type, name, filename);
 
-        MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
-        String contentType = mimeMap.getContentType(filename);
+        String contentType = StudioUtils.getMimeType(filename);
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, contentType).body(resource);
     }

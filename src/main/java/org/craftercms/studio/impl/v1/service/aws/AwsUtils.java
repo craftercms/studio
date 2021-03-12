@@ -20,10 +20,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.AwsException;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -43,9 +43,8 @@ public abstract class AwsUtils {
             int partNumber = 1;
             long totalBytes = 0;
 
-            MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
             ObjectMetadata meta = new ObjectMetadata();
-            meta.setContentType(mimeMap.getContentType(filename));
+            meta.setContentType(StudioUtils.getMimeType(filename));
 
             InitiateMultipartUploadRequest initRequest =
                     new InitiateMultipartUploadRequest(inputBucket, inputKey, meta);
