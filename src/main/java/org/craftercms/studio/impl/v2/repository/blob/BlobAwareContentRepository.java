@@ -20,23 +20,24 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
-import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.repository.*;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -46,13 +47,13 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -84,10 +85,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
      */
     protected String fileExtension;
 
-    /**
-     * The patterns of urls that should be handled by blob stores
-     */
-    protected String[] interceptedPaths;
+
 
     protected GitContentRepository localRepositoryV1;
 
@@ -113,10 +111,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         this.blobStoreResolver = blobStoreResolver;
     }
 
-    public void setInterceptedPaths(String[] interceptedPaths) {
-        this.interceptedPaths = interceptedPaths;
-    }
-
     protected String getOriginalPath(String path) {
         return StringUtils.removeEnd(path, "." + fileExtension);
     }
@@ -134,20 +128,13 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     protected StudioBlobStore getBlobStore(String site, String... paths)
-            throws ServiceLayerException, ConfigurationException, IOException {
+            throws ServiceLayerException {
         if (isEmpty(site)) {
             return null;
         }
 
         if (ArrayUtils.isEmpty(paths)) {
             throw new IllegalArgumentException("At least one path needs to be provided");
-        }
-
-        for (String path : paths) {
-            if (!RegexUtils.matchesAny(path, interceptedPaths)) {
-                logger.debug("Path {0} should not be intercepted, will be skipped", path);
-                return null;
-            }
         }
 
         return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
@@ -379,7 +366,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException, CryptoException {
+            throws DeploymentException {
         localRepositoryV1.initialPublish(site, sandboxBranch, environment, author, comment);
     }
 
@@ -462,7 +449,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public void resetStagingRepository(String siteId) throws ServiceLayerException, CryptoException {
+    public void resetStagingRepository(String siteId) throws ServiceLayerException {
         localRepositoryV1.resetStagingRepository(siteId);
     }
 

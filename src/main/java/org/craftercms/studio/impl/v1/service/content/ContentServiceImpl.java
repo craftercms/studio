@@ -94,6 +94,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -109,8 +110,6 @@ import org.dom4j.DocumentException;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
-
-import javax.activation.MimetypesFileTypeMap;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
@@ -1705,8 +1704,7 @@ public class ContentServiceImpl implements ContentService {
 
         loadContentTypeProperties(site, item, item.contentType);
 
-        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-        String mimeType = mimeTypesMap.getContentType(item.getName());
+        String mimeType = StudioUtils.getMimeType(item.getName());
         if (StringUtils.isNotEmpty(mimeType)) {
             item.setMimeType(mimeType);
         }
@@ -1728,8 +1726,7 @@ public class ContentServiceImpl implements ContentService {
                     item.isPreviewable = item.previewable;
                 }
             } else {
-                MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-                String mimeType = mimeTypesMap.getContentType(item.getName());
+                String mimeType = StudioUtils.getMimeType(item.getName());
                 if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
                     item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
                             .getPreviewableMimetypesPaterns(site)));

@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.service.aws.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +29,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
 import org.craftercms.studio.model.aws.s3.S3Item;
 import org.springframework.beans.factory.annotation.Required;
@@ -128,7 +128,6 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         AmazonS3 client = getS3Client(profile);
         List<S3Item> items = new LinkedList<>();
 
-        Mimetypes mimetypes = Mimetypes.getInstance();
         MimeType filerType =
             StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER)? MimeTypeUtils.ALL : new MimeType(type);
 
@@ -149,7 +148,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
             result.getObjectSummaries().stream()
                 .filter(o -> !StringUtils.equals(o.getKey(), prefix) &&
-                                MimeType.valueOf(mimetypes.getMimetype(o.getKey())).isCompatibleWith(filerType))
+                                MimeType.valueOf(StudioUtils.getMimeType(o.getKey())).isCompatibleWith(filerType))
                 .map(o -> new S3Item(
                     StringUtils.removeStart(o.getKey(), prefix), createUrl(profileId, o.getKey()), false))
                 .forEach(items::add);

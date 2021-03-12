@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,22 +16,16 @@
 
 package org.craftercms.studio.impl.v1.util.spring.mvc;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.engine.controller.rest.RestScriptsController;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.springframework.web.servlet.view.AbstractView;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.file.Files;
 import java.util.Map;
-import java.util.Set;
 
 
 public class BinaryView extends AbstractView {
@@ -89,8 +83,7 @@ public class BinaryView extends AbstractView {
             InputStream contentStream = (InputStream) responseModelMap.get(DEFAULT_CONTENT_STREAM_MODEL_ATTR_NAME);
             String contentPath = (String) responseModelMap.get(DEFAULT_CONTENT_PATH_MODEL_ATTR_NAME);
 
-            MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
-            String contentType = mimetypesFileTypeMap.getContentType(contentPath);
+            String contentType = StudioUtils.getMimeType(contentPath);
             response.setContentType(contentType);
             if (contentStream != null) {
                 IOUtils.write(IOUtils.toByteArray(contentStream), out);

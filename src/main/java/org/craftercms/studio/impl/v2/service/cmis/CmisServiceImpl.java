@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -50,9 +50,9 @@ import org.craftercms.studio.api.v2.exception.configuration.ConfigurationExcepti
 import org.craftercms.studio.api.v2.service.cmis.CmisService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.CmisUploadItem;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -351,8 +351,7 @@ public class CmisServiceImpl implements CmisService {
                         // Content does not exist - no error
                         logger.debug("File " + filename + " does not exist at " + contentPath);
                     }
-                    MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-                    String mimeType = mimeTypesMap.getContentType(filename);
+                    String mimeType = StudioUtils.getMimeType(filename);
                     ContentStream contentStream =
                             session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
                     Folder folder  = (Folder)cmisObject;

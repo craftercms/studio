@@ -22,6 +22,7 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
@@ -57,6 +58,11 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
 
     protected StudioConfiguration studioConfiguration;
 
+    /**
+     * The patterns of urls that should be handled by blob stores
+     */
+    protected String[] interceptedPaths;
+
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
@@ -73,6 +79,10 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         this.studioConfiguration = studioConfiguration;
     }
 
+    public void setInterceptedPaths(String[] interceptedPaths) {
+        this.interceptedPaths = interceptedPaths;
+    }
+
     @Override
     protected HierarchicalConfiguration getConfiguration(ConfigurationProvider provider) throws ConfigurationException {
         var config = super.getConfiguration(provider);
@@ -85,6 +95,12 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
     @Override
     public BlobStore getByPaths(String site, String... paths)
             throws ServiceLayerException {
+
+        if (Stream.of(paths).noneMatch(p -> RegexUtils.matchesAny(p, interceptedPaths))) {
+            logger.debug("One of the paths {} should not be intercepted, will be skipped", (Object) paths);
+            return null;
+        }
+
         logger.debug("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
         HierarchicalConfiguration config;
         try {
@@ -114,6 +130,11 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         } catch (ExecutionException e) {
             throw new RuntimeException("Error looking for blob store", e);
         }
+    }
+
+    @Override
+    public boolean isBlob(String site, String path) throws ServiceLayerException {
+        return getByPaths(site, path) != null;
     }
 
     protected String getEnvironment() {
