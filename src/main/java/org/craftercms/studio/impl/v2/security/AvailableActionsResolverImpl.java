@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
@@ -197,7 +198,8 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
         long toReturn = 0L;
         List<Group> groups = userServiceInternal.getUserGroups(-1, username);
         if (CollectionUtils.isNotEmpty(groups)) {
-            if (groups.contains(SYSTEM_ADMIN_GROUP)) {
+            List<String> groupNames = groups.stream().map(g -> g.getGroupName()).collect(Collectors.toList());
+            if (groupNames.contains(SYSTEM_ADMIN_GROUP)) {
                 toReturn = -1L;
             } else {
                 toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
