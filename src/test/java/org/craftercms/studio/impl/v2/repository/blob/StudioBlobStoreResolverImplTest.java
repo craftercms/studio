@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob;
 
-import org.craftercms.commons.config.ConfigurationException;
+import com.google.common.cache.CacheBuilder;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
@@ -35,9 +37,14 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author joseross
@@ -58,6 +65,14 @@ public class StudioBlobStoreResolverImplTest {
 
     public static final String CONFIG_PATH = "/config/studio/stores.xml";
 
+    public static final String CACHE_KEY_CONFIG = "config-file";
+
+    public static final String CONFIG_MODULE = "studio";
+
+    public static final String CONFIG_FILENAME = "stores.xml";
+
+    public static final String ENVIRONMENT = "default";
+
     public static final Resource CONFIG_FILE = new ClassPathResource("crafter/studio/config/stores.xml");
 
     @Mock
@@ -71,6 +86,12 @@ public class StudioBlobStoreResolverImplTest {
 
     @Mock
     private StudioBlobStore anotherBlobStore;
+
+    @Mock
+    private StudioConfiguration studioConfiguration;
+
+    @Mock
+    private ConfigurationService configurationService;
 
     @InjectMocks
     private StudioBlobStoreResolverImpl resolver;
@@ -89,16 +110,23 @@ public class StudioBlobStoreResolverImplTest {
         when(applicationContext.getBean(BLOB_STORE_TYPE, BlobStore.class)).thenReturn(myBlobStore);
         when(applicationContext.getBean(ANOTHER_BLOB_STORE, BlobStore.class)).thenReturn(anotherBlobStore);
 
-        ConfigurationResolver configResolver = new ConfigurationResolverImpl("default", "/config/{module}",
+        when(studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE)).thenReturn(ENVIRONMENT);
+
+        when(configurationService.getCacheKey(SITE_ID, CONFIG_MODULE, CONFIG_FILENAME, ENVIRONMENT))
+                .thenReturn(CACHE_KEY_CONFIG);
+
+        ConfigurationResolver configResolver = new ConfigurationResolverImpl(ENVIRONMENT, "/config/{module}",
                 null, new EncryptionAwareConfigurationReader(new NoOpTextEncryptor()));
 
-        resolver.setConfigModule("studio");
-        resolver.setConfigPath("stores.xml");
+        resolver.setConfigModule(CONFIG_MODULE);
+        resolver.setConfigPath(CONFIG_FILENAME);
         resolver.setConfigurationResolver(configResolver);
+        resolver.setInterceptedPaths(new String[] { "/static-assets/.*" });
+        resolver.setCache(CacheBuilder.newBuilder().build());
     }
 
     @Test
-    public void getByRemotePathTest() throws ServiceLayerException, ConfigurationException, IOException {
+    public void getByRemotePathTest() throws ServiceLayerException {
         BlobStore store = resolver.getByPaths(SITE_ID, REMOTE_PATH, REMOTE_PATH);
 
         assertNotNull(store, "store should not be null");
@@ -106,15 +134,22 @@ public class StudioBlobStoreResolverImplTest {
     }
 
     @Test
-    public void getByLocalPathTest() throws ServiceLayerException, ConfigurationException, IOException {
+    public void getByLocalPathTest() throws ServiceLayerException {
         BlobStore store = resolver.getByPaths(SITE_ID, LOCAL_PATH, LOCAL_PATH);
 
         assertNull(store, "store should be null");
     }
 
     @Test(expectedExceptions = { ServiceLayerException.class })
-    public void getByMixedPathsTest() throws ServiceLayerException, ConfigurationException, IOException {
+    public void getByMixedPathsTest() throws ServiceLayerException {
         resolver.getByPaths(SITE_ID, REMOTE_PATH, LOCAL_PATH);
+    }
+
+    @Test
+    public void isBlobTest() throws ServiceLayerException {
+        assertFalse(resolver.isBlob(SITE_ID, CONFIG_PATH));
+        assertFalse(resolver.isBlob(SITE_ID,LOCAL_PATH));
+        assertTrue(resolver.isBlob(SITE_ID, REMOTE_PATH));
     }
 
 }

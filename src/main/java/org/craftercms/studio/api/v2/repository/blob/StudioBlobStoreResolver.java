@@ -44,10 +44,18 @@ public interface StudioBlobStoreResolver extends BlobStoreResolver {
      * @param paths the lists of paths to check
      * @return the blob store object
      * @throws ServiceLayerException if there is any error looking up the stores
-     * @throws ConfigurationException if there is any error reading the configuration
-     * @throws IOException IO error
      */
     BlobStore getByPaths(String site, String... paths)
-            throws ServiceLayerException, ConfigurationException, IOException;
+            throws ServiceLayerException;
+
+    /**
+     * Indicates if a given path belongs to a blob store
+     *
+     * @param site the id of the site
+     * @param path the path to check
+     * @return true if there is a matching blob store
+     * @throws ServiceLayerException if there is any error looking up the stores
+     */
+    boolean isBlob(String site, String path) throws ServiceLayerException;
 
 }
