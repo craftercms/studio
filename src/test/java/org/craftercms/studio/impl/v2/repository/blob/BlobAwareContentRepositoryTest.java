@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.apache.commons.io.FilenameUtils;
-import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
@@ -34,7 +33,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -68,6 +66,7 @@ public class BlobAwareContentRepositoryTest {
     public static final String COMMENT = "Going live!";
     public static final String STORE_ID = "BLOB_STORE";
     public static final String LOCAL_PATH = "/site/website/index.xml";
+    public static final String CONFIG_PATH = "/config/studio/site-config.xml";
 
     @InjectMocks
     private BlobAwareContentRepository proxy;
@@ -98,6 +97,7 @@ public class BlobAwareContentRepositoryTest {
         when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
+        when(resolver.getByPaths(SITE, CONFIG_PATH)).thenReturn(null);
 
         when(localV1.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
         when(localV1.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
@@ -115,14 +115,14 @@ public class BlobAwareContentRepositoryTest {
         when(store.isFolder(SITE, ORIGINAL_PATH)).thenReturn(false);
 
         proxy.setFileExtension(BLOB_EXT);
-        proxy.setInterceptedPaths(new String[]{ "/static-assets/.*" });
     }
 
     @Test
-    public void configShouldNotBeIntercepted() throws ConfigurationException, IOException, ServiceLayerException {
-        proxy.contentExists(SITE, "/config/studio/site-config.xml");
+    public void configShouldNotBeIntercepted() {
+        proxy.contentExists(SITE, CONFIG_PATH);
 
-        verify(resolver, never()).getByPaths(any(), any());
+        verify(localV1).contentExists(SITE, CONFIG_PATH);
+        verify(store, never()).contentExists(SITE, CONFIG_PATH);
     }
 
     @Test
