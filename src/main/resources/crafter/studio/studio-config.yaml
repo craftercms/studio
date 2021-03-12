@@ -146,6 +146,8 @@ studio.configuration.site.permissionMappingsFileName: permission-mappings-config
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
+# File name where definition of content type is stored.
+studio.configuration.site.contentTypes.definitionFileName: form-definition.xml
 # Default user groups when site is created
 studio.configuration.defaultGroups: site_author,site_publisher,site_developer,site_reviewer,site_admin
 # Default admin group when site is created to add creator as admin
@@ -210,6 +212,13 @@ studio.configuration.plugin.base.pattern: /config/studio/plugins/js/${id}/${type
 studio.configuration.cache.global.patterns: /?configuration/.+
 # List of patterns to invalidate cache when changes are detected in the site repo (separated by commas)
 studio.configuration.cache.site.patterns: /?config/.+
+
+# XPath selector for the display template
+studio.configuration.contentType.template.xpath: "/form/properties/property[name='display-template']/value/text()"
+# Regular expression to extract content-type type and name
+studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
+# Format string for the controller script of a content-type
+studio.configuration.contentType.controller.format: '/scripts/$1s/$2.groovy'
 
 ########################################################
 ##                   Import Service                   ##

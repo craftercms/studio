@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,26 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.craftercms.studio.api.v2.service.content.internal;
+package org.craftercms.studio.impl.v2.service.content;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
+import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 
-import java.util.List;
+/**
+ * Default implementation for {@link ContentTypeService}
+ *
+ * @author joseross
+ * @since 4.0
+ */
+public class ContentTypeServiceImpl implements ContentTypeService {
 
-public interface ContentTypeServiceInternal {
+    protected ContentTypeServiceInternal contentTypeServiceInternal;
 
-    /**
-     * Get list of content types marked as quick creatable for given site
-     *
-     * @param siteId site identifier
-     * @return List of quick creatable content types
-     */
-    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
+    public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal) {
+        this.contentTypeServiceInternal = contentTypeServiceInternal;
+    }
 
     /**
      * Finds all items related to a given content-type
@@ -42,7 +44,10 @@ public interface ContentTypeServiceInternal {
      * @return the usage
      * @throws ServiceLayerException if there is any error finding the items
      */
-    ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException;
+    @Override
+    public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
+        return contentTypeServiceInternal.getContentTypeUsage(siteId, contentType);
+    }
 
     /**
      * Deletes all files related to a given content-type
@@ -53,7 +58,10 @@ public interface ContentTypeServiceInternal {
      * @throws AuthenticationException if there is any error authenticating the user
      * @throws DeploymentException if there is any error publishing the changes
      */
-    void deleteContentType(String siteId, String contentType)
-            throws ServiceLayerException, AuthenticationException, DeploymentException;
+    @Override
+    public void deleteContentType(String siteId, String contentType)
+            throws ServiceLayerException, AuthenticationException, DeploymentException {
+        contentTypeServiceInternal.deleteContentType(siteId, contentType);
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,26 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.craftercms.studio.api.v2.service.content.internal;
+package org.craftercms.studio.api.v2.service.content;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 
-import java.util.List;
-
-public interface ContentTypeServiceInternal {
-
-    /**
-     * Get list of content types marked as quick creatable for given site
-     *
-     * @param siteId site identifier
-     * @return List of quick creatable content types
-     */
-    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
+/**
+ * Defines all operations related to content-types
+ *
+ * @author joseross
+ * @since 4.0
+ */
+public interface ContentTypeService {
 
     /**
      * Finds all items related to a given content-type
