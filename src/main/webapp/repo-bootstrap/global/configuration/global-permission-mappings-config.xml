@@ -84,6 +84,7 @@
                 <permission>manage_access_token</permission>
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
+                <permission>site_delete</permission>
             </allowed-permissions>
         </rule>
     </role>
