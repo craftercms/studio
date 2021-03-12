@@ -23,17 +23,21 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_READ_VERSION_HISTORY;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_REVERT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_UPLOAD;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_APPROVE;
@@ -49,6 +53,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private ServicesConfig servicesConfig;
     private WorkflowServiceInternal workflowServiceInternal;
     private UserServiceInternal userServiceInternal;
+    private StudioBlobStoreResolver studioBlobStoreResolver;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -77,6 +83,11 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private long applySpecialUseCaseFilters(String username, String siteId, Item item, long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
+
+        if (studioBlobStoreResolver.isBlob(siteId, item.getPath())) {
+            result = result & ~CONTENT_READ_VERSION_HISTORY;
+            result = result & ~CONTENT_REVERT;
+        }
 
         if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(item))) {
             result = result & ~CONTENT_EDIT;
@@ -113,6 +124,12 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                                             long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
+
+        if (studioBlobStoreResolver.isBlob(siteId, detailedItem.getPath())) {
+            result = result & ~CONTENT_READ_VERSION_HISTORY;
+            result = result & ~CONTENT_REVERT;
+        }
+
         if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(detailedItem))) {
             result = result & ~CONTENT_EDIT;
         }
@@ -182,5 +199,21 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public StudioBlobStoreResolver getStudioBlobStoreResolver() {
+        return studioBlobStoreResolver;
+    }
+
+    public void setStudioBlobStoreResolver(StudioBlobStoreResolver studioBlobStoreResolver) {
+        this.studioBlobStoreResolver = studioBlobStoreResolver;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

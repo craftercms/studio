@@ -165,5 +165,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="studioBlobStoreResolver" ref="blobStoreResolver" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 </beans>
