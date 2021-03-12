@@ -353,6 +353,8 @@ public interface StudioConfiguration {
     // Content Service
     String CONTENT_ITEM_EDITABLE_TYPES = "studio.content.item.editableTypes";
 
+    String BLOB_INTERCEPTED_PATHS = "studio.blob.intercepted.paths";
+
     void loadConfig();
 
     String getProperty(String key);

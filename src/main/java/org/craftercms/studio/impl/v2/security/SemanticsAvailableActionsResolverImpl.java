@@ -17,23 +17,35 @@
 package org.craftercms.studio.impl.v2.security;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.file.blob.BlobStore;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+
+import java.io.IOException;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_READ_VERSION_HISTORY;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_REVERT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_UPLOAD;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_APPROVE;
@@ -41,14 +53,19 @@ import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsC
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_SCHEDULE;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLOB_INTERCEPTED_PATHS;
 
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
+
+    private static final Logger logger = LoggerFactory.getLogger(SemanticsAvailableActionsResolverImpl.class);
 
     private SecurityService securityService;
     private ContentServiceInternal contentServiceInternal;
     private ServicesConfig servicesConfig;
     private WorkflowServiceInternal workflowServiceInternal;
     private UserServiceInternal userServiceInternal;
+    private StudioBlobStoreResolver studioBlobStoreResolver;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -77,6 +94,19 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private long applySpecialUseCaseFilters(String username, String siteId, Item item, long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
+
+        String blobInterceptedPaths = studioConfiguration.getProperty(BLOB_INTERCEPTED_PATHS);
+        if (RegexUtils.matchesAny(item.getPath(), blobInterceptedPaths)) {
+            try {
+                BlobStore blobStore = studioBlobStoreResolver.getByPaths(siteId, item.getPath());
+                if (Objects.nonNull(blobStore)) {
+                    result = result & ~CONTENT_READ_VERSION_HISTORY;
+                    result = result & ~CONTENT_REVERT;
+                }
+            } catch (ConfigurationException | IOException e) {
+                logger.debug("Failed to load blob store for " + siteId + " " + item.getPath());
+            }
+        }
 
         if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(item))) {
             result = result & ~CONTENT_EDIT;
@@ -113,6 +143,20 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                                             long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
+
+        String blobInterceptedPaths = studioConfiguration.getProperty(BLOB_INTERCEPTED_PATHS);
+        if (RegexUtils.matchesAny(detailedItem.getPath(), blobInterceptedPaths)) {
+            try {
+                BlobStore blobStore = studioBlobStoreResolver.getByPaths(siteId, detailedItem.getPath());
+                if (Objects.nonNull(blobStore)) {
+                    result = result & ~CONTENT_READ_VERSION_HISTORY;
+                    result = result & ~CONTENT_REVERT;
+                }
+            } catch (ConfigurationException | IOException e) {
+                logger.debug("Failed to load blob store for " + siteId + " " + detailedItem.getPath());
+            }
+        }
+
         if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(detailedItem))) {
             result = result & ~CONTENT_EDIT;
         }
@@ -182,5 +226,21 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public StudioBlobStoreResolver getStudioBlobStoreResolver() {
+        return studioBlobStoreResolver;
+    }
+
+    public void setStudioBlobStoreResolver(StudioBlobStoreResolver studioBlobStoreResolver) {
+        this.studioBlobStoreResolver = studioBlobStoreResolver;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }
