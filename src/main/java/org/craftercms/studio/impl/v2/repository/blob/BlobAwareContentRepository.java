@@ -489,11 +489,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public ZonedDateTime getLastDeploymentDate(String site, String path) {
-        return localRepositoryV2.getLastDeploymentDate(site, path);
-    }
-
-    @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
                                            Map<String, String> params) {
         return localRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);

@@ -749,13 +749,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public ZonedDateTime getLastDeploymentDate(@ValidateStringParam(name = "site") String site,
-                                               @ValidateSecurePathParam(name = "path") String path) {
-        return deploymentHistoryProvider.getLastDeploymentDate(site, path);
-    }
-
-    @Override
-    @ValidateParams
     public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
         if (!siteService.exists(site)) {

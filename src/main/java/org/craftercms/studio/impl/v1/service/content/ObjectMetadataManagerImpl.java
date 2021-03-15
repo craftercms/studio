@@ -331,6 +331,16 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         return itemMetadataMapper.getContentDashboard(params);
     }
 
+    @Override
+    public void updateLastPublishedDate(String siteId, String path, ZonedDateTime publishedDate) {
+        itemMetadataMapper.updateLastPublishedDate(siteId, path, publishedDate);
+    }
+
+    @Override
+    public void updateLastPublishedDateBulk(String siteId, List<String> paths, ZonedDateTime publishedDate) {
+        itemMetadataMapper.updateLastPublishedDateBulk(siteId, paths, publishedDate);
+    }
+
     public ItemMetadataMapper getItemMetadataMapper() {
         return itemMetadataMapper;
     }

@@ -31,6 +31,12 @@ public abstract class QueryParameterNames {
     // commit id
     public static final String COMMIT_ID = "commitId";
 
+    public static final String PATH = "path";
+
+    public static final String PATHS = "paths";
+
+    public static final String PUBLISHED_DATE = "publishedDate";
+
     /* Organizations */
 
     // Organization ID

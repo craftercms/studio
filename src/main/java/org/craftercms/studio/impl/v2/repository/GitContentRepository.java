@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -159,6 +160,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
     private SiteService siteService;
+    private ObjectMetadataManager objectMetadataManager;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -840,34 +842,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toRet;
     }
 
-    @Override
-    public ZonedDateTime getLastDeploymentDate(String site, String path) {
-        ZonedDateTime toRet = null;
-        try {
-            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
-            Repository publishedRepo = helper.getRepository(site, PUBLISHED);
-            if (Objects.nonNull(publishedRepo)) {
-                try (Git git = new Git(publishedRepo)) {
-                    Iterable<RevCommit> log = git.log()
-                            .all()
-                            .addPath(helper.getGitPath(path))
-                            .setMaxCount(1)
-                            .call();
-                    Iterator<RevCommit> iter = log.iterator();
-                    if (iter.hasNext()) {
-                        RevCommit commit = iter.next();
-                        toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(UTC);
-                    }
-                    git.close();
-                }
-            }
-        } catch (CryptoException | IOException | GitAPIException e) {
-            logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
-        }
-        return toRet;
-    }
-
     @RetryingOperation
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
@@ -1042,6 +1016,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         }
 
                         addCommand.addFilepattern(path);
+                        objectMetadataManager.updateLastPublishedDate(site, deploymentItem.getPath(),
+                                ZonedDateTime.now(UTC));
                     }
                     logger.debug("Checkout deployed files completed.");
 
@@ -1790,5 +1766,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
+
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
     }
 }
