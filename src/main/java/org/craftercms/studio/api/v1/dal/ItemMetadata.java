@@ -47,7 +47,7 @@ public class ItemMetadata implements Serializable {
     public static final String PROP_LAUNCH_DATE = "launchDate";
     public static final String PROP_COMMIT_ID = "commitId";
     public static final String PROP_SUBMITTED_TO_ENVIRONMENT = "submittedToEnvironment";
-    public static final String PROP_DEPLOYED = "deployed";
+    public static final String PROP_PUBLISHED_DATE = "publishedDate";
 
     protected int id;
     protected String site;
