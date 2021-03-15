@@ -1830,6 +1830,13 @@ public class ContentServiceImpl implements ContentService {
                 item.setScheduledDate(metadata.getLaunchDate());
             }
 
+            if (metadata.getDeployed() != null) {
+                item.published = true;
+                item.setPublished(true);
+                item.publishedDate = metadata.getDeployed();
+                item.setPublishedDate(metadata.getDeployed());
+            }
+
             // Set the modifier (user) if known
             if (StringUtils.isEmpty(metadata.getModifier())) {
                 item.setUser("");

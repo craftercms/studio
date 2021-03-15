@@ -16,8 +16,16 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import org.apache.ibatis.annotations.Param;
+
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DEPLOYED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface ItemMetadataMapper {
 
@@ -54,4 +62,10 @@ public interface ItemMetadataMapper {
     int getContentDashboardTotal(Map params);
 
     List<ItemMetadata> getContentDashboard(Map params);
+
+    void updateLastDeployedDate(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                                @Param(DEPLOYED) ZonedDateTime deployed);
+
+    void updateLastDeployedDateBulk(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+                                    @Param(DEPLOYED) ZonedDateTime deployed);
 }
