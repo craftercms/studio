@@ -35,7 +35,7 @@ public abstract class QueryParameterNames {
 
     public static final String PATHS = "paths";
 
-    public static final String DEPLOYED = "deployed";
+    public static final String PUBLISHED_DATE = "publishedDate";
 
     /* Organizations */
 

@@ -43,7 +43,7 @@
         <result property="sendEmail" column="sendemail"/>
         <result property="commitId" column="commit_id"/>
         <result property="submittedToEnvironment" column="submittedtoenvironment" />
-        <result property="deployed" column="deployed"/>
+        <result property="publishedDate" column="published_date"/>
     </resultMap>
 
     <select id="getProperties" parameterType="java.util.Map" resultMap="ItemMetadataMap">
@@ -76,7 +76,7 @@
             <if test="launchDate != null">launchdate=#{launchDate},</if>
             <if test="commitId != null">commit_id=#{commitId},</if>
             <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment},</if>
-            <if test="deployed != null">launchdate=#{deployed}</if>
+            <if test="publishedDate != null">published_date=#{publishedDate}</if>
         </trim>
         WHERE site=#{site}
         AND path=#{path}
@@ -108,7 +108,7 @@
             <if test="launchDate != null">launchdate=#{launchDate},</if>
             <if test="commitId != null">commit_id=#{commitId},</if>
             <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment},</if>
-            <if test="deployed != null">launchdate=#{deployed}</if>
+            <if test="publishedDate != null">published_date=#{publishedDate}</if>
         </trim>
         WHERE site=#{site}
         AND commit_id=#{commitId}
@@ -140,7 +140,7 @@
             launchdate=#{launchDate},
             commit_id=#{commitId},
             submittedtoenvironment=#{submittedToEnvironment},
-            deployed=#{deployed}
+            published_date=#{publishedDate}
         WHERE id = #{id}
     </update>
 
@@ -262,16 +262,16 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <update id="updateLastDeployedDate" >
+    <update id="updateLastPublishedDate" >
         UPDATE item_metadata
-        SET deployed = #{deployed}
+        SET published_date = #{publishedDate}
         WHERE site = #{siteId}
           AND path = #{path}
     </update>
 
-    <update id="updateLastDeployedDateBulk" >
+    <update id="updateLastPublishedDateBulk" >
         UPDATE item_metadata
-        SET deployed = #{deployed}
+        SET published_date = #{publishedDate}
         WHERE site = #{siteId}
           AND path in
         <foreach collection="paths" index="index" item="path" open="(" separator="," close=")">

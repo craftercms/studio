@@ -1016,7 +1016,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         }
 
                         addCommand.addFilepattern(path);
-                        objectMetadataManager.updateLastDeployedDate(site, deploymentItem.getPath(),
+                        objectMetadataManager.updateLastPublishedDate(site, deploymentItem.getPath(),
                                 ZonedDateTime.now(UTC));
                     }
                     logger.debug("Checkout deployed files completed.");

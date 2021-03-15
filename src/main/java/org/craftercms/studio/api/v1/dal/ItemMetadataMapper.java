@@ -22,7 +22,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DEPLOYED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHED_DATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
@@ -63,9 +63,9 @@ public interface ItemMetadataMapper {
 
     List<ItemMetadata> getContentDashboard(Map params);
 
-    void updateLastDeployedDate(@Param(SITE_ID) String siteId, @Param(PATH) String path,
-                                @Param(DEPLOYED) ZonedDateTime deployed);
+    void updateLastPublishedDate(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                                @Param(PUBLISHED_DATE) ZonedDateTime publishedDate);
 
-    void updateLastDeployedDateBulk(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
-                                    @Param(DEPLOYED) ZonedDateTime deployed);
+    void updateLastPublishedDateBulk(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+                                    @Param(PUBLISHED_DATE) ZonedDateTime publishedDate);
 }

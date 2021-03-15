@@ -332,13 +332,13 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public void updateLastDeployedDate(String siteId, String path, ZonedDateTime deployed) {
-        itemMetadataMapper.updateLastDeployedDate(siteId, path, deployed);
+    public void updateLastPublishedDate(String siteId, String path, ZonedDateTime publishedDate) {
+        itemMetadataMapper.updateLastPublishedDate(siteId, path, publishedDate);
     }
 
     @Override
-    public void updateLastDeployedDateBulk(String siteId, List<String> paths, ZonedDateTime deployed) {
-        itemMetadataMapper.updateLastDeployedDateBulk(siteId, paths, deployed);
+    public void updateLastPublishedDateBulk(String siteId, List<String> paths, ZonedDateTime publishedDate) {
+        itemMetadataMapper.updateLastPublishedDateBulk(siteId, paths, publishedDate);
     }
 
     public ItemMetadataMapper getItemMetadataMapper() {

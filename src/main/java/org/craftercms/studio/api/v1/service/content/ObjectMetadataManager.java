@@ -98,18 +98,18 @@ public interface ObjectMetadataManager {
                                            String sortBy, String order, int offset, int limit);
 
     /**
-     * Set last deployed date for item
+     * Set last published date for item
      * @param siteId site identifier
      * @param path path of the item
-     * @param deployedDate date and time of publishing
+     * @param publishedDate date and time of publishing
      */
-    void updateLastDeployedDate(String siteId, String path, ZonedDateTime deployedDate);
+    void updateLastPublishedDate(String siteId, String path, ZonedDateTime publishedDate);
 
     /**
-     * Set last deployed date for items
+     * Set last published date for items
      * @param siteId site identifier
      * @param paths list of paths
-     * @param deployedDate date and time of publishing
+     * @param publishedDate date and time of publishing
      */
-    void updateLastDeployedDateBulk(String siteId, List<String> paths, ZonedDateTime deployedDate);
+    void updateLastPublishedDateBulk(String siteId, List<String> paths, ZonedDateTime publishedDate);
 }

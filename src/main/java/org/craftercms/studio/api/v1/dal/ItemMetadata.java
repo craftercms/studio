@@ -74,7 +74,7 @@ public class ItemMetadata implements Serializable {
     protected ZonedDateTime launchDate;
     protected String commitId;
     protected String submittedToEnvironment;
-    protected ZonedDateTime deployed;
+    protected ZonedDateTime publishedDate;
 
     public int getId() {
         return id;
@@ -276,11 +276,11 @@ public class ItemMetadata implements Serializable {
         this.submittedToEnvironment = submittedToEnvironment;
     }
 
-    public ZonedDateTime getDeployed() {
-        return deployed;
+    public ZonedDateTime getPublishedDate() {
+        return publishedDate;
     }
 
-    public void setDeployed(ZonedDateTime deployed) {
-        this.deployed = deployed;
+    public void setPublishedDate(ZonedDateTime publishedDate) {
+        this.publishedDate = publishedDate;
     }
 }

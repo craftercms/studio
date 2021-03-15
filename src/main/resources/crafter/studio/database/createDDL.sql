@@ -288,7 +288,7 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
   `launchdate`              DATETIME      NULL,
   `commit_id`               VARCHAR(50)   NULL,
   `submittedtoenvironment`  VARCHAR(255)  NULL,
-  `deployed`                DATETIME      NULL,
+  `published_date`          DATETIME      NULL,
   PRIMARY KEY (`id`),
   UNIQUE `uq__im_site_path` (`site`, `path`(900))
 )
