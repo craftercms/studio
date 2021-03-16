@@ -28,35 +28,6 @@ import java.util.Map;
 
 public class Item {
 
-     public static class Properties {
-        public static final String ID = "id";
-        public static final String SITE_ID = "siteId";
-        public static final String SITE_NAME = "siteName";
-        public static final String PATH = "path";
-        public static final String PREVIEW_URL = "previewUrl";
-        public static final String STATE =  "state";
-        public static final String OWNED_BY = "ownedBy";
-        public static final String OWNER = "owner";
-        public static final String CREATED_BY = "createdBy";
-        public static final String CREATOR = "creator";
-        public static final String CREATED_ON = "createdOn";
-        public static final String LAST_MODIFIED_BY = "lastModifiedBy";
-        public static final String MODIFIER = "modifier";
-        public static final String LAST_MODIFIED_ON = "lastModifiedOn";
-        public static final String LABEL = "label";
-        public static final String CONTENT_TYPE_ID = "contentTypeId";
-        public static final String SYSTEM_TYPE = "systemType";
-        public static final String MIME_TYPE = "mimeType";
-        public static final String DISABLED = "disabled";
-        public static final String LOCALE_CODE = "localeCode";
-        public static final String TRANSLATION_SOURCE_ID = "translationSourceId";
-        public static final String SIZE = "size";
-        public static final String PARENT_ID = "parentId";
-        public static final String COMMIT_ID = "commitId";
-        public static final String AVAILABLE_ACTIONS = "availableActions";
-        public static final String PREVIOUS_PATH = "previousPath";
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(Item.class);
 
     private long id;
@@ -73,6 +44,7 @@ public class Item {
     private Long lastModifiedBy = null;
     private String modifier;
     private ZonedDateTime lastModifiedOn;
+    private ZonedDateTime lastPublishedOn;
     private String label;
     private String contentTypeId;
     private String systemType;
@@ -104,6 +76,7 @@ public class Item {
         lastModifiedBy = builder.lastModifiedBy;
         modifier = builder.modifier;
         lastModifiedOn = builder.lastModifiedOn;
+        lastPublishedOn = builder.lastPublishedOn;
         label = builder.label;
         contentTypeId = builder.contentTypeId;
         systemType = builder.systemType;
@@ -229,6 +202,14 @@ public class Item {
 
     public void setLastModifiedOn(ZonedDateTime lastModifiedOn) {
         this.lastModifiedOn = lastModifiedOn;
+    }
+
+    public ZonedDateTime getLastPublishedOn() {
+        return lastPublishedOn;
+    }
+
+    public void setLastPublishedOn(ZonedDateTime lastPublishedOn) {
+        this.lastPublishedOn = lastPublishedOn;
     }
 
     public String getLabel() {
@@ -399,6 +380,9 @@ public class Item {
                         case Properties.LAST_MODIFIED_ON:
                             setLastModifiedOn((ZonedDateTime) value);
                             break;
+                        case Properties.LAST_PUBLISHED_ON:
+                            setLastPublishedOn((ZonedDateTime) value);
+                            break;
                         case Properties.LABEL:
                             setLabel((String) value);
                             break;
@@ -452,6 +436,7 @@ public class Item {
         private Long lastModifiedBy;
         private String modifier;
         private ZonedDateTime lastModifiedOn;
+        private ZonedDateTime lastPublishedOn;
         private String label;
         private String contentTypeId;
         private String systemType;
@@ -483,6 +468,7 @@ public class Item {
             clone.lastModifiedBy = item.lastModifiedBy;
             clone.modifier = item.modifier;
             clone.lastModifiedOn = item.lastModifiedOn;
+            clone.lastPublishedOn = item.lastPublishedOn;
             clone.label = item.label;
             clone.contentTypeId = item.contentTypeId;
             clone.systemType = item.systemType;
@@ -569,6 +555,11 @@ public class Item {
             return this;
         }
 
+        public Builder withLastPublishedOn(ZonedDateTime lastPublishedOn) {
+            this.lastPublishedOn = lastPublishedOn;
+            return this;
+        }
+
         public Builder withLabel(String label) {
             this.label = label;
             return this;
@@ -634,5 +625,35 @@ public class Item {
         public Item build() {
             return new Item(this);
         }
+    }
+
+    public static class Properties {
+        public static final String ID = "id";
+        public static final String SITE_ID = "siteId";
+        public static final String SITE_NAME = "siteName";
+        public static final String PATH = "path";
+        public static final String PREVIEW_URL = "previewUrl";
+        public static final String STATE =  "state";
+        public static final String OWNED_BY = "ownedBy";
+        public static final String OWNER = "owner";
+        public static final String CREATED_BY = "createdBy";
+        public static final String CREATOR = "creator";
+        public static final String CREATED_ON = "createdOn";
+        public static final String LAST_MODIFIED_BY = "lastModifiedBy";
+        public static final String MODIFIER = "modifier";
+        public static final String LAST_MODIFIED_ON = "lastModifiedOn";
+        public static final String LAST_PUBLISHED_ON = "lastPublishedOn";
+        public static final String LABEL = "label";
+        public static final String CONTENT_TYPE_ID = "contentTypeId";
+        public static final String SYSTEM_TYPE = "systemType";
+        public static final String MIME_TYPE = "mimeType";
+        public static final String DISABLED = "disabled";
+        public static final String LOCALE_CODE = "localeCode";
+        public static final String TRANSLATION_SOURCE_ID = "translationSourceId";
+        public static final String SIZE = "size";
+        public static final String PARENT_ID = "parentId";
+        public static final String COMMIT_ID = "commitId";
+        public static final String AVAILABLE_ACTIONS = "availableActions";
+        public static final String PREVIOUS_PATH = "previousPath";
     }
 }

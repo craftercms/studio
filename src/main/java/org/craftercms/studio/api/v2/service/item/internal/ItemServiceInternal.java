@@ -497,4 +497,20 @@ public interface ItemServiceInternal {
      * @return list of items paths
      */
     List<String> getSameCommitItems(String siteId, String path);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param paths list of paths
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn);
 }

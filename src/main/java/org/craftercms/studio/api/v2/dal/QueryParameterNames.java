@@ -223,6 +223,8 @@ public final class  QueryParameterNames {
 
     public static final String PARENTS = "parents";
 
+    public static final String LAST_PUBLISHED_ON = "lastPublishedOn";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids

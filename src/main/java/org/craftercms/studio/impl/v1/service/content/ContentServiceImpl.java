@@ -1816,6 +1816,14 @@ public class ContentServiceImpl implements ContentService {
                 item.setLastEditDate(metadata.getLastModifiedOn());
                 item.setEventDate(metadata.getLastModifiedOn());
             }
+
+            if (metadata.getLastPublishedOn() != null) {
+                item.published = true;
+                item.setPublished(true);
+                item.publishedDate = metadata.getLastPublishedOn();
+                item.setPublishedDate(metadata.getLastPublishedOn());
+            }
+
             if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getSubmitterComment())) {
                 item.setSubmissionComment(workflowItem.getSubmitterComment());
             }

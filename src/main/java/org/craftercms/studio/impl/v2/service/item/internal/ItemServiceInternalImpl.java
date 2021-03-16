@@ -633,6 +633,16 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         return itemDao.getSameCommitItems(siteId, path);
     }
 
+    @Override
+    public void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn) {
+        itemDao.updateLastPublishedOn(siteId, path, lastPublishedOn);
+    }
+
+    @Override
+    public void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn) {
+        itemDao.updateLastPublishedOnBulk(siteId, paths, lastPublishedOn);
+    }
+
     public UserServiceInternal getUserServiceInternal() {
         return userServiceInternal;
     }
