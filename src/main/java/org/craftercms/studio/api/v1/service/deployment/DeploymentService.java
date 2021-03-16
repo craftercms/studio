@@ -101,15 +101,6 @@ public interface DeploymentService {
     void bulkGoLive(String site, String environment, String path, String comment) throws ServiceLayerException;
 
     /**
-     * Get last deployment date time for given site and path
-     *
-     * @param site site id
-     * @param path path
-     * @return last deployment date or null if never deployed
-     */
-    ZonedDateTime getLastDeploymentDate(String site, String path);
-
-    /**
      * Get publish status for given site
      * @param site site id
      * @return publish status

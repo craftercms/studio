@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.item.internal;
 
+import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -26,6 +27,11 @@ import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_PUBLISHED_ON;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface ItemServiceInternal {
 
@@ -497,4 +503,20 @@ public interface ItemServiceInternal {
      * @return list of items paths
      */
     List<String> getSameCommitItems(String siteId, String path);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param paths list of paths
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn);
 }

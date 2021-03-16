@@ -941,6 +941,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
         <property name="publishRequestDao" ref="publishRequestDao" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">

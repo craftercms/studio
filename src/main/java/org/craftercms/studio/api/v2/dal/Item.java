@@ -43,6 +43,7 @@ public class Item {
         public static final String LAST_MODIFIED_BY = "lastModifiedBy";
         public static final String MODIFIER = "modifier";
         public static final String LAST_MODIFIED_ON = "lastModifiedOn";
+        public static final String LAST_PUBLISHED_ON = "lastPublishedOn";
         public static final String LABEL = "label";
         public static final String CONTENT_TYPE_ID = "contentTypeId";
         public static final String SYSTEM_TYPE = "systemType";
@@ -73,6 +74,7 @@ public class Item {
     private Long lastModifiedBy = null;
     private String modifier;
     private ZonedDateTime lastModifiedOn;
+    private ZonedDateTime lastPublishedOn;
     private String label;
     private String contentTypeId;
     private String systemType;
@@ -104,6 +106,7 @@ public class Item {
         lastModifiedBy = builder.lastModifiedBy;
         modifier = builder.modifier;
         lastModifiedOn = builder.lastModifiedOn;
+        lastPublishedOn = builder.lastPublishedOn;
         label = builder.label;
         contentTypeId = builder.contentTypeId;
         systemType = builder.systemType;
@@ -229,6 +232,14 @@ public class Item {
 
     public void setLastModifiedOn(ZonedDateTime lastModifiedOn) {
         this.lastModifiedOn = lastModifiedOn;
+    }
+
+    public ZonedDateTime getLastPublishedOn() {
+        return lastPublishedOn;
+    }
+
+    public void setLastPublishedOn(ZonedDateTime lastPublishedOn) {
+        this.lastPublishedOn = lastPublishedOn;
     }
 
     public String getLabel() {
@@ -399,6 +410,9 @@ public class Item {
                         case Properties.LAST_MODIFIED_ON:
                             setLastModifiedOn((ZonedDateTime) value);
                             break;
+                        case Properties.LAST_PUBLISHED_ON:_ON:
+                            setLastPublishedOn((ZonedDateTime) value);
+                            break;
                         case Properties.LABEL:
                             setLabel((String) value);
                             break;
@@ -452,6 +466,7 @@ public class Item {
         private Long lastModifiedBy;
         private String modifier;
         private ZonedDateTime lastModifiedOn;
+        private ZonedDateTime lastPublishedOn;
         private String label;
         private String contentTypeId;
         private String systemType;
@@ -483,6 +498,7 @@ public class Item {
             clone.lastModifiedBy = item.lastModifiedBy;
             clone.modifier = item.modifier;
             clone.lastModifiedOn = item.lastModifiedOn;
+            clone.lastPublishedOn = item.lastPublishedOn;
             clone.label = item.label;
             clone.contentTypeId = item.contentTypeId;
             clone.systemType = item.systemType;
@@ -566,6 +582,11 @@ public class Item {
 
         public Builder withLastModifiedOn(ZonedDateTime lastModifiedOn) {
             this.lastModifiedOn = lastModifiedOn;
+            return this;
+        }
+
+        public Builder withLastPublishedOn(ZonedDateTime lastPublishedOn) {
+            this.lastPublishedOn = lastPublishedOn;
             return this;
         }
 

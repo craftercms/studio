@@ -218,6 +218,11 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.11/system/global-permission-mappings-config.xslt
             commitDetails: Added site-delete
+      - currentVersion: 4.0.0.11
+        nextVersion: 4.0.0.12
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.11-to-4.0.0.12.sql
 
   # Pipeline to upgrade site repositories
   site:

@@ -33,6 +33,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.IGNORE_NAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.IN_PROGRESS_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYWORD;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_PUBLISHED_ON;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIKE_PATH;
@@ -487,4 +488,22 @@ public interface ItemDAO {
      * @return list of items paths
      */
     List<String> getSameCommitItems(@Param(SITE_ID) String siteId, @Param(PATH) String path);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOn(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                               @Param(LAST_PUBLISHED_ON) ZonedDateTime lastPublishedOn);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param paths list of paths
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOnBulk(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+                                   @Param(LAST_PUBLISHED_ON) ZonedDateTime lastPublishedOn);
 }

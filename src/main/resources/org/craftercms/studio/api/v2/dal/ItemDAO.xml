@@ -34,6 +34,7 @@
         <result property="lastModifiedBy" column="last_modified_by" />
         <result property="modifier" column="modifier" />
         <result property="lastModifiedOn" column="last_modified_on" />
+        <result property="lastPublishedOn" column="last_published_on" />
         <result property="label" column="label" />
         <result property="contentTypeId" column="content_type_id" />
         <result property="systemType" column="system_type" />
@@ -48,12 +49,12 @@
 
     <insert id="upsertEntries" parameterType="java.util.List">
         INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, last_modified_by,
-        last_modified_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
+        last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
         translation_source_id, size, parent_id, commit_id) VALUES
         <foreach collection="entries" item="entry" index="index" open="" separator=","  close="">
             (#{entry.siteId}, #{entry.path}, #{entry.previewUrl}, #{entry.state}, #{entry.ownedBy},
-            #{entry.createdBy}, #{entry.lastModifiedBy}, #{entry.lastModifiedOn}, #{entry.label},
-            #{entry.contentTypeId}, #{entry.systemType}, #{entry.mimeType}, #{entry.disabledAsInt},
+            #{entry.createdBy}, #{entry.lastModifiedBy}, #{entry.lastModifiedOn}, #{entry.lastPublishedOn},
+            #{entry.label}, #{entry.contentTypeId}, #{entry.systemType}, #{entry.mimeType}, #{entry.disabledAsInt},
             #{entry.localeCode}, #{entry.translationSourceId}, #{entry.size}, #{entry.parentId},  #{entry.commitId})
         </foreach>
         ON DUPLICATE KEY
@@ -65,6 +66,7 @@
             owned_by = VALUES(owned_by),
             last_modified_by = VALUES(last_modified_by),
             last_modified_on = VALUES(last_modified_on),
+            last_published_on = VALUES(last_published_on),
             label = VALUES(label),
             content_type_id = VALUES(content_type_id),
             system_type = VALUES(system_type),
@@ -299,6 +301,7 @@
             owned_by = #{ownedBy},
             last_modified_by = #{lastModifiedBy},
             last_modified_on = #{lastModifiedOn},
+            last_published_on = #{lastPublishedOn},
             label = #{label},
             content_type_id = #{contentTypeId},
             system_type = #{systemType},
@@ -580,4 +583,23 @@
         AND s.deleted = 0
         AND i.path = #{path}
     </select>
+
+    <update id="updateLastPublishedOn">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.last_published_on = #{lastPublishedOn}
+        WHERE s.site_id = #{siteId}
+          AND s.deleted = 0
+          AND i.path = #{path}
+    </update>
+
+    <update id="updateLastPublishedOnBulk">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.last_published_on = #{lastPublishedOn}
+        WHERE s.site_id = #{siteId}
+          AND s.deleted = 0
+          AND i.path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </update>
 </mapper>

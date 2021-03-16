@@ -59,6 +59,7 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -170,6 +171,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private GeneralLockService generalLockService;
     private SiteService siteService;
     private PublishRequestDAO publishRequestDao;
+    private ItemServiceInternal itemServiceInternal;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -812,32 +814,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toRet;
     }
 
-    @Override
-    public ZonedDateTime getLastDeploymentDate(String site, String path) {
-        ZonedDateTime toRet = null;
-        try {
-            Repository publishedRepo = helper.getRepository(site, PUBLISHED);
-            if (Objects.nonNull(publishedRepo)) {
-                try (Git git = new Git(publishedRepo)) {
-                    Iterable<RevCommit> log = git.log()
-                            .all()
-                            .addPath(helper.getGitPath(path))
-                            .setMaxCount(1)
-                            .call();
-                    Iterator<RevCommit> iter = log.iterator();
-                    if (iter.hasNext()) {
-                        RevCommit commit = iter.next();
-                        toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(UTC);
-                    }
-                    git.close();
-                }
-            }
-        } catch (IOException | GitAPIException e) {
-            logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
-        }
-        return toRet;
-    }
-
     @RetryingOperation
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
@@ -1011,6 +987,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         }
 
                         addCommand.addFilepattern(path);
+                        itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
+                                ZonedDateTime.now(UTC));
                     }
                     logger.debug("Checkout deployed files completed.");
 
@@ -1809,5 +1787,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }
