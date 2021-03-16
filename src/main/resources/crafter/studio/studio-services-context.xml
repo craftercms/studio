@@ -104,8 +104,6 @@
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
-        <property name="notificationService" ref="cstudioNotificationService"/>
-        <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
@@ -221,6 +219,7 @@
         <property name="configurationService" ref="configurationService" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="cache" ref="configurationCache"/>
     </bean>
 
     <bean id="studio.securityService" class="org.craftercms.studio.impl.v2.service.security.SecurityServiceImpl">
@@ -244,6 +243,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="configurationService" ref="configurationService"/>
+        <property name="cache" ref="configurationCache"/>
     </bean>
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
@@ -344,11 +344,21 @@
         <constructor-arg value="commons"/>
     </bean>
 
+    <bean id="objectCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.SuffixCacheInvalidator">
+        <constructor-arg value="object"/>
+    </bean>
+
+    <bean id="mapCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.SuffixCacheInvalidator">
+        <constructor-arg value="map"/>
+    </bean>
+
     <util:list id="configurationCacheInvalidators">
         <ref bean="availableActionsCacheInvalidator"/>
         <ref bean="userPermissionsCacheInvalidator"/>
         <ref bean="blobStoreCacheInvalidator"/>
         <ref bean="commonsCacheInvalidator"/>
+        <ref bean="objectCacheInvalidator"/>
+        <ref bean="mapCacheInvalidator"/>
         <ref bean="defaultCacheInvalidator"/>
     </util:list>
 

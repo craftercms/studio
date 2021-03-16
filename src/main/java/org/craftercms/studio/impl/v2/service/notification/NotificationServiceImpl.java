@@ -32,7 +32,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
 
+import com.google.common.cache.Cache;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
@@ -67,6 +69,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import static java.util.Collections.singletonList;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
@@ -82,7 +85,6 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFICATION_KEY_CONTENT_REJECTED = "contentRejected";
     private static final String NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT = "repositoryMergeConflict";
 
-    protected Map<String, Map<String, NotificationConfigTO>> notificationConfiguration;
     protected ContentService contentService;
     protected EmailMessageQueueTo emailMessages;
     protected ServicesConfig servicesConfig;
@@ -92,9 +94,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected StudioConfiguration studioConfiguration;
     protected ConfigurationService configurationService;
 
-    public NotificationServiceImpl() {
-        notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
-    }
+    protected Cache<String, Map<String, NotificationConfigTO>> cache;
 
     public void init() {
         configuration = new Configuration(Configuration.VERSION_2_3_23);
@@ -139,7 +139,7 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("submitterUser", submitter);
             templateModel.put("approver", securityService.getUserProfile(approver));
             templateModel.put("scheduleDate", (scheduleDate == null) ? null : Date.from(scheduleDate.toInstant()));
-            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
+            notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                 locale, templateModel);
         } catch (Throwable ex) {
             logger.error("Unable to Notify Content Approval", ex);
@@ -292,7 +292,7 @@ public class NotificationServiceImpl implements NotificationService {
                 templateModel.put("submitter", submitterUser);
                 templateModel.put("rejectionReason", rejectionReason);
                 templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-                notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
+                notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
                         locale, templateModel);
             } else {
                 logger.info("Unable to notify content rejection. User " + submittedBy + " not found.");
@@ -302,22 +302,23 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected void loadConfig(final String site) {
-        if (notificationConfiguration == null) {
-            notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
-        }
-        Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<String, NotificationConfigTO>();
+    protected Map<String, NotificationConfigTO> loadConfig(final String site) {
+        var environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+        var configPath = getConfigPath();
+        var cacheKey = configurationService.getCacheKey(site, MODULE_STUDIO, configPath, environment, "object");
 
         try {
-            Document document = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, getConfigPath(),
-                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            if (document != null) {
+            return cache.get(cacheKey, () -> {
+                logger.debug("Cache miss {0}", cacheKey);
+
+                Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<>();
+                Document document =
+                        configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configPath, environment);
                 Element root = document.getRootElement();
                 final List<Node> nodes = root.selectNodes("//lang");
                 if (nodes.isEmpty()) {
                     throw new ConfigurationException("Notification Configuration is a invalid xml file, missing " +
-                        "at least one lang");
+                            "at least one lang");
                 }
                 for (Node node : nodes) {
                     if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -328,19 +329,19 @@ public class NotificationServiceImpl implements NotificationService {
                                 siteNotificationConfig.put(messagesLang, new NotificationConfigTO(site));
                             }
                             NotificationConfigTO configForLang = siteNotificationConfig.get(messagesLang);
-                            loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
-                                .getMessages());
-                            loadGenericMessage((Element)language.selectSingleNode("//completeMessages"), configForLang
-                                .getCompleteMessages());
-                            loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
-                                .getEmailMessageTemplates());
-                            loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
-                                .getCannedMessages());
-                            loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification"),
-                                configForLang.getDeploymentFailureNotifications());
-                            loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
-                                .getApproverEmails());
-                            loadEmailList(site, (Element)language.selectSingleNode("//repositoryMergeConflictNotification"),
+                            loadGenericMessage((Element) language.selectSingleNode("//generalMessages"), configForLang
+                                    .getMessages());
+                            loadGenericMessage((Element) language.selectSingleNode("//completeMessages"), configForLang
+                                    .getCompleteMessages());
+                            loadEmailTemplates((Element) language.selectSingleNode("//emailTemplates"), configForLang
+                                    .getEmailMessageTemplates());
+                            loadCannedMessages((Element) language.selectSingleNode("//cannedMessages"), configForLang
+                                    .getCannedMessages());
+                            loadEmailList(site, (Element) language.selectSingleNode("//deploymentFailureNotification"),
+                                    configForLang.getDeploymentFailureNotifications());
+                            loadEmailList(site, (Element) language.selectSingleNode("//approverEmails"), configForLang
+                                    .getApproverEmails());
+                            loadEmailList(site, (Element) language.selectSingleNode("//repositoryMergeConflictNotification"),
                                     configForLang.getRepositoryMergeConflictNotifications());
                         } else {
                             logger.error("A lang section does not have the 'name' attribute, ignoring");
@@ -349,14 +350,15 @@ public class NotificationServiceImpl implements NotificationService {
                         logger.info("Unable to execute against a non-XML-element: " + node.getUniquePath());
                     }
                 }
-            }
-        } catch (Exception ex) {
-            logger.error("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, ex);
+
+                return siteNotificationConfig;
+            });
+        } catch (ExecutionException e) {
+            logger.error("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, e);
+            return null;
         }
-        notificationConfiguration.put(site, siteNotificationConfig);
     }
 
-    @SuppressWarnings("unchecked")
     private void loadEmailList(final String site, final Element emailList, final List<String>
         deploymentFailureNotifications) {
         if (emailList != null) {
@@ -376,7 +378,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected void loadGenericMessage(final Element emailTemplates, final Map<String, String> messageContainer) {
         if (emailTemplates != null) {
             List<Element> messages = emailTemplates.elements();
@@ -394,7 +395,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected void loadEmailTemplates(final Element emailTemplates, final Map<String, EmailMessageTemplateTO>
         messageContainer) {
         if (emailTemplates != null) {
@@ -420,7 +420,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected void loadCannedMessages(final Element completedMessages, final Map<String, List<MessageTO>>
         messageContainer) {
         if (completedMessages != null) {
@@ -444,18 +443,8 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @Override
-    @ValidateParams
-    public void reloadConfiguration(@ValidateStringParam(name = "site") final String site) {
-        loadConfig(site);
-    }
-
     protected NotificationConfigTO getNotificationConfig(final String site, final Locale locale) {
-        Map<String, NotificationConfigTO> siteNotificationConfig = notificationConfiguration.get(site);
-        if (siteNotificationConfig == null || siteNotificationConfig.isEmpty()) {
-            loadConfig(site);
-            siteNotificationConfig = notificationConfiguration.get(site);
-        }
+        Map<String, NotificationConfigTO> siteNotificationConfig = loadConfig(site);
         Locale realLocale = locale;
         if (locale == null) {
             realLocale = Locale.ENGLISH;

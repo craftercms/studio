@@ -67,10 +67,6 @@ public interface SecurityService {
 
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
-    void reloadConfiguration(String site);
-
-    void reloadGlobalConfiguration();
-
     /**
      * Check if user exists
      *
@@ -112,13 +108,12 @@ public interface SecurityService {
      * @param newPassword new password
      * @return true if user's password is successfully changed
      *
-     * @throws UserNotFoundException user not found
      * @throws UserExternallyManagedException user is externally managed
      * @throws PasswordDoesNotMatchException password does not match stored password
      * @throws ServiceLayerException general service error
      */
-    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException,
-        PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
+    boolean changePassword(String username, String current, String newPassword) throws
+            PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
 
     /**
      * Set user password - forgot password token

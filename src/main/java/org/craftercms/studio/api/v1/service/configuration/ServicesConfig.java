@@ -166,8 +166,6 @@ public interface ServicesConfig {
 	 */
 	String getPluginFolderPattern(String site);
 
-    void reloadConfiguration(String site);
-
     /**
      * Get sandbox branch name for given site
      *
