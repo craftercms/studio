@@ -581,7 +581,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public void invalidateConfiguration(String siteId) {
-        logger.debug("Clearing configuration cache fir site {0}", siteId);
+        logger.debug("Clearing configuration cache for site {0}", siteId);
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
                 .forEach(this::invalidateCache);

@@ -317,8 +317,8 @@ public class NotificationServiceImpl implements NotificationService {
                 Element root = document.getRootElement();
                 final List<Node> nodes = root.selectNodes("//lang");
                 if (nodes.isEmpty()) {
-                    throw new ConfigurationException("Notification Configuration is a invalid xml file, missing " +
-                            "at least one lang");
+                    throw new ConfigurationException("Notification configuration is not valid, " +
+                            "please add at least one language.");
                 }
                 for (Node node : nodes) {
                     if (node.getNodeType() == Node.ELEMENT_NODE) {
