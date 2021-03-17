@@ -71,10 +71,9 @@ public class PermissionAwareSearchService extends AbstractElasticsearchWrapper {
      * @param request the search request
      * @param options the request options
      * @return the search response
-     * @throws IOException if there is an error connecting to Elasticsearch
      */
     public SearchResponse search(String siteId, List<String> allowedPaths, SearchRequest request,
-                                 RequestOptions options) throws IOException {
+                                 RequestOptions options) {
         //TODO: Implement locale in Studio too? for now just query all existing aliases
         request.indices(siteId + indexSuffix + "*");
 
@@ -83,7 +82,7 @@ public class PermissionAwareSearchService extends AbstractElasticsearchWrapper {
             updateFilters(request, allowedPaths);
         }
 
-        return client.search(request, options);
+        return super.search(request, options);
     }
 
     protected void updateFilters(SearchRequest request, List<String> allowedPaths) {
