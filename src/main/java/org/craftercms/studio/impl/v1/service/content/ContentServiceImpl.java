@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -1172,7 +1173,7 @@ public class ContentServiceImpl implements ContentService {
         if(adjustOnCollide && contentExists) {
             logger.debug("File already found at path {0}, creating new name", proposedDestPath);
             try {
-                var siblings = contentRepository.getSubtreeItems(site, newPathOnly);
+                var siblings = _contentRepository.getContentChildren(site, newPathOnly);
                 var modifier = 1;
                 var collisionFound = true;
                 while (collisionFound) {
@@ -1214,7 +1215,9 @@ public class ContentServiceImpl implements ContentService {
                         proposedDestPath_folder =
                                 proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
                     }
-                    collisionFound = siblings.contains(proposedDestPath);
+                    collisionFound = Stream.of(siblings)
+                                        .map(item -> item.path + "/" + item.name)
+                                        .anyMatch(proposedDestPath::equals);
                 }
 
                 result.put("FILE_PATH", proposedDestPath);
