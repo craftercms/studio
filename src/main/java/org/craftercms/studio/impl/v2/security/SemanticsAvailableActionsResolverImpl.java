@@ -99,12 +99,11 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         }
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
-        if (CollectionUtils.isNotEmpty(protectedFolderPatterns)) {
-            if (ContentUtils.matchesPatterns(item.getPath(), protectedFolderPatterns)) {
-                result = result & ~CONTENT_DELETE;
-                result = result & ~CONTENT_CUT;
-                result = result & ~CONTENT_RENAME;
-            }
+        if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
+                (ContentUtils.matchesPatterns(item.getPath(), protectedFolderPatterns))){
+            result = result & ~CONTENT_DELETE;
+            result = result & ~CONTENT_CUT;
+            result = result & ~CONTENT_RENAME;
         }
 
         if (studioBlobStoreResolver.isBlob(siteId, item.getPath())) {
@@ -155,12 +154,11 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         }
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
-        if (CollectionUtils.isNotEmpty(protectedFolderPatterns)) {
-            if (ContentUtils.matchesPatterns(detailedItem.getPath(), protectedFolderPatterns)) {
-                result = result & ~CONTENT_DELETE;
-                result = result & ~CONTENT_CUT;
-                result = result & ~CONTENT_RENAME;
-            }
+        if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
+                (ContentUtils.matchesPatterns(detailedItem.getPath(), protectedFolderPatterns))) {
+            result = result & ~CONTENT_DELETE;
+            result = result & ~CONTENT_CUT;
+            result = result & ~CONTENT_RENAME;
         }
 
         if (studioBlobStoreResolver.isBlob(siteId, detailedItem.getPath())) {
