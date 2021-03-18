@@ -60,12 +60,9 @@ public interface ContentTypeService {
 
     List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
 
-    List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath)
-        throws ServiceLayerException;
+    List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath);
 
     boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException;
-
-    void reloadConfiguration(String site);
 
     String getConfigPath();
 }
