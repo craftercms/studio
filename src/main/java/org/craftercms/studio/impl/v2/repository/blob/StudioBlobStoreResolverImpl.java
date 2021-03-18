@@ -48,7 +48,7 @@ import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
 @SuppressWarnings("rawtypes")
 public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implements StudioBlobStoreResolver {
 
-    public static String CACHE_KEY_STORE = "blob-store";
+    public static final String CACHE_KEY_STORE = "blob-store";
 
     protected ContentRepository contentRepository;
 
@@ -109,26 +109,24 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 logger.debug("Cache miss: {}", cacheKey1);
                 return getConfiguration(new ConfigurationProviderImpl(site));
             });
-            if (!config.isEmpty()) {
-                String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
-                if (isNotEmpty(storeId)) {
-                    var cacheKey2 = join(":", site, CACHE_KEY_STORE, storeId);
-                    BlobStore blobStore = (BlobStore) cache.get(cacheKey2, () -> {
-                        logger.debug("Cache miss: {}", cacheKey2);
-                        return getById(config, storeId);
-                    });
-                    // We have to compare each one to know if the exception should be thrown
-                    if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
-                        throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));
-                    }
-                    return blobStore;
-                } else {
-                    logger.debug("No blob store found in site {} for paths {}", site, paths);
+            String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
+            if (isNotEmpty(storeId)) {
+                var cacheKey2 = join(":", site, CACHE_KEY_STORE, storeId);
+                BlobStore blobStore = (BlobStore) cache.get(cacheKey2, () -> {
+                    logger.debug("Cache miss: {}", cacheKey2);
+                    return getById(config, storeId);
+                });
+                // We have to compare each one to know if the exception should be thrown
+                if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
+                    throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));
                 }
+                return blobStore;
+            } else {
+                logger.debug("No blob store found in site {} for paths {}", site, paths);
+                return null;
             }
-            return null;
-        } catch (ExecutionException e) {
-            throw new RuntimeException("Error looking for blob store", e);
+        } catch (ExecutionException | ConfigurationException e) {
+            throw new ServiceLayerException("Error looking for blob store", e);
         }
     }
 
@@ -146,7 +144,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
      */
     private class ConfigurationProviderImpl implements ConfigurationProvider {
 
-        private String site;
+        private final String site;
 
         public ConfigurationProviderImpl(String site) {
             this.site = site;
