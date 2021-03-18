@@ -356,10 +356,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 return join(":", siteId, fullPath, suffix);
             }
         } else {
-            path = normalize(path);
+            String toReturn = normalize(path);
 
             if (isEmpty(suffix)) {
-                return path;
+                return toReturn;
             } else {
                 return join(":", path, suffix);
             }

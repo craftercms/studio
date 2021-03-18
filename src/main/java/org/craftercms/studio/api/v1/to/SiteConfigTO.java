@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -99,6 +100,8 @@ public class SiteConfigTO implements Serializable {
     protected String adminEmailAddress;
 
     protected boolean requirePeerReview = false;
+
+    protected List<String> protectedFolderPatterns;
 
     /**
      * @return the WEM project
@@ -233,5 +236,13 @@ public class SiteConfigTO implements Serializable {
 
     public void setRequirePeerReview(boolean requirePeerReview) {
         this.requirePeerReview = requirePeerReview;
+    }
+
+    public List<String> getProtectedFolderPatterns() {
+        return protectedFolderPatterns;
+    }
+
+    public void setProtectedFolderPatterns(List<String> protectedFolderPatterns) {
+        this.protectedFolderPatterns = protectedFolderPatterns;
     }
 }
