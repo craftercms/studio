@@ -20,6 +20,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
+import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
+
 /**
  * Implementation of {@link CacheInvalidator} that appends a suffix to the key
  *
@@ -57,9 +59,11 @@ public class SuffixCacheInvalidator<K extends String, V> implements CacheInvalid
 
     @Override
     public void invalidate(Cache<K, V> cache, K key) {
-        var newKey = key + separator + suffix;
-        logger.debug("Invalidating cache for {0}", newKey);
-        cache.invalidate(newKey);
+        if (!endsWithIgnoreCase(key, separator + suffix)) {
+            var newKey = key + separator + suffix;
+            logger.debug("Invalidating cache for {0}", newKey);
+            cache.invalidate(newKey);
+        }
     }
 
 }

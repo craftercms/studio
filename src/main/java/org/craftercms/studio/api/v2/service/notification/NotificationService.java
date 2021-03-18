@@ -69,12 +69,6 @@ public interface NotificationService {
         locale, final Pair<String,Object>...params);
 
     /**
-     * Reloads the current configuration of the notification Service.
-     * @param site Site to reload the notification service configuration.
-     */
-    void reloadConfiguration(final String site);
-
-    /**
      * Sends Notification when content was approve.
      * @param site Site of the Content.
      * @param submitterUser User that submit the content to approval.

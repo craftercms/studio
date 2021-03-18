@@ -52,12 +52,22 @@ public class ConfigurationController {
     private ConfigurationService configurationService;
     private StudioConfiguration studioConfiguration;
 
+    @GetMapping("clear_cache")
+    public ResponseBody clearCache(@RequestParam String siteId) {
+        configurationService.invalidateConfiguration(siteId);
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
     @GetMapping("/get_configuration")
     public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
                                          @RequestParam(name = "module", required = true) String module,
                                          @RequestParam(name = "path", required = true) String path,
-                                         @RequestParam(name = "environment", required = false) String environment)
-            throws ServiceLayerException {
+                                         @RequestParam(name = "environment", required = false) String environment) {
         String content = StringUtils.EMPTY;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);

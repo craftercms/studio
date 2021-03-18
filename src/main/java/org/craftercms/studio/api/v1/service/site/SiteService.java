@@ -147,7 +147,6 @@ public interface SiteService {
 	 * @throws InvalidRemoteRepositoryException invalid remote repository
 	 * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
 	 * @throws RemoteRepositoryNotFoundException remote repository not found
-	 * @throws RemoteRepositoryNotBareException remote repository is not bare
 	 * @throws InvalidRemoteUrlException invalid remote url
      */
     void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
@@ -156,7 +155,7 @@ public interface SiteService {
 									String remotePassword, String remoteToken, String remotePrivateKey,
 									String createOption, Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException;
 
     /**
      * remove a site from the system
@@ -208,14 +207,6 @@ public interface SiteService {
 	 * @return list of blueprints
    	 */
    	SiteBlueprintTO[] getAvailableBlueprints();
-
-    void reloadSiteConfigurations();
-
-    void reloadSiteConfiguration(String site);
-
-    void reloadSiteConfiguration(String site, boolean triggerEvent);
-
-    void reloadGlobalConfiguration();
 
     /**
      * Synchronize Database with repository
