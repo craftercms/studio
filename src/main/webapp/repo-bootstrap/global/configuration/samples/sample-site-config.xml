@@ -82,6 +82,13 @@
     </workflow>
     -->
 
+    <!--
+        Prevent deleting, renaming or cutting root folders of sidebar
+    -->
+    <protected-folders-patterns>
+        <pattern>^/([^ !$`&amp;*()/+]|(\\[ !$`&amp;*()+]))+$</pattern>
+    </protected-folders-patterns>
+
     <repository rootPrefix="/site">
 
         <level-descriptor>crafter-level-descriptor.level.xml</level-descriptor>

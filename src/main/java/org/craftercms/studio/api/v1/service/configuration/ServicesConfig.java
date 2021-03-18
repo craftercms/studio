@@ -223,4 +223,11 @@ public interface ServicesConfig {
 	 * @return true if require peer review is configured for site
 	 */
 	boolean isRequirePeerReview(String siteId);
+
+	/**
+	 * Get configured protected folder patterns for site
+	 * @param siteId site identifier
+	 * @return list of configured protected folders patterns
+	 */
+    List<String> getProtectedFolderPatterns(String siteId);
 }

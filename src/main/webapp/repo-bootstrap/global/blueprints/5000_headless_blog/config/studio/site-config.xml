@@ -75,6 +75,13 @@
      -->
     <plugin-folder-pattern>/config/studio/plugins/${type}/${name}</plugin-folder-pattern>
 
+    <!--
+        Prevent deleting, renaming or cutting root folders of sidebar
+    -->
+    <protected-folders-patterns>
+        <pattern>^/([^ !$`&amp;*()/+]|(\\[ !$`&amp;*()+]))+$</pattern>
+    </protected-folders-patterns>
+
     <repository rootPrefix="/site">
 
         <!-- default inheritance file name -->

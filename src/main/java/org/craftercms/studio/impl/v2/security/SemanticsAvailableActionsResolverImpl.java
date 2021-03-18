@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.security;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -31,12 +32,19 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
+import java.util.List;
+
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PATH;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_READ_VERSION_HISTORY;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_RENAME;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_REVERT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_UPLOAD;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH;
@@ -84,6 +92,21 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
 
+        if (StringUtils.equals(item.getPath(), HOME_PAGE_PATH)) {
+            result = result & ~CONTENT_DELETE;
+            result = result & ~CONTENT_CUT;
+            result = result & ~CONTENT_RENAME;
+        }
+
+        List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
+        if (CollectionUtils.isNotEmpty(protectedFolderPatterns)) {
+            if (ContentUtils.matchesPatterns(item.getPath(), protectedFolderPatterns)) {
+                result = result & ~CONTENT_DELETE;
+                result = result & ~CONTENT_CUT;
+                result = result & ~CONTENT_RENAME;
+            }
+        }
+
         if (studioBlobStoreResolver.isBlob(siteId, item.getPath())) {
             result = result & ~CONTENT_READ_VERSION_HISTORY;
             result = result & ~CONTENT_REVERT;
@@ -124,6 +147,21 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                                             long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
+
+        if (StringUtils.equals(detailedItem.getPath(), HOME_PAGE_PATH)) {
+            result = result & ~CONTENT_DELETE;
+            result = result & ~CONTENT_CUT;
+            result = result & ~CONTENT_RENAME;
+        }
+
+        List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
+        if (CollectionUtils.isNotEmpty(protectedFolderPatterns)) {
+            if (ContentUtils.matchesPatterns(detailedItem.getPath(), protectedFolderPatterns)) {
+                result = result & ~CONTENT_DELETE;
+                result = result & ~CONTENT_CUT;
+                result = result & ~CONTENT_RENAME;
+            }
+        }
 
         if (studioBlobStoreResolver.isBlob(siteId, detailedItem.getPath())) {
             result = result & ~CONTENT_READ_VERSION_HISTORY;

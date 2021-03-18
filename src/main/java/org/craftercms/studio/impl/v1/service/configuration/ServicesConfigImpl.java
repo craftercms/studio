@@ -65,6 +65,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_STAGING_URL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW;
@@ -379,6 +380,10 @@ public class ServicesConfigImpl implements ServicesConfig {
                  siteConfig.setRequirePeerReview(Boolean.valueOf(requirePeerReviewValue));
              }
 
+             List<String> protectedFolderPatterns =
+                     getStringList(configNode.selectNodes(SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS));
+             siteConfig.setProtectedFolderPatterns(protectedFolderPatterns);
+
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
          }
@@ -683,6 +688,15 @@ public class ServicesConfigImpl implements ServicesConfig {
             return config.isRequirePeerReview();
         }
         return false;
+    }
+
+    @Override
+    public List<String> getProtectedFolderPatterns(String siteId) {
+        SiteConfigTO config = getSiteConfig(siteId);
+        if (config != null) {
+            return config.getProtectedFolderPatterns();
+        }
+        return null;
     }
 
     public void setContentService(ContentService contentService) {
