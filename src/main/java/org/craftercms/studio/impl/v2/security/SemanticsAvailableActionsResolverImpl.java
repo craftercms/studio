@@ -69,7 +69,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long userPermissionsBitmap = securityService.getAvailableActions(username, siteId, item.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
-        long workflowStateBitmap = getPossibleActionsForItemState(item.getState());
+        long workflowStateBitmap = getPossibleActionsForItemState(item.getState(), username == item.getOwner());
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
         long toReturn = applySpecialUseCaseFilters(username, siteId, item, result);
@@ -81,7 +81,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long userPermissionsBitmap = securityService.getAvailableActions(username, siteId, detailedItem.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
-        long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState());
+        long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState(),
+                username == detailedItem.getLockOwner());
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
         long toReturn = applySpecialUseCaseFilters(username, siteId, detailedItem, result);

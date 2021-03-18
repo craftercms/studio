@@ -202,7 +202,7 @@ public final class ContentItemPossibleActionsConstants {
 
     public static final long ITEM_STATE_TRANSLATION_IN_PROGRESS = 0L;
 
-    public static long getPossibleActionsForItemState(long itemState) {
+    public static long getPossibleActionsForItemState(long itemState, boolean lockOwner) {
         long result = 0L;
         if ((itemState & NEW.value) > 0) {
             result = result | ITEM_STATE_NEW;
@@ -215,6 +215,21 @@ public final class ContentItemPossibleActionsConstants {
         }
         if ((itemState & USER_LOCKED.value) > 0) {
             result = result | ITEM_STATE_USER_LOCKED;
+            if (!lockOwner) {
+                result = result & ~PUBLISH_REQUEST;
+                result = result & ~CONTENT_EDIT;
+                result = result & ~CONTENT_RENAME;
+                result = result & ~CONTENT_CUT;
+                result = result & ~CONTENT_UPLOAD;
+                result = result & ~CONTENT_CHANGE_TYPE;
+                result = result & ~CONTENT_DELETE;
+                result = result & ~CONTENT_DELETE_CONTROLLER;
+                result = result & ~CONTENT_DELETE_TEMPLATE;
+                result = result & ~PUBLISH;
+                result = result & ~PUBLISH_APPROVE;
+                result = result & ~PUBLISH_SCHEDULE;
+                result = result & ~PUBLISH_REJECT;
+            }
         }
         if ((itemState & SYSTEM_PROCESSING.value) > 0) {
             result = result | ITEM_STATE_SYSTEM_PROCESSING;
