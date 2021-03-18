@@ -239,7 +239,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
-                synchronized (repository) {
                     try {
                         // Get the sandbox repo, and then get a reference to the commitId we received and another for head
                         boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
@@ -365,7 +364,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
                                 " to commit ID: " + commitIdTo, e);
                     }
-                }
             }
         } catch (CryptoException e) {
             logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
@@ -384,7 +382,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
-                synchronized (repository) {
                     try {
                         // Get the sandbox repo, and then get a reference to the commitId we received and another for head
                         boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
@@ -465,7 +462,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         logger.error("Error getting operations for site " + site + " from commit ID: "
                                 + commitIdFrom + " to commit ID: " + commitIdTo, e);
                     }
-                }
             }
         } catch (CryptoException e) {
             logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
