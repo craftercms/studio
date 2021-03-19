@@ -611,9 +611,9 @@
         INNER JOIN
           site S
         ON
-          S.site_id = #{siteId}
-        WHERE
           I.site_id = S.id
+        WHERE
+          S.site_id = #{siteId}
         AND
           (
             (I.system_type IN ('page', 'component') AND I.content_type_id = #{contentType})
