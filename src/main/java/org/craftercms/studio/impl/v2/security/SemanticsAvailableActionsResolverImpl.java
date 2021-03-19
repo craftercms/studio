@@ -101,7 +101,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
         if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-                (ContentUtils.matchesPatterns(item.getPath(), protectedFolderPatterns))){
+                ContentUtils.matchesPatterns(item.getPath(), protectedFolderPatterns)) {
             result = result & ~CONTENT_DELETE;
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
@@ -156,7 +156,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
         if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-                (ContentUtils.matchesPatterns(detailedItem.getPath(), protectedFolderPatterns))) {
+                ContentUtils.matchesPatterns(detailedItem.getPath(), protectedFolderPatterns)) {
             result = result & ~CONTENT_DELETE;
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
