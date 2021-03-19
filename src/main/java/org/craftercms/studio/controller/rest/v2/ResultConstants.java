@@ -72,6 +72,7 @@ public final class ResultConstants {
 
     /* Configuration controller */
     public static final String RESULT_KEY_HISTORY = "history";
+    public static final String RESULT_KEY_USAGE = "usage";
 
     /* Content controller */
     public static final String RESULT_KEY_CHILD_ITEMS = "childItems";

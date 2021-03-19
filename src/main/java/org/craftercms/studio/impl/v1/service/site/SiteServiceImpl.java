@@ -229,7 +229,7 @@ public class SiteServiceImpl implements SiteService {
         auditLog.setPrimaryTargetValue(path);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        itemServiceInternal.persistItemAfterWrite(site, path, commitId, user, Optional.of(true));
+        itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, Optional.of(true));
 
         if (commitId != null) {
             contentRepositoryV2.insertGitLog(site, commitId, 1);

@@ -522,7 +522,7 @@
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
         <property name="contentServiceInternal" ref="contentServiceInternal"/>
-        <property name="contentTypeServiceInternal" ref="contnetTypeServiceInternal"/>
+        <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
         <property name="userService" ref="userService" />
@@ -543,11 +543,28 @@
         <property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver" />
     </bean>
 
-    <bean id="contnetTypeServiceInternal"
+    <bean id="contentTypeServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl" >
-        <property name="contentTypeService" ref="cstudioContentTypeService" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg ref="cstudioContentTypeService" />
+        <constructor-arg ref="cstudioSecurityService" />
+        <constructor-arg ref="configurationService"/>
+        <constructor-arg ref="itemDao"/>
+        <constructor-arg ref="contentService"/>
+        <constructor-arg name="contentTypeBasePathPattern"
+                         value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
+        <constructor-arg name="contentTypeDefinitionFilename"
+                         value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.definitionFileName')}"/>
+        <constructor-arg name="templateXPath"
+                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.template.xpath')}"/>
+        <constructor-arg name="controllerPattern"
+                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.controller.pattern')}"/>
+        <constructor-arg name="controllerFormat"
+                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.controller.format')}"/>
      </bean>
+
+    <bean id="contentTypeService" class="org.craftercms.studio.impl.v2.service.content.ContentTypeServiceImpl">
+        <constructor-arg ref="contentTypeServiceInternal"/>
+    </bean>
     
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>

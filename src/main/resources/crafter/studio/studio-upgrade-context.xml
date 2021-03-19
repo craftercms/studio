@@ -185,7 +185,7 @@
         <constructor-arg name="contentTypeXpath"
                          value="#{studioConfiguration.getProperty('studio.upgrade.xpath.contentType')}"/>
         <constructor-arg name="formDefinitionTemplate"
-                         value="#{studioConfiguration.getProperty('studio.upgrade.template.formDefinition')}"/>
+                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.definition.pattern')}"/>
     </bean>
 
     <bean id="pluginDescriptorV2Upgrader" scope="prototype" parent="upgradeOperation"

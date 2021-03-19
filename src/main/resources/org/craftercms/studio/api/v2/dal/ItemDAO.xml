@@ -602,4 +602,24 @@
             #{path}
         </foreach>
     </update>
+
+    <select id="getContentTypeUsages" resultType="org.craftercms.studio.api.v2.dal.Item">
+        SELECT
+          I.path, I.system_type AS systemType
+        FROM
+          item I
+        INNER JOIN
+          site S
+        ON
+          I.site_id = S.id
+        WHERE
+          S.site_id = #{siteId}
+        AND
+          (
+            (I.system_type IN ('page', 'component') AND I.content_type_id = #{contentType})
+          OR
+            (I.system_type = 'script' AND I.path = #{scriptPath})
+          )
+    </select>
+
 </mapper>
