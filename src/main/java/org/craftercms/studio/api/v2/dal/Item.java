@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -25,6 +27,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.Map;
+
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
 public class Item {
 
@@ -58,6 +62,8 @@ public class Item {
     private String commitId;
     private long availableActions;
     private String previousPath;
+    private int ignoredAsInt;
+    private boolean ignored;
 
     public Item() { }
 
@@ -90,6 +96,8 @@ public class Item {
         commitId = builder.commitId;
         availableActions = builder.availableActions;
         previousPath = builder.previousPath;
+        ignoredAsInt = builder.ignoredAsInt;
+        ignored = builder.ignored;
     }
 
     public long getId() {
@@ -318,6 +326,22 @@ public class Item {
         this.previousPath = previousPath;
     }
 
+    public int getIgnoredAsInt() {
+        return ignoredAsInt;
+    }
+
+    public void setIgnoredAsInt(int ignoredAsInt) {
+        this.ignoredAsInt = ignoredAsInt;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+
+    public void setIgnored(boolean ignored) {
+        this.ignored = ignored;
+    }
+
     public void populateProperties(Map<String, Object> properties) {
         properties.forEach((propertyName, value) -> {
             PropertyDescriptor pd;
@@ -415,8 +439,13 @@ public class Item {
                             break;
                         case Properties.AVAILABLE_ACTIONS:
                             setAvailableActions((Long) value);
+                            break;
                         case Properties.PREVIOUS_PATH:
                             setPreviousPath((String) value);
+                            break;
+                        case Properties.IGNORED:
+                            setIgnored((Boolean) value);
+                            break;
                     }
                 });
     }
@@ -450,6 +479,8 @@ public class Item {
         private String commitId;
         private Long availableActions;
         private String previousPath;
+        private int ignoredAsInt;
+        private boolean ignored;
 
         public Builder() { }
 
@@ -482,6 +513,8 @@ public class Item {
             clone.commitId = item.commitId;
             clone.availableActions = item.availableActions;
             clone.previousPath = item.previousPath;
+            clone.ignoredAsInt = item.ignoredAsInt;
+            clone.ignored = item.ignored;
             return clone;
         }
 
@@ -622,7 +655,24 @@ public class Item {
             return this;
         }
 
+        public Builder withIgnoredAsInt(int ignoredAsInt) {
+            this.ignoredAsInt = ignoredAsInt;
+            this.ignored = ignoredAsInt > 0;
+            return this;
+        }
+
+        public Builder withIgnored(boolean ignored) {
+            this.ignored = ignored;
+            this.ignoredAsInt = ignored ? 1 : 0;
+            return this;
+        }
+
         public Item build() {
+            String fileName = FilenameUtils.getName(this.path);
+            if (ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                this.ignoredAsInt = 1;
+                this.ignored = true;
+            }
             return new Item(this);
         }
     }
@@ -655,5 +705,6 @@ public class Item {
         public static final String COMMIT_ID = "commitId";
         public static final String AVAILABLE_ACTIONS = "availableActions";
         public static final String PREVIOUS_PATH = "previousPath";
+        public static final String IGNORED = "ignored";
     }
 }

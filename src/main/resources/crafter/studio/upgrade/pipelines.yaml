@@ -231,6 +231,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-site-config.xml
                 dest: configuration/samples/sample-site-config.xml
             commitDetails: Update sample file for site-config.xml
+      - currentVersion: 4.0.0.13
+        nextVersion: 4.0.0.14
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.13-to-4.0.0.14.sql
 
   # Pipeline to upgrade site repositories
   site:
