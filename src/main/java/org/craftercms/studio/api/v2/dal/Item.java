@@ -16,12 +16,10 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import okhttp3.OkHttpClient.Builder;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;

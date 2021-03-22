@@ -29,7 +29,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENTRIES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXCLUDES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FOLDER_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.IGNORE_NAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.IN_PROGRESS_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYWORD;
