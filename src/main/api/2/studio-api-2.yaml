@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.9'
+  version: '4.0.0.10'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3402,27 +3402,29 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /content/get_delete_package:
-    get:
+    post:
       tags:
         - content
       summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
       description: 'Required permission "delete_content"'
       operationId: getDeletePackage
-      parameters:
-        - name: siteId
-          in: query
-          description: Site ID
-          required: true
-          schema:
-            type: string
-        - name: paths
-          in: query
-          description: Content paths to get a delete package for
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                paths:
+                  description: Content paths to get a delete package for
+                  type: array
+                  items:
+                    type: string
+              required:
+                - siteId
+                - paths
       responses:
         '200':
           description: OK
