@@ -90,17 +90,16 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String ldPath = parentFolderPath + FILE_SEPARATOR + ldName;
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), ldPath, ldName, parentFolderPath,
-                locale, keyword, excludes, ignoreNames, sortStrategy, order, offset, limit);
+                locale, keyword, excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setLimit(limit);
         toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale, keyword,
-                excludes, ignoreNames));
+                excludes));
         return toRet;
     }
 
@@ -138,9 +137,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath,
-                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes, ignoreNames);
+                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes);
     }
 
     @Override
@@ -148,12 +146,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                                              List<String> excludes, String sortStrategy, String order, int offset,
                                              int limit)
             throws ServiceLayerException, UserNotFoundException {
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenById(siteFeed.getId(), parentId,
-                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes, ignoreNames, sortStrategy,
+                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes, sortStrategy,
                 order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
@@ -168,9 +165,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByIdTotal(siteFeed.getId(), parentId, servicesConfig.getLevelDescriptorName(siteId),
-                locale, keyword, ignoreNames, excludes);
+                locale, keyword, excludes);
     }
 
     @Override

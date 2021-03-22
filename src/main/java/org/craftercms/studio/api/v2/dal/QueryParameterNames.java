@@ -225,6 +225,8 @@ public final class  QueryParameterNames {
 
     public static final String LAST_PUBLISHED_ON = "lastPublishedOn";
 
+    public static final String SCRIPT_PATH = "scriptPath";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids

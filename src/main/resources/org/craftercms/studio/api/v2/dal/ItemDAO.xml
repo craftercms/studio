@@ -45,17 +45,20 @@
         <result property="size" column="size" />
         <result property="parentId" column="parent_id" />
         <result property="commitId" column="commit_id" />
+        <result property="previewUrl" column="previous_path" />
+        <result property="ignoredAsInt" column="ignored" />
     </resultMap>
 
     <insert id="upsertEntries" parameterType="java.util.List">
         INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, last_modified_by,
         last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
-        translation_source_id, size, parent_id, commit_id) VALUES
+        translation_source_id, size, parent_id, commit_id, previous_path, ignored) VALUES
         <foreach collection="entries" item="entry" index="index" open="" separator=","  close="">
             (#{entry.siteId}, #{entry.path}, #{entry.previewUrl}, #{entry.state}, #{entry.ownedBy},
             #{entry.createdBy}, #{entry.lastModifiedBy}, #{entry.lastModifiedOn}, #{entry.lastPublishedOn},
             #{entry.label}, #{entry.contentTypeId}, #{entry.systemType}, #{entry.mimeType}, #{entry.disabledAsInt},
-            #{entry.localeCode}, #{entry.translationSourceId}, #{entry.size}, #{entry.parentId},  #{entry.commitId})
+            #{entry.localeCode}, #{entry.translationSourceId}, #{entry.size}, #{entry.parentId}, #{entry.commitId},
+            #{entry.previousPath}, #{entry.ignoredAsInt})
         </foreach>
         ON DUPLICATE KEY
         UPDATE
@@ -76,124 +79,110 @@
             translation_source_id = VALUES(translation_source_id),
             size = VALUES(size),
             parent_id = VALUES(parent_id),
-            commit_id = VALUES(commit_id)
+            commit_id = VALUES(commit_id),
+            previous_path = VALUES(previous_path),
+            ignored = VALUES(ignored)
     </insert>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and path = #{ldPath}
-        union
-        (select * from item where site_id = #{siteId}
-                              and path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
-                              and concat(path, '/index.xml') not in
-                                  (select i2.path from item i2 where i2.site_id = #{siteId}
-                                        and i2.path RLIKE('${path}/[^/]+/index\.xml'))
-                              and path not like '%/${ldName}'
+        SELECT * FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
+        UNION
+        (SELECT * FROM item WHERE site_id = #{siteId}
+        AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND CONCAT(path, '/index.xml') NOT IN
+        (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
+        AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
+        AND path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
-            and locale_code = #{localeCode}
+            AND locale_code = #{localeCode}
         </if>
         <if test="keyword != null">
-            and (path like '%${keyword}%' or label like '%${keyword}%')
+            AND (path LIKE '%${keyword}%' OR label LIKE '%${keyword}%')
         </if>
-        <if test="ignoreNames != null">
-            <foreach collection="ignoreNames" item="ignore" index="index" >
-                and path not like '%/${ignore}'
-            </foreach>
-        </if>
+        AND ignored = 0
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
-                and path not RLIKE('${exclude}')
+                AND path NOT RLIKE('${exclude}')
             </foreach>
         </if>
         <choose>
             <when test="sortStrategy == 'alphabetic'">
-                order by label ${order}, path ${order}
+                ORDER BY label ${order}, path ${order}
             </when>
             <when test="sortStrategy == 'foldersFirst'">
-                order by if(field(system_type, 'folder')=0,1,0), field(system_type, 'folder'), label ${order}, path ${order}
+                ORDER BY IF(FIELD(system_type, 'folder')=0,1,0), FIELD(system_type, 'folder'), label ${order}, path ${order}
             </when>
             <otherwise>
-                order by label ${order}, path ${order}
+                ORDER BY LABEL ${order}, path ${order}
             </otherwise>
         </choose>
-        limit #{offset},#{limit})
+        LIMIT #{offset},#{limit})
     </select>
 
     <select id="getChildrenByPathTotal" resultType="Integer">
-        select count(1) from item where site_id = #{siteId}
-                                    and path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
-                                    and concat(path, '/index.xml') not in
-                                        (select i2.path from item i2 where i2.site_id = #{siteId}
-                                                                       and i2.path RLIKE('${path}/[^/]+/index\.xml'))
-                                    and path not like '%/${ldName}'
+        SELECT COUNT(1) FROM item WHERE site_id = #{siteId}
+        AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND CONCAT(path, '/index.xml') NOT IN
+        (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
+        AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
+        AND path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
-            and locale_code = #{localeCode}
+            AND locale_code = #{localeCode}
         </if>
         <if test="keyword != null">
-            and (path like '%${keyword}%' or label like '%${keyword}%')
+            AND (path LIKE '%${keyword}%' OR label LIKE '%${keyword}%')
         </if>
-        <if test="ignoreNames != null">
-            <foreach collection="ignoreNames" item="ignore" index="index" >
-                and path not like '%/${ignore}'
-            </foreach>
-        </if>
+        AND ignored = 0
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
-                and path not RLIKE('${exclude}')
+                AND path NOT RLIKE('${exclude}')
             </foreach>
         </if>
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and parent_id = #{parentId} and path like '%/${ldName}'
-        union
-        select * from item where site_id = #{siteId} and parent_id = #{parentId} and path not like '%/${ldName}'
+        SELECT * FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
+        UNION
+        SELECT * FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
-            and locale_code = #{localeCode}
+            AND locale_code = #{localeCode}
         </if>
         <if test="keyword != null">
-            and (path like '%${keyword}%' or label like '%${keyword}%')
+            AND (path LIKE '%${keyword}%' OR label LIKE '%${keyword}%')
         </if>
-        <if test="ignoreNames != null">
-            <foreach collection="ignoreNames" item="ignore" index="index" >
-                and path not like '%/${ignore}'
-            </foreach>
-        </if>
+        AND ignored = 0
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
-                and path not RLIKE('${exclude}')
+                AND path NOT RLIKE('${exclude}')
             </foreach>
         </if>
         <choose>
             <when test="sortStrategy == 'alphabetic'">
-                order by label ${order}, path ${order}
+                ORDER BY label ${order}, path ${order}
             </when>
             <when test="sortStrategy == 'foldersFirst'">
-                order by if(field(system_type, 'folder')=0,1,0), field(system_type, 'folder'), label ${order}, path ${order}
+                ORDER BY IF(FIELD(system_type, 'folder')=0,1,0), FIELD(system_type, 'folder'), label ${order}, path ${order}
             </when>
             <otherwise>
-                order by label ${order}, path ${order}
+                ORDER BY label ${order}, path ${order}
             </otherwise>
         </choose>
-        limit #{offset},#{limit}
+        LIMIT #{offset},#{limit}
     </select>
 
     <select id="getChildrenByIdTotal" resultType="Integer">
-        select count(1) from item where site_id = #{siteId} and parent_id = #{parentId}
-                                             and path not like '%/${ldName}'
+        SELECT COUNT(1) FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId}
+        AND path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
-            and locale_code = #{localeCode}
+            AND locale_code = #{localeCode}
         </if>
         <if test="keyword != null">
-            and (path like '%${keyword}%' or label like '%${keyword}%')
+            AND (path LIKE '%${keyword}%' OR label LIKE '%${keyword}%')
         </if>
-        <if test="ignoreNames != null">
-            <foreach collection="ignoreNames" item="ignore" index="index" >
-                and path not like '%/${ignore}'
-            </foreach>
-        </if>
+        AND ignored = 0
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
-                and path not RLIKE('${exclude}')
+                AND path NOT RLIKE('${exclude}')
             </foreach>
         </if>
     </select>
@@ -255,7 +244,7 @@
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and path in
+        select * from item where site_id = #{siteId} and ignored = 0 and path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
@@ -266,6 +255,7 @@
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
+        and i1.ignored = 0
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         union
@@ -273,6 +263,7 @@
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
+        and i3.ignored = 0
         and concat(i3.path, '/index.xml') not in
         (select i4.path from item i4 where i4.site_id = i3.site_id
         and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
@@ -285,10 +276,11 @@
 
     <select id="getItemBySiteIdAndPathPreferContent" resultMap="ItemMap">
             (select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
+            and i1.ignored = 0
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select * from item i3 where i3.site_id = #{siteId} and i3.path = #{path})
+            select * from item i3 where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0)
             limit 0, 1
     </select>
 
@@ -397,6 +389,7 @@
         select count (1) from item i inner join site s on i.site_id = s.id
         where s.site_id = #{siteId}
         AND s.deleted = 0
+        AND i.ignored = 0
         <if test="path != null">
             AND i.path RLIKE #{path}
         </if>
@@ -422,6 +415,7 @@
         inner join user u on i.last_modified_by = u.id
         where s.site_id = #{siteId}
         AND s.deleted = 0
+        AND i.ignored = 0
         <if test="path != null">
             AND i.path RLIKE #{path}
         </if>
@@ -476,6 +470,7 @@
         FROM item i1 inner join site s on i1.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
+        AND i1.ignored = 0
         AND i1.path IN
         <foreach item="path" index="index" collection="possibleParents"
                  open="(" separator="," close=")">
@@ -487,6 +482,7 @@
         FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id
         WHERE s2.site_id = #{siteId}
         AND TRIM(IFNULL(i2.previous_path, '')) &lt;&gt; ''
+        AND i2.ignored = 0
         AND i2.path IN
         <foreach item="path" index="index" collection="possibleParents"
                  open="(" separator="," close=")">
@@ -500,12 +496,14 @@
         FROM item i1 inner join site s1 on i1.site_id = s1.id
         WHERE s1.site_id = #{siteId}
         AND s1.deleted = 0
+        AND i1.ignored = 0
         AND NULLIF(TRIM(i1.previous_path), '') IS NOT NULL
         AND (i1.state &amp; #{modifiedMask}) > 0
         AND (i1.state &amp; #{newMask}) = 0
         AND i1.parent_id IN
         (SELECT 12.id FROM item i2 inner join site s2 on i2.site_id = s2.id
         WHERE s2.site_id = #{siteId} AND s2.deleted = 0
+        AND i2.ignored = 0
         AND i2.path IN
         <foreach item="path" index="index" collection="parents" open="(" separator="," close=")">
             #{path}
@@ -535,6 +533,7 @@
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
+        AND i.ignored = 0
         AND (i.state &amp; #{inProgressMask}) &gt; 0
     </select>
 
@@ -543,6 +542,7 @@
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
           AND s.deleted = 0
+          AND i.ignored = 0
           AND (i.state &amp; #{submittedMask}) &gt; 0
     </select>
 
@@ -551,6 +551,7 @@
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
+        AND i.ignored = 0
         AND i.previous_path = #{previousPath}
     </select>
 
@@ -559,6 +560,7 @@
         SET i.commit_id = #{commitId}
         WHERE s.site_id = #{siteId}
           AND s.deleted = 0
+          AND i.ignored = 0
           AND i.path = #{path}
     </update>
 
@@ -567,6 +569,7 @@
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
+        AND i.ignored = 0
         AND i.system_type NOT IN
         <foreach collection="nonContentItemTypes" separator="," index="index" item="type" open="(" close=")">
             #{type}
@@ -581,6 +584,7 @@
             INNER JOIN item i2 ON s.id = i2.site_id AND i1.commit_id = i2.commit_id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
+        AND i.ignored = 0
         AND i.path = #{path}
     </select>
 

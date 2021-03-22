@@ -58,6 +58,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.POSSIBLE_PARENTS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PREVIOUS_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ROOT_PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCRIPT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT_STRATEGY;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
@@ -75,13 +76,11 @@ public interface ItemDAO {
      * @param localeCode local code
      * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
-     * @param ignoreNames ignore children
      * @return total number of children
      */
     int getChildrenByPathTotal(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
-                               @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes,
-                               @Param(IGNORE_NAMES) List<String> ignoreNames);
+                               @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes);
 
     /**
      * Get children for given path from database
@@ -93,7 +92,6 @@ public interface ItemDAO {
      * @param localeCode locale code
      * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
-     * @param ignoreNames ignore children
      * @param sortStrategy sort strategy
      * @param order order of children
      * @param offset offset of the first record to return
@@ -105,9 +103,8 @@ public interface ItemDAO {
     List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId, @Param(LEVEL_DESCRIPTOR_PATH) String ldPath,
                                  @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(PATH) String path,
                                  @Param(LOCALE_CODE) String localeCode, @Param(KEYWORD) String keyword,
-                                 @Param(EXCLUDES) List<String> excludes, @Param(IGNORE_NAMES) List<String> ignoreNames,
-                                 @Param(SORT_STRATEGY) String sortStrategy, @Param(ORDER) String order,
-                                 @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+                                 @Param(EXCLUDES) List<String> excludes, @Param(SORT_STRATEGY) String sortStrategy,
+                                 @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
 
 
@@ -120,14 +117,12 @@ public interface ItemDAO {
      * @param localeCode local code
      * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
-     * @param ignoreNames ignore children
      *
      * @return total number of children
      */
     int getChildrenByIdTotal(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
                              @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
-                             @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes,
-                             @Param(IGNORE_NAMES) List<String> ignoreNames);
+                             @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes);
     /**
      * Get children for given id from database
      * @param siteId site identifier
@@ -136,7 +131,6 @@ public interface ItemDAO {
      * @param localeCode locale code
      * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
-     * @param ignoreNames ignore  children
      * @param sortStrategy sort strategy
      * @param order order of children
      * @param offset offset of the first record to return
@@ -146,8 +140,8 @@ public interface ItemDAO {
     List<Item> getChildrenById(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
                                @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes,
-                               @Param(IGNORE_NAMES) List<String> ignoreNames, @Param(SORT_STRATEGY) String sortStrategy,
-                               @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+                               @Param(SORT_STRATEGY) String sortStrategy, @Param(ORDER) String order,
+                               @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
      * Update parent ID for site
@@ -516,6 +510,6 @@ public interface ItemDAO {
      * @return the list of items
      */
     List<Item> getContentTypeUsages(@Param(SITE_ID) String siteId, @Param(CONTENT_TYPE) String contentType,
-                                    @Param("scriptPath") String scriptPath);
+                                    @Param(SCRIPT_PATH) String scriptPath);
 
 }
