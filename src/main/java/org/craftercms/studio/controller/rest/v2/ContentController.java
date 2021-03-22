@@ -16,7 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -46,7 +46,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
+import javax.validation.constraints.NotEmpty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,12 +92,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(API_2 + CONTENT)
 public class ContentController {
 
-    private ContentService contentService;
-    private SiteService siteService;
-    private DependencyService dependencyService;
+    private final ContentService contentService;
+    private final SiteService siteService;
+    private final DependencyService dependencyService;
 
     //TODO: Migrate logic to new content service
-    private ClipboardService clipboardService;
+    private final ClipboardService clipboardService;
 
     public ContentController(ContentService contentService, SiteService siteService,
                              DependencyService dependencyService, ClipboardService clipboardService) {
@@ -124,16 +124,10 @@ public class ContentController {
         return responseBody;
     }
 
-    @GetMapping(GET_DELETE_PACKAGE)
-    public ResponseBody getDeletePackage(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths) {
-        List<String> childItems = new ArrayList<String>();
-        List<String> dependentItems = new ArrayList<String>();
-        if (CollectionUtils.isNotEmpty(paths)) {
-            childItems = contentService.getChildItems(siteId, paths);
-            dependentItems = dependencyService.getDependentItems(siteId, paths);
-        }
+    @PostMapping(GET_DELETE_PACKAGE)
+    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequest request) {
+        List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
+        List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<Map<String, List<String>>>();
         result.setResponse(OK);
@@ -177,7 +171,7 @@ public class ContentController {
                                                   defaultValue = "0") int offset,
                                           @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
                                                   defaultValue = "10") int limit)
-            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
                 contentService.getChildrenByPath(siteId, path, localeCode, keyword, excludes, sortStrategy, order,
                         offset, limit);
@@ -319,4 +313,32 @@ public class ContentController {
         responseBody.setResult(result);
         return responseBody;
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class GetDeletePackageRequest {
+
+        @NotEmpty
+        protected String siteId;
+
+        @NotEmpty
+        protected List<@Valid @NotEmpty String> paths;
+
+        public String getSiteId() {
+            return siteId;
+        }
+
+        public void setSiteId(String siteId) {
+            this.siteId = siteId;
+        }
+
+        public List<String> getPaths() {
+            return paths;
+        }
+
+        public void setPaths(List<String> paths) {
+            this.paths = paths;
+        }
+
+    }
+
 }
