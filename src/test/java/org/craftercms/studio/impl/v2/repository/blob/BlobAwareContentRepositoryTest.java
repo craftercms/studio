@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -51,6 +52,8 @@ public class BlobAwareContentRepositoryTest {
     public static final String SITE = "test";
     public static final String PARENT_PATH = "/static-assets";
     public static final String ORIGINAL_PATH = PARENT_PATH + "/test.txt";
+    public static final String LOCAL_FOLDER_PATH = PARENT_PATH + "/local/test";
+
     public static final String BLOB_EXT = "blob";
     public static final String POINTER_PATH = ORIGINAL_PATH + "." + BLOB_EXT;
     public static final String FOLDER_PATH = PARENT_PATH + "/folder";
@@ -113,6 +116,7 @@ public class BlobAwareContentRepositoryTest {
         when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
         when(store.isFolder(SITE, PARENT_PATH)).thenReturn(false);
         when(store.isFolder(SITE, ORIGINAL_PATH)).thenReturn(false);
+        when(store.isFolder(SITE,LOCAL_FOLDER_PATH)).thenReturn(true);
 
         proxy.setFileExtension(BLOB_EXT);
     }
@@ -131,7 +135,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void getContentTest() {
+    public void getContentTest() throws ContentNotFoundException {
         assertEquals(proxy.getContent(SITE, ORIGINAL_PATH), CONTENT, "original path should return the original content");
     }
 
@@ -173,11 +177,19 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void deleteFolderTest() {
+    public void deleteRemoteFolderTest() {
         proxy.deleteContent(SITE, FOLDER_PATH, USER);
 
         verify(store).deleteContent(SITE, FOLDER_PATH, USER);
         verify(localV1).deleteContent(SITE, FOLDER_PATH, USER);
+    }
+
+    @Test
+    public void deleteLocalFolderTest() {
+        proxy.deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
+
+        verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
+        verify(localV1).deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
     }
 
     @Test
@@ -208,6 +220,7 @@ public class BlobAwareContentRepositoryTest {
     @Test
     public void copyFileTest() {
         when(store.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(EMPTY);
+        when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
 
         proxy.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 

@@ -18,9 +18,8 @@ package org.craftercms.studio.impl.v2.repository.blob.s3;
 import com.amazonaws.services.s3.model.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
-import org.craftercms.commons.file.blob.BlobStoreException;
+import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
@@ -110,7 +109,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
+    public String writeContent(String site, String path, InputStream content) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Uploading content to {0}", getFullKey(previewMapping, path));
         try {

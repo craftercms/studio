@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.XMLConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.file.blob.BlobStore;
+import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -125,14 +126,19 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 logger.debug("No blob store found in site {} for paths {}", site, paths);
                 return null;
             }
-        } catch (ExecutionException | ConfigurationException e) {
+        } catch (ExecutionException e) {
             throw new ServiceLayerException("Error looking for blob store", e);
         }
     }
 
     @Override
     public boolean isBlob(String site, String path) throws ServiceLayerException {
-        return getByPaths(site, path) != null;
+        try {
+            return getByPaths(site, path) != null;
+        } catch (BlobStoreConfigurationMissingException e) {
+            logger.debug("Blob store configuration is missing or invalid");
+            return false;
+        }
     }
 
     protected String getEnvironment() {
