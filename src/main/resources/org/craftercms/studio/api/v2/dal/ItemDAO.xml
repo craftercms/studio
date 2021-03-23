@@ -584,8 +584,8 @@
             INNER JOIN item i2 ON s.id = i2.site_id AND i1.commit_id = i2.commit_id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
-        AND i.ignored = 0
-        AND i.path = #{path}
+        AND i1.ignored = 0
+        AND i1.path = #{path}
     </select>
 
     <update id="updateLastPublishedOn">
