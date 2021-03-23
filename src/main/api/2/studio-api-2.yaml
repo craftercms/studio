@@ -4254,7 +4254,7 @@ paths:
     post:
       tags:
         - marketplace
-      summary: Copy a plugin in the given site
+      summary: Copy a local plugin to a given site
       description: 'Required permission "install_plugins"'
       operationId: copyPlugin
       requestBody:
@@ -4268,7 +4268,7 @@ paths:
                   description: The id of the site
                   type: string
                 path:
-                  description: The path of the plugin folder
+                  description: The path of the local plugin source folder
                   type: string
               required:
                 - siteId
