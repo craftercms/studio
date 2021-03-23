@@ -71,7 +71,7 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SANDBOX_PATH;
@@ -112,8 +112,8 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 SiteFeed siteFeed = siteService.getSite(siteId);
                 List<ClusterSiteRecord> clusterSiteRecords = clusterDao.getSiteStateAcrossCluster(siteId);
                 long nodesCreated = clusterSiteRecords.stream()
-                        .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED)).count();
-                if (nodesCreated < 1 && !StringUtils.equals(siteFeed.getState(), STATE_CREATED)) {
+                        .filter(x -> StringUtils.equals(x.getState(), STATE_READY)).count();
+                if (nodesCreated < 1 && !StringUtils.equals(siteFeed.getState(), STATE_READY)) {
                     return;
                 }
 
@@ -132,7 +132,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     String commitId = contentRepository.getRepoLastCommitId(siteId);
                     clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), commitId, commitId,
                             siteFeed.getLastSyncedGitlogCommitId());
-                    clusterDao.setSiteState(localNode.getId(), siteFeed.getId(), STATE_CREATED);
+                    clusterDao.setSiteState(localNode.getId(), siteFeed.getId(), STATE_READY);
                     addSiteUuidFile(siteId, siteFeed.getSiteUuid());
                 }
 
@@ -208,7 +208,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     String commitId = contentRepository.getRepoLastCommitId(siteId);
 
                     clusterDao.insertClusterSiteSyncRepo(localNodeId, sId, commitId, commitId, commitId);
-                    clusterDao.setSiteState(localNodeId, sId, STATE_CREATED);
+                    clusterDao.setSiteState(localNodeId, sId, STATE_READY);
                     addSiteUuidFile(siteId, siteUuid);
                     deploymentService.syncAllContentToPreview(siteId, true);
                 }
@@ -219,7 +219,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             }
 
             if (result) {
-                clusterDao.setSiteState(localNodeId, sId, STATE_CREATED);
+                clusterDao.setSiteState(localNodeId, sId, STATE_READY);
             } else {
                 remotesMap.remove(siteId);
                 contentRepository.deleteSite(siteId);
@@ -247,7 +247,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         if (generalLockService.tryLock(gitLockKey)) {
             try {
                 Optional<ClusterSiteRecord> csr = clusterSiteRecords.stream()
-                        .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED) &&
+                        .filter(x -> StringUtils.equals(x.getState(), STATE_READY) &&
                                 !(x.getClusterNodeId() == localNodeId))
                         .findFirst();
                 if (csr.isPresent()) {
@@ -495,7 +495,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             logger.debug("Update content from each active cluster member");
             for (ClusterMember remoteNode : clusterNodes) {
                 ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
-                if (Objects.nonNull(csr) && StringUtils.equals(csr.getState(), STATE_CREATED)) {
+                if (Objects.nonNull(csr) && StringUtils.equals(csr.getState(), STATE_READY)) {
                     updateBranch(siteId, git, remoteNode, sandboxBranchName);
                 }
             }

@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.14', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.15', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -328,7 +328,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       DATETIME      NULL,
-  `state`                           VARCHAR(50)   NOT NULL DEFAULT 'CREATING',
+  `state`                           VARCHAR(50)   NOT NULL DEFAULT 'INITIALIZING',
   `last_synced_gitlog_commit_id`   VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
@@ -665,7 +665,7 @@ CREATE TABLE IF NOT EXISTS `access_token`
     ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO site (site_id, name, description, system, state)
-VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'CREATED') ;
+VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'READY') ;
 
 INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 1) ;
 

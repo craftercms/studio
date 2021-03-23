@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -62,7 +62,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
         try {
             try {
                 String siteState = siteService.getSiteState(site);
-                if (StringUtils.equals(siteState, STATE_CREATED)) {
+                if (StringUtils.equals(siteState, STATE_READY)) {
                     processAuditLog(site);
                 }
             } catch (Exception e) {

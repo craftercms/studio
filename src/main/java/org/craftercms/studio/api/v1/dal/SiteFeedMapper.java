@@ -17,7 +17,6 @@
 package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
-import org.springframework.security.access.method.P;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,13 @@ public interface SiteFeedMapper {
 
 	boolean createSite(SiteFeed siteFeed);
 
-    boolean deleteSite(String siteId);
+    /**
+     * Delete site
+     * @param siteId site identifier
+     * @param state deleted state value
+     * @return
+     */
+    boolean deleteSite(@Param(SITE_ID) String siteId, @Param(STATE) String state);
 
     void updateLastCommitId(Map params);
 
