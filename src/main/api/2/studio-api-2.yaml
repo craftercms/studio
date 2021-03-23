@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.10'
+  version: '4.0.0.11'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4247,6 +4247,48 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /marketplace/copy:
+    post:
+      tags:
+        - marketplace
+      summary: Copy a local plugin to a given site
+      description: 'Required permission "install_plugins"'
+      operationId: copyPlugin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: The id of the site
+                  type: string
+                path:
+                  description: The path of the local plugin source folder
+                  type: string
+              required:
+                - siteId
+                - path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
