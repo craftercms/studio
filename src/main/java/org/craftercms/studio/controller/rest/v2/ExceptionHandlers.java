@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
+import org.craftercms.commons.validation.ValidationRuntimeException;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
@@ -167,7 +168,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(OrganizationNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleOrganizetionNotFoundException(HttpServletRequest request,
+    public ResponseBody handleOrganizationNotFoundException(HttpServletRequest request,
                                                             OrganizationNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.ORG_NOT_FOUND);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
@@ -371,6 +372,14 @@ public class ExceptionHandlers {
                                                             InvalidConfigurationException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ValidationRuntimeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleValidationRuntimeException(HttpServletRequest request,
+                                                         ValidationRuntimeException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 

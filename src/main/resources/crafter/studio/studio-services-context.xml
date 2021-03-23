@@ -1498,7 +1498,9 @@
         <constructor-arg ref="cstudioSiteServiceSimple"/>
         <constructor-arg ref="sitesServiceInternal"/>
         <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="pluginDescriptorReader"/>
         <constructor-arg ref="studio.gitRepositoryHelper"/>
+        <constructor-arg value="#{studioConfiguration.getProperty('studio.repo.blueprints.descriptor.filename')}"/>
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
         <property name="pluginRegistryPath"
                   value="#{studioConfiguration.getProperty('studio.marketplace.plugin.registry.path')}"/>

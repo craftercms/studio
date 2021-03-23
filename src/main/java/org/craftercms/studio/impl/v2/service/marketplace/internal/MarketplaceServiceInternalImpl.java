@@ -23,9 +23,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.monitoring.VersionInfo;
+import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
@@ -37,7 +36,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -64,6 +62,7 @@ import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -92,6 +91,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.SOURCE_GIT;
 
 /**
@@ -108,27 +111,31 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     public static final String FOLDER_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.mapping";
 
-    protected InstanceService instanceService;
+    protected final InstanceService instanceService;
 
-    protected SiteService siteService;
+    protected final SiteService siteService;
 
-    protected SitesServiceInternal sitesServiceInternal;
+    protected final SitesServiceInternal sitesServiceInternal;
 
-    protected ContentService contentService;
+    protected final ContentService contentService;
 
-    protected StudioConfiguration studioConfiguration;
+    protected final StudioConfiguration studioConfiguration;
 
-    protected GitRepositoryHelper gitRepositoryHelper;
+    protected final GitRepositoryHelper gitRepositoryHelper;
 
-    protected RestTemplate restTemplate = new RestTemplate();
+    protected final PluginDescriptorReader pluginDescriptorReader;
+
+    protected final String pluginDescriptorFilename;
+
+    protected final RestTemplate restTemplate = new RestTemplate();
 
     protected ObjectMapper mapper;
 
-    protected ReadWriteLock lock = new ReentrantReadWriteLock();
+    protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    protected Lock readLock = lock.readLock();
+    protected final Lock readLock = lock.readLock();
 
-    protected Lock writeLock = lock.writeLock();
+    protected final Lock writeLock = lock.writeLock();
 
     /**
      * The custom HTTP headers to sent with all requests
@@ -168,7 +175,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     /**
      * Folder mappings to use during plugin installation
      */
-    protected Map<String, String> folderMapping = new HashMap<>();
+    protected final Map<String, String> folderMapping = new HashMap<>();
 
     /**
      * Name of the folder to copy all plugin files
@@ -178,13 +185,16 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
                                           SitesServiceInternal sitesServiceInternal, ContentService contentService,
                                           StudioConfiguration studioConfiguration,
-                                          GitRepositoryHelper gitRepositoryHelper) {
+                                          PluginDescriptorReader pluginDescriptorReader,
+                                          GitRepositoryHelper gitRepositoryHelper, String pluginDescriptorFilename) {
         this.instanceService = instanceService;
         this.siteService = siteService;
         this.sitesServiceInternal = sitesServiceInternal;
         this.contentService = contentService;
         this.studioConfiguration = studioConfiguration;
+        this.pluginDescriptorReader = pluginDescriptorReader;
         this.gitRepositoryHelper = gitRepositoryHelper;
+        this.pluginDescriptorFilename = pluginDescriptorFilename;
     }
 
     public void setUrl(final String url) {
@@ -255,11 +265,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             .queryParam(Constants.PARAM_OFFSET, offset)
             .queryParam(Constants.PARAM_LIMIT, limit);
 
-        if (StringUtils.isNotEmpty(type)) {
+        if (isNotEmpty(type)) {
             builder.queryParam(Constants.PARAM_TYPE, type);
         }
 
-        if (StringUtils.isNotEmpty(keywords)) {
+        if (isNotEmpty(keywords)) {
             builder.queryParam(Constants.PARAM_KEYWORDS, keywords);
         }
 
@@ -268,7 +278,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         try {
             ResponseEntity<Map<String, Object>> response =
                 restTemplate.exchange(builder.build().toString(), HttpMethod.GET, request,
-                    new ParameterizedTypeReference<Map<String, Object>>() {});
+                    new ParameterizedTypeReference<>() {});
             return response.getBody();
         } catch (ResourceAccessException e) {
             throw new MarketplaceUnreachableException(url, e);
@@ -276,7 +286,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     protected void validate() throws MarketplaceException {
-        if (StringUtils.isEmpty(version)) {
+        if (isEmpty(version)) {
             throw new MarketplaceNotInitializedException();
         }
     }
@@ -306,18 +316,18 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     @Override
     public void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
-        InvalidRemoteRepositoryException, RemoteRepositoryNotBareException, InvalidRemoteUrlException,
+        InvalidRemoteRepositoryException, InvalidRemoteUrlException,
         ServiceLayerException, InvalidRemoteRepositoryCredentialsException {
 
         logger.debug("Creating site {0} from marketplace blueprint {1} v{2}",
                 request.getSiteId(), request.getBlueprintId(), request.getBlueprintVersion());
 
-        if (StringUtils.isEmpty(request.getSandboxBranch())) {
+        if (isEmpty(request.getSandboxBranch())) {
             logger.debug("Using default sandbox branch for site {0}", request.getSiteId());
             request.setSandboxBranch(studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH));
         }
 
-        if (StringUtils.isEmpty(request.getRemoteName())) {
+        if (isEmpty(request.getRemoteName())) {
             logger.debug("Using default remote name for site {0}", request.getSiteId());
             request.setRemoteName(studioConfiguration.getProperty(StudioConfiguration.REPO_DEFAULT_REMOTE_NAME));
         }
@@ -388,7 +398,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                             format("Plugin '%s' from source '%s' can't be installed",
                                     plugin.getId(), plugin.getSource()));
             }
-            logger.debug("Installation of plugin {0} v{1} completed for site {2}",
+            logger.info("Installation of plugin {0} v{1} completed for site {2}",
                     plugin.getId(), plugin.getVersion(), siteId);
 
             updatePluginRegistry(siteId, plugin, files);
@@ -434,7 +444,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     protected List<FileRecord> copyPluginFiles(Path pluginDir, String siteId, MarketplacePlugin plugin)
-        throws CryptoException, IOException, GitAPIException {
+        throws IOException, GitAPIException {
         logger.info("Copying files from plugin {0} v{1} for site {2}", plugin.getId(), plugin.getVersion(), siteId);
         List<FileRecord> files = new LinkedList<>();
         Path siteDir = gitRepositoryHelper.buildRepoPath(GitRepositories.SANDBOX, siteId);
@@ -442,8 +452,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             String pluginIdPath = plugin.getId().replaceAll("\\.", "/");
 
             for(Map.Entry<String, String> mapping : folderMapping.entrySet()) {
-                var rootFolder = StringUtils.contains(mapping.getValue(), pluginsFolder)?
-                        mapping.getValue() : StringUtils.appendIfMissing(mapping.getValue(), "/" + pluginsFolder);
+                var rootFolder = contains(mapping.getValue(), pluginsFolder)?
+                        mapping.getValue() : appendIfMissing(mapping.getValue(), "/" + pluginsFolder);
                 Path source = pluginDir.resolve(mapping.getKey());
                 if (Files.exists(source)) {
                     Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
@@ -484,6 +494,55 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             logger.debug("Plugin registry successfully updated for site {0}", siteId);
         } catch (JsonProcessingException | ServiceLayerException e) {
             throw new MarketplaceRegistryException("Error updating the plugin registry for site: " + siteId, e);
+        }
+    }
+
+    @Override
+    public void copyPlugin(String siteId, String path) throws MarketplaceException {
+        Path pluginFolder = Path.of(path);
+        if (!Files.exists(pluginFolder)) {
+            throw new PluginInstallationException("The provided path does not exist: " + path);
+        }
+        if (!Files.isDirectory(pluginFolder)) {
+            throw new PluginInstallationException("The provided path is not a folder: " + path);
+        }
+
+        try {
+            logger.info("Copying plugin from {0} to site {1}", path, siteId);
+            Path descriptorFile = pluginFolder.resolve(pluginDescriptorFilename);
+            try (InputStream is = Files.newInputStream(descriptorFile)) {
+                PluginDescriptor descriptor = pluginDescriptorReader.read(is);
+                Plugin plugin = descriptor.getPlugin();
+
+                logger.info("Copying files from plugin {0} v{1} for site {2}",
+                        plugin.getId(), plugin.getVersion(), siteId);
+                Path siteDir = gitRepositoryHelper.buildRepoPath(GitRepositories.SANDBOX, siteId);
+                try (Git git = Git.open(siteDir.toFile())) {
+                    String pluginIdPath = plugin.getId().replaceAll("\\.", "/");
+
+                    for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
+                        String rootFolder = contains(mapping.getValue(), pluginsFolder) ?
+                                mapping.getValue() : appendIfMissing(mapping.getValue(), "/" + pluginsFolder);
+                        Path source = pluginFolder.resolve(mapping.getKey());
+                        if (Files.exists(source)) {
+                            Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
+                            Files.createDirectories(target);
+
+                            Files.walkFileTree(source, new TreeCopier(source, target));
+                        }
+                    }
+
+                    git.add().addFilepattern(".").call();
+                    git.commit()
+                            .setMessage(format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()))
+                            .call();
+
+                    logger.info("Copy of plugin {0} v{1} completed for site {2}",
+                            plugin.getId(), plugin.getVersion(), siteId);
+                }
+            }
+        } catch (Exception e) {
+            throw new PluginInstallationException("Error copying plugin from " + path, e);
         }
     }
 

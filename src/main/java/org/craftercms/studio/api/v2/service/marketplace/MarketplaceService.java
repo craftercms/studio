@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
@@ -56,13 +55,12 @@ public interface MarketplaceService {
      * @param request the site information
      * @throws RemoteRepositoryNotFoundException if there is an error with the remote repository
      * @throws InvalidRemoteRepositoryException if there is an error with the remote repository
-     * @throws RemoteRepositoryNotBareException if there is an error with the remote repository
      * @throws InvalidRemoteUrlException if there is an error with the remote repository
      * @throws ServiceLayerException if there is any unexpected error
      * @throws InvalidRemoteRepositoryCredentialsException if there is any error with the credentials
      */
     void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
-        InvalidRemoteRepositoryException, RemoteRepositoryNotBareException, InvalidRemoteUrlException,
+        InvalidRemoteRepositoryException, InvalidRemoteUrlException,
         ServiceLayerException, InvalidRemoteRepositoryCredentialsException;
 
     /**
@@ -78,8 +76,16 @@ public interface MarketplaceService {
      * @param siteId the id of the site
      * @param pluginId the id of the plugin
      * @param pluginVersion the version of the plugin
-     * @throws MarketplaceException
+     * @throws MarketplaceException if there is any error installing the plugin
      */
     void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException;
+
+    /**
+     * Copy a plugin in a site
+     * @param siteId the id of the site
+     * @param path the path of the plugin folder
+     * @throws MarketplaceException if there is any error copying the plugin
+     */
+    void copyPlugin(String siteId, String path) throws MarketplaceException;
 
 }
