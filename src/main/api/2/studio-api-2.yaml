@@ -5567,6 +5567,7 @@ components:
           type: string
           description: TTL timestamp for publishing lock
       required:
+        - enabled
         - status
         - message
         - lockOwner
