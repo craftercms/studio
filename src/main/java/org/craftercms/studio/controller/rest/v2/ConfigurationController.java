@@ -162,7 +162,8 @@ public class ConfigurationController {
     public ResponseBody deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
 
-        contentTypeService.deleteContentType(request.getSiteId(), request.getContentType());
+        contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
+                request.isDeleteDependencies());
         var result = new Result();
         result.setResponse(OK);
 
@@ -181,6 +182,8 @@ public class ConfigurationController {
         @NotEmpty
         protected String contentType;
 
+        protected boolean deleteDependencies;
+
         public String getSiteId() {
             return siteId;
         }
@@ -195,6 +198,14 @@ public class ConfigurationController {
 
         public void setContentType(String contentType) {
             this.contentType = contentType;
+        }
+
+        public boolean isDeleteDependencies() {
+            return deleteDependencies;
+        }
+
+        public void setDeleteDependencies(boolean deleteDependencies) {
+            this.deleteDependencies = deleteDependencies;
         }
 
     }

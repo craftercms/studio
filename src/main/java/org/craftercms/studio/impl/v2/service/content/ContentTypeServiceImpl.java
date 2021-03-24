@@ -30,7 +30,7 @@ import org.craftercms.studio.model.contentType.ContentTypeUsage;
  */
 public class ContentTypeServiceImpl implements ContentTypeService {
 
-    protected ContentTypeServiceInternal contentTypeServiceInternal;
+    protected final ContentTypeServiceInternal contentTypeServiceInternal;
 
     public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal) {
         this.contentTypeServiceInternal = contentTypeServiceInternal;
@@ -54,14 +54,15 @@ public class ContentTypeServiceImpl implements ContentTypeService {
      *
      * @param siteId the id of the site
      * @param contentType the id of the content-type
+     * @param deleteDependencies indicates if all dependencies should be deleted
      * @throws ServiceLayerException if there is any error deleting the files
      * @throws AuthenticationException if there is any error authenticating the user
      * @throws DeploymentException if there is any error publishing the changes
      */
     @Override
-    public void deleteContentType(String siteId, String contentType)
+    public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
             throws ServiceLayerException, AuthenticationException, DeploymentException {
-        contentTypeServiceInternal.deleteContentType(siteId, contentType);
+        contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
     }
 
 }
