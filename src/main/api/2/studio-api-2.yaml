@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.14'
+  version: '3.1.14.0'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3632,7 +3632,7 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  package:
+                  publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -5551,6 +5551,9 @@ components:
     PublishingStatus:
       type: object
       properties:
+        enabled:
+          type: boolean
+          description: true if publishing for site is enabled, otherwise false
         status:
           type: string
           description: publishing status for site
