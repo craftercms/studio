@@ -3456,33 +3456,33 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /content/delete:
-    delete:
+    post:
       tags:
         - content
       summary: Delete content
       description: 'Required Permission: "delete_content"'
       operationId: deleteContent
-      parameters:
-        - name: siteId
-          in: query
-          description: Site ID
-          required: true
-          schema:
-            type: string
-        - name: paths
-          in: query
-          description: Content paths to be deleted
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-        - name: submissionComment
-          in: query
-          description: Submission comment
-          required: false
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                paths:
+                  description: Content paths to be deleted
+                  type: array
+                  items:
+                    type: string
+                submissionComment:
+                  description: Submission comment
+                  type: string
+              required:
+                - siteId
+                - paths
       responses:
         '200':
           description: Deleted
@@ -3503,67 +3503,58 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /content/children_by_id:
-    get:
+    post:
       tags:
         - content
       summary: Get list of children for given item id
       description: 'Required permission "get_children" ("site member")'
       operationId: getChildrenById
-      parameters:
-        - name: siteId
-          in: query
-          description: Site ID
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: query
-          description: item id to get children for
-          required: true
-          schema:
-            type: string
-        - name: localeCode
-          in: query
-          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
-          schema:
-            type: string
-        - name: sortStrategy
-          in: query
-          description: >-
-            sort strategy (sort order)
-            Possible values:
-              - alphabetical (default)
-              - foldersFirst (order by: folders alphabetical, files alphabetical)
-          schema:
-            type: string
-        - name: order
-          in: query
-          description: order for srot strategy ascending or descending (ASC / DESC)
-          schema:
-            type: string
-            format: ASC, DESC
-        - name: offset
-          in: query
-          description: offset of first child in response - default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of children to return
-          schema:
-            type: integer
-        - name: keyword
-          in: query
-          description: filter children by keyword
-          schema:
-            type: string
-        - name: exclude
-          in: query
-          description: exclude items by regular expression
-          schema:
-            type: array
-            items:
-              type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                id:
+                  description: item id to get children for
+                  type: string
+                localeCode:
+                  description: |-
+                    filter children by locale code, or show source items (not translation) if translatation to
+                    specified locale code does not exist
+                  type: string
+                sortStrategy:
+                  description: >-
+                    sort strategy (sort order)
+                    Possible values:
+                      - alphabetical (default)
+                      - foldersFirst (order by: folders alphabetical, files alphabetical)
+                  type: string
+                order:
+                  description: order for srot strategy ascending or descending (ASC / DESC)
+                  type: string
+                  format: ASC, DESC
+                offset:
+                  description: offset of first child in response - default 0
+                  type: integer
+                limit:
+                  description: number of children to return
+                  type: integer
+                keyword:
+                  description: filter children by keyword
+                  type: string
+                exclude:
+                  description: exclude items by regular expression
+                  type: array
+                  items:
+                    type: string
+              required:
+                - siteId
+                - id
       responses:
         '200':
           description: OK
@@ -3604,67 +3595,58 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /content/children_by_path:
-    get:
+    post:
       tags:
         - content
       summary: Get list of children for given item path
       description: 'Required permission "get_children" ("site member")'
       operationId: getChildrenByPath
-      parameters:
-        - name: siteId
-          in: query
-          description: Site ID
-          required: true
-          schema:
-            type: string
-        - name: path
-          in: query
-          description: item path to get children for
-          required: true
-          schema:
-            type: string
-        - name: localeCode
-          in: query
-          description: filter children by locale code, or show source items (not translation) if translatation to specified locale code does not exist
-          schema:
-            type: string
-        - name: sortStrategy
-          in: query
-          description: >-
-            sort strategy (sort order)
-            Possible values:
-              - alphabetical (default)
-              - foldersFirst (order by: folders alphabetical, files alphabetical)
-          schema:
-            type: string
-        - name: order
-          in: query
-          description: order for srot strategy ascending or descending (ASC / DESC)
-          schema:
-            type: string
-            format: ASC, DESC
-        - name: offset
-          in: query
-          description: offset of first child in response - default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of children to return
-          schema:
-            type: integer
-        - name: keyword
-          in: query
-          description: filter children by keyword
-          schema:
-            type: string
-        - name: excludes
-          in: query
-          description: exclude items by regular expression patterns
-          schema:
-            type: array
-            items:
-              type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                path:
+                  description: item path to get children for
+                  type: string
+                localeCode:
+                  description: |-
+                    filter children by locale code, or show source items (not translation) if translatation to
+                    specified locale code does not exist
+                  type: string
+                sortStrategy:
+                  description: >-
+                    sort strategy (sort order)
+                    Possible values:
+                      - alphabetical (default)
+                      - foldersFirst (order by: folders alphabetical, files alphabetical)
+                  type: string
+                order:
+                  description: order for srot strategy ascending or descending (ASC / DESC)
+                  type: string
+                  format: ASC, DESC
+                offset:
+                  description: offset of first child in response - default 0
+                  type: integer
+                limit:
+                  description: number of children to return
+                  type: integer
+                keyword:
+                  description: filter children by keyword
+                  type: string
+                exclude:
+                  description: exclude items by regular expression
+                  type: array
+                  items:
+                    type: string
+              required:
+                - siteId
+                - path
       responses:
         '200':
           description: OK
@@ -3803,32 +3785,33 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /content/sandbox_items_by_id:
-    get:
+    post:
       tags:
         - content
       summary: Get list of items for given list of item ids
       description: 'Required permission "get_children" ("site member")'
       operationId: getSandboxItemsById
-      parameters:
-        - name: siteId
-          in: query
-          description: Site ID
-          required: true
-          schema:
-            type: string
-        - name: ids
-          in: query
-          description: item ids to get
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-        - name: preferContent
-          in: query
-          description: when set to true, return an item instead of a folder if the path can match either
-          schema:
-            type: boolean
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                ids:
+                  description: item ids to get
+                  type: array
+                  items:
+                    type: string
+                preferContent:
+                  description: when set to true, return an item instead of a folder if the path can match either
+                  type: boolean
+              required:
+                - siteId
+                - ids
       responses:
         '200':
           description: OK
@@ -3855,32 +3838,33 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /content/sandbox_items_by_path:
-    get:
+    post:
       tags:
         - content
       summary: Get list of items for given item paths
       description: 'Required permission "get_children" ("site member")'
       operationId: getSandboxItemsByPath
-      parameters:
-        - name: siteId
-          in: query
-          description: Site ID
-          required: true
-          schema:
-            type: string
-        - name: paths
-          in: query
-          description: item paths to get
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-        - name: preferContent
-          in: query
-          description: when set to true, return an item instead of a folder if the path can match either
-          schema:
-            type: boolean
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                paths:
+                  description: item paths to get
+                  type: array
+                  items:
+                    type: string
+                preferContent:
+                  description: when set to true, return an item instead of a folder if the path can match either
+                  type: boolean
+              required:
+                - siteId
+                - paths
       responses:
         '200':
           description: OK
@@ -4042,27 +4026,30 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /dependency/dependencies:
-    get:
+    post:
       tags:
         - dependency
       summary: Get list of dependencies for given content paths
       description: 'Required permission "site member"'
       operationId: getDependencies
-      parameters:
-        - name: siteId
-          in: query
-          description: Site ID
-          required: true
-          schema:
-            type: string
-        - name: paths
-          in: query
-          description: Content paths to get dependencies for
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                paths:
+                  description: Content paths to get dependencies for
+                  type: array
+                  items:
+                    type: string
+              required:
+                - siteId
+                - paths
       responses:
         '200':
           description: OK
@@ -5242,27 +5229,30 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /translation/item_by_id:
-    get:
+    post:
       tags:
         - translation
       summary: Get transaltion item(s) detail
       description: 'Required permission "get_translation_item_detail"'
       operationId: getTranslationItemById
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: query
-          description: Id(s) of item(s) to retrieve
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: site ID
+                  type: string
+                id:
+                  description: Id(s) of item(s) to retrieve
+                  type: array
+                  items:
+                    type: string
+              required:
+                - siteId
+                - id
       responses:
         '200':
           description: OK
@@ -5289,27 +5279,30 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /translation/item_by_path:
-    get:
+    post:
       tags:
         - translation
       summary: Get transaltion item(s) detail
       description: 'Required permission "get_translation_item_detail"'
       operationId: getTranslationItemByPath
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: path
-          in: query
-          description: Path(s) to item(s) to retrieve
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: site ID
+                  type: string
+                path:
+                  description: Path(s) to item(s) to retrieve
+                  type: array
+                  items:
+                    type: string
+              required:
+                - siteId
+                - path
       responses:
         '200':
           description: OK

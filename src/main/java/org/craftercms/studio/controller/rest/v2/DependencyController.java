@@ -16,22 +16,23 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATHS;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HARD_DEPENDENCIES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SOFT_DEPENDENCIES;
@@ -43,11 +44,10 @@ public class DependencyController {
     private DependencyService dependencyService;
 
     @GetMapping("/dependencies")
-    public ResponseBody getSoftDependencies(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths) throws ServiceLayerException {
-        List<String> softDeps = dependencyService.getSoftDependencies(siteId, paths);
-        List<String> hardDeps = dependencyService.getHardDependencies(siteId, paths);
+    public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequest request)
+            throws ServiceLayerException {
+        List<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
+        List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<Map<String, List<String>>>();
@@ -67,4 +67,10 @@ public class DependencyController {
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    protected static class GetSoftDependenciesRequest extends SiteAwareBulkRequest {
+
+    }
+
 }
