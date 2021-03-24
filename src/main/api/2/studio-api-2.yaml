@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.11'
+  version: '4.0.0.12'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4461,6 +4461,80 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /publish/status:
+    get:
+      tags:
+        - publishing
+      summary: Get publishing status for site
+      description: 'Required permission "publish_status"'
+      operationId: getPublishingStatus
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingStatus:
+                    $ref: '#/components/schemas/PublishingStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/clear_lock:
+    post:
+      tags:
+        - publishing
+      summary: Clear publishing lock for site
+      description: 'Required permission "publish_clear_lock"'
+      operationId: clearPublishingLock
+      requestBody:
+        description: clear publishing lock request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+              required:
+                - siteId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /security/encrypt:
     post:
       tags:
@@ -6498,6 +6572,31 @@ components:
         - state
         - environment
         - items
+
+    PublishingStatus:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: true if publishing for site is enabled, otherwise false
+        status:
+          type: string
+          description: publishing status for site
+        message:
+          type: string
+          description: publishing message for site
+        lockOwner:
+          type: string
+          description: studio instance owner of publishing lock
+        lockTTL:
+          type: string
+          description: TTL timestamp for publishing lock
+      required:
+        - enabled
+        - status
+        - message
+        - lockOwner
+        - lockTTL
 
     SandboxItem:
       type: object
