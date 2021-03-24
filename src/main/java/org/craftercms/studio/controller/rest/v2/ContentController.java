@@ -32,12 +32,17 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
 import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
+import org.craftercms.studio.model.rest.content.DeleteContentRequest;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.craftercms.studio.model.rest.content.GetChildrenByIdRequest;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathRequest;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.GetSandboxItemsByIdRequest;
+import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequest;
 import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,24 +51,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_EXCLUDES;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_IDS;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_KEYWORD;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LOCALE_CODE;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ORDER;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATHS;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PREFER_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT_STRATEGY;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
@@ -75,7 +70,6 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.G
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SUBMISSION_COMMENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
@@ -139,13 +133,10 @@ public class ContentController {
         return responseBody;
     }
 
-    @DeleteMapping(DELETE)
-    public ResponseBody delete(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-            @RequestParam(value = REQUEST_PARAM_PATHS, required = true)List<String> paths,
-            @RequestParam(value = REQUEST_PARAM_SUBMISSION_COMMENT, required = false) String submissionComment)
+    @PostMapping(DELETE)
+    public ResponseBody delete(@RequestBody @Valid DeleteContentRequest request)
             throws DeploymentException, AuthenticationException, ServiceLayerException {
-        contentService.deleteContent(siteId, paths, submissionComment);
+        contentService.deleteContent(request.getSiteId(), request.getPaths(), request.getSubmissionComment());
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
@@ -154,27 +145,13 @@ public class ContentController {
         return responseBody;
     }
 
-    @GetMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                          @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path,
-                                          @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false)
-                                                      String localeCode,
-                                          @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false)
-                                                      String keyword,
-                                          @RequestParam(value = REQUEST_PARAM_EXCLUDES, required = false)
-                                                      List<String> excludes,
-                                          @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
-                                                      String sortStrategy,
-                                          @RequestParam(value = REQUEST_PARAM_ORDER, required = false,
-                                                  defaultValue = "ASC") String order,
-                                          @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
-                                                  defaultValue = "0") int offset,
-                                          @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
-                                                  defaultValue = "10") int limit)
+    @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequest request)
             throws ServiceLayerException, UserNotFoundException {
-        GetChildrenResult result =
-                contentService.getChildrenByPath(siteId, path, localeCode, keyword, excludes, sortStrategy, order,
-                        offset, limit);
+        GetChildrenResult result = contentService.getChildrenByPath(
+                request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
+                request.getExcludes(), request.getSortStrategy(), request.getOrder(), request.getOffset(),
+                request.getLimit());
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -182,25 +159,13 @@ public class ContentController {
     }
 
     @GetMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                        @RequestParam(value = REQUEST_PARAM_ID, required = true) String id,
-                                        @RequestParam(value = REQUEST_PARAM_LOCALE_CODE, required = false)
-                                                    String localeCode,
-                                        @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false)
-                                                    String keyword,
-                                        @RequestParam(value = REQUEST_PARAM_EXCLUDES, required = false)
-                                                    List<String> excludes,
-                                        @RequestParam(value = REQUEST_PARAM_SORT_STRATEGY, required = false)
-                                                    String sortStrategy,
-                                        @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order,
-                                        @RequestParam(value = REQUEST_PARAM_OFFSET, required = false,
-                                                defaultValue = "0") int offset,
-                                        @RequestParam(value = REQUEST_PARAM_LIMIT, required = false,
-                                                defaultValue = "10") int limit)
+    public ResponseBody getChildrenById(@RequestBody @Valid GetChildrenByIdRequest request)
             throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
-                contentService.getChildrenById(siteId, id, localeCode, keyword, excludes, sortStrategy, order, offset,
-                        limit);
+                contentService.getChildrenById(
+                        request.getSiteId(), request.getId(), request.getLocaleCode(), request.getKeyword(),
+                        request.getExcludes(), request.getSortStrategy(), request.getOrder(), request.getOffset(),
+                        request.getLimit());
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -285,12 +250,10 @@ public class ContentController {
     }
 
     @GetMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                              @RequestParam(value = REQUEST_PARAM_PATHS, required = true) List<String> paths,
-                                              @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
-                                                      defaultValue = "false") boolean preferContent)
+    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequest request)
             throws ServiceLayerException, UserNotFoundException {
-        List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
+        List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(
+                request.getSiteId(), request.getPaths(), request.isPreferContent());
         ResponseBody responseBody = new ResponseBody();
         ResultList<SandboxItem> result = new ResultList<SandboxItem>();
         result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
@@ -300,12 +263,10 @@ public class ContentController {
     }
 
     @GetMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                            @RequestParam(value = REQUEST_PARAM_IDS, required = true) List<Long> ids,
-                                            @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
-                                                    defaultValue = "false") boolean preferContent)
+    public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequest request)
             throws ServiceLayerException, UserNotFoundException {
-        List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(siteId, ids, preferContent);
+        List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(
+                request.getSiteId(), request.getIds(), request.isPreferContent());
         ResponseBody responseBody = new ResponseBody();
         ResultList<SandboxItem> result = new ResultList<SandboxItem>();
         result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
@@ -315,29 +276,7 @@ public class ContentController {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class GetDeletePackageRequest {
-
-        @NotEmpty
-        protected String siteId;
-
-        @NotEmpty
-        protected List<@Valid @NotEmpty String> paths;
-
-        public String getSiteId() {
-            return siteId;
-        }
-
-        public void setSiteId(String siteId) {
-            this.siteId = siteId;
-        }
-
-        public List<String> getPaths() {
-            return paths;
-        }
-
-        public void setPaths(List<String> paths) {
-            this.paths = paths;
-        }
+    private static class GetDeletePackageRequest extends SiteAwareBulkRequest {
 
     }
 
