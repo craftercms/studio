@@ -82,8 +82,8 @@
         #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
     </insert>
 
-    <update id="deleteSite" parameterType="java.util.Map" >
-        UPDATE site SET deleted = 1 WHERE site_id = #{siteId} AND deleted = 0
+    <update id="deleteSite">
+        UPDATE site SET state = #{state}, deleted = 1 WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <update id="updateLastCommitId" parameterType="java.util.Map">

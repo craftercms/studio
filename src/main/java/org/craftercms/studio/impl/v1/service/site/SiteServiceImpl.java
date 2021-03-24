@@ -136,7 +136,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOS
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_DELETED;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -468,7 +469,7 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the Preview " +
                         "Deployer is reachable.");
             }
-            setSiteState(siteId, STATE_CREATED);
+            setSiteState(siteId, STATE_READY);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
         }
@@ -791,7 +792,7 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the " +
                         "Preview Deployer is reachable.");
             }
-            setSiteState(siteId, STATE_CREATED);
+            setSiteState(siteId, STATE_READY);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
@@ -992,7 +993,7 @@ public class SiteServiceImpl implements SiteService {
                         " to preview. Site was successfully created, but it won't be preview-able until the " +
                         "Preview Deployer is reachable.");
             }
-            setSiteState(siteId, STATE_CREATED);
+            setSiteState(siteId, STATE_READY);
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
@@ -1040,7 +1041,7 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("Deleting database records");
             SiteFeed siteFeed = getSite(siteId);
             workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
-            siteFeedMapper.deleteSite(siteId);
+            siteFeedMapper.deleteSite(siteId, STATE_DELETED);
             userDao.deleteUserPropertiesBySiteId(siteFeed.getId());
             dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
@@ -1616,7 +1617,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public List<String> getAllCreatedSites() {
-        return siteFeedMapper.getAllCreatedSites(STATE_CREATED);
+        return siteFeedMapper.getAllCreatedSites(STATE_READY);
     }
 
     @Override
