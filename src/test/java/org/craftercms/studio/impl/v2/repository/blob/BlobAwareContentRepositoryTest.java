@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -70,6 +71,8 @@ public class BlobAwareContentRepositoryTest {
     public static final String STORE_ID = "BLOB_STORE";
     public static final String LOCAL_PATH = "/site/website/index.xml";
     public static final String CONFIG_PATH = "/config/studio/site-config.xml";
+    public static final String COMMIT_1 = "some commit";
+    public static final String COMMIT_2 = "some other commit";
 
     @InjectMocks
     private BlobAwareContentRepository proxy;
@@ -109,6 +112,9 @@ public class BlobAwareContentRepositoryTest {
         when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
         when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
         when(localV1.isFolder(SITE, PARENT_PATH)).thenReturn(true);
+
+        when(localV2.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2))
+                .thenReturn(Map.of(POINTER_PATH, "D", NEW_POINTER_PATH, POINTER_PATH));
 
         when(store.contentExists(SITE, ORIGINAL_PATH)).thenReturn(true);
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
@@ -370,6 +376,15 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store).writeContent(SITE, NO_EXT_PATH, CONTENT);
         verify(localV1).writeContent(eq(SITE), eq(NO_EXT_PATH + "." + BLOB_EXT), any());
+    }
+
+    @Test
+    public void getChangeSetPathsFromDeltaTest() {
+        Map<String, String> map = proxy.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2);
+
+        assertEquals(map.size(), 2);
+        map.forEach((key, value) -> assertFalse(key.endsWith(BLOB_EXT) || value.endsWith(BLOB_EXT),
+                "The changeSet should not contain pointer paths"));
     }
 
 }
