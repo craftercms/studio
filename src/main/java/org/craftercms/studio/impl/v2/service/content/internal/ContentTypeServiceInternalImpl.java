@@ -17,11 +17,14 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
@@ -30,6 +33,8 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
+import org.dom4j.Document;
+import org.dom4j.Node;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -53,6 +58,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final ConfigurationService configurationService;
     protected final ItemDAO itemDao;
     protected final ContentService contentService;
+    protected final SiteService siteService;
 
     protected final String contentTypeBasePathPattern;
     protected final String contentTypeDefinitionFilename;
@@ -62,14 +68,15 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
                                           ConfigurationService configurationService, ItemDAO itemDao,
-                                          ContentService contentService, String contentTypeBasePathPattern,
-                                          String contentTypeDefinitionFilename, String templateXPath,
-                                          String controllerPattern, String controllerFormat) {
+                                          ContentService contentService, SiteService siteService,
+                                          String contentTypeBasePathPattern, String contentTypeDefinitionFilename,
+                                          String templateXPath, String controllerPattern, String controllerFormat) {
         this.contentTypeService = contentTypeService;
         this.securityService = securityService;
         this.configurationService = configurationService;
         this.itemDao = itemDao;
         this.contentService = contentService;
+        this.siteService = siteService;
         this.contentTypeBasePathPattern = contentTypeBasePathPattern;
         this.contentTypeDefinitionFilename = contentTypeDefinitionFilename;
         this.templateXPath = templateXPath;
@@ -100,18 +107,27 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
-        var definitionPath = getContentTypePath(contentType) + "/" + contentTypeDefinitionFilename;
-        var definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
-        var templateNode = definition.selectSingleNode(templateXPath);
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException("Site " + siteId + " does not exist");
+        }
+
+        String definitionPath = getContentTypePath(contentType) + "/" + contentTypeDefinitionFilename;
+        Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
+
+        if (definition == null) {
+            throw new ContentNotFoundException(definitionPath, siteId, "Content-Type not found");
+        }
+
+        Node templateNode = definition.selectSingleNode(templateXPath);
         var usages = new ContentTypeUsage();
 
         if(templateNode != null && isNotEmpty(templateNode.getText())) {
             usages.setTemplates(singletonList(templateNode.getText()));
         }
 
-        var scriptPath = contentType.replaceAll(controllerPattern, controllerFormat);
+        String scriptPath = contentType.replaceAll(controllerPattern, controllerFormat);
 
-        var items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
+        List<Item> items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
 
         usages.setContent(items.stream()
                 .filter(i -> equalsAnyIgnoreCase(i.getSystemType(), CONTENT_TYPE_PAGE, CONTENT_TYPE_COMPONENT))
@@ -127,15 +143,21 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     }
 
     @Override
-    public void deleteContentType(String siteId, String contentType) throws ServiceLayerException, AuthenticationException, DeploymentException {
-        var usage = getContentTypeUsage(siteId, contentType);
-
-        if (CollectionUtils.isNotEmpty(usage.getContent())) {
-            throw new ServiceLayerException("The content-type " + contentType + " in site " + siteId + " can't be" +
-                    "deleted because there is content using it");
-        }
+    public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
+            throws ServiceLayerException, AuthenticationException, DeploymentException {
+        ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
 
         var files = new LinkedList<String>();
+
+        if (CollectionUtils.isNotEmpty(usage.getContent())) {
+            if (!deleteDependencies) {
+                throw new ServiceLayerException("The content-type " + contentType + " in site " + siteId +
+                        " can't be deleted because there is content using it");
+            }
+
+            files.addAll(usage.getContent());
+        }
+
         files.addAll(usage.getTemplates());
         files.addAll(usage.getScripts());
         files.add(getContentTypePath(contentType));

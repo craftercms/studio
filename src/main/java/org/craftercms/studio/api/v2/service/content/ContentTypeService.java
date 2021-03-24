@@ -43,11 +43,12 @@ public interface ContentTypeService {
      *
      * @param siteId the id of the site
      * @param contentType the id of the content-type
+     * @param deleteDependencies indicates if all dependencies should be deleted
      * @throws ServiceLayerException if there is any error deleting the files
      * @throws AuthenticationException if there is any error authenticating the user
      * @throws DeploymentException if there is any error publishing the changes
      */
-    void deleteContentType(String siteId, String contentType)
+    void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
             throws ServiceLayerException, AuthenticationException, DeploymentException;
 
 }

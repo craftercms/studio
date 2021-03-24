@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.12'
+  version: '4.0.0.13'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3267,11 +3267,9 @@ paths:
                 contentType:
                   type: string
                   description: The content-type to delete
-                files:
-                  type: array
-                  items:
-                    type: string
-                  description: Any additional file related to the content-type that should be deleted
+                deleteDepedencies:
+                  type: boolean
+                  description: Indicates if all depdendencies of the content-type should be deleted (defaults to false)
               required:
                 - siteId
                 - contentType

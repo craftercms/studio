@@ -550,6 +550,7 @@
         <constructor-arg ref="configurationService"/>
         <constructor-arg ref="itemDao"/>
         <constructor-arg ref="contentService"/>
+        <constructor-arg ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="contentTypeBasePathPattern"
                          value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
         <constructor-arg name="contentTypeDefinitionFilename"
