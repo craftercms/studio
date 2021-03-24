@@ -4485,7 +4485,7 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  package:
+                  publishingStatus:
                     $ref: '#/components/schemas/PublishingStatus'
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -6576,6 +6576,9 @@ components:
     PublishingStatus:
       type: object
       properties:
+        enabled:
+          type: boolean
+          description: true if publishing for site is enabled, otherwise false
         status:
           type: string
           description: publishing status for site
@@ -6589,6 +6592,7 @@ components:
           type: string
           description: TTL timestamp for publishing lock
       required:
+        - enabled
         - status
         - message
         - lockOwner
