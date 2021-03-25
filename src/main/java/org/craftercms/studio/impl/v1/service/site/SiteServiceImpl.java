@@ -51,7 +51,6 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
-import org.craftercms.commons.rest.RestServiceException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -71,7 +70,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -132,7 +130,6 @@ import static org.craftercms.studio.api.v1.constant.DmConstants.XML_PATTERN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
@@ -578,26 +575,16 @@ public class SiteServiceImpl implements SiteService {
                     + "system administrator.", e);
         }
 
-        switch (createOption) {
-            case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
-                logger.info("Clone from remote repository create option selected");
-                createSiteCloneRemote(siteId, siteName, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
-                        singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                        params, createAsOrphan);
-                break;
-
-            case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
-                logger.info("Push to remote repository create option selected");
-                createSitePushToRemote(siteId, siteName, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
-                        remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey, params, createAsOrphan);
-                break;
-
-            default:
-                logger.error("Invalid create option for create site using remote repository: " + createOption +
-                        "\nAvailable options: [" + REMOTE_REPOSITORY_CREATE_OPTION_CLONE + ", " +
-                        REMOTE_REPOSITORY_CREATE_OPTION_PUSH + "]");
-                break;
+        if (REMOTE_REPOSITORY_CREATE_OPTION_CLONE.equals(createOption)) {
+            logger.info("Clone from remote repository create option selected");
+            createSiteCloneRemote(siteId, siteName, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
+                    singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+                    params, createAsOrphan);
+        } else {
+            logger.error("Invalid create option for create site using remote repository: " + createOption +
+                    "\nAvailable options: [" + REMOTE_REPOSITORY_CREATE_OPTION_CLONE + "]");
+            throw new SiteCreationException("Invalid create option for create site using remote repository: "
+                    + createOption);
         }
     }
 
@@ -782,207 +769,6 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             // Now that everything is created, we can sync the preview deployer with the new content
             logger.info("Sync all site content to preview for " + siteId);
-            try {
-                deploymentService.syncAllContentToPreview(siteId, true);
-            } catch (ServiceLayerException e) {
-                logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
-                        + "successfully created otherwise. Ignoring.", e);
-
-                throw new SiteCreationException("Error while syncing site: " + siteId + " ID: " + siteId +
-                        " to preview. Site was successfully created, but it won't be preview-able until the " +
-                        "Preview Deployer is reachable.");
-            }
-            setSiteState(siteId, STATE_READY);
-        } else {
-            throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
-        }
-        logger.info("Finished creating site " + siteId);
-    }
-
-    private void createSitePushToRemote(String siteId, String siteName, String sandboxBranch, String description,
-                                        String blueprintId, String remoteName, String remoteUrl, String remoteBranch,
-                                        String authenticationType, String remoteUsername, String remotePassword,
-                                        String remoteToken, String remotePrivateKey, Map<String, String> params,
-                                        boolean createAsOrphan)
-            throws ServiceLayerException {
-        if (exists(siteId) || existsByName(siteName)) {
-            throw new SiteAlreadyExistsException();
-        }
-
-        logger.debug("Get blueprint descriptor for " + blueprintId);
-        PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
-        if (Objects.isNull(descriptor)) {
-            throw new BlueprintNotFoundException("Blueprint not found " + blueprintId);
-        }
-
-        logger.debug("Validate blueprint parameters");
-        sitesServiceInternal.validateBlueprintParameters(descriptor, params);
-        String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
-        String searchEngine = descriptor.getPlugin().getSearchEngine();
-
-        boolean success = true;
-
-        // We must fail site creation if any of the site creations steps fail and rollback
-        // For example: Create site => create Deployer Target (fail) = fail
-        // and rollback the whole thing.
-        // What we need to do for site creation and the order of execution:
-        // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
-        String siteUuid = UUID.randomUUID().toString();
-
-        logger.info("Starting site creation process for site " + siteId + " from " + blueprintId + " blueprint.");
-        // Create the site in the preview deployer
-        try {
-            logger.info("Creating Deployer targets for site " + siteId);
-            deployer.createTargets(siteId, searchEngine);
-        } catch (RestServiceException e) {
-            String msg = "Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                    blueprintId + ". The required Deployer targets couldn't be created";
-
-            logger.error(msg, e);
-
-            throw new DeployerTargetException(msg, e);
-        }
-
-        if (success) {
-            try {
-                logger.info("Creating site " + siteId + " from blueprint " + blueprintId);
-                success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
-
-                addSiteUuidFile(siteId, siteUuid);
-
-                // insert database records
-                logger.info("Adding site record to database for site " + siteId);
-                SiteFeed siteFeed = new SiteFeed();
-                siteFeed.setName(siteName);
-                siteFeed.setSiteId(siteId);
-                siteFeed.setSiteUuid(siteUuid);
-                siteFeed.setDescription(description);
-                siteFeed.setPublishingStatusMessage(
-                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
-                siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeed.setSearchEngine(searchEngine);
-                siteFeedMapper.createSite(siteFeed);
-
-                logger.info("Upgrading site");
-                upgradeManager.upgrade(siteId);
-            } catch (Exception e) {
-                success = false;
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                        blueprintId + ". Rolling back...", e);
-
-                contentRepository.deleteSite(siteId);
-
-                try {
-                    deployer.deleteTargets(siteId);
-                } catch (Exception ex) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintId + ". This means the site's Deployer " +
-                            "targets are still present, but the site was not successfully created", e);
-                }
-
-                throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " from blueprint: " + blueprintId, e);
-            }
-
-            if (success) {
-                ZonedDateTime now = ZonedDateTime.now();
-                String creator = securityService.getCurrentUser();
-                try {
-
-                    logger.info("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
-                            remoteUrl + ")");
-                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-                            remotePassword, remoteToken, remotePrivateKey);
-                    contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
-                            remoteUsername, remotePassword, remoteToken, remotePrivateKey, createAsOrphan);
-                } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
-                        InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException |
-                        InvalidRemoteUrlException | ServiceLayerException e) {
-                    logger.error("Error while pushing site: " + siteId + " ID: " + siteId + " to remote repository "
-                            + remoteName + " (" + remoteUrl + ")", e);
-                    contentRepositoryV2.removeRemote(siteId, remoteName);
-                }
-
-                try {
-
-                    // Add default groups
-                    logger.info("Adding default groups for site " + siteId);
-                    addDefaultGroupsForNewSite(siteId);
-
-                    logger.debug("Adding audit logs.");
-                    String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-                    Map<String, String> createdFiles =
-                            contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
-                    insertCreateSiteAuditLog(siteId, siteName, createdFiles);
-                    insertAddRemoteAuditLog(siteId, remoteName);
-
-                    User userObj = userServiceInternal.getUserByGitName(creator);
-
-                    createdFiles.forEach((k, v) -> {
-                        if (StringUtils.equals("D", v)) {
-                            return;
-                        }
-                        String path = k;
-                        if (v.length() > 1) {
-                            path = v;
-                        }
-                        extractDependenciesForItem(siteId, path);
-
-                        // Item
-                        try {
-                            String label = FilenameUtils.getName(path);
-                            String contentTypeId = StringUtils.EMPTY;
-                            if (StringUtils.endsWith(path, XML_PATTERN)) {
-                                Document contentDoc = contentService.getContentAsDocument(siteId, path);
-                                if(contentDoc != null) {
-                                    Element rootElement = contentDoc.getRootElement();
-                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                    if (StringUtils.isNotEmpty(internalName)) {
-                                        label = internalName;
-                                    }
-                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                }
-                            }
-                            String previewUrl = null;
-                            if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-                                    StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-                                previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
-                            }
-                            Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
-                                    previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
-                                    userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
-                                    contentTypeId, contentService.getContentTypeClass(siteId, path),
-                                    StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
-                                    null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
-                            itemServiceInternal.upsertEntry(siteId, item);
-                        } catch (SiteNotFoundException | DocumentException e) {
-                            logger.error("Unexpected error during creation of items", e);
-                        }
-                    });
-
-                    contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
-                    updateLastCommitId(siteId, lastCommitId);
-                    updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
-                    updateLastSyncedGitlogCommitId(siteId, lastCommitId);
-
-                    logger.info("Loading configuration for site " + siteId);
-                    itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
-                } catch (Exception e) {
-                    success = false;
-                    logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                            blueprintId + ". Rolling back.", e);
-
-                    deleteSite(siteId);
-
-                    throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintId + ". Rolling back.");
-                }
-            }
-        }
-
-        if (success) {
-            // Now that everything is created, we can sync the preview deployer with the new content
-            logger.info("Sync all content to preview for site " + siteId);
             try {
                 deploymentService.syncAllContentToPreview(siteId, true);
             } catch (ServiceLayerException e) {

@@ -71,14 +71,17 @@ try {
     def invalidParams = false;
     def paramsList = []
 
+    if (StringUtils.equalsIgnoreCase(REMOTE_REPOSITORY_CREATE_OPTION_PUSH, createOption)) {
+        response.setStatus(400)
+        result.message = "The create and push option has been deprecated"
+        return result
+    }
+
 // blueprint
     try {
-        if (!useRemote || (useRemote && StringUtils.equalsIgnoreCase(REMOTE_REPOSITORY_CREATE_OPTION_PUSH,
-                createOption))) {
-            if (StringUtils.isEmpty(blueprint)) {
-                invalidParams = true
-                paramsList.add("blueprint")
-            }
+        if (!useRemote && StringUtils.isEmpty(blueprint)) {
+            invalidParams = true
+            paramsList.add("blueprint")
         }
     } catch (Exception exc) {
         invalidParams = true
