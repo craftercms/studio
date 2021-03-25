@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,10 +23,12 @@ import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.Parameter;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
 
 public class SitesServiceInternalImpl implements SitesServiceInternal {
@@ -52,6 +55,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     private PluginDescriptorReader descriptorReader;
     private ContentRepository contentRepository;
     private StudioConfiguration studioConfiguration;
+    private SiteFeedMapper siteFeedMapper;
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -164,6 +168,17 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         return null;
     }
 
+    @Override
+    public PublishStatus getPublishingStatus(String siteId) {
+        int ttl = studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
+        return siteFeedMapper.getPublishingStatus(siteId, ttl);
+    }
+
+    @Override
+    public void clearPublishingLock(String siteId) {
+        siteFeedMapper.clearPublishingLockForSite(siteId);
+    }
+
     @Required
     public void setDescriptorReader(final PluginDescriptorReader descriptorReader) {
         this.descriptorReader = descriptorReader;
@@ -183,5 +198,13 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
     }
 }

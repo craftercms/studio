@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -65,11 +65,6 @@ class SpringDeploymentServices {
     def bulkGoLive(site, environment, path, comment) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
         return springBackedService.bulkGoLive(site, environment, path, comment)
-    }
-
-    def getPublishStatus(siteId) {
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.getPublishStatus(siteId)
     }
 
     def enablePublishing(siteId, enabled) {

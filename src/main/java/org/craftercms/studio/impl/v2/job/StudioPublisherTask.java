@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -55,10 +55,10 @@ import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
 
 public class StudioPublisherTask extends StudioClockTask {
 
@@ -220,15 +220,19 @@ public class StudioPublisherTask extends StudioClockTask {
             try {
                 logger.debug("Mark items as processing for site \"{0}\"", siteId);
                 Set<String> packageIds = new HashSet<String>();
+                int idx = 0;
                 for (PublishRequest item : itemsToDeploy) {
+                    idx++;
                     if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
                         currentPackageId = item.getPackageId();
-                        statusMessage = studioConfiguration.getProperty
-                                (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING);
+                        statusMessage = studioConfiguration
+                                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING);
                         statusMessage =
                                 statusMessage.replace("{package_id}", currentPackageId)
                                         .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
-                                                .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                                .format(DateTimeFormatter.ofPattern(sdf.toPattern()))
+                                        .replace("{x}", Integer.toString(idx))
+                                        .replace("{Y}", Integer.toString(itemsToDeploy.size())));
                         siteService.updatePublishingStatusMessage(siteId, statusMessage);
                     }
                     processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
@@ -257,8 +261,7 @@ public class StudioPublisherTask extends StudioClockTask {
                                     Integer.toString(itemsToDeploy.size()));
                 } else {
                     statusMessage =
-                            studioConfiguration.getProperty
-                                    (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
+                            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
                 }
                 siteService.updatePublishingStatusMessage(siteId, statusMessage);
             } catch (DeploymentException err) {
@@ -267,11 +270,7 @@ public class StudioPublisherTask extends StudioClockTask {
                         itemsToDeploy.size());
                 publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
                 siteService.enablePublishing(siteId, false);
-                statusMessage = studioConfiguration.getProperty
-                        (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                statusMessage = statusMessage.replace("{item_path}", messagePath)
-                        .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
-                                .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
                 siteService.updatePublishingStatusMessage(siteId, statusMessage);
                 throw err;
             } catch (Exception err) {
@@ -280,11 +279,7 @@ public class StudioPublisherTask extends StudioClockTask {
                         itemsToDeploy.size());
                 publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
                 siteService.enablePublishing(siteId, false);
-                statusMessage = studioConfiguration.getProperty
-                        (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                statusMessage = statusMessage.replace("{item_path}", messagePath)
-                        .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
-                                .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
                 siteService.updatePublishingStatusMessage(siteId, statusMessage);
                 throw err;
             }
@@ -331,10 +326,7 @@ public class StudioPublisherTask extends StudioClockTask {
             logger.error("Error while executing deployment to environment store for site \"{0}\",", err, siteId);
             publishingManager.markItemsReady(siteId, environment, Arrays.asList(item));
             siteService.enablePublishing(siteId, false);
-            statusMessage = studioConfiguration.getProperty(
-                    JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
-                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
             siteService.updatePublishingStatusMessage(siteId, statusMessage);
             throw err;
         } catch (Exception err){
@@ -342,10 +334,7 @@ public class StudioPublisherTask extends StudioClockTask {
                     "store for site \"{0}\", ", err, siteId);
             publishingManager.markItemsReady(siteId, environment, Arrays.asList(item));
             siteService.enablePublishing(siteId, false);
-            statusMessage = studioConfiguration.getProperty(
-                    JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
-                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
             siteService.updatePublishingStatusMessage(siteId, statusMessage);
             throw err;
         }

@@ -915,6 +915,20 @@ pipelines:
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.12.2-to-3.1.14.sql
+    - currentVersion: 3.1.14
+      nextVersion: 3.1.14.1
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.14.1/system/global-permission-mappings-config.xslt
+          commitDetails: Added publish_status and publish_clear_lock permissions for system_admin
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+              dest: /configuration/samples/sample-permission-mappings-config.xml
+          commitDetails: Update sample files
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.14-to-3.1.14.1.sql
 
   # Pipeline to upgrade site repositories
   site:
@@ -1300,6 +1314,14 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/config/permission-mappings-config/permission-mappings-config-v12.xslt
             commitDetails: Added encryption tool permissions for developer and admin
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 12
+        nextVersion: 13
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/permission-mappings-config/permission-mappings-config-v13.xslt
+            commitDetails: Added publish_status and publish_clear_lock permissions for  admin
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
 
