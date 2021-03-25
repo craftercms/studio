@@ -158,7 +158,7 @@ public class ContentController {
         return responseBody;
     }
 
-    @GetMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getChildrenById(@RequestBody @Valid GetChildrenByIdRequest request)
             throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result =
@@ -249,7 +249,7 @@ public class ContentController {
         return responseBody;
     }
 
-    @GetMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequest request)
             throws ServiceLayerException, UserNotFoundException {
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(
@@ -262,7 +262,7 @@ public class ContentController {
         return responseBody;
     }
 
-    @GetMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequest request)
             throws ServiceLayerException, UserNotFoundException {
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(

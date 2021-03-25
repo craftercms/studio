@@ -24,6 +24,7 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +44,7 @@ public class DependencyController {
 
     private DependencyService dependencyService;
 
-    @GetMapping("/dependencies")
+    @PostMapping("/dependencies")
     public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequest request)
             throws ServiceLayerException {
         List<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
