@@ -373,24 +373,17 @@ studio.mail.debug: false
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
 studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message
-studio.job.deployContentToEnvironment.status.message.default: "ready|Ready"
+studio.job.deployContentToEnvironment.status.message.default: "Ready"
 # Publishing idle status message
-studio.job.deployContentToEnvironment.status.message.ready: "ready|Last successful publish was for package:
-{package_id} on {datetime} with {package_size} items"
-# Publishing busy status message
-studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publishing item: {item_path} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.ready: "Last successful publish was for package: {package_id} on {datetime} with {package_size} items"
 # Publishing publishing status message
-studio.job.deployContentToEnvironment.status.message.publishing: "publishing|Currently publishing package: {package_id} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.publishing: "Currently publishing package: {package_id} on {datetime}. Item {x} of {y} is being published"
 # Publishing queued status message
-studio.job.deployContentToEnvironment.status.message.queued: "queued|Items queued for publishing"
+studio.job.deployContentToEnvironment.status.message.queued: "Items are queued for publishing"
 # Publishing stopped by error status message
-studio.job.deployContentToEnvironment.status.message.stopped.error: "stopped|Stopped while trying to publish item: {item_path} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.error: "Publishing is disabled due to errors. Check logs for error details"
 # Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.stopped.user: "stopped|User {username} disabled publishing for
-site on {datetime}"
-# Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.started.user: "started|User {username} enabled publishing for
-site on {datetime}"
+studio.job.deployContentToEnvironment.status.message.stopped: "Publishing was stopped by user {username} on {datetime}"
 # Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
 studio.job.deployment.masterPublishingNode: true
 
