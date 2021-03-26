@@ -303,4 +303,12 @@ public interface ContentRepository {
      */
     DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo, String environment,
                                                           String path);
+
+    /**
+     * Mark all git logs as processed if they are inserted before marker
+     * @param siteId site identifier
+     * @param marker marker git commit
+     * @param processed value for processed
+     */
+    void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed);
 }

@@ -349,4 +349,9 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
                                                                  String environment, String path) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    default void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
+        throw new UnsupportedOperationException();
+    }
 }

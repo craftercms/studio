@@ -234,6 +234,8 @@ public final class  QueryParameterNames {
 
     public static final String MARKER = "marker";
 
+    public static final String PROCESSED = "processed";
+
     /** Workflow */
     public static final String PUBLISHING_PACKAGE_ID = "publishingPackageId";
 

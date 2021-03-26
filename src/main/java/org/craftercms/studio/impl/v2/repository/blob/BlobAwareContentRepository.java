@@ -683,4 +683,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                                                                  String environment, String path) {
         return localRepositoryV2.getItemEnvironmentProperties(siteId, repo, environment, path);
     }
+
+    @Override
+    public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
+        localRepositoryV2.markGitLogProcessedBeforeMarker(siteId, marker, processed);
+    }
 }

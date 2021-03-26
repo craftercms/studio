@@ -88,6 +88,9 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                         GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
                         if (Objects.nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
                             siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                            contentRepository.markGitLogProcessedBeforeMarker(site, gl2.getId(), 1);
+                        } else {
+                            contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
                         }
                     }
                 }
