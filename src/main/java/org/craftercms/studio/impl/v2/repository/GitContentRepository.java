@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -505,7 +505,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     }
 
     private List<RepoOperation> processDiffEntry(Git git, List<DiffEntry> diffEntries, ObjectId commitId)
-            throws GitAPIException {
+            throws GitAPIException, IOException {
         List<RepoOperation> toReturn = new ArrayList<RepoOperation>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -516,66 +516,39 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
             RepoOperation repoOperation = null;
             Iterable<RevCommit> iterable = null;
-            RevCommit latestCommit = null;
+            RevCommit revCommit = null;
             ZonedDateTime commitTime = null;
             String author = null;
+
+            try (Repository repo = git.getRepository()) {
+                try (RevWalk revWalk = new RevWalk(repo)) {
+                    revCommit = revWalk.parseCommit(commitId);
+                }
+            }
+            if (revCommit == null) {
+                iterable = git.log().setMaxCount(1).call();
+                revCommit = iterable.iterator().next();
+            }
+            commitTime = Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC);
+            author = revCommit.getAuthorIdent().getName();
+
             switch (diffEntry.getChangeType()) {
                 case ADD:
-                    iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
-                    latestCommit = iterable.iterator().next();
-                    if (latestCommit == null) {
-                        iterable = git.log().setMaxCount(1).call();
-                        latestCommit = iterable.iterator().next();
-                    }
-                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
-                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(CREATE, pathNew, commitTime, null,
-                            latestCommit.getId().getName());
+                            revCommit.getId().getName());
                     break;
                 case MODIFY:
-                    iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
-                    latestCommit = iterable.iterator().next();
-                    if (latestCommit == null) {
-                        iterable = git.log().setMaxCount(1).call();
-                        latestCommit = iterable.iterator().next();
-                    }
-                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
-                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(UPDATE, pathNew, commitTime, null,
-                            latestCommit.getId().getName());
+                            revCommit.getId().getName());
                     break;
                 case DELETE:
-                    iterable = git.log().addPath(diffEntry.getOldPath()).setMaxCount(1).call();
-                    latestCommit = iterable.iterator().next();
-                    if (latestCommit == null) {
-                        iterable = git.log().setMaxCount(1).call();
-                        latestCommit = iterable.iterator().next();
-                    }
-                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
-                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(DELETE, pathOld, commitTime, null,
-                            latestCommit.getId().getName());
+                            revCommit.getId().getName());
                     break;
                 case RENAME:
-                    iterable = git.log().addPath(diffEntry.getOldPath()).setMaxCount(1).call();
-                    latestCommit = iterable.iterator().next();
-                    if (latestCommit == null) {
-                        iterable = git.log().setMaxCount(1).call();
-                        latestCommit = iterable.iterator().next();
-                    }
-                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
-                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(MOVE, pathOld, commitTime, pathNew, commitId.getName());
                     break;
                 case COPY:
-                    iterable = git.log().addPath(diffEntry.getNewPath()).setMaxCount(1).call();
-                    latestCommit = iterable.iterator().next();
-                    if (latestCommit == null) {
-                        iterable = git.log().setMaxCount(1).call();
-                        latestCommit = iterable.iterator().next();
-                    }
-                    commitTime = Instant.ofEpochSecond(latestCommit.getCommitTime()).atZone(UTC);
-                    author = latestCommit.getAuthorIdent().getName();
                     repoOperation = new RepoOperation(COPY, pathNew, commitTime, null, commitId.getName());
                     break;
                 default:
@@ -1686,6 +1659,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     @Override
     public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
         return gitLogDao.getUnprocessedCommitsSinceMarker(siteId, marker);
+    }
+
+    @Override
+    public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
+        gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed);
     }
 
     public StudioConfiguration getStudioConfiguration() {
