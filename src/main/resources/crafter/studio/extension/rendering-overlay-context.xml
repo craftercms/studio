@@ -126,6 +126,7 @@
     <bean id="publishController" class="org.craftercms.studio.controller.rest.v2.PublishController">
         <property name="publishService" ref="publishService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="sitesService" ref="sitesService" />
     </bean>
 
     <bean id="securityController" class="org.craftercms.studio.controller.rest.v2.SecurityController">

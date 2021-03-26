@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,10 +22,14 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 
 import java.util.List;
+
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_CLEAR_LOCK;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_STATUS;
 
 public class SitesServiceImpl implements SitesService {
 
@@ -64,5 +68,17 @@ public class SitesServiceImpl implements SitesService {
 
     public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
         this.sitesServiceInternal = sitesServiceInternal;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
+    public PublishStatus getPublishingStatus(String siteId) {
+        return sitesServiceInternal.getPublishingStatus(siteId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
+    public void clearPublishingLock(String siteId) {
+        sitesServiceInternal.clearPublishingLock(siteId);
     }
 }
