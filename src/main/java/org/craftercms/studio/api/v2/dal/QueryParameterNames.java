@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -149,6 +149,8 @@ public abstract class QueryParameterNames {
     public static final String COMMIT_IDS = "commitIds";
 
     public static final String MARKER = "marker";
+
+    public static final String PROCESSED = "processed";
 
     private QueryParameterNames() { }
 }

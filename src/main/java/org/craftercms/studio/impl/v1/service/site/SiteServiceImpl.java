@@ -1302,7 +1302,7 @@ public class SiteServiceImpl implements SiteService {
                         objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
                     }
                     metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
-                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
+                    lastEditCommitId = repoOperation.getCommitId();
 
                     if (state == null) {
                         logger.debug("Insert item state for site: " + site + " path: " + repoOperation.getPath());
@@ -1348,7 +1348,7 @@ public class SiteServiceImpl implements SiteService {
                         objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getPath());
                     }
                     metadata = objectMetadataManager.getProperties(site, repoOperation.getPath());
-                    lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getPath());
+                    lastEditCommitId = repoOperation.getCommitId();
 
                     if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
                         objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
@@ -1405,7 +1405,7 @@ public class SiteServiceImpl implements SiteService {
                                     repoOperation.getMoveToPath());
                         }
                         metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
-                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
+                        lastEditCommitId = repoOperation.getCommitId();
                         if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
                             objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
                         }
@@ -1419,7 +1419,7 @@ public class SiteServiceImpl implements SiteService {
                                     repoOperation.getMoveToPath());
                         }
                         metadata = objectMetadataManager.getProperties(site, repoOperation.getMoveToPath());
-                        lastEditCommitId = contentRepositoryV2.getLastEditCommitId(site, repoOperation.getMoveToPath());
+                        lastEditCommitId = repoOperation.getCommitId();
                         if (!StringUtils.equals(lastEditCommitId, metadata.getCommitId())) {
                             objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
                         }

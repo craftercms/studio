@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -69,4 +69,8 @@
     <select id="getUnprocessedCommitsSinceMarker" resultMap="GitLogMap" parameterType="java.util.Map">
         SELECT * FROM gitlog WHERE site_id = #{siteId} AND processed = 0 AND id > #{marker} ORDER BY id ASC
     </select>
+
+    <update id="markGitLogProcessedBeforeMarker" parameterType="java.util.Map">
+        UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND NOT id > #{marker}
+    </update>
 </mapper>
