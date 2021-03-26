@@ -53,6 +53,10 @@ public abstract class QueryParameterNames {
 
     public static final String STATE = "state";
 
+    public static final String PUBLISHING_STATUS = "publishingStatus";
+
+    public static final String MESSAGE = "message";
+
     /* Groups */
 
     // Group ID

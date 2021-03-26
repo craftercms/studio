@@ -24,6 +24,8 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MESSAGE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_STATUS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TTL;
@@ -56,7 +58,8 @@ public interface SiteFeedMapper {
 
     void enablePublishing(Map params);
 
-    void updatePublishingStatusMessage(Map params);
+    void updatePublishingStatusMessage(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status,
+                                       @Param(MESSAGE) String message);
 
     void updateLastVerifiedGitlogCommitId(Map params);
 

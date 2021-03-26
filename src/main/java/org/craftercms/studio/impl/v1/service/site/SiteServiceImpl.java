@@ -1672,13 +1672,11 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId,
+                                                 @ValidateStringParam(name = "status") String status,
                                                  @ValidateStringParam(name = "message") String message)
             throws SiteNotFoundException {
         if (exists(siteId)) {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put("siteId", siteId);
-            params.put("message", message);
-            siteFeedMapper.updatePublishingStatusMessage(params);
+            siteFeedMapper.updatePublishingStatusMessage(siteId, status, message);
             return true;
         } else {
             throw new SiteNotFoundException();
