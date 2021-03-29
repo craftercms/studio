@@ -20,7 +20,6 @@ import scripts.api.ContentServices
 import org.apache.commons.text.StringEscapeUtils
 
 
-def result = [:]
 def site = request.getParameter("site")
 def path = request.getParameter("path")
 def version = request.getParameter("version")
@@ -33,8 +32,6 @@ String revised = "UNSET"
 
 model.version = version
 model.versionTO = versionTO
-
-model.xsl = HTMLCompareTools.CONTENT_XML_TO_HTML_XSL
 
 if([Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } == false && !versionTO) {
 	original = ContentServices.getContent(site, path, false, null, context)
