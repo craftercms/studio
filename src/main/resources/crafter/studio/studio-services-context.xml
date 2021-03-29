@@ -173,6 +173,7 @@
          <property name="publishRequestMapper" ref="publishRequestMapper" />
          <property name="auditServiceInternal" ref="auditServiceInternal" />
          <property name="contentRepositoryV2" ref="contentRepository" />
+         <property name="publishingManager" ref="cstudioPublishingManager" />
      </bean>
 
     <bean id="cstudioNotificationService"

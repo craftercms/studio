@@ -87,9 +87,9 @@
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
         insert into site (site_uuid, site_id, name, description, status, deleted, last_commit_id,
-                          publishing_status_message, sandbox_branch, search_engine)
+                          publishing_status, publishing_status_message, sandbox_branch, search_engine)
         values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{status}, #{deleted}, #{lastCommitId},
-                #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
+                #{publishingStatus}, #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
     </insert>
 
     <update id="deleteSite" parameterType="java.util.Map" >
@@ -174,7 +174,8 @@
     </update>
 
     <update id="updatePublishingStatusMessage" parameterType="java.util.Map">
-        UPDATE site SET publishing_status_message = #{message} WHERE site_id = #{siteId} AND deleted = 0
+        UPDATE site SET publishing_status = #{publishingStatus}, publishing_status_message = #{message}
+        WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <update id="updateLastVerifiedGitlogCommitId" parameterType="java.util.Map">

@@ -293,11 +293,12 @@ public interface SiteService {
     /**
      * Update publishing status message for given site
      * @param siteId site id
+	 * @param status status
      * @param message new publishing status message
      * @return true if publishing status message is successfully updated
      * @throws SiteNotFoundException
      */
-    boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException;
+    boolean updatePublishingStatusMessage(String siteId, String status, String message) throws SiteNotFoundException;
 
     /**
      * Add remote repository for site content repository
