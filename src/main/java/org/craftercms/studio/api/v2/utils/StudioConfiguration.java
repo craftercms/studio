@@ -197,18 +197,14 @@ public interface StudioConfiguration {
             "studio.job.deployContentToEnvironment.status.message.default";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY =
             "studio.job.deployContentToEnvironment.status.message.ready";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY =
-            "studio.job.deployContentToEnvironment.status.message.busy";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING =
             "studio.job.deployContentToEnvironment.status.message.publishing";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED =
             "studio.job.deployContentToEnvironment.status.message.queued";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR =
-            "studio.job.deployContentToEnvironment.status.message.stopped.error";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER =
-            "studio.job.deployContentToEnvironment.status.message.stopped.user";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER =
-            "studio.job.deployContentToEnvironment.status.message.started.user";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR =
+            "studio.job.deployContentToEnvironment.status.message.error";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED =
+            "studio.job.deployContentToEnvironment.status.message.stopped";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
 
     /** Content Types Filter Patterns */

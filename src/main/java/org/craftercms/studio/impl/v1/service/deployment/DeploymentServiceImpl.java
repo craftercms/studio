@@ -56,7 +56,6 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
-import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
@@ -754,13 +753,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site)
-            throws SiteNotFoundException {
-        return siteService.getPublishStatus(site);
-    }
-
-    @Override
-    @ValidateParams
     public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
         if (!siteService.exists(site)) {
@@ -771,16 +763,16 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
 
         boolean toRet = siteService.enablePublishing(site, enabled);
-        String message = StringUtils.EMPTY;
-        if (enabled) {
+        String message;
+        if (!enabled) {
             message = studioConfiguration.getProperty(
-                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER);
+                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY);
         } else {
             message = studioConfiguration.getProperty(
-                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER);
+                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED);
+            message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",
+                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
         }
-        message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",
-                ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
         siteService.updatePublishingStatusMessage(site, message);
 
         SiteFeed siteFeed = siteService.getSite(site);

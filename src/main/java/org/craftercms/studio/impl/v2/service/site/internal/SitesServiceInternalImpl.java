@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -46,6 +47,7 @@ import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_SITE_LOCK_TTL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
 
 public class SitesServiceInternalImpl implements SitesServiceInternal {
@@ -178,6 +180,17 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         if (updated != 1) {
             throw new SiteNotFoundException();
         }
+    }
+
+    @Override
+    public PublishStatus getPublishingStatus(String siteId) {
+        int ttl = studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
+        return siteFeedMapper.getPublishingStatus(siteId, ttl);
+    }
+
+    @Override
+    public void clearPublishingLock(String siteId) {
+        siteFeedMapper.clearPublishingLockForSite(siteId);
     }
 
     public PluginDescriptorReader getDescriptorReader() {

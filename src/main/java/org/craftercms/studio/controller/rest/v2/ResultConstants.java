@@ -82,6 +82,7 @@ public final class ResultConstants {
     /** Publish controller */
     public static final String RESULT_KEY_PACKAGES = "packages";
     public static final String RESULT_KEY_PACKAGE = "package";
+    public static final String RESULT_KEY_PUBLISH_STATUS = "publishingStatus";
 
     /* Translation controller */
     public static final String RESULT_KEY_CONFIG = "config";

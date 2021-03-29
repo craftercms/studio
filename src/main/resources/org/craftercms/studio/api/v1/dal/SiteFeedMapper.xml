@@ -30,6 +30,7 @@
         <result property="deleted" column="deleted" javaType="Integer" jdbcType="INTEGER"/>
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
+        <result property="publishingStatus" column="publishing_status" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingStatusMessage" column="publishing_status_message" jdbcType="VARCHAR" javaType="String"/>
         <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
@@ -40,6 +41,15 @@
         <result property="state" column="state" />
         <result property="lastSyncedGitlogCommitId" column="last_synced_gitlog_commit_id" jdbcType="VARCHAR"
                 javaType="String"/>
+    </resultMap>
+
+    <resultMap id="PublishStatusMap" type="org.craftercms.studio.api.v2.dal.PublishStatus">
+        <id property="id" column="id" />
+        <result property="enabledAsInt" column="publishing_enabled" />
+        <result property="status" column="publishing_status" />
+        <result property="message" column="publishing_status_message" />
+        <result property="lockOwner" column="publishing_lock_owner" />
+        <result property="lockTTL" column="publishing_lock_heartbeat" />
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -77,9 +87,9 @@
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
         insert into site (site_uuid, site_id, name, description, status, deleted, last_commit_id,
-        publishing_status_message, sandbox_branch, search_engine)
+                          publishing_status_message, sandbox_branch, search_engine)
         values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{status}, #{deleted}, #{lastCommitId},
-        #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
+                #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
     </insert>
 
     <update id="deleteSite">
@@ -102,9 +112,9 @@
     <select id="getLastVerifiedGitlogCommitId" resultType="java.lang.String">
         SELECT IFNULL(NULLIF(TRIM(cs.node_last_verified_gitlog_commit_id), ''), s.last_verified_gitlog_commit_id)
         FROM site s LEFT OUTER JOIN
-            (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
-                WHERE c.local_address = #{localAddress} AND c.available = 1
-            ) AS cs ON s.id = cs.site_id
+             (SELECT * FROM cluster_site_sync_repo cssr INNER JOIN cluster c ON cssr.cluster_node_id = c.id
+              WHERE c.local_address = #{localAddress} AND c.available = 1
+             ) AS cs ON s.id = cs.site_id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
 
@@ -137,7 +147,7 @@
         SELECT DISTINCT cs.site_id as siteid
         FROM site cs
         WHERE cs.system = 0
-        AND cs.deleted = 0
+          AND cs.deleted = 0
         ORDER BY cs.site_id
         LIMIT #{start}, #{number}
     </select>
@@ -146,7 +156,7 @@
         SELECT COUNT(DISTINCT cs.site_id)
         FROM site cs
         WHERE cs.system = 0
-        AND deleted = 0
+          AND deleted = 0
         ORDER BY cs.site_id
     </select>
 
@@ -193,12 +203,12 @@
 
     <update id="unlockPublishingForSite">
         UPDATE site SET publishing_lock_owner = NULL, publishing_lock_heartbeat = NULL
-        WHERE site_id = #{siteId} AND deleted = 0 AND publishing_lock_owner = #{lockOwnerId};
+        WHERE site_id = #{siteId} AND deleted = 0 AND publishing_lock_owner = #{lockOwnerId}
     </update>
 
     <update id="updatePublishingLockHeartbeatForSite">
         UPDATE site SET publishing_lock_heartbeat = CURRENT_TIMESTAMP
-        WHERE site_id = #{siteId} AND deleted = 0;
+        WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <update id="updateSite">
@@ -212,7 +222,7 @@
 
     <update id="setSiteState">
         UPDATE site SET state = #{state}
-        WHERE site_id = #{siteId} AND deleted = 0;
+        WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <select id="getAllCreatedSites" resultType="String">
@@ -236,4 +246,15 @@
              ) AS cs ON s.id = cs.site_id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
     </select>
+
+    <select id="getPublishingStatus" resultMap="PublishStatusMap">
+        SELECT publishing_enabled, publishing_status, publishing_status_message, publishing_lock_owner,
+               DATE_ADD(publishing_lock_heartbeat, INTERVAL #{ttl} MINUTE) as publishing_lock_heartbeat
+        FROM site WHERE site_id = #{siteId} AND deleted = 0 LIMIT 0, 1
+    </select>
+
+    <update id="clearPublishingLockForSite">
+        UPDATE site SET publishing_lock_owner = NULL, publishing_lock_heartbeat = NULL
+        WHERE site_id = #{siteId} AND deleted = 0
+    </update>
 </mapper>

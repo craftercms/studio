@@ -14,11 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-def result = [:]
+call addColumnIfNotExists('crafter', 'site', 'publishing_status', 'VARCHAR(20) NULL') ;
 
-result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/publish/status"
-response.addHeader("Location", locationHeader)
-response.setStatus(301)
+UPDATE site SET publishing_status = TRIM(SUBSTRING_INDEX(publishing_status_message, '|', 1)) ;
 
-return result
+UPDATE site SET publishing_status_message = TRIM(SUBSTRING_INDEX(publishing_status_message, '|', -1)) ;
+
+UPDATE site SET publishing_status = 'ready' WHERE publishing_status = 'started' ;
+
+UPDATE site SET publishing_status = 'publishing' WHERE publishing_status = 'busy' ;
+
+UPDATE site SET publishing_status = 'error' WHERE publishing_status_message LIKE 'Stopped%' ;
+
+UPDATE _meta SET version = '4.0.0.16' ;

@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
-import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 
 import java.time.ZonedDateTime;
@@ -99,13 +98,6 @@ public interface DeploymentService {
      * @throws ServiceLayerException exception is case of en error
      */
     void bulkGoLive(String site, String environment, String path, String comment) throws ServiceLayerException;
-
-    /**
-     * Get publish status for given site
-     * @param site site id
-     * @return publish status
-     */
-    PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
 
     /**
      * Enable/Disable publishing for given site

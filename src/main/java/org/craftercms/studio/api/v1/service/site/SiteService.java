@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
@@ -327,15 +326,6 @@ public interface SiteService {
      * @throws SiteNotFoundException site not found
      */
     boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException;
-
-    /**
-     * Get publish status for given site
-     * @param site site id
-     * @return publish status
-	 *
-	 * @throws SiteNotFoundException site not found
-     */
-    PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
 
     /**
      * Add remote repository for site content repository

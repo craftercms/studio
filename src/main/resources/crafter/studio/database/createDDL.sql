@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.15', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.16', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -321,6 +321,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `last_commit_id`                  VARCHAR(50)   NULL,
   `system`                          INT           NOT NULL DEFAULT 0,
   `publishing_enabled`              INT           NOT NULL DEFAULT 1,
+  `publishing_status`               VARCHAR(20)   NULL,
   `publishing_status_message`       VARCHAR(2000) NULL,
   `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',

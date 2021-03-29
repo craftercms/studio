@@ -14,11 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-def result = [:]
+package org.craftercms.studio.model.rest;
 
-result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/publish/status"
-response.addHeader("Location", locationHeader)
-response.setStatus(301)
+public class ClearPublishingLockRequest {
 
-return result
+    private String siteId;
+
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
+}

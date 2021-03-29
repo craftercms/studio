@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
@@ -87,7 +86,6 @@ import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
@@ -145,6 +143,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
@@ -359,6 +358,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSiteId(siteId);
                 siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(desc);
+                siteFeed.setPublishingStatus(READY);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
@@ -1262,34 +1262,6 @@ public class SiteServiceImpl implements SiteService {
         } else {
             throw new SiteNotFoundException();
         }
-    }
-
-    @Override
-    @ValidateParams
-    public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site)
-            throws SiteNotFoundException {
-        SiteFeed siteFeed = getSite(site);
-        String psm = siteFeed.getPublishingStatusMessage();
-        PublishStatus ps = new PublishStatus();
-        if (StringUtils.isNotEmpty(psm)) {
-            StringTokenizer tokenizer = new StringTokenizer(psm, "|");
-            if (tokenizer.countTokens() > 1) {
-                ps.setStatus(tokenizer.nextToken());
-                ps.setMessage(tokenizer.nextToken());
-            } else {
-                ps.setMessage(psm);
-            }
-        } else {
-            psm = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT);
-            StringTokenizer tokenizer = new StringTokenizer(psm, "|");
-            if (tokenizer.countTokens() > 1) {
-                ps.setStatus(tokenizer.nextToken());
-                ps.setMessage(tokenizer.nextToken());
-            } else {
-                ps.setMessage(psm);
-            }
-        }
-        return ps;
     }
 
     @Override
