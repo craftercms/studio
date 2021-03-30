@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
@@ -96,8 +97,13 @@ import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.STOPPED;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
@@ -126,6 +132,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected UserServiceInternal userServiceInternal;
+    protected PublishingManager publishingManager;
 
     @Override
     @ValidateParams
@@ -182,7 +189,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         String statusMessage = studioConfiguration
                 .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
         try {
-            siteService.updatePublishingStatusMessage(site, statusMessage);
+            siteService.updatePublishingStatusMessage(site, QUEUED, statusMessage);
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
@@ -314,7 +321,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         String statusMessage = studioConfiguration
                 .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
         try {
-            siteService.updatePublishingStatusMessage(site, statusMessage);
+            siteService.updatePublishingStatusMessage(site, QUEUED, statusMessage);
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
@@ -764,16 +771,23 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         boolean toRet = siteService.enablePublishing(site, enabled);
         String message;
-        if (!enabled) {
-            message = studioConfiguration.getProperty(
-                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY);
+        String status;
+        if (enabled) {
+            if (publishingManager.isPublishingQueueEmpty(site)) {
+                message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT);
+                status = READY;
+            } else {
+                message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
+                status = QUEUED;
+            }
+
         } else {
-            message = studioConfiguration.getProperty(
-                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED);
+            message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED);
             message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",
                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
+            status = STOPPED;
         }
-        siteService.updatePublishingStatusMessage(site, message);
+        siteService.updatePublishingStatusMessage(site, status, message);
 
         SiteFeed siteFeed = siteService.getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -1055,5 +1069,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public PublishingManager getPublishingManager() {
+        return publishingManager;
+    }
+
+    public void setPublishingManager(PublishingManager publishingManager) {
+        this.publishingManager = publishingManager;
     }
 }

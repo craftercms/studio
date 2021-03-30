@@ -176,6 +176,7 @@
          <property name="itemServiceInternal" ref="itemServiceInternal" />
          <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
          <property name="userServiceInternal" ref="userServiceInternal" />
+         <property name="publishingManager" ref="cstudioPublishingManager" />
      </bean>
 
     <bean id="cstudioNotificationService"
