@@ -174,30 +174,30 @@ BEGIN
         IF v_finished = 1 THEN LEAVE insert_item;
         END IF;
         CASE
-            WHEN v_state = 'NEW_UNPUBLISHED_LOCKED' THEN SELECT 11 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_UNPUBLISHED_UNLOCKED' THEN SELECT 3 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_SCHEDULED' THEN SELECT 99 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN SELECT 107 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED' THEN SELECT 35 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN SELECT 43 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_SUBMITTED_NO_WF_SCHEDULED' THEN SELECT 67 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN SELECT 75 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_SUBMITTED_NO_WF_UNSCHEDULED' THEN SELECT 3 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_PUBLISHING_FAILED' THEN SELECT 131 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'NEW_DELETED' THEN SELECT 5 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_UNEDITED_LOCKED' THEN SELECT 520 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_UNEDITED_UNLOCKED' THEN SELECT 512 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_EDITED_LOCKED' THEN SELECT 10 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_EDITED_UNLOCKED' THEN SELECT 2 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED' THEN SELECT 98 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN SELECT 106 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED' THEN SELECT 34 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN SELECT 42 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED' THEN SELECT 66 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN SELECT 74 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_SUBMITTED_NO_WF_UNSCHEDULED' THEN SELECT 2 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_PUBLISHING_FAILED' THEN SELECT 130 + 16 * v_sys_process INTO v_state;
-            WHEN v_state = 'EXISTING_DELETED' THEN SELECT 4 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_UNPUBLISHED_LOCKED' THEN SELECT 11 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_UNPUBLISHED_UNLOCKED' THEN SELECT 3 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_SCHEDULED' THEN SELECT 99 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN SELECT 107 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED' THEN SELECT 35 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN SELECT 43 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_SUBMITTED_NO_WF_SCHEDULED' THEN SELECT 67 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN SELECT 75 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_SUBMITTED_NO_WF_UNSCHEDULED' THEN SELECT 3 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_PUBLISHING_FAILED' THEN SELECT 131 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'NEW_DELETED' THEN SELECT 5 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_UNEDITED_LOCKED' THEN SELECT 520 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_UNEDITED_UNLOCKED' THEN SELECT 512 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_EDITED_LOCKED' THEN SELECT 10 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_EDITED_UNLOCKED' THEN SELECT 2 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED' THEN SELECT 98 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN SELECT 106 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED' THEN SELECT 34 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN SELECT 42 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED' THEN SELECT 66 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN SELECT 74 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_SUBMITTED_NO_WF_UNSCHEDULED' THEN SELECT 2 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_PUBLISHING_FAILED' THEN SELECT 130 + 16 * v_sys_process INTO v_state;
+            WHEN v_state_str = 'EXISTING_DELETED' THEN SELECT 4 + 16 * v_sys_process INTO v_state;
             ELSE SELECT 0 INTO v_state;
             END CASE;
         SELECT a.id INTO v_owned_by FROM (SELECT id FROM user WHERE username = v_owner UNION SELECT id from user WHERE username = v_owner LIMIT 1) as a;
@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.2', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.17', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -273,20 +273,6 @@ CREATE TABLE IF NOT EXISTS `dependency` (
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS `item_state` (
-  `object_id`         VARCHAR(255)  NOT NULL,
-  `site`              VARCHAR(50)   NOT NULL,
-  `path`              VARCHAR(2000) NOT NULL,
-  `state`             VARCHAR(255)  NOT NULL,
-  `system_processing` BIT(1)        NOT NULL,
-  PRIMARY KEY (`object_id`),
-  KEY `item_state_object_idx` (`object_id`),
-  UNIQUE `uq_is_site_path` (`site`, `path`(900))
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
-
 CREATE TABLE IF NOT EXISTS `navigation_order_sequence` (
   `folder_id` VARCHAR(100) NOT NULL,
   `site`      VARCHAR(50)  NOT NULL,
@@ -335,6 +321,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `last_commit_id`                  VARCHAR(50)   NULL,
   `system`                          INT           NOT NULL DEFAULT 0,
   `publishing_enabled`              INT           NOT NULL DEFAULT 1,
+  `publishing_status`               VARCHAR(20)   NULL,
   `publishing_status_message`       VARCHAR(2000) NULL,
   `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
@@ -342,7 +329,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       DATETIME      NULL,
-  `state`                           VARCHAR(50)   NOT NULL DEFAULT 'CREATING',
+  `state`                           VARCHAR(50)   NOT NULL DEFAULT 'INITIALIZING',
   `last_synced_gitlog_commit_id`   VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
@@ -350,39 +337,6 @@ CREATE TABLE IF NOT EXISTS `site` (
   INDEX `site_id_idx` (`site_id` ASC)
 )
 
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
-
-CREATE TABLE IF NOT EXISTS `item_metadata` (
-  `id`                      INT           NOT NULL AUTO_INCREMENT,
-  `site`                    VARCHAR(50)   NOT NULL,
-  `path`                    VARCHAR(2000) NOT NULL,
-  `name`                    VARCHAR(255)  NULL,
-  `modified`                DATETIME      NULL,
-  `modifier`                VARCHAR(255)  NULL,
-  `owner`                   VARCHAR(255)  NULL,
-  `creator`                 VARCHAR(255)  NULL,
-  `firstname`               VARCHAR(255)  NULL,
-  `lastname`                VARCHAR(255)  NULL,
-  `lockowner`               VARCHAR(255)  NULL,
-  `email`                   VARCHAR(255)  NULL,
-  `renamed`                 INT           NULL,
-  `oldurl`                  TEXT          NULL,
-  `deleteurl`               TEXT          NULL,
-  `imagewidth`              INT           NULL,
-  `imageheight`             INT           NULL,
-  `approvedby`              VARCHAR(255)  NULL,
-  `submittedby`             VARCHAR(255)  NULL,
-  `submittedfordeletion`    INT           NULL,
-  `sendemail`               INT           NULL,
-  `submissioncomment`       TEXT          NULL,
-  `launchdate`              DATETIME      NULL,
-  `commit_id`               VARCHAR(50)   NULL,
-  `submittedtoenvironment`  VARCHAR(255)  NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE `uq__im_site_path` (`site`, `path`(900))
-)
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
@@ -534,6 +488,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `created_on`              TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
   `last_modified_by`        BIGINT          NULL,
   `last_modified_on`        TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+  `last_published_on`       TIMESTAMP       NULL,
   `label`                   VARCHAR(256)    NULL,
   `content_type_id`         VARCHAR(256)    NULL,
   `system_type`             VARCHAR(64)     NULL,
@@ -544,6 +499,8 @@ CREATE TABLE IF NOT EXISTS `item` (
   `size`                    INT             NULL,
   `parent_id`               BIGINT          NULL,
   `commit_id`               VARCHAR(128)    NULL,
+  `previous_path`           VARCHAR(2048)   NULL,
+  `ignored`                 INT             NOT NULL    DEFAULT 0,
   PRIMARY KEY (`id`),
   FOREIGN KEY item_ix_created_by(`created_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_last_modified_by(`last_modified_by`) REFERENCES `user` (`id`),
@@ -566,6 +523,28 @@ CREATE TABLE IF NOT EXISTS `item_translation` (
   PRIMARY KEY (`id`),
   FOREIGN KEY `item_translation_ix_source`(`source_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
   FOREIGN KEY `item_translation_ix_translation`(`translation_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS workflow
+(
+    `id`                    BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `item_id`               BIGINT(20)      NOT NULL,
+    `target_environment`    VARCHAR(20)     NOT NULL,
+    `state`                 VARCHAR(16)     NOT NULL,
+    `submitter_id`          BIGINT(20)      NULL,
+    `submitter_comment`     TEXT            NULL,
+    `reviewer_id`           BIGINT(20)      NULL,
+    `reviewer_comment`      TEXT            NULL,
+    `schedule`              TIMESTAMP       NULL,
+    `publishing_package_id` VARCHAR(50)     NULL,
+    `notify_submitter`      INT             NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `workflow_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `workflow_ix_submitter`(`submitter_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `workflow_ix_reviewer`(`reviewer_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
@@ -687,7 +666,7 @@ CREATE TABLE IF NOT EXISTS `access_token`
     ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO site (site_id, name, description, system, state)
-VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'CREATED') ;
+VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'READY') ;
 
 INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 1) ;
 

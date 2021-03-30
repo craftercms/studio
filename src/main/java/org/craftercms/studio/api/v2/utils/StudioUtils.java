@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,18 +16,23 @@
 
 package org.craftercms.studio.api.v2.utils;
 
-import com.amazonaws.services.s3.internal.Mimetypes;
-import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+
+import javax.activation.MimetypesFileTypeMap;
+import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 
 public abstract class StudioUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(StudioUtils.class);
+
     public static String getMimeType(String filename) {
-        Mimetypes mimetypes = Mimetypes.getInstance();
-        return mimetypes.getMimetype(FilenameUtils.getName(filename));
+        MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
+        return mimeMap.getContentType(filename);
     }
 
     /**
@@ -49,4 +54,14 @@ public abstract class StudioUtils {
         return siteId;
     }
 
+    public static boolean matchesPatterns(String path, List<String> patterns) {
+        if (patterns != null) {
+            for (String pattern : patterns) {
+                if (path.matches(pattern)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

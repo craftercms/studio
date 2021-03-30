@@ -20,8 +20,8 @@ import java.time.ZonedDateTime;
 
 public class SiteFeed {
 
-    public static final String STATE_CREATING = "CREATING";
-    public static final String STATE_CREATED = "CREATED";
+    public static final String STATE_INITIALIZING = "INITIALIZING";
+    public static final String STATE_READY = "READY";
     public static final String STATE_DELETED = "DELETED";
 
     protected long id;
@@ -34,6 +34,7 @@ public class SiteFeed {
     protected String liveUrl;
     protected String lastCommitId;
     protected int publishingEnabled;
+    protected String publishingStatus;
     protected String publishingStatusMessage;
     protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
@@ -114,6 +115,14 @@ public class SiteFeed {
 
     public void setPublishingEnabled(int publishingEnabled) {
         this.publishingEnabled = publishingEnabled;
+    }
+
+    public String getPublishingStatus() {
+        return publishingStatus;
+    }
+
+    public void setPublishingStatus(String publishingStatus) {
+        this.publishingStatus = publishingStatus;
     }
 
     public String getPublishingStatusMessage() {

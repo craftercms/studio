@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.apache.commons.io.FilenameUtils;
-import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -34,9 +34,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -53,6 +53,8 @@ public class BlobAwareContentRepositoryTest {
     public static final String SITE = "test";
     public static final String PARENT_PATH = "/static-assets";
     public static final String ORIGINAL_PATH = PARENT_PATH + "/test.txt";
+    public static final String LOCAL_FOLDER_PATH = PARENT_PATH + "/local/test";
+
     public static final String BLOB_EXT = "blob";
     public static final String POINTER_PATH = ORIGINAL_PATH + "." + BLOB_EXT;
     public static final String FOLDER_PATH = PARENT_PATH + "/folder";
@@ -68,6 +70,9 @@ public class BlobAwareContentRepositoryTest {
     public static final String COMMENT = "Going live!";
     public static final String STORE_ID = "BLOB_STORE";
     public static final String LOCAL_PATH = "/site/website/index.xml";
+    public static final String CONFIG_PATH = "/config/studio/site-config.xml";
+    public static final String COMMIT_1 = "some commit";
+    public static final String COMMIT_2 = "some other commit";
 
     @InjectMocks
     private BlobAwareContentRepository proxy;
@@ -98,6 +103,7 @@ public class BlobAwareContentRepositoryTest {
         when(resolver.getByPaths(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
+        when(resolver.getByPaths(SITE, CONFIG_PATH)).thenReturn(null);
 
         when(localV1.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
         when(localV1.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
@@ -107,22 +113,26 @@ public class BlobAwareContentRepositoryTest {
         when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
         when(localV1.isFolder(SITE, PARENT_PATH)).thenReturn(true);
 
+        when(localV2.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2))
+                .thenReturn(Map.of(POINTER_PATH, "D", NEW_POINTER_PATH, POINTER_PATH));
+
         when(store.contentExists(SITE, ORIGINAL_PATH)).thenReturn(true);
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
         when(store.getContent(SITE, ORIGINAL_PATH)).thenReturn(CONTENT);
         when(store.getContentSize(SITE, ORIGINAL_PATH)).thenReturn(SIZE);
         when(store.isFolder(SITE, PARENT_PATH)).thenReturn(false);
         when(store.isFolder(SITE, ORIGINAL_PATH)).thenReturn(false);
+        when(store.isFolder(SITE,LOCAL_FOLDER_PATH)).thenReturn(true);
 
         proxy.setFileExtension(BLOB_EXT);
-        proxy.setInterceptedPaths(new String[]{ "/static-assets/.*" });
     }
 
     @Test
-    public void configShouldNotBeIntercepted() throws ConfigurationException, IOException, ServiceLayerException {
-        proxy.contentExists(SITE, "/config/studio/site-config.xml");
+    public void configShouldNotBeIntercepted() {
+        proxy.contentExists(SITE, CONFIG_PATH);
 
-        verify(resolver, never()).getByPaths(any(), any());
+        verify(localV1).contentExists(SITE, CONFIG_PATH);
+        verify(store, never()).contentExists(SITE, CONFIG_PATH);
     }
 
     @Test
@@ -131,7 +141,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void getContentTest() {
+    public void getContentTest() throws ContentNotFoundException {
         assertEquals(proxy.getContent(SITE, ORIGINAL_PATH), CONTENT, "original path should return the original content");
     }
 
@@ -173,11 +183,19 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void deleteFolderTest() {
+    public void deleteRemoteFolderTest() {
         proxy.deleteContent(SITE, FOLDER_PATH, USER);
 
         verify(store).deleteContent(SITE, FOLDER_PATH, USER);
         verify(localV1).deleteContent(SITE, FOLDER_PATH, USER);
+    }
+
+    @Test
+    public void deleteLocalFolderTest() {
+        proxy.deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
+
+        verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
+        verify(localV1).deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
     }
 
     @Test
@@ -208,6 +226,7 @@ public class BlobAwareContentRepositoryTest {
     @Test
     public void copyFileTest() {
         when(store.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(EMPTY);
+        when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
 
         proxy.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
@@ -357,6 +376,15 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store).writeContent(SITE, NO_EXT_PATH, CONTENT);
         verify(localV1).writeContent(eq(SITE), eq(NO_EXT_PATH + "." + BLOB_EXT), any());
+    }
+
+    @Test
+    public void getChangeSetPathsFromDeltaTest() {
+        Map<String, String> map = proxy.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2);
+
+        assertEquals(map.size(), 2);
+        map.forEach((key, value) -> assertFalse(key.endsWith(BLOB_EXT) || value.endsWith(BLOB_EXT),
+                "The changeSet should not contain pointer paths"));
     }
 
 }

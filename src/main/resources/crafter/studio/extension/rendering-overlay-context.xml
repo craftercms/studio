@@ -93,8 +93,9 @@
     </bean>
 
     <bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
-        <property name="configurationService" ref="configurationService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg ref="configurationService"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="contentTypeService"/>
     </bean>
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
@@ -105,10 +106,9 @@
     </bean>
 
     <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
-        <constructor-arg ref="configurationService"/>
-        <constructor-arg ref="scriptingService"/>
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSecurityService"/>
+        <constructor-arg name="scriptingService" ref="scriptingService" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="dependencyController" class="org.craftercms.studio.controller.rest.v2.DependencyController" >
@@ -126,6 +126,7 @@
     <bean id="publishController" class="org.craftercms.studio.controller.rest.v2.PublishController">
         <property name="publishService" ref="publishService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="sitesService" ref="sitesService" />
     </bean>
 
     <bean id="securityController" class="org.craftercms.studio.controller.rest.v2.SecurityController">
@@ -145,6 +146,11 @@
     <!-- Access Token -->
     <bean id="accessTokenController" class="org.craftercms.studio.controller.web.AccessTokenController">
         <constructor-arg ref="accessTokenService"/>
+    </bean>
+
+    <!-- Plugins -->
+    <bean class="org.craftercms.studio.controller.web.v1.PluginController">
+        <constructor-arg ref="configurationService"/>
     </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">

@@ -21,35 +21,48 @@ import org.apache.ibatis.annotations.Param;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CONTENT_TYPE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENTRIES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXCLUDES;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FOLDER_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.IGNORE_NAMES;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.IN_PROGRESS_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYWORD;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_PUBLISHED_ON;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIKE_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PREVIEW_URL;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NON_CONTENT_ITEM_TYPES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PREVIEW_URL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ON_STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENTS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.POSSIBLE_PARENTS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PREVIOUS_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ROOT_PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCRIPT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT_STRATEGY;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES_BIT_MAP;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SUBMITTED_MASK;
 
 public interface ItemDAO {
 
@@ -60,13 +73,13 @@ public interface ItemDAO {
      * @param path path to get children for
      * @param ldName level descriptor name
      * @param localeCode local code
+     * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
-     * @param ignoreNames ignore children
      * @return total number of children
      */
     int getChildrenByPathTotal(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
-                               @Param(EXCLUDES) List<String> excludes, @Param(IGNORE_NAMES) List<String> ignoreNames);
+                               @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes);
 
     /**
      * Get children for given path from database
@@ -76,8 +89,8 @@ public interface ItemDAO {
      * @param ldName level descriptor name
      * @param path path to get children for
      * @param localeCode locale code
+     * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
-     * @param ignoreNames ignore children
      * @param sortStrategy sort strategy
      * @param order order of children
      * @param offset offset of the first record to return
@@ -88,8 +101,8 @@ public interface ItemDAO {
 
     List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId, @Param(LEVEL_DESCRIPTOR_PATH) String ldPath,
                                  @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(PATH) String path,
-                                 @Param(LOCALE_CODE) String localeCode, @Param(EXCLUDES) List<String> excludes,
-                                 @Param(IGNORE_NAMES) List<String> ignoreNames, @Param(SORT) String sortStrategy,
+                                 @Param(LOCALE_CODE) String localeCode, @Param(KEYWORD) String keyword,
+                                 @Param(EXCLUDES) List<String> excludes, @Param(SORT_STRATEGY) String sortStrategy,
                                  @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
 
@@ -101,20 +114,21 @@ public interface ItemDAO {
      * @param parentId item id to get children for
      * @param ldName level descriptor name
      * @param localeCode local code
+     * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
-     * @param ignoreNames ignore children
      *
      * @return total number of children
      */
     int getChildrenByIdTotal(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
                              @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
-                             @Param(EXCLUDES) List<String> excludes, @Param(IGNORE_NAMES) List<String> ignoreNames);
+                             @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes);
     /**
      * Get children for given id from database
      * @param siteId site identifier
      * @param parentId parent identifier
+     * @param ldName level descriptor name
      * @param localeCode locale code
-     * @param ignoreNames ignore  children
+     * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
      * @param sortStrategy sort strategy
      * @param order order of children
@@ -124,9 +138,9 @@ public interface ItemDAO {
      */
     List<Item> getChildrenById(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
-                               @Param(EXCLUDES) List<String> excludes, @Param(IGNORE_NAMES) List<String> ignoreNames,
-                               @Param(SORT) String sortStrategy, @Param(ORDER) String order, @Param(OFFSET) int offset,
-                               @Param(LIMIT) int limit);
+                               @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes,
+                               @Param(SORT_STRATEGY) String sortStrategy, @Param(ORDER) String order,
+                               @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
      * Update parent ID for site
@@ -267,6 +281,13 @@ public interface ItemDAO {
     void deleteItemsForSiteAndPath(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths);
 
     /**
+     * Delete items for site and folder path
+     * @param siteId site id
+     * @param path path of the folder
+     */
+    void deleteBySiteAndPathForFolder(@Param(SITE_ID) long siteId, @Param(FOLDER_PATH) String path);
+
+    /**
      * Get total number of records for content dashboard
      *
      * @param siteId site identifier
@@ -302,7 +323,7 @@ public interface ItemDAO {
     List<Item> getContentDashboard(@Param(SITE_ID) String siteId, @Param(PATH) String path,
                                    @Param(MODIFIER) String modifier, @Param(CONTENT_TYPE) String contentType,
                                    @Param(STATE) long state, @Param(DATE_FROM) ZonedDateTime dateFrom,
-                                   @Param(DATE_TO) ZonedDateTime dateTo, @Param(SORT) String sort,
+                                   @Param(DATE_TO) ZonedDateTime dateTo, @Param(SORT_STRATEGY) String sort,
                                    @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
@@ -374,4 +395,120 @@ public interface ItemDAO {
      * @return list of items
      */
     List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds);
+
+    /**
+     * Get mandatory parents for publishing
+     * @param siteId site identifier
+     * @param possibleParents possible parents
+     * @param newMask states mask for detecting new items
+     * @param modifiedMask states mask for detecting modified items
+     * @return list of mandatory parents
+     */
+    List<String> getMandatoryParentsForPublishing(@Param(SITE_ID) String siteId,
+                                                  @Param(POSSIBLE_PARENTS) List<String> possibleParents,
+                                                  @Param(NEW_MASK) long newMask,
+                                                  @Param(MODIFIED_MASK) long modifiedMask);
+
+    List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(@Param(SITE_ID) String siteId,
+                                                                           @Param(PARENTS) List<String> parents,
+                                                                           @Param(NEW_MASK) long newMask,
+                                                                           @Param(MODIFIED_MASK) long modifiedMask);
+
+    /**
+     * Count all content items in the system
+     * @return number of content items in the system
+     */
+    int countAllContentItems(@Param(NON_CONTENT_ITEM_TYPES) List<String> nonContentItemTypes);
+
+    /**
+     * Clear previous path of the content
+     * @param siteId site identifier
+     * @param path path of the content
+     */
+    void clearPreviousPath(@Param(SITE_ID) String siteId, @Param(PATH) String path);
+
+    /**
+     * Get in progress items from DB
+     * @param siteId site identifier
+     * @param inProgressMask in progress states mask
+     * @return list of items
+     */
+    List<Item> getInProgressItems(@Param(SITE_ID) String siteId, @Param(IN_PROGRESS_MASK) long inProgressMask);
+
+    /**
+     * Get submitted items from DB
+     * @param siteId site identifier
+     * @param submittedMask mask with submitted states turned on
+     * @return list of items
+     */
+    List<Item> getSubmittedItems(@Param(SITE_ID) String siteId, @Param(SUBMITTED_MASK) long submittedMask);
+
+    /**
+     * Count items having previous path property set to given path
+     * @param siteId site identifier
+     * @param previousPath path to check
+     * @return number of items
+     */
+    int countPreviousPaths(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath);
+
+    /**
+     * Update commit id for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param commitId commit id
+     */
+    void updateCommitId(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(COMMIT_ID) String commitId);
+
+    /**
+     * Get change set for subtree
+     * @param siteId site identifier
+     * @param path path of subtree root
+     * @param likePath like path for query
+     * @param nonContentItemTypes non content item types
+     * @param inProgressMask in progress state mask
+     * @return list of items
+     */
+    List<String> getChangeSetForSubtree(@Param(SITE_ID) String siteId,
+                                        @Param(PATH) String path,
+                                        @Param(LIKE_PATH) String likePath,
+                                        @Param(NON_CONTENT_ITEM_TYPES) List<String> nonContentItemTypes,
+                                        @Param(IN_PROGRESS_MASK) long inProgressMask);
+
+    /**
+     * Get items edited on same commit id for given item
+     * @param siteId site identifier
+     * @param path path of content item
+     * @return list of items paths
+     */
+    List<String> getSameCommitItems(@Param(SITE_ID) String siteId, @Param(PATH) String path);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOn(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                               @Param(LAST_PUBLISHED_ON) ZonedDateTime lastPublishedOn);
+
+    /**
+     * Update last published date for item
+     * @param siteId site identifier
+     * @param paths list of paths
+     * @param lastPublishedOn published date
+     */
+    void updateLastPublishedOnBulk(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+                                   @Param(LAST_PUBLISHED_ON) ZonedDateTime lastPublishedOn);
+
+    /**
+     * Finds all items related to a given content-type
+     *
+     * @param siteId the id of the site
+     * @param contentType the id of the content-type
+     * @param scriptPath the path of the controller script
+     * @return the list of items
+     */
+    List<Item> getContentTypeUsages(@Param(SITE_ID) String siteId, @Param(CONTENT_TYPE) String contentType,
+                                    @Param(SCRIPT_PATH) String scriptPath);
+
 }

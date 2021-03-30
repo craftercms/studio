@@ -19,8 +19,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.StudioUpgradeManagerImpl"
-          init-method="init" depends-on="databaseInitializer">
+    <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.StudioUpgradeManagerImpl">
         <constructor-arg name="dataSource" ref="dataSource"/>
         <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
         <constructor-arg name="contentRepository" ref="contentRepository"/>
@@ -143,6 +142,13 @@
         <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
     </bean>
 
+    <bean id="migrateWorkflowUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.db.MigrateWorkflowUpgradeOperation" >
+        <constructor-arg name="scriptFolder"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
+        <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
+    </bean>
+
     <bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.global.GlobalRepoUpgradeOperation">
         <property name="clusterGlobalRepoSyncTask" ref="studio.clockClusterGlobalRepoSync" />
@@ -179,7 +185,7 @@
         <constructor-arg name="contentTypeXpath"
                          value="#{studioConfiguration.getProperty('studio.upgrade.xpath.contentType')}"/>
         <constructor-arg name="formDefinitionTemplate"
-                         value="#{studioConfiguration.getProperty('studio.upgrade.template.formDefinition')}"/>
+                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.definition.pattern')}"/>
     </bean>
 
     <bean id="pluginDescriptorV2Upgrader" scope="prototype" parent="upgradeOperation"

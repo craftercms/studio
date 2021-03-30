@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,10 +15,9 @@
  */
 package org.craftercms.studio.api.v1.service.dependency;
 
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,17 +26,20 @@ import java.util.Set;
 public class DependencyRules {
 
     protected String site;
+    protected ContentService contentService;
+    protected ItemServiceInternal itemServiceInternal;
 
-
-    public DependencyRules(String site) {
+    public DependencyRules(String site, ContentService contentService, ItemServiceInternal itemServiceInternal) {
         this.site = site;
+        this.contentService = contentService;
+        this.itemServiceInternal = itemServiceInternal;
     }
 
     public Set<DmDependencyTO> applySubmitRule(DmDependencyTO submittedItem){
         Set<DmDependencyTO> dependencies = new HashSet<DmDependencyTO>();
         if (submittedItem.getDocuments() != null) {
             for (DmDependencyTO document : submittedItem.getDocuments()) {
-                if (objectStateService.isUpdatedOrNew(site, document.getUri())) {
+                if (itemServiceInternal.isUpdatedOrNew(site, document.getUri())) {
                     document.setNow(submittedItem.isNow());
                     document.setScheduledDate(submittedItem.getScheduledDate());
                     document.setSubmitted(true);
@@ -50,7 +52,7 @@ public class DependencyRules {
         // get components
         if (submittedItem.getComponents() != null) {
             for (DmDependencyTO component : submittedItem.getComponents()) {
-                if (objectStateService.isUpdatedOrNew(site, component.getUri())) {
+                if (itemServiceInternal.isUpdatedOrNew(site, component.getUri())) {
                     component.setNow(submittedItem.isNow());
                     component.setScheduledDate(submittedItem.getScheduledDate());
                     component.setSubmitted(true);
@@ -65,7 +67,7 @@ public class DependencyRules {
         // get assets
         if (submittedItem.getAssets() != null) {
             for (DmDependencyTO asset : submittedItem.getAssets()) {
-                if (objectStateService.isUpdatedOrNew(site, asset.getUri())) {
+                if (itemServiceInternal.isUpdatedOrNew(site, asset.getUri())) {
                     dependencies.add(asset);
                     asset.setNow(submittedItem.isNow());
                     asset.setScheduledDate(submittedItem.getScheduledDate());
@@ -80,7 +82,7 @@ public class DependencyRules {
         // get templates
         if (submittedItem.getRenderingTemplates() != null) {
             for (DmDependencyTO template : submittedItem.getRenderingTemplates()) {
-                if (objectStateService.isUpdatedOrNew(site, template.getUri())) {
+                if (itemServiceInternal.isUpdatedOrNew(site, template.getUri())) {
                     dependencies.add(template);
                     template.setNow(submittedItem.isNow());
                     template.setScheduledDate(submittedItem.getScheduledDate());
@@ -95,7 +97,7 @@ public class DependencyRules {
         // get level descriptors
         if (submittedItem.getLevelDescriptors() != null) {
             for (DmDependencyTO ld : submittedItem.getLevelDescriptors()) {
-                if (objectStateService.isUpdatedOrNew(site, ld.getUri())) {
+                if (itemServiceInternal.isUpdatedOrNew(site, ld.getUri())) {
                     dependencies.add(ld);
                     ld.setNow(submittedItem.isNow());
                     ld.setScheduledDate(submittedItem.getScheduledDate());
@@ -109,7 +111,7 @@ public class DependencyRules {
         // get pages
         if (submittedItem.getPages() != null) {
             for (DmDependencyTO page : submittedItem.getPages()) {
-                if (objectStateService.isNew(site, page.getUri())) {
+                if (itemServiceInternal.isNew(site, page.getUri())) {
                     page.setNow(submittedItem.isNow());
                     page.setScheduledDate(submittedItem.getScheduledDate());
                     page.setSubmitted(true);
@@ -177,13 +179,4 @@ public class DependencyRules {
 
         return dependencies;
     }
-
-    protected ContentService contentService;
-    protected ObjectStateService objectStateService;
-
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
-
-    public ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 }

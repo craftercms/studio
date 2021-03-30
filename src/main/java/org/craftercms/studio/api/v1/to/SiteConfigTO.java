@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -97,6 +98,10 @@ public class SiteConfigTO implements Serializable {
      * Admin email address for notification service
      */
     protected String adminEmailAddress;
+
+    protected boolean requirePeerReview = false;
+
+    protected List<String> protectedFolderPatterns;
 
     /**
      * @return the WEM project
@@ -223,5 +228,21 @@ public class SiteConfigTO implements Serializable {
 
     public void setAdminEmailAddress(String adminEmailAddress) {
         this.adminEmailAddress = adminEmailAddress;
+    }
+
+    public boolean isRequirePeerReview() {
+        return requirePeerReview;
+    }
+
+    public void setRequirePeerReview(boolean requirePeerReview) {
+        this.requirePeerReview = requirePeerReview;
+    }
+
+    public List<String> getProtectedFolderPatterns() {
+        return protectedFolderPatterns;
+    }
+
+    public void setProtectedFolderPatterns(List<String> protectedFolderPatterns) {
+        this.protectedFolderPatterns = protectedFolderPatterns;
     }
 }

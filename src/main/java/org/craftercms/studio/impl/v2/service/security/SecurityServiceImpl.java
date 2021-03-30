@@ -55,29 +55,23 @@ public class SecurityServiceImpl implements SecurityService {
     private StudioConfiguration studioConfiguration;
     private Cache<String, Object> configurationCache;
 
-    private static final String KEY_PREFIX = "GET_USER_PERMISSIONS:";
+    private static final String CACHE_KEY = "user-permissions";
 
     @Override
     public long getAvailableActions(String username, String site, String path)
             throws ServiceLayerException, UserNotFoundException {
-        return availableActionsResolver.getAvailableActions(username, site, path);
+        return availableActionsResolver.getContentItemAvailableActions(username, site, path);
     }
 
     @Override
-    public void invalidateAvailableActions(String site) {
-        availableActionsResolver.invalidateAvailableActions(site);
-    }
-
-    @Override
-    public void invalidateAvailableActions() {
-        availableActionsResolver.invalidateAvailableActions();
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     public List<String> getUserPermission(String siteId, String username, List<String> roles)
             throws ExecutionException {
-        String key = KEY_PREFIX + siteId + ":" + username;
-        return (List<String>) configurationCache.get(key, () -> loadUserPermission(siteId, roles));
+        String key = siteId + ":" + CACHE_KEY + username;
+        return (List<String>) configurationCache.get(key, () -> {
+            logger.debug("Cache miss for {0}", key);
+            return loadUserPermission(siteId, roles);
+        });
     }
 
     private List<String> loadUserPermission(String siteId, List<String> roles) {

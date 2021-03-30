@@ -31,12 +31,15 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
+import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,10 +51,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_PROGRESS_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
@@ -359,11 +369,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public List<Item> getContentDashboard(String siteId, String path, String modifier, String contentType, long state,
-                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy, String order,
-                                          int offset, int limit) {
-        return itemDao.getContentDashboard(siteId, path, modifier, contentType, state, dateFrom, dateTo, sortBy, order,
-                offset, limit);
+    public List<ContentDashboardItem> getContentDashboard(String siteId, String path, String modifier, String contentType, long state,
+                                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy, String order,
+                                                          int offset, int limit) {
+        List<Item> items = itemDao.getContentDashboard(siteId, path, modifier, contentType, state, dateFrom,
+                dateTo, sortBy, order, offset, limit);
+        return items.stream()
+                .map(i -> convertItemToContentDashboardItem(siteId, i))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -473,7 +486,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, folderPath)
-                .withPreviewUrl(getBrowserUrl(siteId, folderPath))
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(ZonedDateTime.now())
                 .withLabel(folderName)
@@ -512,6 +524,122 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         String newPreviewUrl = getBrowserUrl(siteId, newPath);
         itemDao.moveItems(siteId, oldPath, newPath, oldPreviewUrl, newPreviewUrl, SAVE_AND_CLOSE_ON_MASK,
                 SAVE_AND_CLOSE_OFF_MASK);
+    }
+
+    @Override
+    public boolean isNew(String siteId, String path) {
+        Item item = getItem(siteId, path);
+        return ItemState.isNew(item.getState());
+    }
+
+    @Override
+    public int countAllContentItems() {
+        return itemDao.countAllContentItems(List.of(CONTENT_TYPE_FOLDER, CONTENT_TYPE_UNKNOWN));
+    }
+
+    @Override
+    public void clearPreviousPath(String siteId, String path) {
+        itemDao.clearPreviousPath(siteId, path);
+    }
+
+    @Override
+    public PublishingDashboardItem convertHistoryItemToDashboardItem(PublishingHistoryItem historyItem) {
+        PublishingDashboardItem dashboardItem = new PublishingDashboardItem();
+        Item item = getItem(historyItem.getSiteId(), historyItem.getPath());
+        dashboardItem.setSiteId(historyItem.getSiteId());
+        dashboardItem.setPath(historyItem.getPath());
+        dashboardItem.setLabel(item.getLabel());
+        dashboardItem.setEnvironment(historyItem.getEnvironment());
+        dashboardItem.setDatePublished(historyItem.getPublishedDate());
+        dashboardItem.setPublisher(historyItem.getPublisher());
+        return dashboardItem;
+    }
+
+    @Override
+    public ContentDashboardItem convertItemToContentDashboardItem(String siteId, Item item) {
+        ContentDashboardItem contentDashboardItem = new ContentDashboardItem();
+        contentDashboardItem.setSiteId(siteId);
+        contentDashboardItem.setPath(item.getPath());
+        contentDashboardItem.setLabel(item.getLabel());
+        contentDashboardItem.setModifier(item.getModifier());
+        contentDashboardItem.setModifiedDate(item.getLastModifiedOn());
+        contentDashboardItem.setContentType(item.getContentTypeId());
+        contentDashboardItem.setState(item.getState());
+        return contentDashboardItem;
+    }
+
+    @Override
+    public List<Item> getInProgressItems(String siteId) {
+        return itemDao.getInProgressItems(siteId, IN_PROGRESS_MASK);
+    }
+
+    @Override
+    public List<Item> getSubmittedItems(String siteId) {
+        return itemDao.getSubmittedItems(siteId, SUBMITTED_MASK);
+    }
+
+    @Override
+    public boolean isUpdatedOrNew(String siteId, String path) {
+        Item item = getItem(siteId, path);
+        return ItemState.isNew(item.getState()) || ItemState.isModified(item.getState());
+    }
+
+    @Override
+    public void deleteItemForFolder(long siteId, String folderPath) {
+        itemDao.deleteBySiteAndPathForFolder(siteId, folderPath);
+    }
+
+    @Override
+    public boolean isSystemProcessing(String siteId, String path) {
+        Item item = getItem(siteId, path);
+        if (Objects.nonNull(item)) {
+            return ItemState.isSystemProcessing(item.getState());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean previousPathExists(String siteId, String path) {
+        return itemDao.countPreviousPaths(siteId, path) > 0;
+    }
+
+    @Override
+    public void updateCommitId(String siteId, String path, String commitId) {
+        itemDao.updateCommitId(siteId, path, commitId);
+    }
+
+    @Override
+    public List<String> getMandatoryParentsForPublishing(String siteId, List<String> paths) {
+        return itemDao.getMandatoryParentsForPublishing(siteId, paths, NEW_MASK, MODIFIED_MASK);
+    }
+
+    @Override
+    public List<String> getExistingRenamedChildrenOfMandatoryParentsForPublishing(String siteId, List<String> parents) {
+        return itemDao
+                .getExistingRenamedChildrenOfMandatoryParentsForPublishing(siteId, parents, NEW_MASK, MODIFIED_MASK);
+    }
+
+    @Override
+    public List<String> getChangeSetForSubtree(String siteId, String path) {
+        String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
+        return itemDao.getChangeSetForSubtree(siteId, path, likePath,
+                List.of(CONTENT_TYPE_FOLDER, CONTENT_TYPE_UNKNOWN), IN_PROGRESS_MASK);
+    }
+
+    @Override
+    public List<String> getSameCommitItems(String siteId, String path) {
+        return itemDao.getSameCommitItems(siteId, path);
+    }
+
+    @Override
+    public void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn) {
+        itemDao.updateLastPublishedOn(siteId, path, lastPublishedOn);
+    }
+
+    @Override
+    public void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn) {
+        itemDao.updateLastPublishedOnBulk(siteId, paths, lastPublishedOn);
     }
 
     public UserServiceInternal getUserServiceInternal() {

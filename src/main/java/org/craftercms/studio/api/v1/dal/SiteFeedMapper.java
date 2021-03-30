@@ -17,7 +17,7 @@
 package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
-import org.springframework.security.access.method.P;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,13 @@ public interface SiteFeedMapper {
 
 	boolean createSite(SiteFeed siteFeed);
 
-    boolean deleteSite(String siteId);
+    /**
+     * Delete site
+     * @param siteId site identifier
+     * @param state deleted state value
+     * @return
+     */
+    boolean deleteSite(@Param(SITE_ID) String siteId, @Param(STATE) String state);
 
     void updateLastCommitId(Map params);
 
@@ -115,29 +121,6 @@ public interface SiteFeedMapper {
     int updateSite(@Param(SITE_ID) String siteId, @Param(NAME) String name, @Param(DESC) String description);
 
     /**
-     * Lock sync repo task for site
-     * @param siteId site identifier
-     * @param lockOwnerId lock owner identifier
-     * @param ttl TTL for lock
-     * @return 1 if sync repo was locked, otherwise 0
-     */
-    int tryLockSyncRepoForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId,
-                               @Param(TTL) int ttl);
-
-    /**
-     * unlock sync repo task for site
-     * @param siteId site identifier
-     * @param lockOwnerId lock owner identifier
-     */
-    void unlockSyncRepoForSite(@Param(SITE_ID) String siteId, @Param(LOCK_OWNER_ID) String lockOwnerId);
-
-    /**
-     * update sync repo lock heartbeat for site
-     * @param siteId site identifier
-     */
-    void updateSyncRepoLockHeartbeatForSite(@Param(SITE_ID) String siteId);
-
-    /**
      * Get last commit id for local studio node
      * @param siteId site identifier
      * @param localAddress local address
@@ -172,4 +155,18 @@ public interface SiteFeedMapper {
 
     int getPublishedRepoCreated(@Param(SITE_ID) String siteId,
                                 @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    /**
+     * Get publishing status for site
+     * @param siteId site identifier
+     * @param ttl amount of minutes to add to the
+     * @return Publishing status
+     */
+    PublishStatus getPublishingStatus(@Param(SITE_ID) String siteId, @Param(TTL) int ttl);
+
+    /**
+     * Clear publishing lock for site
+     * @param siteId site identifier
+     */
+    void clearPublishingLockForSite(@Param(SITE_ID) String siteId);
 }

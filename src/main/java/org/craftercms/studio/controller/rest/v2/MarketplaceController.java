@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PLUGINS;
 
@@ -50,7 +52,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/marketplace")
 public class MarketplaceController {
 
-    protected MarketplaceService marketplaceService;
+    protected final MarketplaceService marketplaceService;
 
     public MarketplaceController(final MarketplaceService marketplaceService) {
         this.marketplaceService = marketplaceService;
@@ -102,6 +104,46 @@ public class MarketplaceController {
         response.setResult(result);
 
         return response;
+    }
+
+    @PostMapping("copy")
+    public ResponseBody copyPlugin(@Valid @RequestBody CopyPluginRequest request) throws MarketplaceException {
+        marketplaceService.copyPlugin(request.getSiteId(), request.getPath());
+
+        Result result = new Result();
+        result.setResponse(ApiResponse.OK);
+
+        ResponseBody response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    protected static class CopyPluginRequest {
+
+        @NotEmpty
+        protected String siteId;
+
+        @NotEmpty
+        protected String path;
+
+        public String getSiteId() {
+            return siteId;
+        }
+
+        public void setSiteId(String siteId) {
+            this.siteId = siteId;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
     }
 
 }

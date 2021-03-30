@@ -20,11 +20,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.springframework.util.MimeType;
-
-import javax.activation.MimetypesFileTypeMap;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -43,8 +42,7 @@ public class MimeTypePolicyValidator implements PolicyValidator {
     @Override
     public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
         if (config.containsKey(CONFIG_KEY_MIME_TYPES) && !isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            var mimeTypeMap = new MimetypesFileTypeMap();
-            var actionMimeType = MimeType.valueOf(mimeTypeMap.getContentType(action.getTarget()));
+            var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
             if (config.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
                     .map(MimeType::valueOf)
                     .noneMatch(actionMimeType::isCompatibleWith)) {

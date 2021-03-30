@@ -16,15 +16,11 @@
 
 package org.craftercms.studio.impl.v2.service.publish;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -41,30 +37,27 @@ import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_UNPUBLISHED_UNLOCKED;
-import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_CANCEL_PUBLISH;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_GET_PUBLISHING_QUEUE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
 
 public class PublishServiceImpl implements PublishService {
 
     private PublishServiceInternal publishServiceInternal;
     private SiteService siteService;
-    private ObjectStateService objectStateService;
-    private ObjectMetadataManager objectMetadataManager;
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
     private ItemServiceInternal itemServiceInternal;
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public int getPublishingPackagesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String environment,
                                           String path, List<String> states)
             throws SiteNotFoundException {
@@ -75,7 +68,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public List<PublishingPackage> getPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                          String environment, String path, List<String> states,
                                                          int offset, int limit) throws SiteNotFoundException {
@@ -86,7 +79,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_GET_PUBLISHING_QUEUE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public PublishingPackageDetails getPublishingPackageDetails(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                                 String packageId) throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
@@ -96,7 +89,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_CANCEL_PUBLISH)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
     public void cancelPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                          List<String> packageIds) throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
@@ -109,23 +102,12 @@ public class PublishServiceImpl implements PublishService {
             List<String> paths = new ArrayList<String>();
             for (PublishingPackageDetails.PublishingPackageItem item : packageDetails.getItems()) {
                 paths.add(item.getPath());
-                ItemMetadata itemMetadata = objectMetadataManager.getProperties(siteId, item.getPath());
-                if (itemMetadata != null) {
-                    itemMetadata.setSubmittedBy(StringUtils.EMPTY);
-                    itemMetadata.setSendEmail(0);
-                    itemMetadata.setSubmittedForDeletion(0);
-                    itemMetadata.setSubmissionComment(StringUtils.EMPTY);
-                    itemMetadata.setLaunchDate(null);
-                    itemMetadata.setSubmittedToEnvironment(StringUtils.EMPTY);
-                    objectMetadataManager.updateObjectMetadata(itemMetadata);
-                }
                 AuditLogParameter auditLogParameter = new AuditLogParameter();
                 auditLogParameter.setTargetId(siteId + ":" + item.getPath());
                 auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
                 auditLogParameter.setTargetValue(item.getPath());
                 auditLogParameters.add(auditLogParameter);
             }
-            objectStateService.transitionBulk(siteId, paths, REJECT, NEW_UNPUBLISHED_UNLOCKED);
 
             itemServiceInternal.updateStateBitsBulk(siteId, paths, CANCEL_PUBLISHING_PACKAGE_ON_MASK,
                     CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
@@ -134,7 +116,8 @@ public class PublishServiceImpl implements PublishService {
         }
     }
 
-    private void createAuditLogEntry(String siteId, List<AuditLogParameter> auditLogParameters) throws SiteNotFoundException {
+    private void createAuditLogEntry(String siteId, List<AuditLogParameter> auditLogParameters)
+            throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
@@ -162,25 +145,13 @@ public class PublishServiceImpl implements PublishService {
         List<PublishingHistoryItem> publishingHistoryItems = publishServiceInternal.getPublishingHistory(siteId,
                 environment, path, publisher, dateFrom, dateTo, contentType, state, sortBy, order, offset,
                 limit);
-        return preparePublishingResult(publishingHistoryItems);
+        return publishingHistoryItems
+                .stream()
+                .map(itemServiceInternal::convertHistoryItemToDashboardItem)
+                .collect(Collectors.toList());
     }
 
-    private List<PublishingDashboardItem> preparePublishingResult(List<PublishingHistoryItem> publishingHistory) {
-        List<PublishingDashboardItem> publishingDashboardItems = new ArrayList<PublishingDashboardItem>();
-        for (PublishingHistoryItem historyItem : publishingHistory) {
-            PublishingDashboardItem dashboardItem = new PublishingDashboardItem();
-            ItemMetadata itemMetadata = objectMetadataManager.getProperties(historyItem.getSiteId(),
-                    historyItem.getPath());
-            dashboardItem.setSiteId(historyItem.getSiteId());
-            dashboardItem.setPath(historyItem.getPath());
-            dashboardItem.setLabel(itemMetadata.getName());
-            dashboardItem.setEnvironment(historyItem.getEnvironment());
-            dashboardItem.setDatePublished(historyItem.getPublishedDate());
-            dashboardItem.setPublisher(historyItem.getPublisher());
-            publishingDashboardItems.add(dashboardItem);
-        }
-        return publishingDashboardItems;
-    }
+
 
     public PublishServiceInternal getPublishServiceInternal() {
         return publishServiceInternal;
@@ -196,22 +167,6 @@ public class PublishServiceImpl implements PublishService {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
-    }
-
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
     }
 
     public AuditServiceInternal getAuditServiceInternal() {

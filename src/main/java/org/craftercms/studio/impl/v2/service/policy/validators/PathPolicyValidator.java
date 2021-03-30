@@ -22,6 +22,8 @@ import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 /**
  * Implementation of {@link PolicyValidator} for path aware actions
  *
@@ -41,22 +43,33 @@ public class PathPolicyValidator implements PolicyValidator {
         if (config.containsKey(CONFIG_KEY_SOURCE_REGEX)) {
             var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
             if (!action.getTarget().matches(sourceRegex)) {
-                var ex = new ValidationException("Path " + action.getTarget() + " is invalid");
-                if (config.containsKey(CONFIG_KEY_TARGET_REGEX)) {
-                    var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
-                    var modifiedValue = action.getTarget().replaceFirst(sourceRegex, targetRegex);
+                String modifiedValue = null;
+                var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
+                if (targetRegex != null) {
+                    modifiedValue = action.getTarget().replaceAll(sourceRegex, targetRegex);
 
                     var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
-                    switch (caseTransform.toLowerCase()) {
-                        case "uppercase":
-                            modifiedValue = modifiedValue.toUpperCase();
-                            break;
-                        case "lowercase":
-                            modifiedValue = modifiedValue.toLowerCase();
-                            break;
-                        default:
-                            logger.warn("Unsupported case transformation: {0}", caseTransform);
+                    if (isNotEmpty(caseTransform)) {
+                        switch (caseTransform.toLowerCase()) {
+                            case "uppercase":
+                                modifiedValue = modifiedValue.toUpperCase();
+                                break;
+                            case "lowercase":
+                                modifiedValue = modifiedValue.toLowerCase();
+                                break;
+                            default:
+                                logger.warn("Unsupported case transformation: {0}", caseTransform);
+                        }
                     }
+
+                    // special case when creating the folder used in the configuration
+                    if (action.getTarget().equals(modifiedValue)) {
+                        return;
+                    }
+                }
+
+                var ex = new ValidationException("Path " + action.getTarget() + " is invalid");
+                if (isNotEmpty(modifiedValue)) {
                     ex.setModifiedValue(modifiedValue);
                 }
                 throw ex;

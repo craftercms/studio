@@ -72,6 +72,7 @@ public final class ResultConstants {
 
     /* Configuration controller */
     public static final String RESULT_KEY_HISTORY = "history";
+    public static final String RESULT_KEY_USAGE = "usage";
 
     /* Content controller */
     public static final String RESULT_KEY_CHILD_ITEMS = "childItems";
@@ -81,6 +82,7 @@ public final class ResultConstants {
     /** Publish controller */
     public static final String RESULT_KEY_PACKAGES = "packages";
     public static final String RESULT_KEY_PACKAGE = "package";
+    public static final String RESULT_KEY_PUBLISH_STATUS = "publishingStatus";
 
     /* Translation controller */
     public static final String RESULT_KEY_CONFIG = "config";

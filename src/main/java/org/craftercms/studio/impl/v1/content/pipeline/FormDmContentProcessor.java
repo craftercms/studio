@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.DmContentProcessor;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -30,7 +29,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -41,11 +39,7 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -61,7 +55,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ContentService contentService;
     protected WorkflowService workflowService;
     protected ServicesConfig servicesConfig;
-    protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
     protected SiteService siteService;
@@ -204,22 +197,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
             try {
                 contentService.writeContent(site, itemPath, input);
-                if (!objectMetadataManager.metadataExist(site, itemPath)) {
-                    objectMetadataManager.insertNewObjectMetadata(site, itemPath);
-                }
-                Map<String, Object> properties = new HashMap<>();
-                properties.put(ItemMetadata.PROP_NAME, fileName);
-                properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-                properties.put(ItemMetadata.PROP_CREATOR, user);
-                properties.put(ItemMetadata.PROP_MODIFIER, user);
-                properties.put(ItemMetadata.PROP_OWNER, user);
-                if (unlock) {
-                    properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
-                } else {
-                    properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
-                }
-                objectMetadataManager.setObjectMetadata(site, itemPath, properties);
-                result.setCommitId(objectMetadataManager.getProperties(site, itemPath).getCommitId());
+                String commitId = contentRepository.getRepoLastCommitId(site);
+                result.setCommitId(commitId);
 
                 // Item
                 // TODO: get local code with API 2
@@ -269,19 +248,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
 
         if (success) {
-            Map<String, Object> properties = new HashMap<>();
-            properties.put(ItemMetadata.PROP_MODIFIER, user);
-            properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-            if (unlock) {
-                properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
-            } else {
-                properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
-            }
-            if (!objectMetadataManager.metadataExist(site, path)) {
-                objectMetadataManager.insertNewObjectMetadata(site, path);
-            }
-            objectMetadataManager.setObjectMetadata(site, path, properties);
-            result.setCommitId(objectMetadataManager.getProperties(site, path).getCommitId());
+            String commitId = contentRepository.getRepoLastCommitId(site);
+            result.setCommitId(commitId);
 
             // if there is anything pending and this is not a preview update, cancel workflow
             if (!isPreview) {
@@ -421,14 +389,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public ObjectMetadataManager getObjectMetadataManager() {
-        return objectMetadataManager;
-    }
-
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
-        this.objectMetadataManager = objectMetadataManager;
     }
 
     public ContentRepository getContentRepository() {

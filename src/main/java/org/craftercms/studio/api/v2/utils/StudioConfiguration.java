@@ -157,7 +157,6 @@ public interface StudioConfiguration {
     /** Security Service */
     String SECURITY_SESSION_TIMEOUT = "studio.security.sessionTimeout";
     String SECURITY_PUBLIC_URLS = "studio.security.publicUrls";
-    String SECURITY_IGNORE_RENEW_TOKEN_URLS = "studio.security.ignoreRenewTokenUrls";
     String SECURITY_TYPE = "studio.security.type";
     String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
     String SECURITY_CIPHER_KEY = "studio.security.cipher.key";
@@ -198,18 +197,14 @@ public interface StudioConfiguration {
             "studio.job.deployContentToEnvironment.status.message.default";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY =
             "studio.job.deployContentToEnvironment.status.message.ready";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY =
-            "studio.job.deployContentToEnvironment.status.message.busy";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING =
             "studio.job.deployContentToEnvironment.status.message.publishing";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED =
             "studio.job.deployContentToEnvironment.status.message.queued";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR =
-            "studio.job.deployContentToEnvironment.status.message.stopped.error";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER =
-            "studio.job.deployContentToEnvironment.status.message.stopped.user";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER =
-            "studio.job.deployContentToEnvironment.status.message.started.user";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR =
+            "studio.job.deployContentToEnvironment.status.message.error";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED =
+            "studio.job.deployContentToEnvironment.status.message.stopped";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
 
     /** Content Types Filter Patterns */
@@ -350,6 +345,9 @@ public interface StudioConfiguration {
             "studio.clockJob.task.auditLogProcessing.batchSizeAudited";
 
     String PLUGIN_BASE_PATTERN = "studio.configuration.plugin.base.pattern";
+
+    // Content Service
+    String CONTENT_ITEM_EDITABLE_TYPES = "studio.content.item.editableTypes";
 
     void loadConfig();
 

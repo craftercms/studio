@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -85,6 +85,11 @@ public enum ItemState {
     public static final long PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK =
             NEW.value + USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value +  SCHEDULED.value;
 
+    public static final long NEW_MASK = NEW.value;
+    public static final long MODIFIED_MASK = MODIFIED.value;
+    public static final long SUBMITTED_MASK = IN_WORKFLOW.value;
+    public static final long IN_PROGRESS_MASK = NEW.value + MODIFIED.value + IN_WORKFLOW.value;
+
     private static long applyMask(long value, long onBits, long offBits) {
         return (value | onBits) & ~offBits;
     }
@@ -121,5 +126,57 @@ public enum ItemState {
 
     public static long canceledWorkflow(long currentState) {
         return applyMask(currentState, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
+    }
+
+    public static boolean isNew(long currentState) {
+        return (currentState & NEW.value) > 0;
+    }
+
+    public static boolean isModified(long currentState) {
+        return (currentState & MODIFIED.value) > 0;
+    }
+
+    public static boolean isDeleted(long currentState) {
+        return (currentState & DELETED.value) > 0;
+    }
+
+    public static boolean isUserLocked(long currentState) {
+        return (currentState & USER_LOCKED.value) > 0;
+    }
+
+    public static boolean isSystemProcessing(long currentState) {
+        return (currentState & SYSTEM_PROCESSING.value) > 0;
+    }
+
+    public static boolean isInWorkflow(long currentState) {
+        return (currentState & IN_WORKFLOW.value) > 0;
+    }
+
+    public static boolean isScheduled(long currentState) {
+        return (currentState & SCHEDULED.value) > 0;
+    }
+
+    public static boolean isPublishing(long currentState) {
+        return (currentState & PUBLISHING.value) > 0;
+    }
+
+    public static boolean isStaged(long currentState) {
+        return (currentState & STAGED.value) > 0;
+    }
+
+    public static boolean isLive(long currentState) {
+        return (currentState & LIVE.value) > 0;
+    }
+
+    public static boolean isTranslationUpToDate(long currentState) {
+        return (currentState & TRANSLATION_UP_TO_DATE.value) > 0;
+    }
+
+    public static boolean isTranslationPending(long currentState) {
+        return (currentState & TRANSLATION_PENDING.value) > 0;
+    }
+
+    public static boolean isTranslationInProgress(long currentState) {
+        return (currentState & TRANSLATION_IN_PROGRESS.value) > 0;
     }
 }

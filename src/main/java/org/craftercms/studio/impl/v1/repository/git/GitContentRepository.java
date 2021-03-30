@@ -129,6 +129,8 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.web.context.ServletContextAware;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -707,7 +709,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : PUBLISHED)) {
                     Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : PUBLISHED);
                     // Tag the repository with a date-time based version label
-                    String gitPath = helper.getGitPath(path);
 
                     try (Git git = new Git(repo)) {
                         PersonIdent currentUserIdent = helper.getCurrentUserIdent();
@@ -904,6 +905,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     /**
      * bootstrap the repository
      */
+    @EventListener(ContextRefreshedEvent.class)
     public void bootstrap() throws Exception {
 
         if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO)) && helper.createGlobalRepo()) {
@@ -1030,7 +1032,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 try {
-                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint(sandboxBranchName)
+                    git.checkout().setCreateBranch(true).setForceRefUpdate(true).setStartPoint(sandboxBranchName)
                             .setUpstreamMode(TRACK)
                             .setName(environment)
                             .call();

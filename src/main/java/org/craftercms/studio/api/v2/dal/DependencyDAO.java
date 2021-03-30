@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
+
 /**
  * @author Dejan Brkic
  */
@@ -48,13 +51,14 @@ public interface DependencyDAO {
      * @param site site identifier
      * @param paths list of content paths
      * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param editedStates list of edited states
-     *
+     * @param modifiedMask state bit mask for modified item
+     * @param newMask state bit mask for new item
      * @return List of soft dependencies
      */
     List<Map<String, String>> getSoftDependenciesForList(@Param("site") String site, @Param("paths") Set<String> paths,
                                                          @Param("regex") List<String> itemSpecificDependenciesPatterns,
-                                                         @Param("editedStates") Collection<State> editedStates);
+                                                         @Param(MODIFIED_MASK) long modifiedMask,
+                                                         @Param(NEW_MASK) long newMask);
 
     /**
      * Get hard dependencies from DB for list of content paths
@@ -62,15 +66,15 @@ public interface DependencyDAO {
      * @param site site identifier
      * @param paths list of content paths
      * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-     * @param editedStates list of edited states
-     * @param newStates list of new states
+     * @param modifiedMask state bit map for modified item
+     * @param newMask state bit map for new item
      *
      * @return List of hard dependencies
      */
     List<Map<String, String>> getHardDependenciesForList(@Param("site") String site, @Param("paths") Set<String> paths,
                                                          @Param("regex") List<String> itemSpecificDependenciesPatterns,
-                                                         @Param("editedStates") Collection<State> editedStates,
-                                                         @Param("newStates") List<State> newStates);
+                                                         @Param(MODIFIED_MASK) long modifiedMask,
+                                                         @Param(NEW_MASK) long newMask);
 
     /**
      * Get items depending on given paths

@@ -25,7 +25,7 @@ import org.craftercms.studio.api.v2.service.security.EncryptionService;
 import org.craftercms.studio.api.v2.service.security.internal.EncryptionServiceInternal;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_ENCRYPTION_TOOL;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ENCRYPTION_TOOL;
 
 /**
  * @author joseross
@@ -35,7 +35,7 @@ public class EncryptionServiceImpl implements EncryptionService {
     protected EncryptionServiceInternal encryptionServiceInternal;
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_ENCRYPTION_TOOL)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ENCRYPTION_TOOL)
     public String encrypt(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(name = "siteId") String siteId,
                           @ValidateStringParam(name = "text") String text) throws ServiceLayerException {
         return encryptionServiceInternal.encrypt(text);

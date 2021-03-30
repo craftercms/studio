@@ -35,6 +35,8 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -270,7 +272,8 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      * @throws UpgradeException if there is any error in the upgrade process
      * @throws EntitlementException if there is any validation error after the upgrade process
      */
-    public void init() throws UpgradeException, EntitlementException, ConfigurationException {
+    @EventListener(StartUpgradeEvent.class)
+    public void startUpgrade() throws UpgradeException, EntitlementException, ConfigurationException {
 
         upgradeBlueprints();
         upgradeDatabaseAndConfiguration();

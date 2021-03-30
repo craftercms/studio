@@ -64,7 +64,6 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_ACCESS_TOKEN;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REFRESH_TOKEN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.springframework.web.util.WebUtils.getCookie;
 
@@ -195,9 +194,6 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         accessToken.setToken(token);
         accessToken.setExpiresAt(expireAt);
 
-        // The userId is not really useful, but the db requires a value
-        createAuditLog(auth, getUserId(auth), TARGET_TYPE_REFRESH_TOKEN, OPERATION_CREATE);
-
         return accessToken;
     }
 
@@ -205,9 +201,6 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     public void deleteRefreshToken(Authentication auth) {
         var userId = getUserId(auth);
         securityDao.deleteRefreshToken(userId);
-
-        // The userId is not really useful, but the db requires a value
-        createAuditLog(auth, userId, TARGET_TYPE_REFRESH_TOKEN, OPERATION_DELETE);
     }
 
     @Override

@@ -65,7 +65,7 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
@@ -99,12 +99,12 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 List<ClusterSiteRecord> clusterSiteRecords = clusterDao.getSiteStateAcrossCluster(siteId);
                 Optional<ClusterSiteRecord> localNodeRecord = clusterSiteRecords.stream()
                         .filter(x -> x.getClusterNodeId() == localNode.getId() && StringUtils.equals(x.getState(),
-                                STATE_CREATED)).findFirst();
+                                STATE_READY)).findFirst();
                 if (!localNodeRecord.isPresent()) {
                     return;
                 }
                 long nodesCreated = clusterSiteRecords.stream()
-                        .filter(x -> StringUtils.equals(x.getState(), STATE_CREATED)).count();
+                        .filter(x -> StringUtils.equals(x.getState(), STATE_READY)).count();
                 if (nodesCreated < 1) {
                     return;
                 }

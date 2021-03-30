@@ -25,10 +25,10 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.swing.*;
 import java.awt.*;
 import java.io.ByteArrayInputStream;
@@ -61,8 +61,7 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
 
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
         String name = content.getProperty(DmConstants.KEY_FILE_NAME);
-        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-        String mimetype = mimeTypesMap.getContentType(name);
+        String mimetype = StudioUtils.getMimeType(name);
         boolean process = (StringUtils.isEmpty(mimetype)) ? false : mimetype.startsWith("image/") && !StringUtils.equalsIgnoreCase(mimetype, "image/svg+xml");
         if (process) {
             String allowLessSize = content.getProperty(DmConstants.KEY_ALLOW_LESS_SIZE);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -76,14 +76,14 @@
 
 -->
 <permissions>
-    <version>15</version>
+    <version>17</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Create Content</permission>
-                <permission>Create Folder</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
@@ -93,10 +93,10 @@
         </rule>
         <rule regex="/site/components|/site/components/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Create Content</permission>
-                <permission>Create Folder</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
@@ -106,10 +106,10 @@
         </rule>
         <rule regex="/static-assets|/static-assets/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Create Content</permission>
-                <permission>Create Folder</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
@@ -130,11 +130,11 @@
     <role name="publisher">
         <rule regex="/site/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Create Content</permission>
-                <permission>Create Folder</permission>
-                <permission>Publish</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
                 <permission>list_cmis</permission>
@@ -146,31 +146,29 @@
         </rule>
         <rule regex="^/site/(?!website/index\.xml)(.*)">
             <allowed-permissions>
-                <permission>Delete</permission>
-                <permission>delete_content</permission>
+                <permission>content_delete</permission>
             </allowed-permissions>
         </rule>
         <rule regex="/(static-assets|templates|scripts)/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Delete</permission>
-                <permission>Create Content</permission>
-                <permission>Create Folder</permission>
-                <permission>Publish</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
                 <permission>clone_content_cmis</permission>
                 <permission>upload_content_cmis</permission>
-                <permission>delete_content</permission>
+                <permission>content_delete</permission>
                 <permission>get_children</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
-                <permission>Publish</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
             </allowed-permissions>
@@ -188,13 +186,13 @@
     <role name="developer">
         <rule regex="/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Publish</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
-                <permission>Create Folder</permission>
-                <permission>Create Content</permission>
+                <permission>folder_create</permission>
+                <permission>content_create</permission>
                 <permission>Change Content Type</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
@@ -218,13 +216,12 @@
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
             <allowed-permissions>
-                <permission>Delete</permission>
-                <permission>delete_content</permission>
+                <permission>content_delete</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
-                <permission>Publish</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
                 <permission>write_configuration</permission>
@@ -256,13 +253,13 @@
     <role name="admin">
         <rule regex="/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Publish</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
-                <permission>Create Folder</permission>
-                <permission>Create Content</permission>
+                <permission>folder_create</permission>
+                <permission>content_create</permission>
                 <permission>Change Content Type</permission>
                 <permission>list_cmis</permission>
                 <permission>search_cmis</permission>
@@ -282,17 +279,18 @@
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>publish_clear_lock</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
             <allowed-permissions>
-                <permission>Delete</permission>
-                <permission>delete_content</permission>
+                <permission>content_delete</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
-                <permission>Publish</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
                 <permission>add_remote</permission>
@@ -308,6 +306,8 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
+                <permission>publish_clear_lock</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -325,8 +325,8 @@
     <role name="reviewer">
         <rule regex="/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Publish</permission>
+                <permission>content_read</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
                 <permission>get_children</permission>
@@ -334,7 +334,7 @@
         </rule>
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
-                <permission>Publish</permission>
+                <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
             </allowed-permissions>
@@ -350,7 +350,7 @@
     <role name="*">
         <rule regex="/.*">
             <allowed-permissions>
-                <permission>Read</permission>
+                <permission>content_read</permission>
                 <permission>get_children</permission>
             </allowed-permissions>
         </rule>

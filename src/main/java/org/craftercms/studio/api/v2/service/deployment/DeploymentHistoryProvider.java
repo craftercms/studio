@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,13 +39,4 @@ public interface DeploymentHistoryProvider {
     List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames, ZonedDateTime fromDate,
                                                      ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper,
                                                      String filterType, int numberOfItems);
-
-    /**
-     * Get last deployment date time for given site and path
-     *
-     * @param site site id
-     * @param path path
-     * @return last deployment date or null if never deployed
-     */
-    ZonedDateTime getLastDeploymentDate(String site, String path);
 }

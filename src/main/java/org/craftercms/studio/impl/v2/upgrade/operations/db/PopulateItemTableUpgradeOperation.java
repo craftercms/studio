@@ -192,25 +192,23 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 treeWalk.addTree(tree);
                 treeWalk.setRecursive(false);
                 while (treeWalk.next()) {
-                    if (!ArrayUtils.contains(IGNORE_FILES, treeWalk.getNameString())) {
-                        try {
-                            if (treeWalk.isSubtree()) {
-                                processFolder(site, FILE_SEPARATOR + treeWalk.getPathString(), commitId,
+                    try {
+                        if (treeWalk.isSubtree()) {
+                            processFolder(site, FILE_SEPARATOR + treeWalk.getPathString(), commitId,
+                                    treeWalk.getNameString());
+                            treeWalk.enterSubtree();
+                        } else {
+                            try {
+                                processFile(site, FILE_SEPARATOR + treeWalk.getPathString(), commitId,
                                         treeWalk.getNameString());
-                                treeWalk.enterSubtree();
-                            } else {
-                                try {
-                                    processFile(site, FILE_SEPARATOR + treeWalk.getPathString(), commitId,
-                                            treeWalk.getNameString());
-                                } catch (DocumentException e) {
-                                    logger.error("Unexpected error processing file" + treeWalk.getPathString() +
-                                            " for site " + site, e);
-                                }
+                            } catch (DocumentException e) {
+                                logger.error("Unexpected error processing file" + treeWalk.getPathString() +
+                                        " for site " + site, e);
                             }
-                        } catch (IOException e) {
-                            logger.error("Unexpected error processing " + treeWalk.getPathString() + " for site " +
-                                    site, e);
                         }
+                    } catch (IOException e) {
+                        logger.error("Unexpected error processing " + treeWalk.getPathString() + " for site " +
+                                site, e);
                     }
                 }
             }
@@ -243,7 +241,9 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                         ZonedDateTime.from(Instant.ofEpochMilli(file.lastModified()).atZone(UTC)) : null)
                 .withLabel(name).withSystemType(contentService.getContentTypeClass(site, path))
                 .withMimeType(StudioUtils.getMimeType(name))
-                .withSize(file.length()).build();
+                .withSize(file.length())
+                .withIgnored(ArrayUtils.contains(IGNORE_FILES, name))
+                .build();
         if (StringUtils.endsWith(name, ".xml")) {
             populateDescriptorProperties(site, path, item);
         }

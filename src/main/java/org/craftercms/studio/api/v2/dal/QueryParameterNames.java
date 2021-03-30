@@ -26,10 +26,15 @@ public final class  QueryParameterNames {
     public static final String LIMIT = "limit";
     // Sort
     public static final String SORT = "sort";
+    public static final String SORT_STRATEGY = "sortStrategy";
     // Order
     public static final String ORDER = "order";
     // Path
     public static final String PATH = "path";
+    // LIKE path
+    public static final String LIKE_PATH = "likePath";
+    // Folder Path
+    public static final String FOLDER_PATH = "folderPath";
     // Paths
     public static final String PATHS = "paths";
     // Modifier
@@ -200,12 +205,43 @@ public final class  QueryParameterNames {
 
     public static final String EXCLUDES = "excludes";
 
+    public static final String KEYWORD = "keyword";
+
+    public static final String POSSIBLE_PARENTS = "possibleParents";
+
+    public static final String NEW_MASK = "newMask";
+
+    public static final String MODIFIED_MASK = "modifiedMask";
+
+    public static final String NON_CONTENT_ITEM_TYPES = "nonContentItemTypes";
+
+    public static final String IN_PROGRESS_MASK = "inProgressMask";
+
+    public static final String SUBMITTED_MASK = "submittedMask";
+
+    public static final String PREVIOUS_PATH = "previousPath";
+
+    public static final String PARENTS = "parents";
+
+    public static final String LAST_PUBLISHED_ON = "lastPublishedOn";
+
+    public static final String SCRIPT_PATH = "scriptPath";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids
     public static final String COMMIT_IDS = "commitIds";
 
     public static final String MARKER = "marker";
+
+    public static final String PROCESSED = "processed";
+
+    /** Workflow */
+    public static final String PUBLISHING_PACKAGE_ID = "publishingPackageId";
+
+    public static final String WORKFLOW = "workflow";
+
+    public static final String STATE_OPENED = "stateOpened";
 
     private QueryParameterNames() {
     }

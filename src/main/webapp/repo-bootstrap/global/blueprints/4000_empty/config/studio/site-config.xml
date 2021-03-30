@@ -21,7 +21,7 @@
 
 -->
 <site-config>
-    <version>7</version>
+    <version>8</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
@@ -74,6 +74,13 @@
         Required placeholders: ${type}, ${name}
      -->
     <plugin-folder-pattern>/config/studio/plugins/${type}/${name}</plugin-folder-pattern>
+
+    <!--
+        Prevent deleting, renaming or cutting root folders of sidebar
+    -->
+    <protected-folders-patterns>
+        <pattern>^/([^ !$`&amp;*()/+]|(\\[ !$`&amp;*()+]))+$</pattern>
+    </protected-folders-patterns>
 
     <repository rootPrefix="/site">
 

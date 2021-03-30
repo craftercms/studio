@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v1.service.configuration;
 
+import com.google.common.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -28,11 +29,10 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
@@ -41,7 +41,9 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
@@ -62,6 +64,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     protected ContentService contentService;
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
+    protected ConfigurationService configurationService;
+
+    protected Cache<String, Optional<ContentTypeConfigTO>> cache;
 
     @Override
     @ValidateParams
@@ -74,7 +79,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     @ValidateParams
     public ContentTypeConfigTO loadConfiguration(@ValidateStringParam(name = "site") String site,
@@ -82,51 +86,56 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         String configFileFullPath = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
-        Document document = null;
-        try {
-            if (contentService.contentExists(site, configFileFullPath)) {
-                document = contentService.getContentAsDocument(site, configFileFullPath);
-            }
-        } catch (DocumentException e) {
-            logger.debug("No content type configuration document found at " + configFileFullPath, e);
-        }
-        if (document != null) {
-            Element root = document.getRootElement();
-            String name = root.valueOf("@name");
-            ContentTypeConfigTO contentTypeConfig = new ContentTypeConfigTO();
-            contentTypeConfig.setName(name);
-            contentTypeConfig.setLabel(root.valueOf("label"));
-            String imageThumbnail=root.valueOf("image-thumbnail");
-            if(imageThumbnail != null)
-                contentTypeConfig.setImageThumbnail(imageThumbnail);
-            contentTypeConfig.setForm(root.valueOf("form"));
-            boolean previewable = ContentFormatUtils.getBooleanValue(root.valueOf("previewable"));
-            contentTypeConfig.setFormPath(root.valueOf("form-path"));
-            contentTypeConfig.setPreviewable(previewable);
-            contentTypeConfig.setModelInstancePath(root.valueOf("model-instance-path"));
-            boolean contentAsFolder = ContentFormatUtils.getBooleanValue(root.valueOf("content-as-folder"));
-            contentTypeConfig.setContentAsFolder(contentAsFolder);
-            boolean useRoundedFolder = ContentFormatUtils.getBooleanValue(root.valueOf("use-rounded-folder"));
-            contentTypeConfig.setUseRoundedFolder(useRoundedFolder);
-            List<String> pathIncludes = getPaths(root, "paths/includes/pattern");
-            if (pathIncludes.size() == 0) {
-                // if no configuration, include every path
-                pathIncludes.add(".*");
-            }
-            contentTypeConfig.setPathIncludes(pathIncludes);
-            List<String> pathExcludes = getPaths(root, "paths/excludes/pattern");
-            contentTypeConfig.setPathExcludes(pathExcludes);
-            loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
-            loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
-            loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
-            contentTypeConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
-            contentTypeConfig.setType(getContentTypeTypeByName(name));
-            boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
-            contentTypeConfig.setQuickCreate(quickCreate);
-            contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
 
-            return contentTypeConfig;
-        } else {
+        var cacheKey = configurationService.getCacheKey(site, null, configFileFullPath, null, "object");
+        try {
+            var object = cache.get(cacheKey, () -> {
+                logger.debug("Cache miss: {0}", cacheKey);
+
+                if (contentService.contentExists(site, configFileFullPath)) {
+                    Document document = configurationService.getConfigurationAsDocument(site, null, configFileFullPath, null);
+                    Element root = document.getRootElement();
+                    String name = root.valueOf("@name");
+                    ContentTypeConfigTO contentTypeConfig = new ContentTypeConfigTO();
+                    contentTypeConfig.setName(name);
+                    contentTypeConfig.setLabel(root.valueOf("label"));
+                    String imageThumbnail=root.valueOf("image-thumbnail");
+                    if(imageThumbnail != null)
+                        contentTypeConfig.setImageThumbnail(imageThumbnail);
+                    contentTypeConfig.setForm(root.valueOf("form"));
+                    boolean previewable = ContentFormatUtils.getBooleanValue(root.valueOf("previewable"));
+                    contentTypeConfig.setFormPath(root.valueOf("form-path"));
+                    contentTypeConfig.setPreviewable(previewable);
+                    contentTypeConfig.setModelInstancePath(root.valueOf("model-instance-path"));
+                    boolean contentAsFolder = ContentFormatUtils.getBooleanValue(root.valueOf("content-as-folder"));
+                    contentTypeConfig.setContentAsFolder(contentAsFolder);
+                    boolean useRoundedFolder = ContentFormatUtils.getBooleanValue(root.valueOf("use-rounded-folder"));
+                    contentTypeConfig.setUseRoundedFolder(useRoundedFolder);
+                    List<String> pathIncludes = getPaths(root, "paths/includes/pattern");
+                    if (pathIncludes.size() == 0) {
+                        // if no configuration, include every path
+                        pathIncludes.add(".*");
+                    }
+                    contentTypeConfig.setPathIncludes(pathIncludes);
+                    List<String> pathExcludes = getPaths(root, "paths/excludes/pattern");
+                    contentTypeConfig.setPathExcludes(pathExcludes);
+                    loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
+                    loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
+                    loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
+                    contentTypeConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
+                    contentTypeConfig.setType(getContentTypeTypeByName(name));
+                    boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
+                    contentTypeConfig.setQuickCreate(quickCreate);
+                    contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
+
+                    return Optional.of(contentTypeConfig);
+                } else {
+                    logger.debug("No content type configuration document found at " + configFileFullPath);
+                    return Optional.empty();
+                }
+            });
+            return object.orElse(null);
+        } catch (ExecutionException e) {
             logger.debug("No content type configuration document found at " + configFileFullPath);
             return null;
         }
@@ -188,7 +197,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
      * @param path
      * @return get paths
      */
-    @SuppressWarnings("unchecked")
     private List<String> getPaths(Element root, String path) {
         List<String> paths = null;
         List<Node> nodes = root.selectNodes(path);
@@ -257,11 +265,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     @ValidateParams
     public ContentTypeConfigTO reloadConfiguration(@ValidateStringParam(name = "site") String site,
                                                    @ValidateStringParam(name = "contentType") String contentType) {
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
-                .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        ContentTypeConfigTO config = loadConfiguration(site, contentType);
-        return config;
+        return loadConfiguration(site, contentType);
     }
 
     public String getConfigPath() {
@@ -295,4 +299,13 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
+    public void setCache(Cache<String, Optional<ContentTypeConfigTO>> cache) {
+        this.cache = cache;
+    }
+
 }

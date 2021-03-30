@@ -57,10 +57,12 @@ public class ChainLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
-        var user = (AuthenticatedUser) authentication.getPrincipal();
+        if (authentication != null) {
+            var user = (AuthenticatedUser) authentication.getPrincipal();
 
-        if (user.getAuthenticationType() == AuthenticationType.AUTH_HEADERS) {
-            return ssoLogoutUrl;
+            if (user.getAuthenticationType() == AuthenticationType.AUTH_HEADERS) {
+                return ssoLogoutUrl;
+            }
         }
 
         return super.determineTargetUrl(request, response, authentication);

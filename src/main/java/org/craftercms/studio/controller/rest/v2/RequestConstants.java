@@ -26,8 +26,6 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_ID = "id";
 
-    public static final String REQUEST_PARAM_IDS = "ids";
-
     public static final String REQUEST_PARAM_SITE_ID = "site_id";
 
     public static final String REQUEST_PARAM_SITEID = "siteId";
@@ -62,8 +60,6 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_CMIS_PATH = "cmisPath";
 
-    public static final String REQUEST_PARAM_PATHS = "paths";
-
     public static final String REQUEST_PARAM_PATH = "path";
 
     public static final String REQUEST_PARAM_PROFILE_ID = "profileId";
@@ -72,29 +68,14 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_ENVIRONMENT = "environment";
 
-    public static final String REQUEST_PARAM_STATE = "state";
-
     public static final String REQUEST_PARAM_STATES = "states";
 
     public static final String REQUEST_PARAM_PACKAGE_ID = "packageId";
 
-    public static final String REQUEST_PARAM_SORT_BY = "sortBy";
-
-    public static final String REQUEST_PARAM_GROUP_BY = "groupBy";
-
-    public static final String REQUEST_PARAM_FILTERS = "filters";
-
     public static final String REQUEST_PARAM_TOKEN = "token";
-
-    public static final String REQUEST_PARAM_SUBMISSION_COMMENT = "submissionComment";
-
-    public static final String REQUEST_PARAM_SORT_STRATEGY = "sortStrategy";
-
-    public static final String REQUEST_PARAM_LOCALE_CODE = "localeCode";
 
     public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
 
-    public static final String REQUEST_PARAM_EXCLUDES = "excludes";
 
     private RequestConstants() { }
 }

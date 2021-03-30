@@ -43,8 +43,6 @@ public interface WorkflowService {
 
 	ResultTO submitToGoLive(String site, String username, String request) throws ServiceLayerException;
 
-    void preGoLive(Set<String> uris, GoLiveContext context, Set<String> rescheduledUris);
-
 	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceLayerException;
 
 	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly)
@@ -92,8 +90,6 @@ public interface WorkflowService {
 		ServiceLayerException;
 
     boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
-
-    void preSchedule(Set<String> uris, ZonedDateTime date, GoLiveContext context,Set<String> rescheduledUris);
 
     /**
      * approve workflows and schedule them as specified in the request

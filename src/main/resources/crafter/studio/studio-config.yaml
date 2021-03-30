@@ -100,7 +100,17 @@ studio.content.filename.maxSize: 255
 studio.content.fullPath.maxSize: 1024
 
 studio.content.policy.config.path: /config/studio/site-policy-config.xml
-
+# Item MIME-types that are editable directly in Crafter Studio
+studio.content.item.editableTypes:
+  - text/plain
+  - text/html
+  - text/css
+  - text/x-freemarker
+  - text/x-groovy
+  - application/javascript
+  - application/json
+  - application/xml
+  - application/xhtml+xml
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################
@@ -136,6 +146,8 @@ studio.configuration.site.permissionMappingsFileName: permission-mappings-config
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
+# File name where definition of content type is stored.
+studio.configuration.site.contentTypes.definitionFileName: form-definition.xml
 # Default user groups when site is created
 studio.configuration.defaultGroups: site_author,site_publisher,site_developer,site_reviewer,site_admin
 # Default admin group when site is created to add creator as admin
@@ -195,11 +207,18 @@ studio.configuration.management.previewProtectedUrls: >-
   /api/1/site/cache/statistics
 
 # The pattern used to load plugins installed from the marketplaces
-studio.configuration.plugin.base.pattern: /config/studio/plugins/${id}/${type}/${name}
+studio.configuration.plugin.base.pattern: /config/studio/plugins/js/${id}/${type}/${name}
 # List of patterns to invalidate cache when changes are detected in the global repo (separated by commas)
 studio.configuration.cache.global.patterns: /?configuration/.+
 # List of patterns to invalidate cache when changes are detected in the site repo (separated by commas)
 studio.configuration.cache.site.patterns: /?config/.+
+
+# XPath selector for the display template
+studio.configuration.contentType.template.xpath: "/form/properties/property[name='display-template']/value/text()"
+# Regular expression to extract content-type type and name
+studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
+# Format string for the controller script of a content-type
+studio.configuration.contentType.controller.format: '/scripts/$1s/$2.groovy'
 
 ########################################################
 ##                   Import Service                   ##
@@ -242,13 +261,12 @@ studio.objectState.bulkOperationsBatchSize: 500
 ##########################################################
 # HTTP Session timeout for studio (value is in minutes).
 studio.security.sessionTimeout: 60
-# Urls to be treated as exception to the rules.
-studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-session.json,/api/1/services/api/1/publish/status.json
-# Public URLs
+# Public URLs, comma separated list of regular expressions.
+# The regex should not include extension and should match the query string too.
 studio.security.publicUrls: >
-  /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
-  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
-  /static-assets/.+,/api/2/users/validate_token,/api/1/services/api/1/security/login.json,/api/2/users/forgot_password.*,
+  /api/1/services/api/1/server/get-available-languages.*,/api/1/services/api/1/server/get-ui-resource-override.*,
+  /api/2/monitoring/.+,/api/2/users/forgot_password.*,/api/2/users/set_password.*,/static-assets/.+,
+  /api/2/users/validate_token.*,/api/1/services/api/1/security/login.*,/api/2/users/forgot_password.*,
   /api/2/plugin/script/reload.*
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
@@ -422,24 +440,17 @@ studio.mail.debug: false
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
 studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message
-studio.job.deployContentToEnvironment.status.message.default: "ready|Ready"
+studio.job.deployContentToEnvironment.status.message.default: "Ready"
 # Publishing idle status message
-studio.job.deployContentToEnvironment.status.message.ready: "ready|Last successful publish was for package:
-{package_id} on {datetime} with {package_size} items"
-# Publishing busy status message
-studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publishing item: {item_path} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.ready: "Last successful publish was for package: {package_id} on {datetime} with {package_size} items"
 # Publishing publishing status message
-studio.job.deployContentToEnvironment.status.message.publishing: "publishing|Currently publishing package: {package_id} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.publishing: "Currently publishing package: {package_id} on {datetime}. Item {x} of {y} is being published"
 # Publishing queued status message
-studio.job.deployContentToEnvironment.status.message.queued: "queued|Items queued for publishing"
+studio.job.deployContentToEnvironment.status.message.queued: "Items are queued for publishing"
 # Publishing stopped by error status message
-studio.job.deployContentToEnvironment.status.message.stopped.error: "stopped|Stopped while trying to publish item: {item_path} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.error: "Publishing is disabled due to errors. Check logs for error details"
 # Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.stopped.user: "stopped|User {username} disabled publishing for
-site on {datetime}"
-# Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.started.user: "started|User {username} enabled publishing for
-site on {datetime}"
+studio.job.deployContentToEnvironment.status.message.stopped: "Publishing was stopped by user {username} on {datetime}"
 # Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
 studio.job.deployment.masterPublishingNode: true
 

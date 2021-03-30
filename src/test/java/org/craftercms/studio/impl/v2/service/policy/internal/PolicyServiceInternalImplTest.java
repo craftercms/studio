@@ -15,11 +15,16 @@
  */
 package org.craftercms.studio.impl.v2.service.policy.internal;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.io.FileHandler;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider;
 import org.craftercms.studio.impl.v2.service.policy.validators.ContentTypePolicyValidator;
 import org.craftercms.studio.impl.v2.service.policy.validators.FileSizePolicyValidator;
@@ -46,6 +51,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -76,6 +82,7 @@ public class PolicyServiceInternalImplTest {
     public static final String TYPE_RESTRICTED_FOLDER = "/static-assets/images";
     public static final String SIMPLE_PATH_RESTRICTED_FOLDER = "/static-assets/no-numbers";
     public static final String CASE_PATH_RESTRICTED_FOLDER = "/static-assets/only-lowercase";
+    public static final String REMOVE_PATH_RESTRICTED_FOLDER = "/static-assets/remove-numbers";
     public static final String CONTENT_TYPE_RESTRICTED_FOLDER = "/site/components/headers";
 
     @Mock
@@ -83,6 +90,9 @@ public class PolicyServiceInternalImplTest {
 
     @Mock
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+
+    @Mock
+    private ConfigurationService configurationService;
 
     private PolicyServiceInternalImpl policyService;
 
@@ -93,7 +103,8 @@ public class PolicyServiceInternalImplTest {
     }
 
     @BeforeMethod
-    public void setUp() throws ContentNotFoundException {
+    public void setUp() throws IOException,
+            org.apache.commons.configuration2.ex.ConfigurationException, ConfigurationException {
         initMocks(this);
 
         var systemValidator = new SystemPolicyValidator(255, 1024);
@@ -103,8 +114,16 @@ public class PolicyServiceInternalImplTest {
                 new PathPolicyValidator(),
                 new ContentTypePolicyValidator());
 
-        policyService = new PolicyServiceInternalImpl(contentRepository, contentRepositoryV2, systemValidator,
-                policyValidators, CONFIG_PATH);
+        policyService = new PolicyServiceInternalImpl(contentRepository, contentRepositoryV2, configurationService,
+                systemValidator, policyValidators, CONFIG_PATH);
+
+        var config = new XMLConfiguration();
+        try (var is = CONFIG.getInputStream()) {
+            var fh = new FileHandler(config);
+            fh.load(is);
+        }
+
+        when(configurationService.getXmlConfiguration(SITE_ID, CONFIG_PATH)).thenAnswer(i -> config);
 
         setUpRepository();
     }
@@ -127,10 +146,7 @@ public class PolicyServiceInternalImplTest {
      *          pic.png (1 kb)
      *
      */
-    protected void setUpRepository() throws ContentNotFoundException {
-        when(contentRepository.contentExists(SITE_ID, CONFIG_PATH)).thenReturn(true);
-        when(contentRepository.getContent(SITE_ID, CONFIG_PATH)).thenAnswer(i -> CONFIG.getInputStream());
-
+    protected void setUpRepository() {
         when(contentRepository.getContentChildren(SITE_ID, concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME))).thenAnswer(i -> {
             var item = new RepositoryItem();
             item.path = concat(PICS_FOLDER_PATH, SUB_FOLDER_NAME);
@@ -296,6 +312,33 @@ public class PolicyServiceInternalImplTest {
     }
 
     @Test
+    public void removeNumbersPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+        var action = new Action();
+        action.setType(Type.CREATE);
+        action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER + "/" + DOC1_FILENAME);
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, Long.MAX_VALUE));
+        var expectedFilename = DOC1_FILENAME.replaceAll("\\d", "");
+
+        var results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, true, REMOVE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
+
+        action.setTarget(CASE_PATH_RESTRICTED_FOLDER + "/" + expectedFilename);
+
+        results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, true);
+    }
+
+    @Test
+    public void createFolderPathTest() throws ConfigurationException, IOException, ContentNotFoundException {
+        var action = new Action();
+        action.setType(Type.CREATE);
+        action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER);
+
+        var results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResultNotModified(results);
+    }
+
+    @Test
     public void contentTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
         var action = new Action();
         action.setType(Type.CREATE);
@@ -375,6 +418,14 @@ public class PolicyServiceInternalImplTest {
         if (modified != null) {
             assertEquals(results.get(0).getModifiedValue(), modified);
         }
+    }
+
+    protected void checkSingleResultNotModified(List<ValidationResult> results) {
+        assertNotNull(results);
+        assertEquals(results.size(), 1);
+        assertNotNull(results.get(0));
+        assertTrue(results.get(0).isAllowed());
+        assertNull(results.get(0).getModifiedValue());
     }
 
     protected void checkMultipleResults(List<ValidationResult> results, boolean allAllowed) {

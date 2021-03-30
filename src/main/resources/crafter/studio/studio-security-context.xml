@@ -24,15 +24,4 @@
     <import resource="classpath:crafter/studio/security/api.xml"/>
     <import resource="classpath:crafter/studio/security/web.xml"/>
 
-    <bean id="studio.availableActionsResolver"
-          class="org.craftercms.studio.impl.v2.security.AvailableActionsResolverImpl" >
-
-    </bean>
-
-    <bean id="isActionAllowed" class="org.craftercms.studio.api.v2.annotation.IsActionAllowedAnnotationHandler" >
-        <property name="securityServiceV1" ref="cstudioSecurityService"/>
-        <property name="securityServiceV2" ref="studio.securityService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
 </beans>

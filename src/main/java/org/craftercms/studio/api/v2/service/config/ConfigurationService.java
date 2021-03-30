@@ -15,9 +15,11 @@
  */
 package org.craftercms.studio.api.v2.service.config;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
@@ -69,6 +71,23 @@ public interface ConfigurationService {
             throws ServiceLayerException;
 
     /**
+     * Reads a configuration file using Apache Commons Configuration
+     * @param siteId the id of the site
+     * @param path the path of the file
+     * @return the configuration object
+     * @throws ConfigurationException if there is any error reading or parsing the file
+     */
+    HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException;
+
+    /**
+     * Reads a configuration file using Apache Commons Configuration
+     * @param path the path of the file
+     * @return the configuration object
+     * @throws ConfigurationException if there is any error reading or parsing the file
+     */
+    HierarchicalConfiguration<?> getGlobalXmlConfiguration(String path) throws ConfigurationException;
+
+    /**
      * Get configuration from global repository as Document
      * @param path path of the configuration file
      * @return the Document
@@ -95,7 +114,7 @@ public interface ConfigurationService {
      * @throws ServiceLayerException general service error
      */
     void writeConfiguration(String siteId, String module, String path, String environment, InputStream content)
-        throws ServiceLayerException;
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get a a file from a plugin
@@ -146,6 +165,29 @@ public interface ConfigurationService {
     Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
 
     /**
+     * Builds the key for a given file
+     * @param siteId the id of the site
+     * @param module the module of the file
+     * @param path the path of the file
+     * @param environment the environment of the file
+     * @return the key for the file
+     */
+    default String getCacheKey(String siteId, String module, String path, String environment) {
+        return getCacheKey(siteId, module, path, environment, null);
+    }
+
+    /**
+     * Builds the key for a given file
+     * @param siteId the id of the site
+     * @param module the module of the file
+     * @param path the path of the file
+     * @param environment the environment of the file
+     * @param suffix the suffix for the cache key
+     * @return the key for the file
+     */
+    String getCacheKey(String siteId, String module, String path, String environment, String suffix);
+
+    /**
      * Invalidates the cache for the given file
      * @param siteId the id of the site
      * @param path the path of the file
@@ -160,5 +202,11 @@ public interface ConfigurationService {
      * @param environment the environment of the file
      */
     void invalidateConfiguration(String siteId, String module, String path, String environment);
+
+    /**
+     * Invalidates all objects for a given site
+     * @param siteId the id of the site
+     */
+    void invalidateConfiguration(String siteId);
 
 }

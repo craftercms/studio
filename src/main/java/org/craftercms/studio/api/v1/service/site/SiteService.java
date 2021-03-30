@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
@@ -61,7 +60,8 @@ public interface SiteService {
 	 *
 	 * @throws ServiceLayerException general service error
 	 */
-    boolean writeConfiguration(String site, String path, InputStream content) throws ServiceLayerException;
+    boolean writeConfiguration(String site, String path, InputStream content)
+			throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * write configuration content at the given path
@@ -146,7 +146,6 @@ public interface SiteService {
 	 * @throws InvalidRemoteRepositoryException invalid remote repository
 	 * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
 	 * @throws RemoteRepositoryNotFoundException remote repository not found
-	 * @throws RemoteRepositoryNotBareException remote repository is not bare
 	 * @throws InvalidRemoteUrlException invalid remote url
      */
     void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
@@ -155,7 +154,7 @@ public interface SiteService {
 									String remotePassword, String remoteToken, String remotePrivateKey,
 									String createOption, Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException;
 
     /**
      * remove a site from the system
@@ -207,14 +206,6 @@ public interface SiteService {
 	 * @return list of blueprints
    	 */
    	SiteBlueprintTO[] getAvailableBlueprints();
-
-    void reloadSiteConfigurations();
-
-    void reloadSiteConfiguration(String site);
-
-    void reloadSiteConfiguration(String site, boolean triggerEvent);
-
-    void reloadGlobalConfiguration();
 
     /**
      * Synchronize Database with repository
@@ -335,15 +326,6 @@ public interface SiteService {
      * @throws SiteNotFoundException site not found
      */
     boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException;
-
-    /**
-     * Get publish status for given site
-     * @param site site id
-     * @return publish status
-	 *
-	 * @throws SiteNotFoundException site not found
-     */
-    PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
 
     /**
      * Add remote repository for site content repository

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,40 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-import org.apache.commons.lang3.StringUtils
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException
-import scripts.api.DeploymentServices
-
 def result = [:]
-def siteId = params.site_id
-/** Validate Parameters */
-def invalidParams = false;
 
-if (StringUtils.isEmpty(siteId)) {
-    invalidParams = true
-}
+result.message = "API deprecated."
+def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/publish/status"
+response.addHeader("Location", locationHeader)
+response.setStatus(301)
 
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter: site_id"
-} else {
-    def context = DeploymentServices.createContext(applicationContext, request)
-    try {
-        def status = DeploymentServices.getStatus(context, siteId)
-        if (status != null) {
-            response.setStatus(200)
-            result = status
-        } else {
-            response.setStatus(500)
-            result.message = "Internal server error"
-        }
-    } catch (SiteNotFoundException e) {
-        response.setStatus(404)
-        result.message = "Site not found"
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
-    }
-}
 return result

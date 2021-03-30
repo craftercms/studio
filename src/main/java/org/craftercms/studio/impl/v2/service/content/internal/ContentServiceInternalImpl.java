@@ -30,8 +30,9 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
-import org.craftercms.studio.api.v2.security.PossibleActionsConstants;
+import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -48,7 +49,7 @@ import java.util.Objects;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
 
@@ -61,6 +62,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private SecurityService securityService;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private StudioConfiguration studioConfiguration;
+    private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
 
     @Override
     public List<String> getSubtreeItems(String siteId, String path) {
@@ -77,8 +79,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, List<String> excludes,
-                                               String sortStrategy, String order, int offset, int limit)
+    public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
+                                               List<String> excludes, String sortStrategy, String order, int offset,
+                                               int limit)
             throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -86,17 +89,16 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String ldPath = parentFolderPath + FILE_SEPARATOR + ldName;
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), ldPath, ldName, parentFolderPath,
-                locale, excludes, ignoreNames, sortStrategy, order, offset, limit);
+                locale, keyword, excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setLimit(limit);
-        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale, excludes,
-                ignoreNames));
+        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale, keyword,
+                excludes));
         return toRet;
     }
 
@@ -107,8 +109,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         if (resultSet != null && resultSet.size() > 0) {
             int idx = 0;
             Item item = resultSet.get(idx);
-            item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
-                    PossibleActionsConstants.getPossibleActionsForObject(item.getSystemType()));
+            item.setAvailableActions(
+                    semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
             if (StringUtils.endsWith(item.getPath(), FILE_SEPARATOR +
                     servicesConfig.getLevelDescriptorName(siteId))) {
                 toRet.setLevelDescriptor(SandboxItem.getInstance(item));
@@ -117,8 +119,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             List<SandboxItem> children = new ArrayList<SandboxItem>();
             while (idx < resultSet.size()) {
                 Item child = resultSet.get(idx);
-                child.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, child.getPath()) &
-                        PossibleActionsConstants.getPossibleActionsForObject(child.getSystemType()));
+                child.setAvailableActions(
+                        semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, child));
                 children.add(SandboxItem.getInstance(child));
                 idx++;
             }
@@ -128,43 +130,42 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public int getChildrenByPathTotal(String siteId, String path, String locale, List<String> excludes) {
+    public int getChildrenByPathTotal(String siteId, String path, String locale, String keyword,
+                                      List<String> excludes) {
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath,
-                servicesConfig.getLevelDescriptorName(siteId), locale, excludes, ignoreNames);
+                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes);
     }
 
     @Override
-    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, List<String> excludes,
-                                             String sortStrategy, String order, int offset, int limit)
+    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String keyword,
+                                             List<String> excludes, String sortStrategy, String order, int offset,
+                                             int limit)
             throws ServiceLayerException, UserNotFoundException {
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenById(siteFeed.getId(), parentId,
-                servicesConfig.getLevelDescriptorName(siteId), locale, excludes, ignoreNames, sortStrategy, order,
-                offset, limit);
+                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes, sortStrategy,
+                order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setTotal(getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId), locale,
-                excludes));
+                keyword, excludes));
         return toRet;
     }
 
     @Override
-    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale,
+    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale, String keyword,
                                     List<String> excludes) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<String> ignoreNames = Arrays.asList(IGNORE_FILES);
         return itemDao.getChildrenByIdTotal(siteFeed.getId(), parentId, servicesConfig.getLevelDescriptorName(siteId),
-                locale, ignoreNames, excludes);
+                locale, keyword, excludes);
     }
 
     @Override
@@ -202,8 +203,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         if (Objects.nonNull(detailedItem)) {
             String user = securityService.getCurrentUser();
             detailedItem.setAvailableActions(
-                    securityServiceV2.getAvailableActions(user, siteId, detailedItem.getPath()) &
-                    PossibleActionsConstants.getPossibleActionsForObject(detailedItem.getSystemType()));
+                    semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, detailedItem));
             detailedItem.setStaging(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
                     studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING), detailedItem.getPath()));
             detailedItem.setLive(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
@@ -265,13 +265,35 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 if (!contentRepository.contentExists(siteId, item.getPath())) {
                     logger.warn("Content not found at path " + item.getPath() + " site " + siteId);
                 } else {
-                    item.setAvailableActions(securityServiceV2.getAvailableActions(user, siteId, item.getPath()) &
-                            PossibleActionsConstants.getPossibleActionsForObject(item.getSystemType()));
+                    item.setAvailableActions(
+                            semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
                     toRet.add(SandboxItem.getInstance(item));
                 }
             }
         }
         return toRet;
+    }
+
+    @Override
+    public boolean isEditable(Item item) {
+        List<String> editableMimeTypes =
+                Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
+        String mimeType = item.getMimeType();
+        if (StringUtils.isEmpty(mimeType)) {
+            mimeType = StudioUtils.getMimeType(item.getPath());
+        }
+        return editableMimeTypes.contains(mimeType);
+    }
+
+    @Override
+    public boolean isEditable(DetailedItem detailedItem) {
+        List<String> editableMimeTypes =
+                Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
+        String mimeType = detailedItem.getMimeType();
+        if (StringUtils.isEmpty(mimeType)) {
+            mimeType = StudioUtils.getMimeType(detailedItem.getPath());
+        }
+        return editableMimeTypes.contains(mimeType);
     }
 
     public ContentRepository getContentRepository() {
@@ -330,4 +352,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         this.securityServiceV2 = securityServiceV2;
     }
 
+    public SemanticsAvailableActionsResolver getSemanticsAvailableActionsResolver() {
+        return semanticsAvailableActionsResolver;
+    }
+
+    public void setSemanticsAvailableActionsResolver(SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {
+        this.semanticsAvailableActionsResolver = semanticsAvailableActionsResolver;
+    }
 }

@@ -26,6 +26,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MARKER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface GitLogDAO {
@@ -48,4 +49,13 @@ public interface GitLogDAO {
     List<GitLog> getUnauditedCommits(@Param(SITE_ID) String siteId, @Param(LIMIT) int limit);
 
     List<GitLog> getUnprocessedCommitsSinceMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker);
+
+    /**
+     * Mark all git logs as processed if they are inserted before marker
+     * @param siteId site identifier
+     * @param marker marker git commit
+     * @param processed value for processed
+     */
+    void markGitLogProcessedBeforeMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker,
+                                         @Param(PROCESSED) int processed);
 }

@@ -18,9 +18,8 @@ package org.craftercms.studio.impl.v2.repository.blob.s3;
 import com.amazonaws.services.s3.model.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
-import org.craftercms.commons.file.blob.BlobStoreException;
+import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
@@ -110,7 +109,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
+    public String writeContent(String site, String path, InputStream content) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Uploading content to {0}", getFullKey(previewMapping, path));
         try {
@@ -141,7 +140,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         } else {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
-                    .withPrefix(getKey(previewMapping, path));
+                    .withPrefix(appendIfMissing(getKey(previewMapping, path), "/"));
             do {
                 try {
                     ListObjectsV2Result result = getClient().listObjectsV2(request);
@@ -178,7 +177,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             if (isFolder(fromPath)) {
                 ListObjectsV2Request request = new ListObjectsV2Request()
                         .withBucketName(previewMapping.target)
-                        .withPrefix(getKey(previewMapping, fromPath));
+                        .withPrefix(appendIfMissing(getKey(previewMapping, fromPath), "/"));
                 do {
                     try {
                         ListObjectsV2Result result = getClient().listObjectsV2(request);
@@ -239,7 +238,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         if (isFolder(fromPath)) {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
-                    .withPrefix(getKey(previewMapping, fromPath));
+                    .withPrefix(appendIfMissing(getKey(previewMapping, fromPath), "/"));
             do {
                 try {
                     ListObjectsV2Result result = getClient().listObjectsV2(request);
@@ -291,6 +290,10 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 logger.debug("Deleting content at {0}", getFullKey(envMapping, item.getPath()));
                 try {
                     getClient().deleteObject(envMapping.target, getKey(envMapping, item.getPath()));
+                    if (isNotEmpty(item.getOldPath())) {
+                        logger.debug("Deleting content at {0}", getFullKey(envMapping, item.getOldPath()));
+                        getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
+                    }
                 } catch (Exception e) {
                     throw new BlobStoreException("Error deleting content at " +
                             getFullKey(previewMapping, item.getPath()), e);

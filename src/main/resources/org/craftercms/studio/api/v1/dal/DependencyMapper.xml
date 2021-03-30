@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -114,70 +114,28 @@
         </foreach>
     </select>
 
-    <select id="getPublishingDependenciesForList" parameterType="java.util.Map" resultType="String">
-        SELECT target_path
-        FROM (dependency cd1 INNER JOIN item_state co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
-        WHERE cd1.site = #{site}
-        AND cd1.source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND co1.state IN
-        <foreach item="state" index="index" collection="newStates"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
-        UNION
-        SELECT target_path
-        FROM (dependency cd2 INNER JOIN item_state co2 ON cd2.target_path = co2.path AND cd2.site = co2.site)
-        WHERE cd2.site = #{site}
-        AND cd2.source_path IN
-        <foreach item="path" index="index" collection="paths"
-                 open="(" separator="," close=")">
-            #{path}
-        </foreach>
-        AND co2.state IN
-        <foreach item="state" index="index" collection="editedStates"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
-        AND
-        <foreach item="pattern" index="index" collection="regex"
-                 open="(" separator=" OR " close=")">
-            cd2.target_path RLIKE #{pattern}
-        </foreach>
-    </select>
-
     <select id="calculatePublishingDependenciesForList" parameterType="java.util.Map"
             resultType="java.util.Map">
         SELECT cd1.source_path, cd1.target_path
-        FROM (dependency cd1 INNER JOIN item_state co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
+        FROM (dependency cd1 INNER JOIN site s1 ON cd1.site = s1.site_id INNER JOIN item ci1 ON cd1.target_path = ci1.path AND s1.id = ci1.site_id)
         WHERE cd1.site = #{site}
         AND cd1.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
             #{path}
         </foreach>
-        AND co1.state IN
-        <foreach item="state" index="index" collection="newStates"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
+        AND (ci1.state &amp; #{newMask}) > 0
         UNION
         SELECT cd2.source_path, cd2.target_path
-        FROM (dependency cd2 INNER JOIN item_state co2 ON cd2.target_path = co2.path AND cd2.site = co2.site)
+        FROM (dependency cd2 INNER JOIN site s2 ON cd2.site = s2.site_id INNER JOIN item ci2 ON cd2.target_path = ci2.path AND s2.id = ci2.site_id)
         WHERE cd2.site = #{site}
         AND cd2.source_path IN
         <foreach item="path" index="index" collection="paths"
                  open="(" separator="," close=")">
             #{path}
         </foreach>
-        AND co2.state IN
-        <foreach item="state" index="index" collection="editedStates"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
+        AND (ci2.state &amp; #{modifiedMask}) > 0
+        AND (ci2.state &amp; #{newMask}) = 0
         AND
         <foreach item="pattern" index="index" collection="regex"
                  open="(" separator=" OR " close=")">

@@ -83,6 +83,13 @@ public final class RequestMappingConstants {
     /** Audit controller */
     public static final String AUDIT = "/audit";
 
+    /** Publish Controller */
+    public static final String PUBLISH = "/publish";
+    public static final String PACKAGES = "/packages";
+    public static final String PACKAGE = "/package";
+    public static final String CANCEL = "/cancel";
+    public static final String CLEAR_LOCK = "/clear_lock";
+
     private RequestMappingConstants() {
     }
 }

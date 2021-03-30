@@ -16,7 +16,11 @@
 
 package org.craftercms.studio.api.v2.service.content.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.model.contentType.ContentTypeUsage;
 
 import java.util.List;
 
@@ -29,4 +33,28 @@ public interface ContentTypeServiceInternal {
      * @return List of quick creatable content types
      */
     List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
+
+    /**
+     * Finds all items related to a given content-type
+     *
+     * @param siteId the id of the site
+     * @param contentType the id of the content-type
+     * @return the usage
+     * @throws ServiceLayerException if there is any error finding the items
+     */
+    ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException;
+
+    /**
+     * Deletes all files related to a given content-type
+     *
+     * @param siteId the id of the site
+     * @param contentType the id of the content-type
+     * @param deleteDependencies indicates if all dependencies should be deleted
+     * @throws ServiceLayerException if there is any error deleting the files
+     * @throws AuthenticationException if there is any error authenticating the user
+     * @throws DeploymentException if there is any error publishing the changes
+     */
+    void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
+            throws ServiceLayerException, AuthenticationException, DeploymentException;
+
 }

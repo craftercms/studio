@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -26,35 +28,9 @@ import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
-public class Item {
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
-     public static class Properties {
-        public static final String ID = "id";
-        public static final String SITE_ID = "siteId";
-        public static final String SITE_NAME = "siteName";
-        public static final String PATH = "path";
-        public static final String PREVIEW_URL = "previewUrl";
-        public static final String STATE =  "state";
-        public static final String OWNED_BY = "ownedBy";
-        public static final String OWNER = "owner";
-        public static final String CREATED_BY = "createdBy";
-        public static final String CREATOR = "creator";
-        public static final String CREATED_ON = "createdOn";
-        public static final String LAST_MODIFIED_BY = "lastModifiedBy";
-        public static final String MODIFIER = "modifier";
-        public static final String LAST_MODIFIED_ON = "lastModifiedOn";
-        public static final String LABEL = "label";
-        public static final String CONTENT_TYPE_ID = "contentTypeId";
-        public static final String SYSTEM_TYPE = "systemType";
-        public static final String MIME_TYPE = "mimeType";
-        public static final String DISABLED = "disabled";
-        public static final String LOCALE_CODE = "localeCode";
-        public static final String TRANSLATION_SOURCE_ID = "translationSourceId";
-        public static final String SIZE = "size";
-        public static final String PARENT_ID = "parentId";
-        public static final String COMMIT_ID = "commitId";
-        public static final String AVAILABLE_ACTIONS = "availableActions";
-    }
+public class Item {
 
     private static final Logger logger = LoggerFactory.getLogger(Item.class);
 
@@ -72,6 +48,7 @@ public class Item {
     private Long lastModifiedBy = null;
     private String modifier;
     private ZonedDateTime lastModifiedOn;
+    private ZonedDateTime lastPublishedOn;
     private String label;
     private String contentTypeId;
     private String systemType;
@@ -84,6 +61,9 @@ public class Item {
     private Long parentId = null;
     private String commitId;
     private long availableActions;
+    private String previousPath;
+    private int ignoredAsInt;
+    private boolean ignored;
 
     public Item() { }
 
@@ -102,6 +82,7 @@ public class Item {
         lastModifiedBy = builder.lastModifiedBy;
         modifier = builder.modifier;
         lastModifiedOn = builder.lastModifiedOn;
+        lastPublishedOn = builder.lastPublishedOn;
         label = builder.label;
         contentTypeId = builder.contentTypeId;
         systemType = builder.systemType;
@@ -114,6 +95,9 @@ public class Item {
         parentId = builder.parentId;
         commitId = builder.commitId;
         availableActions = builder.availableActions;
+        previousPath = builder.previousPath;
+        ignoredAsInt = builder.ignoredAsInt;
+        ignored = builder.ignored;
     }
 
     public long getId() {
@@ -228,6 +212,14 @@ public class Item {
         this.lastModifiedOn = lastModifiedOn;
     }
 
+    public ZonedDateTime getLastPublishedOn() {
+        return lastPublishedOn;
+    }
+
+    public void setLastPublishedOn(ZonedDateTime lastPublishedOn) {
+        this.lastPublishedOn = lastPublishedOn;
+    }
+
     public String getLabel() {
         return label;
     }
@@ -326,6 +318,30 @@ public class Item {
         this.availableActions = availableActions;
     }
 
+    public String getPreviousPath() {
+        return previousPath;
+    }
+
+    public void setPreviousPath(String previousPath) {
+        this.previousPath = previousPath;
+    }
+
+    public int getIgnoredAsInt() {
+        return ignoredAsInt;
+    }
+
+    public void setIgnoredAsInt(int ignoredAsInt) {
+        this.ignoredAsInt = ignoredAsInt;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+
+    public void setIgnored(boolean ignored) {
+        this.ignored = ignored;
+    }
+
     public void populateProperties(Map<String, Object> properties) {
         properties.forEach((propertyName, value) -> {
             PropertyDescriptor pd;
@@ -388,6 +404,9 @@ public class Item {
                         case Properties.LAST_MODIFIED_ON:
                             setLastModifiedOn((ZonedDateTime) value);
                             break;
+                        case Properties.LAST_PUBLISHED_ON:
+                            setLastPublishedOn((ZonedDateTime) value);
+                            break;
                         case Properties.LABEL:
                             setLabel((String) value);
                             break;
@@ -420,6 +439,13 @@ public class Item {
                             break;
                         case Properties.AVAILABLE_ACTIONS:
                             setAvailableActions((Long) value);
+                            break;
+                        case Properties.PREVIOUS_PATH:
+                            setPreviousPath((String) value);
+                            break;
+                        case Properties.IGNORED:
+                            setIgnored((Boolean) value);
+                            break;
                     }
                 });
     }
@@ -439,6 +465,7 @@ public class Item {
         private Long lastModifiedBy;
         private String modifier;
         private ZonedDateTime lastModifiedOn;
+        private ZonedDateTime lastPublishedOn;
         private String label;
         private String contentTypeId;
         private String systemType;
@@ -451,6 +478,9 @@ public class Item {
         private Long parentId = null;
         private String commitId;
         private Long availableActions;
+        private String previousPath;
+        private int ignoredAsInt;
+        private boolean ignored;
 
         public Builder() { }
 
@@ -469,6 +499,7 @@ public class Item {
             clone.lastModifiedBy = item.lastModifiedBy;
             clone.modifier = item.modifier;
             clone.lastModifiedOn = item.lastModifiedOn;
+            clone.lastPublishedOn = item.lastPublishedOn;
             clone.label = item.label;
             clone.contentTypeId = item.contentTypeId;
             clone.systemType = item.systemType;
@@ -481,6 +512,9 @@ public class Item {
             clone.parentId = item.parentId;
             clone.commitId = item.commitId;
             clone.availableActions = item.availableActions;
+            clone.previousPath = item.previousPath;
+            clone.ignoredAsInt = item.ignoredAsInt;
+            clone.ignored = item.ignored;
             return clone;
         }
 
@@ -554,6 +588,11 @@ public class Item {
             return this;
         }
 
+        public Builder withLastPublishedOn(ZonedDateTime lastPublishedOn) {
+            this.lastPublishedOn = lastPublishedOn;
+            return this;
+        }
+
         public Builder withLabel(String label) {
             this.label = label;
             return this;
@@ -611,8 +650,61 @@ public class Item {
             return this;
         }
 
+        public Builder withPreviousPath(String previousPath) {
+            this.previousPath = previousPath;
+            return this;
+        }
+
+        public Builder withIgnoredAsInt(int ignoredAsInt) {
+            this.ignoredAsInt = ignoredAsInt;
+            this.ignored = ignoredAsInt > 0;
+            return this;
+        }
+
+        public Builder withIgnored(boolean ignored) {
+            this.ignored = ignored;
+            this.ignoredAsInt = ignored ? 1 : 0;
+            return this;
+        }
+
         public Item build() {
+            String fileName = FilenameUtils.getName(this.path);
+            if (ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                this.ignoredAsInt = 1;
+                this.ignored = true;
+            }
             return new Item(this);
         }
+    }
+
+    public static class Properties {
+        public static final String ID = "id";
+        public static final String SITE_ID = "siteId";
+        public static final String SITE_NAME = "siteName";
+        public static final String PATH = "path";
+        public static final String PREVIEW_URL = "previewUrl";
+        public static final String STATE =  "state";
+        public static final String OWNED_BY = "ownedBy";
+        public static final String OWNER = "owner";
+        public static final String CREATED_BY = "createdBy";
+        public static final String CREATOR = "creator";
+        public static final String CREATED_ON = "createdOn";
+        public static final String LAST_MODIFIED_BY = "lastModifiedBy";
+        public static final String MODIFIER = "modifier";
+        public static final String LAST_MODIFIED_ON = "lastModifiedOn";
+        public static final String LAST_PUBLISHED_ON = "lastPublishedOn";
+        public static final String LABEL = "label";
+        public static final String CONTENT_TYPE_ID = "contentTypeId";
+        public static final String SYSTEM_TYPE = "systemType";
+        public static final String MIME_TYPE = "mimeType";
+        public static final String DISABLED = "disabled";
+        public static final String LOCALE_CODE = "localeCode";
+        public static final String TRANSLATION_SOURCE_ID = "translationSourceId";
+        public static final String SIZE = "size";
+        public static final String PARENT_ID = "parentId";
+        public static final String COMMIT_ID = "commitId";
+        public static final String AVAILABLE_ACTIONS = "availableActions";
+        public static final String PREVIOUS_PATH = "previousPath";
+        public static final String IGNORED = "ignored";
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,13 +19,11 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -34,10 +32,6 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -160,7 +154,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                     contentItem = createNewFile(site, parentContentItem, assetName, null, in, user,
                             unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
-                    objectStateService.insertNewEntry(site, contentItem);
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
                 assetInfo.setFileName(assetName);
@@ -217,19 +210,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
 
         if (success) {
-            Map<String, Object> properties = new HashMap<>();
-            properties.put(ItemMetadata.PROP_MODIFIER, user);
-            properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-            if (unlock) {
-                properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
-            } else {
-                properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
-            }
-            if (!objectMetadataManager.metadataExist(site, relativePath)) {
-                objectMetadataManager.insertNewObjectMetadata(site, relativePath);
-            }
-            objectMetadataManager.setObjectMetadata(site, relativePath, properties);
-            result.setCommitId(objectMetadataManager.getProperties(site, relativePath).getCommitId());
+            String commitId = contentRepository.getRepoLastCommitId(site);
+            result.setCommitId(commitId);
 
             // if there is anything pending and this is not a preview update, cancel workflow
             if (!isPreview) {
@@ -243,8 +225,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
 
             // Item
-            String assetName = FilenameUtils.getName(relativePath);
-            // TODO: get local code with API 2
             itemServiceInternal.persistItemAfterWrite(site, relativePath, user, result.getCommitId(), Optional.of(unlock));
         }
         if (unlock) {
@@ -255,15 +235,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
     }
 
-    protected ObjectStateService objectStateService;
     protected StudioConfiguration studioConfiguration;
-
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
-    }
 
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;

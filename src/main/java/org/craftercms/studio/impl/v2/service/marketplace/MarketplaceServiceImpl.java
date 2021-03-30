@@ -23,12 +23,12 @@ import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
@@ -36,8 +36,8 @@ import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServ
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_INSTALL_PLUGINS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTION_LIST_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_INSTALL_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_LIST_PLUGINS;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -47,7 +47,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.ACTIO
  */
 public class MarketplaceServiceImpl implements MarketplaceService {
 
-    protected MarketplaceServiceInternal marketplaceServiceInternal;
+    protected final MarketplaceServiceInternal marketplaceServiceInternal;
 
     public MarketplaceServiceImpl(MarketplaceServiceInternal marketplaceServiceInternal) {
         this.marketplaceServiceInternal = marketplaceServiceInternal;
@@ -66,22 +66,29 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create-site")
     public void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
-        InvalidRemoteRepositoryException, RemoteRepositoryNotBareException, InvalidRemoteUrlException,
+        InvalidRemoteRepositoryException, InvalidRemoteUrlException,
         ServiceLayerException, InvalidRemoteRepositoryCredentialsException {
         marketplaceServiceInternal.createSite(request);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_LIST_PLUGINS)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_LIST_PLUGINS)
     public List<PluginRecord> getInstalledPlugins(String siteId)
             throws MarketplaceException {
         return marketplaceServiceInternal.getInstalledPlugins(siteId);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = ACTION_INSTALL_PLUGINS)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
     public void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException {
         marketplaceServiceInternal.installPlugin(siteId, pluginId, pluginVersion);
+    }
+
+    @Override
+    @ValidateParams
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
+    public void copyPlugin(String siteId, @ValidateSecurePathParam(name = "path") String path) throws MarketplaceException {
+        marketplaceServiceInternal.copyPlugin(siteId, path);
     }
 
 }

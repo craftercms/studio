@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
@@ -54,7 +54,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 logger.debug("Executing sync repository thread ID = " + threadCounter + "; " +
                         Thread.currentThread().getId());
                 String siteState = siteService.getSiteState(site);
-                if (StringUtils.equals(siteState, STATE_CREATED)) {
+                if (StringUtils.equals(siteState, STATE_READY)) {
                     syncRepository(site);
                 }
             } catch (Exception e) {
@@ -88,6 +88,9 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                         GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
                         if (Objects.nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
                             siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                            contentRepository.markGitLogProcessedBeforeMarker(site, gl2.getId(), 1);
+                        } else {
+                            contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
                         }
                     }
                 }

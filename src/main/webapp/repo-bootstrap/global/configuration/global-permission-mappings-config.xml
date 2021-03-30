@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -38,16 +38,14 @@
 
     This binds a set of permissions to a role globally for the entire application.
 -->
-
 <permissions>
     <role name="system_admin">
         <rule regex="/.*">
             <allowed-permissions>
-                <permission>Read</permission>
-                <permission>Write</permission>
-                <permission>Delete</permission>
-                <permission>Create Folder</permission>
-                <permission>Publish</permission>
+                <permission>content_read</permission>
+                <permission>content_write</permission>
+                <permission>folder_create</permission>
+                <permission>publish</permission>
                 <permission>create-site</permission>
                 <permission>read_groups</permission>
                 <permission>create_groups</permission>
@@ -75,7 +73,7 @@
                 <permission>remove_remote</permission>
                 <permission>S3 Read</permission>
                 <permission>S3 Write</permission>
-                <permission>delete_content</permission>
+                <permission>content_delete</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
                 <permission>write_configuration</permission>
@@ -86,6 +84,7 @@
                 <permission>manage_access_token</permission>
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
+                <permission>site_delete</permission>
             </allowed-permissions>
         </rule>
     </role>

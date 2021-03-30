@@ -57,6 +57,17 @@
         </permitted>
     </statement>
 
+    <!-- Remove numbers in the path -->
+    <statement>
+        <target-path-pattern>/static-assets/remove-numbers.*</target-path-pattern>
+        <permitted>
+            <path>
+                <source-regex>\d</source-regex>
+                <target-regex/>
+            </path>
+        </permitted>
+    </statement>
+
     <!--  Only allow a specific content-type  -->
     <statement>
         <target-path-pattern>/site/components/headers.*</target-path-pattern>
