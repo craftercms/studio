@@ -85,9 +85,17 @@
     </insert>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
+        SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+               last_modified_by, last_modified_on, last_published_on, label,
+               NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+               translation_source_id, size, parent_id, commit_id, previous_path, ignored
+        FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
         UNION
-        (SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored FROM item WHERE site_id = #{siteId}
+        (SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+                last_modified_by, last_modified_on, last_published_on, label,
+                NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+                translation_source_id, size, parent_id, commit_id, previous_path, ignored
+        FROM item WHERE site_id = #{siteId}
         AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
@@ -141,9 +149,17 @@
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
-        SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
+        SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+               last_modified_by, last_modified_on, last_published_on, label,
+               NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+               translation_source_id, size, parent_id, commit_id, previous_path, ignored
+        FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
         UNION
-        SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path NOT LIKE '%/${ldName}'
+        SELECT id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+               last_modified_by, last_modified_on, last_published_on, label,
+               NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+               translation_source_id, size, parent_id, commit_id, previous_path, ignored
+        FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
             AND locale_code = #{localeCode}
         </if>
@@ -197,41 +213,69 @@
     </select>
 
     <select id="getItemByIdPreferContent" resultMap="ItemMap">
-            (select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on, i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label, NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled, i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id, i1.previous_path, i1.ignored
+            (select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on,
+                    i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label,
+                    NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled,
+                    i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id,
+                    i1.previous_path, i1.ignored
             from item i1, item i2 where i2.id = #{id}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on, i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label, NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled, i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id, i3.previous_path, i3.ignored
+            select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on,
+                   i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label,
+                   NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled,
+                   i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id,
+                   i3.previous_path, i3.ignored
             from item i3 where i3.id = #{id})
             limit 0, 1
     </select>
 
     <select id="getItemByPath" resultMap="ItemMap">
-            select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored from item where site_id = #{siteId} and path = #{path}
+            select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+                   last_modified_by, last_modified_on, last_published_on, label,
+                   NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+                   translation_source_id, size, parent_id, commit_id, previous_path, ignored
+            from item where site_id = #{siteId} and path = #{path}
             limit 0, 1
     </select>
 
     <select id="getItemByPathPreferContent" resultMap="ItemMap">
-            (select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on, i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label, NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled, i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id, i1.previous_path, i1.ignored
+            (select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on,
+                    i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label,
+                    NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled,
+                    i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id,
+                    i1.previous_path, i1.ignored
             from item i1, item i2 where i2.site_id =  #{siteId} and i2.path = #{path}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on, i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label, NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled, i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id, i3.previous_path, i3.ignored
+            select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on,
+                   i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label,
+                   NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled,
+                   i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id,
+                   i3.previous_path, i3.ignored
             from item i3 where i3.site_id = #{siteId} and i3.path = #{path})
             limit 0, 1
     </select>
 
     <select id="getSandboxItemsById" resultMap="ItemMap">
-        select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored from item where id in
+        select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+               last_modified_by, last_modified_on, last_published_on, label,
+               NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+               translation_source_id, size, parent_id, commit_id, previous_path, ignored
+        from item where id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
         </foreach>
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
-        select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on, i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label, NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled, i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id, i1.previous_path, i1.ignored
+        select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on,
+               i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label,
+               NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled,
+               i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id,
+               i1.previous_path, i1.ignored
         from item i1, item i2 where i2.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -239,7 +283,11 @@
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         union
-        select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on, i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label, NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled, i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id, i3.previous_path, i3.ignored
+        select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on,
+               i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label,
+               NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled,
+               i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id,
+               i3.previous_path, i3.ignored
         from item i3 where i3.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -250,14 +298,20 @@
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
-        select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored from item where site_id = #{siteId} and ignored = 0 and path in
+        select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+               last_modified_by, last_modified_on, last_published_on, label,
+               NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+               translation_source_id, size, parent_id, commit_id, previous_path, ignored
+        from item where site_id = #{siteId} and ignored = 0 and path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
     </select>
 
     <select id="getSandboxItemsByPathPreferContent" resultMap="ItemMap">
-        select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on, content_type_id, i1.system_type, i1.mime_type, i1.disabled, i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id, i1.previous_path, i1.ignored
+        select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on,
+               NULLIF(content_type_id, ''), i1.system_type, i1.mime_type, i1.disabled, i1.locale_code,
+               i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id, i1.previous_path, i1.ignored
         from item i1, item i2 where i2.site_id = #{siteId} and i2.path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
@@ -266,7 +320,11 @@
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         union
-        select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on, i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label, NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled, i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id, i3.previous_path, i3.ignored
+        select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on,
+               i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label,
+               NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled,
+               i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id,
+               i3.previous_path, i3.ignored
         from item i3
         where i3.site_id = #{siteId}
         and i3.path in
@@ -280,18 +338,30 @@
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="ItemMap">
-            select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored from item where site_id = #{siteId} and path = #{path}
+            select id, record_last_updated, site_id, path, preview_url, state, owned_by, created_by, created_on,
+                   last_modified_by, last_modified_on, last_published_on, label,
+                   NULLIF(content_type_id, '') as content_type_id, system_type, mime_type, disabled, locale_code,
+                   translation_source_id, size, parent_id, commit_id, previous_path, ignored
+            from item where site_id = #{siteId} and path = #{path}
             limit 0, 1
     </select>
 
     <select id="getItemBySiteIdAndPathPreferContent" resultMap="ItemMap">
-            (select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on, i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label, NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled, i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id, i1.previous_path, i1.ignored
+            (select i1.id, i1.site_id, i1.path, i1.preview_url, i1.state, i1.owned_by, i1.created_by, i1.created_on,
+                    i1.last_modified_by, i1.last_modified_on, i1.last_published_on, i1.label,
+                    NULLIF(i1.content_type_id, '') as content_type_id, i1.system_type, i1.mime_type, i1.disabled,
+                    i1.locale_code, i1.translation_source_id, i1.size, i1.parent_id, i1.commit_id,
+                    i1.previous_path, i1.ignored
             from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.ignored = 0
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on, i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label, NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled, i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id, i3.previous_path, i3.ignored
+            select i3.id, i3.site_id, i3.path, i3.preview_url, i3.state, i3.owned_by, i3.created_by, i3.created_on,
+                   i3.last_modified_by, i3.last_modified_on, i3.last_published_on, i3.label,
+                   NULLIF(i3.content_type_id, '') as content_type_id, i3.system_type, i3.mime_type, i3.disabled,
+                   i3.locale_code, i3.translation_source_id, i3.size, i3.parent_id, i3.commit_id,
+                   i3.previous_path, i3.ignored
             from item i3 where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0)
             limit 0, 1
     </select>
@@ -541,7 +611,10 @@
     </update>
 
     <select id="getInProgressItems" resultMap="ItemMap">
-        SELECT i.id, i.site_id, i.path, i.preview_url, i.state, owned_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.last_published_on, i.label, NULLIF(i.content_type_id, '') as content_type_id, i.system_type, i.mime_type, i.disabled, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.commit_id, i.previous_path, i.ignored
+        SELECT i.id, i.site_id, i.path, i.preview_url, i.state, i.owned_by, i.created_by, i.created_on,
+               i.last_modified_by, i.last_modified_on, i.last_published_on, i.label,
+               NULLIF(i.content_type_id, '') as content_type_id, i.system_type, i.mime_type, i.disabled,
+               i.locale_code, i.translation_source_id, i.size, i.parent_id, i.commit_id, i.previous_path, i.ignored
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
@@ -550,7 +623,10 @@
     </select>
 
     <select id="getSubmittedItems" resultMap="ItemMap">
-        SELECT i.id, i.site_id, i.path, i.preview_url, i.state, i.owned_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.last_published_on, i.label, NULLIF(i.content_type_id, '') as content_type_id, i.system_type, i.mime_type, i.disabled, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.commit_id, i.previous_path, i.ignored
+        SELECT i.id, i.site_id, i.path, i.preview_url, i.state, i.owned_by, i.created_by, i.created_on,
+               i.last_modified_by, i.last_modified_on, i.last_published_on, i.label,
+               NULLIF(i.content_type_id, '') as content_type_id, i.system_type, i.mime_type, i.disabled,
+               i.locale_code, i.translation_source_id, i.size, i.parent_id, i.commit_id, i.previous_path, i.ignored
         FROM item i INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId}
           AND s.deleted = 0
