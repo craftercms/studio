@@ -57,6 +57,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.PublishStatus.ERROR;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.PUBLISHING;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
@@ -211,14 +212,14 @@ public class StudioPublisherTask extends StudioClockTask {
 
     private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment) {
         try {
-            String statusMessage = StringUtils.EMPTY;
+            String statusMessage;
+            String status;
             String author = itemsToDeploy.get(0).getUser();
             StringBuilder sbComment = new StringBuilder();
             List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<DeploymentItemTO>();
             Set<String> processedPaths = new HashSet<String>();
             SimpleDateFormat sdf =
                     new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
-            String messagePath = StringUtils.EMPTY;
             String currentPackageId = StringUtils.EMPTY;
             try {
                 logger.debug("Mark items as processing for site \"{0}\"", siteId);
@@ -228,16 +229,17 @@ public class StudioPublisherTask extends StudioClockTask {
                     idx++;
                     if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
                         currentPackageId = item.getPackageId();
-                        statusMessage = studioConfiguration
-                                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING);
-                        statusMessage =
-                                statusMessage.replace("{package_id}", currentPackageId)
-                                        .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
-                                                .format(DateTimeFormatter.ofPattern(sdf.toPattern()))
-                                        .replace("{x}", Integer.toString(idx))
-                                        .replace("{Y}", Integer.toString(itemsToDeploy.size())));
-                        siteService.updatePublishingStatusMessage(siteId, PUBLISHING, statusMessage);
                     }
+                    statusMessage = studioConfiguration
+                            .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING);
+                    statusMessage =
+                            statusMessage.replace("{package_id}", currentPackageId)
+                                    .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
+                                            .format(DateTimeFormatter.ofPattern(sdf.toPattern())))
+                                    .replace("{x}", Integer.toString(idx))
+                                    .replace("{y}", Integer.toString(itemsToDeploy.size()));
+                    siteService.updatePublishingStatusMessage(siteId, PUBLISHING, statusMessage);
+
                     processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
                     if (packageIds.add(item.getPackageId())) {
                         sbComment.append(item.getSubmissionComment()).append("\n");
@@ -255,6 +257,7 @@ public class StudioPublisherTask extends StudioClockTask {
                 logger.info("Finished publishing environment " + environment + " for site " + siteId);
 
                 if (publishingManager.isPublishingQueueEmpty(siteId)) {
+                    status = READY;
                     statusMessage = studioConfiguration.getProperty
                             (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY);
                     statusMessage = statusMessage.replace("{package_id}", currentPackageId)
@@ -263,10 +266,11 @@ public class StudioPublisherTask extends StudioClockTask {
                             .replace("{package_size}",
                                     Integer.toString(itemsToDeploy.size()));
                 } else {
+                    status = QUEUED;
                     statusMessage =
                             studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
                 }
-                siteService.updatePublishingStatusMessage(siteId, QUEUED, statusMessage);
+                siteService.updatePublishingStatusMessage(siteId, status, statusMessage);
             } catch (DeploymentException err) {
                 logger.error("Error while executing deployment to environment store " +
                                 "for site \"{0}\", number of items \"{1}\"", err, siteId,
