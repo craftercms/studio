@@ -386,6 +386,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
                 StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
             return null;
+        } else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
+            return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
             replacePattern = StringUtils.EMPTY;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
