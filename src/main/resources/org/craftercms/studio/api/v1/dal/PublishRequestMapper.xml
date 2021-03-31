@@ -133,7 +133,7 @@
         SELECT count(1)
         FROM publish_request
         WHERE site = #{site}
-        AND scheduleddate &lt;= #{now}
+        AND scheduleddate &gt;= #{now}
         AND state = #{state}
         ORDER BY scheduleddate ASC
     </select>

@@ -67,6 +67,10 @@ public final class  QueryParameterNames {
     public static final String DESC = "description";
 
 
+    public static final String PUBLISHING_STATUS = "publishingStatus";
+
+    public static final String MESSAGE = "message";
+
     /* Groups */
 
     // Group ID
