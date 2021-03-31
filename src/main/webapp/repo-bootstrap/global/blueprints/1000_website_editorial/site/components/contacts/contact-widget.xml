@@ -27,7 +27,6 @@
 	<email_s>info@example.com</email_s>
 	<phone_s>(999) 999-9999</phone_s>
 	<text_html>&lt;p&gt;&lt;span&gt;Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</text_html>
-	<address>&lt;p&gt;5321 Somewhere Road #789&lt;br /&gt; Reston, Virginia&lt;/p&gt;</address>
 	<createdDate>2017-3-28T21:12:5.000Z</createdDate>
 	<createdDate_dt>2017-3-28T21:12:5.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-28T21:22:31.000Z</lastModifiedDate>

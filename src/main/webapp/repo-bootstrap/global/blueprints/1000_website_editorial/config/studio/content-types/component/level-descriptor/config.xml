@@ -15,15 +15,15 @@
   -->
 
 <content-type name="/component/level-descriptor" is-wcm-type="true">
-	<label>Section Defaults</label>
+	<label>Global Props</label>
 	<form>/component/level-descriptor</form>
 	<form-path>simple</form-path>
 	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
 	<file-extension>xml</file-extension>
 	<content-as-folder>false</content-as-folder>
 	<previewable>false</previewable>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>section-defaults.png</image-thumbnail>
 	<paths>

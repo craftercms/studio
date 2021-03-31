@@ -14,51 +14,59 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-(function($) {
+(function ($) {
 
-   $(function() {
-     var queryParam = $.urlParam('q');
-     if (queryParam) {
-       queryParam = decodeURI(queryParam).trim();
-       $('#query').val(queryParam);
-     }
+  var params = {};
+  try {
+    window.location.search.replace(/^\?/, '').split('&').forEach(function (piece) {
+      const pieces = piece.split('=');
+      params[pieces[0]] = pieces[1];
+    });
+  } catch {
 
-     var source = $("#search-results-template").html();
-     var template = Handlebars.compile(source);
+  }
 
-     var doSearch = function(userTerm, categories) {
-       var params = {};
+  var queryParam = params.q;
+  if (queryParam) {
+    queryParam = decodeURI(queryParam).trim();
+    $('#query').val(queryParam);
+  }
 
-       if (userTerm) {
-         params.userTerm = userTerm;
-       }
-       if (categories) {
-         params.categories = categories;
-       }
+  var source = $('#search-results-template').html();
+  var template = Handlebars.compile(source);
 
-       $.get("/api/search.json", params).done(function(data) {
-         if (data == null) {
-           data = [];
-         }
+  var doSearch = function (userTerm, categories) {
+    var params = {};
 
-         var context = { results: data };
-         var html = template(context);
+    if (userTerm) {
+      params.userTerm = userTerm;
+    }
+    if (categories) {
+      params.categories = categories;
+    }
 
-         $('#search-results').html(html);
-       });
-     }
+    $.get('/api/search.json', params).done(function (data) {
+      if (data == null) {
+        data = [];
+      }
 
-     $('#categories input').click(function() {
-       var categories = [];
+      var context = { results: data };
+      var html = template(context);
 
-       $('#categories input:checked').each(function() {
-         categories.push($(this).val());
-       });
+      $('#search-results').html(html);
+    });
+  };
 
-       doSearch(queryParam, categories);
-     });
+  $('#categories input').click(function () {
+    var categories = [];
 
-     doSearch(queryParam);
-   });
+    $('#categories input:checked').each(function () {
+      categories.push($(this).val());
+    });
+
+    doSearch(queryParam, categories);
+  });
+
+  doSearch(queryParam);
 
 })(jQuery);

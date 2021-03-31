@@ -20,7 +20,6 @@
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>102f</objectGroupId>
 	<objectId>102fb288-0dd8-806c-7651-2dd8838ca016</objectId>
-	<header/>
 	<file-name>index.xml</file-name>
 	<folder-name>style</folder-name>
 	<internal-name>Style</internal-name>

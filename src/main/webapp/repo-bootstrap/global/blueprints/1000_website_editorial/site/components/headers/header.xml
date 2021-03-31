@@ -16,25 +16,35 @@
   -->
 
 <component>
-	<content-type>/component/header</content-type>	<display-template>/templates/web/components/header.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>af02</objectGroupId>
-	<objectId>af023d71-d5ea-f8e5-2ec9-07a8b239d0c5</objectId>
-	<file-name>header.xml</file-name>
-	<folder-name/>
-	<internal-name>Header</internal-name>
-	<logo_text/>
-	<business_name_s>Editorial</business_name_s>
-	<logo/>
-	<social_media_links_o>	<item>	<url_s>http://twitter.com</url_s>
-	<social_media_s>fa-twitter</social_media_s>
-	</item>	<item>	<social_media_s>fa-facebook</social_media_s>
-	<url_s>http://facebook.com</url_s>
-	</item>	<item>	<social_media_s>fa-google-plus</social_media_s>
-	<url_s>http://plus.google.com</url_s>
-	</item></social_media_links_o>
-	<createdDate>2017-2-3T23:27:50.000Z</createdDate>
-	<createdDate_dt>2017-2-3T23:27:50.000Z</createdDate_dt>
-	<lastModifiedDate>2017-3-13T20:37:41.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-3-13T20:37:41.000Z</lastModifiedDate_dt>
+  <content-type>/component/header</content-type>
+  <display-template>/templates/web/components/header.ftl</display-template>
+  <no-template-required/>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>af02</objectGroupId>
+  <objectId>af023d71-d5ea-f8e5-2ec9-07a8b239d0c5</objectId>
+  <file-name>header.xml</file-name>
+  <folder-name/>
+  <internal-name>Header</internal-name>
+  <business_name_s>Editorial</business_name_s>
+  <social_media_links_o item-list="true">
+    <item>
+      <social_media_s>brands fa-facebook</social_media_s>
+      <url_s>http://facebook.com</url_s>
+    </item>
+    <item>
+      <url_s>http://twitter.com</url_s>
+      <social_media_s>brands fa-twitter</social_media_s>
+    </item>
+    <item>
+      <social_media_s>brands fa-google-plus</social_media_s>
+      <url_s>http://plus.google.com</url_s>
+    </item>
+  </social_media_links_o>
+  <createdDate>2017-2-3T23:27:50.000Z</createdDate>
+  <createdDate_dt>2017-2-3T23:27:50.000Z</createdDate_dt>
+  <lastModifiedDate>2019-12-20T13:47:32.168Z</lastModifiedDate>
+  <lastModifiedDate_dt>2020-02-05T18:03:58.518Z</lastModifiedDate_dt>
+  <logo_s>/static-assets/images/1-gear.png</logo_s>
+  <logo_text_t/>
+  <disabled>false</disabled>
 </component>

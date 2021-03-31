@@ -16,20 +16,24 @@
   -->
 
 <component>
-	<content-type>/component/articles-widget</content-type>	<display-template>/templates/web/components/articles-widget.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>a0b9</objectGroupId>
-	<objectId>a0b98d8a-b7d3-4e72-0064-d778ceff406e</objectId>
-	<file-name>related-articles-widget.xml</file-name>
-	<folder-name/>
-	<internal-name>Related Articles Widget</internal-name>
-	<title_t>Related Articles</title_t>
-	<max_articles_i>3</max_articles_i>
-	<scripts_o>	<item>	<key>/scripts/components/related-articles.groovy</key>
-	<value>related-articles.groovy</value>
-	</item></scripts_o>
-	<createdDate>2017-3-28T22:28:21.000Z</createdDate>
-	<createdDate_dt>2017-3-28T22:28:21.000Z</createdDate_dt>
-	<lastModifiedDate>2017-3-28T22:28:21.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-3-28T22:28:21.000Z</lastModifiedDate_dt>
+  <content-type>/component/articles-widget</content-type>
+  <display-template>/templates/web/components/articles-widget.ftl</display-template>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>a0b9</objectGroupId>
+  <objectId>a0b98d8a-b7d3-4e72-0064-d778ceff406e</objectId>
+  <file-name>related-articles-widget.xml</file-name>
+  <folder-name/>
+  <internal-name>Related Articles Widget</internal-name>
+  <title_t>Related Articles</title_t>
+  <max_articles_i>3</max_articles_i>
+  <scripts_o item-list="true">
+    <item>
+      <key>/scripts/components/related-articles.groovy</key>
+      <value>related-articles.groovy</value>
+    </item>
+  </scripts_o>
+  <createdDate>2017-3-28T22:28:21.000Z</createdDate>
+  <createdDate_dt>2017-3-28T22:28:21.000Z</createdDate_dt>
+  <lastModifiedDate>2017-3-28T22:28:21.000Z</lastModifiedDate>
+  <lastModifiedDate_dt>2017-3-28T22:28:21.000Z</lastModifiedDate_dt>
 </component>

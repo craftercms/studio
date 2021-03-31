@@ -20,5 +20,14 @@
 -->
 
 <site>
-    <version>2</version>
-</site>    
+  <version>2</version>
+  <!-- CORS Properties -->
+  <cors>
+    <enable>true</enable>
+    <accessControlMaxAge>3600</accessControlMaxAge>
+    <accessControlAllowOrigin>*</accessControlAllowOrigin>
+    <accessControlAllowMethods>GET\, POST\, PUT\, OPTIONS</accessControlAllowMethods>
+    <accessControlAllowHeaders>Content-Type</accessControlAllowHeaders>
+    <accessControlAllowCredentials>true</accessControlAllowCredentials>
+  </cors>
+</site>
