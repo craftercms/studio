@@ -125,6 +125,8 @@
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="clusterDao" ref="clusterDao" />
+        <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -463,6 +465,8 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDao" ref="dependencyDao" />
         <property name="itemStateMapper" ref="itemStateMapper" />
+        <property name="dependencyResolver" ref="studioDependencyResolver" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">
