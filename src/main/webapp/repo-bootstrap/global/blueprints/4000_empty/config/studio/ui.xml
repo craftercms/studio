@@ -57,7 +57,7 @@
                   <locale>en</locale>
                 </configuration>
               </widget>
-              <widget id="craftercms.components.PathNavigator">
+              <widget id="craftercms.components.PathNavigatorTree">
                 <configuration>
                   <label>Templates</label>
                   <icon baseClass="fa fa-file-code-o" />
@@ -65,7 +65,7 @@
                   <locale>en</locale>
                 </configuration>
               </widget>
-              <widget id="craftercms.components.PathNavigator">
+              <widget id="craftercms.components.PathNavigatorTree">
                 <configuration>
                   <label>Scripts</label>
                   <icon baseClass="fa fa-code" />
