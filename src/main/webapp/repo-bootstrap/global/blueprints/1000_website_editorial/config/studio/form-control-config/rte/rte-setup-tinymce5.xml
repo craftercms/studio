@@ -51,7 +51,7 @@
         <toolbarItems4></toolbarItems4>
 
         <!-- <external_plugins> -->
-        <!--    <my_button><![CDATA[/studio/api/2/plugin/file?siteId=mysite&type=tinymce&name=my_button&filename=plugin.min.js]]></my_button> -->
+        <!--    <my_button><![CDATA[/studio/1/plugin/file?siteId=mysite&type=tinymce&name=my_button&filename=plugin.min.js]]></my_button> -->
         <!-- </external_plugins> -->
 
         <codeEditorWrap>false</codeEditorWrap>
