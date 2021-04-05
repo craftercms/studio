@@ -585,20 +585,7 @@ public class SiteServiceImpl implements SiteService {
             sb.append(insertItemStateRow(siteId, path)).append("\n\n");
             sb.append(insertItemMetadataRow(siteId, path, creator, now, lastCommitId)).append("\n\n");
 
-            long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-            Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Dependency resolver for " + path + " finished in " +
-                        (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
-            }
-            if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
-                for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
-                    for (String targetPath : entry.getValue()) {
-                        sb.append(deleteDependencySourcePathRows(siteId, path)).append("\n\n");
-                        sb.append(insertDependencyRow(siteId, path, targetPath, entry.getKey())).append("\n\n");
-                    }
-                }
-            }
+            addDependenciesScriptSnippets(siteId, path, null, sb);
         }
         if (sb.length() > 0) {
             studioDBScriptRunner.execute(sb.toString());
@@ -610,6 +597,28 @@ public class SiteServiceImpl implements SiteService {
         if (logger.isDebugEnabled()) {
             logger.debug("Process created files finished in " +
                     (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
+        }
+    }
+
+    private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, StringBuilder scriptSb) {
+        long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
+        Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Dependency resolver for " + path + " finished in " +
+                    (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
+        }
+        if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
+            for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
+                for (String targetPath : entry.getValue()) {
+                    if (StringUtils.isEmpty(oldPath)) {
+                        scriptSb.append(deleteDependencySourcePathRows(siteId, path)).append("\n\n");
+                    } else {
+                        scriptSb.append(deleteDependencySourcePathRows(siteId, oldPath)).append("\n\n");
+                    }
+                    scriptSb.append(insertDependencyRow(siteId, path, targetPath, entry.getKey()))
+                            .append("\n\n");
+                }
+            }
         }
     }
 
@@ -1345,8 +1354,6 @@ public class SiteServiceImpl implements SiteService {
         int counter = 0;
         int batchCounter = 0;
         long startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-        long startDependencyResolver;
-        Map<String, Set<String>> dependencies = null;
         for (RepoOperation repoOperation : repoOperations) {
             if (counter++ >= batchSize) {
                 studioDBScriptRunner.execute(sb.toString());
@@ -1366,21 +1373,7 @@ public class SiteServiceImpl implements SiteService {
                             repoOperation.getDateTime(), repoOperation.getCommitId())).append("\n\n");
                     logger.debug("Extract dependencies for site: " + siteId + " path: " +
                             repoOperation.getPath());
-                    startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-                    dependencies = dependencyServiceInternal.resolveDependnecies(siteId, repoOperation.getPath());
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Dependency resolver for " + repoOperation.getPath() + " finished in " +
-                                (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
-                    }
-                    if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
-                        for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
-                            for (String targetPath : entry.getValue()) {
-                                sb.append(deleteDependencySourcePathRows(siteId, repoOperation.getPath())).append("\n\n");
-                                sb.append(insertDependencyRow(siteId, repoOperation.getPath(), targetPath, entry.getKey()))
-                                        .append("\n\n");
-                            }
-                        }
-                    }
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sb);
                     break;
 
                 case UPDATE:
@@ -1388,21 +1381,7 @@ public class SiteServiceImpl implements SiteService {
                     sb.append(updateItemMetadataRow(siteId, repoOperation.getPath(), repoOperation.getAuthor(),
                             repoOperation.getDateTime(), repoOperation.getCommitId())).append("\n\n");
                     logger.debug("Extract dependencies for site: " + siteId + " path: " + repoOperation.getPath());
-                    startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-                    dependencies = dependencyServiceInternal.resolveDependnecies(siteId, repoOperation.getPath());
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Dependency resolver for " + repoOperation.getPath() + " finished in " +
-                                (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
-                    }
-                    if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
-                        for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
-                            for (String targetPath : entry.getValue()) {
-                                sb.append(deleteDependencySourcePathRows(siteId, repoOperation.getPath())).append("\n\n");
-                                sb.append(insertDependencyRow(siteId, repoOperation.getPath(), targetPath,
-                                        entry.getKey())).append("\n" + "\n");
-                            }
-                        }
-                    }
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sb);
                     break;
 
                 case DELETE:
@@ -1417,21 +1396,7 @@ public class SiteServiceImpl implements SiteService {
                     sb.append(moveItemMetadataRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
                     sb.append(updateItemMetadataRow(siteId, repoOperation.getMoveToPath(), repoOperation.getAuthor(),
                             repoOperation.getDateTime(), repoOperation.getCommitId())).append("\n\n");
-                    startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-                    dependencies = dependencyServiceInternal.resolveDependnecies(siteId, repoOperation.getMoveToPath());
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Dependency resolver for " + repoOperation.getMoveToPath() + " finished in " +
-                                (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
-                    }
-                    if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
-                        for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
-                            for (String targetPath : entry.getValue()) {
-                                sb.append(deleteDependencySourcePathRows(siteId, repoOperation.getPath())).append("\n\n");
-                                sb.append(insertDependencyRow(siteId, repoOperation.getMoveToPath(), targetPath,
-                                        entry.getKey())).append("\n" + "\n");
-                            }
-                        }
-                    }
+                    addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sb);
                     break;
 
                 default:
@@ -1446,38 +1411,6 @@ public class SiteServiceImpl implements SiteService {
                     " milliseconds");
         }
         return toReturn;
-    }
-
-    protected boolean extractDependenciesForItem(String site, String path) {
-		boolean toReturn = true;
-
-	    try {
-		    if (path.endsWith(DmConstants.XML_PATTERN)) {
-			    SAXReader saxReader = new SAXReader();
-				try {
-					saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-					saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-					saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-				}catch (SAXException ex){
-					logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
-				}
-
-			    dependencyService.upsertDependencies(site, path);
-		    } else {
-			    boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
-			    boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
-			    boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns
-				    (site));
-			    if (isCss || isJs || isTemplate) {
-				    dependencyService.upsertDependencies(site, path);
-			    }
-		    }
-	    } catch (ServiceLayerException e) {
-		    logger.error("Error extracting dependencies for site " + site + " file: " + path, e);
-		    toReturn = false;
-	    }
-
-	    return toReturn;
     }
 
     @Override
