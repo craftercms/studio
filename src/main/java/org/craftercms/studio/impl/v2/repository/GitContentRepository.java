@@ -263,11 +263,15 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                         CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
                                         firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
                                         // Diff the two commit Ids
+                                        long startDiffMark1 = System.currentTimeMillis();
                                         List<DiffEntry> diffEntries = git.diff()
                                                 .setOldTree(firstCommitTreeParser)
                                                 .setNewTree(null)
                                                 .call();
-
+                                        logger.debug("Diff from " + objFirstCommitId.getName() + " to null " +
+                                                " finished in " +
+                                                ((System.currentTimeMillis() - startDiffMark1)/1000) + " seconds");
+                                        logger.debug("Number of diff entries " + diffEntries.size());
 
                                         // Now that we have a diff, let's itemize the file changes, pack them into a TO
                                         // and add them to the list of RepoOperations to return to the caller
@@ -338,11 +342,15 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                                 nextCommitTreeParser.reset(reader, nextTree.getId());
 
                                                 // Diff the two commit Ids
+                                                long startDiffMark2 = System.currentTimeMillis();
                                                 List<DiffEntry> diffEntries = git.diff()
                                                         .setOldTree(prevCommitTreeParser)
                                                         .setNewTree(nextCommitTreeParser)
                                                         .call();
-
+                                                logger.debug("Diff from " + objCommitIdFrom.getName() + " to " +
+                                                        objCommitIdTo.getName() + " finished in " +
+                                                        ((System.currentTimeMillis() - startDiffMark2)/1000) + " seconds");
+                                                logger.debug("Number of diff entries " + diffEntries.size());
 
                                                 // Now that we have a diff, let's itemize the file changes, pack them into a TO
                                                 // and add them to the list of RepoOperations to return to the caller
@@ -405,11 +413,15 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                             CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
                                             firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
                                             // Diff the two commit Ids
+                                            long startDiffMark1 = System.currentTimeMillis();
                                             List<DiffEntry> diffEntries = git.diff()
                                                     .setOldTree(firstCommitTreeParser)
                                                     .setNewTree(null)
                                                     .call();
-
+                                            logger.debug("Diff from " + objFirstCommitId.getName() + " to null " +
+                                                    "finished in " + ((System.currentTimeMillis() - startDiffMark1)/1000)
+                                                    + " seconds");
+                                            logger.debug("Number of diff entries " + diffEntries.size());
 
                                             // Now that we have a diff, let's itemize the file changes, pack them into a TO
                                             // and add them to the list of RepoOperations to return to the caller
@@ -436,11 +448,15 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                             toCommitTreeParser.reset(reader, toTree.getId());
 
                                             // Diff the two commit Ids
+                                            long startDiffMark2 = System.currentTimeMillis();
                                             List<DiffEntry> diffEntries = git.diff()
                                                     .setOldTree(fromCommitTreeParser)
                                                     .setNewTree(toCommitTreeParser)
                                                     .call();
-
+                                            logger.debug("Diff from " + objCommitIdFrom.getName() + " to " +
+                                                    objCommitIdTo.getName() + " finished in " +
+                                                    ((System.currentTimeMillis() - startDiffMark2)/1000) + " seconds");
+                                            logger.debug("Number of diff entries " + diffEntries.size());
 
                                             // Now that we have a diff, let's itemize the file changes, pack them into a TO
                                             // and add them to the list of RepoOperations to return to the caller
@@ -506,10 +522,15 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     private List<RepoOperation> processDiffEntry(Git git, List<DiffEntry> diffEntries, ObjectId commitId)
             throws GitAPIException, IOException {
+        int size = diffEntries.size();
+        logger.debug("Processing " + size + " diff entries");
+        long startMark = System.currentTimeMillis();
         List<RepoOperation> toReturn = new ArrayList<RepoOperation>();
 
+        int idx = 0;
         for (DiffEntry diffEntry : diffEntries) {
-
+            logger.debug("Processing " + ++idx + " of " + size + " diff entries");
+            long startProcessEntryMark = System.currentTimeMillis();
             // Update the paths to have a preceding separator
             String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
             String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
@@ -559,7 +580,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" : author);
                 toReturn.add(repoOperation);
             }
+            logger.debug("Finished processing " + idx + " of " + size + " entries in " +
+                    ((System.currentTimeMillis() - startProcessEntryMark) / 1000) + " seconds");
         }
+        logger.debug("Finished processing " + size + " diff entries in " +
+                ((System.currentTimeMillis() - startMark) / 1000) + " seconds");
         return toReturn;
     }
 

@@ -125,6 +125,8 @@
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="clusterDao" ref="clusterDao" />
+        <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
+        <property name="dependencyResolver" ref="studioDependencyResolver" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
