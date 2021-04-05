@@ -23,7 +23,7 @@ import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-public final class SqlStatementGenerator {
+public final class SqlStatementGeneratorUtils {
 
     public static final String ITEM_STATE_INSERT =
             "INSERT INTO item_state (object_id, site, path, state, system_processing) " +
@@ -202,5 +202,5 @@ public final class SqlStatementGenerator {
         return sql;
     }
 
-    private SqlStatementGenerator() {}
+    private SqlStatementGeneratorUtils() {}
 }

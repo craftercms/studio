@@ -144,19 +144,19 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.deleteDependencyRows;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.deleteDependencySourcePathRows;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.deleteItemMetadataRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.deleteItemStateRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.insertDependencyRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.insertItemMetadataRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.insertItemStateRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.moveItemMetadataRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.moveItemStateRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.transitionSaveItemStateRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.updateItemMetadataRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.upsertItemMetadataRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGenerator.upsertItemStateRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteDependencyRows;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteDependencySourcePathRows;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteItemMetadataRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteItemStateRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertDependencyRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemMetadataRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemStateRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.moveItemMetadataRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.moveItemStateRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.transitionSaveItemStateRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateItemMetadataRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.upsertItemMetadataRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.upsertItemStateRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
@@ -570,7 +570,7 @@ public class SiteServiceImpl implements SiteService {
         int batchCounter = 0;
         long startBatchMark = System.currentTimeMillis();
         for (String path : createdFiles.keySet()) {
-            if (!(counter++ < batchSize)) {
+            if (counter++ >= batchSize) {
                 studioDBScriptRunner.execute(sb.toString());
                 logger.debug("Process created files batch " + ++batchCounter + " in " +
                         (System.currentTimeMillis() - startBatchMark) + " milliseconds");
@@ -1293,7 +1293,6 @@ public class SiteServiceImpl implements SiteService {
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId,
                                         boolean generateAuditLog) throws SiteNotFoundException {
-        long startSyncRepoMark = System.currentTimeMillis();
 		boolean toReturn = true;
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
         long startGetOperationsFromDeltaMark = System.currentTimeMillis();
@@ -1361,7 +1360,7 @@ public class SiteServiceImpl implements SiteService {
         int batchCounter = 0;
         long startBatchMark = System.currentTimeMillis();
         for (RepoOperation repoOperation : repoOperations) {
-            if (!(counter++ < batchSize)) {
+            if (counter++ >= batchSize) {
                 studioDBScriptRunner.execute(sb.toString());
                 logger.debug("Process repo operations batch " + ++batchCounter + " in " +
                         (System.currentTimeMillis() - startBatchMark) + " milliseconds");
