@@ -53,7 +53,10 @@ public class AuditLoginListener extends AbstractAuditListener {
     @EventListener
     public void recordAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
         recordAuthenticationEvent(OPERATION_LOGIN_FAILED, event,
-                "Failed to authenticate user {0} logging in from IP: {1}");
+                "Failed to authenticate user {0} logging in from IP: {1}. Reason: " +
+                        event.getException().getLocalizedMessage());
+        logger.debug("Authentication error for user {0}", event.getException(),
+                event.getAuthentication().getName());
     }
 
 }

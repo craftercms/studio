@@ -60,6 +60,20 @@ public class LoggerImpl extends AbstractLogger {
 	}
 
 	/**
+	 * log debug message
+	 * @param msg the message or message format to log
+	 * @param t the error to include
+	 * @param args argument for the log
+	 */
+	@Override
+	public void debug(String msg, Throwable t, Object... args) {
+		if(_logger.isDebugEnabled()) {
+			String message = expandMessage(msg, args);
+			_logger.debug(message, t);
+		}
+	}
+
+	/**
 	 * log warn message
 	 * @param msg the message or message format to log
 	 * @param args argument for the log

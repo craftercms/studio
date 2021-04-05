@@ -48,6 +48,18 @@ public class ConsoleLoggerImpl extends AbstractLogger {
 	}
 
 	/**
+	 * log debug message
+	 * @param msg the message or message format to log
+	 * @param t the error to include
+	 * @param args argument for the log
+	 */
+	@Override
+	public void debug(String msg, Throwable t, Object... args) {
+		String message = expandMessage(msg, args);
+		System.out.println("DEBUG: " +  message);
+	}
+
+	/**
 	 * log warn message
 	 * @param msg the message or message format to log
 	 * @param args argument for the log
