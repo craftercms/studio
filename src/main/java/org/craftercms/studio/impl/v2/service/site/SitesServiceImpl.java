@@ -19,12 +19,14 @@ package org.craftercms.studio.impl.v2.service.site;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 
 import java.util.List;
 
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_PUBLISH_CLEAR_LOCK;
 import static org.craftercms.studio.permissions.StudioPermissions.ACTION_PUBLISH_STATUS;
 
@@ -62,7 +64,7 @@ public class SitesServiceImpl implements SitesService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = ACTION_PUBLISH_STATUS)
-    public PublishStatus getPublishingStatus(String siteId) {
+    public PublishStatus getPublishingStatus(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
         return sitesServiceInternal.getPublishingStatus(siteId);
     }
 
