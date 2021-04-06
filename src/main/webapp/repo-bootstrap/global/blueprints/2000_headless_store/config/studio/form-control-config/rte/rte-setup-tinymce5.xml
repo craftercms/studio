@@ -46,9 +46,13 @@
         <toolbarItems1>
             formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat
         </toolbarItems1>
-        <toolbarItems2></toolbarItems2>
+        <toolbarItems2><!-- my_button --></toolbarItems2>
         <toolbarItems3></toolbarItems3>
         <toolbarItems4></toolbarItems4>
+
+        <!-- <external_plugins> -->
+        <!--    <my_button><![CDATA[/studio/1/plugin/file?siteId=mysite&type=tinymce&name=my_button&filename=plugin.min.js]]></my_button> -->
+        <!-- </external_plugins> -->
 
         <codeEditorWrap>false</codeEditorWrap>
     </setup>
