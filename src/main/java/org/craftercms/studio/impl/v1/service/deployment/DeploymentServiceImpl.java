@@ -793,8 +793,10 @@ public class DeploymentServiceImpl implements DeploymentService {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setSiteId(siteFeed.getId());
         if (enabled) {
+            logger.info("Publishing started for site {0}", site);
             auditLog.setOperation(OPERATION_START_PUBLISHER);
         } else {
+            logger.info("Publishing stopped for site {0}", site);
             auditLog.setOperation(OPERATION_STOP_PUBLISHER);
         }
         auditLog.setActorId(securityService.getCurrentUser());
