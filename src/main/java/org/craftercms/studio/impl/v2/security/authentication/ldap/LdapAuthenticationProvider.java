@@ -42,12 +42,12 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.DefaultDirObjectFactory;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.query.LdapQuery;
-import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -185,21 +185,17 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
         try {
             user = ldapTemplate.authenticate(ldapQuery, authentication.getCredentials().toString(), mapper);
         } catch (EmptyResultDataAccessException e) {
-            logger.debug("User " + username + " not found with external security provider.");
-
-            return null;
+            logger.debug("User " + username + " not found in LDAP server.");
+            throw new UsernameNotFoundException("User " + username + " not found in LDAP server");
         } catch (CommunicationException e) {
-            logger.debug("Failed to connect with external security provider", e);
-
-            return null;
+            logger.debug("Failed to connect with LDAP server", e);
+            throw new AuthenticationServiceException("Failed to connect with LDAP server", e);
         }  catch (AuthenticationException e) {
             logger.debug("Authentication failed with the LDAP system (bad credentials)", e);
-
             throw e;
         } catch (Exception e) {
-            logger.debug("Unexpected exception when authenticating with the LDAP system", e);
-
-            return null;
+            logger.debug("Unexpected exception when authenticating with the LDAP server", e);
+            throw new AuthenticationServiceException("Unexpected exception when authenticating with the LDAP server", e);
         }
 
         if (user != null) {
@@ -235,11 +231,9 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
                         auditLog.setPrimaryTargetValue(user.getUsername());
                         auditServiceInternal.insertAuditLog(auditLog);
                     } catch (UserAlreadyExistsException e) {
-                        logger.debug("Error adding user " + username + " from external authentication provider",
-                                e);
-                        throw new AccountStatusException("Error adding user " + username +
-                                " from external authentication provider", e) {
-                        };
+                        logger.debug("Error adding user {0} from LDAP server", username);
+                        throw new AuthenticationServiceException(
+                                "Error adding user " + username + " from LDAP server", e);
                     }
                 }
             } catch (ServiceLayerException e) {
