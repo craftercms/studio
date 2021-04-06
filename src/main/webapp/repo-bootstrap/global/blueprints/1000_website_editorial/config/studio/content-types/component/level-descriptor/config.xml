@@ -15,7 +15,7 @@
   -->
 
 <content-type name="/component/level-descriptor" is-wcm-type="true">
-	<label>Global Props</label>
+	<label>Section Defaults</label>
 	<form>/component/level-descriptor</form>
 	<form-path>simple</form-path>
 	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
