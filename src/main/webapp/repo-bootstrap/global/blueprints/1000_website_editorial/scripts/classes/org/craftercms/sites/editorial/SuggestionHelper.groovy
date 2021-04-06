@@ -23,7 +23,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder
 class SuggestionHelper {
 	
 	static final String DEFAULT_CONTENT_TYPE_QUERY = "content-type:\"/page/article\""
-	static final String DEFAULT_SEARCH_FIELD = "subject"
+	static final String DEFAULT_SEARCH_FIELD = "subject_t"
 	
 	def elasticsearch
 	
