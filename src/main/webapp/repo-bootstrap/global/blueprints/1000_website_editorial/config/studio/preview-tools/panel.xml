@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License version 3 as published by
-  ~ the Free Software Foundation.
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
   ~
   ~ This program is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,74 +17,67 @@
   -->
 
 <!--
-- - - - - - - - - - - - 
-Now supports JSON too!
-- - - - - - - - - - - - 
-{
-  "modules": [
-    { 
-      "id": "craftercms.ice.simulator", 
-      "title": "publishingChannel", 
-      "config": { 
-        "channels": [
-          { "width": 375, "title": "smartPhone" }
-        ] 
-      } 
-    }
-  ]
-}
+    This file configures the Preview Tools right panel. The structure of this file follows:
+
+    <panel>
+        <modules>
+            <module>
+                <moduleName />
+                <title />
+                <config>
+                    (module specific configuration)
+                </config>
+            </module>
+        </modules>
+    </panel>
+
+    For the module: Medium Panel (aka Publishing Channel), the configuration follows:
+    <channels>
+        <channel>      (target device)
+            <title />
+            <value />  (this is the browser's UserAgent)
+            <width />  (width in pixels)
+            <height /> (height in pixels)
+        </channel>
+    </channels>
 -->
 <panel>
-  <modules>
-    <module>
-      <moduleName>craftercms.ice.search</moduleName>
-      <title>searchPanel</title>
-    </module>
-    <module>
-      <moduleName>craftercms.ice.components</moduleName>
-      <title>componentsPanel</title>
-    </module>
-    <module>
-      <moduleName>craftercms.ice.assets</moduleName>
-      <title>assetsPanel</title>
-    </module>
-    <module>
-      <moduleName>craftercms.ice.audiences</moduleName>
-      <title>audiencesPanel</title>
-    </module>
-    <module>
-      <moduleName>craftercms.ice.pageExplorer</moduleName>
-      <title>pageExplorerPanel</title>
-    </module>
-    <module>
-      <moduleName>medium-panel</moduleName>
-      <title>publishingChannel</title>
-      <config>
-        <channels>
-          <channel>
-            <title>desktop</title>
-            <value>browser</value>
-            <width></width>
-            <height></height>
-          </channel>
-          <channel>
-            <title>smartPhone</title>
-            <value>iphone</value>
-            <width>375</width>
-            <height>667</height>
-          </channel>
-          <channel>
-            <title>tablet</title>
-            <value>ipad</value>
-            <width>768</width>
-            <height>1024</height>
-          </channel>
-        </channels>
-      </config>
-    </module>
-    <module>
-      <moduleName>craftercms.siteExplorerPanel</moduleName>
-      <title>siteExplorerPanel</title>
-    </module>
-  </modules>
+    <modules>
+        <module>
+            <moduleName>ice-tools-panel</moduleName>
+            <title>inContextEditing</title>
+        </module>
+
+        <module>
+            <moduleName>component-panel</moduleName>
+            <title>pageComponents</title>
+        </module>
+
+        <module>
+            <moduleName>medium-panel</moduleName>
+            <title>publishingChannel</title>
+            <config>
+                <channels>
+                    <channel>
+                        <title>desktop</title>
+                        <value>browser</value>
+                        <width></width>
+                        <height></height>
+                    </channel>
+                    <channel>
+                        <title>smartPhone</title>
+                        <value>iphone</value>
+                        <width>375</width>
+                        <height>667</height>
+                    </channel>
+                    <channel>
+                        <title>tablet</title>
+                        <value>ipad</value>
+                        <width>768</width>
+                        <height>1024</height>
+                    </channel>
+                </channels>
+            </config>
+        </module>
+    </modules>
 </panel>
