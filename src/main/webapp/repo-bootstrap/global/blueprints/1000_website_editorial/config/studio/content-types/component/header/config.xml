@@ -15,20 +15,20 @@
   -->
 
 <content-type name="/component/header" is-wcm-type="true">
-	<label>Component - Header</label>
-	<form>/component/header</form>
-	<form-path>simple</form-path>
-	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
-	<file-extension>xml</file-extension>
-	<content-as-folder>false</content-as-folder>
-	<previewable>false</previewable>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
-	<noThumbnail>false</noThumbnail>
-	<image-thumbnail>component-header.png</image-thumbnail>
-	<paths>
-		<includes>
-			<pattern>^/site/components/headers/.*</pattern>
-		</includes>
-	</paths>
+  <label>Header</label>
+  <form>/component/header</form>
+  <form-path>simple</form-path>
+  <model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
+  <file-extension>xml</file-extension>
+  <content-as-folder>false</content-as-folder>
+  <previewable>false</previewable>
+  <quickCreate>false</quickCreate>
+  <quickCreatePath/>
+  <noThumbnail>false</noThumbnail>
+  <image-thumbnail>component-header.png</image-thumbnail>
+  <paths>
+    <includes>
+      <pattern>^/site/components/headers/.*</pattern>
+    </includes>
+  </paths>
 </content-type>

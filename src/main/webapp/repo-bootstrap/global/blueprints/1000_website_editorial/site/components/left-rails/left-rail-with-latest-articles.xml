@@ -16,24 +16,30 @@
   -->
 
 <component>
-	<content-type>/component/left-rail</content-type>	<display-template>/templates/web/components/left-rail.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>458a</objectGroupId>
-	<objectId>458af2ea-368d-9167-0233-b1d346f5baaa</objectId>
-	<file-name>left-rail-with-latest-articles.xml</file-name>
-	<folder-name/>
-	<internal-name>Left Rail with Latest Articles</internal-name>
-	<createdDate>2017-3-17T18:23:14.000Z</createdDate>
-	<createdDate_dt>2017-3-17T18:23:14.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-18T15:53:42.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-18T15:53:42.000Z</lastModifiedDate_dt>
-	<widgets_o>	<item>	<key>/site/components/articles-widget/latest-articles-widget.xml</key>
-	<value>Latest Articles Widget</value>
-	<include>/site/components/articles-widget/latest-articles-widget.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item>	<item>	<key>/site/components/contacts/contact-widget.xml</key>
-	<value>Contact Widget</value>
-	<include>/site/components/contacts/contact-widget.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></widgets_o>
+  <content-type>/component/left-rail</content-type>
+  <display-template>/templates/web/components/left-rail.ftl</display-template>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>458a</objectGroupId>
+  <objectId>458af2ea-368d-9167-0233-b1d346f5baaa</objectId>
+  <file-name>left-rail-with-latest-articles.xml</file-name>
+  <folder-name/>
+  <internal-name>Left Rail with Latest Articles</internal-name>
+  <createdDate>2017-3-17T18:23:14.000Z</createdDate>
+  <createdDate_dt>2017-3-17T18:23:14.000Z</createdDate_dt>
+  <lastModifiedDate>2017-5-18T15:53:42.000Z</lastModifiedDate>
+  <lastModifiedDate_dt>2017-5-18T15:53:42.000Z</lastModifiedDate_dt>
+  <widgets_o item-list="true">
+    <item>
+      <key>/site/components/articles-widget/latest-articles-widget.xml</key>
+      <value>Latest Articles Widget</value>
+      <include>/site/components/articles-widget/latest-articles-widget.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+    <item>
+      <key>/site/components/contacts/contact-widget.xml</key>
+      <value>Contact Widget</value>
+      <include>/site/components/contacts/contact-widget.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </widgets_o>
 </component>

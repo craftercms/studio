@@ -16,24 +16,30 @@
   -->
 
 <component>
-	<content-type>/component/left-rail</content-type>	<display-template>/templates/web/components/left-rail.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>9ed4</objectGroupId>
-	<objectId>9ed49b50-6681-92e4-1221-9d067df058d0</objectId>
-	<file-name>left-rail-with-related-articles.xml</file-name>
-	<folder-name/>
-	<internal-name>Left Rail with Related Articles</internal-name>
-	<createdDate>2017-3-17T18:23:52.000Z</createdDate>
-	<createdDate_dt>2017-3-17T18:23:52.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-18T15:53:17.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-18T15:53:17.000Z</lastModifiedDate_dt>
-	<widgets_o>	<item>	<key>/site/components/articles-widget/related-articles-widget.xml</key>
-	<value>Related Articles Widget</value>
-	<include>/site/components/articles-widget/related-articles-widget.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item>	<item>	<key>/site/components/contacts/contact-widget.xml</key>
-	<value>Contact Widget</value>
-	<include>/site/components/contacts/contact-widget.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></widgets_o>
+  <content-type>/component/left-rail</content-type>
+  <display-template>/templates/web/components/left-rail.ftl</display-template>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>9ed4</objectGroupId>
+  <objectId>9ed49b50-6681-92e4-1221-9d067df058d0</objectId>
+  <file-name>left-rail-with-related-articles.xml</file-name>
+  <folder-name/>
+  <internal-name>Left Rail with Related Articles</internal-name>
+  <createdDate>2017-3-17T18:23:52.000Z</createdDate>
+  <createdDate_dt>2017-3-17T18:23:52.000Z</createdDate_dt>
+  <lastModifiedDate>2017-5-18T15:53:17.000Z</lastModifiedDate>
+  <lastModifiedDate_dt>2017-5-18T15:53:17.000Z</lastModifiedDate_dt>
+  <widgets_o item-list="true">
+    <item>
+      <key>/site/components/articles-widget/related-articles-widget.xml</key>
+      <value>Related Articles Widget</value>
+      <include>/site/components/articles-widget/related-articles-widget.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+    <item>
+      <key>/site/components/contacts/contact-widget.xml</key>
+      <value>Contact Widget</value>
+      <include>/site/components/contacts/contact-widget.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </widgets_o>
 </component>

@@ -16,28 +16,34 @@
   -->
 
 <page>
-	<content-type>/page/search-results</content-type>	<display-template>/templates/web/pages/search-results.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>864c</objectGroupId>
-	<objectId>864c415c-2c0d-77ad-e42e-50f4f5882cb1</objectId>
-	<file-name>index.xml</file-name>
-	<folder-name>search-results</folder-name>
-	<internal-name>Search Results</internal-name>
-	<title_t>Search Results</title_t>
-	<header/>
-	<left-rail_o>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
-	<value>Left Rail with Latest Articles</value>
-	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></left-rail_o>
-	<createdDate>2017-3-23T23:47:15.000Z</createdDate>
-	<createdDate_dt>2017-3-23T23:47:15.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-18T19:52:59.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-18T19:52:59.000Z</lastModifiedDate_dt>
-	<disabled>false</disabled>
-	<categories_o>	<item>	<key>/site/taxonomy/categories.xml</key>
-	<value>Categories</value>
-	<include>/site/taxonomy/categories.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></categories_o>
+  <content-type>/page/search-results</content-type>
+  <display-template>/templates/web/pages/search-results.ftl</display-template>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>864c</objectGroupId>
+  <objectId>864c415c-2c0d-77ad-e42e-50f4f5882cb1</objectId>
+  <file-name>index.xml</file-name>
+  <folder-name>search-results</folder-name>
+  <internal-name>Search Results</internal-name>
+  <title_t>Search Results</title_t>
+  <left_rail_o>
+    <item>
+      <key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
+      <value>Left Rail with Latest Articles</value>
+      <include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </left_rail_o>
+  <createdDate>2017-3-23T23:47:15.000Z</createdDate>
+  <createdDate_dt>2017-3-23T23:47:15.000Z</createdDate_dt>
+  <lastModifiedDate>2017-5-18T19:52:59.000Z</lastModifiedDate>
+  <lastModifiedDate_dt>2017-5-18T19:52:59.000Z</lastModifiedDate_dt>
+  <disabled>false</disabled>
+  <categories_o>
+    <item>
+      <key>/site/taxonomy/categories.xml</key>
+      <value>Categories</value>
+      <include>/site/taxonomy/categories.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </categories_o>
 </page>

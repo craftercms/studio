@@ -106,7 +106,7 @@
 
                                 <!-- Site IA Pages -->
                                 <modulehook>
-                                    <name>wcm-root-folder</name>                                    
+                                    <name>wcm-root-folder</name>
                                     <params>
                                         <label>Pages</label>
                                         <path>/site/website</path>
@@ -117,7 +117,7 @@
 
                                 <!-- Components -->
                                 <modulehook>
-                                    <name>wcm-root-folder</name>                                    
+                                    <name>wcm-root-folder</name>
                                     <params>
                                         <label>Components</label>
                                         <path>/site/components</path>
@@ -127,7 +127,7 @@
 
                                 <!-- Static Assets -->
                                 <modulehook>
-                                    <name>wcm-assets-folder</name>                                    
+                                    <name>wcm-assets-folder</name>
                                     <params>
                                         <label>Static Assets</label>
                                         <path>/static-assets</path>
@@ -138,7 +138,7 @@
 
                                 <!-- Templates -->
                                 <modulehook>
-                                    <name>wcm-assets-folder</name>                                    
+                                    <name>wcm-assets-folder</name>
                                     <params>
                                         <label>Templates</label>
                                         <path>/templates</path>
@@ -149,7 +149,7 @@
 
                                 <!-- Scripts -->
                                 <modulehook>
-                                    <name>wcm-assets-folder</name>                                    
+                                    <name>wcm-assets-folder</name>
                                     <params>
                                         <label>Scripts</label>
                                         <path>/scripts</path>
@@ -160,7 +160,7 @@
 
                                 <!-- Site Config -->
                                 <modulehook>
-                                    <name>site-config</name>                                    
+                                    <name>site-config</name>
                                     <params>
                                         <roles>
                                             <role>admin</role>

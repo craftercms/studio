@@ -1,11 +1,21 @@
-<section>
+<#import "/templates/system/common/ice.ftl" as studio />
+
+<@studio.componentRootTag $tag="section">
   <header class="major">
-    <h2>${contentModel.title_t}</h2>
+    <@studio.h2 $field="title_t">${contentModel.title_t}</@studio.h2>
   </header>
-  ${contentModel.text_html}
+  <@studio.div $field="text_html">
+    ${contentModel.text_html}
+  </@studio.div>
   <ul class="contact">
-    <li class="fa-envelope-o"><a href="#">${contentModel.email_s}</a></li>
-    <li class="fa-phone">${contentModel.phone_s}</li>
-    <li class="fa-home">${contentModel.address_html}</li>
+    <li class="icon solid fa-envelope">
+      <@studio.a href="mailto:${contentModel.email_s}" $field="email_s">${contentModel.email_s}</@studio.a>
+    </li>
+    <@studio.li class="icon solid fa-phone" $field="phone_s">
+      ${contentModel.phone_s}
+    </@studio.li>
+    <@studio.li class="icon solid fa-home" $field="address_html">
+      ${contentModel.address_html}
+    </@studio.li>
   </ul>
-</section>
+</@studio.componentRootTag>

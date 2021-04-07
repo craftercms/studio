@@ -15,219 +15,201 @@
   -->
 
 <form>
-    <title>Component - Feature</title>
-    <description></description>
-    <objectType>component</objectType>
-    <content-type>/component/feature</content-type>
-    <imageThumbnail>component-feature.png</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
-    <properties>		<property>
-        <name>display-template</name>
-        <label>Display Template</label>
-        <value>/templates/web/components/feature.ftl</value>
-        <type>template</type>
-    </property>
-        <property>
+	<title>Feature</title>
+	<description></description>
+	<objectType>component</objectType>
+	<content-type>/component/feature</content-type>
+	<imageThumbnail>component-feature.png</imageThumbnail>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
+	<properties>		<property>
+			<name>display-template</name>
+			<label>Display Template</label>
+			<value>/templates/web/components/feature.ftl</value>
+			<type>template</type>
+		</property>
+		<property>
 			<name>no-template-required</name>
 			<label>No Template Required</label>
 			<value></value>
 			<type>boolean</type>
 		</property>
-        <property>
-            <name>merge-strategy</name>
-            <label>Merge Strategy</label>
-            <value>inherit-levels</value>
-            <type>string</type>
-        </property>
-    </properties>
-    <sections>		<section>
-        <title>Component - Feature Properties</title>
-        <description></description>
-        <defaultOpen>true</defaultOpen>
-        <fields>
-            <field>
-                <type>auto-filename</type>
-                <id>file-name</id>
-                <iceId></iceId>
-                <title>Component ID</title>
-                <description></description>
-                <defaultValue></defaultValue>
-                <help></help>
-                <properties>
-                </properties>
-                <constraints>
-                </constraints>
-            </field>
-            <field>
-                <type>input</type>
-                <id>internal-name</id>
-                <iceId></iceId>
-                <title>Internal Name</title>
-                <description></description>
-                <defaultValue></defaultValue>
-                <help></help>
-                <properties>
-                    <property>
-                        <name>size</name>
-                        <value>50</value>
-                        <type>int</type>
-                    </property>
-                    <property>
-                        <name>maxlength</name>
-                        <value>50</value>
-                        <type>int</type>
-                    </property>
-                </properties>
-                <constraints>
-                    <constraint>
-                        <name>required</name>
-                        <value><![CDATA[true]]></value>
-                        <type>boolean</type>
-                    </constraint>
-                </constraints>
-            </field>
-            <field>
-              <type>locale-selector</type>
-              <id>localeCode</id>
-              <iceId></iceId>
-              <title>Locale</title>
-              <description></description>
-              <defaultValue></defaultValue>
-              <help></help>
-              <properties>
-                <property>
-                  <name>datasource</name>
-                  <value></value>
-                  <type>datasource:item</type>
-                </property>
-                <property>
-                  <name>readonly</name>
-                  <value></value>
-                  <type>boolean</type>
-                </property>
-              </properties>
-              <constraints>
-                <constraint>
-                  <name>required</name>
-                  <value><![CDATA[false]]></value>
-                  <type>boolean</type>
-                </constraint>
-              </constraints>
-            </field>
-            <field>
-                <type>checkbox</type>
-                <id>disabled</id>
-                <iceId></iceId>
-                <title>Disable Component</title>
-                <description></description>
-                <defaultValue></defaultValue>
-                <help></help>
-                <properties>
-                    <property>
-                        <name>readonly</name>
-                        <value></value>
-                        <type>boolean</type>
-                    </property>
-                </properties>
-                <constraints>
-                    <constraint>
-                        <name>required</name>
-                        <value><![CDATA[]]></value>
-                        <type>boolean</type>
-                    </constraint>
-                </constraints>
-            </field>
-        </fields>
-    </section>
-        <section>
-            <title>Content</title>
-            <description></description>
-            <defaultOpen>true</defaultOpen>
-            <fields>
-                <field>
-                    <type>dropdown</type>
-                    <id>icon_s</id>
-                    <iceId></iceId>
-                    <title>Icon</title>
-                    <description></description>
-                    <defaultValue></defaultValue>
-                    <help></help>
-                    <properties>
-                        <property>
-                            <name>datasource</name>
-                            <value>feature_icons</value>
-                            <type>datasource:item</type>
-                        </property>
-                        <property>
-                            <name>emptyvalue</name>
-                            <value></value>
-                            <type>boolean</type>
-                        </property>
-                        <property>
-                            <name>readonly</name>
-                            <value></value>
-                            <type>boolean</type>
-                        </property>
-                    </properties>
-                    <constraints>
-                        <constraint>
-                            <name>required</name>
-                            <value><![CDATA[true]]></value>
-                            <type>boolean</type>
-                        </constraint>
-                    </constraints>
-                </field>
-                <field>
-                    <type>input</type>
-                    <id>title_t</id>
-                    <iceId></iceId>
-                    <title>Title</title>
-                    <description></description>
-                    <defaultValue></defaultValue>
-                    <help></help>
-                    <properties>
-                        <property>
-                            <name>size</name>
-                            <value>50</value>
-                            <type>int</type>
-                        </property>
-                        <property>
-                            <name>maxlength</name>
-                            <value>50</value>
-                            <type>int</type>
-                        </property>
-                        <property>
-                            <name>readonly</name>
-                            <value></value>
-                            <type>boolean</type>
-                        </property>
-                        <property>
-                            <name>tokenize</name>
-                            <value>false</value>
-                            <type>boolean</type>
-                        </property>
-                    </properties>
-                    <constraints>
-                        <constraint>
-                            <name>required</name>
-                            <value><![CDATA[true]]></value>
-                            <type>boolean</type>
-                        </constraint>
-                        <constraint>
-                            <name>pattern</name>
-                            <value><![CDATA[]]></value>
-                            <type>string</type>
-                        </constraint>
-                    </constraints>
-                </field>
-                <field>
+		<property>
+			<name>merge-strategy</name>
+			<label>Merge Strategy</label>
+			<value>inherit-levels</value>
+			<type>string</type>
+		</property>
+	</properties>
+	<sections>		<section>
+			<title>Component - Feature Properties</title>
+			<description></description>
+			<defaultOpen>true</defaultOpen>
+			<fields>
+				<field>
+					<type>auto-filename</type>
+					<id>file-name</id>
+					<iceId></iceId>
+					<title>Component ID</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+					</properties>
+					<constraints>
+					</constraints>
+				</field>
+				<field>
+					<type>input</type>
+					<id>internal-name</id>
+					<iceId></iceId>
+					<title>Internal Name</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>size</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>tokenize</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>checkbox</type>
+					<id>disabled</id>
+					<iceId></iceId>
+					<title>Disable Component</title>
+					<description></description>
+					<defaultValue>false</defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
+			</fields>
+		</section>
+		<section>
+			<title>Content</title>
+			<description></description>
+			<defaultOpen>true</defaultOpen>
+			<fields>
+				<field>
+					<type>dropdown</type>
+					<id>icon_s</id>
+					<iceId>icon_s</iceId>
+					<title>Icon</title>
+					<description></description>
+					<defaultValue>fa-closed-captioning far</defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>datasource</name>
+							<value>feature_icons</value>
+							<type>datasource:item</type>
+						</property>
+						<property>
+							<name>emptyvalue</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>input</type>
+					<id>title_t</id>
+					<iceId></iceId>
+					<title>Title</title>
+					<description></description>
+					<defaultValue>Feature Title</defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>size</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>tokenize</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+						<constraint>
+							<name>pattern</name>
+							<value><![CDATA[]]></value>
+							<type>string</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
 					<type>rte-tinymce5</type>
 					<id>body_html</id>
 					<iceId></iceId>
 					<title>Body</title>
 					<description></description>
-					<defaultValue></defaultValue>
+					<defaultValue>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</defaultValue>
 					<help></help>
 					<properties>
 						<property>
@@ -270,6 +252,21 @@
 							<value></value>
 							<type>datasource:video</type>
 						</property>
+						<property>
+							<name>width</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>autoGrow</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>fileManager</name>
+							<value></value>
+							<type>datasource:item</type>
+						</property>
 					</properties>
 					<constraints>
 						<constraint>
@@ -279,26 +276,26 @@
 						</constraint>
 					</constraints>
 				</field>
-            </fields>
-        </section>
-    </sections>
-    <datasources>				<datasource>
-        <type>site-component</type>
-        <id>feature_icons</id>
-        <title>Feature Icons</title>
-        <interface>item</interface>
-        <properties>
-            <property>
-                <name>dataType</name>
-                <value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
-                <type>undefined</type>
-            </property>
-            <property>
-                <name>componentPath</name>
-                <value>/site/taxonomy/feature-icons.xml</value>
-                <type>undefined</type>
-            </property>
-        </properties>
-    </datasource>
-    </datasources>
+			</fields>
+		</section>
+	</sections>
+	<datasources>				<datasource>
+					<type>site-component</type>
+					<id>feature_icons</id>
+					<title>Feature Icons</title>
+					<interface>item</interface>
+					<properties>
+						<property>
+							<name>dataType</name>
+							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>componentPath</name>
+							<value>/site/taxonomy/feature-icons.xml</value>
+								<type>undefined</type>
+						</property>
+					</properties>
+				</datasource>
+	</datasources>
 </form>

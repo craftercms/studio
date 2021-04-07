@@ -15,7 +15,7 @@
   -->
 
 <content-type name="/component/articles-widget" is-wcm-type="true">
-	<label>Component - Articles Widget</label>
+	<label>Articles Widget</label>
 	<form>/component/articles-widget</form>
 	<form-path>simple</form-path>
 	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>

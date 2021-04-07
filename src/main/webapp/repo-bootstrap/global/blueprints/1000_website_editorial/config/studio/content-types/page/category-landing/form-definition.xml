@@ -1,27 +1,11 @@
-<!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License version 3 as published by
-  ~ the Free Software Foundation.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -->
-
 <form>
-	<title>Page - Category Landing</title>
+	<title>Category Landing</title>
 	<description></description>
 	<objectType>page</objectType>
 	<content-type>/page/category-landing</content-type>
 	<imageThumbnail>page-category-landing.png</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
@@ -108,34 +92,6 @@
 						<constraint>
 							<name>required</name>
 							<value><![CDATA[true]]></value>
-							<type>boolean</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
-					<type>locale-selector</type>
-					<id>localeCode</id>
-					<iceId></iceId>
-					<title>Locale</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>datasource</name>
-							<value></value>
-							<type>datasource:item</type>
-						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[false]]></value>
 							<type>boolean</type>
 						</constraint>
 					</constraints>
@@ -279,7 +235,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>left-rail_o</id>
+					<id>left_rail_o</id>
 					<iceId></iceId>
 					<title>Left Rail</title>
 					<description>Default left-rail is inherited from Section Defaults. Specify a new left-rail to overwrite it.</description>

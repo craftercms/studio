@@ -16,110 +16,98 @@
   -->
 
 <page>
-	<content-type>/page/home</content-type>	<display-template>/templates/web/pages/home.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<placeInNav>false</placeInNav>
-	<file-name>index.xml</file-name>
-	<internal-name>Home</internal-name>
-	<orderDefault_f>-1</orderDefault_f>
-	<objectGroupId>8d7f</objectGroupId>
-	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
-	<folder-name/>
-	<createdDate>2017-1-31T16:18:14.000Z</createdDate>
-	<createdDate_dt>2017-1-31T16:18:14.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-18T15:52:21.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-18T15:52:21.000Z</lastModifiedDate_dt>
-	<title_t>Editorial</title_t>
-	<hero_text_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text_html>
-	<hero_title_html>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;
-&lt;h3&gt;&lt;span style="font-size: 1.5em;"&gt;by HTML5 UP&lt;/span&gt;&lt;/h3&gt;</hero_title_html>
-	<features_o item-list="true">	<item datasource="features" inline="true">	<key>a89386c4-a205-2681-2db1-c3606f714411</key>
-	<value>One</value>
-<component id="a89386c4-a205-2681-2db1-c3606f714411">
-	<content-type>/component/feature</content-type>
-	<display-template>/templates/web/components/feature.ftl</display-template>
-	<no-template-required/>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>a893</objectGroupId>
-	<objectId>a89386c4-a205-2681-2db1-c3606f714411</objectId>
-	<file-name>a89386c4-a205-2681-2db1-c3606f714411.xml</file-name>
-	<internal-name>One</internal-name>
-	<title_t>One</title_t>
-	<disabled>false</disabled>
-	<icon_s>fa-diamond</icon_s>
-	<body_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/p&gt;</body_html>
-	<createdDate>2019-10-11T19:19:53.590Z</createdDate>
-	<createdDate_dt>2019-10-11T19:19:53.590Z</createdDate_dt>
-	<lastModifiedDate>2019-10-11T19:19:53.590Z</lastModifiedDate>
-	<lastModifiedDate_dt>2019-10-11T19:19:53.590Z</lastModifiedDate_dt>
-</component>
-	</item>	<item datasource="features" inline="true">	<key>310b0c87-c3ca-4da0-4aa2-7002a318d7ce</key>
-	<value>Two</value>
-<component id="310b0c87-c3ca-4da0-4aa2-7002a318d7ce">
-	<content-type>/component/feature</content-type>
-	<display-template>/templates/web/components/feature.ftl</display-template>
-	<no-template-required/>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>310b</objectGroupId>
-	<objectId>310b0c87-c3ca-4da0-4aa2-7002a318d7ce</objectId>
-	<file-name>310b0c87-c3ca-4da0-4aa2-7002a318d7ce.xml</file-name>
-	<internal-name>Two</internal-name>
-	<title_t>Two</title_t>
-	<disabled>false</disabled>
-	<icon_s>fa-users</icon_s>
-	<body_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/p&gt;</body_html>
-	<createdDate>2019-10-11T19:20:07.555Z</createdDate>
-	<createdDate_dt>2019-10-11T19:20:07.555Z</createdDate_dt>
-	<lastModifiedDate>2019-10-11T19:20:07.555Z</lastModifiedDate>
-	<lastModifiedDate_dt>2019-10-11T19:20:07.555Z</lastModifiedDate_dt>
-</component>
-	</item>	<item datasource="features" inline="true">	<key>9f6b80da-21c8-9232-5175-2b1b97db1ed0</key>
-	<value>Three</value>
-<component id="9f6b80da-21c8-9232-5175-2b1b97db1ed0">
-	<content-type>/component/feature</content-type>
-	<display-template>/templates/web/components/feature.ftl</display-template>
-	<no-template-required/>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>9f6b</objectGroupId>
-	<objectId>9f6b80da-21c8-9232-5175-2b1b97db1ed0</objectId>
-	<internal-name>Three</internal-name>
-	<title_t>Three</title_t>
-	<disabled>false</disabled>
-	<icon_s>fa-paper-plane</icon_s>
-	<file-name>9f6b80da-21c8-9232-5175-2b1b97db1ed0.xml</file-name>
-	<body_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/p&gt;</body_html>
-	<createdDate>2019-10-11T19:20:49.115Z</createdDate>
-	<createdDate_dt>2019-10-11T19:20:49.115Z</createdDate_dt>
-	<lastModifiedDate>2019-10-11T19:20:49.115Z</lastModifiedDate>
-	<lastModifiedDate_dt>2019-10-11T19:20:49.115Z</lastModifiedDate_dt>
-</component>
-	</item>	<item datasource="features" inline="true">	<key>9e93c15d-9473-363b-6179-ce02c1203756</key>
-	<value>Four</value>
-<component id="9e93c15d-9473-363b-6179-ce02c1203756">
-	<content-type>/component/feature</content-type>
-	<display-template>/templates/web/components/feature.ftl</display-template>
-	<no-template-required/>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<objectGroupId>9e93</objectGroupId>
-	<objectId>9e93c15d-9473-363b-6179-ce02c1203756</objectId>
-	<disabled>false</disabled>
-	<icon_s>fa-gavel</icon_s>
-	<file-name>9e93c15d-9473-363b-6179-ce02c1203756.xml</file-name>
-	<internal-name>Four</internal-name>
-	<title_t>Four</title_t>
-	<body_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/p&gt;</body_html>
-	<createdDate>2019-10-11T19:21:00.910Z</createdDate>
-	<createdDate_dt>2019-10-11T19:21:00.910Z</createdDate_dt>
-	<lastModifiedDate>2019-10-11T19:21:00.910Z</lastModifiedDate>
-	<lastModifiedDate_dt>2019-10-11T19:21:00.910Z</lastModifiedDate_dt>
-</component>
-	</item></features_o>
-	<header/>
-	<hero_image_s>/static-assets/images/strawberries.jpg</hero_image_s>
-	<left-rail_o>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
-	<value>Left Rail with Latest Articles</value>
-	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></left-rail_o>
-	<features_title_t>Erat lacinia</features_title_t>
+  <content-type>/page/home</content-type>
+  <display-template>/templates/web/pages/home.ftl</display-template>
+  <no-template-required/>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <file-name>index.xml</file-name>
+  <internal-name>Home</internal-name>
+  <orderDefault_f>-1</orderDefault_f>
+  <objectGroupId>8d7f</objectGroupId>
+  <objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
+  <folder-name/>
+  <createdDate>2017-1-31T16:18:14.000Z</createdDate>
+  <createdDate_dt>2017-1-31T16:18:14.000Z</createdDate_dt>
+  <lastModifiedDate>2021-03-31T18:08:03.196Z</lastModifiedDate>
+  <lastModifiedDate_dt>2021-03-31T18:20:09.599Z</lastModifiedDate_dt>
+  <title_t>Editorial</title_t>
+  <hero_text_html>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text_html>
+  <hero_title_html>&lt;h1&gt;Hi, I&amp;rsquo;m Editorial&lt;/h1&gt;
+    &lt;h3&gt;&lt;span style="font-size: 1.5em;"&gt;by HTML5 UP&lt;/span&gt;&lt;/h3&gt;</hero_title_html>
+  <features_o item-list="true">
+    <item datasource="features" inline="true">
+      <key>/site/components/features/4be0a368-783c-8f73-7469-63a62636bd4c.xml</key>
+      <value>Smile</value>
+      <include>/site/components/features/4be0a368-783c-8f73-7469-63a62636bd4c.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+    <item datasource="features" inline="true">
+      <key>310b0c87-c3ca-4da0-4aa2-7002a318d7ce</key>
+      <value>Download</value>
+      <disableFlattening>false</disableFlattening>
+      <component id="310b0c87-c3ca-4da0-4aa2-7002a318d7ce">
+        <content-type>/component/feature</content-type>
+        <display-template>/templates/web/components/feature.ftl</display-template>
+        <no-template-required/>
+        <merge-strategy>inherit-levels</merge-strategy>
+        <objectGroupId>310b</objectGroupId>
+        <objectId>310b0c87-c3ca-4da0-4aa2-7002a318d7ce</objectId>
+        <file-name>310b0c87-c3ca-4da0-4aa2-7002a318d7ce.xml</file-name>
+        <internal-name>Download</internal-name>
+        <title_t>Download</title_t>
+        <disabled>false</disabled>
+        <icon_s>fa-arrow-alt-circle-down far</icon_s>
+        <body_html>&lt;p&gt;Download ornare velit lacus, ac varius enim lorem ullamcorper dolore.
+          Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/p&gt;
+        </body_html>
+        <createdDate>2019-10-11T19:20:07.555Z</createdDate>
+        <createdDate_dt>2019-10-11T19:20:07.555Z</createdDate_dt>
+        <lastModifiedDate>2019-12-22T11:56:51.172Z</lastModifiedDate>
+        <lastModifiedDate_dt>2019-12-22T11:56:51.172Z</lastModifiedDate_dt>
+      </component>
+    </item>
+    <item datasource="features" inline="true">
+      <key>a89386c4-a205-2681-2db1-c3606f714411</key>
+      <value>Build</value>
+      <disableFlattening>false</disableFlattening>
+      <component id="a89386c4-a205-2681-2db1-c3606f714411">
+        <content-type>/component/feature</content-type>
+        <display-template>/templates/web/components/feature.ftl</display-template>
+        <no-template-required/>
+        <merge-strategy>inherit-levels</merge-strategy>
+        <objectGroupId>a893</objectGroupId>
+        <objectId>a89386c4-a205-2681-2db1-c3606f714411</objectId>
+        <file-name>a89386c4-a205-2681-2db1-c3606f714411.xml</file-name>
+        <internal-name>Build</internal-name>
+        <title_t>Build</title_t>
+        <disabled>false</disabled>
+        <icon_s>fa-building far</icon_s>
+        <body_html>&lt;p&gt;Build enean ornare velit lacus, ac varius enim lorem ullamcorper dolore.
+          Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/p&gt;
+        </body_html>
+        <createdDate>2019-10-11T19:19:53.590Z</createdDate>
+        <createdDate_dt>2019-10-11T19:19:53.590Z</createdDate_dt>
+        <lastModifiedDate>2019-12-22T11:56:34.603Z</lastModifiedDate>
+        <lastModifiedDate_dt>2019-12-22T11:56:34.603Z</lastModifiedDate_dt>
+      </component>
+    </item>
+    <item datasource="features" inline="true">
+      <key>/site/components/features/72ef047f-02b7-89e2-bbd5-4763ac7dbca8.xml</key>
+      <value>Closed captioning</value>
+      <include>/site/components/features/72ef047f-02b7-89e2-bbd5-4763ac7dbca8.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </features_o>
+  <hero_image_s><![CDATA[/static-assets/images/strawberries.jpg]]></hero_image_s>
+  <left_rail_o item-list="true">
+    <item>
+      <key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
+      <value>Left Rail with Latest Articles</value>
+      <include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </left_rail_o>
+  <features_title_t>Erat lacinia</features_title_t>
+  <disabled>false</disabled>
+  <header_o item-list="true"/>
 </page>
