@@ -1,0 +1,2208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+  <content-type>/taxonomy</content-type>
+  <display-template/>
+  <no-template-required/>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>26c0</objectGroupId>
+  <objectId>26c0c419-9d5f-2506-be5c-f6fd344f38e2</objectId>
+  <items item-list="true">
+		<item>
+			<key>brands fa-500px</key>
+			<value>500px</value>
+			<unicode>f26e</unicode>
+		</item>
+		<item>
+			<key>brands fa-accessible-icon</key>
+			<value>Accessible icon</value>
+			<unicode>f368</unicode>
+		</item>
+		<item>
+			<key>brands fa-accusoft</key>
+			<value>Accusoft</value>
+			<unicode>f369</unicode>
+		</item>
+		<item>
+			<key>brands fa-acquisitions-incorporated</key>
+			<value>Acquisitions incorporated</value>
+			<unicode>f6af</unicode>
+		</item>
+		<item>
+			<key>brands fa-adn</key>
+			<value>Adn</value>
+			<unicode>f170</unicode>
+		</item>
+		<item>
+			<key>brands fa-adobe</key>
+			<value>Adobe</value>
+			<unicode>f778</unicode>
+		</item>
+		<item>
+			<key>brands fa-adversal</key>
+			<value>Adversal</value>
+			<unicode>f36a</unicode>
+		</item>
+		<item>
+			<key>brands fa-affiliatetheme</key>
+			<value>Affiliatetheme</value>
+			<unicode>f36b</unicode>
+		</item>
+		<item>
+			<key>brands fa-airbnb</key>
+			<value>Airbnb</value>
+			<unicode>f834</unicode>
+		</item>
+		<item>
+			<key>brands fa-algolia</key>
+			<value>Algolia</value>
+			<unicode>f36c</unicode>
+		</item>
+		<item>
+			<key>brands fa-alipay</key>
+			<value>Alipay</value>
+			<unicode>f642</unicode>
+		</item>
+		<item>
+			<key>brands fa-amazon</key>
+			<value>Amazon</value>
+			<unicode>f270</unicode>
+		</item>
+		<item>
+			<key>brands fa-amazon-pay</key>
+			<value>Amazon pay</value>
+			<unicode>f42c</unicode>
+		</item>
+		<item>
+			<key>brands fa-amilia</key>
+			<value>Amilia</value>
+			<unicode>f36d</unicode>
+		</item>
+		<item>
+			<key>brands fa-android</key>
+			<value>Android</value>
+			<unicode>f17b</unicode>
+		</item>
+		<item>
+			<key>brands fa-angellist</key>
+			<value>Angellist</value>
+			<unicode>f209</unicode>
+		</item>
+		<item>
+			<key>brands fa-angrycreative</key>
+			<value>Angrycreative</value>
+			<unicode>f36e</unicode>
+		</item>
+		<item>
+			<key>brands fa-angular</key>
+			<value>Angular</value>
+			<unicode>f420</unicode>
+		</item>
+		<item>
+			<key>brands fa-app-store</key>
+			<value>App store</value>
+			<unicode>f36f</unicode>
+		</item>
+		<item>
+			<key>brands fa-app-store-ios</key>
+			<value>App store ios</value>
+			<unicode>f370</unicode>
+		</item>
+		<item>
+			<key>brands fa-apper</key>
+			<value>Apper</value>
+			<unicode>f371</unicode>
+		</item>
+		<item>
+			<key>brands fa-apple</key>
+			<value>Apple</value>
+			<unicode>f179</unicode>
+		</item>
+		<item>
+			<key>brands fa-apple-pay</key>
+			<value>Apple pay</value>
+			<unicode>f415</unicode>
+		</item>
+		<item>
+			<key>brands fa-artstation</key>
+			<value>Artstation</value>
+			<unicode>f77a</unicode>
+		</item>
+		<item>
+			<key>brands fa-asymmetrik</key>
+			<value>Asymmetrik</value>
+			<unicode>f372</unicode>
+		</item>
+		<item>
+			<key>brands fa-atlassian</key>
+			<value>Atlassian</value>
+			<unicode>f77b</unicode>
+		</item>
+		<item>
+			<key>brands fa-audible</key>
+			<value>Audible</value>
+			<unicode>f373</unicode>
+		</item>
+		<item>
+			<key>brands fa-autoprefixer</key>
+			<value>Autoprefixer</value>
+			<unicode>f41c</unicode>
+		</item>
+		<item>
+			<key>brands fa-avianex</key>
+			<value>Avianex</value>
+			<unicode>f374</unicode>
+		</item>
+		<item>
+			<key>brands fa-aviato</key>
+			<value>Aviato</value>
+			<unicode>f421</unicode>
+		</item>
+		<item>
+			<key>brands fa-aws</key>
+			<value>Aws</value>
+			<unicode>f375</unicode>
+		</item>
+		<item>
+			<key>brands fa-bandcamp</key>
+			<value>Bandcamp</value>
+			<unicode>f2d5</unicode>
+		</item>
+		<item>
+			<key>brands fa-battle-net</key>
+			<value>Battle net</value>
+			<unicode>f835</unicode>
+		</item>
+		<item>
+			<key>brands fa-behance</key>
+			<value>Behance</value>
+			<unicode>f1b4</unicode>
+		</item>
+		<item>
+			<key>brands fa-behance-square</key>
+			<value>Behance square</value>
+			<unicode>f1b5</unicode>
+		</item>
+		<item>
+			<key>brands fa-bimobject</key>
+			<value>Bimobject</value>
+			<unicode>f378</unicode>
+		</item>
+		<item>
+			<key>brands fa-bitbucket</key>
+			<value>Bitbucket</value>
+			<unicode>f171</unicode>
+		</item>
+		<item>
+			<key>brands fa-bitcoin</key>
+			<value>Bitcoin</value>
+			<unicode>f379</unicode>
+		</item>
+		<item>
+			<key>brands fa-bity</key>
+			<value>Bity</value>
+			<unicode>f37a</unicode>
+		</item>
+		<item>
+			<key>brands fa-black-tie</key>
+			<value>Black tie</value>
+			<unicode>f27e</unicode>
+		</item>
+		<item>
+			<key>brands fa-blackberry</key>
+			<value>Blackberry</value>
+			<unicode>f37b</unicode>
+		</item>
+		<item>
+			<key>brands fa-blogger</key>
+			<value>Blogger</value>
+			<unicode>f37c</unicode>
+		</item>
+		<item>
+			<key>brands fa-blogger-b</key>
+			<value>Blogger b</value>
+			<unicode>f37d</unicode>
+		</item>
+		<item>
+			<key>brands fa-bluetooth</key>
+			<value>Bluetooth</value>
+			<unicode>f293</unicode>
+		</item>
+		<item>
+			<key>brands fa-bluetooth-b</key>
+			<value>Bluetooth b</value>
+			<unicode>f294</unicode>
+		</item>
+		<item>
+			<key>brands fa-bootstrap</key>
+			<value>Bootstrap</value>
+			<unicode>f836</unicode>
+		</item>
+		<item>
+			<key>brands fa-btc</key>
+			<value>Btc</value>
+			<unicode>f15a</unicode>
+		</item>
+		<item>
+			<key>brands fa-buffer</key>
+			<value>Buffer</value>
+			<unicode>f837</unicode>
+		</item>
+		<item>
+			<key>brands fa-buromobelexperte</key>
+			<value>Buromobelexperte</value>
+			<unicode>f37f</unicode>
+		</item>
+		<item>
+			<key>brands fa-buy-n-large</key>
+			<value>Buy n large</value>
+			<unicode>f8a6</unicode>
+		</item>
+		<item>
+			<key>brands fa-buysellads</key>
+			<value>Buysellads</value>
+			<unicode>f20d</unicode>
+		</item>
+		<item>
+			<key>brands fa-canadian-maple-leaf</key>
+			<value>Canadian maple leaf</value>
+			<unicode>f785</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-amazon-pay</key>
+			<value>Cc amazon pay</value>
+			<unicode>f42d</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-amex</key>
+			<value>Cc amex</value>
+			<unicode>f1f3</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-apple-pay</key>
+			<value>Cc apple pay</value>
+			<unicode>f416</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-diners-club</key>
+			<value>Cc diners club</value>
+			<unicode>f24c</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-discover</key>
+			<value>Cc discover</value>
+			<unicode>f1f2</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-jcb</key>
+			<value>Cc jcb</value>
+			<unicode>f24b</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-mastercard</key>
+			<value>Cc mastercard</value>
+			<unicode>f1f1</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-paypal</key>
+			<value>Cc paypal</value>
+			<unicode>f1f4</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-stripe</key>
+			<value>Cc stripe</value>
+			<unicode>f1f5</unicode>
+		</item>
+		<item>
+			<key>brands fa-cc-visa</key>
+			<value>Cc visa</value>
+			<unicode>f1f0</unicode>
+		</item>
+		<item>
+			<key>brands fa-centercode</key>
+			<value>Centercode</value>
+			<unicode>f380</unicode>
+		</item>
+		<item>
+			<key>brands fa-centos</key>
+			<value>Centos</value>
+			<unicode>f789</unicode>
+		</item>
+		<item>
+			<key>brands fa-chrome</key>
+			<value>Chrome</value>
+			<unicode>f268</unicode>
+		</item>
+		<item>
+			<key>brands fa-chromecast</key>
+			<value>Chromecast</value>
+			<unicode>f838</unicode>
+		</item>
+		<item>
+			<key>brands fa-cloudscale</key>
+			<value>Cloudscale</value>
+			<unicode>f383</unicode>
+		</item>
+		<item>
+			<key>brands fa-cloudsmith</key>
+			<value>Cloudsmith</value>
+			<unicode>f384</unicode>
+		</item>
+		<item>
+			<key>brands fa-cloudversify</key>
+			<value>Cloudversify</value>
+			<unicode>f385</unicode>
+		</item>
+		<item>
+			<key>brands fa-codepen</key>
+			<value>Codepen</value>
+			<unicode>f1cb</unicode>
+		</item>
+		<item>
+			<key>brands fa-codiepie</key>
+			<value>Codiepie</value>
+			<unicode>f284</unicode>
+		</item>
+		<item>
+			<key>brands fa-confluence</key>
+			<value>Confluence</value>
+			<unicode>f78d</unicode>
+		</item>
+		<item>
+			<key>brands fa-connectdevelop</key>
+			<value>Connectdevelop</value>
+			<unicode>f20e</unicode>
+		</item>
+		<item>
+			<key>brands fa-contao</key>
+			<value>Contao</value>
+			<unicode>f26d</unicode>
+		</item>
+		<item>
+			<key>brands fa-cotton-bureau</key>
+			<value>Cotton bureau</value>
+			<unicode>f89e</unicode>
+		</item>
+		<item>
+			<key>brands fa-cpanel</key>
+			<value>Cpanel</value>
+			<unicode>f388</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons</key>
+			<value>Creative commons</value>
+			<unicode>f25e</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-by</key>
+			<value>Creative commons by</value>
+			<unicode>f4e7</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-nc</key>
+			<value>Creative commons nc</value>
+			<unicode>f4e8</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-nc-eu</key>
+			<value>Creative commons nc eu</value>
+			<unicode>f4e9</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-nc-jp</key>
+			<value>Creative commons nc jp</value>
+			<unicode>f4ea</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-nd</key>
+			<value>Creative commons nd</value>
+			<unicode>f4eb</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-pd</key>
+			<value>Creative commons pd</value>
+			<unicode>f4ec</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-pd-alt</key>
+			<value>Creative commons pd alt</value>
+			<unicode>f4ed</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-remix</key>
+			<value>Creative commons remix</value>
+			<unicode>f4ee</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-sa</key>
+			<value>Creative commons sa</value>
+			<unicode>f4ef</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-sampling</key>
+			<value>Creative commons sampling</value>
+			<unicode>f4f0</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-sampling-plus</key>
+			<value>Creative commons sampling plus</value>
+			<unicode>f4f1</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-share</key>
+			<value>Creative commons share</value>
+			<unicode>f4f2</unicode>
+		</item>
+		<item>
+			<key>brands fa-creative-commons-zero</key>
+			<value>Creative commons zero</value>
+			<unicode>f4f3</unicode>
+		</item>
+		<item>
+			<key>brands fa-critical-role</key>
+			<value>Critical role</value>
+			<unicode>f6c9</unicode>
+		</item>
+		<item>
+			<key>brands fa-css3</key>
+			<value>Css3</value>
+			<unicode>f13c</unicode>
+		</item>
+		<item>
+			<key>brands fa-css3-alt</key>
+			<value>Css3 alt</value>
+			<unicode>f38b</unicode>
+		</item>
+		<item>
+			<key>brands fa-cuttlefish</key>
+			<value>Cuttlefish</value>
+			<unicode>f38c</unicode>
+		</item>
+		<item>
+			<key>brands fa-d-and-d</key>
+			<value>D and d</value>
+			<unicode>f38d</unicode>
+		</item>
+		<item>
+			<key>brands fa-d-and-d-beyond</key>
+			<value>D and d beyond</value>
+			<unicode>f6ca</unicode>
+		</item>
+		<item>
+			<key>brands fa-dashcube</key>
+			<value>Dashcube</value>
+			<unicode>f210</unicode>
+		</item>
+		<item>
+			<key>brands fa-delicious</key>
+			<value>Delicious</value>
+			<unicode>f1a5</unicode>
+		</item>
+		<item>
+			<key>brands fa-deploydog</key>
+			<value>Deploydog</value>
+			<unicode>f38e</unicode>
+		</item>
+		<item>
+			<key>brands fa-deskpro</key>
+			<value>Deskpro</value>
+			<unicode>f38f</unicode>
+		</item>
+		<item>
+			<key>brands fa-dev</key>
+			<value>Dev</value>
+			<unicode>f6cc</unicode>
+		</item>
+		<item>
+			<key>brands fa-deviantart</key>
+			<value>Deviantart</value>
+			<unicode>f1bd</unicode>
+		</item>
+		<item>
+			<key>brands fa-dhl</key>
+			<value>Dhl</value>
+			<unicode>f790</unicode>
+		</item>
+		<item>
+			<key>brands fa-diaspora</key>
+			<value>Diaspora</value>
+			<unicode>f791</unicode>
+		</item>
+		<item>
+			<key>brands fa-digg</key>
+			<value>Digg</value>
+			<unicode>f1a6</unicode>
+		</item>
+		<item>
+			<key>brands fa-digital-ocean</key>
+			<value>Digital ocean</value>
+			<unicode>f391</unicode>
+		</item>
+		<item>
+			<key>brands fa-discord</key>
+			<value>Discord</value>
+			<unicode>f392</unicode>
+		</item>
+		<item>
+			<key>brands fa-discourse</key>
+			<value>Discourse</value>
+			<unicode>f393</unicode>
+		</item>
+		<item>
+			<key>brands fa-dochub</key>
+			<value>Dochub</value>
+			<unicode>f394</unicode>
+		</item>
+		<item>
+			<key>brands fa-docker</key>
+			<value>Docker</value>
+			<unicode>f395</unicode>
+		</item>
+		<item>
+			<key>brands fa-draft2digital</key>
+			<value>Draft2digital</value>
+			<unicode>f396</unicode>
+		</item>
+		<item>
+			<key>brands fa-dribbble</key>
+			<value>Dribbble</value>
+			<unicode>f17d</unicode>
+		</item>
+		<item>
+			<key>brands fa-dribbble-square</key>
+			<value>Dribbble square</value>
+			<unicode>f397</unicode>
+		</item>
+		<item>
+			<key>brands fa-dropbox</key>
+			<value>Dropbox</value>
+			<unicode>f16b</unicode>
+		</item>
+		<item>
+			<key>brands fa-drupal</key>
+			<value>Drupal</value>
+			<unicode>f1a9</unicode>
+		</item>
+		<item>
+			<key>brands fa-dyalog</key>
+			<value>Dyalog</value>
+			<unicode>f399</unicode>
+		</item>
+		<item>
+			<key>brands fa-earlybirds</key>
+			<value>Earlybirds</value>
+			<unicode>f39a</unicode>
+		</item>
+		<item>
+			<key>brands fa-ebay</key>
+			<value>Ebay</value>
+			<unicode>f4f4</unicode>
+		</item>
+		<item>
+			<key>brands fa-edge</key>
+			<value>Edge</value>
+			<unicode>f282</unicode>
+		</item>
+		<item>
+			<key>brands fa-elementor</key>
+			<value>Elementor</value>
+			<unicode>f430</unicode>
+		</item>
+		<item>
+			<key>brands fa-ello</key>
+			<value>Ello</value>
+			<unicode>f5f1</unicode>
+		</item>
+		<item>
+			<key>brands fa-ember</key>
+			<value>Ember</value>
+			<unicode>f423</unicode>
+		</item>
+		<item>
+			<key>brands fa-empire</key>
+			<value>Empire</value>
+			<unicode>f1d1</unicode>
+		</item>
+		<item>
+			<key>brands fa-envira</key>
+			<value>Envira</value>
+			<unicode>f299</unicode>
+		</item>
+		<item>
+			<key>brands fa-erlang</key>
+			<value>Erlang</value>
+			<unicode>f39d</unicode>
+		</item>
+		<item>
+			<key>brands fa-ethereum</key>
+			<value>Ethereum</value>
+			<unicode>f42e</unicode>
+		</item>
+		<item>
+			<key>brands fa-etsy</key>
+			<value>Etsy</value>
+			<unicode>f2d7</unicode>
+		</item>
+		<item>
+			<key>brands fa-evernote</key>
+			<value>Evernote</value>
+			<unicode>f839</unicode>
+		</item>
+		<item>
+			<key>brands fa-expeditedssl</key>
+			<value>Expeditedssl</value>
+			<unicode>f23e</unicode>
+		</item>
+		<item>
+			<key>brands fa-facebook</key>
+			<value>Facebook</value>
+			<unicode>f09a</unicode>
+		</item>
+		<item>
+			<key>brands fa-facebook-f</key>
+			<value>Facebook f</value>
+			<unicode>f39e</unicode>
+		</item>
+		<item>
+			<key>brands fa-facebook-messenger</key>
+			<value>Facebook messenger</value>
+			<unicode>f39f</unicode>
+		</item>
+		<item>
+			<key>brands fa-facebook-square</key>
+			<value>Facebook square</value>
+			<unicode>f082</unicode>
+		</item>
+		<item>
+			<key>brands fa-fantasy-flight-games</key>
+			<value>Fantasy flight games</value>
+			<unicode>f6dc</unicode>
+		</item>
+		<item>
+			<key>brands fa-fedex</key>
+			<value>Fedex</value>
+			<unicode>f797</unicode>
+		</item>
+		<item>
+			<key>brands fa-fedora</key>
+			<value>Fedora</value>
+			<unicode>f798</unicode>
+		</item>
+		<item>
+			<key>brands fa-figma</key>
+			<value>Figma</value>
+			<unicode>f799</unicode>
+		</item>
+		<item>
+			<key>brands fa-firefox</key>
+			<value>Firefox</value>
+			<unicode>f269</unicode>
+		</item>
+		<item>
+			<key>brands fa-firefox-browser</key>
+			<value>Firefox browser</value>
+			<unicode>f907</unicode>
+		</item>
+		<item>
+			<key>brands fa-first-order</key>
+			<value>First order</value>
+			<unicode>f2b0</unicode>
+		</item>
+		<item>
+			<key>brands fa-first-order-alt</key>
+			<value>First order alt</value>
+			<unicode>f50a</unicode>
+		</item>
+		<item>
+			<key>brands fa-firstdraft</key>
+			<value>Firstdraft</value>
+			<unicode>f3a1</unicode>
+		</item>
+		<item>
+			<key>brands fa-flickr</key>
+			<value>Flickr</value>
+			<unicode>f16e</unicode>
+		</item>
+		<item>
+			<key>brands fa-flipboard</key>
+			<value>Flipboard</value>
+			<unicode>f44d</unicode>
+		</item>
+		<item>
+			<key>brands fa-fly</key>
+			<value>Fly</value>
+			<unicode>f417</unicode>
+		</item>
+		<item>
+			<key>brands fa-font-awesome</key>
+			<value>Font awesome</value>
+			<unicode>f2b4</unicode>
+		</item>
+		<item>
+			<key>brands fa-font-awesome-alt</key>
+			<value>Font awesome alt</value>
+			<unicode>f35c</unicode>
+		</item>
+		<item>
+			<key>brands fa-font-awesome-flag</key>
+			<value>Font awesome flag</value>
+			<unicode>f425</unicode>
+		</item>
+		<item>
+			<key>brands fa-fonticons</key>
+			<value>Fonticons</value>
+			<unicode>f280</unicode>
+		</item>
+		<item>
+			<key>brands fa-fonticons-fi</key>
+			<value>Fonticons fi</value>
+			<unicode>f3a2</unicode>
+		</item>
+		<item>
+			<key>brands fa-fort-awesome</key>
+			<value>Fort awesome</value>
+			<unicode>f286</unicode>
+		</item>
+		<item>
+			<key>brands fa-fort-awesome-alt</key>
+			<value>Fort awesome alt</value>
+			<unicode>f3a3</unicode>
+		</item>
+		<item>
+			<key>brands fa-forumbee</key>
+			<value>Forumbee</value>
+			<unicode>f211</unicode>
+		</item>
+		<item>
+			<key>brands fa-foursquare</key>
+			<value>Foursquare</value>
+			<unicode>f180</unicode>
+		</item>
+		<item>
+			<key>brands fa-free-code-camp</key>
+			<value>Free code camp</value>
+			<unicode>f2c5</unicode>
+		</item>
+		<item>
+			<key>brands fa-freebsd</key>
+			<value>Freebsd</value>
+			<unicode>f3a4</unicode>
+		</item>
+		<item>
+			<key>brands fa-fulcrum</key>
+			<value>Fulcrum</value>
+			<unicode>f50b</unicode>
+		</item>
+		<item>
+			<key>brands fa-galactic-republic</key>
+			<value>Galactic republic</value>
+			<unicode>f50c</unicode>
+		</item>
+		<item>
+			<key>brands fa-galactic-senate</key>
+			<value>Galactic senate</value>
+			<unicode>f50d</unicode>
+		</item>
+		<item>
+			<key>brands fa-get-pocket</key>
+			<value>Get pocket</value>
+			<unicode>f265</unicode>
+		</item>
+		<item>
+			<key>brands fa-gg</key>
+			<value>Gg</value>
+			<unicode>f260</unicode>
+		</item>
+		<item>
+			<key>brands fa-gg-circle</key>
+			<value>Gg circle</value>
+			<unicode>f261</unicode>
+		</item>
+		<item>
+			<key>brands fa-git</key>
+			<value>Git</value>
+			<unicode>f1d3</unicode>
+		</item>
+		<item>
+			<key>brands fa-git-alt</key>
+			<value>Git alt</value>
+			<unicode>f841</unicode>
+		</item>
+		<item>
+			<key>brands fa-git-square</key>
+			<value>Git square</value>
+			<unicode>f1d2</unicode>
+		</item>
+		<item>
+			<key>brands fa-github</key>
+			<value>Github</value>
+			<unicode>f09b</unicode>
+		</item>
+		<item>
+			<key>brands fa-github-alt</key>
+			<value>Github alt</value>
+			<unicode>f113</unicode>
+		</item>
+		<item>
+			<key>brands fa-github-square</key>
+			<value>Github square</value>
+			<unicode>f092</unicode>
+		</item>
+		<item>
+			<key>brands fa-gitkraken</key>
+			<value>Gitkraken</value>
+			<unicode>f3a6</unicode>
+		</item>
+		<item>
+			<key>brands fa-gitlab</key>
+			<value>Gitlab</value>
+			<unicode>f296</unicode>
+		</item>
+		<item>
+			<key>brands fa-gitter</key>
+			<value>Gitter</value>
+			<unicode>f426</unicode>
+		</item>
+		<item>
+			<key>brands fa-glide</key>
+			<value>Glide</value>
+			<unicode>f2a5</unicode>
+		</item>
+		<item>
+			<key>brands fa-glide-g</key>
+			<value>Glide g</value>
+			<unicode>f2a6</unicode>
+		</item>
+		<item>
+			<key>brands fa-gofore</key>
+			<value>Gofore</value>
+			<unicode>f3a7</unicode>
+		</item>
+		<item>
+			<key>brands fa-goodreads</key>
+			<value>Goodreads</value>
+			<unicode>f3a8</unicode>
+		</item>
+		<item>
+			<key>brands fa-goodreads-g</key>
+			<value>Goodreads g</value>
+			<unicode>f3a9</unicode>
+		</item>
+		<item>
+			<key>brands fa-google</key>
+			<value>Google</value>
+			<unicode>f1a0</unicode>
+		</item>
+		<item>
+			<key>brands fa-google-drive</key>
+			<value>Google drive</value>
+			<unicode>f3aa</unicode>
+		</item>
+		<item>
+			<key>brands fa-google-play</key>
+			<value>Google play</value>
+			<unicode>f3ab</unicode>
+		</item>
+		<item>
+			<key>brands fa-google-plus</key>
+			<value>Google plus</value>
+			<unicode>f2b3</unicode>
+		</item>
+		<item>
+			<key>brands fa-google-plus-g</key>
+			<value>Google plus g</value>
+			<unicode>f0d5</unicode>
+		</item>
+		<item>
+			<key>brands fa-google-plus-square</key>
+			<value>Google plus square</value>
+			<unicode>f0d4</unicode>
+		</item>
+		<item>
+			<key>brands fa-google-wallet</key>
+			<value>Google wallet</value>
+			<unicode>f1ee</unicode>
+		</item>
+		<item>
+			<key>brands fa-gratipay</key>
+			<value>Gratipay</value>
+			<unicode>f184</unicode>
+		</item>
+		<item>
+			<key>brands fa-grav</key>
+			<value>Grav</value>
+			<unicode>f2d6</unicode>
+		</item>
+		<item>
+			<key>brands fa-gripfire</key>
+			<value>Gripfire</value>
+			<unicode>f3ac</unicode>
+		</item>
+		<item>
+			<key>brands fa-grunt</key>
+			<value>Grunt</value>
+			<unicode>f3ad</unicode>
+		</item>
+		<item>
+			<key>brands fa-gulp</key>
+			<value>Gulp</value>
+			<unicode>f3ae</unicode>
+		</item>
+		<item>
+			<key>brands fa-hacker-news</key>
+			<value>Hacker news</value>
+			<unicode>f1d4</unicode>
+		</item>
+		<item>
+			<key>brands fa-hacker-news-square</key>
+			<value>Hacker news square</value>
+			<unicode>f3af</unicode>
+		</item>
+		<item>
+			<key>brands fa-hackerrank</key>
+			<value>Hackerrank</value>
+			<unicode>f5f7</unicode>
+		</item>
+		<item>
+			<key>brands fa-hips</key>
+			<value>Hips</value>
+			<unicode>f452</unicode>
+		</item>
+		<item>
+			<key>brands fa-hire-a-helper</key>
+			<value>Hire a helper</value>
+			<unicode>f3b0</unicode>
+		</item>
+		<item>
+			<key>brands fa-hooli</key>
+			<value>Hooli</value>
+			<unicode>f427</unicode>
+		</item>
+		<item>
+			<key>brands fa-hornbill</key>
+			<value>Hornbill</value>
+			<unicode>f592</unicode>
+		</item>
+		<item>
+			<key>brands fa-hotjar</key>
+			<value>Hotjar</value>
+			<unicode>f3b1</unicode>
+		</item>
+		<item>
+			<key>brands fa-houzz</key>
+			<value>Houzz</value>
+			<unicode>f27c</unicode>
+		</item>
+		<item>
+			<key>brands fa-html5</key>
+			<value>Html5</value>
+			<unicode>f13b</unicode>
+		</item>
+		<item>
+			<key>brands fa-hubspot</key>
+			<value>Hubspot</value>
+			<unicode>f3b2</unicode>
+		</item>
+		<item>
+			<key>brands fa-ideal</key>
+			<value>Ideal</value>
+			<unicode>f913</unicode>
+		</item>
+		<item>
+			<key>brands fa-imdb</key>
+			<value>Imdb</value>
+			<unicode>f2d8</unicode>
+		</item>
+		<item>
+			<key>brands fa-instagram</key>
+			<value>Instagram</value>
+			<unicode>f16d</unicode>
+		</item>
+		<item>
+			<key>brands fa-intercom</key>
+			<value>Intercom</value>
+			<unicode>f7af</unicode>
+		</item>
+		<item>
+			<key>brands fa-internet-explorer</key>
+			<value>Internet explorer</value>
+			<unicode>f26b</unicode>
+		</item>
+		<item>
+			<key>brands fa-invision</key>
+			<value>Invision</value>
+			<unicode>f7b0</unicode>
+		</item>
+		<item>
+			<key>brands fa-ioxhost</key>
+			<value>Ioxhost</value>
+			<unicode>f208</unicode>
+		</item>
+		<item>
+			<key>brands fa-itch-io</key>
+			<value>Itch io</value>
+			<unicode>f83a</unicode>
+		</item>
+		<item>
+			<key>brands fa-itunes</key>
+			<value>Itunes</value>
+			<unicode>f3b4</unicode>
+		</item>
+		<item>
+			<key>brands fa-itunes-note</key>
+			<value>Itunes note</value>
+			<unicode>f3b5</unicode>
+		</item>
+		<item>
+			<key>brands fa-java</key>
+			<value>Java</value>
+			<unicode>f4e4</unicode>
+		</item>
+		<item>
+			<key>brands fa-jedi-order</key>
+			<value>Jedi order</value>
+			<unicode>f50e</unicode>
+		</item>
+		<item>
+			<key>brands fa-jenkins</key>
+			<value>Jenkins</value>
+			<unicode>f3b6</unicode>
+		</item>
+		<item>
+			<key>brands fa-jira</key>
+			<value>Jira</value>
+			<unicode>f7b1</unicode>
+		</item>
+		<item>
+			<key>brands fa-joget</key>
+			<value>Joget</value>
+			<unicode>f3b7</unicode>
+		</item>
+		<item>
+			<key>brands fa-joomla</key>
+			<value>Joomla</value>
+			<unicode>f1aa</unicode>
+		</item>
+		<item>
+			<key>brands fa-js</key>
+			<value>Js</value>
+			<unicode>f3b8</unicode>
+		</item>
+		<item>
+			<key>brands fa-js-square</key>
+			<value>Js square</value>
+			<unicode>f3b9</unicode>
+		</item>
+		<item>
+			<key>brands fa-jsfiddle</key>
+			<value>Jsfiddle</value>
+			<unicode>f1cc</unicode>
+		</item>
+		<item>
+			<key>brands fa-kaggle</key>
+			<value>Kaggle</value>
+			<unicode>f5fa</unicode>
+		</item>
+		<item>
+			<key>brands fa-keybase</key>
+			<value>Keybase</value>
+			<unicode>f4f5</unicode>
+		</item>
+		<item>
+			<key>brands fa-keycdn</key>
+			<value>Keycdn</value>
+			<unicode>f3ba</unicode>
+		</item>
+		<item>
+			<key>brands fa-kickstarter</key>
+			<value>Kickstarter</value>
+			<unicode>f3bb</unicode>
+		</item>
+		<item>
+			<key>brands fa-kickstarter-k</key>
+			<value>Kickstarter k</value>
+			<unicode>f3bc</unicode>
+		</item>
+		<item>
+			<key>brands fa-korvue</key>
+			<value>Korvue</value>
+			<unicode>f42f</unicode>
+		</item>
+		<item>
+			<key>brands fa-laravel</key>
+			<value>Laravel</value>
+			<unicode>f3bd</unicode>
+		</item>
+		<item>
+			<key>brands fa-lastfm</key>
+			<value>Lastfm</value>
+			<unicode>f202</unicode>
+		</item>
+		<item>
+			<key>brands fa-lastfm-square</key>
+			<value>Lastfm square</value>
+			<unicode>f203</unicode>
+		</item>
+		<item>
+			<key>brands fa-leanpub</key>
+			<value>Leanpub</value>
+			<unicode>f212</unicode>
+		</item>
+		<item>
+			<key>brands fa-less</key>
+			<value>Less</value>
+			<unicode>f41d</unicode>
+		</item>
+		<item>
+			<key>brands fa-line</key>
+			<value>Line</value>
+			<unicode>f3c0</unicode>
+		</item>
+		<item>
+			<key>brands fa-linkedin</key>
+			<value>Linkedin</value>
+			<unicode>f08c</unicode>
+		</item>
+		<item>
+			<key>brands fa-linkedin-in</key>
+			<value>Linkedin in</value>
+			<unicode>f0e1</unicode>
+		</item>
+		<item>
+			<key>brands fa-linode</key>
+			<value>Linode</value>
+			<unicode>f2b8</unicode>
+		</item>
+		<item>
+			<key>brands fa-linux</key>
+			<value>Linux</value>
+			<unicode>f17c</unicode>
+		</item>
+		<item>
+			<key>brands fa-lyft</key>
+			<value>Lyft</value>
+			<unicode>f3c3</unicode>
+		</item>
+		<item>
+			<key>brands fa-magento</key>
+			<value>Magento</value>
+			<unicode>f3c4</unicode>
+		</item>
+		<item>
+			<key>brands fa-mailchimp</key>
+			<value>Mailchimp</value>
+			<unicode>f59e</unicode>
+		</item>
+		<item>
+			<key>brands fa-mandalorian</key>
+			<value>Mandalorian</value>
+			<unicode>f50f</unicode>
+		</item>
+		<item>
+			<key>brands fa-markdown</key>
+			<value>Markdown</value>
+			<unicode>f60f</unicode>
+		</item>
+		<item>
+			<key>brands fa-mastodon</key>
+			<value>Mastodon</value>
+			<unicode>f4f6</unicode>
+		</item>
+		<item>
+			<key>brands fa-maxcdn</key>
+			<value>Maxcdn</value>
+			<unicode>f136</unicode>
+		</item>
+		<item>
+			<key>brands fa-mdb</key>
+			<value>Mdb</value>
+			<unicode>f8ca</unicode>
+		</item>
+		<item>
+			<key>brands fa-medapps</key>
+			<value>Medapps</value>
+			<unicode>f3c6</unicode>
+		</item>
+		<item>
+			<key>brands fa-medium</key>
+			<value>Medium</value>
+			<unicode>f23a</unicode>
+		</item>
+		<item>
+			<key>brands fa-medium-m</key>
+			<value>Medium m</value>
+			<unicode>f3c7</unicode>
+		</item>
+		<item>
+			<key>brands fa-medrt</key>
+			<value>Medrt</value>
+			<unicode>f3c8</unicode>
+		</item>
+		<item>
+			<key>brands fa-meetup</key>
+			<value>Meetup</value>
+			<unicode>f2e0</unicode>
+		</item>
+		<item>
+			<key>brands fa-megaport</key>
+			<value>Megaport</value>
+			<unicode>f5a3</unicode>
+		</item>
+		<item>
+			<key>brands fa-mendeley</key>
+			<value>Mendeley</value>
+			<unicode>f7b3</unicode>
+		</item>
+		<item>
+			<key>brands fa-microblog</key>
+			<value>Microblog</value>
+			<unicode>f91a</unicode>
+		</item>
+		<item>
+			<key>brands fa-microsoft</key>
+			<value>Microsoft</value>
+			<unicode>f3ca</unicode>
+		</item>
+		<item>
+			<key>brands fa-mix</key>
+			<value>Mix</value>
+			<unicode>f3cb</unicode>
+		</item>
+		<item>
+			<key>brands fa-mixcloud</key>
+			<value>Mixcloud</value>
+			<unicode>f289</unicode>
+		</item>
+		<item>
+			<key>brands fa-mizuni</key>
+			<value>Mizuni</value>
+			<unicode>f3cc</unicode>
+		</item>
+		<item>
+			<key>brands fa-modx</key>
+			<value>Modx</value>
+			<unicode>f285</unicode>
+		</item>
+		<item>
+			<key>brands fa-monero</key>
+			<value>Monero</value>
+			<unicode>f3d0</unicode>
+		</item>
+		<item>
+			<key>brands fa-napster</key>
+			<value>Napster</value>
+			<unicode>f3d2</unicode>
+		</item>
+		<item>
+			<key>brands fa-neos</key>
+			<value>Neos</value>
+			<unicode>f612</unicode>
+		</item>
+		<item>
+			<key>brands fa-nimblr</key>
+			<value>Nimblr</value>
+			<unicode>f5a8</unicode>
+		</item>
+		<item>
+			<key>brands fa-node</key>
+			<value>Node</value>
+			<unicode>f419</unicode>
+		</item>
+		<item>
+			<key>brands fa-node-js</key>
+			<value>Node js</value>
+			<unicode>f3d3</unicode>
+		</item>
+		<item>
+			<key>brands fa-npm</key>
+			<value>Npm</value>
+			<unicode>f3d4</unicode>
+		</item>
+		<item>
+			<key>brands fa-ns8</key>
+			<value>Ns8</value>
+			<unicode>f3d5</unicode>
+		</item>
+		<item>
+			<key>brands fa-nutritionix</key>
+			<value>Nutritionix</value>
+			<unicode>f3d6</unicode>
+		</item>
+		<item>
+			<key>brands fa-odnoklassniki</key>
+			<value>Odnoklassniki</value>
+			<unicode>f263</unicode>
+		</item>
+		<item>
+			<key>brands fa-odnoklassniki-square</key>
+			<value>Odnoklassniki square</value>
+			<unicode>f264</unicode>
+		</item>
+		<item>
+			<key>brands fa-old-republic</key>
+			<value>Old republic</value>
+			<unicode>f510</unicode>
+		</item>
+		<item>
+			<key>brands fa-opencart</key>
+			<value>Opencart</value>
+			<unicode>f23d</unicode>
+		</item>
+		<item>
+			<key>brands fa-openid</key>
+			<value>Openid</value>
+			<unicode>f19b</unicode>
+		</item>
+		<item>
+			<key>brands fa-opera</key>
+			<value>Opera</value>
+			<unicode>f26a</unicode>
+		</item>
+		<item>
+			<key>brands fa-optin-monster</key>
+			<value>Optin monster</value>
+			<unicode>f23c</unicode>
+		</item>
+		<item>
+			<key>brands fa-orcid</key>
+			<value>Orcid</value>
+			<unicode>f8d2</unicode>
+		</item>
+		<item>
+			<key>brands fa-osi</key>
+			<value>Osi</value>
+			<unicode>f41a</unicode>
+		</item>
+		<item>
+			<key>brands fa-page4</key>
+			<value>Page4</value>
+			<unicode>f3d7</unicode>
+		</item>
+		<item>
+			<key>brands fa-pagelines</key>
+			<value>Pagelines</value>
+			<unicode>f18c</unicode>
+		</item>
+		<item>
+			<key>brands fa-palfed</key>
+			<value>Palfed</value>
+			<unicode>f3d8</unicode>
+		</item>
+		<item>
+			<key>brands fa-patreon</key>
+			<value>Patreon</value>
+			<unicode>f3d9</unicode>
+		</item>
+		<item>
+			<key>brands fa-paypal</key>
+			<value>Paypal</value>
+			<unicode>f1ed</unicode>
+		</item>
+		<item>
+			<key>brands fa-penny-arcade</key>
+			<value>Penny arcade</value>
+			<unicode>f704</unicode>
+		</item>
+		<item>
+			<key>brands fa-periscope</key>
+			<value>Periscope</value>
+			<unicode>f3da</unicode>
+		</item>
+		<item>
+			<key>brands fa-phabricator</key>
+			<value>Phabricator</value>
+			<unicode>f3db</unicode>
+		</item>
+		<item>
+			<key>brands fa-phoenix-framework</key>
+			<value>Phoenix framework</value>
+			<unicode>f3dc</unicode>
+		</item>
+		<item>
+			<key>brands fa-phoenix-squadron</key>
+			<value>Phoenix squadron</value>
+			<unicode>f511</unicode>
+		</item>
+		<item>
+			<key>brands fa-php</key>
+			<value>Php</value>
+			<unicode>f457</unicode>
+		</item>
+		<item>
+			<key>brands fa-pied-piper</key>
+			<value>Pied piper</value>
+			<unicode>f2ae</unicode>
+		</item>
+		<item>
+			<key>brands fa-pied-piper-alt</key>
+			<value>Pied piper alt</value>
+			<unicode>f1a8</unicode>
+		</item>
+		<item>
+			<key>brands fa-pied-piper-hat</key>
+			<value>Pied piper hat</value>
+			<unicode>f4e5</unicode>
+		</item>
+		<item>
+			<key>brands fa-pied-piper-pp</key>
+			<value>Pied piper pp</value>
+			<unicode>f1a7</unicode>
+		</item>
+		<item>
+			<key>brands fa-pied-piper-square</key>
+			<value>Pied piper square</value>
+			<unicode>f91e</unicode>
+		</item>
+		<item>
+			<key>brands fa-pinterest</key>
+			<value>Pinterest</value>
+			<unicode>f0d2</unicode>
+		</item>
+		<item>
+			<key>brands fa-pinterest-p</key>
+			<value>Pinterest p</value>
+			<unicode>f231</unicode>
+		</item>
+		<item>
+			<key>brands fa-pinterest-square</key>
+			<value>Pinterest square</value>
+			<unicode>f0d3</unicode>
+		</item>
+		<item>
+			<key>brands fa-playstation</key>
+			<value>Playstation</value>
+			<unicode>f3df</unicode>
+		</item>
+		<item>
+			<key>brands fa-product-hunt</key>
+			<value>Product hunt</value>
+			<unicode>f288</unicode>
+		</item>
+		<item>
+			<key>brands fa-pushed</key>
+			<value>Pushed</value>
+			<unicode>f3e1</unicode>
+		</item>
+		<item>
+			<key>brands fa-python</key>
+			<value>Python</value>
+			<unicode>f3e2</unicode>
+		</item>
+		<item>
+			<key>brands fa-qq</key>
+			<value>Qq</value>
+			<unicode>f1d6</unicode>
+		</item>
+		<item>
+			<key>brands fa-quinscape</key>
+			<value>Quinscape</value>
+			<unicode>f459</unicode>
+		</item>
+		<item>
+			<key>brands fa-quora</key>
+			<value>Quora</value>
+			<unicode>f2c4</unicode>
+		</item>
+		<item>
+			<key>brands fa-r-project</key>
+			<value>R project</value>
+			<unicode>f4f7</unicode>
+		</item>
+		<item>
+			<key>brands fa-raspberry-pi</key>
+			<value>Raspberry pi</value>
+			<unicode>f7bb</unicode>
+		</item>
+		<item>
+			<key>brands fa-ravelry</key>
+			<value>Ravelry</value>
+			<unicode>f2d9</unicode>
+		</item>
+		<item>
+			<key>brands fa-react</key>
+			<value>React</value>
+			<unicode>f41b</unicode>
+		</item>
+		<item>
+			<key>brands fa-reacteurope</key>
+			<value>Reacteurope</value>
+			<unicode>f75d</unicode>
+		</item>
+		<item>
+			<key>brands fa-readme</key>
+			<value>Readme</value>
+			<unicode>f4d5</unicode>
+		</item>
+		<item>
+			<key>brands fa-rebel</key>
+			<value>Rebel</value>
+			<unicode>f1d0</unicode>
+		</item>
+		<item>
+			<key>brands fa-red-river</key>
+			<value>Red river</value>
+			<unicode>f3e3</unicode>
+		</item>
+		<item>
+			<key>brands fa-reddit</key>
+			<value>Reddit</value>
+			<unicode>f1a1</unicode>
+		</item>
+		<item>
+			<key>brands fa-reddit-alien</key>
+			<value>Reddit alien</value>
+			<unicode>f281</unicode>
+		</item>
+		<item>
+			<key>brands fa-reddit-square</key>
+			<value>Reddit square</value>
+			<unicode>f1a2</unicode>
+		</item>
+		<item>
+			<key>brands fa-redhat</key>
+			<value>Redhat</value>
+			<unicode>f7bc</unicode>
+		</item>
+		<item>
+			<key>brands fa-renren</key>
+			<value>Renren</value>
+			<unicode>f18b</unicode>
+		</item>
+		<item>
+			<key>brands fa-replyd</key>
+			<value>Replyd</value>
+			<unicode>f3e6</unicode>
+		</item>
+		<item>
+			<key>brands fa-researchgate</key>
+			<value>Researchgate</value>
+			<unicode>f4f8</unicode>
+		</item>
+		<item>
+			<key>brands fa-resolving</key>
+			<value>Resolving</value>
+			<unicode>f3e7</unicode>
+		</item>
+		<item>
+			<key>brands fa-rev</key>
+			<value>Rev</value>
+			<unicode>f5b2</unicode>
+		</item>
+		<item>
+			<key>brands fa-rocketchat</key>
+			<value>Rocketchat</value>
+			<unicode>f3e8</unicode>
+		</item>
+		<item>
+			<key>brands fa-rockrms</key>
+			<value>Rockrms</value>
+			<unicode>f3e9</unicode>
+		</item>
+		<item>
+			<key>brands fa-safari</key>
+			<value>Safari</value>
+			<unicode>f267</unicode>
+		</item>
+		<item>
+			<key>brands fa-salesforce</key>
+			<value>Salesforce</value>
+			<unicode>f83b</unicode>
+		</item>
+		<item>
+			<key>brands fa-sass</key>
+			<value>Sass</value>
+			<unicode>f41e</unicode>
+		</item>
+		<item>
+			<key>brands fa-schlix</key>
+			<value>Schlix</value>
+			<unicode>f3ea</unicode>
+		</item>
+		<item>
+			<key>brands fa-scribd</key>
+			<value>Scribd</value>
+			<unicode>f28a</unicode>
+		</item>
+		<item>
+			<key>brands fa-searchengin</key>
+			<value>Searchengin</value>
+			<unicode>f3eb</unicode>
+		</item>
+		<item>
+			<key>brands fa-sellcast</key>
+			<value>Sellcast</value>
+			<unicode>f2da</unicode>
+		</item>
+		<item>
+			<key>brands fa-sellsy</key>
+			<value>Sellsy</value>
+			<unicode>f213</unicode>
+		</item>
+		<item>
+			<key>brands fa-servicestack</key>
+			<value>Servicestack</value>
+			<unicode>f3ec</unicode>
+		</item>
+		<item>
+			<key>brands fa-shirtsinbulk</key>
+			<value>Shirtsinbulk</value>
+			<unicode>f214</unicode>
+		</item>
+		<item>
+			<key>brands fa-shopware</key>
+			<value>Shopware</value>
+			<unicode>f5b5</unicode>
+		</item>
+		<item>
+			<key>brands fa-simplybuilt</key>
+			<value>Simplybuilt</value>
+			<unicode>f215</unicode>
+		</item>
+		<item>
+			<key>brands fa-sistrix</key>
+			<value>Sistrix</value>
+			<unicode>f3ee</unicode>
+		</item>
+		<item>
+			<key>brands fa-sith</key>
+			<value>Sith</value>
+			<unicode>f512</unicode>
+		</item>
+		<item>
+			<key>brands fa-sketch</key>
+			<value>Sketch</value>
+			<unicode>f7c6</unicode>
+		</item>
+		<item>
+			<key>brands fa-skyatlas</key>
+			<value>Skyatlas</value>
+			<unicode>f216</unicode>
+		</item>
+		<item>
+			<key>brands fa-skype</key>
+			<value>Skype</value>
+			<unicode>f17e</unicode>
+		</item>
+		<item>
+			<key>brands fa-slack</key>
+			<value>Slack</value>
+			<unicode>f198</unicode>
+		</item>
+		<item>
+			<key>brands fa-slack-hash</key>
+			<value>Slack hash</value>
+			<unicode>f3ef</unicode>
+		</item>
+		<item>
+			<key>brands fa-slideshare</key>
+			<value>Slideshare</value>
+			<unicode>f1e7</unicode>
+		</item>
+		<item>
+			<key>brands fa-snapchat</key>
+			<value>Snapchat</value>
+			<unicode>f2ab</unicode>
+		</item>
+		<item>
+			<key>brands fa-snapchat-ghost</key>
+			<value>Snapchat ghost</value>
+			<unicode>f2ac</unicode>
+		</item>
+		<item>
+			<key>brands fa-snapchat-square</key>
+			<value>Snapchat square</value>
+			<unicode>f2ad</unicode>
+		</item>
+		<item>
+			<key>brands fa-soundcloud</key>
+			<value>Soundcloud</value>
+			<unicode>f1be</unicode>
+		</item>
+		<item>
+			<key>brands fa-sourcetree</key>
+			<value>Sourcetree</value>
+			<unicode>f7d3</unicode>
+		</item>
+		<item>
+			<key>brands fa-speakap</key>
+			<value>Speakap</value>
+			<unicode>f3f3</unicode>
+		</item>
+		<item>
+			<key>brands fa-speaker-deck</key>
+			<value>Speaker deck</value>
+			<unicode>f83c</unicode>
+		</item>
+		<item>
+			<key>brands fa-spotify</key>
+			<value>Spotify</value>
+			<unicode>f1bc</unicode>
+		</item>
+		<item>
+			<key>brands fa-squarespace</key>
+			<value>Squarespace</value>
+			<unicode>f5be</unicode>
+		</item>
+		<item>
+			<key>brands fa-stack-exchange</key>
+			<value>Stack exchange</value>
+			<unicode>f18d</unicode>
+		</item>
+		<item>
+			<key>brands fa-stack-overflow</key>
+			<value>Stack overflow</value>
+			<unicode>f16c</unicode>
+		</item>
+		<item>
+			<key>brands fa-stackpath</key>
+			<value>Stackpath</value>
+			<unicode>f842</unicode>
+		</item>
+		<item>
+			<key>brands fa-staylinked</key>
+			<value>Staylinked</value>
+			<unicode>f3f5</unicode>
+		</item>
+		<item>
+			<key>brands fa-steam</key>
+			<value>Steam</value>
+			<unicode>f1b6</unicode>
+		</item>
+		<item>
+			<key>brands fa-steam-square</key>
+			<value>Steam square</value>
+			<unicode>f1b7</unicode>
+		</item>
+		<item>
+			<key>brands fa-steam-symbol</key>
+			<value>Steam symbol</value>
+			<unicode>f3f6</unicode>
+		</item>
+		<item>
+			<key>brands fa-sticker-mule</key>
+			<value>Sticker mule</value>
+			<unicode>f3f7</unicode>
+		</item>
+		<item>
+			<key>brands fa-strava</key>
+			<value>Strava</value>
+			<unicode>f428</unicode>
+		</item>
+		<item>
+			<key>brands fa-stripe</key>
+			<value>Stripe</value>
+			<unicode>f429</unicode>
+		</item>
+		<item>
+			<key>brands fa-stripe-s</key>
+			<value>Stripe s</value>
+			<unicode>f42a</unicode>
+		</item>
+		<item>
+			<key>brands fa-studiovinari</key>
+			<value>Studiovinari</value>
+			<unicode>f3f8</unicode>
+		</item>
+		<item>
+			<key>brands fa-stumbleupon</key>
+			<value>Stumbleupon</value>
+			<unicode>f1a4</unicode>
+		</item>
+		<item>
+			<key>brands fa-stumbleupon-circle</key>
+			<value>Stumbleupon circle</value>
+			<unicode>f1a3</unicode>
+		</item>
+		<item>
+			<key>brands fa-superpowers</key>
+			<value>Superpowers</value>
+			<unicode>f2dd</unicode>
+		</item>
+		<item>
+			<key>brands fa-supple</key>
+			<value>Supple</value>
+			<unicode>f3f9</unicode>
+		</item>
+		<item>
+			<key>brands fa-suse</key>
+			<value>Suse</value>
+			<unicode>f7d6</unicode>
+		</item>
+		<item>
+			<key>brands fa-swift</key>
+			<value>Swift</value>
+			<unicode>f8e1</unicode>
+		</item>
+		<item>
+			<key>brands fa-symfony</key>
+			<value>Symfony</value>
+			<unicode>f83d</unicode>
+		</item>
+		<item>
+			<key>brands fa-teamspeak</key>
+			<value>Teamspeak</value>
+			<unicode>f4f9</unicode>
+		</item>
+		<item>
+			<key>brands fa-telegram</key>
+			<value>Telegram</value>
+			<unicode>f2c6</unicode>
+		</item>
+		<item>
+			<key>brands fa-telegram-plane</key>
+			<value>Telegram plane</value>
+			<unicode>f3fe</unicode>
+		</item>
+		<item>
+			<key>brands fa-tencent-weibo</key>
+			<value>Tencent weibo</value>
+			<unicode>f1d5</unicode>
+		</item>
+		<item>
+			<key>brands fa-the-red-yeti</key>
+			<value>The red yeti</value>
+			<unicode>f69d</unicode>
+		</item>
+		<item>
+			<key>brands fa-themeco</key>
+			<value>Themeco</value>
+			<unicode>f5c6</unicode>
+		</item>
+		<item>
+			<key>brands fa-themeisle</key>
+			<value>Themeisle</value>
+			<unicode>f2b2</unicode>
+		</item>
+		<item>
+			<key>brands fa-think-peaks</key>
+			<value>Think peaks</value>
+			<unicode>f731</unicode>
+		</item>
+		<item>
+			<key>brands fa-trade-federation</key>
+			<value>Trade federation</value>
+			<unicode>f513</unicode>
+		</item>
+		<item>
+			<key>brands fa-trello</key>
+			<value>Trello</value>
+			<unicode>f181</unicode>
+		</item>
+		<item>
+			<key>brands fa-tripadvisor</key>
+			<value>Tripadvisor</value>
+			<unicode>f262</unicode>
+		</item>
+		<item>
+			<key>brands fa-tumblr</key>
+			<value>Tumblr</value>
+			<unicode>f173</unicode>
+		</item>
+		<item>
+			<key>brands fa-tumblr-square</key>
+			<value>Tumblr square</value>
+			<unicode>f174</unicode>
+		</item>
+		<item>
+			<key>brands fa-twitch</key>
+			<value>Twitch</value>
+			<unicode>f1e8</unicode>
+		</item>
+		<item>
+			<key>brands fa-twitter</key>
+			<value>Twitter</value>
+			<unicode>f099</unicode>
+		</item>
+		<item>
+			<key>brands fa-twitter-square</key>
+			<value>Twitter square</value>
+			<unicode>f081</unicode>
+		</item>
+		<item>
+			<key>brands fa-typo3</key>
+			<value>Typo3</value>
+			<unicode>f42b</unicode>
+		</item>
+		<item>
+			<key>brands fa-uber</key>
+			<value>Uber</value>
+			<unicode>f402</unicode>
+		</item>
+		<item>
+			<key>brands fa-ubuntu</key>
+			<value>Ubuntu</value>
+			<unicode>f7df</unicode>
+		</item>
+		<item>
+			<key>brands fa-uikit</key>
+			<value>Uikit</value>
+			<unicode>f403</unicode>
+		</item>
+		<item>
+			<key>brands fa-umbraco</key>
+			<value>Umbraco</value>
+			<unicode>f8e8</unicode>
+		</item>
+		<item>
+			<key>brands fa-uniregistry</key>
+			<value>Uniregistry</value>
+			<unicode>f404</unicode>
+		</item>
+		<item>
+			<key>brands fa-unity</key>
+			<value>Unity</value>
+			<unicode>f949</unicode>
+		</item>
+		<item>
+			<key>brands fa-untappd</key>
+			<value>Untappd</value>
+			<unicode>f405</unicode>
+		</item>
+		<item>
+			<key>brands fa-ups</key>
+			<value>Ups</value>
+			<unicode>f7e0</unicode>
+		</item>
+		<item>
+			<key>brands fa-usb</key>
+			<value>Usb</value>
+			<unicode>f287</unicode>
+		</item>
+		<item>
+			<key>brands fa-usps</key>
+			<value>Usps</value>
+			<unicode>f7e1</unicode>
+		</item>
+		<item>
+			<key>brands fa-ussunnah</key>
+			<value>Ussunnah</value>
+			<unicode>f407</unicode>
+		</item>
+		<item>
+			<key>brands fa-vaadin</key>
+			<value>Vaadin</value>
+			<unicode>f408</unicode>
+		</item>
+		<item>
+			<key>brands fa-viacoin</key>
+			<value>Viacoin</value>
+			<unicode>f237</unicode>
+		</item>
+		<item>
+			<key>brands fa-viadeo</key>
+			<value>Viadeo</value>
+			<unicode>f2a9</unicode>
+		</item>
+		<item>
+			<key>brands fa-viadeo-square</key>
+			<value>Viadeo square</value>
+			<unicode>f2aa</unicode>
+		</item>
+		<item>
+			<key>brands fa-viber</key>
+			<value>Viber</value>
+			<unicode>f409</unicode>
+		</item>
+		<item>
+			<key>brands fa-vimeo</key>
+			<value>Vimeo</value>
+			<unicode>f40a</unicode>
+		</item>
+		<item>
+			<key>brands fa-vimeo-square</key>
+			<value>Vimeo square</value>
+			<unicode>f194</unicode>
+		</item>
+		<item>
+			<key>brands fa-vimeo-v</key>
+			<value>Vimeo v</value>
+			<unicode>f27d</unicode>
+		</item>
+		<item>
+			<key>brands fa-vine</key>
+			<value>Vine</value>
+			<unicode>f1ca</unicode>
+		</item>
+		<item>
+			<key>brands fa-vk</key>
+			<value>Vk</value>
+			<unicode>f189</unicode>
+		</item>
+		<item>
+			<key>brands fa-vnv</key>
+			<value>Vnv</value>
+			<unicode>f40b</unicode>
+		</item>
+		<item>
+			<key>brands fa-vuejs</key>
+			<value>Vuejs</value>
+			<unicode>f41f</unicode>
+		</item>
+		<item>
+			<key>brands fa-waze</key>
+			<value>Waze</value>
+			<unicode>f83f</unicode>
+		</item>
+		<item>
+			<key>brands fa-weebly</key>
+			<value>Weebly</value>
+			<unicode>f5cc</unicode>
+		</item>
+		<item>
+			<key>brands fa-weibo</key>
+			<value>Weibo</value>
+			<unicode>f18a</unicode>
+		</item>
+		<item>
+			<key>brands fa-weixin</key>
+			<value>Weixin</value>
+			<unicode>f1d7</unicode>
+		</item>
+		<item>
+			<key>brands fa-whatsapp</key>
+			<value>Whatsapp</value>
+			<unicode>f232</unicode>
+		</item>
+		<item>
+			<key>brands fa-whatsapp-square</key>
+			<value>Whatsapp square</value>
+			<unicode>f40c</unicode>
+		</item>
+		<item>
+			<key>brands fa-whmcs</key>
+			<value>Whmcs</value>
+			<unicode>f40d</unicode>
+		</item>
+		<item>
+			<key>brands fa-wikipedia-w</key>
+			<value>Wikipedia w</value>
+			<unicode>f266</unicode>
+		</item>
+		<item>
+			<key>brands fa-windows</key>
+			<value>Windows</value>
+			<unicode>f17a</unicode>
+		</item>
+		<item>
+			<key>brands fa-wix</key>
+			<value>Wix</value>
+			<unicode>f5cf</unicode>
+		</item>
+		<item>
+			<key>brands fa-wizards-of-the-coast</key>
+			<value>Wizards of the coast</value>
+			<unicode>f730</unicode>
+		</item>
+		<item>
+			<key>brands fa-wolf-pack-battalion</key>
+			<value>Wolf pack battalion</value>
+			<unicode>f514</unicode>
+		</item>
+		<item>
+			<key>brands fa-wordpress</key>
+			<value>Wordpress</value>
+			<unicode>f19a</unicode>
+		</item>
+		<item>
+			<key>brands fa-wordpress-simple</key>
+			<value>Wordpress simple</value>
+			<unicode>f411</unicode>
+		</item>
+		<item>
+			<key>brands fa-wpbeginner</key>
+			<value>Wpbeginner</value>
+			<unicode>f297</unicode>
+		</item>
+		<item>
+			<key>brands fa-wpexplorer</key>
+			<value>Wpexplorer</value>
+			<unicode>f2de</unicode>
+		</item>
+		<item>
+			<key>brands fa-wpforms</key>
+			<value>Wpforms</value>
+			<unicode>f298</unicode>
+		</item>
+		<item>
+			<key>brands fa-wpressr</key>
+			<value>Wpressr</value>
+			<unicode>f3e4</unicode>
+		</item>
+		<item>
+			<key>brands fa-xbox</key>
+			<value>Xbox</value>
+			<unicode>f412</unicode>
+		</item>
+		<item>
+			<key>brands fa-xing</key>
+			<value>Xing</value>
+			<unicode>f168</unicode>
+		</item>
+		<item>
+			<key>brands fa-xing-square</key>
+			<value>Xing square</value>
+			<unicode>f169</unicode>
+		</item>
+		<item>
+			<key>brands fa-y-combinator</key>
+			<value>Y combinator</value>
+			<unicode>f23b</unicode>
+		</item>
+		<item>
+			<key>brands fa-yahoo</key>
+			<value>Yahoo</value>
+			<unicode>f19e</unicode>
+		</item>
+		<item>
+			<key>brands fa-yammer</key>
+			<value>Yammer</value>
+			<unicode>f840</unicode>
+		</item>
+		<item>
+			<key>brands fa-yandex</key>
+			<value>Yandex</value>
+			<unicode>f413</unicode>
+		</item>
+		<item>
+			<key>brands fa-yandex-international</key>
+			<value>Yandex international</value>
+			<unicode>f414</unicode>
+		</item>
+		<item>
+			<key>brands fa-yarn</key>
+			<value>Yarn</value>
+			<unicode>f7e3</unicode>
+		</item>
+		<item>
+			<key>brands fa-yelp</key>
+			<value>Yelp</value>
+			<unicode>f1e9</unicode>
+		</item>
+		<item>
+			<key>brands fa-yoast</key>
+			<value>Yoast</value>
+			<unicode>f2b1</unicode>
+		</item>
+		<item>
+			<key>brands fa-youtube</key>
+			<value>Youtube</value>
+			<unicode>f167</unicode>
+		</item>
+		<item>
+			<key>brands fa-youtube-square</key>
+			<value>Youtube square</value>
+			<unicode>f431</unicode>
+		</item>
+		<item>
+			<key>brands fa-zhihu</key>
+			<value>Zhihu</value>
+			<unicode>f63f</unicode>
+		</item>
+  </items>
+  <file-name>brand-icons.xml</file-name>
+  <folder-name/>
+  <internal-name>Brand Icons</internal-name>
+  <createdDate>2019-12-20T13:33:52.973Z</createdDate>
+  <createdDate_dt>2019-12-20T13:33:52.973Z</createdDate_dt>
+  <lastModifiedDate>2019-12-20T13:33:52.973Z</lastModifiedDate>
+  <lastModifiedDate_dt>2019-12-20T13:33:52.973Z</lastModifiedDate_dt>
+</component>
