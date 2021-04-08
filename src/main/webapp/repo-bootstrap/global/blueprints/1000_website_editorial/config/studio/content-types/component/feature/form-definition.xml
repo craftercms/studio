@@ -98,6 +98,34 @@
 					</constraints>
 				</field>
 				<field>
+					<type>locale-selector</type>
+					<id>localeCode</id>
+					<iceId></iceId>
+					<title>Locale</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>datasource</name>
+							<value></value>
+							<type>datasource:item</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[false]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
 					<type>checkbox</type>
 					<id>disabled</id>
 					<iceId></iceId>
