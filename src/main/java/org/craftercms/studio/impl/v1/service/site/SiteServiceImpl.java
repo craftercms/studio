@@ -1406,6 +1406,15 @@ public class SiteServiceImpl implements SiteService {
                     break;
             }
         }
+
+        if (sb.length() > 0) {
+            studioDBScriptRunner.execute(sb.toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Process repo operations batch " + ++batchCounter + " in " +
+                        (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+            }
+        }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
                     " milliseconds");
