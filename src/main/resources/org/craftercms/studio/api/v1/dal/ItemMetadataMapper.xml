@@ -24,7 +24,7 @@
         <result property="site" column="site"/>
         <result property="path" column="path"/>
         <result property="name" column="name"/>
-        <result property="modified" column="modified"/>
+        <result property="modified" column="modified" />
         <result property="modifier" column="modifier"/>
         <result property="owner" column="owner"/>
         <result property="creator" column="creator"/>
@@ -41,9 +41,10 @@
         <result property="submittedBy" column="submittedby"/>
         <result property="submittedForDeletion" column="submittedfordeletion"/>
         <result property="sendEmail" column="sendemail"/>
+        <result property="launchDate" column="launch_date" />
         <result property="commitId" column="commit_id"/>
         <result property="submittedToEnvironment" column="submittedtoenvironment" />
-        <result property="publishedDate" column="published_date"/>
+        <result property="publishedDate" column="published_date" />
     </resultMap>
 
     <select id="getProperties" parameterType="java.util.Map" resultMap="ItemMetadataMap">
