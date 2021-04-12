@@ -49,6 +49,7 @@
         <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
+        <aws.version>1.11.994</aws.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.4.8</mariadb4j.version>
@@ -474,6 +475,10 @@
         <!-- AWS SDK -->
         <dependency>
             <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sts</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
         </dependency>
         <dependency>
@@ -484,6 +489,7 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-mediaconvert</artifactId>
         </dependency>
+
         <!-- Box SDK -->
         <dependency>
             <groupId>com.box</groupId>
@@ -554,7 +560,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.435</version>
+                <version>${aws.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
