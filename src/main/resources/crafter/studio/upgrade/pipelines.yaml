@@ -929,6 +929,11 @@ pipelines:
           commitDetails: Update sample files
         - type: dbScriptUpgrader
           filename: upgrade-3.1.14-to-3.1.14.1.sql
+    - currentVersion: 3.1.14.1
+      nextVersion: 3.1.14.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.14.1-to-3.1.14.2.sql
 
   # Pipeline to upgrade site repositories
   site:
