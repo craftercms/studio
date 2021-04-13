@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -69,6 +69,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -80,7 +81,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.concurrent.TimeUnit;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
@@ -93,7 +93,6 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
@@ -462,11 +461,12 @@ public class UserServiceImpl implements UserService {
                     String email = user.getEmail();
 
                     logger.debug("Creating security token for forgot password");
-                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
+                    ZonedDateTime now = ZonedDateTime.now();
+                    ZonedDateTime ttl = now.plusMinutes(
                             Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
-                    String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+                    long timestamp = ttl.toInstant().toEpochMilli();
                     String studioId = instanceService.getInstanceId();
-                    String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
+                    String token = username + "|" + studioId + "|" + timestamp;
                     String hashedToken = encryptToken(token);
                     logger.debug("Sending forgot password email to " + email);
                     try {
@@ -590,7 +590,7 @@ public class UserServiceImpl implements UserService {
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 4) {
+            if (tokenElements.countTokens() == 3) {
                 String username = tokenElements.nextToken();
                 User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (userProfile == null) {
@@ -603,7 +603,8 @@ public class UserServiceImpl implements UserService {
                         String studioId = tokenElements.nextToken();
                         if (StringUtils.equals(studioId, instanceService.getInstanceId())) {
                             long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-                            toRet = tokenTimestamp >= System.currentTimeMillis();
+                            ZonedDateTime now = ZonedDateTime.now();
+                            toRet = tokenTimestamp >= now.toInstant().toEpochMilli();
                         }
                     }
                 }
@@ -617,7 +618,7 @@ public class UserServiceImpl implements UserService {
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 4) {
+            if (tokenElements.countTokens() == 3) {
                 toRet = tokenElements.nextToken();
             }
         }
