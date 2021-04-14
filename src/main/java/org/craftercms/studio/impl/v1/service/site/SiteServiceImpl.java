@@ -607,14 +607,14 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("Dependency resolver for " + path + " finished in " +
                     (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
         }
+        if (StringUtils.isEmpty(oldPath)) {
+            scriptSb.append(deleteDependencySourcePathRows(siteId, path)).append("\n\n");
+        } else {
+            scriptSb.append(deleteDependencySourcePathRows(siteId, oldPath)).append("\n\n");
+        }
         if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
             for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
                 for (String targetPath : entry.getValue()) {
-                    if (StringUtils.isEmpty(oldPath)) {
-                        scriptSb.append(deleteDependencySourcePathRows(siteId, path)).append("\n\n");
-                    } else {
-                        scriptSb.append(deleteDependencySourcePathRows(siteId, oldPath)).append("\n\n");
-                    }
                     scriptSb.append(insertDependencyRow(siteId, path, targetPath, entry.getKey()))
                             .append("\n\n");
                 }
