@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
+import org.springframework.jdbc.UncategorizedSQLException;
 
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
@@ -69,6 +70,8 @@ public class StudioPublisherTask extends StudioClockTask {
     private static final Logger logger = LoggerFactory.getLogger(StudioPublisherTask.class);
 
     protected static final Map<String, Integer> retryCounter = new HashMap<String, Integer>();
+
+    protected static final Set<String> dbErrorNotifiedSites = new HashSet<String>();
 
     private StudioConfiguration studioConfiguration;
     private SiteService siteService;
@@ -139,6 +142,7 @@ public class StudioPublisherTask extends StudioClockTask {
 
                                         doPublishing(siteId, itemsToDeploy, environment);
                                         retryCounter.remove(siteId);
+                                        dbErrorNotifiedSites.remove(siteId);
                                         siteService.updatePublishingLockHeartbeatForSite(siteId);
                                         itemsToDeploy =
                                                 publishingManager.getItemsReadyForDeployment(siteId, environment);
@@ -162,6 +166,12 @@ public class StudioPublisherTask extends StudioClockTask {
 
                                 }
                             }
+                        } catch (UncategorizedSQLException  dbErr) {
+                            logger.error("DB error while executing deployment to environment store", dbErr);
+                            if (!dbErrorNotifiedSites.add(siteId)) {
+                                notificationService.notifyDeploymentError(siteId, dbErr);
+                            }
+                            publishingManager.resetProcessingQueue(siteId, env);
                         } catch (Exception err) {
                             logger.error("Error while executing deployment to environment store for site: "
                                     + siteId, err);
@@ -173,9 +183,15 @@ public class StudioPublisherTask extends StudioClockTask {
                         logger.info("Publishing is blocked for site " + siteId);
                     }
                 } else {
-                    logger.info("Publishing is disabled for site " + siteId);
+                    logger.debug("Publishing is disabled for site {0}", siteId);
                 }
             }
+        } catch (UncategorizedSQLException  dbErr) {
+            logger.error("DB error while executing deployment to environment store", dbErr);
+            if (!dbErrorNotifiedSites.add(siteId)) {
+                notificationService.notifyDeploymentError(siteId, dbErr);
+            }
+            publishingManager.resetProcessingQueue(siteId, env);
         } catch (Exception err) {
             logger.error("Error while executing deployment to environment store", err);
             notificationService.notifyDeploymentError(siteId, err);
@@ -266,6 +282,11 @@ public class StudioPublisherTask extends StudioClockTask {
                 statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
                 siteService.updatePublishingStatusMessage(siteId, ERROR, statusMessage);
                 throw err;
+            }
+        } catch (UncategorizedSQLException dbErr) {
+            logger.error("DB error while executing deployment to environment store", dbErr);
+            if (!dbErrorNotifiedSites.add(siteId)) {
+                notificationService.notifyDeploymentError(siteId, dbErr);
             }
         } catch (Exception err) {
             logger.error("Error while executing deployment to environment store for site: "

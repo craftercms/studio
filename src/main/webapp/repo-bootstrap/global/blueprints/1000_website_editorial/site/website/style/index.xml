@@ -20,7 +20,6 @@
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>102f</objectGroupId>
 	<objectId>102fb288-0dd8-806c-7651-2dd8838ca016</objectId>
-	<header/>
 	<file-name>index.xml</file-name>
 	<folder-name>style</folder-name>
 	<internal-name>Style</internal-name>
@@ -31,7 +30,6 @@
 	<createdDate_dt>2017-3-13T22:26:52.000Z</createdDate_dt>
 	<lastModifiedDate>2017-3-21T18:15:50.000Z</lastModifiedDate>
 	<lastModifiedDate_dt>2017-3-21T18:15:50.000Z</lastModifiedDate_dt>
-	<left-rail/>
 	<category_s>style</category_s>
 	<max_articles_i>10</max_articles_i>
 	<articles_title_t>Style</articles_title_t>

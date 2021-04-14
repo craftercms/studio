@@ -15,13 +15,13 @@
   -->
 
 <form>
-	<title>Page - Category Landing</title>
+	<title>Category Landing</title>
 	<description></description>
 	<objectType>page</objectType>
 	<content-type>/page/category-landing</content-type>
 	<imageThumbnail>page-category-landing.png</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
@@ -279,7 +279,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>left-rail_o</id>
+					<id>left_rail_o</id>
 					<iceId></iceId>
 					<title>Left Rail</title>
 					<description>Default left-rail is inherited from Section Defaults. Specify a new left-rail to overwrite it.</description>

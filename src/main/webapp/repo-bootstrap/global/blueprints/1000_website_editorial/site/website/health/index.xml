@@ -16,7 +16,9 @@
   -->
 
 <page>
-	<content-type>/page/category-landing</content-type>	<display-template>/templates/web/pages/category-landing.ftl</display-template>
+	<content-type>/page/category-landing</content-type>
+	<display-template>/templates/web/pages/category-landing.ftl</display-template>
+	<no-template-required/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>0557</objectGroupId>
 	<objectId>05573d7a-3556-1ad0-6e34-9b085944fee2</objectId>
@@ -26,13 +28,14 @@
 	<orderDefault_f>9000</orderDefault_f>
 	<internal-name>Health</internal-name>
 	<title_t>Health</title_t>
-	<header/>
 	<createdDate>2017-3-14T15:21:57.000Z</createdDate>
 	<createdDate_dt>2017-3-14T15:21:57.000Z</createdDate_dt>
-	<lastModifiedDate>2017-3-28T14:30:44.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-3-28T14:30:44.000Z</lastModifiedDate_dt>
-	<left-rail/>
+	<lastModifiedDate>2020-10-07T12:08:00.200Z</lastModifiedDate>
+	<lastModifiedDate_dt>2020-10-07T12:08:00.200Z</lastModifiedDate_dt>
 	<category_s>health</category_s>
 	<max_articles_i>10</max_articles_i>
 	<articles_title_t>Health</articles_title_t>
+	<disabled>false</disabled>
+	<header_o item-list="true"/>
+	<left_rail_o item-list="true"/>
 </page>

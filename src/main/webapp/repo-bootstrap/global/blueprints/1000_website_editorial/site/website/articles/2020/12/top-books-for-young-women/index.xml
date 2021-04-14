@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/article</content-type>
+	<display-template>/templates/web/pages/article.ftl</display-template>
+	<no-template-required/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>f360</objectGroupId>
+	<objectId>f360780a-372f-d005-d736-bcc9d657e50c</objectId>
+	<sections_o item-list="true">	<item>	<section_html>&lt;p&gt;Curabitur lobortis laoreet vehicula. Integer condimentum non mauris in bibendum. Morbi et facilisis nisl. In suscipit eros sapien, ut venenatis quam interdum gravida. Praesent ultricies interdum dictum. Phasellus lacinia diam eu porta rhoncus. Proin laoreet interdum semper.&lt;/p&gt;
+&lt;p&gt;Quisque at lacus sed augue varius varius sit amet in eros. Nunc ultrices mi ultrices eros blandit, eu convallis quam cursus. Nullam vel luctus est. Duis mollis nulla a arcu pellentesque sagittis. Aenean in quam et massa volutpat placerat a a enim. Donec pharetra mollis libero, vel volutpat nunc pellentesque eget. Nulla pharetra, ex a iaculis tempus, nulla nulla pellentesque odio, sed ultrices mauris nisi malesuada odio. Nulla dapibus rhoncus imperdiet. Aliquam quis nisl eget ipsum sagittis euismod ultrices vel lorem. Vivamus sit amet enim id lectus euismod varius eget in orci. Nunc convallis sapien mi, et faucibus turpis hendrerit vitae. Phasellus auctor imperdiet massa, nec condimentum nisl finibus eget.&lt;/p&gt;</section_html>
+	</item>	<item>	<section_html>&lt;p&gt;Donec vel eros ultricies, efficitur libero vel, posuere tortor. Sed consequat sapien sit amet ex sagittis sollicitudin. Praesent aliquet sed tellus eget porta. Nunc in aliquam ipsum. Duis sit amet congue elit. Nam pellentesque nunc vel dolor tempus dictum. Curabitur pellentesque consequat metus, eget viverra lorem faucibus euismod. Ut a blandit felis. Mauris vel tincidunt ex. Duis purus nibh, interdum vel efficitur non, porta sit amet nibh. Mauris aliquam diam eget hendrerit luctus. Pellentesque tincidunt a purus quis semper. Donec ornare placerat imperdiet. Etiam turpis dolor, iaculis convallis urna quis, ornare laoreet neque. Duis tempus felis quis interdum scelerisque.&lt;/p&gt;
+&lt;p&gt;Aenean finibus risus urna, id aliquet sem accumsan non. Aenean aliquam neque ut massa aliquam suscipit. Aenean mollis augue felis, vel vehicula tortor porta vitae. Duis malesuada accumsan est, eget dapibus orci sodales a. Sed efficitur dolor sem, quis commodo magna fermentum vel. Proin sed pellentesque lorem. Maecenas imperdiet erat non urna convallis, ut sodales erat aliquam. Pellentesque scelerisque, ipsum ut efficitur suscipit, orci orci fermentum leo, non sodales neque lacus dignissim lectus. Fusce rutrum risus nec viverra suscipit. Sed id mi elit. Cras in nisi pharetra, gravida nunc quis, fermentum nisi. Phasellus pulvinar egestas augue at sodales.&lt;/p&gt;
+&lt;p&gt;Nullam commodo venenatis nibh at finibus. Etiam mattis eget ipsum sit amet accumsan. Donec et arcu sit amet nunc egestas tincidunt id a leo. Duis faucibus, ligula eget sollicitudin ultrices, massa dui vehicula sapien, et consequat lacus magna vitae diam. Ut non leo cursus, sodales felis vel, accumsan nulla. Donec elementum feugiat mauris id porta. Nullam aliquam viverra elit. Integer sit amet nunc at nibh porttitor tincidunt. Quisque vel erat vitae lacus ornare blandit.&lt;/p&gt;</section_html>
+	</item></sections_o>
+	<internal-name>Top Books For Young Women</internal-name>
+	<title_t>Top Books For Young Women</title_t>
+	<subject_t>Top Books For Young Women</subject_t>
+	<author_s>Jane Doe</author_s>
+	<file-name>index.xml</file-name>
+	<folder-name>top-books-for-young-women</folder-name>
+	<categories_o>	<item>	<key>entertainment</key>
+	<value_smv>Entertainment</value_smv>
+	</item></categories_o>
+	<segments_o>	<item>	<key>gal</key>
+	<value_smv>Gal</value_smv>
+	</item></segments_o>
+	<date_dt>2020-12-28T05:00:00.000Z</date_dt>
+	<createdDate>2017-3-2T20:48:57.000Z</createdDate>
+	<createdDate_dt>2017-3-2T20:48:57.000Z</createdDate_dt>
+	<lastModifiedDate>2019-12-03T09:24:33.150Z</lastModifiedDate>
+	<lastModifiedDate_dt>2019-12-03T09:24:33.150Z</lastModifiedDate_dt>
+	<featured_b>false</featured_b>
+	<summary_t>Curabitur lobortis laoreet vehicula. Integer condimentum non mauris in bibendum. Morbi et facilisis nisl. In suscipit eros sapien, ut venenatis quam interdum gravida. Praesent ultricies interdum dictum.</summary_t>
+	<image_s>/static-assets/images/book-woman-pic.jpg</image_s>
+	<disabled>false</disabled>
+	<header_o item-list="true"/>
+	<left_rail_o item-list="true"/>
+	<date_dt_tz>EST5EDT</date_dt_tz>
+</page>

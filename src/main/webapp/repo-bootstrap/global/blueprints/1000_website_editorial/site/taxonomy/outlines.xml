@@ -1,0 +1,773 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+  <content-type>/taxonomy</content-type>
+  <display-template/>
+  <no-template-required/>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>bc15</objectGroupId>
+  <objectId>bc150ce6-52a0-0f76-f775-8f95630f5831</objectId>
+  <items item-list="true">
+		<item>
+			<key>fa-address-book far</key>
+			<value>Address book</value>
+			<unicode>f2b9</unicode>
+		</item>
+		<item>
+			<key>fa-address-card far</key>
+			<value>Address card</value>
+			<unicode>f2bb</unicode>
+		</item>
+		<item>
+			<key>fa-angry far</key>
+			<value>Angry</value>
+			<unicode>f556</unicode>
+		</item>
+		<item>
+			<key>fa-arrow-alt-circle-down far</key>
+			<value>Arrow alt circle down</value>
+			<unicode>f358</unicode>
+		</item>
+		<item>
+			<key>fa-arrow-alt-circle-left far</key>
+			<value>Arrow alt circle left</value>
+			<unicode>f359</unicode>
+		</item>
+		<item>
+			<key>fa-arrow-alt-circle-right far</key>
+			<value>Arrow alt circle right</value>
+			<unicode>f35a</unicode>
+		</item>
+		<item>
+			<key>fa-arrow-alt-circle-up far</key>
+			<value>Arrow alt circle up</value>
+			<unicode>f35b</unicode>
+		</item>
+		<item>
+			<key>fa-bell far</key>
+			<value>Bell</value>
+			<unicode>f0f3</unicode>
+		</item>
+		<item>
+			<key>fa-bell-slash far</key>
+			<value>Bell slash</value>
+			<unicode>f1f6</unicode>
+		</item>
+		<item>
+			<key>fa-bookmark far</key>
+			<value>Bookmark</value>
+			<unicode>f02e</unicode>
+		</item>
+		<item>
+			<key>fa-building far</key>
+			<value>Building</value>
+			<unicode>f1ad</unicode>
+		</item>
+		<item>
+			<key>fa-calendar far</key>
+			<value>Calendar</value>
+			<unicode>f133</unicode>
+		</item>
+		<item>
+			<key>fa-calendar-alt far</key>
+			<value>Calendar alt</value>
+			<unicode>f073</unicode>
+		</item>
+		<item>
+			<key>fa-calendar-check far</key>
+			<value>Calendar check</value>
+			<unicode>f274</unicode>
+		</item>
+		<item>
+			<key>fa-calendar-minus far</key>
+			<value>Calendar minus</value>
+			<unicode>f272</unicode>
+		</item>
+		<item>
+			<key>fa-calendar-plus far</key>
+			<value>Calendar plus</value>
+			<unicode>f271</unicode>
+		</item>
+		<item>
+			<key>fa-calendar-times far</key>
+			<value>Calendar times</value>
+			<unicode>f273</unicode>
+		</item>
+		<item>
+			<key>fa-caret-square-down far</key>
+			<value>Caret square down</value>
+			<unicode>f150</unicode>
+		</item>
+		<item>
+			<key>fa-caret-square-left far</key>
+			<value>Caret square left</value>
+			<unicode>f191</unicode>
+		</item>
+		<item>
+			<key>fa-caret-square-right far</key>
+			<value>Caret square right</value>
+			<unicode>f152</unicode>
+		</item>
+		<item>
+			<key>fa-caret-square-up far</key>
+			<value>Caret square up</value>
+			<unicode>f151</unicode>
+		</item>
+		<item>
+			<key>fa-chart-bar far</key>
+			<value>Chart bar</value>
+			<unicode>f080</unicode>
+		</item>
+		<item>
+			<key>fa-check-circle far</key>
+			<value>Check circle</value>
+			<unicode>f058</unicode>
+		</item>
+		<item>
+			<key>fa-check-square far</key>
+			<value>Check square</value>
+			<unicode>f14a</unicode>
+		</item>
+		<item>
+			<key>fa-circle far</key>
+			<value>Circle</value>
+			<unicode>f111</unicode>
+		</item>
+		<item>
+			<key>fa-clipboard far</key>
+			<value>Clipboard</value>
+			<unicode>f328</unicode>
+		</item>
+		<item>
+			<key>fa-clock far</key>
+			<value>Clock</value>
+			<unicode>f017</unicode>
+		</item>
+		<item>
+			<key>fa-clone far</key>
+			<value>Clone</value>
+			<unicode>f24d</unicode>
+		</item>
+		<item>
+			<key>fa-closed-captioning far</key>
+			<value>Closed captioning</value>
+			<unicode>f20a</unicode>
+		</item>
+		<item>
+			<key>fa-comment far</key>
+			<value>Comment</value>
+			<unicode>f075</unicode>
+		</item>
+		<item>
+			<key>fa-comment-alt far</key>
+			<value>Comment alt</value>
+			<unicode>f27a</unicode>
+		</item>
+		<item>
+			<key>fa-comment-dots far</key>
+			<value>Comment dots</value>
+			<unicode>f4ad</unicode>
+		</item>
+		<item>
+			<key>fa-comments far</key>
+			<value>Comments</value>
+			<unicode>f086</unicode>
+		</item>
+		<item>
+			<key>fa-compass far</key>
+			<value>Compass</value>
+			<unicode>f14e</unicode>
+		</item>
+		<item>
+			<key>fa-copy far</key>
+			<value>Copy</value>
+			<unicode>f0c5</unicode>
+		</item>
+		<item>
+			<key>fa-copyright far</key>
+			<value>Copyright</value>
+			<unicode>f1f9</unicode>
+		</item>
+		<item>
+			<key>fa-credit-card far</key>
+			<value>Credit card</value>
+			<unicode>f09d</unicode>
+		</item>
+		<item>
+			<key>fa-dizzy far</key>
+			<value>Dizzy</value>
+			<unicode>f567</unicode>
+		</item>
+		<item>
+			<key>fa-dot-circle far</key>
+			<value>Dot circle</value>
+			<unicode>f192</unicode>
+		</item>
+		<item>
+			<key>fa-edit far</key>
+			<value>Edit</value>
+			<unicode>f044</unicode>
+		</item>
+		<item>
+			<key>fa-envelope far</key>
+			<value>Envelope</value>
+			<unicode>f0e0</unicode>
+		</item>
+		<item>
+			<key>fa-envelope-open far</key>
+			<value>Envelope open</value>
+			<unicode>f2b6</unicode>
+		</item>
+		<item>
+			<key>fa-eye far</key>
+			<value>Eye</value>
+			<unicode>f06e</unicode>
+		</item>
+		<item>
+			<key>fa-eye-slash far</key>
+			<value>Eye slash</value>
+			<unicode>f070</unicode>
+		</item>
+		<item>
+			<key>fa-file far</key>
+			<value>File</value>
+			<unicode>f15b</unicode>
+		</item>
+		<item>
+			<key>fa-file-alt far</key>
+			<value>File alt</value>
+			<unicode>f15c</unicode>
+		</item>
+		<item>
+			<key>fa-file-archive far</key>
+			<value>File archive</value>
+			<unicode>f1c6</unicode>
+		</item>
+		<item>
+			<key>fa-file-audio far</key>
+			<value>File audio</value>
+			<unicode>f1c7</unicode>
+		</item>
+		<item>
+			<key>fa-file-code far</key>
+			<value>File code</value>
+			<unicode>f1c9</unicode>
+		</item>
+		<item>
+			<key>fa-file-excel far</key>
+			<value>File excel</value>
+			<unicode>f1c3</unicode>
+		</item>
+		<item>
+			<key>fa-file-image far</key>
+			<value>File image</value>
+			<unicode>f1c5</unicode>
+		</item>
+		<item>
+			<key>fa-file-pdf far</key>
+			<value>File pdf</value>
+			<unicode>f1c1</unicode>
+		</item>
+		<item>
+			<key>fa-file-powerpoint far</key>
+			<value>File powerpoint</value>
+			<unicode>f1c4</unicode>
+		</item>
+		<item>
+			<key>fa-file-video far</key>
+			<value>File video</value>
+			<unicode>f1c8</unicode>
+		</item>
+		<item>
+			<key>fa-file-word far</key>
+			<value>File word</value>
+			<unicode>f1c2</unicode>
+		</item>
+		<item>
+			<key>fa-flag far</key>
+			<value>Flag</value>
+			<unicode>f024</unicode>
+		</item>
+		<item>
+			<key>fa-flushed far</key>
+			<value>Flushed</value>
+			<unicode>f579</unicode>
+		</item>
+		<item>
+			<key>fa-folder far</key>
+			<value>Folder</value>
+			<unicode>f07b</unicode>
+		</item>
+		<item>
+			<key>fa-folder-open far</key>
+			<value>Folder open</value>
+			<unicode>f07c</unicode>
+		</item>
+		<item>
+			<key>fa-frown far</key>
+			<value>Frown</value>
+			<unicode>f119</unicode>
+		</item>
+		<item>
+			<key>fa-frown-open far</key>
+			<value>Frown open</value>
+			<unicode>f57a</unicode>
+		</item>
+		<item>
+			<key>fa-futbol far</key>
+			<value>Futbol</value>
+			<unicode>f1e3</unicode>
+		</item>
+		<item>
+			<key>fa-gem far</key>
+			<value>Gem</value>
+			<unicode>f3a5</unicode>
+		</item>
+		<item>
+			<key>fa-grimace far</key>
+			<value>Grimace</value>
+			<unicode>f57f</unicode>
+		</item>
+		<item>
+			<key>fa-grin far</key>
+			<value>Grin</value>
+			<unicode>f580</unicode>
+		</item>
+		<item>
+			<key>fa-grin-alt far</key>
+			<value>Grin alt</value>
+			<unicode>f581</unicode>
+		</item>
+		<item>
+			<key>fa-grin-beam far</key>
+			<value>Grin beam</value>
+			<unicode>f582</unicode>
+		</item>
+		<item>
+			<key>fa-grin-beam-sweat far</key>
+			<value>Grin beam sweat</value>
+			<unicode>f583</unicode>
+		</item>
+		<item>
+			<key>fa-grin-hearts far</key>
+			<value>Grin hearts</value>
+			<unicode>f584</unicode>
+		</item>
+		<item>
+			<key>fa-grin-squint far</key>
+			<value>Grin squint</value>
+			<unicode>f585</unicode>
+		</item>
+		<item>
+			<key>fa-grin-squint-tears far</key>
+			<value>Grin squint tears</value>
+			<unicode>f586</unicode>
+		</item>
+		<item>
+			<key>fa-grin-stars far</key>
+			<value>Grin stars</value>
+			<unicode>f587</unicode>
+		</item>
+		<item>
+			<key>fa-grin-tears far</key>
+			<value>Grin tears</value>
+			<unicode>f588</unicode>
+		</item>
+		<item>
+			<key>fa-grin-tongue far</key>
+			<value>Grin tongue</value>
+			<unicode>f589</unicode>
+		</item>
+		<item>
+			<key>fa-grin-tongue-squint far</key>
+			<value>Grin tongue squint</value>
+			<unicode>f58a</unicode>
+		</item>
+		<item>
+			<key>fa-grin-tongue-wink far</key>
+			<value>Grin tongue wink</value>
+			<unicode>f58b</unicode>
+		</item>
+		<item>
+			<key>fa-grin-wink far</key>
+			<value>Grin wink</value>
+			<unicode>f58c</unicode>
+		</item>
+		<item>
+			<key>fa-hand-lizard far</key>
+			<value>Hand lizard</value>
+			<unicode>f258</unicode>
+		</item>
+		<item>
+			<key>fa-hand-paper far</key>
+			<value>Hand paper</value>
+			<unicode>f256</unicode>
+		</item>
+		<item>
+			<key>fa-hand-peace far</key>
+			<value>Hand peace</value>
+			<unicode>f25b</unicode>
+		</item>
+		<item>
+			<key>fa-hand-point-down far</key>
+			<value>Hand point down</value>
+			<unicode>f0a7</unicode>
+		</item>
+		<item>
+			<key>fa-hand-point-left far</key>
+			<value>Hand point left</value>
+			<unicode>f0a5</unicode>
+		</item>
+		<item>
+			<key>fa-hand-point-right far</key>
+			<value>Hand point right</value>
+			<unicode>f0a4</unicode>
+		</item>
+		<item>
+			<key>fa-hand-point-up far</key>
+			<value>Hand point up</value>
+			<unicode>f0a6</unicode>
+		</item>
+		<item>
+			<key>fa-hand-pointer far</key>
+			<value>Hand pointer</value>
+			<unicode>f25a</unicode>
+		</item>
+		<item>
+			<key>fa-hand-rock far</key>
+			<value>Hand rock</value>
+			<unicode>f255</unicode>
+		</item>
+		<item>
+			<key>fa-hand-scissors far</key>
+			<value>Hand scissors</value>
+			<unicode>f257</unicode>
+		</item>
+		<item>
+			<key>fa-hand-spock far</key>
+			<value>Hand spock</value>
+			<unicode>f259</unicode>
+		</item>
+		<item>
+			<key>fa-handshake far</key>
+			<value>Handshake</value>
+			<unicode>f2b5</unicode>
+		</item>
+		<item>
+			<key>fa-hdd far</key>
+			<value>Hdd</value>
+			<unicode>f0a0</unicode>
+		</item>
+		<item>
+			<key>fa-heart far</key>
+			<value>Heart</value>
+			<unicode>f004</unicode>
+		</item>
+		<item>
+			<key>fa-hospital far</key>
+			<value>Hospital</value>
+			<unicode>f0f8</unicode>
+		</item>
+		<item>
+			<key>fa-hourglass far</key>
+			<value>Hourglass</value>
+			<unicode>f254</unicode>
+		</item>
+		<item>
+			<key>fa-id-badge far</key>
+			<value>Id badge</value>
+			<unicode>f2c1</unicode>
+		</item>
+		<item>
+			<key>fa-id-card far</key>
+			<value>Id card</value>
+			<unicode>f2c2</unicode>
+		</item>
+		<item>
+			<key>fa-image far</key>
+			<value>Image</value>
+			<unicode>f03e</unicode>
+		</item>
+		<item>
+			<key>fa-images far</key>
+			<value>Images</value>
+			<unicode>f302</unicode>
+		</item>
+		<item>
+			<key>fa-keyboard far</key>
+			<value>Keyboard</value>
+			<unicode>f11c</unicode>
+		</item>
+		<item>
+			<key>fa-kiss far</key>
+			<value>Kiss</value>
+			<unicode>f596</unicode>
+		</item>
+		<item>
+			<key>fa-kiss-beam far</key>
+			<value>Kiss beam</value>
+			<unicode>f597</unicode>
+		</item>
+		<item>
+			<key>fa-kiss-wink-heart far</key>
+			<value>Kiss wink heart</value>
+			<unicode>f598</unicode>
+		</item>
+		<item>
+			<key>fa-laugh far</key>
+			<value>Laugh</value>
+			<unicode>f599</unicode>
+		</item>
+		<item>
+			<key>fa-laugh-beam far</key>
+			<value>Laugh beam</value>
+			<unicode>f59a</unicode>
+		</item>
+		<item>
+			<key>fa-laugh-squint far</key>
+			<value>Laugh squint</value>
+			<unicode>f59b</unicode>
+		</item>
+		<item>
+			<key>fa-laugh-wink far</key>
+			<value>Laugh wink</value>
+			<unicode>f59c</unicode>
+		</item>
+		<item>
+			<key>fa-lemon far</key>
+			<value>Lemon</value>
+			<unicode>f094</unicode>
+		</item>
+		<item>
+			<key>fa-life-ring far</key>
+			<value>Life ring</value>
+			<unicode>f1cd</unicode>
+		</item>
+		<item>
+			<key>fa-lightbulb far</key>
+			<value>Lightbulb</value>
+			<unicode>f0eb</unicode>
+		</item>
+		<item>
+			<key>fa-list-alt far</key>
+			<value>List alt</value>
+			<unicode>f022</unicode>
+		</item>
+		<item>
+			<key>fa-map far</key>
+			<value>Map</value>
+			<unicode>f279</unicode>
+		</item>
+		<item>
+			<key>fa-meh far</key>
+			<value>Meh</value>
+			<unicode>f11a</unicode>
+		</item>
+		<item>
+			<key>fa-meh-blank far</key>
+			<value>Meh blank</value>
+			<unicode>f5a4</unicode>
+		</item>
+		<item>
+			<key>fa-meh-rolling-eyes far</key>
+			<value>Meh rolling eyes</value>
+			<unicode>f5a5</unicode>
+		</item>
+		<item>
+			<key>fa-minus-square far</key>
+			<value>Minus square</value>
+			<unicode>f146</unicode>
+		</item>
+		<item>
+			<key>fa-money-bill-alt far</key>
+			<value>Money bill alt</value>
+			<unicode>f3d1</unicode>
+		</item>
+		<item>
+			<key>fa-moon far</key>
+			<value>Moon</value>
+			<unicode>f186</unicode>
+		</item>
+		<item>
+			<key>fa-newspaper far</key>
+			<value>Newspaper</value>
+			<unicode>f1ea</unicode>
+		</item>
+		<item>
+			<key>fa-object-group far</key>
+			<value>Object group</value>
+			<unicode>f247</unicode>
+		</item>
+		<item>
+			<key>fa-object-ungroup far</key>
+			<value>Object ungroup</value>
+			<unicode>f248</unicode>
+		</item>
+		<item>
+			<key>fa-paper-plane far</key>
+			<value>Paper plane</value>
+			<unicode>f1d8</unicode>
+		</item>
+		<item>
+			<key>fa-pause-circle far</key>
+			<value>Pause circle</value>
+			<unicode>f28b</unicode>
+		</item>
+		<item>
+			<key>fa-play-circle far</key>
+			<value>Play circle</value>
+			<unicode>f144</unicode>
+		</item>
+		<item>
+			<key>fa-plus-square far</key>
+			<value>Plus square</value>
+			<unicode>f0fe</unicode>
+		</item>
+		<item>
+			<key>fa-question-circle far</key>
+			<value>Question circle</value>
+			<unicode>f059</unicode>
+		</item>
+		<item>
+			<key>fa-registered far</key>
+			<value>Registered</value>
+			<unicode>f25d</unicode>
+		</item>
+		<item>
+			<key>fa-sad-cry far</key>
+			<value>Sad cry</value>
+			<unicode>f5b3</unicode>
+		</item>
+		<item>
+			<key>fa-sad-tear far</key>
+			<value>Sad tear</value>
+			<unicode>f5b4</unicode>
+		</item>
+		<item>
+			<key>fa-save far</key>
+			<value>Save</value>
+			<unicode>f0c7</unicode>
+		</item>
+		<item>
+			<key>fa-share-square far</key>
+			<value>Share square</value>
+			<unicode>f14d</unicode>
+		</item>
+		<item>
+			<key>fa-smile far</key>
+			<value>Smile</value>
+			<unicode>f118</unicode>
+		</item>
+		<item>
+			<key>fa-smile-beam far</key>
+			<value>Smile beam</value>
+			<unicode>f5b8</unicode>
+		</item>
+		<item>
+			<key>fa-smile-wink far</key>
+			<value>Smile wink</value>
+			<unicode>f4da</unicode>
+		</item>
+		<item>
+			<key>fa-snowflake far</key>
+			<value>Snowflake</value>
+			<unicode>f2dc</unicode>
+		</item>
+		<item>
+			<key>fa-square far</key>
+			<value>Square</value>
+			<unicode>f0c8</unicode>
+		</item>
+		<item>
+			<key>fa-star far</key>
+			<value>Star</value>
+			<unicode>f005</unicode>
+		</item>
+		<item>
+			<key>fa-star-half far</key>
+			<value>Star half</value>
+			<unicode>f089</unicode>
+		</item>
+		<item>
+			<key>fa-sticky-note far</key>
+			<value>Sticky note</value>
+			<unicode>f249</unicode>
+		</item>
+		<item>
+			<key>fa-stop-circle far</key>
+			<value>Stop circle</value>
+			<unicode>f28d</unicode>
+		</item>
+		<item>
+			<key>fa-sun far</key>
+			<value>Sun</value>
+			<unicode>f185</unicode>
+		</item>
+		<item>
+			<key>fa-surprise far</key>
+			<value>Surprise</value>
+			<unicode>f5c2</unicode>
+		</item>
+		<item>
+			<key>fa-thumbs-down far</key>
+			<value>Thumbs down</value>
+			<unicode>f165</unicode>
+		</item>
+		<item>
+			<key>fa-thumbs-up far</key>
+			<value>Thumbs up</value>
+			<unicode>f164</unicode>
+		</item>
+		<item>
+			<key>fa-times-circle far</key>
+			<value>Times circle</value>
+			<unicode>f057</unicode>
+		</item>
+		<item>
+			<key>fa-tired far</key>
+			<value>Tired</value>
+			<unicode>f5c8</unicode>
+		</item>
+		<item>
+			<key>fa-trash-alt far</key>
+			<value>Trash alt</value>
+			<unicode>f2ed</unicode>
+		</item>
+		<item>
+			<key>fa-user far</key>
+			<value>User</value>
+			<unicode>f007</unicode>
+		</item>
+		<item>
+			<key>fa-user-circle far</key>
+			<value>User circle</value>
+			<unicode>f2bd</unicode>
+		</item>
+		<item>
+			<key>fa-window-close far</key>
+			<value>Window close</value>
+			<unicode>f410</unicode>
+		</item>
+		<item>
+			<key>fa-window-maximize far</key>
+			<value>Window maximize</value>
+			<unicode>f2d0</unicode>
+		</item>
+		<item>
+			<key>fa-window-minimize far</key>
+			<value>Window minimize</value>
+			<unicode>f2d1</unicode>
+		</item>
+		<item>
+			<key>fa-window-restore far</key>
+			<value>Window restore</value>
+			<unicode>f2d2</unicode>
+		</item>
+  </items>
+  <file-name>outlines.xml</file-name>
+  <folder-name/>
+  <internal-name>Outline Icons</internal-name>
+  <createdDate>2019-12-20T13:33:20.742Z</createdDate>
+  <createdDate_dt>2019-12-20T13:33:20.742Z</createdDate_dt>
+  <lastModifiedDate>2019-12-20T13:33:20.742Z</lastModifiedDate>
+  <lastModifiedDate_dt>2019-12-20T13:33:20.742Z</lastModifiedDate_dt>
+</component>

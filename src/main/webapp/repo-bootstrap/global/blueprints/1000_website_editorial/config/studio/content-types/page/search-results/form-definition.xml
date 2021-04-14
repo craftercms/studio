@@ -15,13 +15,13 @@
   -->
 
 <form>
-	<title>Page - Search Results</title>
+	<title>Search Results</title>
 	<description></description>
 	<objectType>page</objectType>
 	<content-type>/page/search-results</content-type>
 	<imageThumbnail>page-search-results.png</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
@@ -256,7 +256,7 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>left-rail_o</id>
+					<id>left_rail_o</id>
 					<iceId></iceId>
 					<title>Left Rail</title>
 					<description></description>

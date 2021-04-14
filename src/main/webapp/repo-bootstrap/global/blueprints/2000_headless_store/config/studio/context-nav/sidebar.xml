@@ -98,15 +98,15 @@
 								<!-- Dashboard -->
 								<modulehook>
 									<name>dashboard</name>
-                                    <params>
-                                        <label>Dashboard</label>
-                                        <path>/site-dashboard</path>
+									<params>
+										<label>Dashboard</label>
+										<path>/site-dashboard</path>
 									</params>
 								</modulehook>
 
 								<!-- Site IA Pages -->
 								<modulehook>
-									<name>wcm-root-folder</name>									
+									<name>wcm-root-folder</name>
 									<params>
 										<label>Example Store</label>
 										<path>/site/website</path>
@@ -117,7 +117,7 @@
 
 								<!-- Components -->
 								<modulehook>
-									<name>wcm-root-folder</name>									
+									<name>wcm-root-folder</name>
 									<params>
 										<label>Items</label>
 										<path>/site/items</path>
@@ -127,7 +127,7 @@
 
 								<!-- Taxonomy -->
 								<modulehook>
-									<name>wcm-root-folder</name>									
+									<name>wcm-root-folder</name>
 									<params>
 										<label>Taxonomy</label>
 										<path>/site/taxonomy</path>
@@ -137,7 +137,7 @@
 
 								<!-- Scripts -->
 								<modulehook>
-									<name>wcm-assets-folder</name>									
+									<name>wcm-assets-folder</name>
 									<params>
 										<label>Scripts</label>
 										<path>/scripts</path>
@@ -148,7 +148,7 @@
 
 								<!-- Static Assets -->
 								<modulehook>
-									<name>wcm-assets-folder</name>									
+									<name>wcm-assets-folder</name>
 									<params>
 										<label>Static Assets</label>
 										<path>/static-assets</path>
@@ -159,7 +159,7 @@
 
 								<!-- Templates -->
 								<modulehook>
-									<name>wcm-assets-folder</name>									
+									<name>wcm-assets-folder</name>
 									<params>
 										<label>Templates</label>
 										<path>/templates</path>
@@ -170,14 +170,14 @@
 
 								<!-- Site Config -->
 								<modulehook>
-									<name>site-config</name>									
+									<name>site-config</name>
 									<params>
 										<roles>
 											<role>admin</role>
 											<role>developer</role>
 										</roles>
-                                        <label>Site Config</label>
-                                        <path>/site-config</path>
+										<label>Site Config</label>
+										<path>/site-config</path>
 									</params>
 								</modulehook>
 							</modulehooks>

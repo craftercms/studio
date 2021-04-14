@@ -15,7 +15,7 @@
   -->
 
 <form>
-	<title>Component - Articles Widget</title>
+	<title>Articles Widget</title>
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/articles-widget</content-type>

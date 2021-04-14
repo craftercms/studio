@@ -16,25 +16,31 @@
   -->
 
 <component>
-	<content-type>/component/level-descriptor</content-type>	<display-template/>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<placeInNav>false</placeInNav>
-	<file-name>crafter-level-descriptor.level.xml</file-name>
-	<objectGroupId>0a68</objectGroupId>
-	<objectId>0a68e8ad-77d8-0a58-e7bf-09a71fb3077b</objectId>
-	<folder-name/>
-	<header_o>	<item>	<key>/site/components/headers/header.xml</key>
-	<value>Header</value>
-	<include>/site/components/headers/header.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></header_o>
-	<createdDate>2017-3-13T20:26:50.000Z</createdDate>
-	<createdDate_dt>2017-3-13T20:26:50.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-18T15:38:58.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-18T15:38:58.000Z</lastModifiedDate_dt>
-	<left-rail_o>	<item>	<key>/site/components/left-rails/left-rail-with-no-articles.xml</key>
-	<value>Left Rail with No Articles</value>
-	<include>/site/components/left-rails/left-rail-with-no-articles.xml</include>
-	<disableFlattening>false</disableFlattening>
-	</item></left-rail_o>
+  <content-type>/component/level-descriptor</content-type>
+  <display-template/>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <file-name>crafter-level-descriptor.level.xml</file-name>
+  <objectGroupId>0a68</objectGroupId>
+  <objectId>0a68e8ad-77d8-0a58-e7bf-09a71fb3077b</objectId>
+  <folder-name/>
+  <header_o>
+    <item>
+      <key>/site/components/headers/header.xml</key>
+      <value>Header</value>
+      <include>/site/components/headers/header.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </header_o>
+  <createdDate>2017-3-13T20:26:50.000Z</createdDate>
+  <createdDate_dt>2017-3-13T20:26:50.000Z</createdDate_dt>
+  <lastModifiedDate>2017-5-18T15:38:58.000Z</lastModifiedDate>
+  <lastModifiedDate_dt>2017-5-18T15:38:58.000Z</lastModifiedDate_dt>
+  <left_rail_o>
+    <item>
+      <key>/site/components/left-rails/left-rail-with-no-articles.xml</key>
+      <value>Left Rail with No Articles</value>
+      <include>/site/components/left-rails/left-rail-with-no-articles.xml</include>
+      <disableFlattening>false</disableFlattening>
+    </item>
+  </left_rail_o>
 </component>

@@ -15,13 +15,13 @@
   -->
 
 <form>
-	<title>Component - Left Rail</title>
+	<title>Left Rail</title>
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/left-rail</content-type>
 	<imageThumbnail>component-left-rail.png</imageThumbnail>
-    <quickCreate>false</quickCreate>
-    <quickCreatePath></quickCreatePath>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
