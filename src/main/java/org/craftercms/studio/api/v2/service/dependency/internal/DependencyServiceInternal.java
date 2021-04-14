@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface DependencyServiceInternal {
 
@@ -125,4 +127,13 @@ public interface DependencyServiceInternal {
      * @return list of item specific dependencies
      */
     List<String> getItemSpecificDependencies(String siteId, List<String> paths);
+
+    /**
+     * Resolves dependent files for given content of given path
+     *
+     * @param site
+     * @param path
+     * @return set of paths of files that content is dependant on
+     */
+    Map<String, Set<String>> resolveDependnecies(String site, String path);
 }
