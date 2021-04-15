@@ -67,6 +67,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -81,6 +82,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_DEPLOYED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -644,7 +646,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                                           DmContentItemComparator subComparator, List<String> displayPatterns,
                                           String filterType) throws ServiceLayerException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
-        String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(format.toPattern()));
+        String dateLabel = launchDate.withZoneSameInstant(ZoneId.of(timeZone)).format(ISO_OFFSET_DATE_TIME);
         // add only if the current node is a file (directories are
         // deployed with index.xml)
         // display only if the path matches one of display patterns
