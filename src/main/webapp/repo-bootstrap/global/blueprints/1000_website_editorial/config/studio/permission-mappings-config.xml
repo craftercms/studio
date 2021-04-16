@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>17</version>
+    <version>18</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -124,6 +124,8 @@
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
                 <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -170,6 +172,7 @@
             <allowed-permissions>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
+                <permission>publish_status</permission>
                 <permission>cancel_publish</permission>
             </allowed-permissions>
         </rule>
@@ -180,6 +183,8 @@
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
                 <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -212,6 +217,7 @@
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -237,6 +243,7 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -247,6 +254,7 @@
                 <permission>webdav_write</permission>
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -319,6 +327,8 @@
                 <permission>edit_site</permission>
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -330,6 +340,7 @@
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
@@ -337,6 +348,7 @@
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -344,6 +356,7 @@
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
                 <permission>list_plugins</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -352,6 +365,7 @@
             <allowed-permissions>
                 <permission>content_read</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -359,6 +373,8 @@
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
                 <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>

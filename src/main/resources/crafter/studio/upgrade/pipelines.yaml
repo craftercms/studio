@@ -369,6 +369,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v17.xslt
               commitDetails: Added publish_status and publish_clear_lock permissions for  admin
+        - currentVersion: 17
+          nextVersion: 18
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v18.xslt
+              commitDetails: Added get_children and publish_status permissions where missing
 
   role-mappings-config:
     module: studio
