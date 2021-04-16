@@ -509,7 +509,7 @@ public class SiteServiceImpl implements SiteService {
             }
 
             if (counter++ >= batchSize) {
-                logger.error(sb.toString());
+                //logger.error(sb.toString());
                 studioDBScriptRunner.execute(sb.toString());
                 //if (logger.isDebugEnabled()) {
                     logger.error("Process created files batch " + ++batchCounter + " in " +
@@ -552,7 +552,7 @@ public class SiteServiceImpl implements SiteService {
             addDependenciesScriptSnippets(siteId, path, null, sb);
         }
         if (sb.length() > 0) {
-            logger.error(sb.toString());
+            //logger.error(sb.toString());
             studioDBScriptRunner.execute(sb.toString());
             //if (logger.isDebugEnabled()) {
                 logger.error("Process created files batch " + ++batchCounter + " in " +
@@ -804,7 +804,7 @@ public class SiteServiceImpl implements SiteService {
                 updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
                 logger.info("Loading configuration for site " + siteId);
-                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
+                //itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
