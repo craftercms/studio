@@ -82,8 +82,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_DEPLOYED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
@@ -474,7 +474,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (deployReports != null) {
             int count = 0;
             String timezone = servicesConfig.getDefaultTimezone(site);
-            //Set<String> processedItems = new HashSet<String>();
             Map<String, Set<String>> processedItems = new HashMap<String, Set<String>>();
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
                 DeploymentSyncHistory entry = deployReports.get(index);
@@ -490,7 +489,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                         deployedItem.setUser(entry.getUser());
                         deployedItem.setEndpoint(entry.getEnvironment());
                         String deployedLabel =
-                                entry.getSyncDate().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DEPLOYED));
+                                entry.getSyncDate().withZoneSameInstant(ZoneId.of(timezone)).format(ISO_OFFSET_DATE);
                         if (tasks.size() > 0) {
                             DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
                             String lastDeployedLabel = lastTask.getInternalName();
@@ -590,7 +589,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         List<PublishRequest> deploying = getScheduledItems(site);
         SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_FORMAT_SCHEDULED);
-        List<ContentItemTO> scheduledItems = new ArrayList<ContentItemTO>();
         for (PublishRequest deploymentItem : deploying) {
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(),
                     securityService.getCurrentUser(), Collections.<String>emptyList());
