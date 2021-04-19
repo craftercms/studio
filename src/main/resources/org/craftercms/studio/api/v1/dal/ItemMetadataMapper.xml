@@ -41,7 +41,7 @@
         <result property="submittedBy" column="submittedby"/>
         <result property="submittedForDeletion" column="submittedfordeletion"/>
         <result property="sendEmail" column="sendemail"/>
-        <result property="launchDate" column="launch_date" />
+        <result property="launchDate" column="launchdate" />
         <result property="commitId" column="commit_id"/>
         <result property="submittedToEnvironment" column="submittedtoenvironment" />
         <result property="publishedDate" column="published_date" />
