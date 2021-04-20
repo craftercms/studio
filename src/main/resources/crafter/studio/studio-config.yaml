@@ -180,6 +180,10 @@ studio.configuration.management.previewProtectedUrls: >-
   /api/1/site/context/graphql/rebuild,
   /api/1/site/cache/clear,
   /api/1/site/cache/statistics
+# Publishing blacklist configuration, items matching regexes on this list will never be published
+studio.configuration.publishing.blacklist.regex: >-
+  .*/\.keep
+
 ########################################################
 ##                   Import Service                   ##
 ########################################################

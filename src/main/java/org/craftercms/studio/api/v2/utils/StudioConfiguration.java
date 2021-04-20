@@ -135,6 +135,7 @@ public interface StudioConfiguration {
             "studio.configuration.management.previewAuthorizationToken";
     String CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS =
             "studio.configuration.management.previewProtectedUrls";
+    String CONFIGURATION_PUBLISHING_BLACKLIST_REGEX = "studio.configuration.publishing.blacklist.regex";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

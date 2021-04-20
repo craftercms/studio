@@ -324,9 +324,7 @@ public class StudioPublisherTask extends StudioClockTask {
             throws ServiceLayerException, DeploymentException {
         List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
         Set<String> missingDependenciesPaths = new HashSet<String>();
-        SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
         String statusMessage;
-        String messagePath = item.getPath();
         try {
             List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 
