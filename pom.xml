@@ -390,6 +390,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>woodstox-core-asl</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -421,6 +425,10 @@
         </dependency>
 
         <!-- AWS SDK -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sts</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
@@ -574,10 +582,6 @@
                                 <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
                                 <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
-                                <!-- AWS -->
-                                <exclude>/WEB-INF/lib/aws-java-sdk-s3-1.11.435.jar</exclude>
-                                <exclude>/WEB-INF/lib/aws-java-sdk-kms-1.11.435.jar</exclude>
-                                <exclude>/WEB-INF/lib/aws-java-sdk-core-1.11.435.jar</exclude>
                                 <exclude>/WEB-INF/classes/crafter/engine/services/security-context.xml</exclude>
                             </excludes>
                         </overlay>
