@@ -235,7 +235,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     Arrays.asList(studioConfiguration
                             .getArray(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX, String.class)))) {
                 LOGGER.debug("File " + item.getPath() + " of the site " + site + " will not be published because it " +
-                        "matches black list patterns.");
+                        "matches the configured publishing blacklist regex patterns.");
                 markItemsCompleted(site, item.getEnvironment(), Arrays.asList(item));
                 deploymentItem = null;
             }
