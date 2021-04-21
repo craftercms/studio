@@ -231,9 +231,9 @@ public class PublishingManagerImpl implements PublishingManager {
                 itemMetadata.setLaunchDate(null);
                 objectMetadataManager.updateObjectMetadata(itemMetadata);
             }
-            if (ContentUtils.matchesPatterns(item.getPath(),
-                    Arrays.asList(studioConfiguration
-                            .getArray(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX, String.class)))) {
+            String blacklistConfig = studioConfiguration.getProperty(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX);
+            if (StringUtils.isNotEmpty(blacklistConfig) &&
+                    ContentUtils.matchesPatterns(item.getPath(), Arrays.asList(StringUtils.split(blacklistConfig, ",")))) {
                 LOGGER.debug("File " + item.getPath() + " of the site " + site + " will not be published because it " +
                         "matches the configured publishing blacklist regex patterns.");
                 markItemsCompleted(site, item.getEnvironment(), Arrays.asList(item));
@@ -350,7 +350,9 @@ public class PublishingManagerImpl implements PublishingManager {
                             missingDependenciesPaths.add(dependentPath);
                             PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
                             DeploymentItemTO dependentDeploymentItem = processItem(dependentItem);
-                            mandatoryDependencies.add(dependentDeploymentItem);
+                            if (Objects.nonNull(dependentDeploymentItem)) {
+                                mandatoryDependencies.add(dependentDeploymentItem);
+                            }
                             mandatoryDependencies.addAll(
                                     processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
                         }
