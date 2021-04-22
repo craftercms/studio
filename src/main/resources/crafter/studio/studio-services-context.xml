@@ -1499,6 +1499,7 @@
         <constructor-arg ref="instanceService"/>
         <constructor-arg ref="cstudioSiteServiceSimple"/>
         <constructor-arg ref="sitesServiceInternal"/>
+        <constructor-arg ref="configurationService"/>
         <constructor-arg ref="studioConfiguration"/>
         <constructor-arg ref="pluginDescriptorReader"/>
         <constructor-arg ref="studio.gitRepositoryHelper"/>
