@@ -342,6 +342,9 @@ public interface StudioConfiguration {
     String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_AUDITED =
             "studio.clockJob.task.auditLogProcessing.batchSizeAudited";
 
+    String BLOB_FILE_EXTENSION = "studio.blob.file.extension";
+    String BLOB_INTERCEPTED_PATHS = "studio.blob.intercepted.paths";
+
     void loadConfig();
 
     String getProperty(String key);
