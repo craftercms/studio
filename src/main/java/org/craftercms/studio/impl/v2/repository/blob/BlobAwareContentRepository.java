@@ -622,7 +622,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         Map<String, String> originalMap = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
         Map<String, String> newMap = new TreeMap<>();
 
-        originalMap.forEach((key, value) -> newMap.put(getOriginalPath(key), value));
+        originalMap.forEach((key, value) -> newMap.put(getOriginalPath(key), getOriginalPath(value)));
 
         return newMap;
     }
