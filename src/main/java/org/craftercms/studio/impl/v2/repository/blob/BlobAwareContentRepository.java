@@ -54,13 +54,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -620,7 +620,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> originalMap = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
-        Map<String, String> newMap = new HashMap<>();
+        Map<String, String> newMap = new TreeMap<>();
 
         originalMap.forEach((key, value) -> newMap.put(getOriginalPath(key), value));
 
