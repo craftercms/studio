@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob;
 
+import net.sf.ehcache.Ehcache;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
@@ -38,7 +39,9 @@ import java.io.IOException;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 /**
  * @author joseross
@@ -72,6 +75,9 @@ public class StudioBlobStoreResolverImplTest {
 
     @Mock
     private StudioBlobStore anotherBlobStore;
+
+    @Mock
+    private Ehcache cache;
 
     @InjectMocks
     private StudioBlobStoreResolverImpl resolver;

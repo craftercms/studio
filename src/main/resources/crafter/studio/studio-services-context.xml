@@ -481,7 +481,7 @@
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -671,7 +671,7 @@
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="contentRepository" ref="gitContentRepositoryV2" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
@@ -699,7 +699,7 @@
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
-        <constructor-arg name="contentRepository" ref="gitContentRepositoryV2" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
         <constructor-arg name="batchSizeGitLog"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
         <constructor-arg name="batchSizeAudited"
@@ -1003,7 +1003,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">
