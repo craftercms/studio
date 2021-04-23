@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -93,7 +94,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected StudioBlobStoreResolver blobStoreResolver;
 
-    protected ObjectMapper objectMapper = new XmlMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    protected final ObjectMapper objectMapper = new XmlMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     public void setFileExtension(String fileExtension) {
         this.fileExtension = fileExtension;
@@ -618,7 +619,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        return localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
+        Map<String, String> originalMap = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
+        Map<String, String> newMap = new HashMap<>();
+
+        originalMap.forEach((key, value) -> newMap.put(getOriginalPath(key), value));
+
+        return newMap;
     }
 
     @Override
@@ -638,7 +644,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
-        return getUnprocessedCommits(siteId, marker);
+        return localRepositoryV2.getUnprocessedCommits(siteId, marker);
     }
 
     @Override
