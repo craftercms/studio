@@ -24,7 +24,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -127,8 +126,6 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLOB_FILE_EXTENSION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLOB_INTERCEPTED_PATHS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
@@ -538,18 +535,12 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         List<RepoOperation> toReturn = new ArrayList<RepoOperation>();
 
         int idx = 0;
-        String blobFileExtension = studioConfiguration.getProperty(BLOB_FILE_EXTENSION);
-        String[] interceptedPaths = studioConfiguration.getArray(BLOB_INTERCEPTED_PATHS, String.class);
         for (DiffEntry diffEntry : diffEntries) {
             logger.debug("Processing " + ++idx + " of " + size + " diff entries");
             long startProcessEntryMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
             // Update the paths to have a preceding separator
-            String pathNew = RegexUtils.matchesAny(diffEntry.getNewPath(), interceptedPaths) ?
-                    FILE_SEPARATOR + diffEntry.getNewPath().replace(blobFileExtension, "") :
-                    FILE_SEPARATOR + diffEntry.getNewPath();
-            String pathOld = RegexUtils.matchesAny(diffEntry.getOldPath(), interceptedPaths) ?
-                    FILE_SEPARATOR + diffEntry.getOldPath().replace(blobFileExtension, "") :
-                    FILE_SEPARATOR + diffEntry.getOldPath();
+            String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
+            String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
 
             RepoOperation repoOperation = null;
             Iterable<RevCommit> iterable = null;
