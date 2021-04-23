@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@
         <result property="submissionComment" column="submissioncomment"/>
         <result property="commitId" column="commit_id"/>
         <result property="packageId" column="package_id"/>
+        <result property="completedDate" column="completed_date"/>
     </resultMap>
 
     <resultMap id="PublishingPackageMap" type="org.craftercms.studio.api.v2.dal.PublishingPackage">
@@ -99,4 +100,17 @@
             #{packageId}
         </foreach>
     </update>
+
+    <select id="getDeploymentHistory" resultMap="PublishRequestMap">
+        SELECT * FROM publish_request
+        WHERE site = #{siteId}
+        AND state = #{completedState}
+        AND DATE(completed_date) &lt;= DATE(#{toDate})
+        AND DATE(completed_date) &gt;= DATE(#{fromDate})
+        AND environment IN
+        <foreach item="env" index="index" collection="environments" open="(" separator="," close=")">
+            #{env}
+        </foreach>
+        LIMIT #{offset}, #{limit}
+    </select>
 </mapper>

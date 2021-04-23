@@ -80,6 +80,7 @@ public final class ResultConstants {
     public static final String RESULT_KEY_PACKAGES = "packages";
     public static final String RESULT_KEY_PACKAGE = "package";
     public static final String RESULT_KEY_PUBLISH_STATUS = "publishingStatus";
+    public static final String RESULT_KEY_PUBLISH_HISTORY = "documents";
 
     private ResultConstants() { }
 }

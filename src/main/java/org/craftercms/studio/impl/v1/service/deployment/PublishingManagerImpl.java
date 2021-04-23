@@ -268,8 +268,10 @@ public class PublishingManagerImpl implements PublishingManager {
     public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
                                    @ValidateStringParam(name = "environment") String environment,
                                    List<PublishRequest> processedItems) throws DeploymentException {
+        ZonedDateTime completed = ZonedDateTime.now();
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
+            item.setCompletedDate(completed);
             publishRequestMapper.updateItemDeploymentState(item);
         }
     }

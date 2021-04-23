@@ -476,12 +476,15 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="studioUtils" ref="studio.utils" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -1304,6 +1307,11 @@
                 <property name="timeToLiveSeconds" value="60"/>
             </bean>
         </property>
+    </bean>
+
+    <bean id="studio.utils" class="org.craftercms.studio.impl.v2.utils.StudioUtils">
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

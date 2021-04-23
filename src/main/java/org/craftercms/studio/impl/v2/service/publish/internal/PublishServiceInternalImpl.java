@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,7 +17,9 @@
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
@@ -25,17 +27,19 @@ import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
-
+;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
+import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     private PublishRequestDAO publishRequestDao;
     private ContentRepository contentRepository;
+    private DmFilterWrapper dmFilterWrapper;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -94,6 +98,38 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         return contentRepository.getPublishingHistory(siteId, environment, path, publisher, dateFrom, dateTo, limit);
     }
 
+    @Override
+    public List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments, ZonedDateTime fromDate, ZonedDateTime toDate, String filterType, int numberOfItems) {
+        int offset = 0;
+        int counter = 0;
+        List<DeploymentHistoryItem> toRet = new ArrayList<DeploymentHistoryItem>();
+        List<PublishRequest> deploymentHistory;
+        do {
+            deploymentHistory = publishRequestDao.getDeploymentHistory(siteId, environments,
+                    COMPLETED,
+                    fromDate, toDate, offset, numberOfItems);
+            if (CollectionUtils.isNotEmpty(deploymentHistory)) {
+                for (PublishRequest publishRequest : deploymentHistory) {
+                    if (dmFilterWrapper.accept(siteId, publishRequest.getPath(), filterType)) {
+                        DeploymentHistoryItem dhi = new DeploymentHistoryItem();
+                        dhi.setSite(siteId);
+                        dhi.setPath(publishRequest.getPath());
+                        dhi.setDeploymentDate(publishRequest.getCompletedDate());
+                        dhi.setUser(publishRequest.getUser());
+                        dhi.setEnvironment(publishRequest.getEnvironment());
+                        toRet.add(dhi);
+                        if (!(++counter < numberOfItems)) {
+                            break;
+                        }
+                    }
+                    offset++;
+                }
+            }
+        } while (CollectionUtils.isNotEmpty(deploymentHistory) && counter < numberOfItems );
+        toRet.sort((o1, o2) -> o2.getDeploymentDate().compareTo(o1.getDeploymentDate()));
+        return toRet;
+    }
+
     public PublishRequestDAO getPublishRequestDao() {
         return publishRequestDao;
     }
@@ -108,5 +144,13 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public DmFilterWrapper getDmFilterWrapper() {
+        return dmFilterWrapper;
+    }
+
+    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
+        this.dmFilterWrapper = dmFilterWrapper;
     }
 }

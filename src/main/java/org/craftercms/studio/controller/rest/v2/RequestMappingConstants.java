@@ -68,4 +68,5 @@ public interface RequestMappingConstants {
     String PACKAGE = "/package";
     String CANCEL = "/cancel";
     String CLEAR_LOCK = "/clear_lock";
+    String HISTORY = "/history";
 }
