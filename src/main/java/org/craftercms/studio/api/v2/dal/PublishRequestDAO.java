@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface PublishRequestDAO extends BaseDAO {
@@ -74,4 +75,22 @@ public interface PublishRequestDAO extends BaseDAO {
     void cancelPackages(@Param(PARAM_NAME_SITE_ID) String siteId,
                         @Param(PARAM_NAME_PACKAGE_IDS) List<String> packageIds,
                         @Param(PARAM_NAME_CANCELLED_STATE) String cancelledState);
+
+    /**
+     * Get deployment history
+     * @param siteId site identifier
+     * @param environments environments
+     * @param completedState completed state
+     * @param fromDate get history from date
+     * @param toDate get history to date
+     * @param offset offset for pagination
+     * @param limit number of records to return
+     * @return
+     */
+    List<PublishRequest> getDeploymentHistory(@Param(PARAM_NAME_SITE_ID) String siteId,
+                              @Param(PARAM_NAME_ENVIRONMENTS) List<String> environments,
+                              @Param(PARAM_NAME_COMPLETED_STATE) String completedState,
+                              @Param(PARAM_NAME_FROM_DATE) ZonedDateTime fromDate,
+                              @Param(PARAM_NAME_TO_DATE) ZonedDateTime toDate, @Param(PARAM_NAME_OFFSET) int offset,
+                              @Param(PARAM_NAME_LIMIT) int limit);
 }

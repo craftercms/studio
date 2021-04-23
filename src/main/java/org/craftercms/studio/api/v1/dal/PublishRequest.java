@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,7 @@ public class PublishRequest implements Serializable {
     private String submissionComment;
     private String commitId;
     private String packageId;
+    private ZonedDateTime completedDate;
 
     public class State {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
@@ -157,5 +158,13 @@ public class PublishRequest implements Serializable {
 
     public void setPackageId(String packageId) {
         this.packageId = packageId;
+    }
+
+    public ZonedDateTime getCompletedDate() {
+        return completedDate;
+    }
+
+    public void setCompletedDate(ZonedDateTime completedDate) {
+        this.completedDate = completedDate;
     }
 }

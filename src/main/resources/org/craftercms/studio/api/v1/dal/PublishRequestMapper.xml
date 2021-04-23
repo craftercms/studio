@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -86,7 +86,13 @@
 
     <update id="updateItemDeploymentState" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
         UPDATE publish_request
-        SET state = #{state}
+        SET state = #{state}, completed_date = NULL
+        WHERE id = #{id}
+    </update>
+
+    <update id="markItemCompleted" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
+        UPDATE publish_request
+        SET state = #{state}, completed_date = #{completedDate}
         WHERE id = #{id}
     </update>
 

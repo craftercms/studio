@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
@@ -40,8 +41,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_DAYS;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ENVIRONMENT;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_FILTER_TYPE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_NUM;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PACKAGE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
@@ -50,12 +54,14 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CANCEL;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CLEAR_LOCK;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.HISTORY;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_HISTORY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_STATUS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -157,6 +163,28 @@ public class PublishController {
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = HISTORY, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getPublishingHistory(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+                                             @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,
+                                             @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
+                                             @RequestParam(name = REQUEST_PARAM_FILTER_TYPE) String filterType)
+            throws SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        List<DeploymentHistoryGroup> history =
+                publishService.getDeploymentHistory(siteId, daysFromToday, numberOfItems, filterType);
+        ResponseBody responseBody = new ResponseBody();
+        PaginatedResultList<DeploymentHistoryGroup> result = new PaginatedResultList<>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_PUBLISH_HISTORY, history);
+        result.setOffset(0);
+        result.setLimit(history.size());
+        result.setTotal(history.size());
         responseBody.setResult(result);
         return responseBody;
     }

@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.14.2', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.14.3', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -221,6 +221,7 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   `submissioncomment` TEXT         NULL,
   `commit_id`         VARCHAR(50)  NULL,
   `package_id`         VARCHAR(50)  NULL,
+  `completed_date`     TIMESTAMP   NULL,
   PRIMARY KEY (`id`),
   INDEX `publish_request_site_idx` (`site` ASC),
   INDEX `publish_request_environment_idx` (`environment` ASC),
