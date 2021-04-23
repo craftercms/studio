@@ -90,7 +90,7 @@
         WHERE id = #{id}
     </update>
 
-    <update id="markItemsCompleted" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
+    <update id="markItemCompleted" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
         UPDATE publish_request
         SET state = #{state}, completed_date = #{completedDate}
         WHERE id = #{id}

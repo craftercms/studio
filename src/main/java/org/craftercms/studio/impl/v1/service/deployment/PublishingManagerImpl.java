@@ -272,7 +272,7 @@ public class PublishingManagerImpl implements PublishingManager {
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
             item.setCompletedDate(completed);
-            publishRequestMapper.updateItemDeploymentState(item);
+            publishRequestMapper.markItemCompleted(item);
         }
     }
 

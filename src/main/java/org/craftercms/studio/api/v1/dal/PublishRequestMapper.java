@@ -36,7 +36,7 @@ public interface PublishRequestMapper {
 
     void updateItemDeploymentState(PublishRequest item);
 
-    void markItemsCompleted(PublishRequest item);
+    void markItemCompleted(PublishRequest item);
 
     void deleteDeploymentDataForSite(Map params);
 
