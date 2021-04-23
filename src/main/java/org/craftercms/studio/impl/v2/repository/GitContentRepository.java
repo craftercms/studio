@@ -24,7 +24,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -106,6 +105,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -127,8 +127,6 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLOB_FILE_EXTENSION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLOB_INTERCEPTED_PATHS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
@@ -254,8 +252,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
                         ObjectId objFirstCommitId = repo.resolve(firstCommitId);
-                        boolean initialEqToCommit = StringUtils.equals(firstCommitId, commitIdTo);
-                        boolean initialEqFromCommit = StringUtils.equals(firstCommitId, commitIdFrom);
 
                         try (Git git = new Git(repo)) {
 
@@ -538,18 +534,12 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         List<RepoOperation> toReturn = new ArrayList<RepoOperation>();
 
         int idx = 0;
-        String blobFileExtension = studioConfiguration.getProperty(BLOB_FILE_EXTENSION);
-        String[] interceptedPaths = studioConfiguration.getArray(BLOB_INTERCEPTED_PATHS, String.class);
         for (DiffEntry diffEntry : diffEntries) {
             logger.debug("Processing " + ++idx + " of " + size + " diff entries");
             long startProcessEntryMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
             // Update the paths to have a preceding separator
-            String pathNew = RegexUtils.matchesAny(diffEntry.getNewPath(), interceptedPaths) ?
-                    FILE_SEPARATOR + diffEntry.getNewPath().replace(blobFileExtension, "") :
-                    FILE_SEPARATOR + diffEntry.getNewPath();
-            String pathOld = RegexUtils.matchesAny(diffEntry.getOldPath(), interceptedPaths) ?
-                    FILE_SEPARATOR + diffEntry.getOldPath().replace(blobFileExtension, "") :
-                    FILE_SEPARATOR + diffEntry.getOldPath();
+            String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
+            String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
 
             RepoOperation repoOperation = null;
             Iterable<RevCommit> iterable = null;
@@ -936,7 +926,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         // it will start as empty orphan branch
                         git.checkout()
                                 .setOrphan(true)
-                                .setForce(true)
+                                .setForceRefUpdate(true)
                                 .setStartPoint(sandboxBranchName)
                                 .setUpstreamMode(TRACK)
                                 .setName(environment)
@@ -965,7 +955,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         logger.debug("Create in-progress branch for site " + site);
                         git.checkout()
                                 .setCreateBranch(true)
-                                .setForce(true)
+                                .setForceRefUpdate(true)
                                 .setStartPoint(environment)
                                 .setUpstreamMode(TRACK)
                                 .setName(inProgressBranchName)
@@ -1000,10 +990,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         }
                         logger.debug("Checking out file " + path + " from commit id " + commitId +
                                 " for site " + site);
-
-                        ObjectId objCommitId = repo.resolve(commitId);
-                        RevWalk rw = new RevWalk(repo);
-                        RevCommit rc = rw.parseCommit(objCommitId);
 
                         CheckoutCommand checkout = git.checkout();
                         checkout.setStartPoint(commitId).addPath(path).call();
@@ -1489,7 +1475,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     @Override
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        Map<String, String> changeSet = new HashMap<String, String>();
+        Map<String, String> changeSet = new TreeMap<>();
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor, generalLockService);
@@ -1508,30 +1494,23 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
                         ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
-                        ObjectId objFirstCommitId = repo.resolve(firstCommitId);
-
                         try (Git git = new Git(repo)) {
 
                             if (fromEmptyRepo) {
-                                try (RevWalk walk = new RevWalk(repo)) {
-                                    RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                                    try (ObjectReader reader = repo.newObjectReader()) {
-                                        CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                                        firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                                        // Diff the two commit Ids
-                                        List<DiffEntry> diffEntries = git.diff()
-                                                .setOldTree(firstCommitTreeParser)
-                                                .setNewTree(null)
-                                                .call();
+                                CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+                                firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+                                // Diff the two commit Ids
+                                List<DiffEntry> diffEntries = git.diff()
+                                        .setOldTree(firstCommitTreeParser)
+                                        .setNewTree(null)
+                                        .call();
 
 
-                                        // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                        // and add them to the list of RepoOperations to return to the caller
-                                        // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                        // convert to java date before sending over
-                                        changeSet = getChangeSetFromDiff(diffEntries);
-                                    }
-                                }
+                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                // and add them to the list of RepoOperations to return to the caller
+                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                // convert to java date before sending over
+                                changeSet = getChangeSetFromDiff(diffEntries);
                             }
 
                             // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
@@ -1586,7 +1565,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     }
 
     private Map<String, String> getChangeSetFromDiff(List<DiffEntry> diffEntries) {
-        Map<String, String> toReturn = new HashMap<String, String>();
+        Map<String, String> toReturn = new TreeMap<>();
 
         for (DiffEntry diffEntry : diffEntries) {
 
