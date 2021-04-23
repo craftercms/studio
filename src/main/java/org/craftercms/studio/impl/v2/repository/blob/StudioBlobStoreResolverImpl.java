@@ -87,7 +87,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 logger.debug("Blob store {} not found in cache", storeId);
                 try {
                     blobStore = getById(config, storeId);
-                    cache.put(new Element(blobStore, cacheKey));
+                    cache.put(new Element(cacheKey, blobStore));
                 } catch (ConfigurationException e) {
                     throw new RuntimeException("Error looking for blob store " + storeId, e);
                 }
