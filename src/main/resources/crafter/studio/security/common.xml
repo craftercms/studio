@@ -23,20 +23,20 @@
     <!-- Listeners -->
 
     <bean id="loginAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditLoginListener">
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="auditServiceInternal"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
     </bean>
 
     <bean id="logoutAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditLogoutListener">
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="auditServiceInternal"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
     </bean>
 
     <bean id="accessTokenAuthenticationListener"
           class="org.craftercms.studio.impl.v2.security.listener.AccessTokenAuthenticationListener">
-        <constructor-arg ref="accessTokenService"/>
+        <constructor-arg name="accessTokenService" ref="accessTokenService"/>
     </bean>
 
     <!-- Users -->
@@ -49,14 +49,14 @@
     </bean>
 
     <bean id="studioUserDetailsService" class="org.craftercms.studio.impl.v2.security.userdetails.DbUserDetailsService">
-        <constructor-arg ref="userDAO"/>
-        <constructor-arg ref="userDetailsCache"/>
+        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="cache" ref="userDetailsCache"/>
     </bean>
 
     <bean id="daoAuthenticationUserDetailsService"
           class="org.craftercms.studio.impl.v2.security.userdetails.DbAuthenticationUserDetailsService">
-        <constructor-arg ref="userDAO"/>
-        <constructor-arg ref="userDetailsCache"/>
+        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="cache" ref="userDetailsCache"/>
     </bean>
 
     <!-- Authentication -->
@@ -68,7 +68,8 @@
     </bean>
 
     <bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">
-        <constructor-arg value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SECURITY_PUBLIC_URLS)}"/>
+        <constructor-arg name="patterns"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SECURITY_PUBLIC_URLS)}"/>
     </bean>
 
     <!-- Permissions -->
@@ -127,14 +128,14 @@
 
     <bean id="crafter.secureHeaderWriterFilter"
           class="org.craftercms.engine.util.spring.security.ConditionalHeaderWriterFilter">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.headers.enabled')}"/>
-        <constructor-arg>
+        <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.security.headers.enabled')}"/>
+        <constructor-arg name="headerWriters">
             <list>
                 <bean class="org.springframework.security.web.header.writers.CacheControlHeadersWriter"/>
                 <bean class="org.springframework.security.web.header.writers.HstsHeaderWriter"/>
                 <bean class="org.springframework.security.web.header.writers.XXssProtectionHeaderWriter"/>
                 <bean class="org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter">
-                    <constructor-arg value="SAMEORIGIN"/>
+                    <constructor-arg name="frameOptionsMode" value="SAMEORIGIN"/>
                 </bean>
                 <bean class="org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter"/>
             </list>
@@ -152,10 +153,10 @@
     <!--  Available Actions  -->
     <bean id="studio.availableActionsResolver"
           class="org.craftercms.studio.impl.v2.security.AvailableActionsResolverImpl" >
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="configurationService"/>
-        <constructor-arg ref="userServiceInternal"/>
-        <constructor-arg ref="configurationCache"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
+        <constructor-arg name="cache" ref="configurationCache"/>
     </bean>
     
     <bean id="studio.semanticsAvailableActionsResolver" 

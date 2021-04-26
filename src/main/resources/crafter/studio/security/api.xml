@@ -25,14 +25,15 @@
 
     <bean id="basicAuthenticationFilter"
           class="org.craftercms.studio.impl.v2.security.authentication.basic.ConditionalBasicAuthenticationFilter">
-        <constructor-arg ref="apiAuthenticationManager"/>
-        <constructor-arg ref="apiAuthEntryPoint"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.http.basic.enabled')}"/>
+        <constructor-arg name="authenticationManager" ref="apiAuthenticationManager"/>
+        <constructor-arg name="authenticationEntryPoint" ref="apiAuthEntryPoint"/>
+        <constructor-arg name="enabled"
+                         value="#{studioConfiguration.getProperty('studio.security.http.basic.enabled')}"/>
     </bean>
 
     <bean id="accessTokenAuthenticationFilter"
           class="org.craftercms.studio.impl.v2.security.authentication.token.AccessTokenAuthenticationFilter">
-        <constructor-arg ref="accessTokenService"/>
+        <constructor-arg name="accessTokenService" ref="accessTokenService"/>
         <property name="authenticationManager" ref="apiAuthenticationManager"/>
     </bean>
 

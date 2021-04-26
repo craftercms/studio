@@ -44,8 +44,8 @@
     </bean>
 
     <bean id="studioUsersController" class="org.craftercms.studio.controller.rest.v2.UsersController">
-        <constructor-arg ref="userService" />
-        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg name="userService" ref="userService" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
     
     <bean id="studioUiController" class="org.craftercms.studio.controller.rest.v2.UiController">
@@ -63,9 +63,9 @@
     </bean>
 
     <bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
-        <constructor-arg ref="sitesService" />
-        <constructor-arg ref="marketplaceService"/>
-        <constructor-arg ref="policyService"/>
+        <constructor-arg name="sitesService" ref="sitesService" />
+        <constructor-arg name="marketplaceService" ref="marketplaceService"/>
+        <constructor-arg name="policyService" ref="policyService"/>
     </bean>
 
     <bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">
@@ -78,8 +78,8 @@
     </bean>
 
     <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSecurityService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
     </bean>
 
     <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">
@@ -93,16 +93,16 @@
     </bean>
 
     <bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
-        <constructor-arg ref="configurationService"/>
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="contentTypeService"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="contentTypeService" ref="contentTypeService"/>
     </bean>
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
-        <constructor-arg ref="contentService"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="dependencyService"/>
-        <constructor-arg ref="clipboardService"/>
+        <constructor-arg name="contentService" ref="contentService"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="dependencyService" ref="dependencyService"/>
+        <constructor-arg name="clipboardService" ref="clipboardService"/>
     </bean>
 
     <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
@@ -116,11 +116,11 @@
     </bean>
 
     <bean id="marketplaceController" class="org.craftercms.studio.controller.rest.v2.MarketplaceController">
-        <constructor-arg ref="marketplaceService"/>
+        <constructor-arg name="marketplaceService" ref="marketplaceService"/>
     </bean>
 
     <bean id="webdavController" class="org.craftercms.studio.controller.rest.v2.WebdavController">
-        <constructor-arg ref="webDavService"/>
+        <constructor-arg name="webDavService" ref="webDavService"/>
     </bean>
 
     <bean id="publishController" class="org.craftercms.studio.controller.rest.v2.PublishController">
@@ -130,13 +130,13 @@
     </bean>
 
     <bean id="securityController" class="org.craftercms.studio.controller.rest.v2.SecurityController">
-        <constructor-arg ref="encryptionService"/>
-        <constructor-arg ref="accessTokenService"/>
+        <constructor-arg name="encryptionService" ref="encryptionService"/>
+        <constructor-arg name="accessTokenService" ref="accessTokenService"/>
     </bean>
 
     <bean id="proxyController" class="org.craftercms.studio.controller.rest.v2.ProxyController">
-        <constructor-arg ref="studioConfiguration" />
-        <constructor-arg ref="cstudioServicesConfig"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <bean id="dashboardController" class="org.craftercms.studio.controller.rest.v2.DashboardController">
@@ -145,12 +145,12 @@
 
     <!-- Access Token -->
     <bean id="accessTokenController" class="org.craftercms.studio.controller.web.AccessTokenController">
-        <constructor-arg ref="accessTokenService"/>
+        <constructor-arg name="accessTokenService" ref="accessTokenService"/>
     </bean>
 
     <!-- Plugins -->
     <bean class="org.craftercms.studio.controller.web.v1.PluginController">
-        <constructor-arg ref="configurationService"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
     </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
@@ -212,7 +212,7 @@
     <bean id="crafter.coreObjectMapper" class="org.craftercms.commons.jackson.CustomSerializationObjectMapper">
         <property name="dateFormat">
             <bean class="java.text.SimpleDateFormat">
-                <constructor-arg value="yyyy-MM-dd'T'HH:mm:ssXXX"/>
+                <constructor-arg name="pattern" value="yyyy-MM-dd'T'HH:mm:ssXXX"/>
             </bean>
         </property>
         <property name="serializers">

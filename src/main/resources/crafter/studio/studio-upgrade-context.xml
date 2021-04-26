@@ -78,7 +78,7 @@
     </bean>
 
     <bean id="dbVersionProvider" class="org.craftercms.studio.impl.v2.upgrade.providers.DbVersionProvider">
-        <constructor-arg ref="studioConfiguration" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="xmlVersionProvider" abstract="true">
@@ -201,12 +201,12 @@
 
     <bean id="configEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.site.ConfigEncryptionUpgradeOperation">
-        <constructor-arg ref="crafter.textEncryptor"/>
+        <constructor-arg name="textEncryptor" ref="crafter.textEncryptor"/>
     </bean>
 
     <bean id="dbEncryptionUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.db.DbEncryptionUpgradeOperation">
-        <constructor-arg ref="internalTextEncryptor"/>
+        <constructor-arg name="internalTextEncryptor" ref="internalTextEncryptor"/>
     </bean>
 
 </beans>
