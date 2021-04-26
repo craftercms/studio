@@ -102,7 +102,10 @@
     </update>
 
     <select id="getDeploymentHistory" resultMap="PublishRequestMap">
-        SELECT * FROM publish_request
+        SELECT id, site, environment, path, oldpath, username, scheduleddate, state, action,
+               contenttypeclass, submissioncomment, commit_id, package_id,
+               IFNULL(completed_date, scheduleddate) as completed_date
+        FROM publish_request
         WHERE site = #{siteId}
         AND state = #{completedState}
         AND DATE(completed_date) &lt;= DATE(#{toDate})
@@ -111,6 +114,7 @@
         <foreach item="env" index="index" collection="environments" open="(" separator="," close=")">
             #{env}
         </foreach>
+        ORDER BY IFNULL(completed_date, scheduleddate) DESC
         LIMIT #{offset}, #{limit}
     </select>
 </mapper>
