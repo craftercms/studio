@@ -112,6 +112,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -262,22 +263,20 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     if (fromEmptyRepo) {
                         try (RevWalk walk = new RevWalk(repo)) {
                             RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                            try (ObjectReader reader = repo.newObjectReader()) {
-                                CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                                firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                                // Diff the two commit Ids
-                                List<DiffEntry> diffEntries = git.diff()
-                                        .setOldTree(firstCommitTreeParser)
-                                        .setNewTree(null)
-                                        .call();
+                            CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+                            firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+                            // Diff the two commit Ids
+                            List<DiffEntry> diffEntries = git.diff()
+                                    .setOldTree(firstCommitTreeParser)
+                                    .setNewTree(null)
+                                    .call();
 
 
-                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                // and add them to the list of RepoOperations to return to the caller
-                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                // convert to java date before sending over
-                                operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
-                            }
+                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                            // and add them to the list of RepoOperations to return to the caller
+                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                            // convert to java date before sending over
+                            operations.addAll(processDiffEntry(git, diffEntries, firstCommit.getId()));
                         }
                     }
 
@@ -862,7 +861,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         // it will start as empty orphan branch
                         git.checkout()
                                 .setOrphan(true)
-                                .setForce(true)
+                                .setForceRefUpdate(true)
                                 .setStartPoint(sandboxBranchName)
                                 .setUpstreamMode(TRACK)
                                 .setName(environment)
@@ -891,7 +890,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         logger.debug("Create in-progress branch for site " + site);
                         git.checkout()
                                 .setCreateBranch(true)
-                                .setForce(true)
+                                .setForceRefUpdate(true)
                                 .setStartPoint(environment)
                                 .setUpstreamMode(TRACK)
                                 .setName(inProgressBranchName)
@@ -926,10 +925,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         }
                         logger.debug("Checking out file " + path + " from commit id " + commitId +
                                 " for site " + site);
-
-                        ObjectId objCommitId = repo.resolve(commitId);
-                        RevWalk rw = new RevWalk(repo);
-                        RevCommit rc = rw.parseCommit(objCommitId);
 
                         CheckoutCommand checkout = git.checkout();
                         checkout.setStartPoint(commitId).addPath(path).call();
@@ -1388,7 +1383,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     @Override
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        Map<String, String> changeSet = new HashMap<String, String>();
+        Map<String, String> changeSet = new TreeMap<>();
         Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
         if (repository != null) {
             synchronized (repository) {
@@ -1403,30 +1398,23 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
                     ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
-                    ObjectId objFirstCommitId = repo.resolve(firstCommitId);
-
                     try (Git git = new Git(repo)) {
 
                         if (fromEmptyRepo) {
-                            try (RevWalk walk = new RevWalk(repo)) {
-                                RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                                try (ObjectReader reader = repo.newObjectReader()) {
-                                    CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                                    firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                                    // Diff the two commit Ids
-                                    List<DiffEntry> diffEntries = git.diff()
-                                            .setOldTree(firstCommitTreeParser)
-                                            .setNewTree(null)
-                                            .call();
+                            CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+                            firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+                            // Diff the two commit Ids
+                            List<DiffEntry> diffEntries = git.diff()
+                                    .setOldTree(firstCommitTreeParser)
+                                    .setNewTree(null)
+                                    .call();
 
 
-                                    // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                    // and add them to the list of RepoOperations to return to the caller
-                                    // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                    // convert to java date before sending over
-                                    changeSet.putAll(getChangeSetFromDiff(diffEntries));
-                                }
-                            }
+                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                            // and add them to the list of RepoOperations to return to the caller
+                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                            // convert to java date before sending over
+                            changeSet.putAll(getChangeSetFromDiff(diffEntries));
                         }
 
                         // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
@@ -1477,7 +1465,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     }
 
     private Map<String, String> getChangeSetFromDiff(List<DiffEntry> diffEntries) {
-        Map<String, String> toReturn = new HashMap<String, String>();
+        Map<String, String> toReturn = new TreeMap<>();
 
         for (DiffEntry diffEntry : diffEntries) {
 

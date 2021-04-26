@@ -160,6 +160,7 @@
     </div>
   </div>
 
+  <@studio.initPageBuilder/>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="https://unpkg.com/vue@2.6.10/dist/vue.min.js"></script>
@@ -167,6 +168,5 @@
   <script src="https://unpkg.com/vue-async-computed@3.6.1/dist/vue-async-computed.js"></script>
   <script src="/static-assets/js/craftercms-sdk/content/content.umd.js"></script>
   <script src="/static-assets/js/catalog.js"></script>
-  <@studio.initPageBuilder/>
 </body>
 </html>
