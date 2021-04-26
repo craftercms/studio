@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE publish_request DROP COLUMN publishing_status ;
+call dropColumnIfExists('crafter', 'publish_request', 'publishing_status') ;
 
 call addColumnIfNotExists('crafter', 'publish_request', 'completed_date', 'TIMESTAMP NULL') ;
 
