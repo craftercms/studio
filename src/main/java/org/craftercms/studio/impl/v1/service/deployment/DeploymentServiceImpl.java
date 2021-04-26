@@ -838,7 +838,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (String commitId : commitIds) {
             logger.debug("Get repository operations for commit " + commitId);
             List<RepoOperation> operations =
-                    contentRepositoryV2.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
+                    contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 
             for (RepoOperation op : operations) {
                 logger.debug("Creating publish request item: ");
