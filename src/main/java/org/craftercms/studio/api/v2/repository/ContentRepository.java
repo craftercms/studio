@@ -276,7 +276,7 @@ public interface ContentRepository {
     GitLog getGitLogById(long id);
 
     /**
-     * Get the previous commit id from repository for given a site id an a commit id
+     * Get the previous commit id from repository for given a site id and a commit id
      * @param siteId site identifier
      * @param commitId commit Id
      * @return
