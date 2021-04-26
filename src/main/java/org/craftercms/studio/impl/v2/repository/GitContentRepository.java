@@ -1690,6 +1690,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed);
     }
 
+    @Override
+    public GitLog getGitLogById(long id) {
+        return gitLogDao.getGitLogById(id);
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
