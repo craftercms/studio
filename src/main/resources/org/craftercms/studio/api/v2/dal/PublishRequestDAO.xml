@@ -114,7 +114,7 @@
         <foreach item="env" index="index" collection="environments" open="(" separator="," close=")">
             #{env}
         </foreach>
-        ORDER BY IFNULL(completed_date, scheduleddate)
+        ORDER BY IFNULL(completed_date, scheduleddate) DESC
         LIMIT #{offset}, #{limit}
     </select>
 </mapper>
