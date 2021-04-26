@@ -934,6 +934,16 @@ pipelines:
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.14.1-to-3.1.14.2.sql
+    - currentVersion: 3.1.14.2
+      nextVersion: 3.1.14.3
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.14.2-to-3.1.14.3.sql
+    - currentVersion: 3.1.14.3
+      nextVersion: 3.1.14.4
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.14.3-to-3.1.14.4.sql
 
   # Pipeline to upgrade site repositories
   site:
