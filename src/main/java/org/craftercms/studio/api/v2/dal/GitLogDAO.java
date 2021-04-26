@@ -24,6 +24,7 @@ import java.util.Map;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.AUDITED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MARKER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSED;
@@ -58,4 +59,6 @@ public interface GitLogDAO {
      */
     void markGitLogProcessedBeforeMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker,
                                          @Param(PROCESSED) int processed);
+
+    GitLog getGitLogById(@Param(ID) long id);
 }

@@ -272,4 +272,6 @@ public interface ContentRepository {
      * @param processed value for processed
      */
     void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed);
+
+    GitLog getGitLogById(long id);
 }

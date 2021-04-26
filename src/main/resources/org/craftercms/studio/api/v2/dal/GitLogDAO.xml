@@ -73,4 +73,8 @@
     <update id="markGitLogProcessedBeforeMarker" parameterType="java.util.Map">
         UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND NOT id > #{marker}
     </update>
+
+    <select id="getGitLogById" resultMap="GitLogMap">
+        SELECT * FROM gitlog WHERE id = #{id} LIMIT 1
+    </select>
 </mapper>
