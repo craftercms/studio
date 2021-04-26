@@ -1691,11 +1691,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     }
 
     @Override
-    public GitLog getGitLogById(long id) {
-        return gitLogDao.getGitLogById(id);
-    }
-
-    @Override
     public String getPreviousCommitId(String siteId, String commitId) {
         String toReturn = EMPTY;
         try {

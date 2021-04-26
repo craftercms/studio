@@ -111,14 +111,13 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
             SiteFeed siteFeed = siteService.getSite(siteId);
             for (GitLog gl : unauditedGitlogs) {
                 if (contentRepository.commitIdExists(siteId, gl.getCommitId())) {
-                    String prevCommitId = gl.getCommitId() + "~";
+                    String prevCommitId = contentRepository.getPreviousCommitId(siteId, gl.getCommitId());
                     List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, prevCommitId,
                             gl.getCommitId());
                     for (RepoOperation repoOperation : operations) {
 
                         Map<String, String> activityInfo = new HashMap<String, String>();
                         String contentClass;
-                        Map<String, Object> properties;
                         AuditLog auditLog;
                         switch (repoOperation.getAction()) {
                             case CREATE:

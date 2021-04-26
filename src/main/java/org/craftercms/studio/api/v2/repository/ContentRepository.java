@@ -273,8 +273,6 @@ public interface ContentRepository {
      */
     void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed);
 
-    GitLog getGitLogById(long id);
-
     /**
      * Get the previous commit id from repository for given a site id and a commit id
      * @param siteId site identifier
