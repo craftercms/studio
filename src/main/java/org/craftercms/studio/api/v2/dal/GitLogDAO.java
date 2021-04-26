@@ -59,6 +59,4 @@ public interface GitLogDAO {
      */
     void markGitLogProcessedBeforeMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker,
                                          @Param(PROCESSED) int processed);
-
-    GitLog getGitLogById(@Param(ID) long id);
 }
