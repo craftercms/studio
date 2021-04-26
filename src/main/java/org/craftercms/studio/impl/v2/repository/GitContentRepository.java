@@ -1695,6 +1695,43 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return gitLogDao.getGitLogById(id);
     }
 
+    @Override
+    public String getPreviousCommitId(String siteId, String commitId) {
+        String toReturn = EMPTY;
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                    userServiceInternal, encryptor, generalLockService);
+            Repository repository =
+                    helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+            if (repository != null) {
+                ObjectId head = repository.resolve(HEAD);
+                try (Git git = new Git(repository)) {
+                    Iterable<RevCommit> commits = git.log().add(head).call();
+                    Iterator<RevCommit> iterator = commits.iterator();
+                    boolean found = false;
+                    while (!found || iterator.hasNext()) {
+                        RevCommit revCommit = iterator.next();
+                        if (StringUtils.equals(commitId, revCommit.getName())) {
+                            found = true;
+                            if (iterator.hasNext()) {
+                                revCommit = iterator.next();
+                                toReturn = revCommit.getName();
+                            }
+                        }
+                    }
+                } catch (IOException | GitAPIException e) {
+                    logger.error("Error while getting previous commit ID for " + commitId);
+                }
+            }
+        } catch (IOException | CryptoException e) {
+            logger.error("Error while getting previous commit ID for site " + siteId + " commit ID " + commitId, e);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Previous commit id for site " + siteId + " and commit id " + commitId + " is " + toReturn);
+        }
+        return toReturn;
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }

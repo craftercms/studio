@@ -656,4 +656,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public GitLog getGitLogById(long id) {
         return localRepositoryV2.getGitLogById(id);
     }
+
+    @Override
+    public String getPreviousCommitId(String siteId, String commitId) {
+        return localRepositoryV2.getPreviousCommitId(siteId, commitId);
+    }
 }

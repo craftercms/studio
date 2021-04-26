@@ -345,4 +345,9 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     default GitLog getGitLogById(long id) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    default String getPreviousCommitId(String siteId, String commitId) {
+        throw new UnsupportedOperationException();
+    }
 }
