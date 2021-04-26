@@ -501,20 +501,22 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     userServiceInternal, encryptor, generalLockService);
             Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
-                Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-                if (repo != null) {
-                    try (RevWalk rw = new RevWalk(repo)) {
-                        ObjectId head = repo.resolve(HEAD);
-                        if (head != null) {
-                            RevCommit root = rw.parseCommit(head);
-                            rw.sort(REVERSE);
-                            rw.markStart(root);
-                            ObjectId first = rw.next();
-                            toReturn = first.getName();
-                            logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
+                synchronized (repository) {
+                    Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+                    if (repo != null) {
+                        try (RevWalk rw = new RevWalk(repo)) {
+                            ObjectId head = repo.resolve(HEAD);
+                            if (head != null) {
+                                RevCommit root = rw.parseCommit(head);
+                                rw.sort(REVERSE);
+                                rw.markStart(root);
+                                ObjectId first = rw.next();
+                                toReturn = first.getName();
+                                logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
+                            }
+                        } catch (IOException e) {
+                            logger.error("Error getting first commit ID for site " + site, e);
                         }
-                    } catch (IOException e) {
-                        logger.error("Error getting first commit ID for site " + site, e);
                     }
                 }
             }
@@ -1702,25 +1704,23 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             Repository repository =
                     helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
             if (repository != null) {
-                synchronized (repository) {
-                    ObjectId head = repository.resolve(HEAD);
-                    try (Git git = new Git(repository)) {
-                        Iterable<RevCommit> commits = git.log().add(head).call();
-                        Iterator<RevCommit> iterator = commits.iterator();
-                        boolean found = false;
-                        while (!found || iterator.hasNext()) {
-                            RevCommit revCommit = iterator.next();
-                            if (StringUtils.equals(commitId, revCommit.getName())) {
-                                found = true;
-                                if (iterator.hasNext()) {
-                                    revCommit = iterator.next();
-                                    toReturn = revCommit.getName();
-                                }
+                ObjectId head = repository.resolve(HEAD);
+                try (Git git = new Git(repository)) {
+                    Iterable<RevCommit> commits = git.log().add(head).call();
+                    Iterator<RevCommit> iterator = commits.iterator();
+                    boolean found = false;
+                    while (!found || iterator.hasNext()) {
+                        RevCommit revCommit = iterator.next();
+                        if (StringUtils.equals(commitId, revCommit.getName())) {
+                            found = true;
+                            if (iterator.hasNext()) {
+                                revCommit = iterator.next();
+                                toReturn = revCommit.getName();
                             }
                         }
-                    } catch (IOException | GitAPIException e) {
-                        logger.error("Error while getting previous commit ID for " + commitId);
                     }
+                } catch (IOException | GitAPIException e) {
+                    logger.error("Error while getting previous commit ID for " + commitId);
                 }
             }
         } catch (IOException | CryptoException e) {
