@@ -1687,7 +1687,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     @Override
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
-        gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed);
+        gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
     }
 
     @Override
