@@ -156,5 +156,7 @@ public abstract class QueryParameterNames {
 
     public static final String PROCESSED = "processed";
 
+    public static final String UNPROCESSED = "unprocessed";
+
     private QueryParameterNames() { }
 }
