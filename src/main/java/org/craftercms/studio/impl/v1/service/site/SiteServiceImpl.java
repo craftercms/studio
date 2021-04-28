@@ -1271,8 +1271,7 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public boolean syncDatabaseWithRepoUnprocessedCommits(@ValidateStringParam(name = "site") String site,
-                                                          List<GitLog> commitIds)
-            throws SiteNotFoundException {
+                                                          List<GitLog> commitIds) {
         boolean toReturn = true;
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
         for (GitLog gitLog : commitIds) {
@@ -1288,9 +1287,9 @@ public class SiteServiceImpl implements SiteService {
             }
             if (CollectionUtils.isEmpty(repoOperationsDelta)) {
                 logger.debug("Database is up to date with repository for site: " + site);
-                contentRepositoryV2.markGitLogVerifiedProcessed(site, commitId);
-                updateLastCommitId(site, commitId);
-                updateLastVerifiedGitlogCommitId(site, commitId);
+                contentRepositoryV2.markGitLogVerifiedProcessed(site, repoLastCommitId);
+                updateLastCommitId(site, repoLastCommitId);
+                updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
             } else {
                 logger.info("Syncing database with repository for site: " + site + " commitId = " + commitId);
                 logger.debug("Operations to sync: ");
@@ -1313,8 +1312,9 @@ public class SiteServiceImpl implements SiteService {
                 if (success) {
                     logger.debug("Update last commit id " + commitId + " for site " + site);
                     contentRepositoryV2.markGitLogVerifiedProcessed(site, commitId);
-                    updateLastCommitId(site, commitId);
-                    updateLastVerifiedGitlogCommitId(site, commitId);
+                    if (toReturn) {
+                        updateLastVerifiedGitlogCommitId(site, commitId);
+                    }
                     if (logger.isDebugEnabled()) {
                         logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
                     }
@@ -1333,9 +1333,11 @@ public class SiteServiceImpl implements SiteService {
 
         logger.info("Done syncing database with repository for site: " + site + " for unprocessed commits with a " +
                 "final result of: " + toReturn);
-        logger.info("Last commit ID for site: " + site + " is " + repoLastCommitId);
 
-        if (!toReturn) {
+        if (toReturn) {
+            updateLastCommitId(site, repoLastCommitId);
+            logger.info("Last commit ID for site: " + site + " is " + repoLastCommitId);
+        } else {
             // Some operations failed during sync database from repo
             // Must log and make some noise here, this isn't great
             logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
