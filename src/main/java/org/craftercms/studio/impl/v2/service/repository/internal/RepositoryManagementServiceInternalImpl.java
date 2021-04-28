@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -53,6 +53,7 @@ import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
@@ -88,6 +89,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +98,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
@@ -123,6 +127,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
     private SiteService siteService;
+    private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    private int batchSizeGitLog = 1000;
 
     public RepositoryManagementServiceInternalImpl(RemoteRepositoryDAO remoteRepositoryDao,
                                                    StudioConfiguration studioConfiguration,
@@ -133,7 +139,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                                                    TextEncryptor encryptor,
                                                    ClusterDAO clusterDao,
                                                    GeneralLockService generalLockService,
-                                                   SiteService siteService) {
+                                                   SiteService siteService,
+                                                   org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                                   int batchSizeGitLog) {
         this.remoteRepositoryDao = remoteRepositoryDao;
         this.studioConfiguration = studioConfiguration;
         this.notificationService = notificationService;
@@ -144,6 +152,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.clusterDao = clusterDao;
         this.generalLockService = generalLockService;
         this.siteService = siteService;
+        this.contentRepositoryV2 = contentRepositoryV2;
+        this.batchSizeGitLog = batchSizeGitLog;
     }
 
     @Override
@@ -429,6 +439,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 default:
                     break;
             }
+            pullCommand.setFastForward(MergeCommand.FastForwardMode.NO_FF);
             pullResult = pullCommand.call();
             String pullResultMessage = pullResult.toString();
             if (StringUtils.isNotEmpty(pullResultMessage)) {
@@ -446,6 +457,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
+                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 0, 0);
+                ObjectId[] mergedCommitIds = pullResult.getMergeResult().getMergedCommits();
+                final AtomicInteger counter = new AtomicInteger();
+                Collection<List<String>> commitIds =
+                        Arrays.stream(mergedCommitIds).map(c -> c.getName())
+                                .filter(s -> !StringUtils.equals(s, lastCommitId))
+                                .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / batchSizeGitLog))
+                                .values();
+                for (List<String> cIds : commitIds) {
+                    contentRepositoryV2.upsertGitLogList(siteId, cIds);
+                }
+
                 siteService.updateLastCommitId(siteId, lastCommitId);
             }
             return pullResult != null && pullResult.isSuccessful();

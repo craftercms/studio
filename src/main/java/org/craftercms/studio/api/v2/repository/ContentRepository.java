@@ -280,4 +280,11 @@ public interface ContentRepository {
      * @return
      */
     String getPreviousCommitId(String siteId, String commitId);
+
+    /**
+     * Upsert git logs as processed and audited
+     * @param siteId site identifier
+     * @param commitIds commit ids
+     */
+    void upsertGitLogList(String siteId, List<String> commitIds);
 }

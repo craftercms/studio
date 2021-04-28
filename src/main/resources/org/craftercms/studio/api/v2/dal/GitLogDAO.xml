@@ -73,4 +73,13 @@
     <update id="markGitLogProcessedBeforeMarker" parameterType="java.util.Map">
         UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND processed = #{unprocessed} AND NOT id > #{marker}
     </update>
+
+    <insert id="upsertGitLogList" >
+        INSERT INTO gitlog (site_id, commit_id, processed, audited) VALUES
+        <foreach collection="commitIds" item="element" index="index" separator="," >
+            (#{siteId}, #{element}, 1, 1)
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE processed = 1, audited = 1
+    </insert>
 </mapper>

@@ -1727,6 +1727,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toReturn;
     }
 
+    @Override
+    public void upsertGitLogList(String siteId, List<String> commitIds) {
+        gitLogDao.upsertGitLogList(siteId, commitIds);
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }

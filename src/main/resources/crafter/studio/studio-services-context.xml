@@ -432,6 +432,9 @@
         <constructor-arg name="clusterDao" ref="clusterDao"/>
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentRepositoryV2" ref="contentRepository" />
+        <constructor-arg name="batchSizeGitLog"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">

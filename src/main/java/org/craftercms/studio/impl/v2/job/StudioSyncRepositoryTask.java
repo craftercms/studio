@@ -85,6 +85,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 if (Objects.nonNull(gl)) {
                     List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
                     if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
+                        siteService.syncDatabaseWithRepoUnprocessedCommits(site, unprocessedCommitIds);
                         GitLog gitLog = unprocessedCommitIds.get(0);
                         String commitBeforeUnprocessedCommit = contentRepository.getPreviousCommitId(site,
                                 gitLog.getCommitId());
