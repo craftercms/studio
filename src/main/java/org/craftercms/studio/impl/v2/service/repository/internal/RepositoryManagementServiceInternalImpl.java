@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
+import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
@@ -73,6 +74,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
@@ -458,23 +460,27 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
                 contentRepositoryV2.upsertGitLogList(siteId, Arrays.asList(lastCommitId), false, false);
-                ObjectId[] mergedCommitIds = pullResult.getMergeResult().getMergedCommits();
-                if (logger.isDebugEnabled()) {
-                    if (Objects.nonNull(mergedCommitIds) && mergedCommitIds.length > 0) {
-                        logger.debug("Pulled commits:");
-                        for (int i = 0; i < mergedCommitIds.length; i++) {
-                            logger.debug(mergedCommitIds[i].getName());
+
+                List<String> newMergedCommits = extractCommitIdsFromPullResult(siteId, repo, pullResult);
+                List<String> commitIds = new ArrayList<String>();
+                if (Objects.nonNull(newMergedCommits) && newMergedCommits.size() > 0) {
+                    logger.debug("Really pulled commits:");
+                    int cnt = 0;
+                    for (int i = 0; i < newMergedCommits.size(); i ++) {
+                        String commitId = newMergedCommits.get(i);
+                        logger.debug(commitId);
+                        if (!StringUtils.equals(lastCommitId, commitId)) {
+                            commitIds.add(commitId);
+                            if (cnt++ >= batchSizeGitLog) {
+                                contentRepositoryV2.upsertGitLogList(siteId, commitIds, true, true);
+                                cnt = 0;
+                                commitIds.clear();
+                            }
                         }
                     }
-                }
-                final AtomicInteger counter = new AtomicInteger();
-                Collection<List<String>> commitIds =
-                        Arrays.stream(mergedCommitIds).map(c -> c.getName())
-                                .filter(s -> !StringUtils.equals(s, lastCommitId))
-                                .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / batchSizeGitLog))
-                                .values();
-                for (List<String> cIds : commitIds) {
-                    contentRepositoryV2.upsertGitLogList(siteId, cIds, true, true);
+                    if (Objects.nonNull(commitIds) && commitIds.size() > 0) {
+                        contentRepositoryV2.upsertGitLogList(siteId, commitIds, true, true);
+                    }
                 }
 
                 siteService.updateLastCommitId(siteId, lastCommitId);
@@ -493,6 +499,36 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } finally {
             generalLockService.unlock(gitLockKey);
         }
+    }
+
+    private List<String> extractCommitIdsFromPullResult(String siteId, Repository repo, PullResult pullResult) {
+        List<String> commitIds = new ArrayList<String>();
+        ObjectId[] mergedCommits = pullResult.getMergeResult().getMergedCommits();
+        for (int i = 0; i < mergedCommits.length; i++) {
+            try {
+                RevCommit revCommit = repo.parseCommit(mergedCommits[i]);
+                commitIds.addAll(processCommitId(siteId, revCommit));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return commitIds;
+    }
+
+    private List<String> processCommitId(String siteId, RevCommit revCommit) {
+        List<String> commitIds = new ArrayList<String>();
+        String cId = revCommit.getName();
+        GitLog gitLog = contentRepositoryV2.getGitLog(siteId, cId);
+        if (Objects.isNull(gitLog)) {
+            RevCommit[] parents = revCommit.getParents();
+            if (Objects.nonNull(parents) && parents.length > 0) {
+                for (int i = 0; i < parents.length; i++) {
+                    commitIds.addAll(processCommitId(siteId, parents[i]));
+                }
+            }
+            commitIds.add(cId);
+        }
+        return commitIds;
     }
 
     @Override
