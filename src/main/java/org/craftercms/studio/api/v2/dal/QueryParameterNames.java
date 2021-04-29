@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,6 +31,12 @@ public abstract class QueryParameterNames {
     // commit id
     public static final String COMMIT_ID = "commitId";
 
+    public static final String PATH = "path";
+
+    public static final String PATHS = "paths";
+
+    public static final String PUBLISHED_DATE = "publishedDate";
+
     /* Organizations */
 
     // Organization ID
@@ -46,6 +52,10 @@ public abstract class QueryParameterNames {
     public static final String TTL = "ttl";
 
     public static final String STATE = "state";
+
+    public static final String PUBLISHING_STATUS = "publishingStatus";
+
+    public static final String MESSAGE = "message";
 
     /* Groups */
 
@@ -143,6 +153,10 @@ public abstract class QueryParameterNames {
     public static final String COMMIT_IDS = "commitIds";
 
     public static final String MARKER = "marker";
+
+    public static final String PROCESSED = "processed";
+
+    public static final String UNPROCESSED = "unprocessed";
 
     private QueryParameterNames() { }
 }

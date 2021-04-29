@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,8 @@
 package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.DeployerTargetException;
@@ -30,9 +32,9 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
@@ -42,8 +44,6 @@ import java.util.Set;
 import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 /**
  * Note: consider renaming
@@ -158,6 +158,19 @@ public interface SiteService {
 	void updateLastSyncedGitlogCommitId(String site, String commitId);
 
 	/**
+	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
+	 * and manipulates the underlying repository directly.
+	 *
+	 * @param site site to sync
+	 * @param commitIds unprocessed commit IDs to sync up
+	 * @return true if successful, false otherwise
+	 */
+    @ValidateParams
+    boolean syncDatabaseWithRepoUnprocessedCommits(@ValidateStringParam(name = "site") String site,
+												   List<GitLog> commitIds)
+            throws SiteNotFoundException;
+
+    /**
 	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
 	 * and manipulates the underlying repository directly.
 	 *
@@ -296,18 +309,12 @@ public interface SiteService {
     /**
      * Update publishing status message for given site
      * @param siteId site id
+	 * @param status status
      * @param message new publishing status message
      * @return true if publishing status message is successfully updated
      * @throws SiteNotFoundException
      */
-    boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException;
-
-    /**
-     * Get publish status for given site
-     * @param site site id
-     * @return publish status
-     */
-    PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
+    boolean updatePublishingStatusMessage(String siteId, String status, String message) throws SiteNotFoundException;
 
     /**
      * Add remote repository for site content repository

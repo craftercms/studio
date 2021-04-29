@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ public class SiteFeed {
     protected String liveUrl;
     protected String lastCommitId;
     protected int publishingEnabled;
+    protected String publishingStatus;
     protected String publishingStatusMessage;
     protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
@@ -114,6 +115,14 @@ public class SiteFeed {
 
     public void setPublishingEnabled(int publishingEnabled) {
         this.publishingEnabled = publishingEnabled;
+    }
+
+    public String getPublishingStatus() {
+        return publishingStatus;
+    }
+
+    public void setPublishingStatus(String publishingStatus) {
+        this.publishingStatus = publishingStatus;
     }
 
     public String getPublishingStatusMessage() {

@@ -213,7 +213,8 @@
         AND
         <foreach item="path" index="index" collection="parents"
                  open="(" separator=" OR " close=")">
-            is1.path RLIKE(CONCAT(REPLACE(#{path}, 'index.xml', ''), '[^/]+/index\.xml|', REPLACE(#{path}, 'index.xml', ''),'(?!index\.xml)[^/]+$'))
+            (REPLACE(REPLACE(is1.path, REPLACE(#{path}, 'index.xml', ''), ''), '/index.xml', '') NOT LIKE '%/%'
+            AND is1.path &lt;&gt; #{path})
         </foreach>
     </select>
 </mapper>

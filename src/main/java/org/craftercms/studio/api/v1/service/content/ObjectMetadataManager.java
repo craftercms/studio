@@ -96,4 +96,20 @@ public interface ObjectMetadataManager {
     List<ItemMetadata> getContentDashboard(String siteId, String path, String modifier, String contentType,
                                            long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                            String sortBy, String order, int offset, int limit);
+
+    /**
+     * Set last published date for item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param publishedDate date and time of publishing
+     */
+    void updateLastPublishedDate(String siteId, String path, ZonedDateTime publishedDate);
+
+    /**
+     * Set last published date for items
+     * @param siteId site identifier
+     * @param paths list of paths
+     * @param publishedDate date and time of publishing
+     */
+    void updateLastPublishedDateBulk(String siteId, List<String> paths, ZonedDateTime publishedDate);
 }

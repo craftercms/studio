@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob;
 
-import net.sf.ehcache.Cache;
+import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
@@ -42,19 +42,19 @@ import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
 @SuppressWarnings("rawtypes")
 public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implements StudioBlobStoreResolver {
 
-    public static String CACHE_KEY_CONFIG = "_blob-store-config";
+    public static final String CACHE_KEY_CONFIG = "_blob-store-config";
 
-    public static String CACHE_KEY_STORE = "_blob-store_";
+    public static final String CACHE_KEY_STORE = "_blob-store_";
 
     protected ContentRepository contentRepository;
 
-    protected Cache cache;
+    protected Ehcache cache;
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public void setCache(Cache cache) {
+    public void setCache(Ehcache cache) {
         this.cache = cache;
     }
 
@@ -87,7 +87,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 logger.debug("Blob store {} not found in cache", storeId);
                 try {
                     blobStore = getById(config, storeId);
-                    cache.put(new Element(blobStore, cacheKey));
+                    cache.put(new Element(cacheKey, blobStore));
                 } catch (ConfigurationException e) {
                     throw new RuntimeException("Error looking for blob store " + storeId, e);
                 }
@@ -109,7 +109,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
      */
     private class ConfigurationProviderImpl implements ConfigurationProvider {
 
-        private String site;
+        private final String site;
 
         public ConfigurationProviderImpl(String site) {
             this.site = site;

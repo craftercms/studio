@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,10 +19,14 @@ package org.craftercms.studio.controller.rest.v2;
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.CancelPublishingPackagesRequest;
+import org.craftercms.studio.model.rest.ClearPublishingLockRequest;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -37,25 +41,40 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_DAYS;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ENVIRONMENT;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_FILTER_TYPE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_NUM;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PACKAGE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CANCEL;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CLEAR_LOCK;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.HISTORY;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_HISTORY;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_STATUS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @RestController
-@RequestMapping("/api/2/publish")
+@RequestMapping(API_2 + PUBLISH)
 public class PublishController {
 
     private PublishService publishService;
     private SiteService siteService;
+    private SitesService sitesService;
 
-    @GetMapping("/packages")
+    @GetMapping(PACKAGES)
     public ResponseBody getPublishingPackages(@RequestParam(name = REQUEST_PARAM_SITEID, required = true) String siteId,
                                               @RequestParam(name = REQUEST_PARAM_ENVIRONMENT, required = false)
                                                       String environment,
@@ -86,7 +105,7 @@ public class PublishController {
         return responseBody;
     }
 
-    @GetMapping("/package")
+    @GetMapping(PACKAGE)
     public ResponseBody getPublishingPackageDetails(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                     @RequestParam(name = REQUEST_PARAM_PACKAGE_ID) String packageId)
             throws SiteNotFoundException {
@@ -103,7 +122,7 @@ public class PublishController {
         return responseBody;
     }
 
-    @PostMapping("/cancel")
+    @PostMapping(CANCEL)
     public ResponseBody cancelPublishingPackages(
             @RequestBody CancelPublishingPackagesRequest cancelPublishingPackagesRequest) throws SiteNotFoundException {
         String siteId = cancelPublishingPackagesRequest.getSiteId();
@@ -114,6 +133,58 @@ public class PublishController {
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(STATUS)
+    public ResponseBody getPublishingStatus(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+            throws SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        PublishStatus status = sitesService.getPublishingStatus(siteId);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<PublishStatus> result = new ResultOne<PublishStatus>();
+        result.setEntity(RESULT_KEY_PUBLISH_STATUS, status);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = CLEAR_LOCK, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody clearPublishingLock(@RequestBody ClearPublishingLockRequest clearPublishingLockRequest)
+            throws SiteNotFoundException {
+        String siteId = clearPublishingLockRequest.getSiteId();
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        sitesService.clearPublishingLock(siteId);
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = HISTORY, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getPublishingHistory(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+                                             @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,
+                                             @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
+                                             @RequestParam(name = REQUEST_PARAM_FILTER_TYPE) String filterType)
+            throws SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        List<DeploymentHistoryGroup> history =
+                publishService.getDeploymentHistory(siteId, daysFromToday, numberOfItems, filterType);
+        ResponseBody responseBody = new ResponseBody();
+        PaginatedResultList<DeploymentHistoryGroup> result = new PaginatedResultList<>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_PUBLISH_HISTORY, history);
+        result.setOffset(0);
+        result.setLimit(history.size());
+        result.setTotal(history.size());
         responseBody.setResult(result);
         return responseBody;
     }
@@ -132,5 +203,13 @@ public class PublishController {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public SitesService getSitesService() {
+        return sitesService;
+    }
+
+    public void setSitesService(SitesService sitesService) {
+        this.sitesService = sitesService;
     }
 }

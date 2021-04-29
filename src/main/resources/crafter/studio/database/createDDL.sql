@@ -105,7 +105,7 @@ CREATE PROCEDURE tryLockPublishingForSite(
     OUT locked INT)
 BEGIN
     DECLARE v_lock_owner_id VARCHAR(255);
-    DECLARE v_lock_heartbeat DATETIME;
+    DECLARE v_lock_heartbeat TIMESTAMP;
     SELECT publishing_lock_owner, publishing_lock_heartbeat INTO  v_lock_owner_id, v_lock_heartbeat FROM site
     WHERE site_id = siteId and deleted = 0;
     SET locked = 0;
@@ -124,14 +124,14 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.12.2', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.14.4', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
   `organization_id`           BIGINT(20)    NOT NULL,
   `site_id`                   BIGINT(20)    NOT NULL,
   `operation`                 VARCHAR(32)   NOT NULL,
-  `operation_timestamp`       DATETIME      NOT NULL,
+  `operation_timestamp`       TIMESTAMP      NOT NULL,
   `origin`                    VARCHAR(16)   NOT NULL,
   `primary_target_id`         VARCHAR(1024)  NOT NULL,
   `primary_target_type`       VARCHAR(32)   NOT NULL,
@@ -214,13 +214,14 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   `path`              TEXT         NOT NULL,
   `oldpath`           TEXT         NULL,
   `username`          VARCHAR(255) NULL,
-  `scheduleddate`     DATETIME     NOT NULL,
+  `scheduleddate`     TIMESTAMP     NOT NULL,
   `state`             VARCHAR(50)  NOT NULL,
   `action`            VARCHAR(20)  NOT NULL,
   `contenttypeclass`  VARCHAR(20)  NULL,
   `submissioncomment` TEXT         NULL,
   `commit_id`         VARCHAR(50)  NULL,
   `package_id`         VARCHAR(50)  NULL,
+  `completed_date`     TIMESTAMP   NULL,
   PRIMARY KEY (`id`),
   INDEX `publish_request_site_idx` (`site` ASC),
   INDEX `publish_request_environment_idx` (`environment` ASC),
@@ -243,13 +244,14 @@ CREATE TABLE IF NOT EXISTS `site` (
   `last_commit_id`                  VARCHAR(50)   NULL,
   `system`                          INT           NOT NULL DEFAULT 0,
   `publishing_enabled`              INT           NOT NULL DEFAULT 1,
+  `publishing_status`               VARCHAR(20)   NULL,
   `publishing_status_message`       VARCHAR(2000) NULL,
   `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
   `search_engine`                   VARCHAR(20)   NOT NULL DEFAULT 'Elasticsearch',
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
-  `publishing_lock_heartbeat`       DATETIME      NULL,
+  `publishing_lock_heartbeat`       TIMESTAMP      NULL,
   `state`                           VARCHAR(50)   NOT NULL DEFAULT 'CREATING',
   `last_synced_gitlog_commit_id`   VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
@@ -267,7 +269,7 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
   `site`                    VARCHAR(50)   NOT NULL,
   `path`                    VARCHAR(2000) NOT NULL,
   `name`                    VARCHAR(255)  NULL,
-  `modified`                DATETIME      NULL,
+  `modified`                TIMESTAMP     NULL,
   `modifier`                VARCHAR(255)  NULL,
   `owner`                   VARCHAR(255)  NULL,
   `creator`                 VARCHAR(255)  NULL,
@@ -285,9 +287,10 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
   `submittedfordeletion`    INT           NULL,
   `sendemail`               INT           NULL,
   `submissioncomment`       TEXT          NULL,
-  `launchdate`              DATETIME      NULL,
+  `launchdate`              TIMESTAMP      NULL,
   `commit_id`               VARCHAR(50)   NULL,
   `submittedtoenvironment`  VARCHAR(255)  NULL,
+  `published_date`          TIMESTAMP      NULL,
   PRIMARY KEY (`id`),
   UNIQUE `uq__im_site_path` (`site`, `path`(900))
 )
@@ -298,7 +301,7 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
 CREATE TABLE IF NOT EXISTS `user`
 (
   `id`                    BIGINT(20)   NOT NULL AUTO_INCREMENT,
-  `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `record_last_updated`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `username`              VARCHAR(255)  NOT NULL,
   `password`              VARCHAR(128)  NOT NULL,
   `first_name`             VARCHAR(32)  NOT NULL,
@@ -327,7 +330,7 @@ VALUES (1, CURRENT_TIMESTAMP, 'admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51
 CREATE TABLE IF NOT EXISTS `organization`
 (
   `id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
-  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `org_name`            VARCHAR(32) NOT NULL,
   `org_desc`            TEXT        NULL,
   PRIMARY KEY (`id`),
@@ -346,7 +349,7 @@ CREATE TABLE IF NOT EXISTS `organization_user`
 (
   `user_id`   BIGINT(20) NOT NULL,
   `org_id`    BIGINT(20) NOT NULL,
-  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`, `org_id`),
   FOREIGN KEY org_member_ix_user_id(user_id) REFERENCES `user` (`id`) ON DELETE CASCADE,
   FOREIGN KEY org_member_ix_org_id(org_id) REFERENCES `organization` (`id`) ON DELETE CASCADE,
@@ -362,7 +365,7 @@ VALUES (1, 1) ;
 CREATE TABLE IF NOT EXISTS `group`
 (
   `id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
-  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `org_id`              BIGINT(20)  NOT NULL,
   `group_name`          VARCHAR(512) NOT NULL,
   `group_description`   TEXT,
@@ -397,7 +400,7 @@ CREATE TABLE IF NOT EXISTS group_user
 (
   `user_id`  BIGINT(20) NOT NULL,
   `group_id`  BIGINT(20)       NOT NULL,
-  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`, `group_id`),
   FOREIGN KEY group_member_ix_user_id(`user_id`) REFERENCES `user` (`id`)
     ON DELETE CASCADE,
@@ -456,7 +459,7 @@ CREATE TABLE IF NOT EXISTS cluster
   `git_password`        VARCHAR(255)  NULL,
   `git_token`           VARCHAR(255)  NULL,
   `git_private_key`     TEXT          NULL,
-  `heartbeat`           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `heartbeat`           TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `available`           INT           NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE `uq_cl_git_url` (`git_url`),
@@ -470,7 +473,7 @@ CREATE TABLE IF NOT EXISTS cluster_remote_repository
 (
   `cluster_id`                  BIGINT(20)    NOT NULL,
   `remote_repository_id`        BIGINT(20)    NOT NULL,
-  `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `record_last_updated`   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`cluster_id`, `remote_repository_id`),
   FOREIGN KEY cluster_remote_ix_cluster_id(`cluster_id`) REFERENCES `cluster` (`id`)
     ON DELETE CASCADE,

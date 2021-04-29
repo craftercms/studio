@@ -180,6 +180,10 @@ studio.configuration.management.previewProtectedUrls: >-
   /api/1/site/context/graphql/rebuild,
   /api/1/site/cache/clear,
   /api/1/site/cache/statistics
+# Publishing blacklist configuration, items matching regexes on this list will never be published
+studio.configuration.publishing.blacklist.regex: >-
+  .*/\.keep
+
 ########################################################
 ##                   Import Service                   ##
 ########################################################
@@ -223,11 +227,12 @@ studio.objectState.bulkOperationsBatchSize: 500
 studio.security.sessionTimeout: 60
 # Urls to be treated as exception to the rules.
 studio.security.ignoreRenewTokenUrls: /api/1/services/api/1/security/validate-session.json,/api/1/services/api/1/publish/status.json
-# Public URLs
+# Public URLs, comma separated list of regular expressions.
+# The regex should not include extension and should match the query string too.
 studio.security.publicUrls: >
-  /api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,
-  /api/2/monitoring/.+,/api/2/users/forgot_password,/api/2/users/set_password,/api/1/services/api/1/security/validate-session.json,
-  /static-assets/.+,/api/2/users/validate_token,/api/1/services/api/1/security/login.json,/api/2/users/forgot_password.*
+  /api/1/services/api/1/server/get-available-languages.*,/api/1/services/api/1/server/get-ui-resource-override.*,
+  /api/2/monitoring/.+,/api/2/users/forgot_password.*,/api/2/users/set_password.*,/api/1/services/api/1/security/validate-session.json,
+  /static-assets/.+,/api/2/users/validate_token.*,/api/1/services/api/1/security/login.*,/api/2/users/forgot_password.*
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database)
 # ldap (users are imported from LDAP into the database)
@@ -372,24 +377,17 @@ studio.mail.debug: false
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
 studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message
-studio.job.deployContentToEnvironment.status.message.default: "ready|Ready"
+studio.job.deployContentToEnvironment.status.message.default: "Ready"
 # Publishing idle status message
-studio.job.deployContentToEnvironment.status.message.ready: "ready|Last successful publish was for package:
-{package_id} on {datetime} with {package_size} items"
-# Publishing busy status message
-studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publishing item: {item_path} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.ready: "Last successful publish was for package: {package_id} on {datetime} with {package_size} items"
 # Publishing publishing status message
-studio.job.deployContentToEnvironment.status.message.publishing: "publishing|Currently publishing package: {package_id} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.publishing: "Currently publishing package: {package_id} on {datetime}. Item {x} of {y} is being published"
 # Publishing queued status message
-studio.job.deployContentToEnvironment.status.message.queued: "queued|Items queued for publishing"
+studio.job.deployContentToEnvironment.status.message.queued: "Items are queued for publishing"
 # Publishing stopped by error status message
-studio.job.deployContentToEnvironment.status.message.stopped.error: "stopped|Stopped while trying to publish item: {item_path} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.error: "Publishing is disabled due to errors. Check logs for error details"
 # Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.stopped.user: "stopped|User {username} disabled publishing for
-site on {datetime}"
-# Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.started.user: "started|User {username} enabled publishing for
-site on {datetime}"
+studio.job.deployContentToEnvironment.status.message.stopped: "Publishing was stopped by user {username} on {datetime}"
 # Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
 studio.job.deployment.masterPublishingNode: true
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -125,6 +125,8 @@
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="clusterDao" ref="clusterDao" />
+        <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -173,6 +175,7 @@
          <property name="publishRequestMapper" ref="publishRequestMapper" />
          <property name="auditServiceInternal" ref="auditServiceInternal" />
          <property name="contentRepositoryV2" ref="contentRepository" />
+         <property name="publishingManager" ref="cstudioPublishingManager" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -293,6 +296,7 @@
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="eventService" ref="studioEventService" />
         <property name="configurationCache" ref="configurationCache"/>
+        <property name="configurationReader" ref="crafter.configurationReader"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -385,6 +389,7 @@
         <property name="descriptorReader" ref="pluginDescriptorReader"/>
         <property name="contentRepository" ref="contentRepository" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
@@ -402,8 +407,9 @@
     </bean>
 
     <bean id="cmisService" class="org.craftercms.studio.impl.v2.service.cmis.CmisServiceImpl">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg ref="cstudioContentService"/>
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="configurationService"/>
     </bean>
 
     <bean id="repositoryManagementService"
@@ -426,6 +432,9 @@
         <constructor-arg name="clusterDao" ref="clusterDao"/>
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentRepositoryV2" ref="contentRepository" />
+        <constructor-arg name="batchSizeGitLog"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -459,6 +468,8 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDao" ref="dependencyDao" />
         <property name="itemStateMapper" ref="itemStateMapper" />
+        <property name="dependencyResolver" ref="studioDependencyResolver" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">
@@ -468,12 +479,15 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="studioUtils" ref="studio.utils" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -663,7 +677,7 @@
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-        <constructor-arg name="contentRepository" ref="gitContentRepositoryV2" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
@@ -691,7 +705,7 @@
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
-        <constructor-arg name="contentRepository" ref="gitContentRepositoryV2" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
         <constructor-arg name="batchSizeGitLog"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
         <constructor-arg name="batchSizeAudited"
@@ -818,6 +832,7 @@
         <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
     </bean>
 
     <!-- /////// -->
@@ -994,7 +1009,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">
@@ -1295,6 +1310,11 @@
                 <property name="timeToLiveSeconds" value="60"/>
             </bean>
         </property>
+    </bean>
+
+    <bean id="studio.utils" class="org.craftercms.studio.impl.v2.utils.StudioUtils">
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

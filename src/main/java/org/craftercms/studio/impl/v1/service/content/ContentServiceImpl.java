@@ -341,8 +341,8 @@ public class ContentServiceImpl implements ContentService {
                     if (itemState.getSystemProcessing() != 0) {
                         // TODO: SJ: Review and refactor/redo
                         logger.error("Error Content {0} is being processed (Object State is system "
-                                + "processing);", fileName);
-                        throw new ServiceLayerException("Content " + fileName + " is in system processing, we can't write "
+                                + "processing);", path);
+                        throw new ServiceLayerException("Content " + path + " is in system processing, we can't write "
                                 + "it");
                     }
 
@@ -519,8 +519,8 @@ public class ContentServiceImpl implements ContentService {
                 if (itemState != null) {
                     if (itemState.getSystemProcessing() != 0) {
                         logger.error(String.format("Error Content %s is being processed " +
-                                "(Object State is SYSTEM_PROCESSING);", assetName));
-                        throw new RuntimeException(String.format("Content \"%s\" is being processed", assetName));
+                                "(Object State is SYSTEM_PROCESSING);", path));
+                        throw new RuntimeException(String.format("Content \"%s\" is being processed", path));
                     }
                     objectStateService.setSystemProcessing(site, path, true);
                 }
@@ -1828,6 +1828,13 @@ public class ContentServiceImpl implements ContentService {
             if (metadata.getLaunchDate() != null) {
                 item.scheduledDate = metadata.getLaunchDate();
                 item.setScheduledDate(metadata.getLaunchDate());
+            }
+
+            if (metadata.getPublishedDate() != null) {
+                item.published = true;
+                item.setPublished(true);
+                item.publishedDate = metadata.getPublishedDate();
+                item.setPublishedDate(metadata.getPublishedDate());
             }
 
             // Set the modifier (user) if known

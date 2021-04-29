@@ -37,6 +37,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -109,6 +111,11 @@ public class BlobAwareContentRepositoryTest {
         when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
         when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
         when(localV1.isFolder(SITE, PARENT_PATH)).thenReturn(true);
+
+        Map<String, String> delta = new TreeMap<>();
+        delta.put(POINTER_PATH, "C");
+        delta.put("/unrelated/file.xml", "U");
+        when(localV2.getChangeSetPathsFromDelta(SITE, null, null)).thenReturn(delta);
 
         when(store.contentExists(SITE, ORIGINAL_PATH)).thenReturn(true);
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);
@@ -362,6 +369,13 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store).writeContent(SITE, NO_EXT_PATH, CONTENT);
         verify(localV1).writeContent(eq(SITE), eq(NO_EXT_PATH + "." + BLOB_EXT), any());
+    }
+
+    @Test void getChangeSetPathsFromDeltaTest() {
+        Map<String, String> result = proxy.getChangeSetPathsFromDelta(SITE, null, null);
+
+        assertEquals(result.size(), 2);
+        assertTrue(result.containsKey(ORIGINAL_PATH), "the blob extension should have been removed");
     }
 
 }

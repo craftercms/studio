@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,13 +17,15 @@
 package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
-import org.springframework.security.access.method.P;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MESSAGE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_STATUS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TTL;
@@ -56,7 +58,8 @@ public interface SiteFeedMapper {
 
     void enablePublishing(Map params);
 
-    void updatePublishingStatusMessage(Map params);
+    void updatePublishingStatusMessage(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status,
+                                       @Param(MESSAGE) String message);
 
     void updateLastVerifiedGitlogCommitId(Map params);
 
@@ -128,4 +131,18 @@ public interface SiteFeedMapper {
 
     int getPublishedRepoCreated(@Param(SITE_ID) String siteId,
                                 @Param(CLUSTER_LOCAL_ADDRESS) String localAddress);
+
+    /**
+     * Get publishing status for site
+     * @param siteId site identifier
+     * @param ttl amount of minutes to add to the
+     * @return Publishing status
+     */
+    PublishStatus getPublishingStatus(@Param(SITE_ID) String siteId, @Param(TTL) int ttl);
+
+    /**
+     * Clear publishing lock for site
+     * @param siteId site identifier
+     */
+    void clearPublishingLockForSite(@Param(SITE_ID) String siteId);
 }

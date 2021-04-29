@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>12</version>
+    <version>14</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -120,6 +120,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -167,6 +168,7 @@
                 <permission>Publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -175,6 +177,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -206,6 +209,7 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -232,6 +236,7 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -240,6 +245,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -271,6 +277,8 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
+                <permission>publish_clear_lock</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -297,6 +305,8 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
+                <permission>publish_clear_lock</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -305,6 +315,7 @@
                 <permission>S3 Write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -315,6 +326,7 @@
                 <permission>Publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
@@ -322,12 +334,14 @@
                 <permission>Publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -335,12 +349,14 @@
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>Read</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>webdav_read</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>

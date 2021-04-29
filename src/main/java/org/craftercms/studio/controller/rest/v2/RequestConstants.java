@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -85,4 +85,10 @@ public interface RequestConstants {
     String REQUEST_PARAM_TOKEN = "token";
 
     String REQUEST_PARAM_SUBMISSION_COMMENT = "submissionComment";
+
+    String REQUEST_PARAM_DAYS = "days";
+
+    String REQUEST_PARAM_NUM = "num";
+
+    String REQUEST_PARAM_FILTER_TYPE = "filterType";
 }

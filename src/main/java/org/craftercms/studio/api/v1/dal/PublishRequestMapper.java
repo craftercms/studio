@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,6 +35,8 @@ public interface PublishRequestMapper {
     List<PublishRequest> getItemsReadyForDeployment(Map params);
 
     void updateItemDeploymentState(PublishRequest item);
+
+    void markItemCompleted(PublishRequest item);
 
     void deleteDeploymentDataForSite(Map params);
 

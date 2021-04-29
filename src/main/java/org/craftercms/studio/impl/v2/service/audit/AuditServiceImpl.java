@@ -142,11 +142,6 @@ public class AuditServiceImpl implements AuditService {
                 AuditLog auditLog = activityFeeds.get(index);
                 String id = auditLog.getPrimaryTargetValue();
                 ContentItemTO item = createActivityItem(site, auditLog, id);
-                item.published = true;
-                item.setPublished(true);
-                ZonedDateTime pubDate = deploymentService.getLastDeploymentDate(site, id);
-                item.publishedDate = pubDate;
-                item.setPublishedDate(pubDate);
                 contentItems.add(item);
                 remainingItem--;
             }
