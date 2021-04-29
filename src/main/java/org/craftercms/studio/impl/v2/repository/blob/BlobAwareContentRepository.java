@@ -653,8 +653,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public void upsertGitLogList(String siteId, List<String> commitIds) {
-        localRepositoryV2.upsertGitLogList(siteId, commitIds);
+    public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
+        localRepositoryV2.upsertGitLogList(siteId, commitIds, processed, audited);
     }
 
     @Override

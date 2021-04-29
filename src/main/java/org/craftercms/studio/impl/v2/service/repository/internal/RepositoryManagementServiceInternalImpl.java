@@ -457,8 +457,16 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
-                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 0, 0);
+                contentRepositoryV2.upsertGitLogList(siteId, Arrays.asList(lastCommitId), false, false);
                 ObjectId[] mergedCommitIds = pullResult.getMergeResult().getMergedCommits();
+                if (logger.isDebugEnabled()) {
+                    if (Objects.nonNull(mergedCommitIds) && mergedCommitIds.length > 0) {
+                        logger.debug("Pulled commits:");
+                        for (int i = 0; i < mergedCommitIds.length; i++) {
+                            logger.debug(mergedCommitIds[i].getName());
+                        }
+                    }
+                }
                 final AtomicInteger counter = new AtomicInteger();
                 Collection<List<String>> commitIds =
                         Arrays.stream(mergedCommitIds).map(c -> c.getName())
@@ -466,7 +474,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                                 .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / batchSizeGitLog))
                                 .values();
                 for (List<String> cIds : commitIds) {
-                    contentRepositoryV2.upsertGitLogList(siteId, cIds);
+                    contentRepositoryV2.upsertGitLogList(siteId, cIds, true, true);
                 }
 
                 siteService.updateLastCommitId(siteId, lastCommitId);

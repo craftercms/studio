@@ -65,5 +65,6 @@ public interface GitLogDAO {
      * @param siteId site identifier
      * @param commitIds commit ids
      */
-    void upsertGitLogList(@Param(SITE_ID) String siteId, @Param(COMMIT_IDS) List<String> commitIds);
+    void upsertGitLogList(@Param(SITE_ID) String siteId, @Param(COMMIT_IDS) List<String> commitIds,
+                          @Param(PROCESSED) int processed, @Param(AUDITED) int audited);
 }

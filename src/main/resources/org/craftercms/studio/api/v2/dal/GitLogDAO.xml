@@ -77,9 +77,9 @@
     <insert id="upsertGitLogList" >
         INSERT INTO gitlog (site_id, commit_id, processed, audited) VALUES
         <foreach collection="commitIds" item="element" index="index" separator="," >
-            (#{siteId}, #{element}, 1, 1)
+            (#{siteId}, #{element}, #{processed}, #{audited})
         </foreach>
         ON DUPLICATE KEY
-        UPDATE processed = 1, audited = 1
+        UPDATE processed = VALUES(processed), audited = VALUES(audited)
     </insert>
 </mapper>

@@ -347,7 +347,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void upsertGitLogList(String siteId, List<String> commitIds) {
+    default void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
         throw new UnsupportedOperationException();
     }
 }
