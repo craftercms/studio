@@ -100,6 +100,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -115,16 +116,13 @@ import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.xml.sax.SAXException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
@@ -165,6 +163,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
  * Note: consider renaming
@@ -1269,6 +1268,82 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @Override
+    @ValidateParams
+    public boolean syncDatabaseWithRepoUnprocessedCommits(@ValidateStringParam(name = "site") String site,
+                                                          List<GitLog> commitIds) {
+        boolean toReturn = true;
+        String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
+        for (GitLog gitLog : commitIds) {
+            String commitId = gitLog.getCommitId();
+            boolean success = true;
+            long startGetOperationsFromDeltaMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
+            List<RepoOperation> repoOperationsDelta =
+                    contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Get Repo Operations from Delta finished in " +
+                        (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
+                logger.debug("Number of Repo operations from delta " + repoOperationsDelta.size());
+            }
+            if (CollectionUtils.isEmpty(repoOperationsDelta)) {
+                logger.debug("Database is up to date with repository for site: " + site);
+                contentRepositoryV2.markGitLogVerifiedProcessed(site, repoLastCommitId);
+                updateLastCommitId(site, repoLastCommitId);
+                updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
+            } else {
+                logger.info("Syncing database with repository for site: " + site + " commitId = " + commitId);
+                logger.debug("Operations to sync: ");
+                for (RepoOperation repoOperation : repoOperationsDelta) {
+                    logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
+                }
+
+                long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
+                success = processRepoOperations(site, repoOperationsDelta);
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+                }
+                // At this point we have attempted to process all operations, some may have failed
+                // We will update the lastCommitId of the database ignoring errors if any
+                logger.debug("Done syncing operations with a result of: " + success);
+                logger.debug("Syncing database lastCommitId for site: " + site);
+
+                // Update database
+                if (success) {
+                    logger.debug("Update last commit id " + commitId + " for site " + site);
+                    contentRepositoryV2.markGitLogVerifiedProcessed(site, commitId);
+                    if (toReturn) {
+                        updateLastVerifiedGitlogCommitId(site, commitId);
+                    }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+                    }
+                }
+            }
+            toReturn = toReturn && success;
+        }
+
+        // Sync all preview deployers
+        try {
+            logger.debug("Sync preview for site " + site);
+            deploymentService.syncAllContentToPreview(site, false);
+        } catch (ServiceLayerException e) {
+            logger.error("Error synchronizing preview with repository for site: " + site, e);
+        }
+
+        logger.info("Done syncing database with repository for site: " + site + " for unprocessed commits with a " +
+                "final result of: " + toReturn);
+
+        if (toReturn) {
+            updateLastCommitId(site, repoLastCommitId);
+            logger.info("Last commit ID for site: " + site + " is " + repoLastCommitId);
+        } else {
+            // Some operations failed during sync database from repo
+            // Must log and make some noise here, this isn't great
+            logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
+        }
+        return toReturn;
+    }
 
     @Override
     @ValidateParams
