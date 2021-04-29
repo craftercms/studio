@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
+import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
@@ -53,6 +54,7 @@ import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
@@ -72,6 +74,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
@@ -88,6 +91,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +100,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
@@ -123,6 +129,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
     private SiteService siteService;
+    private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    private int batchSizeGitLog = 1000;
 
     public RepositoryManagementServiceInternalImpl(RemoteRepositoryDAO remoteRepositoryDao,
                                                    StudioConfiguration studioConfiguration,
@@ -133,7 +141,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                                                    TextEncryptor encryptor,
                                                    ClusterDAO clusterDao,
                                                    GeneralLockService generalLockService,
-                                                   SiteService siteService) {
+                                                   SiteService siteService,
+                                                   org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                                   int batchSizeGitLog) {
         this.remoteRepositoryDao = remoteRepositoryDao;
         this.studioConfiguration = studioConfiguration;
         this.notificationService = notificationService;
@@ -144,6 +154,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.clusterDao = clusterDao;
         this.generalLockService = generalLockService;
         this.siteService = siteService;
+        this.contentRepositoryV2 = contentRepositoryV2;
+        this.batchSizeGitLog = batchSizeGitLog;
     }
 
     @Override
@@ -429,6 +441,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 default:
                     break;
             }
+            pullCommand.setFastForward(MergeCommand.FastForwardMode.NO_FF);
             pullResult = pullCommand.call();
             String pullResultMessage = pullResult.toString();
             if (StringUtils.isNotEmpty(pullResultMessage)) {
@@ -446,6 +459,30 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
+                contentRepositoryV2.upsertGitLogList(siteId, Arrays.asList(lastCommitId), false, false);
+
+                List<String> newMergedCommits = extractCommitIdsFromPullResult(siteId, repo, pullResult);
+                List<String> commitIds = new ArrayList<String>();
+                if (Objects.nonNull(newMergedCommits) && newMergedCommits.size() > 0) {
+                    logger.debug("Really pulled commits:");
+                    int cnt = 0;
+                    for (int i = 0; i < newMergedCommits.size(); i ++) {
+                        String commitId = newMergedCommits.get(i);
+                        logger.debug(commitId);
+                        if (!StringUtils.equals(lastCommitId, commitId)) {
+                            commitIds.add(commitId);
+                            if (cnt++ >= batchSizeGitLog) {
+                                contentRepositoryV2.upsertGitLogList(siteId, commitIds, true, true);
+                                cnt = 0;
+                                commitIds.clear();
+                            }
+                        }
+                    }
+                    if (Objects.nonNull(commitIds) && commitIds.size() > 0) {
+                        contentRepositoryV2.upsertGitLogList(siteId, commitIds, true, true);
+                    }
+                }
+
                 siteService.updateLastCommitId(siteId, lastCommitId);
             }
             return pullResult != null && pullResult.isSuccessful();
@@ -462,6 +499,36 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } finally {
             generalLockService.unlock(gitLockKey);
         }
+    }
+
+    private List<String> extractCommitIdsFromPullResult(String siteId, Repository repo, PullResult pullResult) {
+        List<String> commitIds = new ArrayList<String>();
+        ObjectId[] mergedCommits = pullResult.getMergeResult().getMergedCommits();
+        for (int i = 0; i < mergedCommits.length; i++) {
+            try {
+                RevCommit revCommit = repo.parseCommit(mergedCommits[i]);
+                commitIds.addAll(processCommitId(siteId, revCommit));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return commitIds;
+    }
+
+    private List<String> processCommitId(String siteId, RevCommit revCommit) {
+        List<String> commitIds = new ArrayList<String>();
+        String cId = revCommit.getName();
+        GitLog gitLog = contentRepositoryV2.getGitLog(siteId, cId);
+        if (Objects.isNull(gitLog)) {
+            RevCommit[] parents = revCommit.getParents();
+            if (Objects.nonNull(parents) && parents.length > 0) {
+                for (int i = 0; i < parents.length; i++) {
+                    commitIds.addAll(processCommitId(siteId, parents[i]));
+                }
+            }
+            commitIds.add(cId);
+        }
+        return commitIds;
     }
 
     @Override
