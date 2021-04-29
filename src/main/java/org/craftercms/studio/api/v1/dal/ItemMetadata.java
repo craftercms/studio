@@ -47,6 +47,7 @@ public class ItemMetadata implements Serializable {
     public static final String PROP_LAUNCH_DATE = "launchDate";
     public static final String PROP_COMMIT_ID = "commitId";
     public static final String PROP_SUBMITTED_TO_ENVIRONMENT = "submittedToEnvironment";
+    public static final String PROP_PUBLISHED_DATE = "publishedDate";
 
     protected int id;
     protected String site;
@@ -73,6 +74,7 @@ public class ItemMetadata implements Serializable {
     protected ZonedDateTime launchDate;
     protected String commitId;
     protected String submittedToEnvironment;
+    protected ZonedDateTime publishedDate;
 
     public int getId() {
         return id;
@@ -272,5 +274,13 @@ public class ItemMetadata implements Serializable {
 
     public void setSubmittedToEnvironment(String submittedToEnvironment) {
         this.submittedToEnvironment = submittedToEnvironment;
+    }
+
+    public ZonedDateTime getPublishedDate() {
+        return publishedDate;
+    }
+
+    public void setPublishedDate(ZonedDateTime publishedDate) {
+        this.publishedDate = publishedDate;
     }
 }

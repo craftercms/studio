@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.service.site.internal;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 
 import java.util.List;
@@ -60,4 +61,16 @@ public interface SitesServiceInternal {
     void validateBlueprintParameters(PluginDescriptor descriptor, Map<String, String> params)
         throws MissingPluginParameterException;
 
+    /**
+     * Get publishing status for site
+     * @param siteId site identifier
+     * @return publishing status
+     */
+    PublishStatus getPublishingStatus(String siteId);
+
+    /**
+     * Clear publishing lock for site
+     * @param siteId site identifier
+     */
+    void clearPublishingLock(String siteId);
 }

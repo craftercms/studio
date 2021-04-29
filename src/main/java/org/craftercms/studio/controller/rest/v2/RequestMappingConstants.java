@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -61,4 +61,12 @@ public interface RequestMappingConstants {
     String DIFF_CONFLICTED_FILE = "/diff_conflicted_file";
     String COMMIT_RESOLUTION = "/commit_resolution";
     String CANCEL_FAILED_PULL = "/cancel_failed_pull";
+
+    /** Publish Controller */
+    String PUBLISH = "/publish";
+    String PACKAGES = "/packages";
+    String PACKAGE = "/package";
+    String CANCEL = "/cancel";
+    String CLEAR_LOCK = "/clear_lock";
+    String HISTORY = "/history";
 }

@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.13-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.14-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -49,6 +49,7 @@
         <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
+        <aws.version>1.11.994</aws.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.4.8</mariadb4j.version>
@@ -287,7 +288,7 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.23</version>
+            <version>2.3.31</version>
         </dependency>
         <dependency>
             <groupId>commons-fileupload</groupId>
@@ -441,6 +442,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>woodstox-core-asl</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -474,6 +479,10 @@
         <!-- AWS SDK -->
         <dependency>
             <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sts</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
         </dependency>
         <dependency>
@@ -484,6 +493,7 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-mediaconvert</artifactId>
         </dependency>
+
         <!-- Box SDK -->
         <dependency>
             <groupId>com.box</groupId>
@@ -554,7 +564,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.435</version>
+                <version>${aws.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -639,7 +649,7 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/scss</workingDirectory>
-                            <arguments>run build</arguments>
+                            <arguments>build-if-changed</arguments>
                         </configuration>
                     </execution>
                     <execution>
@@ -660,10 +670,9 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/app</workingDirectory>
-                            <arguments>build</arguments>
+                            <arguments>build-if-changed</arguments>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>install legacy hybrid deps</id>
                         <goals>
@@ -682,10 +691,9 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <workingDirectory>${studio.ui.path}/ui/legacy</workingDirectory>
-                            <arguments>build</arguments>
+                            <arguments>build-if-changed</arguments>
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
             <plugin>

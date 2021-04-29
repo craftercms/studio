@@ -87,7 +87,12 @@ public class ConsoleLoggerImpl extends AbstractLogger {
 		String message = expandMessage(msg, args);
 		System.out.println("ERROR: " +  message);
 	}
-	
+
+	@Override
+	public boolean isDebugEnabled() {
+		return false;
+	}
+
 	/**
 	 * package scope constructor 
 	 */

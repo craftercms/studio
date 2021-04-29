@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General default License version 3 as published by
@@ -333,6 +333,16 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     @Override
     default List<GitLog> getUnprocessedCommits(String siteId, long marker) {
         // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default String getPreviousCommitId(String siteId, String commitId) {
         throw new UnsupportedOperationException();
     }
 }

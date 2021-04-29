@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,10 +15,10 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +62,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
@@ -230,6 +231,14 @@ public class PublishingManagerImpl implements PublishingManager {
                 itemMetadata.setLaunchDate(null);
                 objectMetadataManager.updateObjectMetadata(itemMetadata);
             }
+            String blacklistConfig = studioConfiguration.getProperty(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX);
+            if (StringUtils.isNotEmpty(blacklistConfig) &&
+                    ContentUtils.matchesPatterns(item.getPath(), Arrays.asList(StringUtils.split(blacklistConfig, ",")))) {
+                LOGGER.debug("File " + item.getPath() + " of the site " + site + " will not be published because it " +
+                        "matches the configured publishing blacklist regex patterns.");
+                markItemsCompleted(site, item.getEnvironment(), Arrays.asList(item));
+                deploymentItem = null;
+            }
         }
         return deploymentItem;
     }
@@ -259,9 +268,11 @@ public class PublishingManagerImpl implements PublishingManager {
     public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
                                    @ValidateStringParam(name = "environment") String environment,
                                    List<PublishRequest> processedItems) throws DeploymentException {
+        ZonedDateTime completed = ZonedDateTime.now();
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
-            publishRequestMapper.updateItemDeploymentState(item);
+            item.setCompletedDate(completed);
+            publishRequestMapper.markItemCompleted(item);
         }
     }
 
@@ -341,7 +352,9 @@ public class PublishingManagerImpl implements PublishingManager {
                             missingDependenciesPaths.add(dependentPath);
                             PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
                             DeploymentItemTO dependentDeploymentItem = processItem(dependentItem);
-                            mandatoryDependencies.add(dependentDeploymentItem);
+                            if (Objects.nonNull(dependentDeploymentItem)) {
+                                mandatoryDependencies.add(dependentDeploymentItem);
+                            }
                             mandatoryDependencies.addAll(
                                     processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
                         }

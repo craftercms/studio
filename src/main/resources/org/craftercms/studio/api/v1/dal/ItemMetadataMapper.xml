@@ -24,7 +24,7 @@
         <result property="site" column="site"/>
         <result property="path" column="path"/>
         <result property="name" column="name"/>
-        <result property="modified" column="modified"/>
+        <result property="modified" column="modified" />
         <result property="modifier" column="modifier"/>
         <result property="owner" column="owner"/>
         <result property="creator" column="creator"/>
@@ -41,8 +41,10 @@
         <result property="submittedBy" column="submittedby"/>
         <result property="submittedForDeletion" column="submittedfordeletion"/>
         <result property="sendEmail" column="sendemail"/>
+        <result property="launchDate" column="launchdate" />
         <result property="commitId" column="commit_id"/>
         <result property="submittedToEnvironment" column="submittedtoenvironment" />
+        <result property="publishedDate" column="published_date" />
     </resultMap>
 
     <select id="getProperties" parameterType="java.util.Map" resultMap="ItemMetadataMap">
@@ -74,7 +76,8 @@
             <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
             <if test="launchDate != null">launchdate=#{launchDate},</if>
             <if test="commitId != null">commit_id=#{commitId},</if>
-            <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment}</if>
+            <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment},</if>
+            <if test="publishedDate != null">published_date=#{publishedDate}</if>
         </trim>
         WHERE site=#{site}
         AND path=#{path}
@@ -105,7 +108,8 @@
             <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
             <if test="launchDate != null">launchdate=#{launchDate},</if>
             <if test="commitId != null">commit_id=#{commitId},</if>
-            <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment}</if>
+            <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment},</if>
+            <if test="publishedDate != null">published_date=#{publishedDate}</if>
         </trim>
         WHERE site=#{site}
         AND commit_id=#{commitId}
@@ -136,7 +140,8 @@
             submissioncomment=#{submissionComment},
             launchdate=#{launchDate},
             commit_id=#{commitId},
-            submittedtoenvironment=#{submittedToEnvironment}
+            submittedtoenvironment=#{submittedToEnvironment},
+            published_date=#{publishedDate}
         WHERE id = #{id}
     </update>
 
@@ -257,4 +262,21 @@
         </choose>
         LIMIT #{offset}, #{limit}
     </select>
+
+    <update id="updateLastPublishedDate" >
+        UPDATE item_metadata
+        SET published_date = #{publishedDate}
+        WHERE site = #{siteId}
+          AND path = #{path}
+    </update>
+
+    <update id="updateLastPublishedDateBulk" >
+        UPDATE item_metadata
+        SET published_date = #{publishedDate}
+        WHERE site = #{siteId}
+          AND path in
+        <foreach collection="paths" index="index" item="path" open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </update>
 </mapper>

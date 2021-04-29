@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,9 +24,12 @@ import java.util.Map;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.AUDITED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MARKER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.UNPROCESSED;
 
 public interface GitLogDAO {
 
@@ -48,4 +51,13 @@ public interface GitLogDAO {
     List<GitLog> getUnauditedCommits(@Param(SITE_ID) String siteId, @Param(LIMIT) int limit);
 
     List<GitLog> getUnprocessedCommitsSinceMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker);
+
+    /**
+     * Mark all git logs as processed if they are inserted before marker
+     * @param siteId site identifier
+     * @param marker marker git commit
+     * @param processed value for processed
+     */
+    void markGitLogProcessedBeforeMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker,
+                                         @Param(PROCESSED) int processed, @Param(UNPROCESSED) int unprocessed);
 }

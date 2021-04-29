@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -85,8 +85,10 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 if (Objects.nonNull(gl)) {
                     List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
                     if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
-                        String firstUnprocessedCommit = unprocessedCommitIds.get(0).getCommitId();
-                        siteService.syncDatabaseWithRepo(site, firstUnprocessedCommit + "~");
+                        GitLog gitLog = unprocessedCommitIds.get(0);
+                        String commitBeforeUnprocessedCommit = contentRepository.getPreviousCommitId(site,
+                                gitLog.getCommitId());
+                        siteService.syncDatabaseWithRepo(site, commitBeforeUnprocessedCommit);
                         unprocessedCommitIds.forEach(x -> {
                             contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
                         });
@@ -95,6 +97,9 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                         GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
                         if (Objects.nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
                             siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                            contentRepository.markGitLogProcessedBeforeMarker(site, gl2.getId(), 1);
+                        } else {
+                            contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
                         }
                     }
                 }

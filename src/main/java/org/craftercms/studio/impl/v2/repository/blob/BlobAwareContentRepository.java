@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -60,6 +60,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -93,7 +94,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     protected StudioBlobStoreResolver blobStoreResolver;
 
-    protected ObjectMapper objectMapper = new XmlMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    protected final ObjectMapper objectMapper = new XmlMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     public void setFileExtension(String fileExtension) {
         this.fileExtension = fileExtension;
@@ -489,11 +490,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     @Override
-    public ZonedDateTime getLastDeploymentDate(String site, String path) {
-        return localRepositoryV2.getLastDeploymentDate(site, path);
-    }
-
-    @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
                                            Map<String, String> params) {
         return localRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
@@ -623,7 +619,12 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
-        return localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
+        Map<String, String> originalMap = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
+        Map<String, String> newMap = new TreeMap<>();
+
+        originalMap.forEach((key, value) -> newMap.put(getOriginalPath(key), getOriginalPath(value)));
+
+        return newMap;
     }
 
     @Override
@@ -643,6 +644,16 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
-        return getUnprocessedCommits(siteId, marker);
+        return localRepositoryV2.getUnprocessedCommits(siteId, marker);
+    }
+
+    @Override
+    public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
+        localRepositoryV2.markGitLogProcessedBeforeMarker(siteId, marker, processed);
+    }
+
+    @Override
+    public String getPreviousCommitId(String siteId, String commitId) {
+        return localRepositoryV2.getPreviousCommitId(siteId, commitId);
     }
 }
