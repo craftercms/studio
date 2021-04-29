@@ -282,6 +282,13 @@ pipelines:
             commitDetails: Add site policy config
       - currentVersion: 3.2.0.1
         nextVersion: 4.0.0
+      - currentVersion: 4.0.0
+        nextVersion: 4.0.0.1
+        operations:
+          - type: addFileUpgrader
+            path: /config/studio/ui.xml
+            file: crafter/studio/upgrade/4.0.x/config/ui/ui.xml
+            commitDetails: Add Next UI config
 
   # Pipeline to upgrade blueprints
   blueprint:
