@@ -611,7 +611,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         if (CollectionUtils.isNotEmpty(plugin.getInstallation())) {
             logger.info("Starting wiring for plugin {0} in site {1}", plugin.getId(), siteId);
 
-            for(var i : plugin.getInstallation()) {
+            for(Installation i : plugin.getInstallation()) {
                 try {
                     HierarchicalConfiguration<?> mapping = widgetMapping.configurationAt(i.getType());
 
