@@ -102,7 +102,7 @@ public class ContentUtils {
 				saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
 				saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 				saxReader.setMergeAdjacentText(true);
-			}catch (SAXException ex){
+			} catch (SAXException ex){
 				logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
 			}
 			return saxReader.read(isReader);
