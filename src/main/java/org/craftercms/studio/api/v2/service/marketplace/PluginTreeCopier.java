@@ -41,18 +41,24 @@
   */
  public class PluginTreeCopier extends TreeCopier {
 
-     protected StudioConfiguration studioConfiguration;
+     protected final StudioConfiguration studioConfiguration;
 
-     protected String siteId;
+     protected final String siteId;
 
-     protected List<FileRecord> files;
+     protected final List<FileRecord> files;
+
+     /**
+      * Indicates if the checksum should be populated for all files
+      */
+     protected final boolean calculateChecksum;
 
      public PluginTreeCopier(Path source, Path target, StudioConfiguration studioConfiguration, String siteId,
-                             List<FileRecord> files) {
+                             List<FileRecord> files, boolean calculateChecksum) {
          super(source, target);
          this.studioConfiguration = studioConfiguration;
          this.siteId = siteId;
          this.files = files;
+         this.calculateChecksum = calculateChecksum;
      }
 
      @Override
@@ -65,7 +71,9 @@
              try (InputStream is = Files.newInputStream(file)) {
                  FileRecord record = new FileRecord();
                  record.setPath(base.relativize(target.resolve(source.relativize(file))).toString());
-                 record.setSha512(DigestUtils.sha512Hex(is));
+                 if (calculateChecksum) {
+                     record.setSha512(DigestUtils.sha512Hex(is));
+                 }
                  files.add(record);
              }
          }
