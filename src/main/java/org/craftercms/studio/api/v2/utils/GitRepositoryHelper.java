@@ -1154,11 +1154,9 @@ public class GitRepositoryHelper {
                     if (internalException.getCause() instanceof LockFailedException) {
                         logger.info("Writing file " + path + " for site " + site + " failed because repository was " +
                                 "locked. Studio will remove lock and checkout file from index - revert content");
-                        logger.error(Paths.get(repo.getDirectory().getAbsolutePath(), LOCK_FILE).toFile().getAbsolutePath());
                         try (Git git = new Git(repo)) {
                             boolean b = FileUtils.deleteQuietly(Paths.get(repo.getDirectory().getAbsolutePath(),
                                     LOCK_FILE).toFile());
-                            logger.error("Result delete quietly = " + b);
                             git.checkout().addPath(getGitPath(path)).call();
                         } catch (GitAPIException e) {
                             logger.error("Failed to unlock repository  and revert content for site " + site +
