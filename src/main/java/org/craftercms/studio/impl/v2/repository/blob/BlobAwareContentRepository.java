@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
@@ -216,8 +215,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
                         new ByteArrayInputStream(objectMapper.writeValueAsBytes(reference)));
             }
             return localRepositoryV1.writeContent(site, path, content);
-        } catch (RepositoryLockedException e) {
-            throw e;
         } catch (Exception e) {
             logger.error("Error writing content {0} in site {1}", e, path, site);
             throw new ServiceLayerException(e);
