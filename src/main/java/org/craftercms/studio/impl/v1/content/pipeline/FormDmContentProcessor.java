@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -152,7 +151,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
                 throw new ContentNotFoundException(path + " does not exist in site: " + site);
             }
-        } catch (ContentNotFoundException | RepositoryLockedException e) {
+        } catch (ContentNotFoundException e) {
             throw e;
         } catch (Exception e) {
             logger.error("Error: ", e);
