@@ -181,9 +181,9 @@
             </controls>
             <datasources>
                 <datasource>
-                    <name>child-content</name>
+                    <name>dropTargets</name>
                     <icon>
-                        <class>fa-child</class>
+                        <class>fa-object-group</class>
                     </icon>
                 </datasource>
                 <datasource>
@@ -423,6 +423,13 @@
                 </type>
 
             </objectTypes>
+        </tool>
+        <tool>
+            <name>encrypt-tool</name>
+            <label>Encryption Tool</label>
+            <icon>
+                <class>fa-lock</class>
+            </icon>
         </tool>
         <tool>
             <name>admin-configurations</name>
