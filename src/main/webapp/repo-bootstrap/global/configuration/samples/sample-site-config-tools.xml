@@ -40,6 +40,7 @@
     </config>
 -->
 <config>
+    <version>12</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -80,7 +81,7 @@
                     </icon>
                 </control>
                 <control>
-                    <name>rte-tinymce4</name>
+                    <name>rte-tinymce5</name>
                     <icon>
                         <class>fa-code</class>
                     </icon>
@@ -126,9 +127,6 @@
                     <name>image-picker</name>
                     <icon>
                         <class>fa-picture-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
@@ -183,9 +181,9 @@
             </controls>
             <datasources>
                 <datasource>
-                    <name>child-content</name>
+                    <name>dropTargets</name>
                     <icon>
-                        <class>fa-child</class>
+                        <class>fa-object-group</class>
                     </icon>
                 </datasource>
                 <datasource>
@@ -427,12 +425,15 @@
             </objectTypes>
         </tool>
         <tool>
-            <name>admin-configurations</name>
-            <label>Configuration</label>
+            <name>encrypt-tool</name>
+            <label>Encryption Tool</label>
+            <icon>
+                <class>fa-lock</class>
+            </icon>
         </tool>
         <tool>
-            <name>groups</name>
-            <label>Groups</label>
+            <name>admin-configurations</name>
+            <label>Configuration</label>
         </tool>
         <tool>
             <name>audit</name>
@@ -441,10 +442,6 @@
         <tool>
             <name>workflow-states</name>
             <label>Workflow States</label>
-        </tool>
-        <tool>
-            <name>logging</name>
-            <label>Logging Levels</label>
         </tool>
         <tool>
             <name>log-view</name>
@@ -464,7 +461,6 @@
                 <class>fa-database</class>
             </icon>
         </tool>
-    </tools>
     <tool>
         <name>graphiql</name>
         <label>GraphiQL</label>
@@ -472,4 +468,12 @@
             <class>fa-line-chart</class>
         </icon>
     </tool>
+        <tool>
+            <name>plugin-management</name>
+            <label>Plugin Management</label>
+            <icon>
+                <class>fa-puzzle-piece</class>
+            </icon>
+        </tool>
+    </tools>
 </config>
