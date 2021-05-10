@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,7 +16,9 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -28,6 +30,7 @@ import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
+import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.CancelFailedPullRequest;
 import org.craftercms.studio.model.rest.CommitResolutionRequest;
 import org.craftercms.studio.model.rest.PullFromRemoteRequest;
@@ -39,6 +42,7 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.UnlockRepositoryRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
@@ -67,6 +72,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.R
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REPOSITORY;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESOLVE_CONFLICT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UNLOCK;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REPOSITORY_STATUS;
@@ -284,6 +290,28 @@ public class RepositoryManagementController {
         ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
         result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
         result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(UNLOCK)
+    public ResponseBody unlockRepository(@RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws CryptoException {
+        boolean success = false;
+        if (StringUtils.isEmpty(unlockRepositoryRequest.getSiteId()) &&
+                GLOBAL.equals(GitRepositories.valueOf(unlockRepositoryRequest.getRepositoryType()))) {
+            success = repositoryManagementService.unlockGlobalRepository();
+        } else {
+            success = repositoryManagementService.unlockRepository(unlockRepositoryRequest.getSiteId(),
+                    GitRepositories.valueOf(unlockRepositoryRequest.getRepositoryType()));
+        }
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        if (success) {
+            result.setResponse(OK);
+        } else {
+            result.setResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
+        }
         responseBody.setResult(result);
         return responseBody;
     }

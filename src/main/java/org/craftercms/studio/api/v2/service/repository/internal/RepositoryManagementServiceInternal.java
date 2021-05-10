@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.service.repository.internal;
 
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
@@ -54,4 +55,13 @@ public interface RepositoryManagementServiceInternal {
     boolean commitResolution(String siteId, String commitMessage) throws CryptoException, ServiceLayerException;
 
     boolean cancelFailedPull(String siteId) throws ServiceLayerException, CryptoException;
+
+    /**
+     * Unlock local git repository
+     *
+     * @param siteId site identifier, if null or empty it is global repository
+     * @param repositoryType repository type (GLOBAL, SANDBOX, PUBLISHED)
+     * @return true if successful
+     */
+    boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException;
 }

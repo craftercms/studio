@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,10 +16,12 @@
 
 package org.craftercms.studio.impl.v2.service.repository;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -35,9 +37,11 @@ import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
+import org.craftercms.studio.permissions.RolePermission;
 
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_FROM_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
@@ -175,6 +179,19 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
         } else {
             throw new ServiceLayerException("Failed to cancel failed pull from remote for site " + siteId);
         }
+    }
+
+    @Override
+    @HasPermission(type = RolePermission.class, action = "admin")
+    public boolean unlockRepository(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
+                                    GitRepositories repositoryType) throws CryptoException {
+        return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
+    }
+
+    @Override
+    @HasPermission(type = RolePermission.class, action = "system_admin")
+    public boolean unlockGlobalRepository() throws CryptoException {
+        return repositoryManagementServiceInternal.unlockRepository(StringUtils.EMPTY, GLOBAL);
     }
 
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {

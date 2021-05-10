@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -133,6 +133,12 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <bean id="crafter.studioRolePermissionResolver"
+          class="org.craftercms.studio.permissions.RolePermissionResolverImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
     <bean id="crafter.studioPermissionEvaluator" class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
         <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
         <property name="permissionResolver" ref="crafter.studioPermissionResolver"/>
@@ -144,12 +150,20 @@
         <property name="permissionResolver" ref="crafter.studioCompositePermissionResolver"/>
     </bean>
 
+    <bean id="crafter.studioRolePermissionEvaluator"
+          class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
+        <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
+        <property name="permissionResolver" ref="crafter.studioRolePermissionResolver"/>
+    </bean>
+
     <bean id="crafter.HasPermissionAnnotationHandler" class="org.craftercms.commons.security.permissions.annotations.HasPermissionAnnotationHandler">
         <property name="permissionEvaluators">
             <map>
                 <entry key="org.craftercms.commons.security.permissions.DefaultPermission" value-ref="crafter.studioPermissionEvaluator"/>
                 <entry key="org.craftercms.studio.permissions.CompositePermission"
                        value-ref="crafter.studioCompositePermissionEvaluator"/>
+                <entry key="org.craftercms.studio.permissions.RolePermission"
+                       value-ref="crafter.studioRolePermissionEvaluator"/>
             </map>
         </property>
     </bean>

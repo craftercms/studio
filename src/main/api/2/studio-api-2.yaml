@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.14.0'
+  version: '3.1.15.0'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -2662,6 +2662,50 @@ paths:
                   description: site ID
               required:
                 - siteId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  repositoryStatus:
+                    $ref: '#/components/schemas/RepositoryStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/unlock:
+    post:
+      tags:
+        - repository
+      summary: Unlock local git repository
+      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      operationId: unlockRepository
+      requestBody:
+        description: Unlock local git repository request
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                repositoryType:
+                  type: string
+                  format: GLOBAL, SANDBOX or PUBLISHED
+              required:
+                - repositoryType
       responses:
         '200':
           description: OK

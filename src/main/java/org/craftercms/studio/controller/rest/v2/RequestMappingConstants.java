@@ -61,6 +61,7 @@ public interface RequestMappingConstants {
     String DIFF_CONFLICTED_FILE = "/diff_conflicted_file";
     String COMMIT_RESOLUTION = "/commit_resolution";
     String CANCEL_FAILED_PULL = "/cancel_failed_pull";
+    String UNLOCK = "/unlock";
 
     /** Publish Controller */
     String PUBLISH = "/publish";
