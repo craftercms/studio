@@ -1152,19 +1152,9 @@ public class GitRepositoryHelper {
                     result = true;
                 } catch (JGitInternalException internalException) {
                     if (internalException.getCause() instanceof LockFailedException) {
-                        logger.info("Writing file " + path + " for site " + site + " failed because repository was " +
-                                "locked. Studio will remove lock and checkout file from index - revert content");
-                        try (Git git = new Git(repo)) {
-                            boolean b = FileUtils.deleteQuietly(Paths.get(repo.getDirectory().getAbsolutePath(),
-                                    LOCK_FILE).toFile());
-                            git.checkout().addPath(getGitPath(path)).call();
-                        } catch (GitAPIException e) {
-                            logger.error("Failed to unlock repository  and revert content for site " + site +
-                                            " path " + path);
-                        }
+                        throw new RepositoryLockedException("Writing file " + path + " for site " + site + " failed because " +
+                                "repository was locked.");
                     }
-                    throw new RepositoryLockedException("Writing file " + path + " for site " + site + " failed because " +
-                            "repository was locked.");
                 } catch (GitAPIException e) {
                     logger.error("error adding file to git: site: " + site + " path: " + path, e);
                     result = false;
