@@ -23,17 +23,16 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
+import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.Map;
 
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_SITE;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VERSION;
@@ -54,8 +53,6 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
     private static final Logger logger = LoggerFactory.getLogger(AbstractXsltFileUpgradeOperation.class);
 
     public static final String CONFIG_KEY_TEMPLATE = "template";
-
-    protected static final String SAXON_CLASS = "net.sf.saxon.TransformerFactoryImpl";
 
     /**
      * Template file to be applied.
@@ -81,19 +78,12 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
         var site = context.getTarget();
         var file = context.getFile(path);
         if(Files.exists(file)) {
-            try(InputStream templateIs = template.getInputStream()) {
-                // Saxon is used to support XSLT 2.0
-                Transformer transformer =
-                    TransformerFactory.newInstance(SAXON_CLASS, null)
-                        .newTransformer(new StreamSource(templateIs));
+            try(InputStream templateIs = template.getInputStream();
+                InputStream sourceIs = Files.newInputStream(file)) {
                 logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
-                try(InputStream sourceIs = Files.newInputStream(file)) {
-                    transformer.setParameter(PARAM_KEY_SITE, site);
-                    transformer.setParameter(PARAM_KEY_VERSION, nextVersion);
-                    transformer.setURIResolver(getURIResolver(context));
-                    transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
-                    trackChanges(path);
-                }
+                Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
+                XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
+                trackChanges(path);
             } catch (Exception e) {
                 throw new UpgradeException("Error processing file", e);
             }

@@ -36,6 +36,7 @@ public class PublishStatus {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+        this.enabledAsInt = this.enabled? 1 : 0;
     }
 
     @JsonIgnore
@@ -46,6 +47,7 @@ public class PublishStatus {
     @JsonIgnore
     public void setEnabledAsInt(int enabledAsInt) {
         this.enabledAsInt = enabledAsInt;
+        this.enabled = enabledAsInt > 0;
     }
 
     public String getStatus() {
