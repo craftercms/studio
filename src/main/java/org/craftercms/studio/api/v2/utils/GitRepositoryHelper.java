@@ -131,7 +131,6 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class GitRepositoryHelper {
@@ -1101,7 +1100,7 @@ public class GitRepositoryHelper {
         return toReturn;
     }
 
-    public boolean writeFile(Repository repo, String site, String path, InputStream content) throws ServiceLayerException {
+    public boolean writeFile(Repository repo, String site, String path, InputStream content) {
         boolean result = true;
 
         try {
