@@ -186,7 +186,7 @@
                             <widget id="craftercms.components.ToolsPanelEmbeddedAppViewButton">
                                 <configuration>
                                     <title>GraphQL</title>
-                                    <icon id="@material-ui/icons/PollOutlined"/>
+                                    <icon id="craftercms.icons.GraphQL"/>
                                     <widget id="craftercms.components.LegacySiteToolsFrame">
                                         <configuration>
                                             <tool>graphiql</tool>
