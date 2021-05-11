@@ -37,11 +37,9 @@ import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
-import org.craftercms.studio.permissions.RolePermission;
 
 import java.util.List;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_FROM_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
@@ -182,16 +180,10 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
-    @HasPermission(type = RolePermission.class, action = "admin")
+    @HasPermission(type = DefaultPermission.class, action = "unlock_repository")
     public boolean unlockRepository(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
                                     GitRepositories repositoryType) throws CryptoException {
         return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
-    }
-
-    @Override
-    @HasPermission(type = RolePermission.class, action = "system_admin")
-    public boolean unlockGlobalRepository() throws CryptoException {
-        return repositoryManagementServiceInternal.unlockRepository(StringUtils.EMPTY, GLOBAL);
     }
 
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {

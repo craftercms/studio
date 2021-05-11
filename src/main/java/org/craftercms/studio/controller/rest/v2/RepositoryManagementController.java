@@ -297,17 +297,12 @@ public class RepositoryManagementController {
     @PostMapping(UNLOCK)
     public ResponseBody unlockRepository(@RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws CryptoException, SiteNotFoundException {
         boolean success = false;
-        if (StringUtils.isEmpty(unlockRepositoryRequest.getSiteId()) &&
-                GLOBAL.equals(GitRepositories.valueOf(unlockRepositoryRequest.getRepositoryType()))) {
-            success = repositoryManagementService.unlockGlobalRepository();
-        } else {
-            if (!siteService.exists(unlockRepositoryRequest.getSiteId())) {
-                throw new SiteNotFoundException("Site " + unlockRepositoryRequest.getSiteId() + " not found");
-            }
-            success = repositoryManagementService.unlockRepository(unlockRepositoryRequest.getSiteId(),
-                    GitRepositories.valueOf(unlockRepositoryRequest.getRepositoryType()));
+        if (!StringUtils.isEmpty(unlockRepositoryRequest.getSiteId()) &&
+                (!siteService.exists(unlockRepositoryRequest.getSiteId()))) {
+            throw new SiteNotFoundException("Site " + unlockRepositoryRequest.getSiteId() + " not found");
         }
-
+        success = repositoryManagementService.unlockRepository(unlockRepositoryRequest.getSiteId(),
+                GitRepositories.valueOf(unlockRepositoryRequest.getRepositoryType()));
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         if (success) {

@@ -68,10 +68,4 @@ public interface RepositoryManagementService {
      * @return true if successful
      */
     boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException;
-
-    /**
-     * Unlock local git global repository
-     * @return true if successful
-     */
-    boolean unlockGlobalRepository() throws CryptoException;
 }
