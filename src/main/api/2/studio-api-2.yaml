@@ -2700,7 +2700,7 @@ paths:
               properties:
                 siteId:
                   type: string
-                  description: site ID
+                  description: site ID, do not send if unlocking global repository
                 repositoryType:
                   type: string
                   format: GLOBAL, SANDBOX or PUBLISHED
