@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,10 +16,12 @@
 
 package org.craftercms.studio.impl.v2.service.repository;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -175,6 +177,13 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
         } else {
             throw new ServiceLayerException("Failed to cancel failed pull from remote for site " + siteId);
         }
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "unlock_repository")
+    public boolean unlockRepository(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
+                                    GitRepositories repositoryType) throws CryptoException {
+        return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
     }
 
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {

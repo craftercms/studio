@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -416,6 +418,14 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
+        return getUserRoles(site, user, false);
+    }
+
+
+    @Override
+    @ValidateParams
+    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
+                                    @ValidateStringParam(name = "user") String user, boolean includeGlobal) {
         try {
             // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
             // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
@@ -443,6 +453,12 @@ public class SecurityServiceImpl implements SecurityService {
                             }
                         }
                     }
+                }
+                if (includeGlobal) {
+                    PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
+                    addGlobalUserRoles(user, userRoles, globalRolesConfig);
+                    List<String> groupNames = groups.stream().map(x -> x.getGroupName()).collect(Collectors.toList());
+                    addGlobalGroupRoles(userRoles, groupNames, globalRolesConfig);
                 }
                 return userRoles;
             } else {
