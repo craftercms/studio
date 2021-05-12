@@ -502,87 +502,90 @@ public class SiteServiceImpl implements SiteService {
             return;
         }
         studioDBScriptRunner.openConnection();
-        for (String key : createdFiles.keySet()) {
-            String path = key;
-            if (StringUtils.equals("D", createdFiles.get(path))) {
-                return;
-            }
-            if (createdFiles.get(path).length() > 1) {
-                path = createdFiles.get(path);
-            }
+        try {
+            for (String key : createdFiles.keySet()) {
+                String path = key;
+                if (StringUtils.equals("D", createdFiles.get(path))) {
+                    continue;
+                }
+                if (createdFiles.get(path).length() > 1) {
+                    path = createdFiles.get(path);
+                }
 
-            if (counter++ >= batchSize) {
+                if (counter++ >= batchSize) {
+                    studioDBScriptRunner.execute(sbInsertItems.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process created files batch " + ++batchCounter + " in " +
+                                (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                    }
+
+                    studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process created files update parent id in " +
+                                (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                    }
+                    sbInsertItems = new StringBuilder();
+                    sbUpdateParentId = new StringBuilder();
+                    counter = 0;
+                    startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                    startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                }
+
+                // Item
+                String label = FilenameUtils.getName(path);
+                String contentTypeId = StringUtils.EMPTY;
+                if (StringUtils.endsWith(path, XML_PATTERN)) {
+                    try {
+                        Document contentDoc = contentService.getContentAsDocument(siteId, path);
+                        if (contentDoc != null) {
+                            Element rootElement = contentDoc.getRootElement();
+                            String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                            if (StringUtils.isNotEmpty(internalName)) {
+                                label = internalName;
+                            }
+                            contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                        }
+                    } catch (DocumentException e) {
+                        logger.error("Error extracting metadata from xml file " + siteId + ":" + path);
+                    }
+                }
+                String previewUrl = null;
+                if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+                        StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+                    previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
+                }
+                processAncestors(siteFeed.getId(), path, userObj.getId(), now, lastCommitId, sbInsertItems);
+                sbInsertItems.append(insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value, null, userObj.getId(), now,
+                        userObj.getId(), now, now, label, contentTypeId, contentService.getContentTypeClass(siteId, path),
+                        StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
+                        null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null))
+                        .append("\n\n");
+
+                addUpdateParentIdScriptSnippets(siteFeed.getId(), path, sbUpdateParentId);
+
+                addDependenciesScriptSnippets(siteId, path, null, sbInsertItems);
+            }
+            if (sbInsertItems.length() > 0) {
                 studioDBScriptRunner.execute(sbInsertItems.toString());
                 if (logger.isDebugEnabled()) {
                     logger.debug("Process created files batch " + ++batchCounter + " in " +
                             (System.currentTimeMillis() - startBatchMark) + " milliseconds");
                 }
-
+            }
+            if (sbUpdateParentId.length() > 0) {
                 studioDBScriptRunner.execute(sbUpdateParentId.toString());
                 if (logger.isDebugEnabled()) {
                     logger.debug("Process created files update parent id in " +
                             (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
                 }
-                sbInsertItems = new StringBuilder();
-                sbUpdateParentId = new StringBuilder();
-                counter = 0;
-                startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-                startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
             }
-
-            // Item
-            String label = FilenameUtils.getName(path);
-            String contentTypeId = StringUtils.EMPTY;
-            if (StringUtils.endsWith(path, XML_PATTERN)) {
-                try {
-                    Document contentDoc = contentService.getContentAsDocument(siteId, path);
-                    if (contentDoc != null) {
-                        Element rootElement = contentDoc.getRootElement();
-                        String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                        if (StringUtils.isNotEmpty(internalName)) {
-                            label = internalName;
-                        }
-                        contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                    }
-                } catch (DocumentException e) {
-                    logger.error("Error extracting metadata from xml file " + siteId + ":" + path);
-                }
-            }
-            String previewUrl = null;
-            if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-                    StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-                previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
-            }
-            processAncestors(siteFeed.getId(), path, userObj.getId(), now, lastCommitId, sbInsertItems);
-            sbInsertItems.append(insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value, null, userObj.getId(), now,
-                    userObj.getId(), now, now, label, contentTypeId, contentService.getContentTypeClass(siteId, path),
-                    StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
-                    null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null))
-                    .append("\n\n");
-
-            addUpdateParentIdScriptSnippets(siteFeed.getId(), path, sbUpdateParentId);
-
-            addDependenciesScriptSnippets(siteId, path, null, sbInsertItems);
-        }
-        if (sbInsertItems.length() > 0) {
-            studioDBScriptRunner.execute(sbInsertItems.toString());
             if (logger.isDebugEnabled()) {
-                logger.debug("Process created files batch " + ++batchCounter + " in " +
-                        (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                logger.debug("Process created files finished in " +
+                        (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
             }
+        } finally {
+            studioDBScriptRunner.closeConnection();
         }
-        if (sbUpdateParentId.length() > 0) {
-            studioDBScriptRunner.execute(sbUpdateParentId.toString());
-            if (logger.isDebugEnabled()) {
-                logger.debug("Process created files update parent id in " +
-                        (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
-            }
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Process created files finished in " +
-                    (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
-        }
-        studioDBScriptRunner.closeConnection();
     }
 
     private void processAncestors(long siteId, String path, long userId, ZonedDateTime now, String commitId,
