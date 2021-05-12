@@ -37,6 +37,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -113,8 +114,10 @@ public class BlobAwareContentRepositoryTest {
         when(localV1.getContent(SITE, POINTER_PATH)).thenReturn(POINTER);
         when(localV1.isFolder(SITE, PARENT_PATH)).thenReturn(true);
 
-        when(localV2.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2))
-                .thenReturn(Map.of(POINTER_PATH, "D", NEW_POINTER_PATH, POINTER_PATH));
+        Map<String, String> delta = new TreeMap<>();
+        delta.put(POINTER_PATH, "D");
+        delta.put(NEW_POINTER_PATH, POINTER_PATH);
+        when(localV2.getChangeSetPathsFromDelta(SITE, COMMIT_1, COMMIT_2)).thenReturn(delta);
 
         when(store.contentExists(SITE, ORIGINAL_PATH)).thenReturn(true);
         when(store.contentExists(SITE, POINTER_PATH)).thenReturn(false);

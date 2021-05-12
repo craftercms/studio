@@ -594,7 +594,7 @@
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -804,7 +804,7 @@
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
@@ -832,7 +832,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
         <property name="batchSizeGitLog"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
         <property name="batchSizeAudited"
@@ -1160,7 +1160,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService" />
-        <property name="contentRepository" ref="gitContentRepositoryV2" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">
@@ -1503,6 +1503,7 @@
         <constructor-arg ref="instanceService"/>
         <constructor-arg ref="cstudioSiteServiceSimple"/>
         <constructor-arg ref="sitesServiceInternal"/>
+        <constructor-arg ref="configurationService"/>
         <constructor-arg ref="studioConfiguration"/>
         <constructor-arg ref="pluginDescriptorReader"/>
         <constructor-arg ref="studio.gitRepositoryHelper"/>
@@ -1567,8 +1568,8 @@
 
     <bean id="policyServiceInternal"
           class="org.craftercms.studio.impl.v2.service.policy.internal.PolicyServiceInternalImpl">
-        <constructor-arg ref="gitContentRepository"/>
-        <constructor-arg ref="gitContentRepositoryV2"/>
+        <constructor-arg ref="contentRepository"/>
+        <constructor-arg ref="contentRepository"/>
         <constructor-arg ref="configurationService"/>
         <constructor-arg ref="systemPolicyValidator"/>
         <constructor-arg ref="sitePolicyValidators"/>

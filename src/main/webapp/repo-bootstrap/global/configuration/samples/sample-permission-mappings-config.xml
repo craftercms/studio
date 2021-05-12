@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>13</version>
+    <version>18</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -121,6 +121,8 @@
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>S3 Write</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -164,12 +166,15 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>S3 Write</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -189,6 +194,7 @@
                 <permission>write_configuration</permission>
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -210,6 +216,8 @@
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>S3 Write</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -240,6 +248,7 @@
                 <permission>cancel_failed_pull</permission>
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -271,6 +280,8 @@
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>S3 Write</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -280,16 +291,19 @@
                 <permission>Read</permission>
                 <permission>Publish</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>S3 Read</permission>
+                <permission>get_children</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -298,11 +312,14 @@
             <allowed-permissions>
                 <permission>Read</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
             <allowed-permissions>
                 <permission>S3 Read</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>

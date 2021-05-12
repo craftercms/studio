@@ -292,6 +292,13 @@ pipelines:
             commitDetails: Add site policy config
       - currentVersion: 3.2.0.1
         nextVersion: 4.0.0
+      - currentVersion: 4.0.0
+        nextVersion: 4.0.0.1
+        operations:
+          - type: addFileUpgrader
+            path: /config/studio/ui.xml
+            file: crafter/studio/upgrade/4.0.x/config/ui/ui.xml
+            commitDetails: Add Next UI config
 
   # Pipeline to upgrade blueprints
   blueprint:
@@ -379,6 +386,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v17.xslt
               commitDetails: Added publish_status and publish_clear_lock permissions for  admin
+        - currentVersion: 17
+          nextVersion: 18
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v18.xslt
+              commitDetails: Added get_children and publish_status permissions where missing
 
   role-mappings-config:
     module: studio

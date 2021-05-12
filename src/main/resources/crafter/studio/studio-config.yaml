@@ -889,6 +889,20 @@ studio.marketplace.plugin.mapping:
   - sources: sources
 # The patter to use for loading plugins installed from the marketplace
 studio.marketplace.plugin.basePath: '/config/studio/plugins/js/${id}/${type}/${name}'
+# Mapping used to wire plugin files into the site configuration
+studio.marketplace.plugin.wire.mapping:
+  preview-app:
+    module: studio
+    path: ui.xml
+    template: crafter/studio/marketplace/wiring/ui.xslt
+  form-control:
+    module: studio
+    path: administration/site-config-tools.xml
+    template: crafter/studio/marketplace/wiring/control.xslt
+  form-datasource:
+    module: studio
+    path: administration/site-config-tools.xml
+    template: crafter/studio/marketplace/wiring/datasource.xslt
 
 ##################################################
 ##                    Cache                     ##

@@ -57,7 +57,7 @@
           <toolbarItems2>my_button</toolbarItems2>
         2. Tell TinyMCE where to load the plugin from via "external plugins" option
           <external_plugins>
-            <my_button><![CDATA[/studio/1/plugin/file?siteId=mysite&type=tinymce&name=my_button&filename=plugin.min.js]]></my_button>
+            <my_button><![CDATA[/studio/1/plugin/file?siteId={site}&type=tinymce&name=my_button&filename=plugin.min.js]]></my_button>
           </external_plugins>
         -->
 

@@ -21,10 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
+import org.craftercms.commons.plugin.model.Installation;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
@@ -37,6 +41,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -50,6 +55,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachable
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplacePlugin;
 import org.craftercms.studio.api.v2.service.marketplace.Paths;
@@ -62,12 +68,15 @@ import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -75,6 +84,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.xml.transform.TransformerException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -91,11 +103,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.apache.commons.lang.text.StrSubstitutor.replace;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.SOURCE_GIT;
+import static org.craftercms.studio.impl.v2.utils.XsltUtils.executeTemplate;
 
 /**
  * Default implementation of {@link MarketplaceServiceInternal} that proxies all request to the configured Marketplace
@@ -111,6 +126,22 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     public static final String FOLDER_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.mapping";
 
+    public static final String WIDGET_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.wire.mapping";
+
+    public static final String MODULE_CONFIG_KEY = "module";
+
+    public static final String PATH_CONFIG_KEY = "path";
+
+    public static final String TEMPLATE_CONFIG_KEY = "template";
+
+    public static final String PARAM_PARENT_ID = "parentId";
+
+    public static final String PARAM_NEW_XML = "newXml";
+
+    public static final String PARAM_PARENT_XPATH = "parentXpath";
+
+    public static final String PARAM_PLUGIN_ID = "pluginId";
+
     protected final InstanceService instanceService;
 
     protected final SiteService siteService;
@@ -118,6 +149,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     protected final SitesServiceInternal sitesServiceInternal;
 
     protected final ContentService contentService;
+
+    protected final ConfigurationService configurationService;
 
     protected final StudioConfiguration studioConfiguration;
 
@@ -182,8 +215,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
      */
     protected String pluginsFolder;
 
+    protected HierarchicalConfiguration<?> widgetMapping;
+
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
                                           SitesServiceInternal sitesServiceInternal, ContentService contentService,
+                                          ConfigurationService configurationService,
                                           StudioConfiguration studioConfiguration,
                                           PluginDescriptorReader pluginDescriptorReader,
                                           GitRepositoryHelper gitRepositoryHelper, String pluginDescriptorFilename) {
@@ -191,6 +227,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         this.siteService = siteService;
         this.sitesServiceInternal = sitesServiceInternal;
         this.contentService = contentService;
+        this.configurationService = configurationService;
         this.studioConfiguration = studioConfiguration;
         this.pluginDescriptorReader = pluginDescriptorReader;
         this.gitRepositoryHelper = gitRepositoryHelper;
@@ -248,6 +285,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         mapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .findAndRegisterModules();
+
+        widgetMapping = studioConfiguration.getSubConfig(WIDGET_MAPPING_CONFIG_KEY);
     }
 
     @Override
@@ -398,10 +437,18 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                             format("Plugin '%s' from source '%s' can't be installed",
                                     plugin.getId(), plugin.getSource()));
             }
+
             logger.info("Installation of plugin {0} v{1} completed for site {2}",
                     plugin.getId(), plugin.getVersion(), siteId);
 
             updatePluginRegistry(siteId, plugin, files);
+
+            // Wire plugin to the site configuration
+            try {
+                performInstallation(plugin, siteId);
+            } catch (Exception e) {
+                throw new PluginInstallationException("Error wiring plugin " + pluginId + " in site " + siteId, e);
+            }
         } finally {
             writeLock.unlock();
         }
@@ -460,11 +507,15 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     Files.createDirectories(target);
 
                     Files.walkFileTree(source,
-                            new PluginTreeCopier(source, target, studioConfiguration, siteId, files));
+                            new PluginTreeCopier(source, target, studioConfiguration, siteId, files, true));
                 }
             }
 
-            git.add().addFilepattern(".").call();
+            AddCommand add = git.add();
+            files.stream()
+                    .map(FileRecord::getPath)
+                    .forEach(add::addFilepattern);
+            add.call();
             git.commit()
                     .setMessage(format("Install plugin %s %s", plugin.getId(), plugin.getVersion()))
                     .call();
@@ -490,7 +541,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         try {
             String content = mapper.writeValueAsString(registry);
-            contentService.writeContent(siteId, pluginRegistryPath, IOUtils.toInputStream(content, UTF_8));
+            contentService.writeContent(siteId, pluginRegistryPath, toInputStream(content, UTF_8));
             logger.debug("Plugin registry successfully updated for site {0}", siteId);
         } catch (JsonProcessingException | ServiceLayerException e) {
             throw new MarketplaceRegistryException("Error updating the plugin registry for site: " + siteId, e);
@@ -513,6 +564,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             try (InputStream is = Files.newInputStream(descriptorFile)) {
                 PluginDescriptor descriptor = pluginDescriptorReader.read(is);
                 Plugin plugin = descriptor.getPlugin();
+                var files = new LinkedList<FileRecord>();
 
                 logger.info("Copying files from plugin {0} v{1} for site {2}",
                         plugin.getId(), plugin.getVersion(), siteId);
@@ -528,14 +580,22 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                             Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
                             Files.createDirectories(target);
 
-                            Files.walkFileTree(source, new TreeCopier(source, target));
+                            Files.walkFileTree(source,
+                                    new PluginTreeCopier(source, target, studioConfiguration, siteId, files, false));
                         }
                     }
 
-                    git.add().addFilepattern(".").call();
+                    AddCommand add = git.add();
+                    files.stream()
+                            .map(FileRecord::getPath)
+                            .forEach(add::addFilepattern);
+                    add.call();
                     git.commit()
                             .setMessage(format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()))
                             .call();
+
+                    // Wire plugin to the site configuration
+                    performInstallation(plugin, siteId);
 
                     logger.info("Copy of plugin {0} v{1} completed for site {2}",
                             plugin.getId(), plugin.getVersion(), siteId);
@@ -544,6 +604,74 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         } catch (Exception e) {
             throw new PluginInstallationException("Error copying plugin from " + path, e);
         }
+    }
+
+    protected void performInstallation(Plugin plugin, String siteId) throws
+            TransformerException, IOException, ServiceLayerException, UserNotFoundException {
+        if (CollectionUtils.isNotEmpty(plugin.getInstallation())) {
+            logger.info("Starting wiring for plugin {0} in site {1}", plugin.getId(), siteId);
+
+            for(Installation i : plugin.getInstallation()) {
+                try {
+                    HierarchicalConfiguration<?> mapping = widgetMapping.configurationAt(i.getType());
+
+                    logger.info("Wiring widget of type {0}", i.getType());
+                    Element element = buildXml(i.getElement());
+
+                    String newXml = element.asXML();
+                    logger.debug("New configuration: {0}", newXml);
+
+
+                    String module = mapping.getString(MODULE_CONFIG_KEY);
+                    String configPath = mapping.getString(PATH_CONFIG_KEY);
+                    String templatePath = mapping.getString(TEMPLATE_CONFIG_KEY);
+                    var params = new HashMap<String, Object>();
+                    if (i.getParent() != null) {
+                        params.put(PARAM_PARENT_ID, i.getParent().getId());
+                    }
+                    params.put(PARAM_PLUGIN_ID, plugin.getId());
+                    params.put(PARAM_NEW_XML, newXml);
+
+                    String config = configurationService.getConfigurationAsString(siteId, module, configPath, null);
+                    ClassPathResource templateRes = new ClassPathResource(templatePath);
+                    ByteArrayOutputStream output = new ByteArrayOutputStream();
+                    String template = IOUtils.toString(templateRes.getInputStream(), UTF_8);
+
+                    if (i.getParent() != null) {
+                        template = replace(template, Map.of(PARAM_PARENT_XPATH, i.getParent().getXpath()));
+                    }
+
+                    executeTemplate(toInputStream(template, UTF_8), params, null,
+                                    toInputStream(config, UTF_8), output);
+
+                    configurationService.writeConfiguration(siteId, module, configPath, null,
+                            new ByteArrayInputStream(output.toByteArray()));
+                } catch (ConfigurationRuntimeException e) {
+                    logger.warn("Unsupported installation type {0} for plugin {1}", i.getType(), plugin.getId());
+                }
+            }
+            logger.info("Completed wiring for plugin {0} in site {1}", plugin.getId(), siteId);
+        } else {
+            logger.info("No wiring required for plugin {0}", plugin.getId());
+        }
+    }
+
+    protected Element buildXml(Installation.Element element) {
+        Element xmlElement = DocumentHelper.createElement(element.getName());
+        if (CollectionUtils.isNotEmpty(element.getAttributes())) {
+            element.getAttributes().forEach(
+                    attribute -> xmlElement.addAttribute(attribute.getName(), attribute.getValue()));
+        }
+        if (isNotEmpty(element.getValue())) {
+            xmlElement.setText(element.getValue());
+        }
+        if (CollectionUtils.isNotEmpty(element.getChildren())) {
+            element.getChildren().forEach(child -> {
+                Element xmlChild = buildXml(child);
+                xmlElement.add(xmlChild);
+            });
+        }
+        return xmlElement;
     }
 
 }

@@ -58,13 +58,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -646,12 +646,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = localRepositoryV2.getChangeSetPathsFromDelta(site, commitIdFrom, commitIdTo);
-        Map<String, String> newChangeSet = new HashMap<>();
+        Map<String, String> newChangeSet = new TreeMap<>();
 
         changeSet.forEach((key, value) -> {
             String newKey = getOriginalPath(key);
             String newValue = getOriginalPath(value);
-
             newChangeSet.put(newKey, newValue);
         });
 
@@ -675,7 +674,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
-        return getUnprocessedCommits(siteId, marker);
+        return localRepositoryV2.getUnprocessedCommits(siteId, marker);
     }
 
     @Override
