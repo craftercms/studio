@@ -98,7 +98,7 @@ BEGIN
     END IF;
 END ;
 
-CREATE PROCEDURE update_parent_id(IN siteId VARCHAR(50), IN rootPath VARCHAR(2000))
+CREATE PROCEDURE update_parent_id(IN siteId BIGINT, IN rootPath VARCHAR(2000))
 BEGIN
     DECLARE v_parent_id BIGINT;
     DECLARE v_parent_path VARCHAR(2000);
@@ -216,7 +216,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.18', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.19', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,

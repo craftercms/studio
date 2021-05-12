@@ -25,12 +25,9 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.UUID;
+import java.util.Objects;
 
 public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
@@ -38,13 +35,36 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
     protected String delimiter;
     protected DataSource dataSource;
+    protected Connection connection = null;
+
+    @Override
+    public void openConnection() {
+        if (Objects.isNull(connection)) {
+            try {
+                connection = dataSource.getConnection();
+            } catch (SQLException throwables) {
+                logger.error("Failed to open connection with DB", throwables);
+            }
+        }
+    }
+
+    @Override
+    public void closeConnection() {
+        if (Objects.isNull(connection)) {
+            try {
+                connection.close();
+            } catch (SQLException throwables) {
+                logger.error("Failed to close connection with DB", throwables);
+            }
+            connection = null;
+        }
+    }
 
     @Override
     public void execute(String sql) {
+        Connection connection = null;
         try (Reader reader = new StringReader(sql)) {
-            Path tempFile = Files.createTempFile("script_" + UUID.randomUUID(), ".sql");
-            Files.writeString(tempFile, sql, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-            Connection connection = dataSource.getConnection();
+            connection = dataSource.getConnection();
             ScriptRunner scriptRunner = new ScriptRunner(connection);
             scriptRunner.setDelimiter(delimiter);
             scriptRunner.setStopOnError(true);
@@ -52,6 +72,14 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
             scriptRunner.runScript(reader);
         } catch (SQLException | IOException e) {
             logger.error("Error executing db script", e);
+        } finally {
+            if (Objects.nonNull(connection)) {
+                try {
+                    connection.close();
+                } catch (SQLException throwables) {
+                    logger.debug("Closing connection throws error ", throwables);
+                }
+            }
         }
     }
 

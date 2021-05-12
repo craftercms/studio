@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +49,6 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
-import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
@@ -127,6 +127,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_ASSETS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
 import static org.craftercms.studio.api.v1.constant.DmConstants.XML_PATTERN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
@@ -153,6 +154,7 @@ import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.dele
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertDependencyRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.moveItemRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateItemRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateParentId;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
@@ -173,7 +175,7 @@ public class SiteServiceImpl implements SiteService {
 
     private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
-	private final static int batchSize = 10000;
+	private final static int batchSize = 1000;
 
     protected Deployer deployer;
     protected SiteServiceDAL _siteServiceDAL;
@@ -397,13 +399,13 @@ public class SiteServiceImpl implements SiteService {
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String creator = securityService.getCurrentUser();
 
-                long startGetChangeSetCreatedFilesMark = System.currentTimeMillis();
+                long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
-                //if (logger.isDebugEnabled()) {
-                    logger.error("Get change set created files finished in " +
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Get change set created files finished in " +
                             (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
-                //}
+                }
 
                 logger.info("Adding audit log");
                 insertCreateSiteAuditLog(siteId, siteName, createdFiles);
@@ -416,8 +418,6 @@ public class SiteServiceImpl implements SiteService {
                 updateLastSyncedGitlogCommitId(siteId, lastCommitId);
 
                 logger.info("Reload site configuration");
-
-                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -479,12 +479,14 @@ public class SiteServiceImpl implements SiteService {
 
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
                                      ZonedDateTime now, String lastCommitId) {
-        long startProcessCreatedFilesMark = System.currentTimeMillis();
-        StringBuilder sb = new StringBuilder();
+        long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        StringBuilder sbInsertItems = new StringBuilder();
+        StringBuilder sbUpdateParentId = new StringBuilder();
 
         int counter = 0;
         int batchCounter = 0;
-        long startBatchMark = System.currentTimeMillis();
+        long startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        long startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         SiteFeed siteFeed = null;
         try {
             siteFeed = getSite(siteId);
@@ -499,6 +501,7 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Unexpected error during creation of items. User not found " + creator, e);
             return;
         }
+        studioDBScriptRunner.openConnection();
         for (String key : createdFiles.keySet()) {
             String path = key;
             if (StringUtils.equals("D", createdFiles.get(path))) {
@@ -509,15 +512,22 @@ public class SiteServiceImpl implements SiteService {
             }
 
             if (counter++ >= batchSize) {
-                //logger.error(sb.toString());
-                studioDBScriptRunner.execute(sb.toString());
-                //if (logger.isDebugEnabled()) {
-                    logger.error("Process created files batch " + ++batchCounter + " in " +
+                studioDBScriptRunner.execute(sbInsertItems.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process created files batch " + ++batchCounter + " in " +
                             (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-                //}
-                sb = new StringBuilder();
+                }
+
+                studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process created files update parent id in " +
+                            (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                }
+                sbInsertItems = new StringBuilder();
+                sbUpdateParentId = new StringBuilder();
                 counter = 0;
-                startBatchMark = System.currentTimeMillis();
+                startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
             }
 
             // Item
@@ -543,35 +553,78 @@ public class SiteServiceImpl implements SiteService {
                     StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
                 previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
             }
-            sb.append(insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value, null, userObj.getId(), now,
+            processAncestors(siteFeed.getId(), path, userObj.getId(), now, lastCommitId, sbInsertItems);
+            sbInsertItems.append(insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value, null, userObj.getId(), now,
                     userObj.getId(), now, now, label, contentTypeId, contentService.getContentTypeClass(siteId, path),
                     StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
                     null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null))
                     .append("\n\n");
 
-            addDependenciesScriptSnippets(siteId, path, null, sb);
+            addUpdateParentIdScriptSnippets(siteFeed.getId(), path, sbUpdateParentId);
+
+            addDependenciesScriptSnippets(siteId, path, null, sbInsertItems);
         }
-        if (sb.length() > 0) {
-            //logger.error(sb.toString());
-            studioDBScriptRunner.execute(sb.toString());
-            //if (logger.isDebugEnabled()) {
-                logger.error("Process created files batch " + ++batchCounter + " in " +
+        if (sbInsertItems.length() > 0) {
+            studioDBScriptRunner.execute(sbInsertItems.toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Process created files batch " + ++batchCounter + " in " +
                         (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-            //}
+            }
         }
-        //if (logger.isDebugEnabled()) {
-            logger.error("Process created files finished in " +
+        if (sbUpdateParentId.length() > 0) {
+            studioDBScriptRunner.execute(sbUpdateParentId.toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Process created files update parent id in " +
+                        (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+            }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Process created files finished in " +
                     (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
-        //}
+        }
+        studioDBScriptRunner.closeConnection();
+    }
+
+    private void processAncestors(long siteId, String path, long userId, ZonedDateTime now, String commitId,
+                                  StringBuilder sb) {
+        List<Item> ancestors = new ArrayList<Item>();
+        Path p = Paths.get(path);
+        List<Path> parts = new LinkedList<>();
+        if (Objects.nonNull(p.getParent())) {
+            p.getParent().iterator().forEachRemaining(parts::add);
+        }
+        String currentPath = StringUtils.EMPTY;
+        if (CollectionUtils.isNotEmpty(parts)) {
+            for (Path ancestor : parts) {
+                if (StringUtils.isNotEmpty(ancestor.toString())) {
+                    currentPath = currentPath + FILE_SEPARATOR + ancestor.toString();
+                    sb.append(insertItemRow(siteId, currentPath, null, NEW.value, null, userId, now, userId, now, now,
+                            ancestor.toString(), null, CONTENT_TYPE_FOLDER, null, 0, Locale.US.toString(), null, 0L,
+                            null, commitId, null)).append("\n\n");
+                }
+            }
+        }
+    }
+
+    private void addUpdateParentIdScriptSnippets(long siteId, String path, StringBuilder sbUpdateParentId) {
+        String parentPath = FilenameUtils.getPrefix(path) +
+                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, "/index.xml", ""));
+        if (StringUtils.isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
+            addUpdateParentIdScriptSnippets(siteId, parentPath, sbUpdateParentId);
+            if (StringUtils.endsWith(path, "/index.xml")) {
+                addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path, "/index.xml", ""), sbUpdateParentId);
+            }
+            sbUpdateParentId.append(updateParentId(siteId, path, parentPath)).append("\n\n");
+        }
     }
 
     private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, StringBuilder scriptSb) {
-        long startDependencyResolver = System.currentTimeMillis();
+        long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
-        //if (logger.isDebugEnabled()) {
-            logger.error("Dependency resolver for " + path + " finished in " +
+        if (logger.isDebugEnabled()) {
+            logger.debug("Dependency resolver for " + path + " finished in " +
                     (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
-        //}
+        }
         if (StringUtils.isEmpty(oldPath)) {
             scriptSb.append(deleteDependencySourcePathRows(siteId, path)).append("\n\n");
         } else {
@@ -786,13 +839,13 @@ public class SiteServiceImpl implements SiteService {
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
-                long startGetChangeSetCreatedFilesMark = System.currentTimeMillis() ;
+                long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L ;
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
-                //if (logger.isDebugEnabled()) {
-                    logger.error("Get change set created files finished in " +
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Get change set created files finished in " +
                             (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
-                //}
+                }
 
                 insertCreateSiteAuditLog(siteId, siteId, createdFiles);
                 contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
@@ -804,7 +857,6 @@ public class SiteServiceImpl implements SiteService {
                 updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
                 logger.info("Loading configuration for site " + siteId);
-                //itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -1055,18 +1107,18 @@ public class SiteServiceImpl implements SiteService {
                                         boolean generateAuditLog) throws ServiceLayerException, UserNotFoundException {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
-        long startSyncRepoMark = System.currentTimeMillis();
+        long startSyncRepoMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         boolean toReturn = true;
 
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
-        long startGetOperationsFromDeltaMark = System.currentTimeMillis();
+        long startGetOperationsFromDeltaMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
                 repoLastCommitId);
-        //if (logger.isDebugEnabled()) {
-            logger.error("Get Repo Operations from Delta finished in " +
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get Repo Operations from Delta finished in " +
                     (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
-            logger.error("Number of Repo operations from delta " + repoOperationsDelta.size());
-        //}
+            logger.debug("Number of Repo operations from delta " + repoOperationsDelta.size());
+        }
         if (CollectionUtils.isEmpty(repoOperationsDelta)) {
             logger.debug("Database is up to date with repository for site: " + site);
             contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
@@ -1082,11 +1134,11 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
         }
 
-        long startUpdateDBMark = System.currentTimeMillis();
+        long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         toReturn = processRepoOperations(site, repoOperationsDelta);
-        //if (logger.isDebugEnabled()) {
-            logger.error("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
-        //}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+        }
 
         // At this point we have attempted to process all operations, some may have failed
         // We will update the lastCommitId of the database ignoring errors if any
@@ -1097,9 +1149,9 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Update last commit id " + repoLastCommitId + " for site " + site);
         updateLastCommitId(site, repoLastCommitId);
         updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
-        //if (logger.isDebugEnabled()) {
-            logger.error("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
-        //}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+        }
         // Sync all preview deployers
         try {
             logger.debug("Sync preview for site " + site);
@@ -1119,20 +1171,21 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
         }
 
-        //if (logger.isDebugEnabled()) {
-            logger.error("Sync Repo finished in " + (System.currentTimeMillis() - startSyncRepoMark) + " milliseconds");
-        //}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sync Repo finished in " + (System.currentTimeMillis() - startSyncRepoMark) + " milliseconds");
+        }
         return toReturn;
     }
 
     private boolean processRepoOperations(String siteId, List<RepoOperation> repoOperations) {
 	    boolean toReturn = true;
-        long startProcessRepoOperationMark =  System.currentTimeMillis() ;
-        StringBuilder sb = new StringBuilder();
+        long startProcessRepoOperationMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        StringBuilder sbRepoOperations = new StringBuilder();
+        StringBuilder sbUpdateParentId = new StringBuilder();
         int counter = 0;
         int batchCounter = 0;
-        long startBatchMark = System.currentTimeMillis() ;
-
+        long startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        long startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         SiteFeed siteFeed = null;
         try {
             siteFeed = getSite(siteId);
@@ -1151,16 +1204,25 @@ public class SiteServiceImpl implements SiteService {
         String label;
         String contentTypeId;
         String previewUrl;
+        studioDBScriptRunner.openConnection();
         for (RepoOperation repoOperation : repoOperations) {
             if (counter++ >= batchSize) {
-                studioDBScriptRunner.execute(sb.toString());
-                //if (logger.isDebugEnabled()) {
-                    logger.error("Process repo operations batch " + ++batchCounter + " in " +
+                studioDBScriptRunner.execute(sbRepoOperations.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process repo operations batch " + ++batchCounter + " in " +
                             (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-                //}
-                sb = new StringBuilder();
+                }
+
+                studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process created files update parent id in " +
+                            (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                }
+                sbRepoOperations = new StringBuilder();
+                sbUpdateParentId = new StringBuilder();
                 counter = 0;
-                startBatchMark = System.currentTimeMillis();
+                startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
             }
             switch (repoOperation.getAction()) {
                 case CREATE:
@@ -1199,7 +1261,9 @@ public class SiteServiceImpl implements SiteService {
                             StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
                         previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
                     }
-                    sb.append(insertItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, NEW.value, null,
+                    processAncestors(siteFeed.getId(), repoOperation.getPath(), userObj.getId(),
+                            repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
+                    sbRepoOperations.append(insertItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, NEW.value, null,
                             userObj.getId(), repoOperation.getDateTime(), userObj.getId(),
                             repoOperation.getDateTime(), repoOperation.getDateTime(), label, contentTypeId,
                             contentService.getContentTypeClass(siteId, repoOperation.getPath()),
@@ -1208,7 +1272,8 @@ public class SiteServiceImpl implements SiteService {
                             repoOperation.getCommitId(), null)).append("\n\n");
                     logger.debug("Extract dependencies for site: " + siteId + " path: " +
                             repoOperation.getPath());
-                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sb);
+                    addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(), sbUpdateParentId);
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
                     break;
 
                 case UPDATE:
@@ -1246,7 +1311,7 @@ public class SiteServiceImpl implements SiteService {
                             StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
                         previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
                     }
-                    sb.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                    sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
                             repoOperation.getDateTime(), label, contentTypeId,
                             contentService.getContentTypeClass(siteId, repoOperation.getPath()),
                             StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
@@ -1254,11 +1319,11 @@ public class SiteServiceImpl implements SiteService {
                             repoOperation.getCommitId())).append("\n\n");
                     logger.debug("Extract dependencies for site: " + siteId + " path: " +
                             repoOperation.getPath());
-                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sb);
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
                     break;
                 case DELETE:
-                    sb.append(deleteItemRow(siteFeed.getId(), repoOperation.getPath())).append("\n\n");
-                    sb.append(deleteDependencyRows(siteId, repoOperation.getPath())).append("\n\n");
+                    sbRepoOperations.append(deleteItemRow(siteFeed.getId(), repoOperation.getPath())).append("\n\n");
+                    sbRepoOperations.append(deleteDependencyRows(siteId, repoOperation.getPath())).append("\n\n");
                     break;
 
                 case MOVE:
@@ -1296,14 +1361,17 @@ public class SiteServiceImpl implements SiteService {
                             StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_ASSETS)) {
                         previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getMoveToPath());
                     }
-                    sb.append(moveItemRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
-                    sb.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                    processAncestors(siteFeed.getId(), repoOperation.getMoveToPath(), userObj.getId(),
+                            repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
+                    sbRepoOperations.append(moveItemRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
+                    sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
                             repoOperation.getDateTime(), label, contentTypeId,
                             contentService.getContentTypeClass(siteId, repoOperation.getPath()),
                             StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
                             contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
                             repoOperation.getCommitId())).append("\n\n");
-                    addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sb);
+                    addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), sbUpdateParentId);
+                    addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sbRepoOperations);
                     break;
 
                 default:
@@ -1313,15 +1381,25 @@ public class SiteServiceImpl implements SiteService {
                     break;
             }
         }
-        studioDBScriptRunner.execute(sb.toString());
-        //if (logger.isDebugEnabled()) {
-            logger.error("Process repo operations batch " + ++batchCounter + " in " +
-                    (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-        //}
-        //if (logger.isDebugEnabled()) {
-            logger.error("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
+        if (sbRepoOperations.length() > 0) {
+            studioDBScriptRunner.execute(sbRepoOperations.toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Process repo operations batch " + ++batchCounter + " in " +
+                        (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+            }
+        }
+        if (sbUpdateParentId.length() > 0) {
+            studioDBScriptRunner.execute(sbUpdateParentId.toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Process created files update parent id in " +
+                        (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+            }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
                     " milliseconds");
-        //}
+        }
+        studioDBScriptRunner.closeConnection();
         return toReturn;
     }
 

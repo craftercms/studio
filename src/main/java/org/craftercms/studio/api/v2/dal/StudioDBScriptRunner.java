@@ -18,5 +18,9 @@ package org.craftercms.studio.api.v2.dal;
 
 public interface StudioDBScriptRunner {
 
+    void openConnection();
+
+    void closeConnection();
+
     void execute(String sql);
 }

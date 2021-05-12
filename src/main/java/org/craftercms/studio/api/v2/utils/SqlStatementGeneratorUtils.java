@@ -63,6 +63,13 @@ public final class SqlStatementGeneratorUtils {
                     " state = state | #{onStatesBitMap} & ~#{offStatesBitMap}" +
                     " WHERE site_id = #{siteId} AND (path = #{oldPath} OR path LIKE '#{oldPath}/%') ;";
 
+    public static final String ITEM_UPDATE_PARENT_ID =
+            "SELECT id, @itemId := id, path FROM item WHERE site_id = #{siteId} AND path = '#{itemPath}' ;\n\n" +
+                    "SELECT id , @parentId := id, path FROM item WHERE site_id = #{siteId} AND (path = " +
+                    "'#{parentPath}/index.xml' or path = '#{parentPath}') ORDER BY PATH desc LIMIT 1 ;\n\n" +
+                    "UPDATE item SET parent_id = @parentId WHERE id = @itemId ;\n\nSET @itemId = NULL ;\n\n" +
+                    "SET @parentId = NULL ;" ;
+
     public static final String DEPENDENCIES_INSERT =
             "INSERT INTO dependency (site, source_path, target_path, type) " +
                     "VALUES ('#{site}', '#{sourcePath}', '#{targetPath}', '#{type}') ;";
@@ -103,9 +110,11 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql, "#{lastModifiedOn}", sqlTsLastModified.toString());
         sql = StringUtils.replace(sql, "#{lastPublishedOn}", sqlTsLastPublished.toString());
         sql = StringUtils.replace(sql,"#{label}", StringUtils.replace(label, "'", "''"));
-        sql = StringUtils.replace(sql,"#{contentTypeId}", StringUtils.replace(contentTypeId, "'", "''"));
+        sql = StringUtils.replace(sql,"#{contentTypeId}", Objects.isNull(contentTypeId) ?
+                "NULL" : StringUtils.replace(contentTypeId, "'", "''"));
         sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
-        sql = StringUtils.replace(sql,"#{mimeType}", StringUtils.replace(mimeType, "'", "''"));
+        sql = StringUtils.replace(sql,"#{mimeType}", Objects.isNull(mimeType) ?
+                "NULL" : StringUtils.replace(mimeType, "'", "''"));
         sql = StringUtils.replace(sql,"#{disabledAsInt}", Integer.toString(disabledAsInt));
         sql = StringUtils.replace(sql,"#{localeCode}", StringUtils.replace(localeCode, "'", "''"));
         sql = StringUtils.replace(sql,"#{translationSourceId}", Objects.isNull(translationSourceId) ? "NULL" :
@@ -113,7 +122,8 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
         sql = StringUtils.replace(sql,"#{parentId}", Objects.isNull(parentId) ? "NULL" :
                 Long.toString(parentId));
-        sql = StringUtils.replace(sql,"#{commitId}", StringUtils.replace(commitId, "'", "''"));
+        sql = StringUtils.replace(sql,"#{commitId}", Objects.isNull(commitId) ?
+                "NULL" : StringUtils.replace(commitId, "'", "''"));
         if (StringUtils.isEmpty(previousPath)) {
             sql = StringUtils.replace(sql, "'#{previousPath}'", "NULL");
         } else {
@@ -167,6 +177,12 @@ public final class SqlStatementGeneratorUtils {
         return sql;
     }
 
+    public static String updateParentId(long siteId, String itemPath, String parentPath) {
+        String sql = StringUtils.replace(ITEM_UPDATE_PARENT_ID, "#{siteId}", Long.toString(siteId));
+        sql = StringUtils.replace(sql,"#{itemPath}", StringUtils.replace(itemPath, "'", "''"));
+        sql = StringUtils.replace(sql,"#{parentPath}", StringUtils.replace(parentPath, "'", "''"));
+        return sql;
+    }
 
     public static String insertDependencyRow(String siteId, String sourcePath, String targetPath, String type) {
         String sql = StringUtils.replace(DEPENDENCIES_INSERT, "#{site}", StringUtils.replace(siteId, "'", "''"));
