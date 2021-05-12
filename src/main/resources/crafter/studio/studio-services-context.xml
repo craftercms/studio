@@ -1496,14 +1496,19 @@
     <!-- ////////////////////////////////////// -->
     <bean id="marketplaceServiceInternal"
           class="org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl">
-        <constructor-arg ref="instanceService"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="sitesServiceInternal"/>
-        <constructor-arg ref="configurationService"/>
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="pluginDescriptorReader"/>
-        <constructor-arg ref="studio.gitRepositoryHelper"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.repo.blueprints.descriptor.filename')}"/>
+        <constructor-arg name="instanceService" ref="instanceService"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="siteServiceInternal" ref="sitesServiceInternal"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="pluginDescriptorReader" ref="pluginDescriptorReader"/>
+        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+        <constructor-arg name="pluginDescriptorFilename"
+                         value="#{studioConfiguration.getProperty('studio.repo.blueprints.descriptor.filename')}"/>
+        <constructor-arg name="templateCode"
+                         value="#{studioConfiguration.getProperty('studio.marketplace.plugin.template.code')}"/>
+        <constructor-arg name="templateComment"
+                         value="#{studioConfiguration.getProperty('studio.marketplace.plugin.template.comment')}"/>
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
         <property name="pluginRegistryPath"
                   value="#{studioConfiguration.getProperty('studio.marketplace.plugin.registry.path')}"/>

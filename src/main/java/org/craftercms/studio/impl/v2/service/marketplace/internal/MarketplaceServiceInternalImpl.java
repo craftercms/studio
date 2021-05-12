@@ -26,6 +26,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.model.Installation;
@@ -85,6 +86,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.xml.transform.TransformerException;
+import java.beans.ConstructorProperties;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -103,8 +105,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang.text.StrSubstitutor.replace;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -128,11 +132,17 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     public static final String WIDGET_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.wire.mapping";
 
+    public static final String TEMPLATE_MAPPING_CONFIG_KEY = "studio.marketplace.plugin.template.mapping";
+
     public static final String MODULE_CONFIG_KEY = "module";
 
     public static final String PATH_CONFIG_KEY = "path";
 
     public static final String TEMPLATE_CONFIG_KEY = "template";
+
+    public static final String SYSTEM_PATH_KEY = "systemPath";
+
+    public static final String PLUGIN_PATTERN_KEY = "pluginPattern";
 
     public static final String PARAM_PARENT_ID = "parentId";
 
@@ -141,6 +151,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     public static final String PARAM_PARENT_XPATH = "parentXpath";
 
     public static final String PARAM_PLUGIN_ID = "pluginId";
+
+    public static final String PARAM_PLUGIN_PATH = "pluginPath";
 
     protected final InstanceService instanceService;
 
@@ -215,14 +227,36 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
      */
     protected String pluginsFolder;
 
+    /**
+     * Mapping used to wire plugin files into the site configuration
+     */
     protected HierarchicalConfiguration<?> widgetMapping;
 
+    /**
+     * Mapping used to wire plugin files into the site templates
+     */
+    protected Map<String, String> templateMapping;
+
+    /**
+     * Code injected in the templates for each plugin
+     */
+    protected String templateCode;
+
+    /**
+     * Comment added in the templates for each plugin
+     */
+    protected String templateComment;
+
+    @ConstructorProperties({ "instanceService", "siteService", "sitesServiceInternal", "contentService",
+            "configurationService", "studioConfiguration", "pluginDescriptorReader", "gitRepositoryHelper",
+            "pluginDescriptorFilename", "templateCode", "templateComment" })
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
                                           SitesServiceInternal sitesServiceInternal, ContentService contentService,
                                           ConfigurationService configurationService,
                                           StudioConfiguration studioConfiguration,
                                           PluginDescriptorReader pluginDescriptorReader,
-                                          GitRepositoryHelper gitRepositoryHelper, String pluginDescriptorFilename) {
+                                          GitRepositoryHelper gitRepositoryHelper, String pluginDescriptorFilename,
+                                          String templateCode, String templateComment) {
         this.instanceService = instanceService;
         this.siteService = siteService;
         this.sitesServiceInternal = sitesServiceInternal;
@@ -232,6 +266,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         this.pluginDescriptorReader = pluginDescriptorReader;
         this.gitRepositoryHelper = gitRepositoryHelper;
         this.pluginDescriptorFilename = pluginDescriptorFilename;
+        this.templateCode = templateCode;
+        this.templateComment = templateComment;
     }
 
     public void setUrl(final String url) {
@@ -287,6 +323,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 .findAndRegisterModules();
 
         widgetMapping = studioConfiguration.getSubConfig(WIDGET_MAPPING_CONFIG_KEY);
+
+        templateMapping = new HashMap<>();
+        studioConfiguration.getSubConfigs(TEMPLATE_MAPPING_CONFIG_KEY).forEach(config ->
+                templateMapping.put(config.getString(SYSTEM_PATH_KEY), config.getString(PLUGIN_PATTERN_KEY)));
     }
 
     @Override
@@ -443,9 +483,12 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
             updatePluginRegistry(siteId, plugin, files);
 
-            // Wire plugin to the site configuration
             try {
-                performInstallation(plugin, siteId);
+                // Wire plugin to the site configuration
+                performConfigurationWiring(plugin, siteId);
+
+                // Wire plugin to the freemarker hooks
+                performTemplateWiring(plugin, siteId, files);
             } catch (Exception e) {
                 throw new PluginInstallationException("Error wiring plugin " + pluginId + " in site " + siteId, e);
             }
@@ -496,7 +539,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         List<FileRecord> files = new LinkedList<>();
         Path siteDir = gitRepositoryHelper.buildRepoPath(GitRepositories.SANDBOX, siteId);
         try (Git git = Git.open(siteDir.toFile())) {
-            String pluginIdPath = plugin.getId().replaceAll("\\.", "/");
+            String pluginIdPath = getPluginPath(plugin.getId());
 
             for(Map.Entry<String, String> mapping : folderMapping.entrySet()) {
                 var rootFolder = contains(mapping.getValue(), pluginsFolder)?
@@ -570,7 +613,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                         plugin.getId(), plugin.getVersion(), siteId);
                 Path siteDir = gitRepositoryHelper.buildRepoPath(GitRepositories.SANDBOX, siteId);
                 try (Git git = Git.open(siteDir.toFile())) {
-                    String pluginIdPath = plugin.getId().replaceAll("\\.", "/");
+                    String pluginIdPath = getPluginPath(plugin.getId());
 
                     for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
                         String rootFolder = contains(mapping.getValue(), pluginsFolder) ?
@@ -595,7 +638,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                             .call();
 
                     // Wire plugin to the site configuration
-                    performInstallation(plugin, siteId);
+                    performConfigurationWiring(plugin, siteId);
+
+                    // Wire plugin to the freemarker hooks
+                    performTemplateWiring(plugin, siteId, files);
 
                     logger.info("Copy of plugin {0} v{1} completed for site {2}",
                             plugin.getId(), plugin.getVersion(), siteId);
@@ -606,7 +652,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         }
     }
 
-    protected void performInstallation(Plugin plugin, String siteId) throws
+    protected void performConfigurationWiring(Plugin plugin, String siteId) throws
             TransformerException, IOException, ServiceLayerException, UserNotFoundException {
         if (CollectionUtils.isNotEmpty(plugin.getInstallation())) {
             logger.info("Starting wiring for plugin {0} in site {1}", plugin.getId(), siteId);
@@ -653,6 +699,46 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             logger.info("Completed wiring for plugin {0} in site {1}", plugin.getId(), siteId);
         } else {
             logger.info("No wiring required for plugin {0}", plugin.getId());
+        }
+    }
+
+    protected void performTemplateWiring(Plugin plugin, String siteId, List<FileRecord> files)
+            throws ServiceLayerException {
+        List<String> paths = files.stream().map(FileRecord::getPath).collect(toList());
+        String pluginPath = getPluginPath(plugin.getId());
+        String pluginIdComment = replace(templateComment, Map.of(PARAM_PLUGIN_ID, plugin.getId()));
+
+        // Check if the plugin contains templates to be wired
+        for(Map.Entry<String, String> mapping : templateMapping.entrySet()) {
+            String actualPath = replace(mapping.getValue(), Map.of(PARAM_PLUGIN_PATH, pluginPath));
+            addIncludeIfNeeded(siteId, paths, mapping.getKey(), pluginIdComment, actualPath);
+        }
+    }
+
+    protected String getPluginPath(String pluginId) {
+        return pluginId.replaceAll("\\.", "/");
+    }
+
+    protected void addIncludeIfNeeded(String siteId, List<String> paths, String includePath, String includeComment,
+                                      String pluginPath) throws ServiceLayerException {
+        if (paths.contains(pluginPath)) {
+            logger.debug("Detected template {}", pluginPath);
+            String fileContent = EMPTY;
+            if (contentService.contentExists(siteId, includePath)) {
+                logger.debug("Site {} already has template {}, it will be updated", siteId, includePath);
+                fileContent = contentService.getContentAsString(siteId, includePath);
+            } else {
+                logger.debug("Site {} does not have template {}, it will be created", siteId, includePath);
+            }
+            if (isEmpty(fileContent) || !StringUtils.contains(fileContent, includeComment)) {
+                logger.debug("Wiring plugin template {} in {} for site {}", pluginPath, includePath, siteId);
+                String newLine =
+                        format("\n%s%s\n", replace(templateCode, Map.of(PATH_CONFIG_KEY, pluginPath)), includeComment);
+                fileContent += newLine;
+                contentService.writeContent(siteId, includePath, toInputStream(fileContent, UTF_8));
+            } else {
+                logger.debug("Plugin template {} already wired in {} for site {}", pluginPath, includePath, siteId);
+            }
         }
     }
 
