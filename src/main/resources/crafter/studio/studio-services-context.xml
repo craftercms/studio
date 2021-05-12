@@ -126,6 +126,8 @@
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -577,6 +579,8 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDao" ref="dependencyDao" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="dependencyResolver" ref="studioDependencyResolver" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="publishService" class="org.craftercms.studio.impl.v2.service.publish.PublishServiceImpl">

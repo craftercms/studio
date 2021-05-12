@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +49,6 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
-import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
@@ -95,6 +95,7 @@ import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -102,6 +103,7 @@ import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -125,6 +127,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_ASSETS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_PAGES;
 import static org.craftercms.studio.api.v1.constant.DmConstants.XML_PATTERN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
@@ -144,6 +147,14 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REM
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteItemRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteDependencyRows;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteDependencySourcePathRows;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertDependencyRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.moveItemRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateItemRow;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateParentId;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
@@ -151,6 +162,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 
 /**
  * Note: consider renaming
@@ -162,6 +174,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_
 public class SiteServiceImpl implements SiteService {
 
     private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
+
+	private final static int batchSize = 1000;
 
     protected Deployer deployer;
     protected SiteServiceDAL _siteServiceDAL;
@@ -197,6 +211,9 @@ public class SiteServiceImpl implements SiteService {
     protected EntitlementValidator entitlementValidator;
 
     protected String[] configurationPatterns;
+
+    protected StudioDBScriptRunner studioDBScriptRunner;
+    protected DependencyServiceInternal dependencyServiceInternal;
 
     @Override
     @ValidateParams
@@ -382,56 +399,18 @@ public class SiteServiceImpl implements SiteService {
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String creator = securityService.getCurrentUser();
 
+                long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Get change set created files finished in " +
+                            (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
+                }
 
                 logger.info("Adding audit log");
                 insertCreateSiteAuditLog(siteId, siteName, createdFiles);
 
-                User userObj = userServiceInternal.getUserByGitName(creator);
-
-                createdFiles.forEach((k, v) -> {
-                    if (StringUtils.equals("D", v)) {
-                        return;
-                    }
-                    String path = k;
-                    if (v.length() > 1) {
-                        path = v;
-                    }
-                    extractDependenciesForItem(siteId, path);
-
-                    // Item
-                    try {
-                        String label = FilenameUtils.getName(path);
-                        String contentTypeId = StringUtils.EMPTY;
-                        if (StringUtils.endsWith(path, XML_PATTERN)) {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, path);
-                            if(contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (StringUtils.isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                            }
-                        }
-                        String previewUrl = null;
-                        if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-                                StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
-                        }
-                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
-                                previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
-                                userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
-                                contentTypeId, contentService.getContentTypeClass(siteId, path),
-                                StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
-                                null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
-                        itemServiceInternal.upsertEntry(siteId, item);
-                    } catch (SiteNotFoundException | DocumentException e) {
-                        logger.error("Unexpected error during creation of items", e);
-                    }
-
-                });
+                processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
 
                 contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
                 updateLastCommitId(siteId, lastCommitId);
@@ -439,8 +418,6 @@ public class SiteServiceImpl implements SiteService {
                 updateLastSyncedGitlogCommitId(siteId, lastCommitId);
 
                 logger.info("Reload site configuration");
-
-                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -498,6 +475,172 @@ public class SiteServiceImpl implements SiteService {
 
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
+                                     ZonedDateTime now, String lastCommitId) {
+        long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        StringBuilder sbInsertItems = new StringBuilder();
+        StringBuilder sbUpdateParentId = new StringBuilder();
+
+        int counter = 0;
+        int batchCounter = 0;
+        long startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        long startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        SiteFeed siteFeed = null;
+        try {
+            siteFeed = getSite(siteId);
+        } catch (SiteNotFoundException e) {
+            logger.error("Unexpected error during creation of items. Site not found " + siteId, e);
+            return;
+        }
+        User userObj = null;
+        try {
+            userObj = userServiceInternal.getUserByGitName(creator);
+        } catch (ServiceLayerException | UserNotFoundException e) {
+            logger.error("Unexpected error during creation of items. User not found " + creator, e);
+            return;
+        }
+        studioDBScriptRunner.openConnection();
+        try {
+            for (String key : createdFiles.keySet()) {
+                String path = key;
+                if (StringUtils.equals("D", createdFiles.get(path))) {
+                    continue;
+                }
+                if (createdFiles.get(path).length() > 1) {
+                    path = createdFiles.get(path);
+                }
+
+                if (counter++ >= batchSize) {
+                    studioDBScriptRunner.execute(sbInsertItems.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process created files batch " + ++batchCounter + " in " +
+                                (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                    }
+
+                    studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process created files update parent id in " +
+                                (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                    }
+                    sbInsertItems = new StringBuilder();
+                    sbUpdateParentId = new StringBuilder();
+                    counter = 0;
+                    startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                    startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                }
+
+                // Item
+                String label = FilenameUtils.getName(path);
+                String contentTypeId = StringUtils.EMPTY;
+                if (StringUtils.endsWith(path, XML_PATTERN)) {
+                    try {
+                        Document contentDoc = contentService.getContentAsDocument(siteId, path);
+                        if (contentDoc != null) {
+                            Element rootElement = contentDoc.getRootElement();
+                            String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                            if (StringUtils.isNotEmpty(internalName)) {
+                                label = internalName;
+                            }
+                            contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                        }
+                    } catch (DocumentException e) {
+                        logger.error("Error extracting metadata from xml file " + siteId + ":" + path);
+                    }
+                }
+                String previewUrl = null;
+                if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+                        StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+                    previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
+                }
+                processAncestors(siteFeed.getId(), path, userObj.getId(), now, lastCommitId, sbInsertItems);
+                sbInsertItems.append(insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value, null, userObj.getId(), now,
+                        userObj.getId(), now, now, label, contentTypeId, contentService.getContentTypeClass(siteId, path),
+                        StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
+                        null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null))
+                        .append("\n\n");
+
+                addUpdateParentIdScriptSnippets(siteFeed.getId(), path, sbUpdateParentId);
+
+                addDependenciesScriptSnippets(siteId, path, null, sbInsertItems);
+            }
+            if (sbInsertItems.length() > 0) {
+                studioDBScriptRunner.execute(sbInsertItems.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process created files batch " + ++batchCounter + " in " +
+                            (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                }
+            }
+            if (sbUpdateParentId.length() > 0) {
+                studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process created files update parent id in " +
+                            (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                }
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("Process created files finished in " +
+                        (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
+            }
+        } finally {
+            studioDBScriptRunner.closeConnection();
+        }
+    }
+
+    private void processAncestors(long siteId, String path, long userId, ZonedDateTime now, String commitId,
+                                  StringBuilder sb) {
+        List<Item> ancestors = new ArrayList<Item>();
+        Path p = Paths.get(path);
+        List<Path> parts = new LinkedList<>();
+        if (Objects.nonNull(p.getParent())) {
+            p.getParent().iterator().forEachRemaining(parts::add);
+        }
+        String currentPath = StringUtils.EMPTY;
+        if (CollectionUtils.isNotEmpty(parts)) {
+            for (Path ancestor : parts) {
+                if (StringUtils.isNotEmpty(ancestor.toString())) {
+                    currentPath = currentPath + FILE_SEPARATOR + ancestor.toString();
+                    sb.append(insertItemRow(siteId, currentPath, null, NEW.value, null, userId, now, userId, now, now,
+                            ancestor.toString(), null, CONTENT_TYPE_FOLDER, null, 0, Locale.US.toString(), null, 0L,
+                            null, commitId, null)).append("\n\n");
+                }
+            }
+        }
+    }
+
+    private void addUpdateParentIdScriptSnippets(long siteId, String path, StringBuilder sbUpdateParentId) {
+        String parentPath = FilenameUtils.getPrefix(path) +
+                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, "/index.xml", ""));
+        if (StringUtils.isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
+            addUpdateParentIdScriptSnippets(siteId, parentPath, sbUpdateParentId);
+            if (StringUtils.endsWith(path, "/index.xml")) {
+                addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path, "/index.xml", ""), sbUpdateParentId);
+            }
+            sbUpdateParentId.append(updateParentId(siteId, path, parentPath)).append("\n\n");
+        }
+    }
+
+    private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, StringBuilder scriptSb) {
+        long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Dependency resolver for " + path + " finished in " +
+                    (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
+        }
+        if (StringUtils.isEmpty(oldPath)) {
+            scriptSb.append(deleteDependencySourcePathRows(siteId, path)).append("\n\n");
+        } else {
+            scriptSb.append(deleteDependencySourcePathRows(siteId, oldPath)).append("\n\n");
+        }
+        if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
+            for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
+                for (String targetPath : entry.getValue()) {
+                    scriptSb.append(insertDependencyRow(siteId, path, targetPath, entry.getKey()))
+                            .append("\n\n");
+                }
+            }
+        }
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,
@@ -699,62 +842,24 @@ public class SiteServiceImpl implements SiteService {
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
+                long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L ;
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Get change set created files finished in " +
+                            (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
+                }
 
                 insertCreateSiteAuditLog(siteId, siteId, createdFiles);
                 contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
 
-                User userObj = userServiceInternal.getUserByGitName(creator);
-
-                createdFiles.forEach((k, v) -> {
-                    if (StringUtils.equals("D", v)) {
-                        return;
-                    }
-                    String path = k;
-                    if (v.length() > 1) {
-                        path = v;
-                    }
-                    extractDependenciesForItem(siteId, path);
-
-                    // Item
-                    try {
-                        String label = FilenameUtils.getName(path);
-                        String contentTypeId = StringUtils.EMPTY;
-                        if (StringUtils.endsWith(path, XML_PATTERN)) {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, path);
-                            if(contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (StringUtils.isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                            }
-                        }
-                        String previewUrl = null;
-                        if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-                                StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
-                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
-                        }
-                        Item item = itemServiceInternal.instantiateItem(getSite(siteId).getId(), siteId, path,
-                                previewUrl, NEW.value, userObj.getId(), userObj.getUsername(), userObj.getId(),
-                                userObj.getUsername(), now, userObj.getId(), userObj.getUsername(), now, label,
-                                contentTypeId, contentService.getContentTypeClass(siteId, path),
-                                StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, false, Locale.US.toString(),
-                                null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId);
-                        itemServiceInternal.upsertEntry(siteId, item);
-                    } catch (SiteNotFoundException | DocumentException e) {
-                        logger.error("Unexpected error during creation of items", e);
-                    }
-                });
+                processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
 
                 updateLastCommitId(siteId, lastCommitId);
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
                 updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
                 logger.info("Loading configuration for site " + siteId);
-                itemServiceInternal.updateParentIds(siteId, StringUtils.EMPTY);
             } catch (Exception e) {
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
@@ -1005,13 +1110,19 @@ public class SiteServiceImpl implements SiteService {
                                         boolean generateAuditLog) throws ServiceLayerException, UserNotFoundException {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
+        long startSyncRepoMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         boolean toReturn = true;
 
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
+        long startGetOperationsFromDeltaMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
                 repoLastCommitId);
-        List<RepoOperation> repoOperations = contentRepositoryV2.getOperations(site, fromCommitId, repoLastCommitId);
-        if (CollectionUtils.isEmpty(repoOperations)) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get Repo Operations from Delta finished in " +
+                    (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
+            logger.debug("Number of Repo operations from delta " + repoOperationsDelta.size());
+        }
+        if (CollectionUtils.isEmpty(repoOperationsDelta)) {
             logger.debug("Database is up to date with repository for site: " + site);
             contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
             updateLastCommitId(site, repoLastCommitId);
@@ -1026,52 +1137,10 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
         }
 
-        User userObj;
-
-        for (RepoOperation repoOperation : repoOperationsDelta) {
-            Map<String, Object> properties;
-            String lastEditCommitId;
-            userObj = userServiceInternal.getUserByGitName(repoOperation.getAuthor());
-            switch (repoOperation.getAction()) {
-                case CREATE:
-                case COPY:
-                case UPDATE:
-                    logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
-                    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-                    itemServiceInternal.persistItemAfterWrite(site, repoOperation.getPath(), userObj.getUsername(),
-                            repoOperation.getCommitId(), Optional.empty());
-                    break;
-
-                case DELETE:
-                    logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
-                    try {
-                        dependencyService.deleteItemDependencies(site, repoOperation.getPath());
-                    } catch (ServiceLayerException e) {
-                        logger.error("Error deleting dependencies for site " + site + " file: " +
-                                repoOperation.getPath(), e);
-                    }
-                    itemServiceInternal.deleteItem(site, repoOperation.getPath());
-                    break;
-
-                case MOVE:
-                    itemServiceInternal.moveItem(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-                    itemServiceInternal.persistItemAfterWrite(site, repoOperation.getMoveToPath(),
-                            userObj.getUsername(), repoOperation.getCommitId(), Optional.empty());
-
-                    logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
-                    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
-                    break;
-
-                default:
-                    logger.error("Error: Unknown repo operation for site " + site + " operation: " +
-                            repoOperation.getAction());
-                    toReturn = false;
-                    break;
-            }
-
-            if (RegexUtils.matchesAny(repoOperation.getPath(), configurationPatterns)) {
-                configurationService.invalidateConfiguration(site, repoOperation.getPath());
-            }
+        long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        toReturn = processRepoOperations(site, repoOperationsDelta);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
 
         // At this point we have attempted to process all operations, some may have failed
@@ -1083,7 +1152,9 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Update last commit id " + repoLastCommitId + " for site " + site);
         updateLastCommitId(site, repoLastCommitId);
         updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+        }
         // Sync all preview deployers
         try {
             logger.debug("Sync preview for site " + site);
@@ -1103,6 +1174,238 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
         }
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sync Repo finished in " + (System.currentTimeMillis() - startSyncRepoMark) + " milliseconds");
+        }
+        return toReturn;
+    }
+
+    private boolean processRepoOperations(String siteId, List<RepoOperation> repoOperations) {
+	    boolean toReturn = true;
+        long startProcessRepoOperationMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        StringBuilder sbRepoOperations = new StringBuilder();
+        StringBuilder sbUpdateParentId = new StringBuilder();
+        int counter = 0;
+        int batchCounter = 0;
+        long startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        long startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        SiteFeed siteFeed = null;
+        try {
+            siteFeed = getSite(siteId);
+        } catch (SiteNotFoundException e) {
+            logger.error("Unexpected error during creation of items. Site not found " + siteId, e);
+            return false;
+        }
+        User userObj = null;
+        Map<String, User> cachedUsers = new HashMap<String, User>();
+        try {
+            cachedUsers.put(GIT_REPO_USER_USERNAME, userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME));
+        } catch (UserNotFoundException | ServiceLayerException e) {
+            logger.error("Unexpected error. Git repo user should be in DB", e);
+        }
+
+        String label;
+        String contentTypeId;
+        String previewUrl;
+        studioDBScriptRunner.openConnection();
+        try {
+            for (RepoOperation repoOperation : repoOperations) {
+                if (counter++ >= batchSize) {
+                    studioDBScriptRunner.execute(sbRepoOperations.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process repo operations batch " + ++batchCounter + " in " +
+                                (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                    }
+
+                    studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process created files update parent id in " +
+                                (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                    }
+                    sbRepoOperations = new StringBuilder();
+                    sbUpdateParentId = new StringBuilder();
+                    counter = 0;
+                    startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                    startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                }
+                switch (repoOperation.getAction()) {
+                    case CREATE:
+                    case COPY:
+                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
+                            userObj = cachedUsers.get(repoOperation.getAuthor());
+                        } else {
+                            try {
+                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
+                            } catch (UserNotFoundException | ServiceLayerException e) {
+                                logger.debug("User not found " + repoOperation.getAuthor());
+                            }
+                        }
+                        if (Objects.isNull(userObj)) {
+                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
+                        }
+                        label = FilenameUtils.getName(repoOperation.getPath());
+                        contentTypeId = StringUtils.EMPTY;
+                        if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
+                            try {
+                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
+                                if (contentDoc != null) {
+                                    Element rootElement = contentDoc.getRootElement();
+                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                    if (StringUtils.isNotEmpty(internalName)) {
+                                        label = internalName;
+                                    }
+                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                }
+                            } catch (DocumentException e) {
+                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                            }
+                        }
+                        previewUrl = null;
+                        if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
+                        }
+                        processAncestors(siteFeed.getId(), repoOperation.getPath(), userObj.getId(),
+                                repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
+                        sbRepoOperations.append(insertItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, NEW.value, null,
+                                userObj.getId(), repoOperation.getDateTime(), userObj.getId(),
+                                repoOperation.getDateTime(), repoOperation.getDateTime(), label, contentTypeId,
+                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, Locale.US.toString(),
+                                null, contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
+                                repoOperation.getCommitId(), null)).append("\n\n");
+                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                                repoOperation.getPath());
+                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(), sbUpdateParentId);
+                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
+                        break;
+
+                    case UPDATE:
+                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
+                            userObj = cachedUsers.get(repoOperation.getAuthor());
+                        } else {
+                            try {
+                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
+                            } catch (UserNotFoundException | ServiceLayerException e) {
+                                logger.debug("User not found " + repoOperation.getAuthor());
+                            }
+                        }
+                        if (Objects.isNull(userObj)) {
+                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
+                        }
+                        label = FilenameUtils.getName(repoOperation.getPath());
+                        contentTypeId = StringUtils.EMPTY;
+                        if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
+                            try {
+                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
+                                if (contentDoc != null) {
+                                    Element rootElement = contentDoc.getRootElement();
+                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                    if (StringUtils.isNotEmpty(internalName)) {
+                                        label = internalName;
+                                    }
+                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                }
+                            } catch (DocumentException e) {
+                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                            }
+                        }
+                        previewUrl = null;
+                        if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
+                        }
+                        sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                                repoOperation.getDateTime(), label, contentTypeId,
+                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
+                                repoOperation.getCommitId())).append("\n\n");
+                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                                repoOperation.getPath());
+                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
+                        break;
+                    case DELETE:
+                        sbRepoOperations.append(deleteItemRow(siteFeed.getId(), repoOperation.getPath())).append("\n\n");
+                        sbRepoOperations.append(deleteDependencyRows(siteId, repoOperation.getPath())).append("\n\n");
+                        break;
+
+                    case MOVE:
+                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
+                            userObj = cachedUsers.get(repoOperation.getAuthor());
+                        } else {
+                            try {
+                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
+                            } catch (UserNotFoundException | ServiceLayerException e) {
+                                logger.debug("User not found " + repoOperation.getAuthor());
+                            }
+                        }
+                        if (Objects.isNull(userObj)) {
+                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
+                        }
+                        label = FilenameUtils.getName(repoOperation.getMoveToPath());
+                        contentTypeId = StringUtils.EMPTY;
+                        if (StringUtils.endsWith(repoOperation.getMoveToPath(), XML_PATTERN)) {
+                            try {
+                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getMoveToPath());
+                                if (contentDoc != null) {
+                                    Element rootElement = contentDoc.getRootElement();
+                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                    if (StringUtils.isNotEmpty(internalName)) {
+                                        label = internalName;
+                                    }
+                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                }
+                            } catch (DocumentException e) {
+                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
+                            }
+                        }
+                        previewUrl = null;
+                        if (StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getMoveToPath());
+                        }
+                        processAncestors(siteFeed.getId(), repoOperation.getMoveToPath(), userObj.getId(),
+                                repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
+                        sbRepoOperations.append(moveItemRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
+                        sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                                repoOperation.getDateTime(), label, contentTypeId,
+                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
+                                repoOperation.getCommitId())).append("\n\n");
+                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), sbUpdateParentId);
+                        addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sbRepoOperations);
+                        break;
+
+                    default:
+                        logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
+                                repoOperation.getAction());
+                        toReturn = false;
+                        break;
+                }
+            }
+            if (sbRepoOperations.length() > 0) {
+                studioDBScriptRunner.execute(sbRepoOperations.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process repo operations batch " + ++batchCounter + " in " +
+                            (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                }
+            }
+            if (sbUpdateParentId.length() > 0) {
+                studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Process created files update parent id in " +
+                            (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                }
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
+                        " milliseconds");
+            }
+        } finally {
+            studioDBScriptRunner.closeConnection();
+        }
         return toReturn;
     }
 
@@ -1652,5 +1955,21 @@ public class SiteServiceImpl implements SiteService {
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
+    }
+
+    public StudioDBScriptRunner getStudioDBScriptRunner() {
+        return studioDBScriptRunner;
+    }
+
+    public void setStudioDBScriptRunner(StudioDBScriptRunner studioDBScriptRunner) {
+        this.studioDBScriptRunner = studioDBScriptRunner;
+    }
+
+    public DependencyServiceInternal getDependencyServiceInternal() {
+        return dependencyServiceInternal;
+    }
+
+    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+        this.dependencyServiceInternal = dependencyServiceInternal;
     }
 }

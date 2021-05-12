@@ -18,16 +18,20 @@ package org.craftercms.studio.impl.v2.service.dependency.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +59,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private StudioConfiguration studioConfiguration;
     private DependencyDAO dependencyDao;
     private ItemServiceInternal itemServiceInternal;
+    private DependencyResolver dependencyResolver;
+    private ServicesConfig servicesConfig;
 
     @Override
     public List<String> getSoftDependencies(String site, String path) throws ServiceLayerException {
@@ -256,6 +262,19 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         }
     }
 
+    @Override
+    public Map<String, Set<String>> resolveDependnecies(String siteId, String path) {
+        Map<String, Set<String>> dependencies = null;
+        boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
+        boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
+        boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
+        boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
+        if (isXml || isCss || isJs || isTemplate) {
+            dependencies = dependencyResolver.resolve(siteId, path);
+        }
+        return dependencies;
+    }
+
     public SiteService getSiteService() {
         return siteService;
     }
@@ -286,5 +305,21 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public DependencyResolver getDependencyResolver() {
+        return dependencyResolver;
+    }
+
+    public void setDependencyResolver(DependencyResolver dependencyResolver) {
+        this.dependencyResolver = dependencyResolver;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }
