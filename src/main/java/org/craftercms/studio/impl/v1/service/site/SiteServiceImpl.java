@@ -1208,201 +1208,204 @@ public class SiteServiceImpl implements SiteService {
         String contentTypeId;
         String previewUrl;
         studioDBScriptRunner.openConnection();
-        for (RepoOperation repoOperation : repoOperations) {
-            if (counter++ >= batchSize) {
+        try {
+            for (RepoOperation repoOperation : repoOperations) {
+                if (counter++ >= batchSize) {
+                    studioDBScriptRunner.execute(sbRepoOperations.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process repo operations batch " + ++batchCounter + " in " +
+                                (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                    }
+
+                    studioDBScriptRunner.execute(sbUpdateParentId.toString());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Process created files update parent id in " +
+                                (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
+                    }
+                    sbRepoOperations = new StringBuilder();
+                    sbUpdateParentId = new StringBuilder();
+                    counter = 0;
+                    startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                    startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+                }
+                switch (repoOperation.getAction()) {
+                    case CREATE:
+                    case COPY:
+                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
+                            userObj = cachedUsers.get(repoOperation.getAuthor());
+                        } else {
+                            try {
+                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
+                            } catch (UserNotFoundException | ServiceLayerException e) {
+                                logger.debug("User not found " + repoOperation.getAuthor());
+                            }
+                        }
+                        if (Objects.isNull(userObj)) {
+                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
+                        }
+                        label = FilenameUtils.getName(repoOperation.getPath());
+                        contentTypeId = StringUtils.EMPTY;
+                        if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
+                            try {
+                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
+                                if (contentDoc != null) {
+                                    Element rootElement = contentDoc.getRootElement();
+                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                    if (StringUtils.isNotEmpty(internalName)) {
+                                        label = internalName;
+                                    }
+                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                }
+                            } catch (DocumentException e) {
+                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                            }
+                        }
+                        previewUrl = null;
+                        if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
+                        }
+                        processAncestors(siteFeed.getId(), repoOperation.getPath(), userObj.getId(),
+                                repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
+                        sbRepoOperations.append(insertItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, NEW.value, null,
+                                userObj.getId(), repoOperation.getDateTime(), userObj.getId(),
+                                repoOperation.getDateTime(), repoOperation.getDateTime(), label, contentTypeId,
+                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, Locale.US.toString(),
+                                null, contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
+                                repoOperation.getCommitId(), null)).append("\n\n");
+                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                                repoOperation.getPath());
+                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(), sbUpdateParentId);
+                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
+                        break;
+
+                    case UPDATE:
+                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
+                            userObj = cachedUsers.get(repoOperation.getAuthor());
+                        } else {
+                            try {
+                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
+                            } catch (UserNotFoundException | ServiceLayerException e) {
+                                logger.debug("User not found " + repoOperation.getAuthor());
+                            }
+                        }
+                        if (Objects.isNull(userObj)) {
+                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
+                        }
+                        label = FilenameUtils.getName(repoOperation.getPath());
+                        contentTypeId = StringUtils.EMPTY;
+                        if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
+                            try {
+                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
+                                if (contentDoc != null) {
+                                    Element rootElement = contentDoc.getRootElement();
+                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                    if (StringUtils.isNotEmpty(internalName)) {
+                                        label = internalName;
+                                    }
+                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                }
+                            } catch (DocumentException e) {
+                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                            }
+                        }
+                        previewUrl = null;
+                        if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
+                        }
+                        sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                                repoOperation.getDateTime(), label, contentTypeId,
+                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
+                                repoOperation.getCommitId())).append("\n\n");
+                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                                repoOperation.getPath());
+                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
+                        break;
+                    case DELETE:
+                        sbRepoOperations.append(deleteItemRow(siteFeed.getId(), repoOperation.getPath())).append("\n\n");
+                        sbRepoOperations.append(deleteDependencyRows(siteId, repoOperation.getPath())).append("\n\n");
+                        break;
+
+                    case MOVE:
+                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
+                            userObj = cachedUsers.get(repoOperation.getAuthor());
+                        } else {
+                            try {
+                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
+                            } catch (UserNotFoundException | ServiceLayerException e) {
+                                logger.debug("User not found " + repoOperation.getAuthor());
+                            }
+                        }
+                        if (Objects.isNull(userObj)) {
+                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
+                        }
+                        label = FilenameUtils.getName(repoOperation.getMoveToPath());
+                        contentTypeId = StringUtils.EMPTY;
+                        if (StringUtils.endsWith(repoOperation.getMoveToPath(), XML_PATTERN)) {
+                            try {
+                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getMoveToPath());
+                                if (contentDoc != null) {
+                                    Element rootElement = contentDoc.getRootElement();
+                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                    if (StringUtils.isNotEmpty(internalName)) {
+                                        label = internalName;
+                                    }
+                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                }
+                            } catch (DocumentException e) {
+                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
+                            }
+                        }
+                        previewUrl = null;
+                        if (StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_PAGES) ||
+                                StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_ASSETS)) {
+                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getMoveToPath());
+                        }
+                        processAncestors(siteFeed.getId(), repoOperation.getMoveToPath(), userObj.getId(),
+                                repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
+                        sbRepoOperations.append(moveItemRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
+                        sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                                repoOperation.getDateTime(), label, contentTypeId,
+                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
+                                repoOperation.getCommitId())).append("\n\n");
+                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), sbUpdateParentId);
+                        addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sbRepoOperations);
+                        break;
+
+                    default:
+                        logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
+                                repoOperation.getAction());
+                        toReturn = false;
+                        break;
+                }
+            }
+            if (sbRepoOperations.length() > 0) {
                 studioDBScriptRunner.execute(sbRepoOperations.toString());
                 if (logger.isDebugEnabled()) {
                     logger.debug("Process repo operations batch " + ++batchCounter + " in " +
                             (System.currentTimeMillis() - startBatchMark) + " milliseconds");
                 }
-
+            }
+            if (sbUpdateParentId.length() > 0) {
                 studioDBScriptRunner.execute(sbUpdateParentId.toString());
                 if (logger.isDebugEnabled()) {
                     logger.debug("Process created files update parent id in " +
                             (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
                 }
-                sbRepoOperations = new StringBuilder();
-                sbUpdateParentId = new StringBuilder();
-                counter = 0;
-                startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-                startBatchUpdateParentId = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
             }
-            switch (repoOperation.getAction()) {
-                case CREATE:
-                case COPY:
-                    if (cachedUsers.containsKey(repoOperation.getAuthor())) {
-                        userObj = cachedUsers.get(repoOperation.getAuthor());
-                    } else {
-                        try {
-                            userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
-                        } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug("User not found " + repoOperation.getAuthor());
-                        }
-                    }
-                    if (Objects.isNull(userObj)) {
-                        userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
-                    }
-                    label = FilenameUtils.getName(repoOperation.getPath());
-                    contentTypeId = StringUtils.EMPTY;
-                    if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
-                        try {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
-                            if (contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (StringUtils.isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                            }
-                        } catch (DocumentException e) {
-                            logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
-                        }
-                    }
-                    previewUrl = null;
-                    if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
-                            StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
-                        previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
-                    }
-                    processAncestors(siteFeed.getId(), repoOperation.getPath(), userObj.getId(),
-                            repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
-                    sbRepoOperations.append(insertItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, NEW.value, null,
-                            userObj.getId(), repoOperation.getDateTime(), userObj.getId(),
-                            repoOperation.getDateTime(), repoOperation.getDateTime(), label, contentTypeId,
-                            contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                            StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, Locale.US.toString(),
-                            null, contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
-                            repoOperation.getCommitId(), null)).append("\n\n");
-                    logger.debug("Extract dependencies for site: " + siteId + " path: " +
-                            repoOperation.getPath());
-                    addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(), sbUpdateParentId);
-                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
-                    break;
-
-                case UPDATE:
-                    if (cachedUsers.containsKey(repoOperation.getAuthor())) {
-                        userObj = cachedUsers.get(repoOperation.getAuthor());
-                    } else {
-                        try {
-                            userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
-                        } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug("User not found " + repoOperation.getAuthor());
-                        }
-                    }
-                    if (Objects.isNull(userObj)) {
-                        userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
-                    }
-                    label = FilenameUtils.getName(repoOperation.getPath());
-                    contentTypeId = StringUtils.EMPTY;
-                    if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
-                        try {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
-                            if (contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (StringUtils.isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                            }
-                        } catch (DocumentException e) {
-                            logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
-                        }
-                    }
-                    previewUrl = null;
-                    if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
-                            StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
-                        previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
-                    }
-                    sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
-                            repoOperation.getDateTime(), label, contentTypeId,
-                            contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                            StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
-                            contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
-                            repoOperation.getCommitId())).append("\n\n");
-                    logger.debug("Extract dependencies for site: " + siteId + " path: " +
-                            repoOperation.getPath());
-                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
-                    break;
-                case DELETE:
-                    sbRepoOperations.append(deleteItemRow(siteFeed.getId(), repoOperation.getPath())).append("\n\n");
-                    sbRepoOperations.append(deleteDependencyRows(siteId, repoOperation.getPath())).append("\n\n");
-                    break;
-
-                case MOVE:
-                    if (cachedUsers.containsKey(repoOperation.getAuthor())) {
-                        userObj = cachedUsers.get(repoOperation.getAuthor());
-                    } else {
-                        try {
-                            userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
-                        } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug("User not found " + repoOperation.getAuthor());
-                        }
-                    }
-                    if (Objects.isNull(userObj)) {
-                        userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
-                    }
-                    label = FilenameUtils.getName(repoOperation.getMoveToPath());
-                    contentTypeId = StringUtils.EMPTY;
-                    if (StringUtils.endsWith(repoOperation.getMoveToPath(), XML_PATTERN)) {
-                        try {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getMoveToPath());
-                            if (contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (StringUtils.isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                            }
-                        } catch (DocumentException e) {
-                            logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
-                        }
-                    }
-                    previewUrl = null;
-                    if (StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_PAGES) ||
-                            StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_ASSETS)) {
-                        previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getMoveToPath());
-                    }
-                    processAncestors(siteFeed.getId(), repoOperation.getMoveToPath(), userObj.getId(),
-                            repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
-                    sbRepoOperations.append(moveItemRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
-                    sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
-                            repoOperation.getDateTime(), label, contentTypeId,
-                            contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                            StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
-                            contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
-                            repoOperation.getCommitId())).append("\n\n");
-                    addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), sbUpdateParentId);
-                    addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sbRepoOperations);
-                    break;
-
-                default:
-                    logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
-                            repoOperation.getAction());
-                    toReturn = false;
-                    break;
-            }
-        }
-        if (sbRepoOperations.length() > 0) {
-            studioDBScriptRunner.execute(sbRepoOperations.toString());
             if (logger.isDebugEnabled()) {
-                logger.debug("Process repo operations batch " + ++batchCounter + " in " +
-                        (System.currentTimeMillis() - startBatchMark) + " milliseconds");
+                logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
+                        " milliseconds");
             }
+        } finally {
+            studioDBScriptRunner.closeConnection();
         }
-        if (sbUpdateParentId.length() > 0) {
-            studioDBScriptRunner.execute(sbUpdateParentId.toString());
-            if (logger.isDebugEnabled()) {
-                logger.debug("Process created files update parent id in " +
-                        (System.currentTimeMillis() - startBatchUpdateParentId) + " milliseconds");
-            }
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
-                    " milliseconds");
-        }
-        studioDBScriptRunner.closeConnection();
         return toReturn;
     }
 
