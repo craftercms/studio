@@ -311,4 +311,12 @@ public interface ContentRepository {
      * @param processed value for processed
      */
     void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed);
+
+    /**
+     * Get the previous commit id from repository for given a site id and a commit id
+     * @param siteId site identifier
+     * @param commitId commit Id
+     * @return
+     */
+    String getPreviousCommitId(String siteId, String commitId);
 }

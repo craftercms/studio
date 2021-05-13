@@ -687,4 +687,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
         localRepositoryV2.markGitLogProcessedBeforeMarker(siteId, marker, processed);
     }
+
+    @Override
+    public String getPreviousCommitId(String siteId, String commitId) {
+        return localRepositoryV2.getPreviousCommitId(siteId, commitId);
+    }
 }

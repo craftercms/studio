@@ -47,6 +47,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 public class StudioAuditLogProcessingTask extends StudioClockTask {
 
@@ -92,14 +93,13 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
             SiteFeed siteFeed = siteService.getSite(siteId);
             for (GitLog gl : unauditedGitlogs) {
                 if (contentRepository.commitIdExists(siteId, gl.getCommitId())) {
-                    String prevCommitId = gl.getCommitId() + "~";
+                    String prevCommitId = gl.getCommitId() + PREVIOUS_COMMIT_SUFFIX;
                     List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, prevCommitId,
                             gl.getCommitId());
                     for (RepoOperation repoOperation : operations) {
 
                         Map<String, String> activityInfo = new HashMap<String, String>();
                         String contentClass;
-                        Map<String, Object> properties;
                         AuditLog auditLog;
                         switch (repoOperation.getAction()) {
                             case CREATE:
