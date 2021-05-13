@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Controller that provides the UI with plugin related files
  * @author joseross
@@ -41,6 +43,7 @@ public class PluginController {
      */
     protected final ConfigurationService configurationService;
 
+    @ConstructorProperties({"configurationService"})
     public PluginController(ConfigurationService configurationService) {
         this.configurationService = configurationService;
     }

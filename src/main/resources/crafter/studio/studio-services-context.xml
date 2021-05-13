@@ -1062,12 +1062,12 @@
     <bean id="cstudioAssetContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioCheckImageSizeProcessor"></ref>
-                <ref bean="cstudioAssetDmContentProcessor"></ref>
-                <ref bean="cstudioExtractAssetDependencyProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioCheckImageSizeProcessor"/>
+                <ref bean="cstudioAssetDmContentProcessor"/>
+                <ref bean="cstudioExtractAssetDependencyProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
             </list>
         </property>
     </bean>
@@ -1075,12 +1075,12 @@
     <bean id="cstudioAssetCleanContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioCheckImageSizeProcessor"></ref>
-                <ref bean="cstudioAssetDmContentProcessor"></ref>
-                <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioCheckImageSizeProcessor"/>
+                <ref bean="cstudioAssetDmContentProcessor"/>
+                <ref bean="cstudioCleanPreviewContentProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
             </list>
         </property>
     </bean>
@@ -1088,8 +1088,8 @@
     <bean id="cstudioPlainContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioFormDmContentProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioFormDmContentProcessor"/>
             </list>
         </property>
     </bean>
@@ -1097,17 +1097,17 @@
     <bean id="cstudioFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioExtractParamsProcessor"></ref>
-                <ref bean="cstudioFormNavOrderProcessor"></ref>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioCleanWorkContentProcessor"></ref>
-                <ref bean="cstudioFormDmContentProcessor"></ref>
-                <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioDmWorkflowProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioContentLifeCycleProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
+                <ref bean="cstudioExtractParamsProcessor"/>
+                <ref bean="cstudioFormNavOrderProcessor"/>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioCleanWorkContentProcessor"/>
+                <ref bean="cstudioFormDmContentProcessor"/>
+                <ref bean="cstudioCleanPreviewContentProcessor"/>
+                <ref bean="cstudioDmWorkflowProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioContentLifeCycleProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
+                <ref bean="cstudioExtractDependencyProcessor"/>
             </list>
         </property>
     </bean>
@@ -1115,8 +1115,8 @@
     <bean id="cstudioPreviewFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioExtractParamsProcessor"></ref>
-                <ref bean="cstudioFormDmContentProcessor"></ref>
+                <ref bean="cstudioExtractParamsProcessor"/>
+                <ref bean="cstudioFormDmContentProcessor"/>
             </list>
         </property>
     </bean>
@@ -1124,13 +1124,13 @@
     <bean id="cstudioImportContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioExtractParamsProcessor"></ref>
-                <ref bean="cstudioFormNavOrderProcessor"></ref>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioContentLifeCycleProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
+                <ref bean="cstudioExtractParamsProcessor"/>
+                <ref bean="cstudioFormNavOrderProcessor"/>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioContentLifeCycleProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
+                <ref bean="cstudioExtractDependencyProcessor"/>
             </list>
         </property>
     </bean>
@@ -1270,11 +1270,11 @@
     <!-- ////////////////////////////////////// -->
 
     <bean id="crafter.configurationResolver" class="org.craftercms.commons.config.ConfigurationResolverImpl">
-        <constructor-arg
+        <constructor-arg name="environment"
                 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}"/>
-        <constructor-arg
+        <constructor-arg name="basePath"
                 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)}"/>
-        <constructor-arg
+        <constructor-arg name="envPath"
                 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)}"/>
         <constructor-arg name="configurationReader" ref="crafter.configurationReader"/>
     </bean>
@@ -1401,7 +1401,8 @@
     </bean>
 
     <!-- Utilities -->
-    <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
+    <bean id="studioApplicationContextProvider"
+          class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"/>
 
     <bean id="studioRebuildRepositoryMetadata" class="org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata">
         <property name="contentService" ref="cstudioContentService"/>

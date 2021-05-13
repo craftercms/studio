@@ -22,6 +22,8 @@ import org.springframework.security.authentication.event.AuthenticationSuccessEv
 import org.springframework.security.authentication.event.LogoutSuccessEvent;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Listener for Spring's {@link AuthenticationSuccessEvent} that generates an access token for the user
  *
@@ -32,6 +34,7 @@ public class AccessTokenAuthenticationListener {
 
     protected AccessTokenService accessTokenService;
 
+    @ConstructorProperties({"accessTokenService"})
     public AccessTokenAuthenticationListener(AccessTokenService accessTokenService) {
         this.accessTokenService = accessTokenService;
     }

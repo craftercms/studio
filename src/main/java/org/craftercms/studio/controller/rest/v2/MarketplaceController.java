@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Map;
 
@@ -54,6 +55,7 @@ public class MarketplaceController {
 
     protected final MarketplaceService marketplaceService;
 
+    @ConstructorProperties({"marketplaceService"})
     public MarketplaceController(final MarketplaceService marketplaceService) {
         this.marketplaceService = marketplaceService;
     }

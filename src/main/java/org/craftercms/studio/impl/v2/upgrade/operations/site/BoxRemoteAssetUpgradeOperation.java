@@ -28,9 +28,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.sql.DataSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+import java.beans.ConstructorProperties;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -108,8 +108,9 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
      */
     protected String urlTemplate;
 
-    public BoxRemoteAssetUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource,
-                                          String contentTypeXpath, String formDefinitionTemplate) {
+    @ConstructorProperties({"studioConfiguration", "contentTypeXpath", "formDefinitionTemplate"})
+    public BoxRemoteAssetUpgradeOperation(StudioConfiguration studioConfiguration, String contentTypeXpath,
+                                          String formDefinitionTemplate) {
         super(studioConfiguration, contentTypeXpath, formDefinitionTemplate);
     }
 

@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInterna
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class PolicyServiceImpl implements PolicyService {
 
     protected PolicyServiceInternal policyServiceInternal;
 
+    @ConstructorProperties({"policyServiceInternal"})
     public PolicyServiceImpl(PolicyServiceInternal policyServiceInternal) {
         this.policyServiceInternal = policyServiceInternal;
     }

@@ -53,6 +53,7 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,6 +108,8 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
     protected UserDAO userDao;
     protected GroupDAO groupDao;
 
+    @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal", "userServiceInternal",
+            "userDao", "groupDao"})
     public LdapAuthenticationProvider(StudioConfiguration studioConfiguration, SiteService siteService,
                                       AuditServiceInternal auditServiceInternal,
                                       UserServiceInternal userServiceInternal, UserDAO userDao, GroupDAO groupDao) {

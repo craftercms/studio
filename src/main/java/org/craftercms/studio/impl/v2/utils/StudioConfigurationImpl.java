@@ -33,6 +33,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -52,6 +53,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     protected String configLocation;
 
+    @ConstructorProperties({"configurationCache", "configLocation"})
     public StudioConfigurationImpl(Cache<String, HierarchicalConfiguration<ImmutableNode>> configurationCache,
                                    String configLocation) {
         this.configurationCache = configurationCache;

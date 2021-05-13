@@ -21,6 +21,8 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.beans.ConstructorProperties;
+
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.removeStartIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
@@ -37,6 +39,7 @@ public class AccessTokenAuthenticationFilter extends AbstractPreAuthenticatedPro
 
     protected AccessTokenService accessTokenService;
 
+    @ConstructorProperties({"accessTokenService"})
     public AccessTokenAuthenticationFilter(AccessTokenService accessTokenService) {
         this.accessTokenService = accessTokenService;
     }

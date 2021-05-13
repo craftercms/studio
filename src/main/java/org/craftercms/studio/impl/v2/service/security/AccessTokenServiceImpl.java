@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.beans.ConstructorProperties;
 import java.time.Instant;
 import java.util.List;
 
@@ -39,6 +40,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
 
     protected AccessTokenServiceInternal accessTokenServiceInternal;
 
+    @ConstructorProperties({"accessTokenServiceInternal"})
     public AccessTokenServiceImpl(AccessTokenServiceInternal accessTokenServiceInternal) {
         this.accessTokenServiceInternal = accessTokenServiceInternal;
     }

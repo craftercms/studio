@@ -29,6 +29,7 @@ import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
 
+import java.beans.ConstructorProperties;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +64,8 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
     protected String configPath;
 
+    @ConstructorProperties({"contentRepository", "contentRepositoryV2", "configurationService", "systemValidator",
+            "policyValidators", "configPath"})
     public PolicyServiceInternalImpl(ContentRepository contentRepository,
                                      org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                      ConfigurationService configurationService,

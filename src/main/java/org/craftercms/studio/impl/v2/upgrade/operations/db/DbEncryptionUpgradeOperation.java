@@ -29,6 +29,7 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -57,6 +58,7 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
 
     protected TextEncryptor textEncryptor;
 
+    @ConstructorProperties({"studioConfiguration", "textEncryptor"})
     public DbEncryptionUpgradeOperation(StudioConfiguration studioConfiguration,
                                         TextEncryptor textEncryptor) {
         super(studioConfiguration);

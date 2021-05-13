@@ -23,6 +23,8 @@ import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.core.io.Resource;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Extension of {@link PrototypeUpgradePipelineFactoryImpl} for configuration files, the name of the pipeline
  * is build based on the configuration file provided in the upgrade context.
@@ -34,6 +36,7 @@ public class ConfigurationUpgradePipelineFactoryImpl extends PrototypeUpgradePip
 
     public static final String CONFIG_PIPELINE_SUFFIX = ".pipeline";
 
+    @ConstructorProperties({"configurationFile", "versionProvider", "pipelinePrototype"})
     public ConfigurationUpgradePipelineFactoryImpl(Resource configurationFile, VersionProvider<String> versionProvider,
                                                    String pipelinePrototype) {
         super(null, configurationFile, versionProvider, pipelinePrototype);

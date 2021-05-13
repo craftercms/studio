@@ -57,6 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,7 @@ public class UsersController {
     private UserService userService;
     private StudioConfiguration studioConfiguration;
 
+    @ConstructorProperties({"userService", "studioConfiguration"})
     public UsersController(UserService userService, StudioConfiguration studioConfiguration) {
         this.userService = userService;
         this.studioConfiguration = studioConfiguration;

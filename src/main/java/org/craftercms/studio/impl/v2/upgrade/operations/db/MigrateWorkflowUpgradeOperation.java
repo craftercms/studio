@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
+import java.beans.ConstructorProperties;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -51,6 +52,7 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
     private String crafterSchemaName;
     private String spName;
 
+    @ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator"})
     public MigrateWorkflowUpgradeOperation(StudioConfiguration studioConfiguration,
                                            String scriptFolder,
                                            DbIntegrityValidator integrityValidator) {

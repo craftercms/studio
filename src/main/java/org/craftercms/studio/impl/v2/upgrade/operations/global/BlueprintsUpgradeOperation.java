@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.global;
 
+import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.FileVisitOption;
@@ -66,6 +67,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
     protected GeneralLockService generalLockService;
     protected GitRepositoryHelper gitRepositoryHelper;
 
+    @ConstructorProperties({"studioConfiguration", "generalLockService", "gitRepositoryHelper"})
     public BlueprintsUpgradeOperation(StudioConfiguration studioConfiguration,
                                       GeneralLockService generalLockService,
                                       GitRepositoryHelper gitRepositoryHelper) {

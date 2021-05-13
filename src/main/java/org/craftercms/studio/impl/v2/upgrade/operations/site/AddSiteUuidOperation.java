@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,6 +45,7 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
 
     private SiteFeedMapper siteFeedMapper;
 
+    @ConstructorProperties({"studioConfiguration", "siteFeedMapper"})
     public AddSiteUuidOperation(StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper) {
         super(studioConfiguration);
         this.siteFeedMapper = siteFeedMapper;

@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.search;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
 
@@ -46,6 +47,7 @@ public class PermissionAwareSearchService extends AbstractElasticsearchWrapper {
      */
     protected String pathFieldName;
 
+    @ConstructorProperties({"client", "indexSuffix", "pathFieldName"})
     public PermissionAwareSearchService(RestHighLevelClient client, String indexSuffix, String pathFieldName) {
         super(client);
         this.indexSuffix = indexSuffix;

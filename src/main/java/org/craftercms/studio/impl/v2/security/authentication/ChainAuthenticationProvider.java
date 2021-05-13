@@ -30,6 +30,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
+import java.beans.ConstructorProperties;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,6 +76,7 @@ public class ChainAuthenticationProvider implements AuthenticationProvider, Appl
 
     protected List<AuthenticationProvider> providers = new LinkedList<>();
 
+    @ConstructorProperties({"studioConfiguration"})
     public ChainAuthenticationProvider(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }

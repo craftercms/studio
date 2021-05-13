@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
 
@@ -65,6 +66,7 @@ public class SitesController {
 
     private PolicyService policyService;
 
+    @ConstructorProperties({"sitesService", "marketplaceService", "policyService"})
     public SitesController(SitesService sitesService, MarketplaceService marketplaceService,
                            PolicyService policyService) {
         this.sitesService = sitesService;

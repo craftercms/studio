@@ -20,6 +20,7 @@ import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
+import java.beans.ConstructorProperties;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +45,7 @@ public class ContextManagerImpl implements ContextManager {
 
     protected Map<String, Context> contexts = new ConcurrentHashMap<>();
 
+    @ConstructorProperties({"studioConfiguration", "contentStoreService"})
     public ContextManagerImpl(StudioConfiguration studioConfiguration, ContentStoreService contentStoreService) {
         this.studioConfiguration = studioConfiguration;
         this.contentStoreService = contentStoreService;

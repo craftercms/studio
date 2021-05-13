@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.Map;
 
@@ -54,6 +55,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping("/api/2")
 public class MonitoringController extends ManagementTokenAware {
 
+    @ConstructorProperties({"studioConfiguration", "securityService"})
     public MonitoringController(StudioConfiguration studioConfiguration, SecurityService securityService) {
         super(studioConfiguration, securityService);
     }

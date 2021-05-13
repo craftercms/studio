@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
 
+import java.beans.ConstructorProperties;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,7 @@ public class SitePolicyAspect {
 
     protected PolicyService policyService;
 
+    @ConstructorProperties({"policyService"})
     public SitePolicyAspect(PolicyService policyService) {
         this.policyService = policyService;
     }

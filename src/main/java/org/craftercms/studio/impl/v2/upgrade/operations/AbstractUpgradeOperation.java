@@ -28,6 +28,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
 
 import javax.servlet.ServletContext;
+import java.beans.ConstructorProperties;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,6 +73,7 @@ public abstract class AbstractUpgradeOperation extends
      */
     protected ServletContext servletContext;
 
+    @ConstructorProperties({"studioConfiguration"})
     public AbstractUpgradeOperation(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }

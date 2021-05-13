@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.marketplace;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     protected final MarketplaceServiceInternal marketplaceServiceInternal;
 
+    @ConstructorProperties({"marketplaceServiceInternal"})
     public MarketplaceServiceImpl(MarketplaceServiceInternal marketplaceServiceInternal) {
         this.marketplaceServiceInternal = marketplaceServiceInternal;
     }

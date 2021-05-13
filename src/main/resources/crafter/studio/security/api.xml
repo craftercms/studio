@@ -60,7 +60,7 @@
     </bean>
 
     <bean id="legacyAccessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
-        <constructor-arg name="decisionVoters">
+        <constructor-arg index="0">
             <list>
                 <!-- Default Spring Voters for <security:intercept-url> expressions -->
                 <bean class="org.springframework.security.web.access.expression.WebExpressionVoter"/>

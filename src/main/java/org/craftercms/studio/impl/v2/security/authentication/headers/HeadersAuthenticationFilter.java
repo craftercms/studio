@@ -23,6 +23,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
@@ -42,6 +43,7 @@ public class HeadersAuthenticationFilter extends RequestHeaderAuthenticationFilt
 
     protected boolean enabled = false;
 
+    @ConstructorProperties({"studioConfiguration"})
     public HeadersAuthenticationFilter(StudioConfiguration studioConfiguration) {
         var chainConfig = studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
         chainConfig.stream()

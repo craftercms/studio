@@ -41,6 +41,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -85,6 +86,8 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     protected StudioConfiguration studioConfiguration;
     protected InstanceService instanceService;
 
+    @ConstructorProperties({"dbVersionProvider", "dbPipelineFactory", "bpPipelineFactory", "configurationFile",
+            "dataSource", "integrityValidator", "contentRepository", "studioConfiguration", "instanceService"})
     public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
                                     UpgradePipelineFactory<String> dbPipelineFactory,
                                     UpgradePipelineFactory<String> bpPipelineFactory, Resource configurationFile,

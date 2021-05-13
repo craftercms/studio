@@ -22,7 +22,7 @@
     <!-- STUDIO CHANGES -->
 
     <bean name="studio.crafter.properties" class="java.util.HashMap">
-        <constructor-arg>
+        <constructor-arg index="0">
             <map key-type="java.lang.String" value-type="java.lang.String">
                 <entry key="environment"
                        value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}}"/>

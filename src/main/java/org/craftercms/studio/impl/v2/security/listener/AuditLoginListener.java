@@ -23,6 +23,8 @@ import org.springframework.security.authentication.event.AbstractAuthenticationF
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.beans.ConstructorProperties;
+
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
 
@@ -35,6 +37,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN
 
 public class AuditLoginListener extends AbstractAuditListener {
 
+    @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
     public AuditLoginListener(StudioConfiguration studioConfiguration, SiteService siteService,
                               AuditServiceInternal auditServiceInternal) {
         super(studioConfiguration, siteService, auditServiceInternal);

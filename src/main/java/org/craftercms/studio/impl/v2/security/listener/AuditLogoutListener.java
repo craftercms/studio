@@ -21,6 +21,8 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.LogoutSuccessEvent;
 
+import java.beans.ConstructorProperties;
+
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGOUT;
 
 /**
@@ -31,6 +33,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGOU
  */
 public class AuditLogoutListener extends AbstractAuditListener {
 
+    @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal"})
     public AuditLogoutListener(StudioConfiguration studioConfiguration, SiteService siteService,
                                AuditServiceInternal auditServiceInternal) {
         super(studioConfiguration, siteService, auditServiceInternal);

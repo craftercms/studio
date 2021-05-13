@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -62,6 +63,7 @@ public class WebdavController {
      */
     protected WebDavService webDavService;
 
+    @ConstructorProperties({"webDavService"})
     public WebdavController(final WebDavService webDavService) {
         this.webDavService = webDavService;
     }

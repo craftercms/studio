@@ -135,7 +135,7 @@
                 <bean class="org.springframework.security.web.header.writers.HstsHeaderWriter"/>
                 <bean class="org.springframework.security.web.header.writers.XXssProtectionHeaderWriter"/>
                 <bean class="org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter">
-                    <constructor-arg name="frameOptionsMode" value="SAMEORIGIN"/>
+                    <constructor-arg index="0" value="SAMEORIGIN"/>
                 </bean>
                 <bean class="org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter"/>
             </list>

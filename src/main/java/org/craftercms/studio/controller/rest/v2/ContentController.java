@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.beans.ConstructorProperties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,7 @@ public class ContentController {
     //TODO: Migrate logic to new content service
     private final ClipboardService clipboardService;
 
+    @ConstructorProperties({"contentService", "siteService", "dependencyService", "clipboardService"})
     public ContentController(ContentService contentService, SiteService siteService,
                              DependencyService dependencyService, ClipboardService clipboardService) {
         this.contentService = contentService;

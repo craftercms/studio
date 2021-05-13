@@ -22,6 +22,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Implementation of {@link UserDetailsService} that uses Studio's {@link UserDAO}
  *
@@ -30,6 +32,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  */
 public class DbUserDetailsService extends AbstractCachedUserDetailsService implements UserDetailsService {
 
+    @ConstructorProperties({"userDao", "cache"})
     public DbUserDetailsService(UserDAO userDao, Cache<String, User> cache) {
         super(userDao, cache);
     }

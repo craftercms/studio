@@ -20,7 +20,7 @@ import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
-import javax.sql.DataSource;
+import java.beans.ConstructorProperties;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,8 +39,8 @@ public class ConfigEncryptionUpgradeOperation extends AbstractContentUpgradeOper
 
     protected TextEncryptor textEncryptor;
 
-    public ConfigEncryptionUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource,
-                                            TextEncryptor textEncryptor) {
+    @ConstructorProperties({"studioConfiguration", "textEncryptor"})
+    public ConfigEncryptionUpgradeOperation(StudioConfiguration studioConfiguration, TextEncryptor textEncryptor) {
         super(studioConfiguration);
         this.textEncryptor = textEncryptor;
     }

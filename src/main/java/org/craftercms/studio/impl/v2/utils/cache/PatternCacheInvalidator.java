@@ -20,6 +20,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
+import java.beans.ConstructorProperties;
+
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -43,6 +45,7 @@ public class PatternCacheInvalidator<K extends String, V> implements CacheInvali
      */
     protected String pattern;
 
+    @ConstructorProperties({"pattern"})
     public PatternCacheInvalidator(String pattern) {
         this.pattern = pattern;
     }

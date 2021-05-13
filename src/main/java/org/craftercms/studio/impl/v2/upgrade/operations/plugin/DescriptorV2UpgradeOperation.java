@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.plugin;
 
+import java.beans.ConstructorProperties;
 import java.util.Arrays;
 
 import org.craftercms.commons.plugin.PluginDescriptorReader;
@@ -32,8 +33,6 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
-import javax.sql.DataSource;
-
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
@@ -45,7 +44,8 @@ import static org.craftercms.commons.plugin.model.PluginTypes.BLUEPRINT;
  */
 public class DescriptorV2UpgradeOperation extends AbstractPluginDescriptorUpgradeOperation {
 
-    public DescriptorV2UpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource,
+    @ConstructorProperties({"studioConfiguration", "descriptorReader"})
+    public DescriptorV2UpgradeOperation(StudioConfiguration studioConfiguration,
                                         PluginDescriptorReader descriptorReader) {
         super(studioConfiguration, descriptorReader);
     }

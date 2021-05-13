@@ -24,6 +24,8 @@ import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuc
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.beans.ConstructorProperties;
+
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_ENABLED;
@@ -42,6 +44,7 @@ public class ChainLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 
     protected String ssoLogoutUrl = "/";
 
+    @ConstructorProperties({"studioConfiguration"})
     public ChainLogoutSuccessHandler(StudioConfiguration studioConfiguration) {
         var chainConfig = studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
         chainConfig.stream()

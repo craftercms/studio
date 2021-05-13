@@ -25,6 +25,7 @@ import org.craftercms.commons.config.profiles.aws.AbstractAwsProfileMapper;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderOutput;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderProfile;
 
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,7 @@ public class TranscoderProfileMapper extends AbstractAwsProfileMapper<Transcoder
 
     public static final String SERVICE_NAME = "elasticTranscoder";
 
+    @ConstructorProperties({"resolver"})
     public TranscoderProfileMapper(final ConfigurationResolver resolver) {
         super(SERVICE_NAME, resolver);
     }

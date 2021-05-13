@@ -43,6 +43,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +89,8 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
     protected UserDAO userDao;
     protected GroupDAO groupDao;
 
+    @ConstructorProperties({"studioConfiguration", "siteService", "userServiceInternal", "auditServiceInternal",
+            "userDao", "groupDao"})
     public HeadersAuthenticationProvider(StudioConfiguration studioConfiguration, SiteService siteService,
                                          UserServiceInternal userServiceInternal,
                                          AuditServiceInternal auditServiceInternal, UserDAO userDao,
