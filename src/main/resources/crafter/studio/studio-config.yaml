@@ -220,6 +220,10 @@ studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
 # Format string for the controller script of a content-type
 studio.configuration.contentType.controller.format: '/scripts/$1s/$2.groovy'
 
+# Publishing blacklist configuration, items matching regexes on this list will never be published
+studio.configuration.publishing.blacklist.regex: >-
+  .*/\.keep
+
 ########################################################
 ##                   Import Service                   ##
 ########################################################

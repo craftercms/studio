@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
@@ -215,8 +217,6 @@ public class PublishingManagerImpl implements PublishingManager {
                     return null;
                 }
             } else {
-                // workflowServiceInternal.deleteEntry(workflowEntry.getId());
-
                 if (isLive) {
                     itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
                             PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
@@ -224,6 +224,14 @@ public class PublishingManagerImpl implements PublishingManager {
                 } else {
                     itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
                 }
+            }
+            String blacklistConfig = studioConfiguration.getProperty(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX);
+            if (StringUtils.isNotEmpty(blacklistConfig) &&
+                    ContentUtils.matchesPatterns(item.getPath(), Arrays.asList(StringUtils.split(blacklistConfig, ",")))) {
+                LOGGER.debug("File " + item.getPath() + " of the site " + site + " will not be published because it " +
+                        "matches the configured publishing blacklist regex patterns.");
+                markItemsCompleted(site, item.getEnvironment(), Arrays.asList(item));
+                deploymentItem = null;
             }
         }
         return deploymentItem;
@@ -337,7 +345,9 @@ public class PublishingManagerImpl implements PublishingManager {
                             missingDependenciesPaths.add(dependentPath);
                             PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
                             DeploymentItemTO dependentDeploymentItem = processItem(dependentItem);
-                            mandatoryDependencies.add(dependentDeploymentItem);
+                            if (Objects.nonNull(dependentDeploymentItem)) {
+                                mandatoryDependencies.add(dependentDeploymentItem);
+                            }
                             mandatoryDependencies.addAll(
                                     processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
                         }
