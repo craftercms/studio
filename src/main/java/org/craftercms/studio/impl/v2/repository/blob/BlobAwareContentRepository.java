@@ -46,6 +46,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
@@ -215,6 +216,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         } catch (BlobStoreConfigurationMissingException e) {
             logger.debug("No blob store configuration found for site {0}, writing {1} to local repository", site, path);
             return localRepositoryV1.writeContent(site, path, content);
+        } catch (RepositoryLockedException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Error writing content {0} in site {1}", e, path, site);
             throw new ServiceLayerException(e);
