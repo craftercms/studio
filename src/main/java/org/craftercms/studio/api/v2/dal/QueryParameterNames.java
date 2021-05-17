@@ -240,6 +240,8 @@ public final class  QueryParameterNames {
 
     public static final String PROCESSED = "processed";
 
+    public static final String UNPROCESSED = "unprocessed";
+
     /** Workflow */
     public static final String PUBLISHING_PACKAGE_ID = "publishingPackageId";
 
