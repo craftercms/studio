@@ -966,6 +966,6 @@ studio.scripting.classes.path: /config/studio/plugins/classes
 # The base path for the rest scripts
 studio.scripting.rest.path: /config/studio/plugins/rest
 # Indicates if access to beans should be restricted
-studio.scripting.restrictBeans: true
+studio.scripting.restrictBeans: false
 # List of patterns for bean names that should be accessible for the scripts (regexes separated by commas)
 studio.scripting.allowedBeans: ''
