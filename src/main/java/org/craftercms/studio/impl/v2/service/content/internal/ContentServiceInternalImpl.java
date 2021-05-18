@@ -296,6 +296,17 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return editableMimeTypes.contains(mimeType);
     }
 
+    @Override
+    public void itemUnlockByPath(String siteId, String path) {
+        contentRepository.itemUnlock(siteId, path);
+    }
+
+    @Override
+    public void itemUnlockById(String siteId, long itemId) {
+        Item item = itemDao.getItemById(itemId);
+        contentRepository.itemUnlock(siteId, item.getPath());
+    }
+
     public ContentRepository getContentRepository() {
         return contentRepository;
     }

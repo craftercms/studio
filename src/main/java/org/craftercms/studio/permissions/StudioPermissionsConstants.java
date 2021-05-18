@@ -72,6 +72,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_WRITE_GLOBAL_CONFIGURATION = "write_global_configuration";
     public static final String PERMISSION_LIST_PLUGINS = "list_plugins";
     public static final String PERMISSION_INSTALL_PLUGINS = "install_plugins";
+    public static final String PERMISSION_ITEM_UNLOCK = "item_unlock";
 
     private StudioPermissionsConstants() {
     }

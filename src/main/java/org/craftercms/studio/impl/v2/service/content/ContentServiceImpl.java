@@ -54,6 +54,7 @@ import java.util.List;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -216,6 +217,18 @@ public class ContentServiceImpl implements ContentService {
                                                  List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getSandboxItemsById(siteId, ids, preferContent);
+    }
+
+    @Override
+    public void itemUnlockByPath(String siteId, String path) {
+        contentServiceInternal.itemUnlockByPath(siteId, path);
+        itemServiceInternal.resetStateBits(siteId, path, USER_LOCKED.value);
+    }
+
+    @Override
+    public void itemUnlockById(String siteId, long itemId) {
+        contentServiceInternal.itemUnlockById(siteId, itemId);
+        itemServiceInternal.resetStateBits(itemId, USER_LOCKED.value);
     }
 
     public ContentServiceInternal getContentServiceInternal() {

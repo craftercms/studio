@@ -311,4 +311,12 @@ public interface ContentRepository {
      * @param processed value for processed
      */
     void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed);
+
+    /**
+     * unlock an item
+     *
+     * @param site site id where the operation will be executed
+     * @param path path of the item
+     */
+    void itemUnlock(String site, String path);
 }

@@ -249,6 +249,7 @@
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>item_unlock</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -274,6 +275,7 @@
                 <permission>encryption_tool</permission>
                 <permission>publish_status</permission>
                 <permission>publish_clear_lock</permission>
+                <permission>item_unlock</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -282,6 +284,7 @@
                 <permission>S3 Write</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>item_unlock</permission>
             </allowed-permissions>
         </rule>
     </role>
