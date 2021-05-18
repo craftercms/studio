@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.repository;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;

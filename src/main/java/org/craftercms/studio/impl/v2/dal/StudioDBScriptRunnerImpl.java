@@ -27,6 +27,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
@@ -34,6 +35,30 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
     protected String delimiter;
     protected DataSource dataSource;
+    protected Connection connection = null;
+
+    @Override
+    public void openConnection() {
+        if (Objects.isNull(connection)) {
+            try {
+                connection = dataSource.getConnection();
+            } catch (SQLException throwables) {
+                logger.error("Failed to open connection with DB", throwables);
+            }
+        }
+    }
+
+    @Override
+    public void closeConnection() {
+        if (Objects.isNull(connection)) {
+            try {
+                connection.close();
+            } catch (SQLException throwables) {
+                logger.error("Failed to close connection with DB", throwables);
+            }
+            connection = null;
+        }
+    }
 
     @Override
     public void execute(String sql) {
