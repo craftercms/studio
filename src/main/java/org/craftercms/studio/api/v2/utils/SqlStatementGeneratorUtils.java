@@ -51,9 +51,9 @@ public final class SqlStatementGeneratorUtils {
                     " state = state | #{onStatesBitMap} &amp; ~#{offStatesBitMap}," +
                     " last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', label = '#{label}', content_type_id = '#{contentTypeId}'," +
-                    " system_type = '#{systemType}', mime_type = '#{mimeType}', disabled = #{disabled}, size = #{size}," +
-                    " commit_id = '#{commitId}', ignored = #{ignoredAsInt} WHERE site_id = #{siteId} and" +
-                    " path = '#{path}' ;";
+                    " system_type = '#{systemType}', mime_type = '#{mimeType}', disabled = #{disabledAsInt}," +
+                    " size = #{size}, commit_id = '#{commitId}', ignored = #{ignoredAsInt} WHERE site_id = #{siteId} " +
+                    " and path = '#{path}' ;";
 
     public static final String ITEM_DELETE =
             "DELETE FROM item WHERE site_id = #{siteId} and path = #{path} ;";
@@ -145,19 +145,26 @@ public final class SqlStatementGeneratorUtils {
         }
         String sql = StringUtils.replace(ITEM_UPDATE, "#{siteId}", Long.toString(siteId));
         sql = StringUtils.replace(sql,"#{path}", StringUtils.replace(path, "'", "''"));
-        sql = StringUtils.replace(sql,"#{previewUrl}", StringUtils.replace(previewUrl, "'", "''"));
+        if (StringUtils.isEmpty(previewUrl)) {
+            sql = StringUtils.replace(sql, "'#{previewUrl}'", "NULL");
+        } else {
+            sql = StringUtils.replace(sql, "#{previewUrl}", StringUtils.replace(previewUrl, "'", "''"));
+        }
         sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(SAVE_AND_CLOSE_ON_MASK));
         sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(SAVE_AND_CLOSE_OFF_MASK));
         sql = StringUtils.replace(sql,"#{lastModifiedBy}", Objects.isNull(lastModifiedBy) ? "NULL" :
                 Long.toString(lastModifiedBy));
         sql = StringUtils.replace(sql, "#{lastModifiedOn}", sqlTsLastModified.toString());
         sql = StringUtils.replace(sql,"#{label}", StringUtils.replace(label, "'", "''"));
-        sql = StringUtils.replace(sql,"#{contentTypeId}", StringUtils.replace(contentTypeId, "'", "''"));
+        sql = StringUtils.replace(sql,"#{contentTypeId}", Objects.isNull(contentTypeId) ?
+                "NULL" : StringUtils.replace(contentTypeId, "'", "''"));
         sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
-        sql = StringUtils.replace(sql,"#{mimeType}", StringUtils.replace(mimeType, "'", "''"));
+        sql = StringUtils.replace(sql,"#{mimeType}", Objects.isNull(mimeType) ?
+                "NULL" : StringUtils.replace(mimeType, "'", "''"));
         sql = StringUtils.replace(sql,"#{disabledAsInt}", Integer.toString(disabledAsInt));
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
-        sql = StringUtils.replace(sql,"#{commitId}", StringUtils.replace(commitId, "'", "''"));
+        sql = StringUtils.replace(sql,"#{commitId}", Objects.isNull(commitId) ?
+                "NULL" : StringUtils.replace(commitId, "'", "''"));
         sql = StringUtils.replace(sql,"#{ignoredAsInt}", Integer.toString(ignoredAsInt));
         return sql;
     }
