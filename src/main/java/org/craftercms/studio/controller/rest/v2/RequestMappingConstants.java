@@ -81,6 +81,7 @@ public final class RequestMappingConstants {
     public static final String DIFF_CONFLICTED_FILE = "/diff_conflicted_file";
     public static final String COMMIT_RESOLUTION = "/commit_resolution";
     public static final String CANCEL_FAILED_PULL = "/cancel_failed_pull";
+    public static final String UNLOCK = "/unlock";
 
     /** Audit controller */
     public static final String AUDIT = "/audit";

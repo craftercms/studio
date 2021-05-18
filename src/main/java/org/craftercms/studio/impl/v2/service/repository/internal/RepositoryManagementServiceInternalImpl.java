@@ -18,10 +18,12 @@ package org.craftercms.studio.impl.v2.service.repository.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
@@ -87,6 +89,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -105,6 +108,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
 
 public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal {
 
@@ -743,6 +747,16 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             generalLockService.unlock(gitLockKey);
         }
         return true;
+    }
+
+    @Override
+    public boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException {
+        boolean toRet = false;
+        Repository repo = gitRepositoryHelper.getRepository(siteId, repositoryType);
+        if (Objects.nonNull(repo)) {
+            toRet = FileUtils.deleteQuietly(Paths.get(repo.getDirectory().getAbsolutePath(), LOCK_FILE).toFile());
+        }
+        return toRet;
     }
 
     private boolean conflictNotificationEnabled() {

@@ -313,6 +313,14 @@ public interface ContentRepository {
     void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed);
 
     /**
+     * Get the previous commit id from repository for given a site id and a commit id
+     * @param siteId site identifier
+     * @param commitId commit Id
+     * @return
+     */
+    String getPreviousCommitId(String siteId, String commitId);
+
+    /**
      * unlock an item
      *
      * @param site site id where the operation will be executed

@@ -49,6 +49,8 @@ public interface SecurityService {
 
     Set<String> getUserRoles(String site, String user);
 
+    Set<String> getUserRoles(String site, String user, boolean includeGlobal);
+
     Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
     /**

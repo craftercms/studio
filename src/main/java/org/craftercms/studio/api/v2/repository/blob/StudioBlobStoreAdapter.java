@@ -356,6 +356,11 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
+    default String getPreviousCommitId(String siteId, String commitId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     default void itemUnlock(String site, String path) {
         throw new UnsupportedOperationException();
     }

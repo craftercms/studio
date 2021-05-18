@@ -80,6 +80,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
@@ -358,6 +359,14 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
+        return getUserRoles(site, user, false);
+    }
+
+
+    @Override
+    @ValidateParams
+    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
+                                    @ValidateStringParam(name = "user") String user, boolean includeGlobal) {
         try {
             // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
             // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
@@ -385,6 +394,12 @@ public class SecurityServiceImpl implements SecurityService {
                             }
                         }
                     }
+                }
+                if (includeGlobal) {
+                    PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
+                    addGlobalUserRoles(user, userRoles, globalRolesConfig);
+                    List<String> groupNames = groups.stream().map(x -> x.getGroupName()).collect(Collectors.toList());
+                    addGlobalGroupRoles(userRoles, groupNames, globalRolesConfig);
                 }
                 return userRoles;
             } else {
