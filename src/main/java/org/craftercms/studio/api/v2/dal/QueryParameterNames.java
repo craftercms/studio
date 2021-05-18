@@ -231,6 +231,10 @@ public final class  QueryParameterNames {
 
     public static final String SCRIPT_PATH = "scriptPath";
 
+    public static final String LOCKED_BIT_ON = "lockedBitOn";
+
+    public static final String LOCKED_BIT_OFF = "lockedBitOff";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids

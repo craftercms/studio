@@ -42,9 +42,9 @@
         <xsl:copy>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates/>
-            <xsl:if test="not(permission = 'unlock_repository')">
+            <xsl:if test="not(permission = 'item_unlock')">
                 <xsl:element name="permission">
-                    <xsl:text>unlock_repository</xsl:text>
+                    <xsl:text>item_unlock</xsl:text>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
@@ -56,9 +56,23 @@
         <xsl:copy>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates/>
-            <xsl:if test="not(permission = 'unlock_repository')">
+            <xsl:if test="not(permission = 'item_unlock')">
                 <xsl:element name="permission">
-                    <xsl:text>unlock_repository</xsl:text>
+                    <xsl:text>item_unlock</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template
+            match="permissions/role[@name='admin']/rule[@regex='.*']/allowed-permissions">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates/>
+            <xsl:if test="not(permission = 'item_unlock')">
+                <xsl:element name="permission">
+                    <xsl:text>item_unlock</xsl:text>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>

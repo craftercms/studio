@@ -38,6 +38,9 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIP
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIKE_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCKED_BIT_OFF;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCKED_BIT_ON;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
@@ -511,4 +514,37 @@ public interface ItemDAO {
     List<Item> getContentTypeUsages(@Param(SITE_ID) String siteId, @Param(CONTENT_TYPE) String contentType,
                                     @Param(SCRIPT_PATH) String scriptPath);
 
+    /**
+     * Lock item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     */
+    void lockItemByPath(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(LOCK_OWNER_ID) long lockOwnerId,
+                        @Param(LOCKED_BIT_ON) long lockedBitOn);
+
+    /**
+     * Lock item
+     * @param siteId site identifier
+     * @param path path of the item
+     * @param lockedBitOff state bit mask with LOCKED bit off
+     */
+    void unlockItemByPath(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(LOCKED_BIT_OFF) long lockedBitOff);
+
+    /**
+     * Lock item
+     * @param itemId item identifier
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     */
+    void lockItemById(@Param(ID) Long itemId, @Param(LOCK_OWNER_ID) long lockOwnerId,
+                      @Param(LOCKED_BIT_ON) long lockedBitOn);
+
+    /**
+     * Lock item
+     * @param itemId item identifier
+     * @param lockedBitOff state bit mask with LOCKED bit off
+     */
+    void unlockItemById(@Param(ID) Long itemId, @Param(LOCKED_BIT_OFF) long lockedBitOff);
 }

@@ -222,13 +222,13 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void itemUnlockByPath(String siteId, String path) {
         contentServiceInternal.itemUnlockByPath(siteId, path);
-        itemServiceInternal.resetStateBits(siteId, path, USER_LOCKED.value);
+        itemServiceInternal.unlockItemByPath(siteId, path);
     }
 
     @Override
     public void itemUnlockById(String siteId, long itemId) {
         contentServiceInternal.itemUnlockById(siteId, itemId);
-        itemServiceInternal.resetStateBits(itemId, USER_LOCKED.value);
+        itemServiceInternal.unlockItemById(itemId);
     }
 
     public ContentServiceInternal getContentServiceInternal() {
