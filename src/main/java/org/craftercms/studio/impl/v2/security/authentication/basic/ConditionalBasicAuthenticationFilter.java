@@ -23,6 +23,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 
 /**
@@ -35,11 +36,13 @@ public class ConditionalBasicAuthenticationFilter extends BasicAuthenticationFil
 
     protected boolean enabled;
 
+    @ConstructorProperties({"authenticationManager", "enabled"})
     public ConditionalBasicAuthenticationFilter(AuthenticationManager authenticationManager, boolean enabled) {
         super(authenticationManager);
         this.enabled = enabled;
     }
 
+    @ConstructorProperties({"authenticationManager", "authenticationEntryPoint", "enabled"})
     public ConditionalBasicAuthenticationFilter(AuthenticationManager authenticationManager,
                                                 AuthenticationEntryPoint authenticationEntryPoint, boolean enabled) {
         super(authenticationManager, authenticationEntryPoint);

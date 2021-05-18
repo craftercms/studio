@@ -36,6 +36,8 @@ import org.springframework.web.servlet.HandlerMapping;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.beans.ConstructorProperties;
+
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
@@ -51,6 +53,7 @@ public class PluginController extends ManagementTokenAware {
 
     protected final ScriptingService scriptingService;
 
+    @ConstructorProperties({"studioConfiguration", "securityService", "scriptingService"})
     public PluginController(StudioConfiguration studioConfiguration, SecurityService securityService,
                             ScriptingService scriptingService) {
         super(studioConfiguration, securityService);

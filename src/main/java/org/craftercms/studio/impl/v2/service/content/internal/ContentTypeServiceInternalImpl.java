@@ -36,6 +36,7 @@ import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
 
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,6 +67,9 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final String controllerPattern;
     protected final String controllerFormat;
 
+    @ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
+            "contentService", "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename",
+            "templateXPath", "controllerPattern", "controllerFormat"})
     public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
                                           ConfigurationService configurationService, ItemDAO itemDao,
                                           ContentService contentService, SiteService siteService,

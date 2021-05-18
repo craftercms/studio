@@ -44,6 +44,7 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
+import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -87,6 +88,8 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
     private ContentService contentService;
     private GitRepositoryHelper gitRepositoryHelper;
 
+    @ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator", "itemServiceInternal",
+            "contentService", "gitRepositoryHelper"})
     public PopulateItemTableUpgradeOperation(StudioConfiguration studioConfiguration,
                                              String scriptFolder,
                                              DbIntegrityValidator integrityValidator,

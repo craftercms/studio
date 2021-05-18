@@ -21,6 +21,7 @@ import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
+import java.beans.ConstructorProperties;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -34,6 +35,7 @@ public class OrRegexRequestMatcher implements RequestMatcher {
 
     protected RequestMatcher requestMatcher;
 
+    @ConstructorProperties({"patterns"})
     public OrRegexRequestMatcher(String... patterns) {
         requestMatcher = new OrRequestMatcher(
                 Stream.of(patterns)

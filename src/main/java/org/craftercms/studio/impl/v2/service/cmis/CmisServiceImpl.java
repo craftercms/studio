@@ -58,6 +58,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
@@ -114,6 +115,7 @@ public class CmisServiceImpl implements CmisService {
     protected ContentService contentService;
     protected ConfigurationService configurationService;
 
+    @ConstructorProperties({"studioConfiguration", "contentService", "configurationService"})
     public CmisServiceImpl(StudioConfiguration studioConfiguration, ContentService contentService,
                            ConfigurationService configurationService) {
         this.studioConfiguration = studioConfiguration;

@@ -24,8 +24,8 @@
     -->
 
     <bean id="contextManager" class="org.craftercms.studio.impl.v2.core.ContextManagerImpl">
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="crafter.contentStoreService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
 
 </beans>

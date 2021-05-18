@@ -24,6 +24,8 @@ import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfileMapper;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 
+import java.beans.ConstructorProperties;
+
 import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
@@ -57,6 +59,7 @@ public class MediaConvertProfileMapper extends AbstractAwsProfileMapper<MediaCon
     public static final String CONFIG_KEY_TEMPLATE = "template";
     public static final String CONFIG_KEY_INPUT_PATH = "inputPath";
 
+    @ConstructorProperties({"resolver"})
     public MediaConvertProfileMapper(final ConfigurationResolver resolver) {
         super(CONFIG_KEY_MEDIACONVERT, resolver);
     }

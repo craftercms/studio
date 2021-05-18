@@ -20,7 +20,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="elasticsearchClient" class="org.craftercms.search.elasticsearch.spring.ElasticsearchClientFactory">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
+        <constructor-arg name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
         <property name="username" value="#{studioConfiguration.getProperty('studio.search.username')}"/>
         <property name="password" value="#{studioConfiguration.getProperty('studio.search.password')}"/>
         <property name="connectTimeout" value="#{studioConfiguration.getProperty('studio.search.timeout.connect')}"/>
@@ -30,9 +30,9 @@
     </bean>
 
     <bean id="elasticsearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
-        <constructor-arg ref="elasticsearchClient"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
+        <constructor-arg name="client" ref="elasticsearchClient"/>
+        <constructor-arg name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
+        <constructor-arg name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
     </bean>
 
     <bean id="searchServiceInternal" init-method="init"

@@ -22,6 +22,8 @@ import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Default implementation for {@link ContentTypeService}
  *
@@ -32,6 +34,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     protected final ContentTypeServiceInternal contentTypeServiceInternal;
 
+    @ConstructorProperties({"contentTypeServiceInternal"})
     public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal) {
         this.contentTypeServiceInternal = contentTypeServiceInternal;
     }

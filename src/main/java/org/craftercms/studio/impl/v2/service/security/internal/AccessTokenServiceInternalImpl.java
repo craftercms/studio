@@ -49,6 +49,7 @@ import org.springframework.web.util.CookieGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.beans.ConstructorProperties;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
@@ -122,6 +123,9 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
 
+    @ConstructorProperties({"issuer", "validIssuers", "accessTokenExpiration", "signPassword", "encryptPassword",
+            "refreshTokenExpiration", "securityDao", "instanceService", "auditService", "studioConfiguration",
+            "siteService"})
     public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
                                           String signPassword, String encryptPassword, int refreshTokenExpiration,
                                           SecurityDAO securityDao, InstanceService instanceService,

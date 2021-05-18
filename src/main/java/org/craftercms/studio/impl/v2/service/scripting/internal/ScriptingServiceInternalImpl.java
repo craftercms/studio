@@ -32,6 +32,7 @@ import org.springframework.context.ApplicationContextAware;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.beans.ConstructorProperties;
 
 /**
  * Default implementation of {@link ScriptingServiceInternal}
@@ -68,6 +69,8 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
 
     protected ApplicationContextAccessor applicationContextAccessor;
 
+    @ConstructorProperties({"scriptEngineManager", "sandboxInterceptor", "scriptExtension", "scriptPathFormat",
+            "enableVariableRestrictions", "allowedBeans"})
     public ScriptingServiceInternalImpl(ScriptEngineManager scriptEngineManager, SandboxInterceptor sandboxInterceptor,
                                         String scriptExtension, String scriptPathFormat,
                                         boolean enableVariableRestrictions, String[] allowedBeans) {

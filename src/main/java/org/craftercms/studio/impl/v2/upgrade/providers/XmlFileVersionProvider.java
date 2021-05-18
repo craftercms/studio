@@ -31,6 +31,7 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
+import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -65,6 +66,7 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
 
     protected ContentRepository contentRepository;
 
+    @ConstructorProperties({"path", "xpath", "defaultVersion", "contentRepository"})
     public XmlFileVersionProvider(String path, String xpath, String defaultVersion,
                                   ContentRepository contentRepository) {
         this.path = path;

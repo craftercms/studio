@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import java.beans.ConstructorProperties;
 import java.io.InputStream;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -61,6 +62,7 @@ public class ConfigurationController {
     private final StudioConfiguration studioConfiguration;
     private final ContentTypeService contentTypeService;
 
+    @ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService"})
     public ConfigurationController(ConfigurationService configurationService, StudioConfiguration studioConfiguration,
                                    ContentTypeService contentTypeService) {
         this.configurationService = configurationService;

@@ -296,7 +296,7 @@
 
     <bean id="availableActionsCacheInvalidator"
           class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
-        <constructor-arg>
+        <constructor-arg name="patterns">
             <list>
                 <!-- Configuration from global repo -->
                 <value>.+configuration/global-permission\-mappings\-config\.xml</value>
@@ -307,52 +307,52 @@
                 <value>.+config/studio/role\-mappings\-config\.xml</value>
             </list>
         </constructor-arg>
-        <constructor-arg>
+        <constructor-arg name="actualCacheInvalidator">
             <bean class="org.craftercms.studio.impl.v2.utils.cache.PatternCacheInvalidator">
-                <constructor-arg value=".+available-actions"/>
+                <constructor-arg name="pattern" value=".+available-actions"/>
             </bean>
         </constructor-arg>
     </bean>
 
     <bean id="userPermissionsCacheInvalidator"
           class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
-        <constructor-arg>
+        <constructor-arg name="patterns">
             <list>
                 <value>.+config/studio/permission\-mappings\-config\.xml</value>
                 <value>.+config/studio/role\-mappings\-config\.xml</value>
             </list>
         </constructor-arg>
-        <constructor-arg>
+        <constructor-arg name="actualCacheInvalidator">
             <bean class="org.craftercms.studio.impl.v2.utils.cache.PatternCacheInvalidator">
-                <constructor-arg value=".+user-permissions.+"/>
+                <constructor-arg name="pattern" value=".+user-permissions.+"/>
             </bean>
         </constructor-arg>
     </bean>
 
     <bean id="blobStoreCacheInvalidator"
           class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
-        <constructor-arg>
+        <constructor-arg name="patterns">
             <list>
                 <value>.+config/studio/blob\-stores\-config\.xml</value>
             </list>
         </constructor-arg>
-        <constructor-arg>
+        <constructor-arg name="actualCacheInvalidator">
             <bean class="org.craftercms.studio.impl.v2.utils.cache.PatternCacheInvalidator">
-                <constructor-arg value=".+blob-store.+"/>
+                <constructor-arg name="pattern" value=".+blob-store.+"/>
             </bean>
         </constructor-arg>
     </bean>
 
     <bean id="commonsCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.SuffixCacheInvalidator">
-        <constructor-arg value="commons"/>
+        <constructor-arg name="suffix" value="commons"/>
     </bean>
 
     <bean id="objectCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.SuffixCacheInvalidator">
-        <constructor-arg value="object"/>
+        <constructor-arg name="suffix" value="object"/>
     </bean>
 
     <bean id="mapCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.SuffixCacheInvalidator">
-        <constructor-arg value="map"/>
+        <constructor-arg name="suffix" value="map"/>
     </bean>
 
     <util:list id="configurationCacheInvalidators">
@@ -422,12 +422,12 @@
 
     <bean id="userServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
-        <constructor-arg ref="groupServiceInternal"/>
-        <constructor-arg ref="userDAO"/>
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="cstudioSecurityService"/>
-        <constructor-arg ref="accessTokenServiceInternal"/>
+        <constructor-arg name="groupServiceInternal" ref="groupServiceInternal"/>
+        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
     </bean>
 
     <bean id="organizationServiceInternal"
@@ -495,9 +495,9 @@
     </bean>
 
     <bean id="cmisService" class="org.craftercms.studio.impl.v2.service.cmis.CmisServiceImpl">
-        <constructor-arg ref="cstudioContentService"/>
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="configurationService"/>
+        <constructor-arg name="cstudioContentService" ref="cstudioContentService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
     </bean>
 
     <bean id="repositoryManagementService"
@@ -548,12 +548,12 @@
 
     <bean id="contentTypeServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl" >
-        <constructor-arg ref="cstudioContentTypeService" />
-        <constructor-arg ref="cstudioSecurityService" />
-        <constructor-arg ref="configurationService"/>
-        <constructor-arg ref="itemDao"/>
-        <constructor-arg ref="contentService"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="cstudioContentTypeService" ref="cstudioContentTypeService" />
+        <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService" />
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="itemDao" ref="itemDao"/>
+        <constructor-arg name="contentService" ref="contentService"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="contentTypeBasePathPattern"
                          value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
         <constructor-arg name="contentTypeDefinitionFilename"
@@ -567,7 +567,7 @@
      </bean>
 
     <bean id="contentTypeService" class="org.craftercms.studio.impl.v2.service.content.ContentTypeServiceImpl">
-        <constructor-arg ref="contentTypeServiceInternal"/>
+        <constructor-arg name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
     </bean>
     
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
@@ -913,7 +913,7 @@
     <!-- ////////////////////////////////////// -->
 
     <bean id="crafter.publishingTargetResolver" class="org.craftercms.commons.config.FixedPublishingTargetResolver">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.blob.publishingTarget')}"/>
+        <constructor-arg name="target" value="#{studioConfiguration.getProperty('studio.blob.publishingTarget')}"/>
     </bean>
 
     <!-- Workaround for cyclic dependency issue (using the same bean name as core will mess the init order -->
@@ -1062,12 +1062,12 @@
     <bean id="cstudioAssetContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioCheckImageSizeProcessor"></ref>
-                <ref bean="cstudioAssetDmContentProcessor"></ref>
-                <ref bean="cstudioExtractAssetDependencyProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioCheckImageSizeProcessor"/>
+                <ref bean="cstudioAssetDmContentProcessor"/>
+                <ref bean="cstudioExtractAssetDependencyProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
             </list>
         </property>
     </bean>
@@ -1075,12 +1075,12 @@
     <bean id="cstudioAssetCleanContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioCheckImageSizeProcessor"></ref>
-                <ref bean="cstudioAssetDmContentProcessor"></ref>
-                <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioCheckImageSizeProcessor"/>
+                <ref bean="cstudioAssetDmContentProcessor"/>
+                <ref bean="cstudioCleanPreviewContentProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
             </list>
         </property>
     </bean>
@@ -1088,8 +1088,8 @@
     <bean id="cstudioPlainContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioFormDmContentProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioFormDmContentProcessor"/>
             </list>
         </property>
     </bean>
@@ -1097,17 +1097,17 @@
     <bean id="cstudioFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioExtractParamsProcessor"></ref>
-                <ref bean="cstudioFormNavOrderProcessor"></ref>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioCleanWorkContentProcessor"></ref>
-                <ref bean="cstudioFormDmContentProcessor"></ref>
-                <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioDmWorkflowProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioContentLifeCycleProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
+                <ref bean="cstudioExtractParamsProcessor"/>
+                <ref bean="cstudioFormNavOrderProcessor"/>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioCleanWorkContentProcessor"/>
+                <ref bean="cstudioFormDmContentProcessor"/>
+                <ref bean="cstudioCleanPreviewContentProcessor"/>
+                <ref bean="cstudioDmWorkflowProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioContentLifeCycleProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
+                <ref bean="cstudioExtractDependencyProcessor"/>
             </list>
         </property>
     </bean>
@@ -1115,8 +1115,8 @@
     <bean id="cstudioPreviewFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioExtractParamsProcessor"></ref>
-                <ref bean="cstudioFormDmContentProcessor"></ref>
+                <ref bean="cstudioExtractParamsProcessor"/>
+                <ref bean="cstudioFormDmContentProcessor"/>
             </list>
         </property>
     </bean>
@@ -1124,13 +1124,13 @@
     <bean id="cstudioImportContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
         <property name="chain">
             <list>
-                <ref bean="cstudioExtractParamsProcessor"></ref>
-                <ref bean="cstudioFormNavOrderProcessor"></ref>
-                <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioPostActivityProcessor"></ref>
-                <ref bean="cstudioContentLifeCycleProcessor"></ref>
-                <ref bean="cstudioInvalidateCacheProcessor"></ref>
-                <ref bean="cstudioExtractDependencyProcessor"></ref>
+                <ref bean="cstudioExtractParamsProcessor"/>
+                <ref bean="cstudioFormNavOrderProcessor"/>
+                <ref bean="cstudioFileFolderPathProcessor"/>
+                <ref bean="cstudioPostActivityProcessor"/>
+                <ref bean="cstudioContentLifeCycleProcessor"/>
+                <ref bean="cstudioInvalidateCacheProcessor"/>
+                <ref bean="cstudioExtractDependencyProcessor"/>
             </list>
         </property>
     </bean>
@@ -1270,13 +1270,13 @@
     <!-- ////////////////////////////////////// -->
 
     <bean id="crafter.configurationResolver" class="org.craftercms.commons.config.ConfigurationResolverImpl">
-        <constructor-arg
+        <constructor-arg name="environment"
                 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}"/>
-        <constructor-arg
+        <constructor-arg name="basePath"
                 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)}"/>
-        <constructor-arg
+        <constructor-arg name="envPath"
                 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)}"/>
-        <constructor-arg ref="crafter.configurationReader"/>
+        <constructor-arg name="configurationReader" ref="crafter.configurationReader"/>
     </bean>
 
     <bean id="studioTranscoderProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
@@ -1286,7 +1286,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper">
-                <constructor-arg ref="crafter.configurationResolver"/>
+                <constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
@@ -1299,7 +1299,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertProfileMapper">
-                <constructor-arg ref="crafter.configurationResolver"/>
+                <constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
@@ -1364,7 +1364,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper">
-                <constructor-arg ref="crafter.configurationResolver"/>
+                <constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
@@ -1384,7 +1384,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMapper">
-                <constructor-arg ref="crafter.configurationResolver"/>
+                <constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
             </bean>
         </property>
         <property name="contentService" ref="cstudioContentService"/>
@@ -1401,7 +1401,8 @@
     </bean>
 
     <!-- Utilities -->
-    <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
+    <bean id="studioApplicationContextProvider"
+          class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"/>
 
     <bean id="studioRebuildRepositoryMetadata" class="org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata">
         <property name="contentService" ref="cstudioContentService"/>
@@ -1434,8 +1435,8 @@
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
           init-method="init"  depends-on="cstudioLogProvider">
-        <constructor-arg ref="configurationCache"/>
-        <constructor-arg value="crafter/studio/studio-config.yaml"/>
+        <constructor-arg name="configurationCache" ref="configurationCache"/>
+        <constructor-arg name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
     <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
@@ -1454,13 +1455,13 @@
     <!-- ////////////////////////////////////// -->
 
     <bean id="studioImageMagickTransformer" class="org.craftercms.studio.impl.v1.asset.processing.ImageTransformingProcessor">
-        <constructor-arg>
+        <constructor-arg name="transformer">
             <bean class="org.craftercms.studio.impl.v1.image.transformation.ImageMagickTransformer"/>
         </constructor-arg>
     </bean>
 
     <bean id="studioTinifyTransformer" class="org.craftercms.studio.impl.v1.asset.processing.ImageTransformingProcessor">
-        <constructor-arg>
+        <constructor-arg name="transformer">
             <bean class="org.craftercms.studio.impl.v1.image.transformation.TinifyTransformer">
                 <property name="apiKey"
                           value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ASSET_PROCESSING_TINIFY_API_KEY)}"/>
@@ -1502,7 +1503,7 @@
           class="org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl">
         <constructor-arg name="instanceService" ref="instanceService"/>
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
-        <constructor-arg name="siteServiceInternal" ref="sitesServiceInternal"/>
+        <constructor-arg name="sitesServiceInternal" ref="sitesServiceInternal"/>
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="pluginDescriptorReader" ref="pluginDescriptorReader"/>
@@ -1522,7 +1523,7 @@
 
     <bean id="marketplaceService"
           class="org.craftercms.studio.impl.v2.service.marketplace.MarketplaceServiceImpl">
-        <constructor-arg ref="marketplaceServiceInternal"/>
+        <constructor-arg name="marketplaceServiceInternal" ref="marketplaceServiceInternal"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1530,13 +1531,13 @@
     <!-- ////////////////////////////////////// -->
 
     <bean id="internalTextEncryptor" class="org.craftercms.commons.crypto.impl.PbkAesTextEncryptor">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.cipher.salt')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.cipher.key')}"/>
+        <constructor-arg name="salt" value="#{studioConfiguration.getProperty('studio.security.cipher.salt')}"/>
+        <constructor-arg name="password" value="#{studioConfiguration.getProperty('studio.security.cipher.key')}"/>
     </bean>
 
     <bean id="crafter.textEncryptor" class="org.craftercms.commons.crypto.impl.PbkAesTextEncryptor">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.key')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.encryption.salt')}"/>
+        <constructor-arg name="password" value="#{studioConfiguration.getProperty('studio.security.encryption.key')}"/>
+        <constructor-arg name="salt" value="#{studioConfiguration.getProperty('studio.security.encryption.salt')}"/>
     </bean>
 
     <bean id="encryptionServiceInternal"
@@ -1551,11 +1552,11 @@
     </bean>
 
     <bean id="cloudfrontForwardedHeaderFilter" class="org.craftercms.commons.web.CloudfrontForwardedHeaderFilter">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
+        <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
     </bean>
 
     <bean id="forwardedHeaderFilter" class="org.craftercms.commons.web.ForwardedHeaderFilter">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
+        <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
     </bean>
 
     <util:list id="sitePolicyValidators">
@@ -1567,26 +1568,29 @@
 
     <bean id="systemPolicyValidator"
           class="org.craftercms.studio.impl.v2.service.policy.validators.SystemPolicyValidator">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.content.filename.maxSize')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.content.fullPath.maxSize')}"/>
+        <constructor-arg name="filenameMaxSize"
+                         value="#{studioConfiguration.getProperty('studio.content.filename.maxSize')}"/>
+        <constructor-arg name="fullPathMaxSize"
+                         value="#{studioConfiguration.getProperty('studio.content.fullPath.maxSize')}"/>
     </bean>
 
     <bean id="policyServiceInternal"
           class="org.craftercms.studio.impl.v2.service.policy.internal.PolicyServiceInternalImpl">
-        <constructor-arg ref="contentRepository"/>
-        <constructor-arg ref="contentRepository"/>
-        <constructor-arg ref="configurationService"/>
-        <constructor-arg ref="systemPolicyValidator"/>
-        <constructor-arg ref="sitePolicyValidators"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.content.policy.config.path')}"/>
+        <constructor-arg name="contentRepository" ref="contentRepository"/>
+        <constructor-arg name="contentRepositoryV2" ref="contentRepository"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="systemPolicyValidator" ref="systemPolicyValidator"/>
+        <constructor-arg name="sitePolicyValidators" ref="sitePolicyValidators"/>
+        <constructor-arg name="configPath"
+                         value="#{studioConfiguration.getProperty('studio.content.policy.config.path')}"/>
     </bean>
 
     <bean id="policyService" class="org.craftercms.studio.impl.v2.service.policy.PolicyServiceImpl">
-        <constructor-arg ref="policyServiceInternal"/>
+        <constructor-arg name="policyServiceInternal" ref="policyServiceInternal"/>
     </bean>
 
     <bean id="sitePolicyInterceptor" class="org.craftercms.studio.api.v2.annotation.policy.SitePolicyAspect">
-        <constructor-arg ref="policyService"/>
+        <constructor-arg name="policyService" ref="policyService"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1594,31 +1598,41 @@
     <!-- ////////////////////////////////////// -->
 
     <bean id="scriptingService" class="org.craftercms.studio.impl.v2.service.scripting.ScriptingServiceImpl">
-        <constructor-arg ref="scriptingServiceInternal"/>
+        <constructor-arg name="scriptingServiceInternal" ref="scriptingServiceInternal"/>
     </bean>
 
     <bean id="scriptingServiceInternal"
           class="org.craftercms.studio.impl.v2.service.scripting.internal.ScriptingServiceInternalImpl">
-        <constructor-arg ref="scriptEngineManager"/>
-        <constructor-arg ref="sandboxInterceptor"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.path.format')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.restrictBeans')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.allowedBeans')}"/>
+        <constructor-arg name="scriptEngineManager" ref="scriptEngineManager"/>
+        <constructor-arg name="sandboxInterceptor" ref="sandboxInterceptor"/>
+        <constructor-arg name="scriptExtension"
+                         value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
+        <constructor-arg name="scriptPathFormat"
+                         value="#{studioConfiguration.getProperty('studio.scripting.script.path.format')}"/>
+        <constructor-arg name="enableVariableRestrictions"
+                         value="#{studioConfiguration.getProperty('studio.scripting.restrictBeans')}"/>
+        <constructor-arg name="allowedBeans"
+                         value="#{studioConfiguration.getProperty('studio.scripting.allowedBeans')}"/>
     </bean>
 
     <bean id="scriptEngineManager" class="org.craftercms.studio.impl.v2.scripting.ScriptEngineManagerImpl">
-        <constructor-arg ref="contextManager"/>
-        <constructor-arg ref="crafter.contentStoreService"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.classes.path')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.rest.path')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
+        <constructor-arg name="contextManager" ref="contextManager"/>
+        <constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
+        <constructor-arg name="sandboxEnabled"
+                         value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
+        <constructor-arg name="classesBasePath"
+                         value="#{studioConfiguration.getProperty('studio.scripting.classes.path')}"/>
+        <constructor-arg name="restBasePath"
+                         value="#{studioConfiguration.getProperty('studio.scripting.rest.path')}"/>
+        <constructor-arg name="scriptExtension"
+                         value="#{studioConfiguration.getProperty('studio.scripting.script.extension')}"/>
     </bean>
 
     <bean id="sandboxInterceptor" class="org.craftercms.commons.spring.groovy.SandboxInterceptorFactory">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist')}"/>
+        <constructor-arg name="sandboxEnabled"
+                         value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
+        <constructor-arg name="blacklist"
+                         value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist')}"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1626,18 +1640,22 @@
     <!-- ////////////////////////////////////// -->
     <bean id="accessTokenServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.AccessTokenServiceInternalImpl">
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.issuer')}"/>
-        <constructor-arg
-                value="#{studioConfiguration.getArray('studio.security.token.validIssuers', T(java.lang.String))}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.timeout')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.password.sign')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.token.password.encrypt')}"/>
-        <constructor-arg value="#{studioConfiguration.getProperty('studio.security.sessionTimeout')}"/>
-        <constructor-arg ref="securityMapper"/>
-        <constructor-arg ref="instanceService"/>
-        <constructor-arg ref="auditServiceInternal"/>
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="issuer" value="#{studioConfiguration.getProperty('studio.security.token.issuer')}"/>
+        <constructor-arg name="validIssuers"
+                         value="#{studioConfiguration.getArray('studio.security.token.validIssuers', T(java.lang.String))}"/>
+        <constructor-arg name="accessTokenExpiration"
+                         value="#{studioConfiguration.getProperty('studio.security.token.timeout')}"/>
+        <constructor-arg name="signPassword"
+                         value="#{studioConfiguration.getProperty('studio.security.token.password.sign')}"/>
+        <constructor-arg name="encryptPassword"
+                         value="#{studioConfiguration.getProperty('studio.security.token.password.encrypt')}"/>
+        <constructor-arg name="refreshTokenExpiration"
+                         value="#{studioConfiguration.getProperty('studio.security.sessionTimeout')}"/>
+        <constructor-arg name="securityMapper" ref="securityMapper"/>
+        <constructor-arg name="instanceService" ref="instanceService"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <property name="cookieName" value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
         <property name="cookieMaxAge"
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>
@@ -1645,7 +1663,7 @@
     </bean>
 
     <bean id="accessTokenService" class="org.craftercms.studio.impl.v2.service.security.AccessTokenServiceImpl">
-        <constructor-arg ref="accessTokenServiceInternal"/>
+        <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

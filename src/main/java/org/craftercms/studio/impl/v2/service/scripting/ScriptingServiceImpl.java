@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v2.service.scripting.internal.ScriptingServiceI
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.beans.ConstructorProperties;
 
 /**
  * Default implementation of {@link ScriptingService}
@@ -35,6 +36,7 @@ public class ScriptingServiceImpl implements ScriptingService {
 
     protected ScriptingServiceInternal scriptingServiceInternal;
 
+    @ConstructorProperties({"scriptingServiceInternal"})
     public ScriptingServiceImpl(ScriptingServiceInternal scriptingServiceInternal) {
         this.scriptingServiceInternal = scriptingServiceInternal;
     }

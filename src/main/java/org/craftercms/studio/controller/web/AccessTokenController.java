@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.Map;
 
@@ -42,6 +43,7 @@ public class AccessTokenController {
 
     protected AccessTokenService accessTokenService;
 
+    @ConstructorProperties({"accessTokenService"})
     public AccessTokenController(AccessTokenService accessTokenService) {
         this.accessTokenService = accessTokenService;
     }

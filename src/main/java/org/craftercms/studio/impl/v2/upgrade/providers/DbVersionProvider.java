@@ -26,6 +26,8 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.beans.ConstructorProperties;
+
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_0;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
@@ -47,6 +49,7 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
 
     protected StudioConfiguration studioConfiguration;
 
+    @ConstructorProperties({"studioConfiguration"})
     public DbVersionProvider(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }

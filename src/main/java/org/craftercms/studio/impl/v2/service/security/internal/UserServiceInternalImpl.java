@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.service.security.internal.GroupServiceIntern
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
+import java.beans.ConstructorProperties;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,6 +83,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private AccessTokenServiceInternal accessTokenService;
     private SecurityService securityService;
 
+    @ConstructorProperties({"userDao", "groupServiceInternal", "studioConfiguration", "siteService", "securityService",
+            "accessTokenService"})
     public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
                                    StudioConfiguration studioConfiguration, SiteService siteService,
                                    SecurityService securityService, AccessTokenServiceInternal accessTokenService) {

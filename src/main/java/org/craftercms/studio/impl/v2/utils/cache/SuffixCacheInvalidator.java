@@ -20,6 +20,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
+import java.beans.ConstructorProperties;
+
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 
 /**
@@ -49,6 +51,7 @@ public class SuffixCacheInvalidator<K extends String, V> implements CacheInvalid
      */
     protected String suffix;
 
+    @ConstructorProperties({"suffix"})
     public SuffixCacheInvalidator(String suffix) {
         this.suffix = suffix;
     }

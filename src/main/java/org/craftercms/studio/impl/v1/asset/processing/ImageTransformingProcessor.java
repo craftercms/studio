@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.asset.processing;
 
+import java.beans.ConstructorProperties;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ public class ImageTransformingProcessor extends AbstractAssetProcessor {
 
     private ImageTransformer transformer;
 
+    @ConstructorProperties({"transformer"})
     public ImageTransformingProcessor(ImageTransformer transformer) {
         this.transformer = transformer;
     }

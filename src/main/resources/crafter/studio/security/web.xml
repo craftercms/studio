@@ -24,7 +24,7 @@
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
     <bean id="logoutSuccessHandler" class="org.craftercms.studio.impl.v2.security.web.ChainLogoutSuccessHandler">
-        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
     <sec:authentication-manager id="webAuthenticationManager">
@@ -33,32 +33,32 @@
 
     <bean id="chainAuthenticationProvider"
           class="org.craftercms.studio.impl.v2.security.authentication.ChainAuthenticationProvider">
-        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
     <bean id="ldapAuthenticationProvider"
           class="org.craftercms.studio.impl.v2.security.authentication.ldap.LdapAuthenticationProvider">
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="auditServiceInternal"/>
-        <constructor-arg ref="userServiceInternal"/>
-        <constructor-arg ref="userDAO"/>
-        <constructor-arg ref="groupDAO"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
+        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="groupDAO" ref="groupDAO"/>
     </bean>
 
     <bean id="headersAuthenticationProvider"
           class="org.craftercms.studio.impl.v2.security.authentication.headers.HeadersAuthenticationProvider">
-        <constructor-arg ref="studioConfiguration"/>
-        <constructor-arg ref="cstudioSiteServiceSimple"/>
-        <constructor-arg ref="auditServiceInternal"/>
-        <constructor-arg ref="userServiceInternal"/>
-        <constructor-arg ref="userDAO"/>
-        <constructor-arg ref="groupDAO"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
+        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="groupDAO" ref="groupDAO"/>
     </bean>
 
     <bean id="headersAuthenticationFilter"
           class="org.craftercms.studio.impl.v2.security.authentication.headers.HeadersAuthenticationFilter">
-        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <property name="authenticationManager" ref="webAuthenticationManager"/>
     </bean>
 

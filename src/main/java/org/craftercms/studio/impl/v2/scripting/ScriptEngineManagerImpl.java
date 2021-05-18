@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v2.scripting.ScriptEngineManager;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCustomizer;
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 
+import java.beans.ConstructorProperties;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -64,6 +65,8 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
 
     protected String scriptExtension;
 
+    @ConstructorProperties({"contextManager", "contentStoreService", "sandboxEnabled", "classesBasePath",
+            "restBasePath", "scriptExtension"})
     public ScriptEngineManagerImpl(ContextManager contextManager, ContentStoreService contentStoreService,
                                    boolean sandboxEnabled, String classesBasePath, String restBasePath,
                                    String scriptExtension) {

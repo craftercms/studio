@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
+import java.beans.ConstructorProperties;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Connection;
@@ -79,6 +80,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
      */
     protected DbIntegrityValidator integrityValidator;
 
+    @ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator"})
     public DbScriptUpgradeOperation(StudioConfiguration studioConfiguration, String scriptFolder,
                                     DbIntegrityValidator integrityValidator) {
         super(studioConfiguration);

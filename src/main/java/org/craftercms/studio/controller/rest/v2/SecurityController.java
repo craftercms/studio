@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import java.beans.ConstructorProperties;
 import java.time.Instant;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
@@ -59,6 +60,7 @@ public class SecurityController {
 
     protected AccessTokenService accessTokenService;
 
+    @ConstructorProperties({"encryptionService", "accessTokenService"})
     public SecurityController(EncryptionService encryptionService, AccessTokenService accessTokenService) {
         this.encryptionService = encryptionService;
         this.accessTokenService = accessTokenService;

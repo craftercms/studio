@@ -23,6 +23,8 @@ import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Implementation of {@link PolicyValidator} for system restrictions
  *
@@ -35,6 +37,7 @@ public class SystemPolicyValidator implements PolicyValidator {
 
     protected int fullPathMaxSize;
 
+    @ConstructorProperties({"filenameMaxSize", "fullPathMaxSize"})
     public SystemPolicyValidator(int filenameMaxSize, int fullPathMaxSize) {
         this.filenameMaxSize = filenameMaxSize;
         this.fullPathMaxSize = fullPathMaxSize;

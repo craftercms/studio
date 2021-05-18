@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 
 import static org.craftercms.commons.lang.RegexUtils.matchesAny;
@@ -43,6 +44,7 @@ public class ConditionalCacheInvalidator<K extends String, V> implements CacheIn
 
     protected CacheInvalidator<K, V> actualCacheInvalidator;
 
+    @ConstructorProperties({"patterns", "actualCacheInvalidator"})
     public ConditionalCacheInvalidator(List<String> patterns, CacheInvalidator<K, V> actualCacheInvalidator) {
         this.patterns = patterns;
         this.actualCacheInvalidator = actualCacheInvalidator;
