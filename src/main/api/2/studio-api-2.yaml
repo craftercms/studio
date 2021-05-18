@@ -5522,6 +5522,167 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /workflow/item_states:
+    get:
+      tags:
+        - workflow
+      summary: Get item workflow states for site
+      description: 'Required permission "get_item_states"'
+      operationId: getItemStates
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path regex
+          required: false
+          schema:
+            type: string
+        - name: states
+          in: query
+          description: states bitmap mask
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - workflow
+      summary: Set item workflow states for site
+      description: 'Required permission "set_item_states"'
+      operationId: setItemStates
+      requestBody:
+        description: List of items to set workflow state(s)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId: 
+                  type: string
+                  description: site ID
+                items:
+                  type: array
+                  description: path(s) of item(s)
+                  items:
+                    type: string
+                clearSystemProcessing:
+                  type: boolean
+                  description: true if system processing is to be cleared
+                clearUserLocked:
+                  type: boolean
+                  description: true if user lock is to be cleared
+                live:
+                  type: boolean
+                  description: true if item is to be set as live, otherwise false
+                staged:
+                  type: boolean
+                  description: true if item is to be set as staged, otherwise false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/update_item_states:
+    post:
+      tags:
+        - workflow
+      summary: Set item workflow states for site using query
+      description: 'Required permission "set_item_states"'
+      operationId: updateItemStates
+      requestBody:
+        description: List of items to set workflow state(s)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId: 
+                  type: string
+                  description: site ID
+                paths:
+                  type: array
+                  description: path(s) regexes of item(s)
+                  items:
+                    type: string
+                states:
+                  type: integer
+                  format: int64
+                  description: state bitmap mask to filter by state
+                clearSystemProcessing:
+                  type: boolean
+                  description: true if system processing is to be cleared
+                clearUserLocked:
+                  type: boolean
+                  description: true if user lock is to be cleared
+                live:
+                  type: boolean
+                  description: true if item is to be set as live, otherwise false
+                staged:
+                  type: boolean
+                  description: true if item is to be set as staged, otherwise false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
