@@ -48,7 +48,7 @@ public final class SqlStatementGeneratorUtils {
 
     public static final String ITEM_UPDATE =
             "UPDATE item SET preview_url = '#{previewUrl}'," +
-                    " state = state | #{onStatesBitMap} &amp; ~#{offStatesBitMap}," +
+                    " state = state | #{onStatesBitMap} & ~#{offStatesBitMap}," +
                     " last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', label = '#{label}', content_type_id = '#{contentTypeId}'," +
                     " system_type = '#{systemType}', mime_type = '#{mimeType}', disabled = #{disabledAsInt}," +
