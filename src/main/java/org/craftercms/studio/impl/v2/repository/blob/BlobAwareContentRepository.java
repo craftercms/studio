@@ -695,4 +695,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public String getPreviousCommitId(String siteId, String commitId) {
         return localRepositoryV2.getPreviousCommitId(siteId, commitId);
     }
+
+    @Override
+    public void itemUnlock(String site, String path) {
+        localRepositoryV2.itemUnlock(site, path);
+    }
 }

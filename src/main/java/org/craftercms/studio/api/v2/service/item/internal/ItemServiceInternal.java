@@ -513,4 +513,32 @@ public interface ItemServiceInternal {
      * @param lastPublishedOn published date
      */
     void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn);
+
+    /**
+     * Lock item for given lock owner
+     * @param siteId site identifier
+     * @param path item path
+     * @param username user that owns the lock
+     */
+    void lockItemByPath(String siteId, String path, String username) throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Unlock item
+     * @param siteId site identifier
+     * @param path item path
+     */
+    void unlockItemByPath(String siteId, String path);
+
+    /**
+     * Lock item for given lock owner
+     * @param id item identifier
+     * @param username user that owns the lock
+     */
+    void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Unlock item
+     * @param id item identifier
+     */
+    void unlockItemById(long itemId);
 }

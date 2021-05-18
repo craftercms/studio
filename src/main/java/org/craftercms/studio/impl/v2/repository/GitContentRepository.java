@@ -76,6 +76,7 @@ import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -94,6 +95,7 @@ import org.eclipse.jgit.revwalk.filter.NotRevFilter;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
@@ -1732,6 +1734,33 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             logger.debug("Previous commit id for site " + siteId + " and commit id " + commitId + " is " + toReturn);
         }
         return toReturn;
+    }
+
+    @Override
+    public void itemUnlock(String site, String path) {
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
+            try (TreeWalk tw = new TreeWalk(repo)) {
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                tw.addTree(tree);
+                tw.setRecursive(false);
+                tw.setFilter(PathFilter.create(path));
+
+                if (!tw.next()) {
+                    return;
+                }
+
+                File repoRoot = repo.getWorkTree();
+                Paths.get(repoRoot.getPath(), tw.getPathString());
+                File file = new File(tw.getPathString());
+                LockFile lock = new LockFile(file);
+                lock.unlock();
+
+            } catch (IOException e) {
+                logger.error("Error while unlocking file for site: " + site + " path: " + path, e);
+            }
+        }
     }
 
     public StudioConfiguration getStudioConfiguration() {

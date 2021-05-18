@@ -282,6 +282,18 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
                 dest: /configuration/samples/sample-permission-mappings-config.xml
             commitDetails: Update sample files
+      - currentVersion: 4.0.0.20
+        nextVersion: 4.0.0.21
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.21/system/global-permission-mappings-config.xslt
+            commitDetails: Added item_unlock permissions for system_admin
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                dest: /configuration/samples/sample-permission-mappings-config.xml
+            commitDetails: Update sample files
 
   # Pipeline to upgrade site repositories
   site:
@@ -410,6 +422,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v19.xslt
               commitDetails: Added unlock_repsoitory permissions for  site admin users
+        - currentVersion: 19
+          nextVersion: 20
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v20.xslt
+              commitDetails: Added item_unlock permissions for admin
 
   role-mappings-config:
     module: studio

@@ -206,16 +206,28 @@
     </select>
 
     <select id="getItemByPath" resultMap="ItemMap">
-            select * from item where site_id = #{siteId} and path = #{path}
+            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
+            from item i left outer join user u1 on i.owned_by = u1.id
+            left outer join user u2 on i.created_by = u2.id
+            left outer join user u3 on i.last_modified_by = u3.id
+            where site_id = #{siteId} and path = #{path}
             limit 0, 1
     </select>
 
     <select id="getItemByPathPreferContent" resultMap="ItemMap">
-            (select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
+            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
+            from item i1 left outer join user u1 on i1.owned_by = u1.id
+            left outer join user u2 on i1.created_by = u2.id
+            left outer join user u3 on i1.last_modified_by = u3.id, item i2
+            where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select * from item i3 where i3.site_id = #{siteId} and i3.path = #{path})
+            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
+            from item i3 left outer join user u4 on i3.owned_by = u4.id
+            left outer join user u5 on i3.created_by = u5.id
+            left outer join user u6 on i3.last_modified_by = u6.id
+            where i3.site_id = #{siteId} and i3.path = #{path})
             limit 0, 1
     </select>
 
@@ -626,4 +638,31 @@
           )
     </select>
 
+    <update id="lockItemByPath">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.owned_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.path =  #{path}
+    </update>
+
+    <update id="unlockItemByPath">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.owned_by = null, i.state = i.state &amp; #{lockedBitOff}
+        WHERE s.site_id = #{siteId}
+          AND s.deleted = 0
+          AND i.path =  #{path}
+    </update>
+
+    <update id="lockItemById">
+        UPDATE item i
+        SET i.owned_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        WHERE i.id =  #{id}
+    </update>
+
+    <update id="unlockItemById">
+        UPDATE item i
+        SET i.owned_by = null, i.state = i.state &amp; #{lockedBitOff}
+        WHERE i.id =  #{id}
+    </update>
 </mapper>

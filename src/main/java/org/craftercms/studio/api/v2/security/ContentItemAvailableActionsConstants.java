@@ -26,6 +26,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_FOLDER_CREATE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
 public final class ContentItemAvailableActionsConstants {
@@ -82,10 +83,10 @@ public final class ContentItemAvailableActionsConstants {
             0b0000000000000000000000000000000000000000010000000000000000000000L;
     public static final long PUBLISH_REJECT =
             0b0000000000000000000000000000000000000000100000000000000000000000L;
+    public static final long ITEM_UNLOCK =
+            0b0000000000000000000000000000000000000001000000000000000000000000L;
 
     // Reserved
-    public static final long CONTENT_RESERVED_40 =
-            0b0000000000000000000000000000000000000001000000000000000000000000L;
     public static final long CONTENT_RESERVED_39 =
             0b0000000000000000000000000000000000000010000000000000000000000000L;
     public static final long CONTENT_RESERVED_38 =
@@ -185,6 +186,9 @@ public final class ContentItemAvailableActionsConstants {
     // publish
     public static final long BITMAP_PUBLISH =
             PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE + PUBLISH_REJECT;
+    // item_unlock
+    public static final long BITMAP_ITEM_UNLOCK =
+            ITEM_UNLOCK;
 
     public static final long BITMAP_UNDEFINED = 0L;
 
@@ -211,6 +215,9 @@ public final class ContentItemAvailableActionsConstants {
                 break;
             case PERMISSION_PUBLISH:
                 result = BITMAP_PUBLISH;
+                break;
+            case PERMISSION_ITEM_UNLOCK:
+                result = BITMAP_ITEM_UNLOCK;
                 break;
             default:
                 logger.debug("Permission " + permission + " not declared with content item available actions");

@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>19</version>
+    <version>20</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -250,6 +250,7 @@
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>item_unlock</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -276,6 +277,7 @@
                 <permission>publish_status</permission>
                 <permission>publish_clear_lock</permission>
                 <permission>unlock_repository</permission>
+                <permission>item_unlock</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -284,6 +286,7 @@
                 <permission>S3 Write</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>item_unlock</permission>
             </allowed-permissions>
         </rule>
     </role>

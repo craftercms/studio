@@ -319,4 +319,12 @@ public interface ContentRepository {
      * @return
      */
     String getPreviousCommitId(String siteId, String commitId);
+
+    /**
+     * unlock an item
+     *
+     * @param site site id where the operation will be executed
+     * @param path path of the item
+     */
+    void itemUnlock(String site, String path);
 }

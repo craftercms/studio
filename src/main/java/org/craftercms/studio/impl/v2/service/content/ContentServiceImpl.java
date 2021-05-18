@@ -218,6 +218,18 @@ public class ContentServiceImpl implements ContentService {
         return contentServiceInternal.getSandboxItemsById(siteId, ids, preferContent);
     }
 
+    @Override
+    public void itemUnlockByPath(String siteId, String path) {
+        contentServiceInternal.itemUnlockByPath(siteId, path);
+        itemServiceInternal.unlockItemByPath(siteId, path);
+    }
+
+    @Override
+    public void itemUnlockById(String siteId, long itemId) {
+        contentServiceInternal.itemUnlockById(siteId, itemId);
+        itemServiceInternal.unlockItemById(itemId);
+    }
+
     public ContentServiceInternal getContentServiceInternal() {
         return contentServiceInternal;
     }

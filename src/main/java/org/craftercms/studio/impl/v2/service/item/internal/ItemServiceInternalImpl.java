@@ -62,6 +62,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
@@ -642,6 +643,29 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn) {
         itemDao.updateLastPublishedOnBulk(siteId, paths, lastPublishedOn);
+    }
+
+    @Override
+    public void lockItemByPath(String siteId, String path, String username)
+            throws UserNotFoundException, ServiceLayerException {
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        itemDao.lockItemByPath(siteId, path, user.getId(), USER_LOCKED.value);
+    }
+
+    @Override
+    public void unlockItemByPath(String siteId, String path) {
+        itemDao.unlockItemByPath(siteId, path, ~USER_LOCKED.value);
+    }
+
+    @Override
+    public void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException {
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        itemDao.lockItemById(itemId, user.getId(), USER_LOCKED.value);
+    }
+
+    @Override
+    public void unlockItemById(long itemId) {
+        itemDao.unlockItemById(itemId, USER_LOCKED.value);
     }
 
     public UserServiceInternal getUserServiceInternal() {

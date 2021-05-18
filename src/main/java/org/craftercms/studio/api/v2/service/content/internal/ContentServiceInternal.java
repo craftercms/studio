@@ -177,4 +177,18 @@ public interface ContentServiceInternal {
      * @return true if item is editable
      */
     boolean isEditable(DetailedItem detailedItem);
+
+    /**
+     * Unlock item by path for given site
+     * @param siteId site identifier
+     * @param path item path
+     */
+    void itemUnlockByPath(String siteId, String path);
+
+    /**
+     * Unlock item by path for given site
+     * @param siteId site identifier
+     * @param itemId item identifier
+     */
+    void itemUnlockById(String siteId, long itemId);
 }

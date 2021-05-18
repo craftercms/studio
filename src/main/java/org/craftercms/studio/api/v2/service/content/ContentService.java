@@ -173,4 +173,18 @@ public interface ContentService {
      */
     List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Unlock item by path for given site
+     * @param siteId site identifier
+     * @param path item path
+     */
+    void itemUnlockByPath(String siteId, String path);
+
+    /**
+     * Unlock item by path for given site
+     * @param siteId site identifier
+     * @param itemId item identifier
+     */
+    void itemUnlockById(String siteId, long itemId);
 }

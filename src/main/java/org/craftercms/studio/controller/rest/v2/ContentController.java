@@ -43,6 +43,8 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.GetSandboxItemsByIdRequest;
 import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequest;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.content.UnlockItemByIdRequest;
+import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -70,6 +72,8 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.G
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
@@ -272,6 +276,26 @@ public class ContentController {
         ResponseBody responseBody = new ResponseBody();
         ResultList<SandboxItem> result = new ResultList<SandboxItem>();
         result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(ITEM_UNLOCK_BY_PATH)
+    public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request) {
+        contentService.itemUnlockByPath(request.getSiteId(), request.getPath());
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(ITEM_UNLOCK_BY_ID)
+    public ResponseBody itemUnlockById(@RequestBody @Valid UnlockItemByIdRequest request) {
+        contentService.itemUnlockById(request.getSiteId(), request.getItemId());
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
