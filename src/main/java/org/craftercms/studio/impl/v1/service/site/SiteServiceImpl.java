@@ -505,7 +505,6 @@ public class SiteServiceImpl implements SiteService {
         try {
             for (String key : createdFiles.keySet()) {
                 String path = key;
-                logger.error("Path: " + path);
                 if (StringUtils.equals("D", createdFiles.get(path))) {
                     continue;
                 }

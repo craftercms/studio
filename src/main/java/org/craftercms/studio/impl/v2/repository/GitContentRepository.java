@@ -1521,8 +1521,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
             String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
 
-            logger.error("Path: " + pathNew + " or " + pathOld);
-
             if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(pathNew)) ||
                     ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(pathOld))) {
                 continue;
