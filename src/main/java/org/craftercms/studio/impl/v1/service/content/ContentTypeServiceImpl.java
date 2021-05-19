@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -196,7 +197,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     public boolean changeContentType(@ValidateStringParam(name = "site") String site,
                                      @ValidateSecurePathParam(name = "path") String path,
                                      @ValidateStringParam(name = "contentType") String contentType)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         ContentTypeConfigTO contentTypeConfigTO = getContentType(site, contentType);
         if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)){
             // Simple form engine is not using templates - skip copying template and merging content

@@ -295,7 +295,7 @@ public interface ContentService {
 
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
-    void lockContent(String site, String path);
+    void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
 
     void unLockContent(String site, String path);
 
