@@ -101,6 +101,10 @@ public class Action {
         return (T) contentMetadata.get(key);
     }
 
+    public boolean containsMetadata(String key) {
+        return contentMetadata.containsKey(key);
+    }
+
     @Override
     public String toString() {
         return "Action{" +
