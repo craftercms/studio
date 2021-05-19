@@ -257,7 +257,7 @@ public class PolicyServiceInternalImplTest {
         var results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, false);
 
-        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, 1000L));
+        action.setContentMetadata(Map.of(METADATA_FILE_SIZE, 1000));
 
         results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);
