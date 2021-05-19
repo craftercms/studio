@@ -230,6 +230,7 @@ public class UserServiceImpl implements UserService {
             SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
+            auditLog.setSiteId(siteFeed.getId());
             auditLog.setActorId(getCurrentUser().getUsername());
             auditLog.setPrimaryTargetId(siteFeed.getSiteId());
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
