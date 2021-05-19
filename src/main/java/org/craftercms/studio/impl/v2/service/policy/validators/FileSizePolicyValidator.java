@@ -46,8 +46,12 @@ public class FileSizePolicyValidator implements PolicyValidator {
         }
 
         if (config.containsKey(CONFIG_KEY_MIN_SIZE)) {
-            var minSize = config.getLong(CONFIG_KEY_MIN_SIZE);
-            if (action.<Long>getMetadata(Action.METADATA_FILE_SIZE) < minSize) {
+            long minSize = config.getLong(CONFIG_KEY_MIN_SIZE);
+            if (!action.containsMetadata(Action.METADATA_FILE_SIZE)) {
+                throw new IllegalArgumentException("File size is required for validation");
+            }
+            Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
+            if (value.longValue() < minSize) {
                 throw new ValidationException("File size should be at least " + minSize);
             }
         } else {
@@ -56,11 +60,12 @@ public class FileSizePolicyValidator implements PolicyValidator {
 
 
         if (config.containsKey(CONFIG_KEY_MAX_SIZE)) {
-            var maxSize = config.getLong(CONFIG_KEY_MAX_SIZE);
+            long maxSize = config.getLong(CONFIG_KEY_MAX_SIZE);
             if (!action.containsMetadata(Action.METADATA_FILE_SIZE)) {
                 throw new IllegalArgumentException("File size is required for validation");
             }
-            if (action.<Long>getMetadata(Action.METADATA_FILE_SIZE) > maxSize) {
+            Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
+            if (value.longValue() > maxSize) {
                 throw new ValidationException("File size should be less than " + maxSize);
             }
         } else {
