@@ -35,12 +35,13 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
+
 public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioContentAPIAccessDecisionVoter.class);
 
     private final static String WRITE_CONTENT = "/api/1/services/api/1/content/write-content.json";
-    private final static String WRITE_PERMISSION = "write";
 
     @Override
     public boolean supports(ConfigAttribute configAttribute) {
@@ -91,7 +92,8 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                     case WRITE_CONTENT:
                         if (siteService.exists(siteParam)) {
                             if (currentUser != null && isSiteMember(siteParam, currentUser) &&
-                                    hasPermission(siteParam, pathParam, currentUser.getUsername(), WRITE_PERMISSION)) {
+                                    hasPermission(siteParam, pathParam, currentUser.getUsername(),
+                                            PERMISSION_CONTENT_WRITE)) {
                                 toRet = ACCESS_GRANTED;
                             } else {
                                 toRet = ACCESS_DENIED;
