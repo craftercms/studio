@@ -2272,22 +2272,20 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @ValidateParams
     public void lockContent(@ValidateStringParam(name = "site") String site,
-                            @ValidateSecurePathParam(name = "path") String path) {
+                            @ValidateSecurePathParam(name = "path") String path)
+            throws UserNotFoundException, ServiceLayerException {
         // TODO: SJ: Where is the object state update to indicate item is now locked?
         // TODO: SJ: Dejan to look into this
         _contentRepository.lockItem(site, path);
-        itemServiceInternal.setStateBits(site, path, USER_LOCKED.value);
+        itemServiceInternal.lockItemByPath(site, path, securityService.getCurrentUser());
     }
 
     @Override
     @ValidateParams
     public void unLockContent(@ValidateStringParam(name = "site") String site,
                               @ValidateSecurePathParam(name = "path") String path) {
-        ContentItemTO itemTO = getContentItem(site, path, 0);
         _contentRepository.unLockItem(site, path);
-
-        // Item
-        itemServiceInternal.resetStateBits(site, path, USER_LOCKED.value);
+        itemServiceInternal.unlockItemByPath(site, path);
     }
 
     @Override

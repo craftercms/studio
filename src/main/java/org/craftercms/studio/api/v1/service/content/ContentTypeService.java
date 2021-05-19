@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 
 import java.util.List;
@@ -62,7 +63,7 @@ public interface ContentTypeService {
 
     List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath);
 
-    boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException;
+    boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException, UserNotFoundException;
 
     String getConfigPath();
 }
