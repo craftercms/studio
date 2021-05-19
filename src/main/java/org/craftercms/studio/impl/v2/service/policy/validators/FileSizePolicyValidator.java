@@ -57,6 +57,9 @@ public class FileSizePolicyValidator implements PolicyValidator {
 
         if (config.containsKey(CONFIG_KEY_MAX_SIZE)) {
             var maxSize = config.getLong(CONFIG_KEY_MAX_SIZE);
+            if (!action.containsMetadata(Action.METADATA_FILE_SIZE)) {
+                throw new IllegalArgumentException("File size is required for validation");
+            }
             if (action.<Long>getMetadata(Action.METADATA_FILE_SIZE) > maxSize) {
                 throw new ValidationException("File size should be less than " + maxSize);
             }

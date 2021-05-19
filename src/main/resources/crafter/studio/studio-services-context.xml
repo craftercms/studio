@@ -1579,8 +1579,8 @@
         <constructor-arg name="contentRepository" ref="contentRepository"/>
         <constructor-arg name="contentRepositoryV2" ref="contentRepository"/>
         <constructor-arg name="configurationService" ref="configurationService"/>
-        <constructor-arg name="systemPolicyValidator" ref="systemPolicyValidator"/>
-        <constructor-arg name="sitePolicyValidators" ref="sitePolicyValidators"/>
+        <constructor-arg name="systemValidator" ref="systemPolicyValidator"/>
+        <constructor-arg name="policyValidators" ref="sitePolicyValidators"/>
         <constructor-arg name="configPath"
                          value="#{studioConfiguration.getProperty('studio.content.policy.config.path')}"/>
     </bean>
