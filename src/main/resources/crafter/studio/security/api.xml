@@ -59,7 +59,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
-    <bean id="legacyAccessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+    <bean id="legacyAccessDecisionManager" class="org.springframework.security.access.vote.UnanimousBased">
         <constructor-arg index="0">
             <list>
                 <!-- Default Spring Voters for <security:intercept-url> expressions -->

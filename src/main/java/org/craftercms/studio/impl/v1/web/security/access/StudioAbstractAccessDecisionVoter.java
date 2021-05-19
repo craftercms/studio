@@ -54,9 +54,9 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
     @Override
     public int vote(Authentication authentication, Object object, Collection collection) {
-        // Don't allow any unauthenticated request
+        // Don't vote for any unauthenticated request, those are handled by spring's voters
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            return ACCESS_DENIED;
+            return ACCESS_ABSTAIN;
         }
 
         return voteInternal(authentication, object, collection);
