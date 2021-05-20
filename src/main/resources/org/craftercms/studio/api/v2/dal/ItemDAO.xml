@@ -192,16 +192,28 @@
     </select>
     
     <select id="getItemById" resultMap="ItemMap">
-            select * from item where id = #{id}
+            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
+            from item i left outer join user u1 on i.owned_by = u1.id
+                        left outer join user u2 on i.created_by = u2.id
+                        left outer join user u3 on i.last_modified_by = u3.id
+            where i.id = #{id}
             limit 0, 1
     </select>
 
     <select id="getItemByIdPreferContent" resultMap="ItemMap">
-            (select i1.* from item i1, item i2 where i2.id = #{id}
+            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
+            from item i1 left outer join user u1 on i1.owned_by = u1.id
+                 left outer join user u2 on i1.created_by = u2.id
+                 left outer join user u3 on i1.last_modified_by = u3.id, item i2
+            where i2.id = #{id}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select i3.* from item i3 where i3.id = #{id})
+            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
+            from item i3 left outer join user u4 on i3.owned_by = u4.id
+                 left outer join user u5 on i3.created_by = u5.id
+                 left outer join user u6 on i3.last_modified_by = u6.id
+            where i3.id = #{id})
             limit 0, 1
     </select>
 
@@ -210,7 +222,7 @@
             from item i left outer join user u1 on i.owned_by = u1.id
             left outer join user u2 on i.created_by = u2.id
             left outer join user u3 on i.last_modified_by = u3.id
-            where site_id = #{siteId} and path = #{path}
+            where i.site_id = #{siteId} and i.path = #{path}
             limit 0, 1
     </select>
 
@@ -232,21 +244,31 @@
     </select>
 
     <select id="getSandboxItemsById" resultMap="ItemMap">
-        select * from item where id in
+        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
+        from item i left outer join user u1 on i.owned_by = u1.id
+        left outer join user u2 on i.created_by = u2.id
+        left outer join user u3 on i.last_modified_by = u3.id
+        where i.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
         </foreach>
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
-        select i1.* from item i1, item i2 where i2.id in
+        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
+        from item i1 left outer join user u1 on i1.owned_by = u1.id
+        left outer join user u2 on i1.created_by = u2.id
+        left outer join user u3 on i1.last_modified_by = u3.id, item i2 where i2.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
         </foreach>
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         union
-        select i3.* from item i3 where i3.id in
+        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
+        from item i3 left outer join user u4 on i3.owned_by = u4.id
+        left outer join user u5 on i3.created_by = u5.id
+        left outer join user u6 on i3.last_modified_by = u6.id where i3.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
         </foreach>
@@ -256,14 +278,21 @@
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
-        select * from item where site_id = #{siteId} and ignored = 0 and path in
+        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
+        from item i left outer join user u1 on i.owned_by = u1.id
+        left outer join user u2 on i.created_by = u2.id
+        left outer join user u3 on i.last_modified_by = u3.id
+        where i.site_id = #{siteId} and i.ignored = 0 and i.path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
     </select>
 
     <select id="getSandboxItemsByPathPreferContent" resultMap="ItemMap">
-        select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path in
+        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
+        from item i1 left outer join user u1 on i1.owned_by = u1.id
+        left outer join user u2 on i1.created_by = u2.id
+        left outer join user u3 on i1.last_modified_by = u3.id, item i2 where i2.site_id = #{siteId} and i2.path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
@@ -271,7 +300,10 @@
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         union
-        select i3.* from item i3 where i3.site_id = #{siteId} and i3.path in
+        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
+        from item i3 left outer join user u4 on i3.owned_by = u4.id
+        left outer join user u5 on i3.created_by = u5.id
+        left outer join user u6 on i3.last_modified_by = u6.id where i3.site_id = #{siteId} and i3.path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
@@ -282,17 +314,29 @@
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="ItemMap">
-            select * from item where site_id = #{siteId} and path = #{path}
+            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
+            from item i left outer join user u1 on i.owned_by = u1.id
+                        left outer join user u2 on i.created_by = u2.id
+                        left outer join user u3 on i.last_modified_by = u3.id
+            where i.site_id = #{siteId} and i.path = #{path}
             limit 0, 1
     </select>
 
     <select id="getItemBySiteIdAndPathPreferContent" resultMap="ItemMap">
-            (select i1.* from item i1, item i2 where i2.site_id = #{siteId} and i2.path = #{path}
+            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
+            from item i1 left outer join user u1 on i1.owned_by = u1.id
+                 left outer join user u2 on i1.created_by = u2.id
+                 left outer join user u3 on i1.last_modified_by = u3.id, item i2
+            where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.ignored = 0
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select * from item i3 where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0)
+            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
+            from item i3 left outer join user u4 on i3.owned_by = u4.id
+                 left outer join user u5 on i3.created_by = u5.id
+                 left outer join user u6 on i3.last_modified_by = u6.id
+            where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0)
             limit 0, 1
     </select>
 
