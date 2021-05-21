@@ -74,6 +74,7 @@ public class SitePolicyAspect {
         String sourceFilename = null;
         String contentType = null;
 
+        // TODO: Add an annotation to support the file size in the future
         for (var i = 0; i < annotations.length; i++) {
             if (siteId == null && hasAnnotation(annotations[i], SiteId.class)) {
                 siteId = (String) pjp.getArgs()[i];
