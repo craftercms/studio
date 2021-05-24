@@ -617,7 +617,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
         String currentUser = securityService.getCurrentUser();
-        String site = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
         List<String> roles = getUserGlobalRoles(-1, currentUser);
         return securityServiceV2.getUserPermission(StringUtils.EMPTY, currentUser, roles);
     }
