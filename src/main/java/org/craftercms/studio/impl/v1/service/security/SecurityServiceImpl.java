@@ -786,7 +786,7 @@ public class SecurityServiceImpl implements SecurityService {
             List<Group> groups = userServiceInternal.getUserGroups(-1, username);
 
             if (CollectionUtils.isNotEmpty(groups)) {
-                Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
+                Map<String, List<String>> roleMappings = configurationService.getRoleMappings(site);
 
                 if (MapUtils.isNotEmpty(roleMappings)) {
                     for (Group group : groups) {

@@ -300,7 +300,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
         Map<String, List<String>> groupRoleMapping;
         try {
-            groupRoleMapping = configurationService.geRoleMappings(siteId);
+            groupRoleMapping = configurationService.getRoleMappings(siteId);
         } catch (ConfigurationException e) {
             throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
         }

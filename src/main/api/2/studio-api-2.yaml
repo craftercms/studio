@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.15'
+  version: '4.0.0.16'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1076,6 +1076,80 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        description: request body to check if current authenticated user has permissions
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                'permissions':
+                  type: array
+                  items:
+                    type: string
+              required:
+                - permissions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  'permissions':
+                    type: object
+                    example:
+                      create: true
+                      update: true
+                      delete: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/me/global/permissions:
+    get:
+      tags:
+        - users
+      summary: Get the global for the current authenticated user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: getCurrentUserGlobalPermissions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  'permissions':
+                    type: array
+                    items:
+                      type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/me/global/has_permissions:
+    post:
+      tags:
+        - users
+      summary: Check if the current authenticated user has given global permissions
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: hasCurrentUserSitePermssions
       requestBody:
         description: request body to check if current authenticated user has permissions
         required: true
@@ -6750,11 +6824,12 @@ components:
               * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
               * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
-              * `BIT ORDER (little-endian)`: 7, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
