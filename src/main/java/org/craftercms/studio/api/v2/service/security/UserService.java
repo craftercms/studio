@@ -180,4 +180,19 @@ public interface UserService {
      */
     Map<String, Boolean> hasCurrentUserSitePermissions(String site, List<String> permissions)
             throws ServiceLayerException, UserNotFoundException, ExecutionException;
+
+    /**
+     * Get global permissions of the current authenticated user
+     * @return
+     */
+    List<String> getCurrentUserGlobalPermissions()
+            throws ServiceLayerException, UserNotFoundException, ExecutionException;
+
+    /** Check if the current authenticated user has given global permissions
+     *
+     * @param permissions list of permissions to check
+     * @return map with values true or false for each given permission
+     */
+    Map<String, Boolean> hasCurrentUserGlobalPermissions(List<String> permissions)
+            throws ServiceLayerException, UserNotFoundException, ExecutionException;
 }

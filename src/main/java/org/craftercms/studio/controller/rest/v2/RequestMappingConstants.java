@@ -67,6 +67,7 @@ public final class RequestMappingConstants {
     public static final String PROPERTIES = "/properties";
     public static final String PERMISSIONS = "/permissions";
     public static final String HAS_PERMISSIONS = "/has_permissions";
+    public static final String GLOBAL = "/global";
 
     /** Repository Management controller **/
     public static final String REPOSITORY = "/repository";

@@ -44,7 +44,15 @@ public interface ConfigurationService {
      * @return role mappings configuration
      * @throws ConfigurationException configuration error
      */
-    Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException;
+    Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException;
+
+    /**
+     * Get global role mappings configuration
+     *
+     * @return role mappings configuration
+     * @throws ConfigurationException configuration error
+     */
+    Map<String, List<String>> getGlobalRoleMappings() throws ServiceLayerException;
 
     /**
      * Get configuration as string for given parameters

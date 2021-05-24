@@ -323,7 +323,7 @@ public class UserServiceImpl implements UserService {
         List<Group> groups = userServiceInternal.getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
-            Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
+            Map<String, List<String>> roleMappings = configurationService.getRoleMappings(site);
             Set<String> userRoles = new LinkedHashSet<>();
 
             if (MapUtils.isNotEmpty(roleMappings)) {
@@ -612,6 +612,45 @@ public class UserServiceImpl implements UserService {
         List<String> userPermissions = getCurrentUserSitePermissions(site);
         permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
         return toRet;
+    }
+
+    @Override
+    public List<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
+        String currentUser = securityService.getCurrentUser();
+        List<String> roles = getUserGlobalRoles(-1, currentUser);
+        return securityServiceV2.getUserPermission(StringUtils.EMPTY, currentUser, roles);
+    }
+
+    @Override
+    public Map<String, Boolean> hasCurrentUserGlobalPermissions(List<String> permissions) throws ServiceLayerException, UserNotFoundException, ExecutionException {
+        Map<String, Boolean> toRet = new HashMap<String, Boolean>();
+        List<String> userPermissions = getCurrentUserGlobalPermissions();
+        permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
+        return toRet;
+    }
+
+    private List<String> getUserGlobalRoles(long userId, String username)
+            throws ServiceLayerException, UserNotFoundException {
+        List<Group> groups = userServiceInternal.getUserGroups(userId, username);
+
+        if (CollectionUtils.isNotEmpty(groups)) {
+            Map<String, List<String>> roleMappings = configurationService.getGlobalRoleMappings();
+            Set<String> userRoles = new LinkedHashSet<>();
+
+            if (MapUtils.isNotEmpty(roleMappings)) {
+                for (Group group : groups) {
+                    String groupName = group.getGroupName();
+                    List<String> roles = roleMappings.get(groupName);
+                    if (CollectionUtils.isNotEmpty(roles)) {
+                        userRoles.addAll(roles);
+                    }
+                }
+            }
+
+            return new ArrayList<>(userRoles);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     private boolean isAuthenticatedSMTP() {

@@ -100,6 +100,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
@@ -141,7 +142,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private List<CacheInvalidator<String, Optional<?>>> cacheInvalidators;
 
     @Override
-    public Map<String, List<String>> geRoleMappings(String siteId) throws ServiceLayerException {
+    public Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException {
         // TODO: Refactor this to use Apache's Commons Configuration
         Map<String, List<String>> roleMappings = new HashMap<>();
         String roleMappingsConfigPath = getSiteRoleMappingsConfigFileName();
@@ -172,6 +173,43 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         } catch (ServiceLayerException e) {
             throw new ConfigurationException("Error while reading role mappings file for site " + siteId +
                     " @ " + roleMappingsConfigPath);
+        }
+
+        return roleMappings;
+    }
+
+    @Override
+    public Map<String, List<String>> getGlobalRoleMappings() throws ServiceLayerException {
+        // TODO: Refactor this to use Apache's Commons Configuration
+        Map<String, List<String>> roleMappings = new HashMap<>();
+        String globalRoleMappingsConfigPath = getGlobalConfigRoot() + FILE_SEPARATOR + getGlobalRoleMappingsFileName();
+        Document document;
+
+        try {
+            // The write seems to always send env = null
+            document = getGlobalConfigurationAsDocument(globalRoleMappingsConfigPath);
+            if (document != null) {
+                Element root = document.getRootElement();
+                if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
+                    List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
+                    for (Node node : groupNodes) {
+                        String name = node.valueOf(DOCUMENT_ATTR_PERMISSIONS_NAME);
+                        if (isNotEmpty(name)) {
+                            List<Node> roleNodes = node.selectNodes(DOCUMENT_ELM_PERMISSION_ROLE);
+                            List<String> roles = new ArrayList<>();
+
+                            for (Node roleNode : roleNodes) {
+                                roles.add(roleNode.getText());
+                            }
+
+                            roleMappings.put(name, roles);
+                        }
+                    }
+                }
+            }
+        } catch (ServiceLayerException e) {
+            throw new ConfigurationException("Error while reading global role mappings file "  +
+                    globalRoleMappingsConfigPath);
         }
 
         return roleMappings;
@@ -703,6 +741,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String getSitesConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+
+    private String getGlobalRoleMappingsFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
     }
     // --- end of copied code ---
 

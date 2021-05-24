@@ -79,6 +79,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.C
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DISABLE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ENABLE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.FORGOT_PASSWORD;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GLOBAL;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.HAS_PERMISSIONS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LOGOUT_SSO_URL;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ME;
@@ -600,6 +601,48 @@ public class UsersController {
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
         Map<String, Boolean> hasPermissions =
                 userService.hasCurrentUserSitePermissions(site, permissionsRequest.getPermissions());
+
+        ResultOne<Map> result = new ResultOne<Map>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PERMISSIONS, hasPermissions);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
+    /**
+     * Get the global permissions of the current authenticated user API
+     *
+     * @return Response containing current authenticated user global permissions
+     */
+    @GetMapping(value = ME + GLOBAL + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getCurrentUserGlobalPermissions()
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
+        List<String> permissions = userService.getCurrentUserGlobalPermissions();
+
+        ResultList<String> result = new ResultList<String>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
+    /**
+     * Check if the current authenticated user has global permissions
+     *
+     * @return Response containing current authenticated user roles
+     */
+    @PostMapping(value = ME + GLOBAL + HAS_PERMISSIONS, consumes = APPLICATION_JSON_VALUE,
+            produces = APPLICATION_JSON_VALUE)
+    public ResponseBody checkCurrentUserHasGlobalPermissions(@RequestBody HasPermissionsRequest permissionsRequest)
+            throws ServiceLayerException, UserNotFoundException, ExecutionException {
+        Map<String, Boolean> hasPermissions =
+                userService.hasCurrentUserGlobalPermissions(permissionsRequest.getPermissions());
 
         ResultOne<Map> result = new ResultOne<Map>();
         result.setResponse(OK);
