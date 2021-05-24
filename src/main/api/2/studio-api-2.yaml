@@ -1149,7 +1149,7 @@ paths:
         - users
       summary: Check if the current authenticated user has given global permissions
       description: 'Required Permission: "LOGGED_IN"'
-      operationId: hasCurrentUserSitePermssions
+      operationId: hasCurrentUserGlobalPermssions
       requestBody:
         description: request body to check if current authenticated user has permissions
         required: true
