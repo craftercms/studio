@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,7 +23,6 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,29 +32,36 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DEPENDENCIES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DEPENDENCY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HARD_DEPENDENCIES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SOFT_DEPENDENCIES;
 
 @RestController
-@RequestMapping("/api/2/dependency")
+@RequestMapping(API_2 + DEPENDENCY)
 public class DependencyController {
 
     private DependencyService dependencyService;
 
-    @PostMapping("/dependencies")
+    @PostMapping(DEPENDENCIES)
     public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequest request)
             throws ServiceLayerException {
         List<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
+
+        List<String> filteredSoftDeps =
+                softDeps.stream().filter(sd -> !hardDeps.contains(sd)).collect(Collectors.toList());
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<Map<String, List<String>>>();
         result.setResponse(ApiResponse.OK);
         Map<String, List<String>> items = new HashMap<String, List<String>>();
         items.put(RESULT_KEY_HARD_DEPENDENCIES, hardDeps);
-        items.put(RESULT_KEY_SOFT_DEPENDENCIES, softDeps);
+        items.put(RESULT_KEY_SOFT_DEPENDENCIES, filteredSoftDeps);
         result.setEntity(RESULT_KEY_ITEMS, items);
         responseBody.setResult(result);
         return responseBody;
