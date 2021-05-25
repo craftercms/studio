@@ -94,6 +94,10 @@ public final class RequestMappingConstants {
     public static final String CANCEL = "/cancel";
     public static final String CLEAR_LOCK = "/clear_lock";
 
+    /** Dependency Controller */
+    public static final String DEPENDENCY = "/dependency";
+    public static final String DEPENDENCIES = "/dependencies";
+
     private RequestMappingConstants() {
     }
 }
