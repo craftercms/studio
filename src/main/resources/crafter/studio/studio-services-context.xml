@@ -190,6 +190,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="configurationService" ref="configurationService" />
+        <property name="cache" ref="configurationCache" />
     </bean>
 
     <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
