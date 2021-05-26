@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
@@ -38,7 +37,6 @@ import org.dom4j.Document;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 
@@ -51,30 +49,6 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 public interface SiteService {
 
 	/**
-	 * write configuration content at the given path
-	 * (can be any kind of content)
-	 * @param site site identifier
-	 * @param path configuration file path
-	 * @param content configuration content
-	 * @return true if configuration was written, otherwise false
-	 *
-	 * @throws ServiceLayerException general service error
-	 */
-    boolean writeConfiguration(String site, String path, InputStream content)
-			throws ServiceLayerException, UserNotFoundException;
-
-	/**
-	 * write configuration content at the given path
-	 * (can be any kind of content)
-	 * @param path configuration file path
-	 * @param content configuration content
-	 * @return true if configuration was written, otherwise false
-	 *
-	 * @throws ServiceLayerException general service error
-	 */
-	boolean writeConfiguration(String path, InputStream content) throws ServiceLayerException;
-
-	/**
 	 * given a site ID return the configuration as a document
 	 * This method allows extensions to add additional properties to the configuration that
 	 * are not made available through the site configuration object
@@ -84,17 +58,6 @@ public interface SiteService {
 	 * @throws SiteConfigNotFoundException site configuration not found
 	 */
 	Document getSiteConfiguration(String site) throws SiteConfigNotFoundException;
-
-	/**
-	 * get configuraiton content as XML string at the given path
-	 *
-	 * @param site site identifier
-	 * @param path path of configuration file
-	 * @param applyEnv
-	 * 			find from the environment overrides location?
-	 * @return configuration as XML string
-	 */
-	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) throws ServiceLayerException;
 
     Set<String> getAllAvailableSites();
 
