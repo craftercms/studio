@@ -45,7 +45,7 @@
         <result property="size" column="size" />
         <result property="parentId" column="parent_id" />
         <result property="commitId" column="commit_id" />
-        <result property="previewUrl" column="previous_path" />
+        <result property="previewUrl" column="preview_url" />
         <result property="ignoredAsInt" column="ignored" />
     </resultMap>
 
