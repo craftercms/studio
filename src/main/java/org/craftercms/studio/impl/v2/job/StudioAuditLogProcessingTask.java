@@ -16,7 +16,9 @@
 
 package org.craftercms.studio.impl.v2.job;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.FilenameUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -47,6 +49,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 public class StudioAuditLogProcessingTask extends StudioClockTask {
@@ -97,7 +100,10 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                     List<RepoOperation> operations = contentRepository.getOperationsFromDelta(siteId, prevCommitId,
                             gl.getCommitId());
                     for (RepoOperation repoOperation : operations) {
-
+                        if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath())) ||
+                                ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
+                            continue;
+                        }
                         Map<String, String> activityInfo = new HashMap<String, String>();
                         String contentClass;
                         AuditLog auditLog;

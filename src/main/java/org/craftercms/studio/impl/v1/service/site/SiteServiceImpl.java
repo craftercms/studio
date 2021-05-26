@@ -38,6 +38,7 @@ import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
@@ -163,6 +164,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
 /**
  * Note: consider renaming
@@ -555,15 +557,20 @@ public class SiteServiceImpl implements SiteService {
                     previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
                 }
                 processAncestors(siteFeed.getId(), path, userObj.getId(), now, lastCommitId, sbInsertItems);
-                sbInsertItems.append(insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value, null, userObj.getId(), now,
-                        userObj.getId(), now, now, label, contentTypeId, contentService.getContentTypeClass(siteId, path),
-                        StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
-                        null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null))
-                        .append("\n\n");
 
-                addUpdateParentIdScriptSnippets(siteFeed.getId(), path, sbUpdateParentId);
+                if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
+                    addUpdateParentIdScriptSnippets(siteFeed.getId(), path, sbUpdateParentId);
+                } else {
+                    sbInsertItems.append(insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value, null, userObj.getId(), now,
+                            userObj.getId(), now, now, label, contentTypeId, contentService.getContentTypeClass(siteId, path),
+                            StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
+                            null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null))
+                            .append("\n\n");
 
-                addDependenciesScriptSnippets(siteId, path, null, sbInsertItems);
+                    addUpdateParentIdScriptSnippets(siteFeed.getId(), path, sbUpdateParentId);
+
+                    addDependenciesScriptSnippets(siteId, path, null, sbInsertItems);
+                }
             }
             if (sbInsertItems.length() > 0) {
                 studioDBScriptRunner.execute(sbInsertItems.toString());
@@ -1267,63 +1274,71 @@ public class SiteServiceImpl implements SiteService {
                         }
                         processAncestors(siteFeed.getId(), repoOperation.getPath(), userObj.getId(),
                                 repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
-                        sbRepoOperations.append(insertItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, NEW.value, null,
-                                userObj.getId(), repoOperation.getDateTime(), userObj.getId(),
-                                repoOperation.getDateTime(), repoOperation.getDateTime(), label, contentTypeId,
-                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, Locale.US.toString(),
-                                null, contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
-                                repoOperation.getCommitId(), null)).append("\n\n");
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
-                                repoOperation.getPath());
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(), sbUpdateParentId);
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
+
+                        if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
+                            addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(), sbUpdateParentId);
+                        } else {
+                            sbRepoOperations.append(insertItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, NEW.value, null,
+                                    userObj.getId(), repoOperation.getDateTime(), userObj.getId(),
+                                    repoOperation.getDateTime(), repoOperation.getDateTime(), label, contentTypeId,
+                                    contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                    StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, Locale.US.toString(),
+                                    null, contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
+                                    repoOperation.getCommitId(), null)).append("\n\n");
+                            logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                                    repoOperation.getPath());
+                            addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(), sbUpdateParentId);
+                            addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
+                        }
                         break;
 
                     case UPDATE:
-                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
-                            userObj = cachedUsers.get(repoOperation.getAuthor());
-                        } else {
-                            try {
-                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
-                            } catch (UserNotFoundException | ServiceLayerException e) {
-                                logger.debug("User not found " + repoOperation.getAuthor());
-                            }
-                        }
-                        if (Objects.isNull(userObj)) {
-                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
-                        }
-                        label = FilenameUtils.getName(repoOperation.getPath());
-                        contentTypeId = StringUtils.EMPTY;
-                        if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
-                            try {
-                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
-                                if (contentDoc != null) {
-                                    Element rootElement = contentDoc.getRootElement();
-                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                    if (StringUtils.isNotEmpty(internalName)) {
-                                        label = internalName;
-                                    }
-                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                        if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
+                            if (cachedUsers.containsKey(repoOperation.getAuthor())) {
+                                userObj = cachedUsers.get(repoOperation.getAuthor());
+                            } else {
+                                try {
+                                    userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
+                                } catch (UserNotFoundException | ServiceLayerException e) {
+                                    logger.debug("User not found " + repoOperation.getAuthor());
                                 }
-                            } catch (DocumentException e) {
-                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
                             }
+                            if (Objects.isNull(userObj)) {
+                                userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
+                            }
+                            label = FilenameUtils.getName(repoOperation.getPath());
+                            contentTypeId = StringUtils.EMPTY;
+                            if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
+                                try {
+                                    Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
+                                    if (contentDoc != null) {
+                                        Element rootElement = contentDoc.getRootElement();
+                                        String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
+                                        if (StringUtils.isNotEmpty(internalName)) {
+                                            label = internalName;
+                                        }
+                                        contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                    }
+                                } catch (DocumentException e) {
+                                    logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                                }
+                            }
+                            previewUrl = null;
+                            if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
+                                    StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
+                                previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
+                            }
+
+                            sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                                    repoOperation.getDateTime(), label, contentTypeId,
+                                    contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                    StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                    contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
+                                    repoOperation.getCommitId())).append("\n\n");
+                            logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                                    repoOperation.getPath());
+                            addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
                         }
-                        previewUrl = null;
-                        if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
-                                StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
-                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
-                        }
-                        sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
-                                repoOperation.getDateTime(), label, contentTypeId,
-                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
-                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
-                                repoOperation.getCommitId())).append("\n\n");
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
-                                repoOperation.getPath());
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sbRepoOperations);
                         break;
                     case DELETE:
                         sbRepoOperations.append(deleteItemRow(siteFeed.getId(), repoOperation.getPath())).append("\n\n");
@@ -1367,15 +1382,20 @@ public class SiteServiceImpl implements SiteService {
                         }
                         processAncestors(siteFeed.getId(), repoOperation.getMoveToPath(), userObj.getId(),
                                 repoOperation.getDateTime(), repoOperation.getCommitId(), sbRepoOperations);
-                        sbRepoOperations.append(moveItemRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
-                        sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
-                                repoOperation.getDateTime(), label, contentTypeId,
-                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
-                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
-                                repoOperation.getCommitId())).append("\n\n");
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), sbUpdateParentId);
-                        addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sbRepoOperations);
+                        if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) ||
+                                ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
+                            addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), sbUpdateParentId);
+                        } else {
+                            sbRepoOperations.append(moveItemRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
+                            sbRepoOperations.append(updateItemRow(siteFeed.getId(), repoOperation.getPath(), previewUrl, userObj.getId(),
+                                    repoOperation.getDateTime(), label, contentTypeId,
+                                    contentService.getContentTypeClass(siteId, repoOperation.getPath()),
+                                    StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                    contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
+                                    repoOperation.getCommitId())).append("\n\n");
+                            addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), sbUpdateParentId);
+                            addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sbRepoOperations);
+                        }
                         break;
 
                     default:
