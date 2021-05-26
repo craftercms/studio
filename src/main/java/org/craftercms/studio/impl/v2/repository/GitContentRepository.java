@@ -20,7 +20,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -535,11 +534,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             // Update the paths to have a preceding separator
             String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
             String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
-
-            if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(pathNew)) ||
-                    ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(pathOld))) {
-                continue;
-            }
 
             RepoOperation repoOperation = null;
             Iterable<RevCommit> iterable = null;
@@ -1522,11 +1516,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             // Update the paths to have a preceding separator
             String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
             String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
-
-            if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(pathNew)) ||
-                    ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(pathOld))) {
-                continue;
-            }
 
             switch (diffEntry.getChangeType()) {
                 case ADD:

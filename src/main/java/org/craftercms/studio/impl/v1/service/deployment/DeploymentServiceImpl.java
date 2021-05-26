@@ -16,7 +16,9 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import org.apache.commons.collections.FastArrayList;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.FilenameUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -104,6 +106,7 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
@@ -855,6 +858,10 @@ public class DeploymentServiceImpl implements DeploymentService {
                     contentRepositoryV2.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 
             for (RepoOperation op : operations) {
+                if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(op.getMoveToPath())) ||
+                        ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(op.getPath()))) {
+                    continue;
+                }
                 logger.debug("Creating publish request item: ");
                 PublishRequest item = new PublishRequest();
                 item.setId(++CTED_AUTOINCREMENT);
