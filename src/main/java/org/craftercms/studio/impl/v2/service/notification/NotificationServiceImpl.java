@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -536,6 +535,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public Cache<String, Map<String, NotificationConfigTO>> getCache() {
+        return cache;
+    }
+
+    public void setCache(Cache<String, Map<String, NotificationConfigTO>> cache) {
+        this.cache = cache;
     }
 }
 
