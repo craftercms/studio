@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,13 +53,11 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.DeployerTargetException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -137,12 +134,10 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_DELETED;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_REMOTE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -217,52 +212,6 @@ public class SiteServiceImpl implements SiteService {
     protected StudioDBScriptRunner studioDBScriptRunner;
     protected DependencyServiceInternal dependencyServiceInternal;
 
-    @Override
-    @ValidateParams
-    public boolean writeConfiguration(@ValidateStringParam(name = "site") String site,
-                                      @ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceLayerException, UserNotFoundException {
-        // Write site configuration
-        String operation = OPERATION_UPDATE;
-        if (!contentRepository.contentExists(site, path)) {
-            operation = OPERATION_CREATE;
-        }
-        String commitId = contentRepository.writeContent(site, path, content);
-        contentRepository.reloadRepository(site);
-
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(site);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
-
-        String user = securityService.getCurrentUser();
-        SiteFeed siteFeed = getSite(site);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(operation);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(user);
-        auditLog.setPrimaryTargetId(site + ":" + path);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-        auditLog.setPrimaryTargetValue(path);
-        auditServiceInternal.insertAuditLog(auditLog);
-
-        itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, Optional.of(true));
-
-        if (commitId != null) {
-            contentRepositoryV2.insertGitLog(site, commitId, 1);
-        }
-
-        return StringUtils.isEmpty(commitId);
-    }
-
-    @Override
-    @ValidateParams
-    public boolean writeConfiguration(@ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceLayerException {
-        // Write global configuration
-        String commitId = contentRepository.writeContent("", path, content);
-        return StringUtils.isEmpty(commitId);
-    }
-
     /**
      * given a site ID return the configuration as a document
      * This method allows extensions to add additional properties to the configuration that
@@ -277,16 +226,6 @@ public class SiteServiceImpl implements SiteService {
             throws SiteConfigNotFoundException {
         return _siteServiceDAL.getSiteConfiguration(site);
     }
-
-    @Override
-    @ValidateParams
-    public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site,
-                                                @ValidateSecurePathParam(name = "path") String path,
-                                                boolean applyEnv) throws ServiceLayerException {
-        return configurationService.legacyGetConfiguration(site, path);
-    }
-
-
 
     @Override
     public Set<String> getAllAvailableSites() {
