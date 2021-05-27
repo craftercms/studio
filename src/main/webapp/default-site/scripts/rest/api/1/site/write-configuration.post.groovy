@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,32 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+def result = [:]
 
-import org.apache.commons.lang3.StringUtils
-import scripts.api.SiteServices
- 
-def result = [:];
-def path = request.getParameter("path")
-def site = request.getParameter("site_id")
-def content = request.getInputStream()
+result.message = "API deprecated."
+def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/configuration/write_configuration"
+response.addHeader("Location", locationHeader)
+response.setStatus(301)
 
-/** Validate Parameters */
-def invalidParams = false
-def paramsList = []
-
-if (StringUtils.isEmpty(site)) {
-    site = request.getParameter("site")
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
-} else {
-    def context = SiteServices.createContext(applicationContext, request)
-    if (site != null && site != "") {
-        result.result = SiteServices.writeConfiguration(context, site, path, content)
-    } else {
-        result.result = SiteServices.writeConfiguration(context, path, content)
-    }
-}
 return result

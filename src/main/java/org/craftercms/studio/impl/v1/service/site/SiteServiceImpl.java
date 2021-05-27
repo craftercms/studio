@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +32,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,14 +50,10 @@ import org.craftercms.commons.rest.RestServiceException;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.DeployerTargetException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -88,7 +82,6 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -124,20 +117,16 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_REMOTE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -213,76 +202,6 @@ public class SiteServiceImpl implements SiteService {
     protected StudioDBScriptRunner studioDBScriptRunner;
     protected DependencyServiceInternal dependencyServiceInternal;
 
-    @Override
-    @ValidateParams
-    public boolean writeConfiguration(@ValidateStringParam(name = "site") String site,
-                                      @ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceLayerException {
-        // Write site configuration
-        String operation = OPERATION_UPDATE;
-        if (!contentRepository.contentExists(site, path)) {
-            operation = OPERATION_CREATE;
-        }
-        String commitId = contentRepository.writeContent(site, path, content);
-        contentRepository.reloadRepository(site);
-
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(site);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
-
-        String user = securityService.getCurrentUser();
-        Map<String, String> extraInfo = new HashMap<String, String>();
-        if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONTENT_TYPE);
-        } else {
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONFIGURATION);
-        }
-        SiteFeed siteFeed = getSite(site);
-        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(operation);
-        auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(user);
-        auditLog.setPrimaryTargetId(site + ":" + path);
-        auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-        auditLog.setPrimaryTargetValue(path);
-        auditServiceInternal.insertAuditLog(auditLog);
-        objectStateService.transition(site, path, TransitionEvent.SAVE);
-        if (!objectMetadataManager.metadataExist(site, path)) {
-            objectMetadataManager.insertNewObjectMetadata(site, path);
-        }
-
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ItemMetadata.PROP_NAME, FilenameUtils.getName(path));
-        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        properties.put(ItemMetadata.PROP_MODIFIER, user);
-        objectMetadataManager.setObjectMetadata(site, path, properties);
-
-        if (commitId != null) {
-            objectMetadataManager.updateCommitId(site, path, commitId);
-            contentRepositoryV2.insertGitLog(site, commitId, 1);
-        }
-        boolean toRet = StringUtils.isEmpty(commitId);
-
-        return toRet;
-    }
-
-	@Override
-    @ValidateParams
-	public boolean writeConfiguration(@ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceLayerException {
-	    // Write global configuration
-        String commitId = contentRepository.writeContent("", path, content);
-        boolean toReturn = StringUtils.isEmpty(commitId);
-        return toReturn;
-	}
-
-	@Override
-    @ValidateParams
-	public Map<String, Object> getConfiguration(@ValidateSecurePathParam(name = "path") String path) {
-		return null;
-	}
-
-
 	/**
 	 * given a site ID return the configuration as a document
 	 * This method allows extensions to add additional properties to the configuration that
@@ -295,37 +214,6 @@ public class SiteServiceImpl implements SiteService {
 	public Document getSiteConfiguration(@ValidateStringParam(name = "site") String site)
 	throws SiteConfigNotFoundException {
 		return _siteServiceDAL.getSiteConfiguration(site);
-	}
-
-	@Override
-    @ValidateParams
-	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site,
-                                                @ValidateSecurePathParam(name = "path") String path,
-                                                boolean applyEnv) {
-		String configPath;
-        String configContent;
-		if (StringUtils.isEmpty(site)) {
-			configPath = getGlobalConfigRoot() + path;
-			configContent = contentService.getContentAsString(site, configPath);
-		} else {
-		    if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
-                configPath = getSitesConfigPath() + path;
-                configContent = contentService.getContentAsString(site, configPath);
-            } else {
-		        configContent = configurationService.getConfigurationAsString(site, MODULE_STUDIO, path,
-                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-            }
-		}
-
-
-		Map<String, Object> toRet = null;
-		if (configContent != null) {
-            configContent = configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
-			configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
-			configContent = configContent.replaceAll("<!--(.*?)-->", "");
-			toRet = convertNodesFromXml(configContent);
-		}
-		return toRet;
 	}
 
 	private Map<String, Object> convertNodesFromXml(String xml) {
