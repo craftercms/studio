@@ -41,6 +41,7 @@ import org.dom4j.Document;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 
@@ -53,6 +54,20 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 public interface SiteService {
 
 	/**
+	 * write configuraiton content at the given path
+	 * (can be any kind of content)
+	 * @param path
+	 */
+    boolean writeConfiguration(String site, String path, InputStream content) throws ServiceLayerException;
+
+	/**
+	 * write configuraiton content at the given path
+	 * (can be any kind of content)
+	 * @param path
+	 */
+	boolean writeConfiguration(String path, InputStream content) throws ServiceLayerException;
+
+	/**
 	 * given a site ID return the configuration as a document
 	 * This method allows extensions to add additional properties to the configuration that
 	 * are not made available through the site configuration object
@@ -60,6 +75,26 @@ public interface SiteService {
 	 * @return a Document containing the entire site configuration
 	 */
 	Document getSiteConfiguration(String site) throws SiteConfigNotFoundException;
+
+	/**
+	 * get configuraiton content as XML string at the given path
+	 *
+	 * @param path
+	 * 			find from the environment overrides location?
+	 * @return configuration as XML string
+	 */
+	Map<String, Object> getConfiguration(String path);
+
+	/**
+	 * get configuraiton content as XML string at the given path
+	 *
+	 * @param site
+	 * @param path
+	 * @param applyEnv
+	 * 			find from the environment overrides location?
+	 * @return configuration as XML string
+	 */
+	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
 
     Set<String> getAllAvailableSites();
 

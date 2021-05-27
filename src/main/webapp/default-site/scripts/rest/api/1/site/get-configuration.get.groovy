@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,11 +14,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+import org.apache.commons.lang3.StringUtils
+import scripts.api.SiteServices
+
 def result = [:]
+def status = [:]
+def site = params.site_id
+def path = params.path
+def applyEnv = params.applyEnv
 
-result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/configuration/get_configuration"
-response.addHeader("Location", locationHeader)
-response.setStatus(301)
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
 
+// site_id
+if (StringUtils.isEmpty(site)) {
+    site = params.site
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def applyEnvironment = false
+    if (applyEnv != null && applyEnv == 'true') {
+        applyEnvironment = true
+    }
+    def context = SiteServices.createContext(applicationContext, request)
+    result = SiteServices.getConfiguration(context, site, path, applyEnvironment)
+}
 return result
