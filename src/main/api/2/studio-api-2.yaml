@@ -5628,7 +5628,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /workflow/update_item_states:
+  /workflow/update_item_states_by_query:
     post:
       tags:
         - workflow
@@ -5643,33 +5643,42 @@ paths:
             schema:
               type: object
               properties:
-                siteId: 
-                  type: string
-                  description: site ID
-                paths:
-                  type: array
-                  description: path(s) regexes of item(s)
-                  items:
-                    type: string
-                states:
-                  type: integer
-                  format: int64
-                  description: state bitmap mask to filter by state
-                clearSystemProcessing:
-                  type: boolean
-                  description: true if system processing is to be cleared
-                clearUserLocked:
-                  type: boolean
-                  description: true if user lock is to be cleared
-                live:
-                  type: boolean
-                  description: true if item is to be set as live, otherwise false
-                staged:
-                  type: boolean
-                  description: true if item is to be set as staged, otherwise false
+                query:
+                  type: object
+                  properties:
+                    siteId: 
+                      type: string
+                      description: site ID
+                    paths:
+                      type: array
+                      description: path(s) regexes of item(s)
+                      items:
+                        type: string
+                    states:
+                      type: integer
+                      format: int64
+                      description: state bitmap mask to filter by state
+                  required:
+                    - siteId
+                    - paths
+                update:
+                  type: object
+                  properties:
+                    clearSystemProcessing:
+                      type: boolean
+                      description: true if system processing is to be cleared
+                    clearUserLocked:
+                      type: boolean
+                      description: true if user lock is to be cleared
+                    live:
+                      type: boolean
+                      description: true if item is to be set as live, otherwise false
+                    staged:
+                      type: boolean
+                      description: true if item is to be set as staged, otherwise false
               required:
-                - siteId
-                - paths
+                - query
+                - update
       responses:
         '200':
           description: OK
