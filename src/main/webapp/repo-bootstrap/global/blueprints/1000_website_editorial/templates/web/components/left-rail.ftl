@@ -1,4 +1,4 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 <#import "/templates/web/navigation2/navigation.ftl" as nav/>
 
 <@studio.componentRootTag id="sidebar">

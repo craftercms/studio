@@ -1,4 +1,4 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
 <!DOCTYPE HTML>
 <!--
@@ -9,8 +9,10 @@
 <html lang="en">
 <head>
 	<#include "/templates/web/fragments/head.ftl">
+	<@crafter.head/>
 </head>
 <body>
+<@crafter.body_top/>
 <!-- Wrapper -->
 <div id="wrapper">
 
@@ -68,6 +70,6 @@
 <script src="/static-assets/js/handlebars.min-latest.js"></script>
 <script src="/static-assets/js/search.js"></script>
 
-<@studio.initPageBuilder/>
+<@crafter.body_bottom/>
 </body>
 </html>

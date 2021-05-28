@@ -1,4 +1,4 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
 <#if articles?? && articles?size &gt; 0>
   <@studio.componentRootTag $tag="section">

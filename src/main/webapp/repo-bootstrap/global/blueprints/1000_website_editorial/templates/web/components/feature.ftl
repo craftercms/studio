@@ -1,4 +1,4 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
 <!-- Feature Component -->
 <@studio.componentRootTag $tag="article" class="feature">

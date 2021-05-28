@@ -1,4 +1,4 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
 <!DOCTYPE HTML>
 <!--
@@ -9,8 +9,10 @@
 <html lang="en">
 <head>
 	<#include "/templates/web/fragments/head.ftl">
+	<@crafter.head/>
 </head>
 <body>
+<@crafter.body_top/>
 
 <!-- Wrapper -->
 <div id="wrapper">
@@ -24,12 +26,12 @@
 			<!-- Content -->
 			<section>
 				<header class="main">
-          <@studio.tag $tag="h1" $field="subject_t">
-            ${contentModel.subject_t!""}
-          </@studio.tag>
-          <@studio.tag $tag="h2" $field="author_s">
-            by ${contentModel.author_s!""}
-          </@studio.tag>
+					<@crafter.tag $tag="h1" $field="subject_t">
+						${contentModel.subject_t!""}
+					</@crafter.tag>
+					<@crafter.tag $tag="h2" $field="author_s">
+						by ${contentModel.author_s!""}
+					</@crafter.tag>
 				</header>
 				<#if contentModel.image_s??>
 					<#assign image = contentModel.image_s/>
@@ -37,22 +39,22 @@
 					<#assign image = "/static-assets/images/placeholder.png"/>
 				</#if>
 				<span class="image main">
-          <@studio.img $field='image_s' src="${image}" alt=""/>
+          <@crafter.img $field='image_s' src="${image}" alt=""/>
         </span>
 
-        <@studio.renderRepeatCollection
-          $field="sections_o"
-          $containerAttributes={'style': 'list-style: none; padding-left: 0;'};
-          item, index
-        >
-          <@studio.tag
-            $field="sections_o.section_html"
-            $index=index
-          >
-            ${item.section_html}
-          </@studio.tag>
-          <hr class="major" />
-        </@studio.renderRepeatCollection>
+				<@crafter.renderRepeatCollection
+				$field="sections_o"
+				$containerAttributes={'style': 'list-style: none; padding-left: 0;'};
+				item, index
+				>
+					<@crafter.tag
+					$field="sections_o.section_html"
+					$index=index
+					>
+						${item.section_html}
+					</@crafter.tag>
+					<hr class="major" />
+				</@crafter.renderRepeatCollection>
 			</section>
 		</div>
 	</div>
@@ -68,6 +70,6 @@
 
 <#include "/templates/web/fragments/scripts.ftl">
 
-<@studio.initPageBuilder/>
+<@crafter.body_bottom/>
 </body>
 </html>
