@@ -1,4 +1,4 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
 <!DOCTYPE html>
 <html lang="en" data-craftercms-preview="${modePreview?c}">
@@ -12,8 +12,10 @@
     }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <@crafter.head/>
 </head>
 <body>
+<@crafter.body_top/>
 <div id="browser" class="container" v-cloak>
   <div class="row">
     <div class="page-header">
@@ -137,6 +139,6 @@
 <script src="/static-assets/js/craftercms-sdk/search/search.umd.js"></script>
 <script src="/static-assets/js/main.js"></script>
 
-<@studio.initPageBuilder/>
+<@crafter.body_bottom/>
 </body>
 </html>

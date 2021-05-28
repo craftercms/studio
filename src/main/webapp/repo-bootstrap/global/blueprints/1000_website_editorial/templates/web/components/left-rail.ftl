@@ -1,7 +1,7 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
 <#import "/templates/web/navigation2/navigation.ftl" as nav/>
 
-<@studio.componentRootTag id="sidebar">
+<@crafter.componentRootTag id="sidebar">
   <div class="inner">
 
     <!-- Search -->
@@ -31,7 +31,7 @@
       <#else>
         <#assign additionalModel = {} />
       </#if>
-      <@studio.renderComponentCollection $field="widgets_o" arguments=additionalModel/>
+      <@crafter.renderComponentCollection $field="widgets_o" arguments=additionalModel/>
     </#if>
     <!-- /Widgets -->
 
@@ -45,4 +45,4 @@
     <!-- /Footer -->
 
   </div>
-</@studio.componentRootTag>
+</@crafter.componentRootTag>

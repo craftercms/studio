@@ -1,15 +1,15 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
 
 <!-- Feature Component -->
-<@studio.componentRootTag $tag="article" class="feature">
-  <@studio.span class="icon ${contentModel.icon_s}" $field="icon_s"/>
+<@crafter.componentRootTag $tag="article" class="feature">
+  <@crafter.span class="icon ${contentModel.icon_s}" $field="icon_s"/>
   <div class="content">
-    <@studio.h3 $field="title_t">
+    <@crafter.h3 $field="title_t">
       ${contentModel.title_t}
-    </@studio.h3>
-    <@studio.span $field="body_html">
+    </@crafter.h3>
+    <@crafter.span $field="body_html">
       ${contentModel.body_html}
-    </@studio.span>
+    </@crafter.span>
   </div>
-</@studio.componentRootTag>
+</@crafter.componentRootTag>
 <!-- /Feature Component -->
