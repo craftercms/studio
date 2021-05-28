@@ -34,6 +34,7 @@
         <result property="submissionComment" column="submissioncomment"/>
         <result property="commitId" column="commit_id"/>
         <result property="packageId" column="package_id"/>
+        <result property=""
     </resultMap>
 
     <resultMap id="PublishingPackageMap" type="org.craftercms.studio.api.v2.dal.PublishingPackage">
