@@ -5606,6 +5606,9 @@ paths:
                 staged:
                   type: boolean
                   description: true if item is to be set as staged, otherwise false
+              required:
+                - siteId
+                - items
       responses:
         '200':
           description: OK
@@ -5664,6 +5667,9 @@ paths:
                 staged:
                   type: boolean
                   description: true if item is to be set as staged, otherwise false
+              required:
+                - siteId
+                - paths
       responses:
         '200':
           description: OK
