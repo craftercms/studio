@@ -1632,8 +1632,10 @@
     <bean id="sandboxInterceptor" class="org.craftercms.commons.spring.groovy.SandboxInterceptorFactory">
         <constructor-arg name="sandboxEnabled"
                          value="#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')}"/>
+        <constructor-arg name="blacklistEnabled"
+                         value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist.enable')}"/>
         <constructor-arg name="blacklist"
-                         value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist')}"/>
+                         value="#{studioConfiguration.getProperty('studio.scripting.sandbox.blacklist.path')}"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

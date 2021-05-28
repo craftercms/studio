@@ -973,8 +973,10 @@ studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
 
 # Indicates if the sandbox should be enabled
 studio.scripting.sandbox.enable: true
-# The location of the default blacklist to use
-studio.scripting.sandbox.blacklist: classpath:crafter/studio/groovy/blacklist
+# Indicates if the blacklist should be enabled (this will have no effect if the sandbox is disabled)
+studio.scripting.sandbox.blacklist.enable: true
+# The location of the default blacklist to use (this will have no effect if the sandbox is disabled)
+studio.scripting.sandbox.blacklist.path: classpath:crafter/studio/groovy/blacklist
 # The extension for the script files
 studio.scripting.script.extension: groovy
 # The format for the name of the script files
