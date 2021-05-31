@@ -590,12 +590,15 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="studioUtils" ref="studio.utils" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="publishServiceInternal"
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="contentRepository" ref="contentRepository" />
+        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -1449,6 +1452,11 @@
     <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
         <!-- This properties can't be externalized because the bean is created before the yaml is loaded -->
         <property name="maxSize" value="100"/>
+    </bean>
+
+    <bean id="studio.utils" class="org.craftercms.studio.impl.v2.utils.StudioUtils">
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

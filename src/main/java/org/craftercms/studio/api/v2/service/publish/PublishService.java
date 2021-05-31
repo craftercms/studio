@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.service.publish;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
@@ -118,4 +119,15 @@ public interface PublishService {
     List<PublishingDashboardItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
                                                        ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
                                                        long state, String sortBy, String order, int offset, int limit);
+
+    /**
+     * Get deployment history
+     * @param siteId site identifier
+     * @param daysFromToday number of days for history
+     * @param numberOfItems number of items to display
+     * @param filterType filter results by filter type
+     * @return
+     */
+    List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
+                                                      String filterType);
 }
