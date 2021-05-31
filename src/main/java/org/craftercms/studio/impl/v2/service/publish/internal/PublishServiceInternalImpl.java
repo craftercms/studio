@@ -118,7 +118,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                         dhi.setUser(publishRequest.getUser());
                         dhi.setEnvironment(publishRequest.getEnvironment());
                         toRet.add(dhi);
-                        if (!(++counter < numberOfItems)) {
+                        if (++counter >= numberOfItems) {
                             break;
                         }
                     }
