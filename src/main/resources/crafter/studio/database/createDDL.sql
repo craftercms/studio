@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   `commit_id`         VARCHAR(50)  NULL,
   `package_id`         VARCHAR(50)  NULL,
   `label`             VARCHAR(256) NULL,
-  'published_on'      TIMESTAMP     NULL,
+  `published_on`      TIMESTAMP     NULL,
   PRIMARY KEY (`id`),
   INDEX `publish_request_site_idx` (`site` ASC),
   INDEX `publish_request_environment_idx` (`environment` ASC),

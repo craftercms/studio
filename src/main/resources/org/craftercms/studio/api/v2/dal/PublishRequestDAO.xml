@@ -119,13 +119,13 @@
         FROM publish_request
         WHERE site = #{siteId}
         AND state = #{completedState}
-        AND DATE(published_on) &lt;= DATE(#{toDate})
-        AND DATE(published_on) &gt;= DATE(#{fromDate})
+        AND DATE(IFNULL(published_on, scheduleddate)) &lt;= DATE(#{toDate})
+        AND DATE(IFNULL(published_on, scheduleddate)) &gt;= DATE(#{fromDate})
         AND environment IN
         <foreach item="env" index="index" collection="environments" open="(" separator="," close=")">
             #{env}
         </foreach>
-        ORDER BY IFNULL(completed_date, scheduleddate) DESC
+        ORDER BY IFNULL(published_on, scheduleddate) DESC
         LIMIT #{offset}, #{limit}
     </select>
 </mapper>

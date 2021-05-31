@@ -171,7 +171,8 @@ public class PublishController {
     public ResponseBody getPublishingHistory(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                              @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,
                                              @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
-                                             @RequestParam(name = REQUEST_PARAM_FILTER_TYPE) String filterType)
+                                             @RequestParam(name = REQUEST_PARAM_FILTER_TYPE, required = false,
+                                                     defaultValue = "page") String filterType)
             throws SiteNotFoundException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
