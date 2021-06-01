@@ -294,6 +294,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
                 dest: /configuration/samples/sample-permission-mappings-config.xml
             commitDetails: Update sample files
+      - currentVersion: 4.0.0.21
+        nextVersion: 4.0.0.22
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.21-to-4.0.0.22.sql
 
   # Pipeline to upgrade site repositories
   site:

@@ -86,7 +86,13 @@
 
     <update id="updateItemDeploymentState" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
         UPDATE publish_request
-        SET state = #{state}
+        SET state = #{state}, published_on = NULL
+        WHERE id = #{id}
+    </update>
+
+    <update id="markItemCompleted" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
+        UPDATE publish_request
+        SET state = #{state}, published_on = #{publishedOn}
         WHERE id = #{id}
     </update>
 

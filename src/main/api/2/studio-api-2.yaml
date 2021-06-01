@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.16'
+  version: '4.0.0.17'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4714,6 +4714,61 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /publish/history:
+    get:
+      tags:
+        - publishing
+      summary: Get publishing history for site
+      description: 'Required permission "publish"'
+      operationId: getPublishingHistory
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: days
+          in: query
+          description: number of days to display history for
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: num
+          in: query
+          description: number of items to fetch
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: filterType
+          in: query
+          description: filter items by type (all, pages, components, documents ...)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingStatus:
+                    $ref: '#/components/schemas/DeploymentHistoryGroup'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /security/encrypt:
     post:
       tags:
@@ -6958,6 +7013,30 @@ components:
         - message
         - lockOwner
         - lockTTL
+
+    DeploymentHistoryGroup:
+      type: object
+      properties:
+        internalName:
+          type: string
+          description: user friendly label
+        numberOfChildren:
+          type: integer
+          format: int32
+          description: number of items in the group
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentItem'
+        endpoint:
+          type: string
+          description: publishing environment where item was published
+      required:
+        - internalName
+        - numberOfChildren
+        - children
+        - endpoint
+
 
     SandboxItem:
       type: object

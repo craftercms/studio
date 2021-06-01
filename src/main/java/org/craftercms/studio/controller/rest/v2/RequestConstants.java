@@ -76,6 +76,11 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
 
+    public static final String REQUEST_PARAM_DAYS = "days";
+
+    public static final String REQUEST_PARAM_NUM = "num";
+
+    public static final String REQUEST_PARAM_FILTER_TYPE = "filterType";
 
     private RequestConstants() { }
 }
