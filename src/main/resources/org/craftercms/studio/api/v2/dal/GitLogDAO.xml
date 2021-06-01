@@ -71,7 +71,9 @@
     </select>
 
     <update id="markGitLogProcessedBeforeMarker" parameterType="java.util.Map">
-        UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND processed = #{unprocessed} AND NOT id > #{marker}
+        UPDATE gitlog gl1 SET gl1.processed = #{processed}
+        WHERE gl1.id IN (SELECT gl2.id FROM gitlog gl2 WHERE gl2.site_id = #{siteId}
+                                                         AND gl2.processed = #{unprocessed} AND  gl2.id &lt;= #{marker})
     </update>
 
     <insert id="upsertGitLogList" >
