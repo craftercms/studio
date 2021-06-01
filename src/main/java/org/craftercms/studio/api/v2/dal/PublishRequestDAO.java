@@ -22,7 +22,10 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CANCELLED_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENTS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FROM_DATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NOW;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
@@ -32,6 +35,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TO_DATE;
 
 public interface PublishRequestDAO {
 
@@ -102,4 +106,22 @@ public interface PublishRequestDAO {
                                                  @Param(ENVIRONMENT) String environment,
                                                  @Param(STATE) String state,
                                                  @Param(NOW) ZonedDateTime now);
+
+    /**
+     * Get deployment history
+     * @param siteId site identifier
+     * @param environments environments
+     * @param completedState completed state
+     * @param fromDate get history from date
+     * @param toDate get history to date
+     * @param offset offset for pagination
+     * @param limit number of records to return
+     * @return
+     */
+    List<PublishRequest> getDeploymentHistory(@Param(SITE_ID) String siteId,
+                                              @Param(ENVIRONMENTS) List<String> environments,
+                                              @Param(COMPLETED_STATE) String completedState,
+                                              @Param(FROM_DATE) ZonedDateTime fromDate,
+                                              @Param(TO_DATE) ZonedDateTime toDate, @Param(OFFSET) int offset,
+                                              @Param(LIMIT) int limit);
 }

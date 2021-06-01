@@ -21,10 +21,14 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
@@ -32,13 +36,21 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -55,6 +67,8 @@ public class PublishServiceImpl implements PublishService {
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
     private ItemServiceInternal itemServiceInternal;
+    private StudioUtils studioUtils;
+    private ServicesConfig servicesConfig;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
@@ -151,7 +165,69 @@ public class PublishServiceImpl implements PublishService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
+                                                             String filterType) {
+        ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
+        ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
+        List<String> environments = studioUtils.getEnvironmentNames(siteId);
+        List<DeploymentHistoryItem> deploymentHistoryItems = publishServiceInternal.getDeploymentHistory(siteId,
+                environments, fromDate, toDate, filterType, numberOfItems);
+        List<DeploymentHistoryGroup> groups = new ArrayList<DeploymentHistoryGroup>();
 
+        if (deploymentHistoryItems != null) {
+            int count = 0;
+            String timezone = servicesConfig.getDefaultTimezone(siteId);
+            Map<String, Set<String>> processedItems = new HashMap<String, Set<String>>();
+            for (int index = 0; index < deploymentHistoryItems.size() && count < numberOfItems; index++) {
+                DeploymentHistoryItem entry = deploymentHistoryItems.get(index);
+                String env = entry.getEnvironment();
+                if (!processedItems.containsKey(env)) {
+                    processedItems.put(env, new HashSet<String>());
+                }
+                if (!processedItems.get(env).contains(entry.getPath())) {
+                    ContentItemTO deployedItem = studioUtils.getContentItemForDashboard(entry.getSite(), entry.getPath());
+                    if (deployedItem != null) {
+                        deployedItem.eventDate = entry.getDeploymentDate();
+                        deployedItem.endpoint = entry.getTarget();
+                        deployedItem.setUser(entry.getUser());
+                        deployedItem.setEndpoint(entry.getEnvironment());
+                        String deployedLabel = entry.getDeploymentDate()
+                                .withZoneSameInstant(ZoneId.of(timezone)).format(ISO_OFFSET_DATE);
+                        if (groups.size() > 0) {
+                            DeploymentHistoryGroup group = groups.get(groups.size() - 1);
+                            String lastDeployedLabel = group.getInternalName();
+                            if (lastDeployedLabel.equals(deployedLabel)) {
+                                // add to the last task if it is deployed on the same day
+                                group.setNumOfChildren(group.getNumOfChildren() + 1);
+                                group.getChildren().add(deployedItem);
+                            } else {
+                                groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
+                            }
+                        } else {
+                            groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
+                        }
+                        processedItems.get(env).add(entry.getPath());
+                    }
+                }
+            }
+        }
+        return groups;
+    }
+
+    private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {
+        // otherwise just add as the last task
+        DeploymentHistoryGroup group = new DeploymentHistoryGroup();
+        group.setInternalName(deployedLabel);
+        List<ContentItemTO> taskItems = group.getChildren();
+        if (taskItems == null) {
+            taskItems = new ArrayList<ContentItemTO>();
+            group.setChildren(taskItems);
+        }
+        taskItems.add(item);
+        group.setNumOfChildren(taskItems.size());
+        return group;
+    }
 
     public PublishServiceInternal getPublishServiceInternal() {
         return publishServiceInternal;
@@ -191,5 +267,21 @@ public class PublishServiceImpl implements PublishService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public StudioUtils getStudioUtils() {
+        return studioUtils;
+    }
+
+    public void setStudioUtils(StudioUtils studioUtils) {
+        this.studioUtils = studioUtils;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }

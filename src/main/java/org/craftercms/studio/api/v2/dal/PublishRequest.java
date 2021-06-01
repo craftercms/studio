@@ -39,6 +39,8 @@ public class PublishRequest implements Serializable {
     private String submissionComment;
     private String commitId;
     private String packageId;
+    private String label;
+    private ZonedDateTime publishedOn;
 
     public class State {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
@@ -157,5 +159,21 @@ public class PublishRequest implements Serializable {
 
     public void setPackageId(String packageId) {
         this.packageId = packageId;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public ZonedDateTime getPublishedOn() {
+        return publishedOn;
+    }
+
+    public void setPublishedOn(ZonedDateTime publishedOn) {
+        this.publishedOn = publishedOn;
     }
 }

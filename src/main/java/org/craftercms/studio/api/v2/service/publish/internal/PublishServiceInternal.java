@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.publish.internal;
 
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
@@ -106,5 +107,18 @@ public interface PublishServiceInternal {
     List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
                                                      ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
                                                      long state, String sortBy, String order, int offset, int limit);
+
+    /**
+     * Get deployment history from database
+     * @param siteId site identifier
+     * @param environments list of environments
+     * @param fromDate starting date for filtering results
+     * @param toDate end date for filtering results
+     * @param filterType filter type
+     * @param numberOfItems number of items to get
+     * @return
+     */
+    List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments, ZonedDateTime fromDate,
+                                                     ZonedDateTime toDate, String filterType, int numberOfItems);
 
 }

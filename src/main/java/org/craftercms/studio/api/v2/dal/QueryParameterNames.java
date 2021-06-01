@@ -142,6 +142,8 @@ public final class  QueryParameterNames {
     /* Publish request */
     // Environment
     public static final String ENVIRONMENT = "environment";
+    // Environments
+    public static final String ENVIRONMENTS = "environments";
     // Processing state
     public static final String PROCESSING_STATE = "processingState";
     // Ready state
@@ -156,6 +158,12 @@ public final class  QueryParameterNames {
     public static final String CANCELLED_STATE = "cancelledState";
 
     public static final String NOW = "now";
+
+    public static final String COMPLETED_STATE = "completedState";
+
+    public static final String FROM_DATE = "fromDate";
+
+    public static final String TO_DATE = "toDate";
 
     /* Audit */
     public static final String ACTIONS = "actions";
