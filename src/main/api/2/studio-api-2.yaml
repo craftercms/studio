@@ -5866,11 +5866,9 @@ paths:
                     siteId: 
                       type: string
                       description: site ID
-                    paths:
-                      type: array
-                      description: path(s) regexes of item(s)
-                      items:
-                        type: string
+                    path:
+                      type: string
+                      description: path regex of item(s)
                     states:
                       type: integer
                       format: int64
