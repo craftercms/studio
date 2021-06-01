@@ -99,6 +99,9 @@ public final class RequestMappingConstants {
     public static final String DEPENDENCY = "/dependency";
     public static final String DEPENDENCIES = "/dependencies";
 
+    /** Workflow Controller */
+    public static final String WORKFLOW = "/workflow";
+
     private RequestMappingConstants() {
     }
 }
