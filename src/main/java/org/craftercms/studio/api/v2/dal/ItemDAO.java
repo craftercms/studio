@@ -547,4 +547,38 @@ public interface ItemDAO {
      * @param lockedBitOff state bit mask with LOCKED bit off
      */
     void unlockItemById(@Param(ID) Long itemId, @Param(LOCKED_BIT_OFF) long lockedBitOff);
+
+    /**
+     * Get total number of item states records for given filters by path regex and states mask
+     * @param siteId site identifier
+     * @param path path regex to filter items
+     * @param states states mask to filter items by state
+     * @return number of records
+     */
+    int getItemStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(STATES_BIT_MAP) Long states);
+
+    /**
+     * Get item states for given filters by path regex and states mask
+     * @param siteId site identifier
+     * @param path path regex to filter items
+     * @param states states mask to filter items by state
+     * @param offset offset for the first record in result set
+     * @param limit number of item states records to return
+     * @return list of sandbox items
+     */
+    List<Item> getItemStates(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                             @Param(STATES_BIT_MAP) Long states, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+
+    /**
+     * Update item state by query
+     * @param siteId site identifier
+     * @param path path regex to filter items to be updated
+     * @param states states bitmap mask to filter items to be updated
+     * @param setStatesMask states bitmap mask to set states on
+     * @param resetStatesMask states bitmap mask to set states off
+     */
+    void updateStatesByQuery(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                             @Param(STATES_BIT_MAP) Long states,
+                                 @Param(ON_STATES_BIT_MAP) long setStatesMask,
+                                 @Param(OFF_STATES_BIT_MAP) long resetStatesMask);
 }
