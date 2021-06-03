@@ -24,8 +24,10 @@
 	</head>
 	<body>
 		<@crafter.body_top/>
-		<@crafter.h1 $field="title_t">${model.title_t}</@crafter.h1>
-		<@crafter.tag $field="body_html">${model.body_html}</@crafter.tag>
+		<main>
+			<@crafter.h1 $field="title_t">${model.title_t}</@crafter.h1>
+			<@crafter.tag $field="body_html">${model.body_html}</@crafter.tag>
+		</main>
 
 		<script src="/static-assets/js/jquery.core.js"></script>
 		<@crafter.body_bottom/>
