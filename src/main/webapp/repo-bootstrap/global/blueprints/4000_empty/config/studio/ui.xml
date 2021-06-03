@@ -102,7 +102,6 @@
                   <icon id="@material-ui/icons/LockOutlined" />
                   <widget id="craftercms.components.SiteEncryptTool">
                     <configuration>
-                      <logType>preview</logType>
                       <embedded>true</embedded>
                     </configuration>
                   </widget>
@@ -114,7 +113,6 @@
                   <icon id="@material-ui/icons/SettingsApplicationsOutlined" />
                   <widget id="craftercms.components.SiteConfigurationManagement">
                     <configuration>
-                      <logType>preview</logType>
                       <embedded>true</embedded>
                     </configuration>
                   </widget>
@@ -126,7 +124,6 @@
                   <icon id="@material-ui/icons/SubjectRounded" />
                   <widget id="craftercms.components.SiteAuditManagement">
                     <configuration>
-                      <logType>preview</logType>
                       <embedded>true</embedded>
                     </configuration>
                   </widget>
@@ -138,7 +135,6 @@
                   <icon id="@material-ui/icons/SettingsOutlined" />
                   <widget id="craftercms.components.WorkflowStates">
                     <configuration>
-                      <logType>preview</logType>
                       <embedded>true</embedded>
                     </configuration>
                   </widget>
