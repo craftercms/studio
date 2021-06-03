@@ -73,10 +73,10 @@ public class WorkflowController {
         Long states = rpStates.isPresent() ? rpStates.get() : null;
         int total = workflowService.getItemStatesTotal(siteId, path, states);
         List<SandboxItem> items = new ArrayList<SandboxItem>();
+
         if (total > 0) {
             items = workflowService.getItemStates(siteId, path, states, offset, limit);
         }
-
 
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<SandboxItem> result = new PaginatedResultList<>();
