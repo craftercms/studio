@@ -57,11 +57,14 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.ItemState.IN_PROGRESS_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
 import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
@@ -666,6 +669,76 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void unlockItemById(long itemId) {
         itemDao.unlockItemById(itemId, USER_LOCKED.value);
+    }
+
+    @Override
+    public int getItemStatesTotal(String siteId, String path, Long states) {
+        return itemDao.getItemStatesTotal(siteId, path, states);
+    }
+
+    @Override
+    public List<Item> getItemStates(String siteId, String path, Long states, int offset, int limit) {
+        return itemDao.getItemStates(siteId, path, states, offset, limit);
+    }
+
+    @Override
+    public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
+                                 boolean clearUserLocked, boolean live, boolean staged) {
+        if (CollectionUtils.isNotEmpty(paths)) {
+            long setStatesMask = 0L;
+            long resetStatesMask = 0l;
+
+            if (clearSystemProcessing) {
+                resetStatesMask = resetStatesMask | SYSTEM_PROCESSING.value;
+            }
+            if (clearUserLocked) {
+                resetStatesMask = resetStatesMask | USER_LOCKED.value;
+            }
+            if (live) {
+                setStatesMask = setStatesMask | LIVE.value;
+            } else {
+                resetStatesMask = resetStatesMask | LIVE.value;
+            }
+            if (staged) {
+                setStatesMask = setStatesMask | STAGED.value;
+            } else {
+                resetStatesMask = resetStatesMask | STAGED.value;
+            }
+
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(SITE_ID, siteId);
+            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+            itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, setStatesMask, resetStatesMask);
+        }
+    }
+
+    @Override
+    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
+                                        boolean clearUserLocked, Boolean live, Boolean staged) {
+        long setStatesMask = 0L;
+        long resetStatesMask = 0l;
+
+        if (clearSystemProcessing) {
+            resetStatesMask = resetStatesMask | SYSTEM_PROCESSING.value;
+        }
+        if (clearUserLocked) {
+            resetStatesMask = resetStatesMask | USER_LOCKED.value;
+        }
+        if (live != null) {
+            if (live) {
+                setStatesMask = setStatesMask | LIVE.value;
+            } else {
+                resetStatesMask = resetStatesMask | LIVE.value;
+            }
+        }
+        if (staged != null) {
+            if (staged) {
+                setStatesMask = setStatesMask | STAGED.value;
+            } else {
+                resetStatesMask = resetStatesMask | STAGED.value;
+            }
+        }
+        itemDao.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask);
     }
 
     public UserServiceInternal getUserServiceInternal() {

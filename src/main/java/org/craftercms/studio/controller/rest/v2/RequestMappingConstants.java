@@ -93,10 +93,16 @@ public final class RequestMappingConstants {
     public static final String PACKAGE = "/package";
     public static final String CANCEL = "/cancel";
     public static final String CLEAR_LOCK = "/clear_lock";
+    public static final String HISTORY = "/history";
 
     /** Dependency Controller */
     public static final String DEPENDENCY = "/dependency";
     public static final String DEPENDENCIES = "/dependencies";
+
+    /** Workflow Controller */
+    public static final String WORKFLOW = "/workflow";
+    public static final String ITEM_STATES = "/item_states";
+    public static final String UPDATE_ITEM_STATES_BY_QUERY = "/update_item_states_by_query";
 
     private RequestMappingConstants() {
     }

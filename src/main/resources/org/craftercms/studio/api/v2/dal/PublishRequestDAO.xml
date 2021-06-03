@@ -34,6 +34,8 @@
         <result property="submissionComment" column="submissioncomment"/>
         <result property="commitId" column="commit_id"/>
         <result property="packageId" column="package_id"/>
+        <result property="label" column="label" />
+        <result property="publishedOn" column="published_on" />
     </resultMap>
 
     <resultMap id="PublishingPackageMap" type="org.craftercms.studio.api.v2.dal.PublishingPackage">
@@ -108,5 +110,22 @@
           AND state = #{state}
           AND scheduleddate &gt; #{now}
         ORDER BY scheduleddate ASC limit 0, 1
+    </select>
+
+    <select id="getDeploymentHistory" resultMap="PublishRequestMap">
+        SELECT id, site, environment, path, oldpath, username, scheduleddate, state, action,
+        contenttypeclass, submissioncomment, commit_id, package_id, label,
+        IFNULL(published_on, scheduleddate) as published_on
+        FROM publish_request
+        WHERE site = #{siteId}
+        AND state = #{completedState}
+        AND DATE(IFNULL(published_on, scheduleddate)) &lt;= DATE(#{toDate})
+        AND DATE(IFNULL(published_on, scheduleddate)) &gt;= DATE(#{fromDate})
+        AND environment IN
+        <foreach item="env" index="index" collection="environments" open="(" separator="," close=")">
+            #{env}
+        </foreach>
+        ORDER BY IFNULL(published_on, scheduleddate) DESC
+        LIMIT #{offset}, #{limit}
     </select>
 </mapper>
