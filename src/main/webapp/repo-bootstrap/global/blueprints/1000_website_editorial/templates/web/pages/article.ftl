@@ -26,12 +26,12 @@
 			<!-- Content -->
 			<section>
 				<header class="main">
-					<@crafter.tag $tag="h1" $field="subject_t">
-						${contentModel.subject_t!""}
-					</@crafter.tag>
-					<@crafter.tag $tag="h2" $field="author_s">
-						by ${contentModel.author_s!""}
-					</@crafter.tag>
+          <@crafter.tag $tag="h1" $field="subject_t">
+            ${contentModel.subject_t!""}
+          </@crafter.tag>
+          <@crafter.tag $tag="h2" $field="author_s">
+            by ${contentModel.author_s!""}
+          </@crafter.tag>
 				</header>
 				<#if contentModel.image_s??>
 					<#assign image = contentModel.image_s/>
@@ -42,19 +42,19 @@
           <@crafter.img $field='image_s' src="${image}" alt=""/>
         </span>
 
-				<@crafter.renderRepeatCollection
-				$field="sections_o"
-				$containerAttributes={'style': 'list-style: none; padding-left: 0;'};
-				item, index
-				>
-					<@crafter.tag
-					$field="sections_o.section_html"
-					$index=index
-					>
-						${item.section_html}
-					</@crafter.tag>
-					<hr class="major" />
-				</@crafter.renderRepeatCollection>
+        <@crafter.renderRepeatCollection
+          $field="sections_o"
+          $containerAttributes={'style': 'list-style: none; padding-left: 0;'};
+          item, index
+        >
+          <@crafter.tag
+            $field="sections_o.section_html"
+            $index=index
+          >
+            ${item.section_html}
+          </@crafter.tag>
+          <hr class="major" />
+        </@crafter.renderRepeatCollection>
 			</section>
 		</div>
 	</div>

@@ -69,10 +69,10 @@
                 Works: href="${article.url}"
                 -->
                 <@crafter.img
-                $model=article
-                $field="image_s"
-                src=article.image???then(article.image, "/static-assets/images/placeholder.png")
-                alt=""
+                  $model=article
+                  $field="image_s"
+                  src=article.image???then(article.image, "/static-assets/images/placeholder.png")
+                  alt=""
                 />
               </a>
               <h3>
