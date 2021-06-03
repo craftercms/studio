@@ -147,8 +147,6 @@ import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.dele
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteItemMetadataRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteItemStateRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertDependencyRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemMetadataRow;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemStateRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.moveItemMetadataRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.moveItemStateRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.transitionSaveItemStateRow;
@@ -583,8 +581,8 @@ public class SiteServiceImpl implements SiteService {
                     counter = 0;
                     startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
                 }
-                sb.append(insertItemStateRow(siteId, path)).append("\n\n");
-                sb.append(insertItemMetadataRow(siteId, path, creator, now, lastCommitId)).append("\n\n");
+                sb.append(upsertItemStateRow(siteId, path)).append("\n\n");
+                sb.append(upsertItemMetadataRow(siteId, path, creator, now, lastCommitId)).append("\n\n");
 
                 addDependenciesScriptSnippets(siteId, path, null, sb);
             }
