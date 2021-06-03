@@ -44,9 +44,9 @@
                   ${article.title}
                 </@crafter.a>
               </h3>
-                <@crafter.p $model=article $field="summary_t">
-                  ${article.summary}
-                </@crafter.p>
+              <@crafter.p $model=article $field="summary_t">
+                ${article.summary}
+              </@crafter.p>
               <ul class="actions">
                 <li><a href="${article.url}" class="button">More</a></li>
               </ul>
