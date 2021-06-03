@@ -515,7 +515,7 @@
     <update id="moveItems">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET i.path = REPLACE(i.path, #{oldPath}, #{newPath}),
-            i.state = i.state | #{onStatesBitMap} &amp; ~#{offStatesBitMap},
+            i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
             i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl}),
             i.previous_path = IFNULL(i.previous_path, i.path)
         WHERE s.site_id = #{siteId} AND s.deleted = 0 AND (i.path = #{oldPath} OR i.path LIKE '${oldPath}/%')
@@ -708,5 +708,48 @@
         UPDATE item i
         SET i.owned_by = null, i.state = i.state &amp; #{lockedBitOff}
         WHERE i.id =  #{id}
+    </update>
+
+    <select id="getItemStatesTotal" resultType="Integer">
+        SELECT count(1)
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.ignored = 0
+        <if test="path != null">
+        AND i.path RLIKE(#{path})
+        </if>
+        <if test="statesBitMap != null">
+        AND (i.state &amp; #{statesBitMap}) &gt; 0
+        </if>
+    </select>
+
+    <select id="getItemStates" resultMap="ItemMap">
+        SELECT i.*
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.ignored = 0
+        <if test="path != null">
+        AND i.path RLIKE(#{path})
+        </if>
+        <if test="statesBitMap != null">
+        AND (i.state &amp; #{statesBitMap}) &gt; 0
+        </if>
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <update id="updateStatesByQuery" >
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+        SET i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.ignored = 0
+        <if test="path != null">
+            AND i.path RLIKE(#{path})
+        </if>
+        <if test="statesBitMap != null">
+            AND (i.state &amp; #{statesBitMap}) &gt; 0
+        </if>
     </update>
 </mapper>

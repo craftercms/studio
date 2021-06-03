@@ -101,6 +101,8 @@ public final class RequestMappingConstants {
 
     /** Workflow Controller */
     public static final String WORKFLOW = "/workflow";
+    public static final String ITEM_STATES = "/item_states";
+    public static final String UPDATE_ITEM_STATES_BY_QUERY = "/update_item_states_by_query";
 
     private RequestMappingConstants() {
     }

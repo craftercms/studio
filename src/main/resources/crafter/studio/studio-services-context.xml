@@ -622,7 +622,7 @@
     </bean>
 
     <bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">
-
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="studio.workflowServiceInternal"
