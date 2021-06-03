@@ -24,7 +24,6 @@
 	<orderDefault_f>-1</orderDefault_f>
 	<body_html>&lt;h1&gt;Welcome to Your Crafter CMS Site.&lt;/h1&gt;
 &lt;p&gt;This site blueprint is the equivalent of a Hello World. It&amp;#39;s a blank slate on which you can build your own digital experience.&lt;/p&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;To create new content types use the Site Config menu in the left Sidebar&lt;/li&gt;
 &lt;li&gt;To Update markup (including this text) edit this template under templates in the left Sidebar&lt;/li&gt;
@@ -32,7 +31,6 @@
 &lt;li&gt;Crafter documentation can be found&amp;nbsp;&lt;a href="http://docs.craftercms.org" target="_self"&gt;here.&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Crafter CMS authoring and developer training is available. Please contact&amp;nbsp;&lt;a href="mailto:info@craftersoftware.com"&gt;info@craftersoftware.com&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;div&gt;
 &lt;p&gt;The content above is managed in the template. &amp;nbsp;&lt;/p&gt;
 &lt;p&gt;This content is managed by the form. &amp;nbsp;Click edit to change OR in the upper right hand corner, click the pencil to turn on in-context editing.&lt;/p&gt;
