@@ -9,14 +9,14 @@
       color: #333;
       height: 100%;
       background: #f3f3f3;
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
     main {
       max-width: 800px;
       padding: 40px;
       background: rgba(255,255,255,0.6);
       border-radius: 20px;
-      margin: 100px auto;"
+      margin: 100px auto;
     }
   </style>
 </head>
