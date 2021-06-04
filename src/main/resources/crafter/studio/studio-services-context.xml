@@ -81,6 +81,7 @@
         <property name="itemStateMapper" ref="itemStateMapper" />
         <property name="dependencyMapper" ref="dependencyMapper" />
         <property name="dependencyService" ref="dependencyService" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
