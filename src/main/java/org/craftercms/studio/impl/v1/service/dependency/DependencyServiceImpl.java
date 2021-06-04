@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -84,6 +85,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
+    protected GeneralLockService generalLockService;
 
     @Override
     public Set<String> upsertDependencies(String site, String path)
@@ -102,6 +104,8 @@ public class DependencyServiceImpl implements DependencyService {
             DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
             defaultTransactionDefinition.setName("upsertDependencies");
 
+            String lock = site + ":upsertDependencies";
+            generalLockService.lock(lock);
             logger.debug("Starting transaction.");
             TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
 
@@ -116,6 +120,8 @@ public class DependencyServiceImpl implements DependencyService {
                 logger.debug("Rolling back transaction.", e);
                 transactionManager.rollback(txStatus);
                 throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " path: " + path, e);
+            } finally {
+                generalLockService.unlock(lock);
             }
 
         }
@@ -144,6 +150,8 @@ public class DependencyServiceImpl implements DependencyService {
         logger.debug("Preparing transaction for database updates.");
         DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
         defaultTransactionDefinition.setName("upsertDependencies");
+        String lock = site + ":upsertDependencies";
+        generalLockService.lock(lock);
         logger.debug("Starting transaction.");
         TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
         try {
@@ -160,6 +168,8 @@ public class DependencyServiceImpl implements DependencyService {
             transactionManager.rollback(txStatus);
             throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " paths: " +
                     sbPaths.toString(), e);
+        } finally {
+            generalLockService.unlock(lock);
         }
 
         return toRet;
@@ -748,5 +758,13 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void setDependencyService(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService) {
         this.dependencyService = dependencyService;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }
