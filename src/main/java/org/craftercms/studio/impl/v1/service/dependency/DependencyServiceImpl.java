@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
@@ -81,6 +82,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
     protected ItemDAO itemDao;
+    protected GeneralLockService generalLockService;
 
     @Override
     public Set<String> upsertDependencies(String site, String path)
@@ -98,7 +100,8 @@ public class DependencyServiceImpl implements DependencyService {
             logger.debug("Preparing transaction for database updates.");
             DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
             defaultTransactionDefinition.setName("upsertDependencies");
-
+            String lock = site + ":upsertDependencies";
+            generalLockService.lock(lock);
             logger.debug("Starting transaction.");
             TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
 
@@ -113,6 +116,8 @@ public class DependencyServiceImpl implements DependencyService {
                 logger.debug("Rolling back transaction.", e);
                 transactionManager.rollback(txStatus);
                 throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " path: " + path, e);
+            } finally {
+                generalLockService.unlock(lock);
             }
 
         }
@@ -141,6 +146,8 @@ public class DependencyServiceImpl implements DependencyService {
         logger.debug("Preparing transaction for database updates.");
         DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
         defaultTransactionDefinition.setName("upsertDependencies");
+        String lock = site + ":upsertDependencies";
+        generalLockService.lock(lock);
         logger.debug("Starting transaction.");
         TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
         try {
@@ -157,8 +164,9 @@ public class DependencyServiceImpl implements DependencyService {
             transactionManager.rollback(txStatus);
             throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " paths: " +
                     sbPaths.toString(), e);
+        } finally {
+            generalLockService.unlock(lock);
         }
-
         return toRet;
     }
 
@@ -733,5 +741,13 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void setItemDao(ItemDAO itemDao) {
         this.itemDao = itemDao;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }
