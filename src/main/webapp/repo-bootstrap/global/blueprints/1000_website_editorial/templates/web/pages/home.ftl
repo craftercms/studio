@@ -1,4 +1,4 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
 <!--
 	Editorial by HTML5 UP
@@ -9,8 +9,10 @@
 <html lang="en">
 <head>
   <#include "/templates/web/fragments/head.ftl">
+  <@crafter.head/>
 </head>
 <body class="is-preload">
+<@crafter.body_top/>
 
 <!-- Wrapper -->
 <div id="wrapper">
@@ -20,21 +22,21 @@
     <div class="inner">
 
       <!-- Header -->
-      <@studio.renderComponentCollection $field="header_o"/>
+      <@crafter.renderComponentCollection $field="header_o"/>
       <!-- /Header -->
 
       <!-- Banner -->
       <section id="banner">
         <div class="content">
-          <@studio.header $field="hero_title_html" $label="Hero Title">
+          <@crafter.header $field="hero_title_html" $label="Hero Title">
             ${contentModel.hero_title_html}
-          </@studio.header>
-          <@studio.tag $field="hero_text_html">
+          </@crafter.header>
+          <@crafter.tag $field="hero_text_html">
             ${contentModel.hero_text_html}
-          </@studio.tag>
+          </@crafter.tag>
         </div>
         <span class="image object">
-          <@studio.img $field="hero_image_s" src=(contentModel.hero_image_s!"") alt=""/>
+          <@crafter.img $field="hero_image_s" src=(contentModel.hero_image_s!"") alt=""/>
         </span>
       </section>
       <!-- /Banner -->
@@ -42,11 +44,11 @@
       <!-- Section: Features -->
       <section>
         <header class="major">
-          <@studio.tag $tag="h2" $field="features_title_t">
+          <@crafter.tag $tag="h2" $field="features_title_t">
             ${contentModel.features_title_t}
-          </@studio.tag>
+          </@crafter.tag>
         </header>
-        <@studio.renderComponentCollection $field="features_o" class="features" $itemAttrs={ "class": "feature-container" }/>
+        <@crafter.renderComponentCollection $field="features_o" class="features" $itemAttrs={ "class": "feature-container" }/>
       </section>
       <!-- /Section: Features -->
 
@@ -57,7 +59,7 @@
         </header>
         <div class="posts">
           <#list articles as article>
-            <@studio.article $model=article>
+            <@crafter.article $model=article>
               <a href="${article.url}" class="image">
                 <#--
                 Note for docs:
@@ -66,7 +68,7 @@
                 however...
                 Works: href="${article.url}"
                 -->
-                <@studio.img
+                <@crafter.img
                   $model=article
                   $field="image_s"
                   src=article.image???then(article.image, "/static-assets/images/placeholder.png")
@@ -74,19 +76,19 @@
                 />
               </a>
               <h3>
-                <@studio.a $model=article $field="subject_t" href="${article.url}">
+                <@crafter.a $model=article $field="subject_t" href="${article.url}">
                   ${article.title}
-                </@studio.a>
+                </@crafter.a>
               </h3>
-              <@studio.p $model=article $field="summary_t">
+              <@crafter.p $model=article $field="summary_t">
                 ${article.summary}
-              </@studio.p>
+              </@crafter.p>
               <ul class="actions">
                 <li>
                   <a href="${article.url}" class="button">More</a>
                 </li>
               </ul>
-            </@studio.article>
+            </@crafter.article>
           </#list>
         </div>
       </section>
@@ -97,14 +99,14 @@
   <!-- /Main -->
 
   <!-- Left Rail -->
-  <@studio.renderComponentCollection $field="left_rail_o" />
+  <@crafter.renderComponentCollection $field="left_rail_o" />
   <!-- /Left Rail -->
 
 </div>
 <!-- /Wrapper -->
 
 <#include "/templates/web/fragments/scripts.ftl">
-<@studio.initPageBuilder/>
+<@crafter.body_bottom/>
 
 </body>
 </html>

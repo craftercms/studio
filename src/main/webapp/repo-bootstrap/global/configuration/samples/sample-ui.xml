@@ -109,9 +109,9 @@
                                 <configuration>
                                     <title id="GlobalMenu.EncryptionToolEntryLabel" defaultMessage="Encryption Tool"/>
                                     <icon id="@material-ui/icons/LockOutlined" />
-                                    <widget id="craftercms.components.LegacySiteToolsFrame">
+                                    <widget id="craftercms.components.SiteEncryptTool">
                                         <configuration>
-                                            <tool>encrypt-tool</tool>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>
@@ -120,9 +120,9 @@
                                 <configuration>
                                     <title id="words.configuration" defaultMessage="Configuration"/>
                                     <icon id="@material-ui/icons/SettingsApplicationsOutlined"/>
-                                    <widget id="craftercms.components.LegacySiteToolsFrame">
+                                    <widget id="craftercms.components.SiteConfigurationManagement">
                                         <configuration>
-                                            <tool>admin-configurations</tool>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>
@@ -131,10 +131,9 @@
                                 <configuration>
                                     <title id="GlobalMenu.AuditEntryLabel" defaultMessage="Audit"/>
                                     <icon id="@material-ui/icons/SubjectRounded" />
-                                    <widget>
-                                        <id>craftercms.components.LegacySiteToolsFrame</id>
+                                    <widget id="craftercms.components.SiteAuditManagement">
                                         <configuration>
-                                            <tool>audit</tool>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>
@@ -143,9 +142,9 @@
                                 <configuration>
                                     <title id="workflowStates.title" defaultMessage="Workflow States"/>
                                     <icon id="@material-ui/icons/SettingsOutlined"/>
-                                    <widget id="craftercms.components.LegacySiteToolsFrame">
+                                    <widget id="craftercms.components.WorkflowStates">
                                         <configuration>
-                                            <tool>workflow-states</tool>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>
@@ -154,9 +153,10 @@
                                 <configuration>
                                     <title id="GlobalMenu.LogConsoleEntryLabel" defaultMessage="Log Console"/>
                                     <icon id="@material-ui/icons/FormatAlignCenterRounded"/>
-                                    <widget id="craftercms.components.LegacySiteToolsFrame">
+                                    <widget id="craftercms.components.LogConsole">
                                         <configuration>
-                                            <tool>log-view</tool>
+                                            <logType>preview</logType>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>
@@ -165,9 +165,9 @@
                                 <configuration>
                                     <title id="words.publishing" defaultMessage="Publishing"/>
                                     <icon id="@material-ui/icons/CloudUploadOutlined"/>
-                                    <widget id="craftercms.components.LegacySiteToolsFrame">
+                                    <widget id="craftercms.components.PublishingDashboard">
                                         <configuration>
-                                            <tool>status-view</tool>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>
@@ -176,9 +176,9 @@
                                 <configuration>
                                     <title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
                                     <icon id="@material-ui/icons/StorageRounded"/>
-                                    <widget id="craftercms.components.LegacySiteToolsFrame">
+                                    <widget id="craftercms.components.RemoteRepositoriesManagement">
                                         <configuration>
-                                            <tool>repository</tool>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>
@@ -187,9 +187,9 @@
                                 <configuration>
                                     <title>GraphQL</title>
                                     <icon id="craftercms.icons.GraphQL"/>
-                                    <widget id="craftercms.components.LegacySiteToolsFrame">
+                                    <widget id="craftercms.components.SiteGraphiQL">
                                         <configuration>
-                                            <tool>graphiql</tool>
+                                            <embedded>true</embedded>
                                         </configuration>
                                     </widget>
                                 </configuration>

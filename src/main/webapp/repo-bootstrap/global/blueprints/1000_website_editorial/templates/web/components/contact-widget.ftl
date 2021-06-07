@@ -1,21 +1,21 @@
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
-<@studio.componentRootTag $tag="section">
+<@crafter.componentRootTag $tag="section">
   <header class="major">
-    <@studio.h2 $field="title_t">${contentModel.title_t}</@studio.h2>
+    <@crafter.h2 $field="title_t">${contentModel.title_t}</@crafter.h2>
   </header>
-  <@studio.div $field="text_html">
+  <@crafter.div $field="text_html">
     ${contentModel.text_html}
-  </@studio.div>
+  </@crafter.div>
   <ul class="contact">
     <li class="icon solid fa-envelope">
-      <@studio.a href="mailto:${contentModel.email_s}" $field="email_s">${contentModel.email_s}</@studio.a>
+      <@crafter.a href="mailto:${contentModel.email_s}" $field="email_s">${contentModel.email_s}</@crafter.a>
     </li>
-    <@studio.li class="icon solid fa-phone" $field="phone_s">
+    <@crafter.li class="icon solid fa-phone" $field="phone_s">
       ${contentModel.phone_s}
-    </@studio.li>
-    <@studio.li class="icon solid fa-home" $field="address_html">
+    </@crafter.li>
+    <@crafter.li class="icon solid fa-home" $field="address_html">
       ${contentModel.address_html}
-    </@studio.li>
+    </@crafter.li>
   </ul>
-</@studio.componentRootTag>
+</@crafter.componentRootTag>

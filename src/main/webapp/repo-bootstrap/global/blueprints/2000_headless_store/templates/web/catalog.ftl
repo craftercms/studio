@@ -14,7 +14,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<#import "/templates/system/common/ice.ftl" as studio />
+<#import "/templates/system/common/crafter.ftl" as crafter />
 
 <!DOCTYPE html>
 <html lang="en" data-craftercms-preview="${modePreview?c}">
@@ -26,8 +26,10 @@
     [v-cloak] { display:none; }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <@crafter.head/>
 </head>
 <body>
+  <@crafter.body_top/>
   <div id="catalog" class="container" v-cloak>
     <div class="row">
       <div class="page-header">
@@ -160,7 +162,7 @@
     </div>
   </div>
 
-  <@studio.initPageBuilder/>
+  <@crafter.body_bottom/>
   <script src="/static-assets/js/vendor/jquery-3.2.1.min.js"></script>
   <script src="/static-assets/js/vendor/bootstrap-3.3.7.min.js"></script>
   <script src="/static-assets/js/vendor/vue-2.6.10.min.js"></script>
