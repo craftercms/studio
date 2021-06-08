@@ -87,6 +87,7 @@
                 <permission>site_delete</permission>
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
+                <permission>publish_status</permission>
             </allowed-permissions>
         </rule>
     </role>
