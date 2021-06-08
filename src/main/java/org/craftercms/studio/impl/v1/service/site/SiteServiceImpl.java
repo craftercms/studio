@@ -50,6 +50,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -732,6 +733,21 @@ public class SiteServiceImpl implements SiteService {
             logger.info("Using search engine {0} from blueprint descriptor", searchEngine);
         } else {
             logger.info("Missing descriptor, using default search engine {0}", searchEngine);
+        }
+
+        if (StringUtils.equals(searchEngine, SearchEngines.CRAFTER_SEARCH)) {
+            logger.error("Error creating site {0}, unsupported search engine CrafterSearch, please update your " +
+                "site to use Elasticsearch. For more information see " +
+                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
+                siteId);
+
+            // rollback ...
+            contentRepositoryV2.removeRemote(siteId, remoteName);
+            contentRepository.deleteSite(siteId);
+
+            throw new SiteCreationException("Unsupported search engine CrafterSearch, please update your site to use " +
+                "Elasticsearch. For more information see " +
+                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html");
         }
 
         if (success) {
