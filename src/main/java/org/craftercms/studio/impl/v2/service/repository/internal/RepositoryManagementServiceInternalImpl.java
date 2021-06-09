@@ -97,10 +97,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
@@ -516,20 +519,27 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         return commitIds;
     }
 
-    private List<String> processCommitId(String siteId, RevCommit revCommit) {
-        List<String> commitIds = new ArrayList<String>();
-        String cId = revCommit.getName();
-        GitLog gitLog = contentRepositoryV2.getGitLog(siteId, cId);
-        if (Objects.isNull(gitLog)) {
-            RevCommit[] parents = revCommit.getParents();
-            if (Objects.nonNull(parents) && parents.length > 0) {
-                for (int i = 0; i < parents.length; i++) {
-                    commitIds.addAll(processCommitId(siteId, parents[i]));
+    private Set<String> processCommitId(String siteId, RevCommit revCommit) {
+        Set<String> toRet = new HashSet<String>();
+        Queue<RevCommit> commitIdsQueue = new LinkedList<RevCommit>();
+        commitIdsQueue.offer(revCommit);
+        while (!commitIdsQueue.isEmpty()) {
+            RevCommit rc = commitIdsQueue.poll();
+            if (Objects.nonNull(rc)) {
+                String cId = rc.getName();
+                GitLog gitLog = contentRepositoryV2.getGitLog(siteId, cId);
+                if (Objects.isNull(gitLog)) {
+                    RevCommit[] parents = rc.getParents();
+                    if (Objects.nonNull(parents) && parents.length > 0) {
+                        for (int i = 0; i < parents.length; i++) {
+                            commitIdsQueue.offer(parents[i]);
+                        }
+                    }
+                    toRet.add(cId);
                 }
             }
-            commitIds.add(cId);
         }
-        return commitIds;
+        return toRet;
     }
 
     @Override

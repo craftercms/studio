@@ -60,6 +60,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.RingBuffer;
+import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.DeleteBranchCommand;
@@ -163,6 +164,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private GeneralLockService generalLockService;
     private SiteService siteService;
     private ObjectMetadataManager objectMetadataManager;
+    private StudioUtils studioUtils;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -620,6 +622,21 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         params.put("commitId", commitId);
         params.put("processed", 1);
         gitLogDao.markGitLogProcessed(params);
+    }
+
+    @RetryingOperation
+    @Override
+    public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
+        if (CollectionUtils.isNotEmpty(commitIds)) {
+            int batchSize = studioUtils.getBulkOperationsBatchSize();
+            List<List<String>> partitions = new ArrayList<List<String>>();
+            for (int i = 0; i < commitIds.size(); i = i + (batchSize)) {
+                partitions.add(commitIds.subList(i, Math.min(i + batchSize, commitIds.size())));
+            }
+            for (List<String> part : partitions) {
+                gitLogDao.markGitLogProcessedBulk(siteId, part);
+            }
+        }
     }
 
     @RetryingOperation
@@ -1825,5 +1842,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
         this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public StudioUtils getStudioUtils() {
+        return studioUtils;
+    }
+
+    public void setStudioUtils(StudioUtils studioUtils) {
+        this.studioUtils = studioUtils;
     }
 }

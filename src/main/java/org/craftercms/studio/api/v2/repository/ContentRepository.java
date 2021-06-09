@@ -90,6 +90,14 @@ public interface ContentRepository {
     void markGitLogVerifiedProcessed(String siteId, String commitId);
 
     /**
+     * Mark Git logs as verified
+     *
+     * @param siteId   site identifier
+     * @param commitIds list of commit ids
+     */
+    void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds);
+
+    /**
      * Insert Git Log
      *
      * @param siteId    site

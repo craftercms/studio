@@ -679,6 +679,7 @@
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="deploymentService" ref="cstudioDeploymentService" />
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
@@ -1316,6 +1317,7 @@
     <bean id="studio.utils" class="org.craftercms.studio.impl.v2.utils.StudioUtils">
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="contentService" ref="cstudioContentService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

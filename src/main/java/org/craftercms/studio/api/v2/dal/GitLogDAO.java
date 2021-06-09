@@ -40,6 +40,13 @@ public interface GitLogDAO {
 
     void markGitLogProcessed(Map params);
 
+    /**
+     * Mark commit id as processed for giver site and list of
+     * @param siteId site identifier
+     * @param commitIds list of commit id
+     */
+    void markGitLogProcessedBulk(@Param(SITE_ID) String siteId, @Param(COMMIT_IDS) List<String> commitIds);
+
     void deleteGitLogForSite(Map params);
 
     void markGitLogAudited(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String commitId,

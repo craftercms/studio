@@ -47,6 +47,13 @@
         UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </update>
 
+    <update id="markGitLogProcessedBulk" parameterType="java.util.Map">
+        UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND commit_id IN
+        <foreach collection="commitIds" item="cId" index="index" separator="," open="(" close=")">
+            #{cId}
+        </foreach>
+    </update>
+
     <delete id="deleteGitLogForSite" parameterType="java.util.Map">
         DELETE FROM gitlog WHERE site_id = #{siteId}
     </delete>

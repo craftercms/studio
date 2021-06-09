@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -168,7 +169,7 @@ public interface SiteService {
     @ValidateParams
     boolean syncDatabaseWithRepoUnprocessedCommits(@ValidateStringParam(name = "site") String site,
 												   List<GitLog> commitIds)
-            throws SiteNotFoundException;
+            throws SiteNotFoundException, IOException;
 
     /**
 	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
