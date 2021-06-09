@@ -24,5 +24,5 @@ public interface StudioDBScriptRunner {
 
     void closeConnection();
 
-    void execute(File file);
+    void execute(File sqlScriptFile);
 }

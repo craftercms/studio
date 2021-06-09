@@ -64,8 +64,8 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
     }
 
     @Override
-    public void execute(File file) {
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+    public void execute(File sqlScriptFile) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
             connection = dataSource.getConnection();
 
             connection.setAutoCommit(false);
@@ -78,25 +78,29 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
             StringBuilder sb = new StringBuilder();
             String line = null;
-            int cnt = 0;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line).append("\n");
-                if (++cnt >= scriptLinesBufferSize) {
+            boolean moreWork = true;
+            while (moreWork) {
+                for (int i = 0; i < scriptLinesBufferSize && moreWork; i++) {
+                    line = bufferedReader.readLine();
+                    if (Objects.nonNull(line)) {
+                        sb.append(line).append("\n");
+                    } else {
+                        moreWork = false;
+                    }
+                }
+
+                if (sb.length() > 0) {
                     scriptRunner.runScript(new StringReader(sb.toString()));
-                    sb = new StringBuilder();
-                    cnt = 0;
                 }
             }
-            if (sb.length() > 0) {
-                scriptRunner.runScript(new StringReader(sb.toString()));
-            }
+
             connection.commit();
         } catch (SQLException | IOException e) {
             logger.error("Error executing db script", e);
             try {
                 connection.rollback();
             } catch (SQLException throwables) {
-                logger.error("Failed to rollback after error when running db script", throwables);
+                logger.error("Failed to rollback after error when running DB script", throwables);
             }
         }
     }

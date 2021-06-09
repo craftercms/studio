@@ -587,7 +587,7 @@ public class SiteServiceImpl implements SiteService {
                         (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
             }
         } catch (IOException e) {
-            logger.error("Error while creating db script file for processing created files for site " + siteId);
+            logger.error("Error while creating DB script file for processing created files for site " + siteId);
         } finally {
             studioDBScriptRunner.closeConnection();
         }
@@ -1385,7 +1385,7 @@ public class SiteServiceImpl implements SiteService {
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
         try {
             studioDBScriptRunner.openConnection();
-            String scriptFilename = "createdFiles_" + UUID.randomUUID();
+            String scriptFilename = "repoOperations_" + UUID.randomUUID();
             Path scriptPath = Files.createTempFile(scriptFilename, ".sql");
             toReturn = processRepoOperations(site, repoOperationsDelta, scriptPath);
             studioDBScriptRunner.execute(scriptPath.toFile());
