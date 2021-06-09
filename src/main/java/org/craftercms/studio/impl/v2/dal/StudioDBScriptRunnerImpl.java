@@ -91,6 +91,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
                 if (sb.length() > 0) {
                     scriptRunner.runScript(new StringReader(sb.toString()));
+                    sb.setLength(0);
                 }
             }
 
