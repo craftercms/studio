@@ -18,9 +18,11 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -172,8 +174,6 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public class SiteServiceImpl implements SiteService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-
-	private final static int batchSize = 10000;
 
     protected Deployer deployer;
     protected SiteServiceDAL _siteServiceDAL;
@@ -534,7 +534,8 @@ public class SiteServiceImpl implements SiteService {
 	    logger.info("Finished creating site " + siteId);
     }
 
-    private void insertCreateSiteAuditLog(String siteId, String siteName, Map<String, String> createdFiles) throws SiteNotFoundException {
+    private void insertCreateSiteAuditLog(String siteId, String siteName, Map<String, String> createdFiles)
+            throws SiteNotFoundException {
 	    SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
 	    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -564,45 +565,35 @@ public class SiteServiceImpl implements SiteService {
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
                                      ZonedDateTime now, String lastCommitId) {
         long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-        StringBuilder sb = new StringBuilder();
-        int counter = 0;
-        int batchCounter = 0;
-        long startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
         studioDBScriptRunner.openConnection();
         try {
+            String scriptFilename = "createdFiles_" + UUID.randomUUID();
+            Path scriptPath = Files.createTempFile(scriptFilename, ".sql");
             for (String path : createdFiles.keySet()) {
-                if (counter++ >= batchSize) {
-                    studioDBScriptRunner.execute(sb.toString());
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Process created files batch " + ++batchCounter + " in " +
-                                (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-                    }
-                    sb = new StringBuilder();
-                    counter = 0;
-                    startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-                }
-                sb.append(upsertItemStateRow(siteId, path)).append("\n\n");
-                sb.append(upsertItemMetadataRow(siteId, path, creator, now, lastCommitId)).append("\n\n");
+                Files.write(scriptPath, upsertItemStateRow(siteId, path).getBytes(StandardCharsets.UTF_8),
+                        StandardOpenOption.APPEND);
+                Files.write(scriptPath, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                Files.write(scriptPath, upsertItemMetadataRow(siteId, path, creator, now, lastCommitId)
+                        .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                Files.write(scriptPath, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
 
-                addDependenciesScriptSnippets(siteId, path, null, sb);
+                addDependenciesScriptSnippets(siteId, path, null, scriptPath);
             }
-            if (sb.length() > 0) {
-                studioDBScriptRunner.execute(sb.toString());
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Process created files batch " + ++batchCounter + " in " +
-                            (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-                }
-            }
+
+            studioDBScriptRunner.execute(scriptPath.toFile());
+
             if (logger.isDebugEnabled()) {
                 logger.debug("Process created files finished in " +
                         (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
             }
+        } catch (IOException e) {
+            logger.error("Error while creating DB script file for processing created files for site " + siteId);
         } finally {
             studioDBScriptRunner.closeConnection();
         }
     }
 
-    private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, StringBuilder scriptSb) {
+    private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file) throws IOException {
         long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
         Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
         if (logger.isDebugEnabled()) {
@@ -610,15 +601,20 @@ public class SiteServiceImpl implements SiteService {
                     (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
         }
         if (StringUtils.isEmpty(oldPath)) {
-            scriptSb.append(deleteDependencySourcePathRows(siteId, path)).append("\n\n");
+            Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(StandardCharsets.UTF_8),
+                    StandardOpenOption.APPEND);
+            Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } else {
-            scriptSb.append(deleteDependencySourcePathRows(siteId, oldPath)).append("\n\n");
+            Files.write(file, deleteDependencySourcePathRows(siteId, oldPath).getBytes(StandardCharsets.UTF_8),
+                    StandardOpenOption.APPEND);
+            Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         }
         if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
             for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
                 for (String targetPath : entry.getValue()) {
-                    scriptSb.append(insertDependencyRow(siteId, path, targetPath, entry.getKey()))
-                            .append("\n\n");
+                    Files.write(file, insertDependencyRow(siteId, path, targetPath, entry.getKey())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
                 }
             }
         }
@@ -1274,12 +1270,16 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public boolean syncDatabaseWithRepoUnprocessedCommits(@ValidateStringParam(name = "site") String site,
-                                                          List<GitLog> commitIds) {
+                                                          List<GitLog> commitIds) throws IOException {
         boolean toReturn = true;
         String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
+        String scriptFilename = "repoOperations_" + UUID.randomUUID();
+        Path scriptPath = Files.createTempFile(scriptFilename, ".sql");
+        boolean success = true;
+        long startUpdateDBMark = 0;
+        List<String> cIds = new ArrayList<String>();
         for (GitLog gitLog : commitIds) {
             String commitId = gitLog.getCommitId();
-            boolean success = true;
             long startGetOperationsFromDeltaMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
             List<RepoOperation> repoOperationsDelta =
                     contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
@@ -1288,42 +1288,38 @@ public class SiteServiceImpl implements SiteService {
                         (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
                 logger.debug("Number of Repo operations from delta " + repoOperationsDelta.size());
             }
-            if (CollectionUtils.isEmpty(repoOperationsDelta)) {
-                logger.debug("Database is up to date with repository for site: " + site);
-                contentRepositoryV2.markGitLogVerifiedProcessed(site, repoLastCommitId);
-                updateLastCommitId(site, repoLastCommitId);
-                updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
-            } else {
-                logger.info("Syncing database with repository for site: " + site + " commitId = " + commitId);
+            if (!CollectionUtils.isEmpty(repoOperationsDelta)) {
+                logger.debug("Syncing database with repository for site: " + site + " commitId = " + commitId);
                 logger.debug("Operations to sync: ");
-                for (RepoOperation repoOperation : repoOperationsDelta) {
-                    logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
-                }
-
-                long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-                success = processRepoOperations(site, repoOperationsDelta);
-
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+                    for (RepoOperation repoOperation : repoOperationsDelta) {
+                        logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
+                    }
                 }
-                // At this point we have attempted to process all operations, some may have failed
-                // We will update the lastCommitId of the database ignoring errors if any
-                logger.debug("Done syncing operations with a result of: " + success);
-                logger.debug("Syncing database lastCommitId for site: " + site);
+                startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
 
-                // Update database
-                if (success) {
-                    logger.debug("Update last commit id " + commitId + " for site " + site);
-                    contentRepositoryV2.markGitLogVerifiedProcessed(site, commitId);
-                    if (toReturn) {
-                        updateLastVerifiedGitlogCommitId(site, commitId);
-                    }
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
-                    }
-                }
+                success = processRepoOperations(site, repoOperationsDelta, scriptPath);
             }
             toReturn = toReturn && success;
+        }
+        try {
+            studioDBScriptRunner.openConnection();
+            studioDBScriptRunner.execute(scriptPath.toFile());
+        } finally {
+            studioDBScriptRunner.closeConnection();
+        }
+
+        // At this point we have attempted to process all operations, some may have failed
+        // We will update the lastCommitId of the database ignoring errors if any
+        logger.debug("Done syncing operations with a result of: " + success);
+        logger.debug("Syncing database lastCommitId for site: " + site);
+
+        // Update database
+        if (success) {
+            contentRepositoryV2.markGitLogVerifiedProcessedBulk(site, cIds);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
 
         // Sync all preview deployers
@@ -1387,8 +1383,17 @@ public class SiteServiceImpl implements SiteService {
         }
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-        toReturn = processRepoOperations(site, repoOperationsDelta);
-
+        try {
+            studioDBScriptRunner.openConnection();
+            String scriptFilename = "repoOperations_" + UUID.randomUUID();
+            Path scriptPath = Files.createTempFile(scriptFilename, ".sql");
+            toReturn = processRepoOperations(site, repoOperationsDelta, scriptPath);
+            studioDBScriptRunner.execute(scriptPath.toFile());
+        } catch (IOException e) {
+            logger.error("Error while creating db script file for processing created files for site " + site);
+        } finally {
+            studioDBScriptRunner.closeConnection();
+        }
         if (logger.isDebugEnabled()) {
             logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
@@ -1404,13 +1409,6 @@ public class SiteServiceImpl implements SiteService {
         if (logger.isDebugEnabled()) {
             logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
-        // Sync all preview deployers
-        try {
-            logger.debug("Sync preview for site " + site);
-            deploymentService.syncAllContentToPreview(site, false);
-        } catch (ServiceLayerException e) {
-            logger.error("Error synchronizing preview with repository for site: " + site, e);
-        }
 
         logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " +
                 (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId) + " with a final result of: " +
@@ -1425,82 +1423,80 @@ public class SiteServiceImpl implements SiteService {
 	    return toReturn;
     }
 
-    private boolean processRepoOperations(String siteId, List<RepoOperation> repoOperations) {
-	    boolean toReturn = true;
+    private boolean processRepoOperations(String siteId, List<RepoOperation> repoOperations, Path file) throws IOException {
+        boolean toReturn = true;
         long startProcessRepoOperationMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-        StringBuilder sb = new StringBuilder();
-        int counter = 0;
-        int batchCounter = 0;
-        long startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-        studioDBScriptRunner.openConnection();
-        try {
-            for (RepoOperation repoOperation : repoOperations) {
-                if (counter++ >= batchSize) {
-                    studioDBScriptRunner.execute(sb.toString());
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Process repo operations batch " + ++batchCounter + " in " +
-                                (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-                    }
-                    sb = new StringBuilder();
-                    counter = 0;
-                    startBatchMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-                }
-                switch (repoOperation.getAction()) {
-                    case CREATE:
-                    case COPY:
-                        sb.append(upsertItemStateRow(siteId, repoOperation.getPath())).append("\n\n");
-                        sb.append(upsertItemMetadataRow(siteId, repoOperation.getPath(), repoOperation.getAuthor(),
-                                repoOperation.getDateTime(), repoOperation.getCommitId())).append("\n\n");
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
-                                repoOperation.getPath());
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sb);
-                        break;
+        for (RepoOperation repoOperation : repoOperations) {
+            switch (repoOperation.getAction()) {
+                case CREATE:
+                case COPY:
+                    Files.write(file, upsertItemStateRow(siteId,
+                            repoOperation.getPath()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, upsertItemMetadataRow(siteId, repoOperation.getPath(),
+                            repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
+                                    .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                            repoOperation.getPath());
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, file);
+                    break;
 
-                    case UPDATE:
-                        sb.append(transitionSaveItemStateRow(siteId, repoOperation.getPath())).append("\n\n");
-                        sb.append(updateItemMetadataRow(siteId, repoOperation.getPath(), repoOperation.getAuthor(),
-                                repoOperation.getDateTime(), repoOperation.getCommitId())).append("\n\n");
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " + repoOperation.getPath());
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, sb);
-                        break;
+                case UPDATE:
+                    Files.write(file, transitionSaveItemStateRow(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, updateItemMetadataRow(siteId, repoOperation.getPath(),
+                            repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    logger.debug("Extract dependencies for site: " + siteId + " path: " + repoOperation.getPath());
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, file);
+                    break;
 
-                    case DELETE:
-                        sb.append(deleteItemStateRow(siteId, repoOperation.getPath())).append("\n\n");
-                        sb.append(deleteItemMetadataRow(siteId, repoOperation.getPath())).append("\n\n");
-                        sb.append(deleteDependencyRows(siteId, repoOperation.getPath())).append("\n\n");
-                        break;
+                case DELETE:
+                    Files.write(file, deleteItemStateRow(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, deleteItemMetadataRow(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, deleteDependencyRows(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    break;
 
-                    case MOVE:
-                        sb.append(moveItemStateRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
-                        sb.append(transitionSaveItemStateRow(siteId, repoOperation.getMoveToPath())).append("\n\n");
-                        sb.append(moveItemMetadataRow(siteId, repoOperation.getPath(), repoOperation.getMoveToPath())).append("\n\n");
-                        sb.append(updateItemMetadataRow(siteId, repoOperation.getMoveToPath(), repoOperation.getAuthor(),
-                                repoOperation.getDateTime(), repoOperation.getCommitId())).append("\n\n");
-                        addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(), repoOperation.getPath(), sb);
-                        break;
+                case MOVE:
+                    Files.write(file, moveItemStateRow(siteId, repoOperation.getPath(),
+                            repoOperation.getMoveToPath()).getBytes(StandardCharsets.UTF_8),
+                            StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, transitionSaveItemStateRow(siteId, repoOperation.getMoveToPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, moveItemMetadataRow(siteId, repoOperation.getPath(),
+                            repoOperation.getMoveToPath()).getBytes(StandardCharsets.UTF_8),
+                            StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, updateItemMetadataRow(siteId, repoOperation.getMoveToPath(),
+                            repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(),
+                            repoOperation.getPath(), file);
+                    break;
 
-                    default:
-                        logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
-                                repoOperation.getAction());
-                        toReturn = false;
-                        break;
-                }
+                default:
+                    logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
+                            repoOperation.getAction());
+                    toReturn = false;
+                    break;
             }
+        }
 
-            if (sb.length() > 0) {
-                studioDBScriptRunner.execute(sb.toString());
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Process repo operations batch " + ++batchCounter + " in " +
-                            (System.currentTimeMillis() - startBatchMark) + " milliseconds");
-                }
-            }
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
-                        " milliseconds");
-            }
-        } finally {
-            studioDBScriptRunner.closeConnection();
+        if (logger.isDebugEnabled()) {
+            logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
+                    " milliseconds");
         }
         return toReturn;
     }

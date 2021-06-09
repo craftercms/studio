@@ -664,4 +664,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public String getPreviousCommitId(String siteId, String commitId) {
         return localRepositoryV2.getPreviousCommitId(siteId, commitId);
     }
+
+    @Override
+    public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
+        localRepositoryV2.markGitLogVerifiedProcessedBulk(siteId, commitIds);
+    }
 }

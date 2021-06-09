@@ -18,9 +18,11 @@ package org.craftercms.studio.impl.v2.job;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -43,14 +45,17 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
     private static int threadCounter = 0;
     private ContentRepository contentRepository;
+    private DeploymentService deploymentService;
 
     public StudioSyncRepositoryTask(int executeEveryNCycles,
                                     int offset,
                                     StudioConfiguration studioConfiguration,
                                     SiteService siteService,
-                                    ContentRepository contentRepository) {
+                                    ContentRepository contentRepository,
+                                    DeploymentService deploymentService) {
         super(executeEveryNCycles, offset, studioConfiguration, siteService);
         this.contentRepository = contentRepository;
+        this.deploymentService = deploymentService;
         threadCounter++;
     }
 
@@ -72,7 +77,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         }
     }
 
-    private void syncRepository(String site) throws SiteNotFoundException {
+    private void syncRepository(String site) throws SiteNotFoundException, IOException {
         logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
@@ -93,6 +98,14 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                         unprocessedCommitIds.forEach(x -> {
                             contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
                         });
+
+                        // Sync all preview deployers
+                        try {
+                            logger.debug("Sync preview for site " + site);
+                            deploymentService.syncAllContentToPreview(site, false);
+                        } catch (ServiceLayerException e) {
+                            logger.error("Error synchronizing preview with repository for site: " + site, e);
+                        }
                     } else {
                         String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
                         GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
