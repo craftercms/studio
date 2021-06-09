@@ -1426,81 +1426,77 @@ public class SiteServiceImpl implements SiteService {
     private boolean processRepoOperations(String siteId, List<RepoOperation> repoOperations, Path file) throws IOException {
         boolean toReturn = true;
         long startProcessRepoOperationMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-        try {
-            for (RepoOperation repoOperation : repoOperations) {
-                switch (repoOperation.getAction()) {
-                    case CREATE:
-                    case COPY:
-                        Files.write(file, upsertItemStateRow(siteId,
-                                repoOperation.getPath()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, upsertItemMetadataRow(siteId, repoOperation.getPath(),
-                                repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
-                                        .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
-                                repoOperation.getPath());
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, file);
-                        break;
+        for (RepoOperation repoOperation : repoOperations) {
+            switch (repoOperation.getAction()) {
+                case CREATE:
+                case COPY:
+                    Files.write(file, upsertItemStateRow(siteId,
+                            repoOperation.getPath()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, upsertItemMetadataRow(siteId, repoOperation.getPath(),
+                            repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
+                                    .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                            repoOperation.getPath());
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, file);
+                    break;
 
-                    case UPDATE:
-                        Files.write(file, transitionSaveItemStateRow(siteId, repoOperation.getPath())
-                                .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, updateItemMetadataRow(siteId, repoOperation.getPath(),
-                                repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
-                                .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " + repoOperation.getPath());
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, file);
-                        break;
+                case UPDATE:
+                    Files.write(file, transitionSaveItemStateRow(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, updateItemMetadataRow(siteId, repoOperation.getPath(),
+                            repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    logger.debug("Extract dependencies for site: " + siteId + " path: " + repoOperation.getPath());
+                    addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, file);
+                    break;
 
-                    case DELETE:
-                        Files.write(file, deleteItemStateRow(siteId, repoOperation.getPath())
-                                .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, deleteItemMetadataRow(siteId, repoOperation.getPath())
-                                .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, deleteDependencyRows(siteId, repoOperation.getPath())
-                                .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        break;
+                case DELETE:
+                    Files.write(file, deleteItemStateRow(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, deleteItemMetadataRow(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, deleteDependencyRows(siteId, repoOperation.getPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    break;
 
-                    case MOVE:
-                        Files.write(file, moveItemStateRow(siteId, repoOperation.getPath(),
-                                repoOperation.getMoveToPath()).getBytes(StandardCharsets.UTF_8),
-                                StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, transitionSaveItemStateRow(siteId, repoOperation.getMoveToPath())
-                                .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, moveItemMetadataRow(siteId, repoOperation.getPath(),
-                                repoOperation.getMoveToPath()).getBytes(StandardCharsets.UTF_8),
-                                StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, updateItemMetadataRow(siteId, repoOperation.getMoveToPath(),
-                                repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
-                                .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                        addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(),
-                                repoOperation.getPath(), file);
-                        break;
+                case MOVE:
+                    Files.write(file, moveItemStateRow(siteId, repoOperation.getPath(),
+                            repoOperation.getMoveToPath()).getBytes(StandardCharsets.UTF_8),
+                            StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, transitionSaveItemStateRow(siteId, repoOperation.getMoveToPath())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, moveItemMetadataRow(siteId, repoOperation.getPath(),
+                            repoOperation.getMoveToPath()).getBytes(StandardCharsets.UTF_8),
+                            StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, updateItemMetadataRow(siteId, repoOperation.getMoveToPath(),
+                            repoOperation.getAuthor(), repoOperation.getDateTime(), repoOperation.getCommitId())
+                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(),
+                            repoOperation.getPath(), file);
+                    break;
 
-                    default:
-                        logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
-                                repoOperation.getAction());
-                        toReturn = false;
-                        break;
-                }
+                default:
+                    logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
+                            repoOperation.getAction());
+                    toReturn = false;
+                    break;
             }
+        }
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
-                        " milliseconds");
-            }
-        } finally {
-            studioDBScriptRunner.closeConnection();
+        if (logger.isDebugEnabled()) {
+            logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
+                    " milliseconds");
         }
         return toReturn;
     }
