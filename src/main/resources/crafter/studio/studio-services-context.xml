@@ -813,6 +813,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >

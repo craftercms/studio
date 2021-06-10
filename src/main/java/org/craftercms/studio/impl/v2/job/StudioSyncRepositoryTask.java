@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 
@@ -133,5 +134,13 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
     }
 }

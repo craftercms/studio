@@ -705,4 +705,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
         localRepositoryV2.markGitLogVerifiedProcessedBulk(siteId, commitIds);
     }
+
+    @Override
+    public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
+        localRepositoryV2.upsertGitLogList(siteId, commitIds, processed, audited);
+    }
 }

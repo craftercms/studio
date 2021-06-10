@@ -99,6 +99,7 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
+import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -215,7 +216,7 @@ public class SiteServiceImpl implements SiteService {
 
     protected String[] configurationPatterns;
 
-    protected StudioDBScriptRunner studioDBScriptRunner;
+    protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
     protected DependencyServiceInternal dependencyServiceInternal;
 
     /**
@@ -441,6 +442,7 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Unexpected error during creation of items. User not found " + creator, e);
             return;
         }
+        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         studioDBScriptRunner.openConnection();
         try {
             String createdFileScriptFilename = "createdFiles_" + UUID.randomUUID();
@@ -1062,6 +1064,7 @@ public class SiteServiceImpl implements SiteService {
             }
             toReturn = toReturn && success;
         }
+        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         try {
             studioDBScriptRunner.openConnection();
             studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
@@ -1140,6 +1143,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         try {
             studioDBScriptRunner.openConnection();
             String repoOperationsScriptFilename = "repoOperations_" + UUID.randomUUID();
@@ -1924,12 +1928,12 @@ public class SiteServiceImpl implements SiteService {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
-    public StudioDBScriptRunner getStudioDBScriptRunner() {
-        return studioDBScriptRunner;
+    public StudioDBScriptRunnerFactory getStudioDBScriptRunner() {
+        return studioDBScriptRunnerFactory;
     }
 
-    public void setStudioDBScriptRunner(StudioDBScriptRunner studioDBScriptRunner) {
-        this.studioDBScriptRunner = studioDBScriptRunner;
+    public void setStudioDBScriptRunner(StudioDBScriptRunnerFactory studioDBScriptRunner) {
+        this.studioDBScriptRunnerFactory = studioDBScriptRunner;
     }
 
     public DependencyServiceInternal getDependencyServiceInternal() {
