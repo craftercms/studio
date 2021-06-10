@@ -527,15 +527,17 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             RevCommit rc = commitIdsQueue.poll();
             if (Objects.nonNull(rc)) {
                 String cId = rc.getName();
-                GitLog gitLog = contentRepositoryV2.getGitLog(siteId, cId);
-                if (Objects.isNull(gitLog)) {
-                    RevCommit[] parents = rc.getParents();
-                    if (Objects.nonNull(parents) && parents.length > 0) {
-                        for (int i = 0; i < parents.length; i++) {
-                            commitIdsQueue.offer(parents[i]);
+                if (!toRet.contains(cId)) {
+                    GitLog gitLog = contentRepositoryV2.getGitLog(siteId, cId);
+                    if (Objects.isNull(gitLog)) {
+                        RevCommit[] parents = rc.getParents();
+                        if (Objects.nonNull(parents) && parents.length > 0) {
+                            for (int i = 0; i < parents.length; i++) {
+                                commitIdsQueue.offer(parents[i]);
+                            }
                         }
+                        toRet.add(cId);
                     }
-                    toRet.add(cId);
                 }
             }
         }

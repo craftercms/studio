@@ -73,7 +73,7 @@
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean -->
 
-    <bean id="studio.dbScriptRunner" class="org.craftercms.studio.impl.v2.dal.StudioDBScriptRunnerImpl">
+    <bean id="studio.dbScriptRunner" class="org.craftercms.studio.impl.v2.dal.StudioDBScriptRunnerFactoryImpl">
         <property name="delimiter" value=" ;"/>
         <property name="dataSource" ref="dataSource" />
         <property name="scriptLinesBufferSize"

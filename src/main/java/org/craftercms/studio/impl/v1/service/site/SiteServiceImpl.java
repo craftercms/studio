@@ -105,6 +105,7 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
+import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -208,7 +209,7 @@ public class SiteServiceImpl implements SiteService {
 
     protected EntitlementValidator entitlementValidator;
 
-    protected StudioDBScriptRunner studioDBScriptRunner;
+    protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
     protected DependencyServiceInternal dependencyServiceInternal;
 
     @Override
@@ -565,6 +566,7 @@ public class SiteServiceImpl implements SiteService {
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
                                      ZonedDateTime now, String lastCommitId) {
         long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
+        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         studioDBScriptRunner.openConnection();
         try {
             String scriptFilename = "createdFiles_" + UUID.randomUUID();
@@ -1302,6 +1304,7 @@ public class SiteServiceImpl implements SiteService {
             }
             toReturn = toReturn && success;
         }
+        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         try {
             studioDBScriptRunner.openConnection();
             studioDBScriptRunner.execute(scriptPath.toFile());
@@ -1383,6 +1386,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
+        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         try {
             studioDBScriptRunner.openConnection();
             String scriptFilename = "repoOperations_" + UUID.randomUUID();
@@ -2005,12 +2009,12 @@ public class SiteServiceImpl implements SiteService {
         this.clusterDao = clusterDao;
     }
 
-    public StudioDBScriptRunner getStudioDBScriptRunner() {
-        return studioDBScriptRunner;
+    public StudioDBScriptRunnerFactory getStudioDBScriptRunner() {
+        return studioDBScriptRunnerFactory;
     }
 
-    public void setStudioDBScriptRunner(StudioDBScriptRunner studioDBScriptRunner) {
-        this.studioDBScriptRunner = studioDBScriptRunner;
+    public void setStudioDBScriptRunner(StudioDBScriptRunnerFactory studioDBScriptRunnerFactory) {
+        this.studioDBScriptRunnerFactory = studioDBScriptRunnerFactory;
     }
 
     public DependencyServiceInternal getDependencyServiceInternal() {

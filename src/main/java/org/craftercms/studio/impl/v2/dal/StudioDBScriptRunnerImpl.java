@@ -40,6 +40,12 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
     protected int scriptLinesBufferSize = 10000;
     protected Connection connection = null;
 
+    protected StudioDBScriptRunnerImpl(String delimiter, DataSource dataSource, int scriptLinesBufferSize) {
+        this.delimiter = delimiter;
+        this.dataSource = dataSource;
+        this.scriptLinesBufferSize = scriptLinesBufferSize;
+    }
+
     @Override
     public void openConnection() {
         if (Objects.isNull(connection)) {
@@ -106,27 +112,4 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
         }
     }
 
-    public String getDelimiter() {
-        return delimiter;
-    }
-
-    public void setDelimiter(String delimiter) {
-        this.delimiter = delimiter;
-    }
-
-    public DataSource getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    public int getScriptLinesBufferSize() {
-        return scriptLinesBufferSize;
-    }
-
-    public void setScriptLinesBufferSize(int scriptLinesBufferSize) {
-        this.scriptLinesBufferSize = scriptLinesBufferSize;
-    }
 }
