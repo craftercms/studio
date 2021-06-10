@@ -40,6 +40,13 @@ public interface GitLogDAO {
 
     void markGitLogProcessed(Map params);
 
+    /**
+     * Mark commit id as processed for given site and list of
+     * @param siteId site identifier
+     * @param commitIds list of commit ids
+     */
+    void markGitLogProcessedBulk(@Param(SITE_ID) String siteId, @Param(COMMIT_IDS) List<String> commitIds);
+
     void deleteGitLogForSite(Map params);
 
     void markGitLogAudited(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String commitId,
@@ -59,4 +66,12 @@ public interface GitLogDAO {
      */
     void markGitLogProcessedBeforeMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker,
                                          @Param(PROCESSED) int processed, @Param(UNPROCESSED) int unprocessed);
+
+    /**
+     * Upsert git logs as processed and audited
+     * @param siteId site identifier
+     * @param commitIds commit ids
+     */
+    void upsertGitLogList(@Param(SITE_ID) String siteId, @Param(COMMIT_IDS) List<String> commitIds,
+                          @Param(PROCESSED) int processed, @Param(AUDITED) int audited);
 }

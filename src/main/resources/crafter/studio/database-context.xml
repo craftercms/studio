@@ -74,6 +74,8 @@
     <bean id="studio.dbScriptRunner" class="org.craftercms.studio.impl.v2.dal.StudioDBScriptRunnerImpl">
         <property name="delimiter" value=" ;"/>
         <property name="dataSource" ref="dataSource" />
+        <property name="scriptLinesBufferSize"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SCRIPT_RUNNER_BUFFER_SIZE)}" />
     </bean>
 
     <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingOperationAnnotationHandler" >

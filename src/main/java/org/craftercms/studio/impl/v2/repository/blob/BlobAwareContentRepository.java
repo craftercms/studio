@@ -700,4 +700,9 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public void itemUnlock(String site, String path) {
         localRepositoryV2.itemUnlock(site, path);
     }
+
+    @Override
+    public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
+        localRepositoryV2.markGitLogVerifiedProcessedBulk(siteId, commitIds);
+    }
 }

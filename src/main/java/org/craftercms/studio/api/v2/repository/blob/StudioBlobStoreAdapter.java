@@ -364,4 +364,9 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     default void itemUnlock(String site, String path) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    default void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
+        throw new UnsupportedOperationException();
+    }
 }

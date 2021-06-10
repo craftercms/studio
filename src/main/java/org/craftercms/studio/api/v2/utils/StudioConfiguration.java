@@ -84,6 +84,8 @@ public interface StudioConfiguration {
     String DB_SOCKET = "studio.db.socket";
     String DB_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.db.retryingOperation.maxAttempts";
     String DB_RETRYING_OPERATION_MAX_SLEEP = "studio.db.retryingOperation.maxSleep";
+    String DB_SCRIPT_RUNNER_BUFFER_SIZE = "studio.db.scriptRunner.bufferSize";
+    String DB_BULK_OPERATIONS_BATCH_SIZE = "studio.db.bulkOperations.batchSize";
 
 
     /** Configuration */

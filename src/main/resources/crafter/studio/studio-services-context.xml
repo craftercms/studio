@@ -523,6 +523,9 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
+        <property name="contentRepositoryV2" ref="contentRepository" />
+        <property name="batchSizeGitLog"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -980,6 +983,7 @@
         <property name="helper" ref="studio.gitRepositoryHelper" />
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="studioUtils" ref="studio.utils" />
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
@@ -1458,6 +1462,7 @@
     <bean id="studio.utils" class="org.craftercms.studio.impl.v2.utils.StudioUtils">
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="contentService" ref="cstudioContentService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

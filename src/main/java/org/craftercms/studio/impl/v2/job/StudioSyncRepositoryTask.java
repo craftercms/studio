@@ -42,6 +42,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
     private static int threadCounter = 0;
     private ContentRepository contentRepository;
+    private DeploymentService deploymentService;
 
     public void init() {
         threadCounter++;
@@ -85,6 +86,14 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                         unprocessedCommitIds.forEach(x -> {
                             contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
                         });
+
+                        // Sync all preview deployers
+                        try {
+                            logger.debug("Sync preview for site " + site);
+                            deploymentService.syncAllContentToPreview(site, false);
+                        } catch (ServiceLayerException e) {
+                            logger.error("Error synchronizing preview with repository for site: " + site, e);
+                        }
                     } else {
                         String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
                         GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
