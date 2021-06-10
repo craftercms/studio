@@ -369,4 +369,9 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     default void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    default void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
+        throw new UnsupportedOperationException();
+    }
 }
