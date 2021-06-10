@@ -19,14 +19,19 @@ package org.craftercms.studio.impl.v2.utils;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_BULK_OPERATIONS_BATCH_SIZE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
 
 public class StudioUtils {
 
     private ServicesConfig servicesConfig;
     private ContentService contentService;
+    private StudioConfiguration studioConfiguration;
 
     public List<String> getEnvironmentNames(String siteId) {
         List<String> toRet = new ArrayList<String>();
@@ -48,6 +53,10 @@ public class StudioUtils {
         return item;
     }
 
+    public int getBulkOperationsBatchSize() {
+        return Integer.parseInt(studioConfiguration.getProperty(DB_BULK_OPERATIONS_BATCH_SIZE));
+    }
+
     public ServicesConfig getServicesConfig() {
         return servicesConfig;
     }
@@ -62,5 +71,13 @@ public class StudioUtils {
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

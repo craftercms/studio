@@ -571,6 +571,10 @@ studio.db.socket: /tmp/MariaDB4j.33306.sock
 studio.db.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
 studio.db.retryingOperation.maxSleep: 1000
+# Number of lines to read from sql script file for buffered execution
+studio.db.scriptRunner.bufferSize: 10000
+# Batch size for bulk operations
+studio.db.bulkOperations.batchSize: 1000
 
 ##########################################################
 ##                   Asset Processing                   ##

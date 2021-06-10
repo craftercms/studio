@@ -92,6 +92,14 @@ public interface ContentRepository {
     void markGitLogVerifiedProcessed(String siteId, String commitId);
 
     /**
+     * Mark Git logs as verified
+     *
+     * @param siteId   site identifier
+     * @param commitIds list of commit ids
+     */
+    void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds);
+
+    /**
      * Insert Git Log
      *
      * @param siteId    site
@@ -327,4 +335,13 @@ public interface ContentRepository {
      * @param path path of the item
      */
     void itemUnlock(String site, String path);
+
+    /**
+     * Upsert git logs as processed and audited
+     * @param siteId site identifier
+     * @param commitIds commit ids
+     * @param processed true if already processed
+     * @param audited true if already audited
+     */
+    void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited);
 }
