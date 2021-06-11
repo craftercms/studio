@@ -79,7 +79,7 @@ public class SitesServiceImpl implements SitesService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
-    public void clearPublishingLock(String siteId) {
+    public void clearPublishingLock(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
         sitesServiceInternal.clearPublishingLock(siteId);
     }
 }
