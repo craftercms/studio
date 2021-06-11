@@ -508,7 +508,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, folderPath)
-                .withPreviewUrl(getBrowserUrl(siteId, folderPath))
+                .withPreviewUrl(null)
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(ZonedDateTime.now())
                 .withLabel(folderName)
