@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -42,6 +42,9 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
     private final static String START = "/api/1/services/api/1/publish/start.json";
     private final static String STATUS = "/api/1/services/api/1/publish/status.json";
     private final static String STOP = "/api/1/services/api/1/publish/stop.json";
+    private final static String COMMITS = "/api/1/services/api/1/publish/commits.json";
+    private final static String PUBLISH_ITEMS = "/api/1/services/api/1/publish/publish-items.json";
+    private final static String RESET_STAGING = "/api/1/services/api/1/publish/reset-staging.json";
 
     @Override
     public boolean supports(ConfigAttribute configAttribute) {
@@ -83,6 +86,21 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
                 case STATUS:
                     if (siteService.exists(siteParam)) {
                         if (isSiteMember(siteParam, currentUser)) {
+                            toRet = ACCESS_GRANTED;
+                        } else {
+                            toRet = ACCESS_DENIED;
+                        }
+                    } else {
+                        toRet = ACCESS_ABSTAIN;
+                    }
+                    break;
+                case COMMITS:
+                case PUBLISH_ITEMS:
+                case RESET_STAGING:
+                    if (siteService.exists(siteParam)) {
+                        if (currentUser != null &&
+                                (isSiteAdmin(siteParam, currentUser) || hasPermission(siteParam, "~DASHBOARD~",
+                                        currentUser.getUsername(), "publish"))) {
                             toRet = ACCESS_GRANTED;
                         } else {
                             toRet = ACCESS_DENIED;
