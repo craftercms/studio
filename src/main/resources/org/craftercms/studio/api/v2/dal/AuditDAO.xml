@@ -289,7 +289,7 @@
             and cs1.primary_target_subtype = #{contentType}
         </if>
         ) act
-        inner join item_state os on act.site_id=os.site and act.primary_target_value=os.path, site s3
+        inner join item i on act.site_id=i.site_id and act.primary_target_value=i.path, site s3
         where act.site_id = s3.id
         and act.actor_id = #{userId}
         and s3.site_id = #{siteId}
@@ -299,15 +299,11 @@
                  open="(" separator="," close=")">
             #{operation}
         </foreach>
-        and primary_target_type = #{targetType}
+        and act.primary_target_type = #{targetType}
         <if test="contentType != null and contentType != 'all' ">
-            and act.primary_target_value = #{contentType}
+            and act.primary_target_subtype = #{contentType}
         </if>
-        and os.state NOT IN
-        <foreach item="state" index="index" collection="states"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
+        and (i.state &amp; #{liveStateBitMap}) = 0
         order by act.operation_timestamp desc limit #{offset},#{limit}
     </select>
 
