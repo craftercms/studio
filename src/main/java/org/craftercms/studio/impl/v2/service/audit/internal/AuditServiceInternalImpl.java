@@ -23,15 +23,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -322,15 +321,11 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         params.put("limit", limit);
         params.put("operations", Arrays.asList(OPERATION_CREATE, OPERATION_DELETE, OPERATION_UPDATE, OPERATION_MOVE));
         params.put("targetType", TARGET_TYPE_CONTENT_ITEM);
-        if (StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")) {
+        if (StringUtils.isNotEmpty(contentType) && !contentType.equalsIgnoreCase("all")) {
             params.put("contentType", contentType.toLowerCase());
         }
         if (hideLiveItems) {
-            List<String> statesValues = new ArrayList<String>();
-            for (State state : State.LIVE_STATES) {
-                statesValues.add(state.name());
-            }
-            params.put("states", statesValues);
+            params.put("liveStateBitMap", ItemState.LIVE.value);
             return auditDao.selectUserFeedEntriesHideLive(params);
         } else {
             return auditDao.selectUserFeedEntries(params);
