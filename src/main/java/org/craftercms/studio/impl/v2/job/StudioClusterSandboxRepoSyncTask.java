@@ -125,7 +125,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 if (!siteCheck) {
                     // Site doesn't exist locally, create it
                     success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSiteUuid(),
-                            siteFeed.getSearchEngine(), clusterSiteRecords);
+                            clusterSiteRecords);
                 }
 
                 if (success && clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
@@ -187,13 +187,13 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         return toRet;
     }
 
-    private boolean createSite(long localNodeId, long sId, String siteId, String siteUuid, String searchEngine,
+    private boolean createSite(long localNodeId, long sId, String siteId, String siteUuid,
                                List<ClusterSiteRecord> clusterSiteRecords) {
         boolean result = true;
 
         logger.debug("Create Deployer targets site " + siteId);
         try {
-            deployer.createTargets(siteId, searchEngine);
+            deployer.createTargets(siteId);
         } catch (Exception e) {
             result = false;
             logger.error("Error while creating Deployer targets on cluster node for site : " + siteId, e);
