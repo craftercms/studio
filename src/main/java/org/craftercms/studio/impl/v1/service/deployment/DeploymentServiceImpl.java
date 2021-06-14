@@ -761,6 +761,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         String message;
         String status;
         if (enabled) {
+            logger.info("Publishing started for site {0}", site);
             if (publishingManager.isPublishingQueueEmpty(site)) {
                 message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT);
                 status = READY;
@@ -770,6 +771,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
 
         } else {
+            logger.info("Publishing stopped for site {0}", site);
             message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED);
             message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",
                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));

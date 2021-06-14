@@ -206,7 +206,7 @@ public class StudioPublisherTask extends StudioClockTask {
                         logger.info("Publishing is blocked for site " + siteId);
                     }
                 } else {
-                    logger.info("Publishing is disabled for site " + siteId);
+                    logger.debug("Publishing is disabled for site {0}", siteId);
                 }
             }
         } catch (UncategorizedSQLException  dbErr) {
