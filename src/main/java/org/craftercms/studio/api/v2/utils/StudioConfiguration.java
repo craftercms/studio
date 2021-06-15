@@ -230,8 +230,6 @@ public interface StudioConfiguration {
     String AUTHORING_TEMPLATE_NAME = "studio.authoring.templateName";
 
     /** Preview Search **/
-    String PREVIEW_SEARCH_CREATE_URL = "studio.preview.search.createUrl";
-    String PREVIEW_SEARCH_DELETE_URL = "studio.preview.search.deleteUrl";
     String PREVIEW_SEARCH_ENGINE = "studio.preview.search.engine";
 
     /** Publishing Manager */
