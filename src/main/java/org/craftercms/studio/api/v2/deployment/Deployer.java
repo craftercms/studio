@@ -28,10 +28,9 @@ public interface Deployer {
      * Calls a Crafter Deployer to create any necessary targets for the site.
      *
      * @param site the site
-     * @param searchEngine the search engine used by the site
      * @throws RestClientException if an error occurs
      */
-    void createTargets(String site, String searchEngine) throws RestClientException;
+    void createTargets(String site) throws RestClientException;
 
     /**
      * Deletes the targets associated with the site.

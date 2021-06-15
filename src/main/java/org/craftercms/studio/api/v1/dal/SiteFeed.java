@@ -38,7 +38,6 @@ public class SiteFeed {
     protected String publishingStatusMessage;
     protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
-    protected String searchEngine;
     protected int publishedRepoCreated;
     protected String publishingLockOwner;
     protected ZonedDateTime publishingLockHeartbeat;
@@ -148,15 +147,6 @@ public class SiteFeed {
     public void setSandboxBranch(String sandboxBranch) {
         this.sandboxBranch = sandboxBranch;
     }
-
-    public String getSearchEngine() {
-        return searchEngine;
-    }
-
-    public void setSearchEngine(String searchEngine) {
-        this.searchEngine = searchEngine;
-    }
-
 
     public int getDeleted() {
         return deleted;

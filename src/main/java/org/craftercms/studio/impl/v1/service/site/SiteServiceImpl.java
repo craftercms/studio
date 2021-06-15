@@ -297,7 +297,7 @@ public class SiteServiceImpl implements SiteService {
         // Create the site in the preview deployer
         logger.info("Creating deployer targets.");
         try {
-            deployer.createTargets(siteId, searchEngine);
+            deployer.createTargets(siteId);
         } catch (Exception e) {
             success = false;
             String msg = "Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -328,7 +328,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
                 String localeAddress = studioClusterUtils.getClusterNodeLocalAddress();
@@ -740,7 +739,7 @@ public class SiteServiceImpl implements SiteService {
             // Create the site in the preview deployer
             try {
                 logger.info("Creating Deployer targets for site " + siteId);
-                deployer.createTargets(siteId, searchEngine);
+                deployer.createTargets(siteId);
             } catch (Exception e) {
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
                         " remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back...", e);
@@ -777,7 +776,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
                 upgradeManager.upgrade(siteId);

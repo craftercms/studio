@@ -34,7 +34,6 @@
         <result property="publishingStatusMessage" column="publishing_status_message" jdbcType="VARCHAR" javaType="String"/>
         <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
-        <result property="searchEngine" column="search_engine" />
         <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
         <result property="publishingLockOwner" column="publishing_lock_owner" />
         <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat" />
@@ -66,7 +65,6 @@
         <parameter property="lastVerifiedGitlogCommitId" jdbcType="VARCHAR" />
         <parameter property="lastSyncedGitlogCommitId" jdbcType="VARCHAR" />
         <parameter property="sandboxBranch" jdbcType="VARCHAR"/>
-        <parameter property="searchEngine" jdbcType="VARCHAR"/>
         <parameter property="publishedRepoCreated" jdbcType="INTEGER" />
         <parameter property="publishingLockOwner" jdbcType="VARCHAR" />
         <parameter property="publishingLockHeartbeat" jdbcType="TIMESTAMP" />
@@ -87,9 +85,9 @@
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
         insert into site (site_uuid, site_id, name, description, status, deleted, last_commit_id,
-                          publishing_status, publishing_status_message, sandbox_branch, search_engine)
+                          publishing_status, publishing_status_message, sandbox_branch)
         values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{status}, #{deleted}, #{lastCommitId},
-                #{publishingStatus}, #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
+                #{publishingStatus}, #{publishingStatusMessage}, #{sandboxBranch})
     </insert>
 
     <update id="deleteSite">
