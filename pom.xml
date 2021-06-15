@@ -49,7 +49,7 @@
         <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
-        <aws.version>1.11.994</aws.version>
+        <aws.version>1.11.1034</aws.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.4.8</mariadb4j.version>
