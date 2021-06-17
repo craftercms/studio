@@ -37,4 +37,6 @@ public interface BaseDAO {
     String PARAM_NAME_ENVIRONMENTS = "environments";
     String PARAM_NAME_FROM_DATE = "fromDate";
     String PARAM_NAME_TO_DATE = "toDate";
+    String PARAM_NAME_CONTENT_TYPE_CLASS = "contentTypeClass";
+    String PARAM_NAME_NOW = "now";
 }

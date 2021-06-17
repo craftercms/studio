@@ -24,8 +24,6 @@ import java.util.Map;
  */
 public interface PublishRequestMapper {
 
-    List<PublishRequest> getScheduledItems(Map params);
-
     void insertItemForDeployment(PublishRequest copyToEnvironment);
 
     void cancelWorkflow(Map params);

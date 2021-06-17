@@ -32,6 +32,9 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 
@@ -99,33 +102,40 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     }
 
     @Override
-    public List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments, ZonedDateTime fromDate, ZonedDateTime toDate, String filterType, int numberOfItems) {
+    public List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments,
+                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                            String filterType, int numberOfItems) {
         int offset = 0;
         int counter = 0;
         List<DeploymentHistoryItem> toRet = new ArrayList<DeploymentHistoryItem>();
-        List<PublishRequest> deploymentHistory;
-        do {
-            deploymentHistory = publishRequestDao.getDeploymentHistory(siteId, environments,
-                    COMPLETED,
-                    fromDate, toDate, offset, numberOfItems);
-            if (CollectionUtils.isNotEmpty(deploymentHistory)) {
-                for (PublishRequest publishRequest : deploymentHistory) {
-                    if (dmFilterWrapper.accept(siteId, publishRequest.getPath(), filterType)) {
-                        DeploymentHistoryItem dhi = new DeploymentHistoryItem();
-                        dhi.setSite(siteId);
-                        dhi.setPath(publishRequest.getPath());
-                        dhi.setDeploymentDate(publishRequest.getCompletedDate());
-                        dhi.setUser(publishRequest.getUser());
-                        dhi.setEnvironment(publishRequest.getEnvironment());
-                        toRet.add(dhi);
-                        if (!(++counter < numberOfItems)) {
-                            break;
-                        }
+        String contentTypeClass = null;
+        switch (filterType) {
+            case CONTENT_TYPE_PAGE:
+            case CONTENT_TYPE_COMPONENT:
+            case CONTENT_TYPE_ASSET:
+                contentTypeClass = filterType;
+                break;
+            default:
+                contentTypeClass = null;
+                break;
+        }
+        List<PublishRequest> deploymentHistory = publishRequestDao.getDeploymentHistory(siteId, environments,
+                COMPLETED, contentTypeClass, fromDate, toDate, offset, numberOfItems);
+        if (CollectionUtils.isNotEmpty(deploymentHistory)) {
+            for (PublishRequest publishRequest : deploymentHistory) {
+                    DeploymentHistoryItem dhi = new DeploymentHistoryItem();
+                    dhi.setSite(siteId);
+                    dhi.setPath(publishRequest.getPath());
+                    dhi.setDeploymentDate(publishRequest.getCompletedDate());
+                    dhi.setUser(publishRequest.getUser());
+                    dhi.setEnvironment(publishRequest.getEnvironment());
+                    toRet.add(dhi);
+                    if (!(++counter < numberOfItems)) {
+                        break;
                     }
-                    offset++;
-                }
             }
-        } while (CollectionUtils.isNotEmpty(deploymentHistory) && counter < numberOfItems );
+
+        }
         toRet.sort((o1, o2) -> o2.getDeploymentDate().compareTo(o1.getDeploymentDate()));
         return toRet;
     }
