@@ -436,6 +436,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 break;
             default:
                 contentTypeClass = null;
+                break;
         }
         return publishRequestDAO.getScheduledItems(site, PublishRequest.State.READY_FOR_LIVE, contentTypeClass,
                 ZonedDateTime.now(ZoneOffset.UTC));

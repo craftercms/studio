@@ -117,6 +117,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                 break;
             default:
                 contentTypeClass = null;
+                break;
         }
         List<PublishRequest> deploymentHistory = publishRequestDao.getDeploymentHistory(siteId, environments,
                 COMPLETED, contentTypeClass, fromDate, toDate, offset, numberOfItems);
