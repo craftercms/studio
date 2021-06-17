@@ -90,7 +90,21 @@ public interface PublishRequestDAO extends BaseDAO {
     List<PublishRequest> getDeploymentHistory(@Param(PARAM_NAME_SITE_ID) String siteId,
                               @Param(PARAM_NAME_ENVIRONMENTS) List<String> environments,
                               @Param(PARAM_NAME_COMPLETED_STATE) String completedState,
+                              @Param(PARAM_NAME_CONTENT_TYPE_CLASS) String contentTypeClass,
                               @Param(PARAM_NAME_FROM_DATE) ZonedDateTime fromDate,
                               @Param(PARAM_NAME_TO_DATE) ZonedDateTime toDate, @Param(PARAM_NAME_OFFSET) int offset,
                               @Param(PARAM_NAME_LIMIT) int limit);
+
+    /**
+     * Get scheduled items for given site
+     * @param siteId site identifier
+     * @param state ready for live state
+     * @param contentTypeClass filter by content type class
+     * @param now current date time
+     * @return
+     */
+    List<PublishRequest> getScheduledItems(@Param(PARAM_NAME_SITE_ID) String siteId,
+                                           @Param(PARAM_NAME_STATE) String state,
+                                           @Param(PARAM_NAME_CONTENT_TYPE_CLASS) String contentTypeClass,
+                                           @Param(PARAM_NAME_NOW) ZonedDateTime now);
 }

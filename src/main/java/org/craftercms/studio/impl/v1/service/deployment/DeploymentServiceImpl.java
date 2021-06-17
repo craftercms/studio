@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
@@ -66,7 +67,6 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
-import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -84,6 +84,9 @@ import java.util.UUID;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
@@ -128,6 +131,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected AuditServiceInternal auditServiceInternal;
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
     protected PublishingManager publishingManager;
+    protected PublishRequestDAO publishRequestDAO;
 
     @Override
     @ValidateParams
@@ -421,12 +425,20 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public List<PublishRequest> getScheduledItems(@ValidateStringParam(name = "site") String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("state", PublishRequest.State.READY_FOR_LIVE);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        return publishRequestMapper.getScheduledItems(params);
+    public List<org.craftercms.studio.api.v2.dal.PublishRequest> getScheduledItems(
+            @ValidateStringParam(name = "site") String site, String filterType) {
+        String contentTypeClass = null;
+        switch (filterType) {
+            case CONTENT_TYPE_PAGE:
+            case CONTENT_TYPE_COMPONENT:
+            case CONTENT_TYPE_ASSET:
+                contentTypeClass = filterType;
+                break;
+            default:
+                contentTypeClass = null;
+        }
+        return publishRequestDAO.getScheduledItems(site, PublishRequest.State.READY_FOR_LIVE, contentTypeClass,
+                ZonedDateTime.now(ZoneOffset.UTC));
     }
 
     @RetryingOperation
@@ -587,15 +599,14 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                     DmContentItemComparator subComparator, String filterType) {
         List<ContentItemTO> results = new FastArrayList();
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-        List<PublishRequest> deploying = getScheduledItems(site);
-        SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_FORMAT_SCHEDULED);
-        for (PublishRequest deploymentItem : deploying) {
+        List<org.craftercms.studio.api.v2.dal.PublishRequest> deploying = getScheduledItems(site, filterType);
+        for (org.craftercms.studio.api.v2.dal.PublishRequest deploymentItem : deploying) {
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(),
                     securityService.getCurrentUser(), Collections.<String>emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                addScheduledItem(site, deploymentItem.getEnvironment(), deploymentItem.getScheduledDate(), format,
+                addScheduledItem(site, deploymentItem.getEnvironment(), deploymentItem.getScheduledDate(),
                         deploymentItem.getPath(), deploymentItem.getPackageId(), results, comparator, subComparator,
-                        displayPatterns, filterType);
+                        displayPatterns);
             }
         }
         return results;
@@ -611,13 +622,13 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param comparator
      * @param displayPatterns
      */
-    protected void addScheduledItem(String site, String environment, ZonedDateTime launchDate, SimpleDateFormat format,
+    protected void addScheduledItem(String site, String environment, ZonedDateTime launchDate,
                                     String path, String packageId, List<ContentItemTO> scheduledItems,
                                     DmContentItemComparator comparator, DmContentItemComparator subComparator,
-                                    List<String> displayPatterns, String filterType) {
+                                    List<String> displayPatterns) {
         try {
-            addToScheduledDateList(site, environment, launchDate, format, path, packageId, scheduledItems, comparator,
-                    subComparator, displayPatterns, filterType);
+            addToScheduledDateList(site, environment, launchDate, path, packageId, scheduledItems, comparator,
+                    subComparator, displayPatterns);
             if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
@@ -638,11 +649,11 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param displayPatterns
      * @throws ServiceLayerException
      */
-    protected void addToScheduledDateList(String site, String environment, ZonedDateTime launchDate,
-                                          SimpleDateFormat format, String path, String packageId,
-                                          List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
-                                          DmContentItemComparator subComparator, List<String> displayPatterns,
-                                          String filterType) throws ServiceLayerException {
+    protected void addToScheduledDateList(String site, String environment, ZonedDateTime launchDate, String path,
+                                          String packageId, List<ContentItemTO> scheduledItems,
+                                          DmContentItemComparator comparator, DmContentItemComparator subComparator,
+                                          List<String> displayPatterns)
+            throws ServiceLayerException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         String dateLabel = launchDate.withZoneSameInstant(ZoneId.of(timeZone)).format(ISO_OFFSET_DATE_TIME);
         // add only if the current node is a file (directories are
@@ -650,35 +661,34 @@ public class DeploymentServiceImpl implements DeploymentService {
         // display only if the path matches one of display patterns
         if (ContentUtils.matchesPatterns(path, displayPatterns)) {
             ContentItemTO itemToAdd = contentService.getContentItem(site, path, 0);
-            if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
-                itemToAdd.scheduledDate = launchDate;
-                itemToAdd.environment = environment;
-                itemToAdd.packageId = packageId;
-                boolean found = false;
-                for (int index = 0; index < scheduledItems.size(); index++) {
-                    ContentItemTO currDateItem = scheduledItems.get(index);
-                    // if the same date label found, add the content item to
-                    // it non-recursively
-                    if (currDateItem.name.equals(dateLabel)) {
-                        currDateItem.addChild(itemToAdd, subComparator, false);
-                        found = true;
-                        break;
-                        // if the date is after the current date, add a new
-                        // date item before it
-                        // and add the content item to the new date item
-                    } else if (itemToAdd.scheduledDate.compareTo(currDateItem.scheduledDate) < 0) {
-                        ContentItemTO dateItem = createDateItem(dateLabel, itemToAdd, comparator, timeZone);
-                        scheduledItems.add(index, dateItem);
-                        found = true;
-                        break;
-                    }
-                }
-                // if not found, add to the end of list
-                if (!found) {
+            itemToAdd.scheduledDate = launchDate;
+            itemToAdd.environment = environment;
+            itemToAdd.packageId = packageId;
+            boolean found = false;
+            for (int index = 0; index < scheduledItems.size(); index++) {
+                ContentItemTO currDateItem = scheduledItems.get(index);
+                // if the same date label found, add the content item to
+                // it non-recursively
+                if (currDateItem.name.equals(dateLabel)) {
+                    currDateItem.addChild(itemToAdd, subComparator, false);
+                    found = true;
+                    break;
+                    // if the date is after the current date, add a new
+                    // date item before it
+                    // and add the content item to the new date item
+                } else if (itemToAdd.scheduledDate.compareTo(currDateItem.scheduledDate) < 0) {
                     ContentItemTO dateItem = createDateItem(dateLabel, itemToAdd, comparator, timeZone);
-                    scheduledItems.add(dateItem);
+                    scheduledItems.add(index, dateItem);
+                    found = true;
+                    break;
                 }
             }
+            // if not found, add to the end of list
+            if (!found) {
+                ContentItemTO dateItem = createDateItem(dateLabel, itemToAdd, comparator, timeZone);
+                scheduledItems.add(dateItem);
+            }
+
         }
     }
 
@@ -1059,5 +1069,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setPublishingManager(PublishingManager publishingManager) {
         this.publishingManager = publishingManager;
+    }
+
+    public PublishRequestDAO getPublishRequestDAO() {
+        return publishRequestDAO;
+    }
+
+    public void setPublishRequestDAO(PublishRequestDAO publishRequestDAO) {
+        this.publishRequestDAO = publishRequestDAO;
     }
 }

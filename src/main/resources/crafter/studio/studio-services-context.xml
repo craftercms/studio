@@ -177,6 +177,7 @@
          <property name="auditServiceInternal" ref="auditServiceInternal" />
          <property name="contentRepositoryV2" ref="contentRepository" />
          <property name="publishingManager" ref="cstudioPublishingManager" />
+         <property name="publishRequestDAO" ref="publishRequestDao" />
      </bean>
 
     <bean id="cstudioNotificationService"
