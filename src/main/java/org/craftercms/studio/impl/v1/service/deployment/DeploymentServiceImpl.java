@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
@@ -132,6 +133,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
     protected PublishingManager publishingManager;
     protected PublishRequestDAO publishRequestDAO;
+    protected RetryingOperationFacade retryingOperationFacade;
 
     @Override
     @ValidateParams
@@ -442,7 +444,6 @@ public class DeploymentServiceImpl implements DeploymentService {
                 ZonedDateTime.now(ZoneOffset.UTC));
     }
 
-    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
@@ -456,7 +457,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         publishRequestMapper.cancelWorkflow(params);
     }
 
-    @RetryingOperation
     @Override
     @ValidateParams
     public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
@@ -466,7 +466,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        publishRequestMapper.cancelWorkflowBulk(params);
+        retryingOperationFacade.cancelWorkflowBulk(params);
     }
 
     @Override
@@ -1078,5 +1078,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setPublishRequestDAO(PublishRequestDAO publishRequestDAO) {
         this.publishRequestDAO = publishRequestDAO;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

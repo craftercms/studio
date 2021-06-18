@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v1.repository.job;
 
-import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -28,7 +27,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.core.task.TaskExecutor;
 
@@ -42,7 +41,7 @@ public class RebuildRepositoryMetadata {
 
     private static ReentrantLock taskLock = new ReentrantLock();
 
-    protected PublishRequestMapper publishRequestMapper;
+    protected RetryingOperationFacade retryingOperationFacade;
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;
     protected DependencyService dependencyService;
@@ -94,7 +93,6 @@ public class RebuildRepositoryMetadata {
         }
     }
 
-    @RetryingOperation
     public boolean cleanOldMetadata(String site) {
         logger.debug("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();
@@ -111,7 +109,7 @@ public class RebuildRepositoryMetadata {
         try {
             // Delete deployment queue
             logger.debug("Deleting deployment queue for site " + site);
-            publishRequestMapper.deleteDeploymentDataForSite(params);
+            retryingOperationFacade.deleteDeploymentDataForSite(params);
         } catch (Exception error) {
             logger.error("Failed to delete deployment queue for site " + site);
         }
@@ -220,11 +218,11 @@ public class RebuildRepositoryMetadata {
         this.contentRepository = contentRepository;
     }
 
-    public PublishRequestMapper getPublishRequestMapper() {
-        return publishRequestMapper;
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
     }
 
-    public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
-        this.publishRequestMapper = publishRequestMapper;
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

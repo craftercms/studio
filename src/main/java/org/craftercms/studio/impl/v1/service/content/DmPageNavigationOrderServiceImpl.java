@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -57,6 +57,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         this._servicesManager.registerService(DmPageNavigationOrderService.class, this);
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
@@ -71,7 +72,6 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
                                  @ValidateSecurePathParam(name = "path") String path,
                                  @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
 
-        String lockId = site + ":" + path;
         double lastNavOrder = 1000D;
         try {
             Map<String, String> params = new HashMap<String, String>();
