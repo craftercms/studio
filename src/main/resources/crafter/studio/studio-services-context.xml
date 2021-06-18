@@ -82,6 +82,7 @@
         <property name="dependencyMapper" ref="dependencyMapper" />
         <property name="dependencyService" ref="dependencyService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -128,6 +129,7 @@
         <property name="clusterDao" ref="clusterDao" />
         <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -178,6 +180,7 @@
          <property name="contentRepositoryV2" ref="contentRepository" />
          <property name="publishingManager" ref="cstudioPublishingManager" />
          <property name="publishRequestDAO" ref="publishRequestDao" />
+         <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -210,6 +213,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="itemStateMapper" ref="itemStateMapper" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
@@ -822,6 +826,7 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -836,6 +841,8 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="studioUtils" ref="studio.utils" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <!-- /////// -->
@@ -1099,6 +1106,7 @@
         <property name="deploymentHistoryProvider" ref="contentRepository" />
         <property name="dependencyService" ref="studioDependencyService" />
         <property name="publishRequestMapper" ref="publishRequestMapper" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
@@ -1263,7 +1271,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
-        <property name="publishRequestMapper" ref="publishRequestMapper" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <bean id="studioSyncDatabaseWithRepository" class="org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository">

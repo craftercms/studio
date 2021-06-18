@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -84,6 +84,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -201,6 +202,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected SiteFeedMapper siteFeedMapper;
     protected ClusterDAO clusterDao;
     protected GeneralLockService generalLockService;
+    protected RetryingOperationFacade retryingOperationFacade;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -1544,7 +1546,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    @RetryingOperation
     public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
         HierarchicalConfiguration<ImmutableNode> registrationData =
                 studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
@@ -1552,7 +1553,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
             ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
             if (member != null) {
-                clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+                retryingOperationFacade.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
             }
         }
     }
@@ -2073,5 +2074,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

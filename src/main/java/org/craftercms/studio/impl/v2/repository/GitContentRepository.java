@@ -27,7 +27,6 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -53,6 +52,7 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
@@ -165,6 +165,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private SiteService siteService;
     private ObjectMetadataManager objectMetadataManager;
     private StudioUtils studioUtils;
+    private RetryingOperationFacade retryingOperationFacade;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -614,14 +615,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return gitLogDao.getGitLog(params);
     }
 
-    @RetryingOperation
     @Override
     public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         params.put("commitId", commitId);
         params.put("processed", 1);
-        gitLogDao.markGitLogProcessed(params);
+        retryingOperationFacade.markGitLogProcessed(params);
     }
 
     @RetryingOperation
@@ -1330,30 +1330,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    private void removeRemote(Git git, String remoteName) throws GitAPIException {
-        RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
-        remoteRemoveCommand.setRemoteName(remoteName);
-        remoteRemoveCommand.call();
-
-        List<Ref> resultRemoteBranches = git.branchList()
-                .setListMode(ListBranchCommand.ListMode.REMOTE)
-                .call();
-
-        List<String> branchesToDelete = new ArrayList<String>();
-        for (Ref remoteBranchRef : resultRemoteBranches) {
-            if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
-                branchesToDelete.add(remoteBranchRef.getName());
-            }
-        }
-        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
-            DeleteBranchCommand delBranch = git.branchDelete();
-            String[] array = new String[branchesToDelete.size()];
-            delBranch.setBranchNames(branchesToDelete.toArray(array));
-            delBranch.setForce(true);
-            delBranch.call();
-        }
-    }
-
     private void insertRemoteToDb(String siteId, String remoteName, String remoteUrl,
                                   String authenticationType, String remoteUsername, String remotePassword,
                                   String remoteToken, String remotePrivateKey) throws CryptoException {
@@ -1623,16 +1599,14 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toReturn;
     }
 
-    @RetryingOperation
     @Override
     public void markGitLogAudited(String siteId, String commitId) {
-        gitLogDao.markGitLogAudited(siteId, commitId, 1);
+        retryingOperationFacade.markGitLogAudited(siteId, commitId, 1);
     }
 
     @Override
     public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException {
         RingBuffer<RevCommit> commitIds = new RingBuffer<RevCommit>(batchSize);
-        SiteFeed siteFeed = siteService.getSite(siteId);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor, generalLockService);
@@ -1715,7 +1689,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     @Override
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
-        gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
+        retryingOperationFacade.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
     }
 
     @Override
@@ -1850,5 +1824,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setStudioUtils(StudioUtils studioUtils) {
         this.studioUtils = studioUtils;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

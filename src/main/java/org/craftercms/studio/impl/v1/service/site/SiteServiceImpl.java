@@ -104,6 +104,7 @@ import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -211,6 +212,7 @@ public class SiteServiceImpl implements SiteService {
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
     protected DependencyServiceInternal dependencyServiceInternal;
+    protected RetryingOperationFacade retryingOperationFacade;
 
     @Override
     @ValidateParams
@@ -1210,7 +1212,6 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
-    @RetryingOperation
     @Override
     @ValidateParams
     public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
@@ -1218,13 +1219,14 @@ public class SiteServiceImpl implements SiteService {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
-        siteFeedMapper.updateLastCommitId(params);
+        retryingOperationFacade.updateSiteLastCommitId(params);
 
         try {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(site);
-                clusterDao.updateNodeLastCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+                retryingOperationFacade.updateClusterNodeLastCommitId(clusterMember.getId(), siteFeed.getId(),
+                        commitId);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
@@ -1232,37 +1234,38 @@ public class SiteServiceImpl implements SiteService {
 
     }
 
-    @RetryingOperation
     @Override
     public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+        retryingOperationFacade.updateSiteLastVerifiedGitlogCommitId(params);
 
         try {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(site);
-                clusterDao.updateNodeLastVerifiedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+                retryingOperationFacade.updateClusterNodeLastVerifiedGitlogCommitId(clusterMember.getId(),
+                        siteFeed.getId(), commitId);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
         }
     }
-    @RetryingOperation
+
     @Override
     public void updateLastSyncedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        siteFeedMapper.updateLastSyncedGitlogCommitId(params);
+        retryingOperationFacade.updateSiteLastSyncedGitlogCommitId(params);
 
         try {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(site);
-                clusterDao.updateNodeLastSyncedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+                retryingOperationFacade.updateClusterNodeLastSyncedGitlogCommitId(clusterMember.getId(),
+                        siteFeed.getId(), commitId);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
@@ -2023,5 +2026,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }
