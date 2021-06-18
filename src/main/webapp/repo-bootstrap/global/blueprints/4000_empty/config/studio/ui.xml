@@ -22,7 +22,7 @@
           <configuration>
             <title id="words.dashboard" defaultMessage="Dashboard" />
             <icon id="@material-ui/icons/DashboardRounded" />
-            <widget id="craftercms.components.LegacyDashboardFrame" />
+            <widget id="craftercms.components.Dashboard" />
           </configuration>
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
