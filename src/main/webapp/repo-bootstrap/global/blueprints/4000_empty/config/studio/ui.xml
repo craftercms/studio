@@ -448,7 +448,7 @@
         <widget id="craftercms.components.ApprovedScheduledDashlet"/>
         <widget id="craftercms.components.RecentlyPublishedDashlet"/>
         <widget id="craftercms.components.RecentActivityDashlet"/>
-        <widget id="craftercms.compnents.IconGuideDashlet"/>
+        <widget id="craftercms.components.IconGuideDashlet"/>
       </widgets>
     </configuration>
   </widget>
