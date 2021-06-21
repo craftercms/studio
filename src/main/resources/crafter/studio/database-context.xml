@@ -86,6 +86,11 @@
     </bean>
 
     <!-- MyBatis Mappers -->
+    <bean id="studio.retryingOperationFacade"
+          class="org.craftercms.studio.impl.v2.dal.RetryingOperationFacadeImpl">
+        <property name="itemDao" ref="itemDao" />
+    </bean>
+
     <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.DependencyMapper" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />

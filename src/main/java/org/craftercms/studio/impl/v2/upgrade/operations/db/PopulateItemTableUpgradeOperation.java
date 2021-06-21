@@ -231,7 +231,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 .withLastModifiedOn(folder.lastModified() > 0 ?
                         ZonedDateTime.from(Instant.ofEpochMilli(folder.lastModified()).atZone(UTC)) : null)
                 .withLabel(name).withSystemType("folder").build();
-        itemServiceInternal.upsertEntry(site, item);
+        itemServiceInternal.upsertEntry(item);
     }
 
     private void processFile(String site, String path, String commitId,
@@ -250,7 +250,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         if (StringUtils.endsWith(name, ".xml")) {
             populateDescriptorProperties(site, path, item);
         }
-        itemServiceInternal.upsertEntry(site, item);
+        itemServiceInternal.upsertEntry(item);
     }
 
     private void populateDescriptorProperties(String site, String path, Item item) throws DocumentException {

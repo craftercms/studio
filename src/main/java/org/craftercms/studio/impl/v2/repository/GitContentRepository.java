@@ -630,12 +630,20 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     @RetryingOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed) {
-        insertGitLog(siteId, commitId, processed, 0);
+        String lockKey = "GitLogLock:" + siteId;
+        generalLockService.lock(lockKey);
+        try {
+            insertGitLog(siteId, commitId, processed, 0);
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
     }
 
     @RetryingOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed, int audited) {
+        String lockKey = "GitLogLock";
+        generalLockService.lock(lockKey);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         params.put("commitId", commitId);
@@ -652,6 +660,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             params.put("commitId", commitId);
             params.put("processed", 0);
             gitLogDao.markGitLogProcessed(params);
+        } finally {
+            generalLockService.unlock(lockKey);
         }
     }
 
@@ -1559,7 +1569,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     @RetryingOperation
     @Override
     public void markGitLogAudited(String siteId, String commitId) {
-        gitLogDao.markGitLogAudited(siteId, commitId, 1);
+        String lockKey = "GitLogLock:" + siteId;
+        generalLockService.lock(lockKey);
+        try {
+            gitLogDao.markGitLogAudited(siteId, commitId, 1);
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
     }
 
     @Override
@@ -1568,6 +1584,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         SiteFeed siteFeed = siteService.getSite(siteId);
         Repository repository = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
         if (repository != null) {
+            String lockKey = "GitLogLock" + siteId;
+            generalLockService.lock(lockKey);
             try {
 
                 ObjectId objCommitIdFrom = repository.resolve(lastProcessedCommitId);
@@ -1623,8 +1641,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             } catch (IOException e) {
                 logger.error("Error getting commit ids for site " + siteId + " from commit ID: " +
                         lastProcessedCommitId + " to HEAD", e);
+            } finally {
+                generalLockService.unlock(lockKey);
             }
-
         }
     }
 

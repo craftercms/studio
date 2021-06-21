@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
@@ -178,7 +177,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 // TODO: get local code with API 2
                 itemServiceInternal.persistItemAfterWrite(site, contentPath, user, result.getCommitId(),
                         Optional.of(unlock));
-                itemServiceInternal.updateParentIds(site, path);
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {

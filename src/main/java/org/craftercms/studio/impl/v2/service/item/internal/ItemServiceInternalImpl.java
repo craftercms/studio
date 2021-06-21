@@ -26,12 +26,17 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
+import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
+import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -41,8 +46,10 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,8 +58,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -68,6 +78,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateParentIdSimple;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
 
@@ -84,40 +95,17 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private ServicesConfig servicesConfig;
     private ContentServiceInternal contentServiceInternal;
     private ContentService contentService;
+    private GeneralLockService generalLockService;
+    private RetryingOperationFacade retryingOperationFacade;
+    private StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 
     @Override
-    public void upsertEntry(String siteId, Item item) {
-        List<Item> items = new ArrayList<Item>();
-        items.addAll(getAncestors(item));
-        items.add(item);
-        upsertEntries(siteId, items);
+    public boolean upsertEntry(Item item) {
+        itemDao.upsertEntry(item);
+        return true;
     }
 
-    // Create items representing all ancestors until repository root
-    // In order to insert item into DB we need to insert all ancestors to establish parent-child relationship
-    private List<Item> getAncestors(Item item) {
-        List<Item> ancestors = new ArrayList<Item>();
-        String itemPath = item.getPath();
-        Path p = Paths.get(itemPath);
-        List<Path> parts = new LinkedList<>();
-        if (Objects.nonNull(p.getParent())) {
-            p.getParent().iterator().forEachRemaining(parts::add);
-        }
-        Item i = Item.Builder.buildFromClone(item).withPath(StringUtils.EMPTY).build();
-        if (CollectionUtils.isNotEmpty(parts)) {
-            for (Path ancestor : parts) {
-                if (StringUtils.isNotEmpty(ancestor.toString())) {
-                    i = instantiateItem(item.getSiteName(), i.getPath() + FILE_SEPARATOR + ancestor.toString())
-                            .withSystemType("folder").withLabel(ancestor.toString()).build();
-                    if (i.getId() < 1) {
-                        ancestors.add(i);
-                    }
-                }
-            }
-        }
-        return ancestors;
-    }
-
+    @RetryingOperation
     @Override
     public void upsertEntries(String siteId, List<Item> items) {
         if (CollectionUtils.isNotEmpty(items)) {
@@ -130,7 +118,40 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        itemDao.updateParentIdForSite(siteFeed.getId(), rootPath);
+
+        try {
+            String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
+            Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
+
+            Item rootItem = getItem(siteId, rootPath, true);
+            Queue<Item> queue = new LinkedList<Item>();
+            queue.add(rootItem);
+
+            while (!queue.isEmpty()) {
+                Item parentItem = queue.poll();
+                List<Item> children = itemDao.getAllChildrenByPath(siteFeed.getId(),
+                        parentItem.getPath());
+                if (CollectionUtils.isNotEmpty(children)) {
+                    for (Item item : children) {
+                        queue.add(item);
+                        Files.write(updateParentIdScriptPath, updateParentIdSimple(parentItem.getId(),
+                                item.getId()).getBytes(UTF_8), StandardOpenOption.APPEND);
+                        Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+                    }
+                }
+            }
+
+            StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
+            studioDBScriptRunner.openConnection();
+            try {
+                studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
+            } finally {
+                studioDBScriptRunner.closeConnection();
+            }
+        } catch (IOException e) {
+            logger.error("Error while executing update parents ids script for site " + siteId + " and subtree of " +
+                    "path " + rootPath);
+        }
     }
 
     @Override
@@ -140,10 +161,20 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public Item getItem(String siteId, String path) {
+        return getItem(siteId, path, false);
+    }
+
+    @Override
+    public Item getItem(String siteId, String path, boolean preferContent) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        Item item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path);
+        Item item = null;
+        if (preferContent) {
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path);
+        } else {
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path);
+        }
         if (Objects.nonNull(item)) {
             item.setSiteName(siteId);
         }
@@ -419,38 +450,45 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void persistItemAfterCreate(String siteId, String path, String username, String commitId,
-                                       Optional<Boolean> unlock)
+                                       Optional<Boolean> unlock, Long parentId)
             throws ServiceLayerException, UserNotFoundException {
-        User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-        var descriptor = contentServiceInternal.getItem(siteId, path, false);
-        String disabledStr = descriptor.queryDescriptorValue(DISABLED);
-        boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
-        String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
-        if (StringUtils.isEmpty(label)) {
-            logger.error("Label = " + label);
+        String lockKey = "persistItemAfterCreate:" + siteId ;
+        generalLockService.lock(lockKey);
+        try {
+            User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
+            var descriptor = contentServiceInternal.getItem(siteId, path, false);
+            String disabledStr = descriptor.queryDescriptorValue(DISABLED);
+            boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
+            String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+            if (StringUtils.isEmpty(label)) {
+                logger.error("Label = " + label);
+            }
+            Item item = instantiateItem(siteId, path)
+                    .withPreviewUrl(getBrowserUrl(siteId, path))
+                    .withOwnedBy(userObj.getId())
+                    .withCreatedBy(userObj.getId())
+                    .withCreatedOn(ZonedDateTime.now())
+                    .withLastModifiedBy(userObj.getId())
+                    .withLastModifiedOn(ZonedDateTime.now())
+                    .withLabel(label)
+                    .withSystemType(contentService.getContentTypeClass(siteId, path))
+                    .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
+                    .withMimeType(StudioUtils.getMimeType(path))
+                    .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
+                    .withCommitId(commitId)
+                    .withDisabled(disabled)
+                    .withSize(contentServiceInternal.getContentSize(siteId, path))
+                    .withParentId(parentId)
+                    .build();
+            if (unlock.isPresent() && !unlock.get()) {
+                item.setState(ItemState.savedAndNotClosed(item.getState()));
+            } else {
+                item.setState(ItemState.savedAndClosed(item.getState()));
+            }
+            retryingOperationFacade.upsertEntry(item);
+        } finally {
+            generalLockService.unlock(lockKey);
         }
-        Item item = instantiateItem(siteId, path)
-                .withPreviewUrl(getBrowserUrl(siteId, path))
-                .withOwnedBy(userObj.getId())
-                .withCreatedBy(userObj.getId())
-                .withCreatedOn(ZonedDateTime.now())
-                .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(ZonedDateTime.now())
-                .withLabel(label)
-                .withSystemType(contentService.getContentTypeClass(siteId, path))
-                .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
-                .withMimeType(StudioUtils.getMimeType(path))
-                .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
-                .withCommitId(commitId)
-                .withDisabled(disabled)
-                .withSize(contentServiceInternal.getContentSize(siteId, path))
-                .build();
-        if (unlock.isPresent() && !unlock.get()) {
-            item.setState(ItemState.savedAndNotClosed(item.getState()));
-        } else {
-            item.setState(ItemState.savedAndClosed(item.getState()));
-        }
-        upsertEntry(siteId, item);
     }
 
     @Override
@@ -483,12 +521,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         } else {
             item.setState(ItemState.savedAndClosed(item.getState()));
         }
-        upsertEntry(siteId, item);
+        upsertEntry(item);
     }
 
     @Override
     public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
-                                             String commitId)
+                                             String commitId, Long parentId)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, folderPath)
@@ -496,10 +534,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withLastModifiedOn(ZonedDateTime.now())
                 .withLabel(folderName)
                 .withCommitId(commitId)
+                .withParentId(parentId)
                 .build();
         item.setState(ItemState.savedAndClosed(item.getState()));
         item.setSystemType("folder");
-        upsertEntry(siteId, item);
+        upsertEntry(item);
     }
 
     @Override
@@ -787,5 +826,21 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

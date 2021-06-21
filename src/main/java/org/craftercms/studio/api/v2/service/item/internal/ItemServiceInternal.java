@@ -32,10 +32,9 @@ public interface ItemServiceInternal {
     /**
      * Insert record for item if does not exist, otherwise update it
      *
-     * @param siteId site identifier
      * @param item item to add or update
      */
-    void upsertEntry(String siteId, Item item);
+    boolean upsertEntry(Item item);
 
     /**
      * Insert records for list of item if they do not exist, otherwise update them
@@ -66,6 +65,15 @@ public interface ItemServiceInternal {
      * @return item
      */
     Item getItem(String siteId, String path);
+
+    /**
+     * Get item fir given site and path
+     * @param siteId site identifier
+     * @param path item path
+     * @param preferContent if true return content item if available
+     * @return item
+     */
+    Item getItem(String siteId, String path, boolean preferContent);
 
     /**
      * Update item
@@ -315,11 +323,12 @@ public interface ItemServiceInternal {
      * @param username user that executed write operation
      * @param commitId commit id of the write operation
      * @param unlock true if content needs to be unlocked after write (save & close), otherwise false
+     * @param parentId id of parent item
      * @throws ServiceLayerException
      * @throws UserNotFoundException
      */
     void persistItemAfterCreate(String siteId, String path, String username, String commitId,
-                                Optional<Boolean> unlock)
+                                Optional<Boolean> unlock, Long parentId)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
@@ -340,11 +349,12 @@ public interface ItemServiceInternal {
      * @param folderName folder name
      * @param username user that executed create folder operation
      * @param commitId commit id of the create folder operation
+     * @param parentId id of parent item
      * @throws ServiceLayerException
      * @throws UserNotFoundException
      */
     void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, String username,
-                                      String commitId)
+                                      String commitId, Long parentId)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
